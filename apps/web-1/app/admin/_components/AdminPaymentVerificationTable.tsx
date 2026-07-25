@@ -145,7 +145,9 @@ export default function AdminPaymentVerificationTable({
             <Table.Tr>
               <Table.Th className="text-left">Mã hồ sơ</Table.Th>
               <Table.Th className="text-left">Gói dịch vụ</Table.Th>
+              <Table.Th className="text-left">Người nộp</Table.Th>
               <Table.Th className="text-left">Số tiền</Table.Th>
+              <Table.Th className="text-left">Mã GD ngân hàng</Table.Th>
               <Table.Th className="text-left">Thời gian gửi</Table.Th>
               <Table.Th className="text-left">Biên lai giao dịch</Table.Th>
               <Table.Th className="text-center w-28">Thao tác</Table.Th>
@@ -154,7 +156,7 @@ export default function AdminPaymentVerificationTable({
           <Table.Tbody>
             {filteredAndSortedPayments.length === 0 ? (
               <Table.Tr>
-                <Table.Td colSpan={6} className="text-center py-8 text-text-muted font-body text-xs">
+                <Table.Td colSpan={8} className="text-center py-8 text-text-muted font-body text-xs">
                   Không tìm thấy kết quả phù hợp với bộ lọc hiện tại.
                 </Table.Td>
               </Table.Tr>
@@ -167,8 +169,14 @@ export default function AdminPaymentVerificationTable({
                   <Table.Td className="font-semibold text-text-muted" title={payment.package?.name || "Gói dịch vụ"}>
                     {payment.package?.name && payment.package.name.length > 30 ? `${payment.package.name.slice(0, 30)}...` : (payment.package?.name || "Gói dịch vụ")}
                   </Table.Td>
+                  <Table.Td className="text-text-subtle">
+                    {payment.payer?.display_username || payment.payer?.name || "—"}
+                  </Table.Td>
                   <Table.Td className="font-heading font-semibold text-red-600 text-xs">
                     {formatPrice(payment.amount)}
+                  </Table.Td>
+                  <Table.Td className="text-text-subtle font-mono text-xs">
+                    {payment.bank_transaction_id || "—"}
                   </Table.Td>
                   <Table.Td className="text-text-subtle">
                     {formatDate(payment.created_at)}

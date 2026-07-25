@@ -255,6 +255,13 @@ export default function PaymentPage() {
             >
               Về trang hồ sơ
             </Button>
+            {payment.bank_transaction_id && (
+              <div className="text-center">
+                <p className="text-xs text-text-muted">
+                  Mã giao dịch: <span className="font-mono font-semibold">{payment.bank_transaction_id}</span>
+                </p>
+              </div>
+            )}
           </div>
         )}
 
