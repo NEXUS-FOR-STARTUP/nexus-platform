@@ -1,0 +1,138 @@
+# =============================================================================
+# Docker Compose — Nexus Platform (Production VPS)
+# =============================================================================
+# Prerequisites: docker network create proxy-net
+# =============================================================================
+
+name: nexus-platform
+
+services:
+  db:
+    image: postgres:18.4
+    container_name: nexus-db
+    restart: unless-stopped
+    stop_grace_period: 60s
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env.prod
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - nexus-network
+      - db-net
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+
+  api:
+    image: lgdlong/nexus-api:latest
+    container_name: nexus-api
+    restart: unless-stopped
+    stop_grace_period: 30s
+    pull_policy: always
+    env_file:
+      - .env.prod
+    environment:
+      NODE_ENV: production
+      PORT: "8000"
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable
+      BETTER_AUTH_URL: https://${DOMAIN}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - nexus-network
+      - proxy-net
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy-net"
+      - "traefik.http.middlewares.compress.compress=true"
+      - "traefik.http.middlewares.security-headers.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.security-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.security-headers.headers.frameDeny=true"
+      - "traefik.http.middlewares.security-headers.headers.referrerPolicy=strict-origin-when-cross-origin"
+      - "traefik.http.routers.nexus-api.rule=Host(`${DOMAIN}`) && (PathPrefix(`/api`) || PathPrefix(`/health`) || PathPrefix(`/session`) || PathPrefix(`/stream`))"
+      - "traefik.http.routers.nexus-api.entrypoints=websecure"
+      - "traefik.http.routers.nexus-api.tls=true"
+      - "traefik.http.routers.nexus-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.nexus-api.middlewares=compress,security-headers"
+      - "traefik.http.services.nexus-api.loadbalancer.server.port=8000"
+
+  web:
+    image: lgdlong/nexus-web:latest
+    container_name: nexus-web
+    restart: unless-stopped
+    stop_grace_period: 15s
+    pull_policy: always
+    env_file:
+      - .env.prod
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+    depends_on:
+      - api
+    networks:
+      - nexus-network
+      - proxy-net
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy-net"
+      - "traefik.http.routers.nexus-web.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.nexus-web.entrypoints=websecure"
+      - "traefik.http.routers.nexus-web.tls=true"
+      - "traefik.http.routers.nexus-web.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.nexus-web.middlewares=compress,security-headers"
+      - "traefik.http.services.nexus-web.loadbalancer.server.port=3000"
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  nexus-network:
+    driver: bridge
+  proxy-net:
+    name: proxy-net
+    external: true
+  db-net:
+    external: true
