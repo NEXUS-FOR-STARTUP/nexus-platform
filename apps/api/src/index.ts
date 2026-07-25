@@ -28,8 +28,14 @@ const port = Number(process.env.PORT ?? 8000)
 app.use(
   '/api/*',
   cors({
-    origin: (origin) =>
-      /^http:\/\/localhost:(3000|3001)$/.test(origin) ? origin : null,
+    origin: (origin) => {
+      if (!origin) return null
+      const allowedOrigins = [
+        /^http:\/\/localhost:(3000|3001)$/,
+        /^https:\/\/(?:www\.)?nexusforstartup\.site$/,
+      ]
+      return allowedOrigins.some((r) => r.test(origin)) ? origin : null
+    },
     allowHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
