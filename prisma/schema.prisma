@@ -31,6 +31,7 @@ model User {
   case_memberships   CaseMember[]  @relation("CaseMembers")
   approved_reports       Report[]      @relation("ReportApprover")
   verified_payments      Payment[]     @relation("PaymentVerifier")
+  payment_payments       Payment[]     @relation("PaymentPayer")
   sent_messages          CaseMessage[] @relation("MessageSender")
   acted_events           CaseEvent[]   @relation("EventActor")
   package_price_changes  ServicePackage[] @relation("PackagePriceChanger")
@@ -320,15 +321,26 @@ model Payment {
   created_at               DateTime  @default(now())
   updated_at               DateTime  @updatedAt
   metadata_json             Json?
+  transfer_content          String?
+  bank_transaction_id       String?
+  bank_credited_at          DateTime?
+  payer_auth_user_id        String?
+  currency                  String     @default("VND")
+  payment_method            String     @default("bank_transfer")
 
   case        Case           @relation(fields: [case_id], references: [id], onDelete: Cascade)
   package     ServicePackage? @relation(fields: [package_id], references: [id])
   verified_by User?          @relation("PaymentVerifier", fields: [verified_by_auth_user_id], references: [id])
   events      CaseEvent[]
+  payer       User?          @relation("PaymentPayer", fields: [payer_auth_user_id], references: [id], onDelete: SetNull)
 
   @@index([case_id])
   @@index([package_id])
   @@index([verified_by_auth_user_id])
+  @@unique([transfer_content])
+  @@index([transfer_content])
+  @@index([bank_transaction_id])
+  @@index([payer_auth_user_id])
   @@map("payments")
 }
 
