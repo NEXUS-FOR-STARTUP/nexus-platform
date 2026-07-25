@@ -12,6 +12,7 @@ export async function findManyPaymentsWithCase() {
           },
         },
       },
+      payer: { select: { id: true, name: true, display_username: true } },
     },
     orderBy: { created_at: "desc" },
   });
@@ -20,6 +21,7 @@ export async function findManyPaymentsWithCase() {
 export async function findPaymentById(id: string) {
   return await prisma.payment.findUnique({
     where: { id },
+    include: { payer: true },
   });
 }
 
@@ -39,6 +41,8 @@ export async function createUnpaidPayment(data: {
   packageId: string;
   amount: number;
   metadataJson: Record<string, unknown> | null;
+  transferContent: string;
+  payerAuthUserId: string;
 }) {
   return await prisma.payment.create({
     data: {
@@ -47,6 +51,10 @@ export async function createUnpaidPayment(data: {
       amount: data.amount,
       status: "unpaid",
       metadata_json: (data.metadataJson ?? undefined) as any,
+      transfer_content: data.transferContent,
+      payer_auth_user_id: data.payerAuthUserId,
+      currency: "VND",
+      payment_method: "bank_transfer",
     },
   });
 }

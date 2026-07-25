@@ -94,11 +94,15 @@ export async function sepayWebhookUseCase(
       adminId: "sepay_system",
     });
 
-    // Store SePay transaction ID in metadata for audit
+    // Store SePay transaction info — columns + metadata (expand-contract)
     const existingMeta = (payment as any).metadata_json as Record<string, unknown> | null ?? {};
     await prisma.payment.update({
       where: { id: payment.id },
       data: {
+        // NEW — write to dedicated columns
+        bank_transaction_id: String(txnId),
+        bank_credited_at: new Date(payload.transactionDate),
+        // Keep metadata for backward compat (expand-contract)
         metadata_json: {
           ...existingMeta,
           sepay_transaction_id: txnId,
@@ -131,16 +135,9 @@ function extractCodeFromContent(content: string): string | null {
   return match ? match[0] : null;
 }
 
-/** Find unpaid payment where metadata_json.transfer_content matches the code */
+/** Find unpaid payment where transfer_content column matches the code */
 async function findPaymentByTransferContent(code: string) {
-  const payments = await prisma.payment.findMany({
-    where: { status: { notIn: ["paid", "rejected"] } },
-    orderBy: { created_at: "desc" },
-    take: 50,
+  return await prisma.payment.findFirst({
+    where: { transfer_content: code, status: { notIn: ["paid", "rejected"] } },
   });
-
-  return payments.find((p) => {
-    const meta = (p as any).metadata_json as Record<string, unknown> | null;
-    return meta?.transfer_content === code;
-  }) ?? null;
 }

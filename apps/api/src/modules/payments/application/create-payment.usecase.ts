@@ -78,6 +78,8 @@ export async function createPaymentUseCase(
       packageId: caseObj.package_id,
       amount: body.amount,
       metadataJson: metadataWithTransfer,
+      transferContent,
+      payerAuthUserId: userId,
     });
 
     const bankInfo = getBankInfo(transferContent, body.amount);
