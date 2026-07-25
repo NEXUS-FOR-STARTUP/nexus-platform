@@ -151,7 +151,7 @@ model Case {
   owner              User            @relation("OwnerCases", fields: [owner_auth_user_id], references: [id])
   assigned_supporter User?           @relation("AssignedCases", fields: [assigned_supporter_auth_user_id], references: [id])
   package            ServicePackage? @relation(fields: [package_id], references: [id])
-  
+
   members            CaseMember[]
   checkpoints        Checkpoint[]
   lifecycle_units    LifecycleUnit[]
