@@ -2,7 +2,14 @@
 
 Guide build và push Docker images cho Nexus Platform lên Docker Hub.
 
-`NEXT_PUBLIC_API_URL=https://nexusforstartup.site`
+> ⚠️ **WARNING — Web image bắt BUỘC `--build-arg NEXT_PUBLIC_API_URL`**
+>
+> `NEXT_PUBLIC_API_URL` là **build-time argument**, Next.js inline giá trị này vào JS bundle.
+> **Không phải runtime env**. Nếu thiếu, bundle sẽ dùng fallback `http://localhost:8000`
+> → trình duyệt user fetch tới localhost của chính họ → **auth loop, loading vô hạn**.
+>
+> **Phải có `--build-arg NEXT_PUBLIC_API_URL=...` trong lệnh `docker build` web image.**
+> Kiểm tra bằng `docker exec nexus-web env | grep NEXT_PUBLIC` — nếu không thấy là sai.
 
 ## Prerequisites
 
@@ -139,11 +146,28 @@ COPY --from=deps /app/apps/<workspace>/node_modules ./apps/<workspace>/node_modu
 
 API Dockerfile COPY `prisma/` thủ công vì `turbo prune` không include file ngoài workspace deps.
 
-### Web image sai NEXT_PUBLIC_API_URL
+### Web image sai NEXT_PUBLIC_API_URL [TRIỆU CHỨNG: auth loading vô hạn]
 
-- Sửa giá trị trong lệnh build `--build-arg NEXT_PUBLIC_API_URL=...` → rebuild
-- Đổi domain → rebuild web image (không chỉ restart container)
-- Check bằng `curl http://localhost:3000`
+**Hậu quả:** `useSession()` trên browser fetch tới `http://localhost:8000/api/auth/get-session`
+(không phải server) → kết nối bị từ chối → `isPending` không bao giờ resolve →
+"Đang tải phiên làm việc..." vô hạn.
+
+**Fix:**
+1. Build lại web image với đúng build arg: `--build-arg NEXT_PUBLIC_API_URL=https://nexusforstartup.site`
+2. Push image lên Docker Hub
+3. Deploy lại web container
+4. Không restart container cũng không set env trong compose — phải rebuild image
+
+**Verify:**
+```bash
+# Sau khi deploy, kiểm tra env trong container
+docker exec nexus-web env | grep NEXT_PUBLIC
+# Output kỳ vọng: NEXT_PUBLIC_API_URL=https://nexusforstartup.site
+
+# Kiểm tra bundle JS (nginx/next.js server)
+docker exec nexus-web sh -c 'find apps/web-1/.next -name "*.js" -exec grep -l "nexusforstartup.site" {} \; 2>/dev/null | head -3'
+# Output kỳ vọng: tìm thấy file JS chứa domain
+```
 
 ### BuildKit
 
