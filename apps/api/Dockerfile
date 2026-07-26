@@ -56,18 +56,20 @@ RUN addgroup --system --gid 1001 nodejs && \
 
 USER nexus
 
-# Compiled output
-COPY --from=builder --chown=nexus:nodejs /app/apps/api/dist ./apps/api/dist
-# Runtime deps (node_modules with @prisma/client)
-# npm workspaces create symlinks — the target packages must also exist
-COPY --from=builder --chown=nexus:nodejs /app/node_modules ./node_modules
+# ── Stable layers (cached unless deps change) ──
+# Root node_modules — copy from deps stage (cached when lockfile unchanged)
+COPY --from=deps --chown=nexus:nodejs /app/node_modules ./node_modules
 # Workspace-level node_modules (npm hoisting fails for conflicting deps: @ai-sdk/google, etc.)
-COPY --from=builder --chown=nexus:nodejs /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=deps --chown=nexus:nodejs /app/apps/api/node_modules ./apps/api/node_modules
 # Shared packages needed at runtime (exports raw TS, referenced via symlink)
 COPY --from=builder --chown=nexus:nodejs /app/packages ./packages
 # Prisma schema + migrations + config for prisma migrate at runtime
 COPY --from=builder --chown=nexus:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nexus:nodejs /app/prisma.config.ts ./prisma.config.ts
+
+# ── Changing layers (rebuilt every source change) ──
+# Compiled output — only this changes most builds
+COPY --from=builder --chown=nexus:nodejs /app/apps/api/dist ./apps/api/dist
 # Package.json for workspace context
 COPY --from=builder --chown=nexus:nodejs /app/apps/api/package.json ./apps/api/package.json
 
