@@ -67,6 +67,10 @@ COPY --from=builder --chown=nexus:nodejs /app/packages ./packages
 COPY --from=builder --chown=nexus:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nexus:nodejs /app/prisma.config.ts ./prisma.config.ts
 
+# ── Prisma generated client (generated during build; overlay from builder) ──
+COPY --from=builder --chown=nexus:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nexus:nodejs /app/node_modules/@prisma/client ./node_modules/@prisma/client
+
 # ── Changing layers (rebuilt every source change) ──
 # Compiled output — only this changes most builds
 COPY --from=builder --chown=nexus:nodejs /app/apps/api/dist ./apps/api/dist
