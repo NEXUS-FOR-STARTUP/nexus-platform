@@ -62,8 +62,10 @@ docker login
 ### 2. Build API Image
 
 ```bash
-docker build -f apps/api/Dockerfile -t lgdlong/nexus-api:latest .
+docker build --no-cache -f apps/api/Dockerfile -t lgdlong/nexus-api:latest .
 ```
+
+> **Why `--no-cache`?** Prisma Client generate phụ thuộc vào `schema.prisma`. Docker cache layer `npm run build` không invalidate khi chỉ schema thay đổi → image cũ chạy Prisma Client cũ → lỗi `Unknown argument` hoặc missing field. Luôn `--no-cache` cho API build.
 
 ### 3. Build Web Image
 
@@ -97,7 +99,7 @@ make build-push domain=nexusforstartup.site
 
 ```bash
 # Build & push API
-docker build -f apps/api/Dockerfile -t lgdlong/nexus-api:latest . && docker push lgdlong/nexus-api:latest
+docker build --no-cache -f apps/api/Dockerfile -t lgdlong/nexus-api:latest . && docker push lgdlong/nexus-api:latest
 
 # Build & push Web
 docker build -f apps/web-1/Dockerfile \
@@ -186,7 +188,7 @@ $env:DOCKER_BUILDKIT=1
 ```yaml
 - name: Build and push API
   run: |
-    docker build -f apps/api/Dockerfile -t lgdlong/nexus-api:latest .
+    docker build --no-cache -f apps/api/Dockerfile -t lgdlong/nexus-api:latest .
     docker push lgdlong/nexus-api:latest
 
 - name: Build and push Web

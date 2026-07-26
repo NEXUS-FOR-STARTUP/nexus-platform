@@ -29,17 +29,20 @@ root/
 
 ## WHERE TO LOOK
 
-| Task            | Location                                              | Notes                                            |
-| --------------- | ----------------------------------------------------- | ------------------------------------------------ |
-| Backend/API     | `apps/api/src/index.ts`, `auth.ts`, `db.ts`, `env.ts` | Hono entry, auth mount, DB wiring                |
-| Web UI          | `apps/web-1/app/*`                                    | Mantine UI v9 app; read `apps/web-1/AGENTS.md` first |
-| Shared UI       | `packages/ui/src/*`                                   | Common primitives for shared React usage         |
-| DB schema       | `prisma/schema-*.md` or `prisma/schema.prisma`        | 16 models, plural snake_case fields              |
-| Tech docs       | `docs/tech-doc-urls.txt`                              | Source of truth for external docs                |
-| Workspace rules | `package.json`, `turbo.json`                          | Root scripts + Turbo task graph                  |
-| Shared packages | `packages/validation/src/`, `packages/ui/src/`        | Zod schemas, React primitives                    |
+| Task            | Location                                              | Notes                                                        |
+| --------------- | ----------------------------------------------------- | ------------------------------------------------------------ |
+| Backend/API     | `apps/api/src/index.ts`, `auth.ts`, `db.ts`, `env.ts` | Hono entry, auth mount, DB wiring                            |
+| Web UI          | `apps/web-1/app/*`                                    | Mantine UI v9 app; read `apps/web-1/AGENTS.md` first         |
+| Shared UI       | `packages/ui/src/*`                                   | Common primitives for shared React usage                     |
+| DB schema       | `prisma/schema-*.md` or `prisma/schema.prisma`        | 16 models, plural snake_case fields                          |
+| Tech docs       | `docs/tech-doc-urls.txt`                              | Source of truth for external docs                            |
+| Workspace rules | `package.json`, `turbo.json`                          | Root scripts + Turbo task graph                              |
+| Shared packages | `packages/validation/src/`, `packages/ui/src/`        | Zod schemas, React primitives                                |
 | Agent rules     | `.agents/rules/`                                      | Development, docs, orchestration, workflow, prisma-migration |
-| Test infra      | `apps/api/src/shared/infrastructure/tests/`           | 12 test files, Node built-in runner              |
+| Test infra      | `apps/api/src/shared/infrastructure/tests/`           | 12 test files, Node built-in runner                          |
+| DB query (prod) | `docs/db-query-guide.md`                              | Read-only query via READONLY_DATABASE_URL, guest account     |
+| DB backup       | `docs/db-backup-guide.md`                             | pg_dump via Docker, safe SQL on VPS, restore                 |
+| Docker build    | `docs/docker-build-push-guide.md`                     | Build/push API & Web images, deploy to VPS                   |
 
 ## CONVENTIONS
 
@@ -104,6 +107,10 @@ npm test                       # Only in apps/api: tsx --test (Node built-in run
 npm run format                 # Prettier (not in CI pipeline)
 ```
 
+## DOCKER BUILD & DEPLOY
+
+> Full guide: `docs/docker-build-push-guide.md` — troubleshooting, Makefile shortcuts, CI/CD template.
+
 ## CRITICAL — DATABASE SAFETY
 
 > ⚠️ **ĐỌC TRƯỚC KHI LÀM BẤT CỨ VIỆC GÌ LIÊN QUAN DATABASE**
@@ -111,6 +118,7 @@ npm run format                 # Prettier (not in CI pipeline)
 **[.agents/rules/prisma-migration-safety.md](.agents/rules/prisma-migration-safety.md)** — Migration safety, DB mutation rules, target DB classification.
 
 **Absolute forbidden commands (kể cả qua subagent):**
+
 - `prisma migrate dev` (full run) — chỉ được `--create-only`
 - `prisma migrate reset` / `prisma migrate reset --force`
 - `prisma db push`
