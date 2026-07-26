@@ -452,8 +452,8 @@ export default function AuthPanel() {
         </Anchor>
       </Group>
 
-      {/* Quick Login Collapsible */}
-      <div className="pt-4 mt-6 border-t border-border-app">
+      {/* Quick Login Collapsible — tạm ẩn */}
+      {/* <div className="pt-4 mt-6 border-t border-border-app">
         <button
           type="button"
           onClick={() => setShowQuickLogin(!showQuickLogin)}
@@ -508,7 +508,7 @@ export default function AuthPanel() {
             </button>
           </div>
         )}
-      </div>
+      </div> */}
     </div>
   );
 }
