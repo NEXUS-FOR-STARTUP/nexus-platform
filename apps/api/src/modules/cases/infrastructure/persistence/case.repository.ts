@@ -218,7 +218,7 @@ export async function createCaseWithCheckpointAndIntake(data: {
 
     await tx.caseEvent.create({
       data: {
-        case_id: newCase.id,
+        case: { connect: { id: newCase.id } },
         event_type: "case_submitted",
         actor_auth_user_id: userId,
         metadata_json: { case_code: caseCode },
@@ -241,7 +241,7 @@ export async function acceptCase(caseId: string, adminId: string) {
 
     await tx.caseEvent.create({
       data: {
-        case_id: caseId,
+        case: { connect: { id: caseId } },
         event_type: "case_accepted",
         actor_auth_user_id: adminId,
       },
@@ -269,7 +269,7 @@ export async function rejectCase(caseId: string, adminId: string, reason: string
 
     await tx.caseEvent.create({
       data: {
-        case_id: caseId,
+        case: { connect: { id: caseId } },
         event_type: "case_rejected",
         actor_auth_user_id: adminId,
         metadata_json: { reason },
@@ -292,7 +292,7 @@ export async function requestCaseMoreInfo(caseId: string, actorId: string, event
 
     await tx.caseEvent.create({
       data: {
-        case_id: caseId,
+        case: { connect: { id: caseId } },
         event_type: eventType,
         actor_auth_user_id: actorId,
         metadata_json: { query },
@@ -315,7 +315,7 @@ export async function assignCaseSupporter(caseId: string, adminId: string, suppo
 
     await tx.caseEvent.create({
       data: {
-        case_id: caseId,
+        case: { connect: { id: caseId } },
         event_type: "supporter_assigned",
         actor_auth_user_id: adminId,
         metadata_json: {
@@ -448,7 +448,7 @@ export async function submitCaseRevision(data: {
 
     await tx.caseEvent.create({
       data: {
-        case_id: caseId,
+        case: { connect: { id: caseId } },
         event_type: "revision_submitted",
         actor_auth_user_id: userId,
         metadata_json: { version_no: nextVersion, change_summary: changeSummary },
@@ -525,7 +525,7 @@ export async function createSupporterOutput(data: {
 
     await tx.caseEvent.create({
       data: {
-        case_id: caseId,
+        case: { connect: { id: caseId } },
         event_type: "supporter_output_uploaded",
         actor_auth_user_id: userId,
         metadata_json: {
@@ -550,7 +550,7 @@ export async function createSupporterOutput(data: {
 
     await tx.caseEvent.create({
       data: {
-        case_id: caseId,
+        case: { connect: { id: caseId } },
         event_type: 'credit_used',
         actor_auth_user_id: userId,
         metadata_json: { new_balance: newBalance },
@@ -640,7 +640,7 @@ export async function createExternalFeedback(data: {
 
     await tx.caseEvent.create({
       data: {
-        case_id: caseId,
+        case: { connect: { id: caseId } },
         event_type: "external_feedback_uploaded",
         actor_auth_user_id: userId,
         metadata_json: {
@@ -674,9 +674,9 @@ export async function updateCaseStatus(caseId: string, userId: string, nextStage
 export async function createCaseEvent(caseId: string, userId: string, eventType: string, metadataJson?: any) {
   return await prisma.caseEvent.create({
     data: {
-      case_id: caseId,
+      case: { connect: { id: caseId } },
+      actor: { connect: { id: userId } },
       event_type: eventType,
-      actor_auth_user_id: userId,
       metadata_json: metadataJson,
     },
   });
@@ -714,7 +714,7 @@ export async function createCaseMessage(data: {
 
     await tx.caseEvent.create({
       data: {
-        case_id: caseId,
+        case: { connect: { id: caseId } },
         event_type: "message_sent",
         actor_auth_user_id: userId,
         metadata_json: { message_id: newMessage.id },

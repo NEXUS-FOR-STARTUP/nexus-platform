@@ -59,7 +59,7 @@ export async function vetoCaseUseCase(adminId: string, caseId: string, reason: s
       // Create case event
       await tx.caseEvent.create({
         data: {
-          case_id: caseId,
+          case: { connect: { id: caseId } },
           event_type: "vetoed",
           actor_auth_user_id: adminId,
           metadata_json: { reason },

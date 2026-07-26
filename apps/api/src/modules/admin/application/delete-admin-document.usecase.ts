@@ -32,9 +32,9 @@ export async function deleteAdminDocumentUseCase(adminId: string, documentId: st
     // Create a CaseEvent log entry
     await tx.caseEvent.create({
       data: {
-        case_id: doc.case_id,
+        case: { connect: { id: doc.case_id } },
+        actor: { connect: { id: adminId } },
         event_type: "document_deleted",
-        actor_auth_user_id: adminId,
         metadata_json: {
           document_id: doc.id,
           original_name: doc.original_name,
