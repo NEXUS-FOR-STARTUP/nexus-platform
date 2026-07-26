@@ -100,7 +100,7 @@ export async function verifyPayment(data: {
   caseId: string;
   status: "paid" | "rejected";
   rejectionReason: string | null;
-  adminId: string;
+  adminId: string | null;
 }) {
   const { paymentId, caseId, status, rejectionReason, adminId } = data;
   return await prisma.$transaction(async (tx: any) => {
@@ -110,6 +110,7 @@ export async function verifyPayment(data: {
         status,
         rejection_reason: rejectionReason,
         verified_by_auth_user_id: adminId,
+        verification_source: adminId ? "manual" : "auto",
         verified_at: new Date(),
       },
     });

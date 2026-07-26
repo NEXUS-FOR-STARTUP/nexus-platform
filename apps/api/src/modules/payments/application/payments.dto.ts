@@ -35,6 +35,7 @@ export interface GetPaymentResponse {
   rejection_reason: string | null;
   verified_by_auth_user_id: string | null;
   verified_at: string | null;
+  verification_source: string | null;
   currency: string;
   payment_method: string;
   transfer_content?: string;

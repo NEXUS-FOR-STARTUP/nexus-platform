@@ -12,6 +12,7 @@ export interface Payment {
   rejection_reason?: string | null;
   verified_by_auth_user_id?: string | null;
   verified_at?: string | null;
+  verification_source?: "auto" | "manual" | null;
   currency: string;
   payment_method: string;
   transfer_content?: string | null;

@@ -68,6 +68,7 @@ export async function getPaymentUseCase(
     rejection_reason: payment.rejection_reason ?? null,
     verified_by_auth_user_id: payment.verified_by_auth_user_id ?? null,
     verified_at: payment.verified_at?.toISOString() ?? null,
+    verification_source: payment.verification_source ?? null,
     transfer_content: (payment as any).transfer_content ?? null,
     bank_transaction_id: (payment as any).bank_transaction_id ?? null,
     bank_credited_at: (payment as any).bank_credited_at?.toISOString?.() ?? null,

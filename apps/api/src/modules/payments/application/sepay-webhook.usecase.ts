@@ -91,7 +91,7 @@ export async function sepayWebhookUseCase(
       caseId: payment.case_id,
       status: "paid",
       rejectionReason: null,
-      adminId: "sepay_system",
+      adminId: null,
     });
 
     // Store SePay transaction info — columns + metadata (expand-contract)

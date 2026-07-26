@@ -6,6 +6,11 @@ datasource db {
   provider  = "postgresql"
 }
 
+enum VerificationSource {
+  auto
+  manual
+}
+
 model User {
   id                 String      @id
   name               String
@@ -318,6 +323,7 @@ model Payment {
   rejection_reason         String?
   verified_by_auth_user_id String?
   verified_at              DateTime?
+  verification_source      VerificationSource @default(manual)
   created_at               DateTime  @default(now())
   updated_at               DateTime  @updatedAt
   metadata_json             Json?
