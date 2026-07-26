@@ -106,7 +106,7 @@ Không có ai chủ động review plan này trước khi implement các feature
 
 ## Next Steps
 
-1. Archive brainstorm + checklist vào `plans/archive/260701-1544/`
+1. ~~Archive brainstorm + checklist vào `plans/archive/260701-1544/`~~ — `plans/archive/` đã bị xoá toàn bộ (2026-07-27). Các decision còn valid đã được trích ở mục dưới.
 2. Trích các design decisions còn valid thành decision records riêng trong `docs/decisions/`:
    - `doc-upload-write-mode-split.md`
    - `doc-upload-mime-allowlist.md`
