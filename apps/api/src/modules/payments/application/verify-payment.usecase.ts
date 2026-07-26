@@ -67,6 +67,7 @@ export async function verifyPaymentUseCase(
       status,
       rejectionReason: status === "rejected" ? rejectionReason : null,
       adminId,
+      verificationSource: "manual",
     });
 
     const newStatus = normalizePaymentStatus(result.status);

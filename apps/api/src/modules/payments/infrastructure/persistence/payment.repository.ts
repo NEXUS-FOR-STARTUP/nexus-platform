@@ -1,5 +1,7 @@
 import { prisma } from "../../../../db.js";
 
+export const SYSTEM_USER_ID = "00000000-0000-0000-0000-000000000001";
+
 export async function findManyPaymentsWithCase() {
   return await prisma.payment.findMany({
     include: {
@@ -83,10 +85,10 @@ export async function submitPaymentProof(data: {
 
     await tx.caseEvent.create({
       data: {
-        case_id: data.caseId,
+        case: { connect: { id: data.caseId } },
         event_type: "payment_proof_uploaded",
-        actor_auth_user_id: data.userId,
-        payment_id: data.paymentId,
+        actor: { connect: { id: data.userId } },
+        payment: { connect: { id: data.paymentId } },
         metadata_json: { payment_id: data.paymentId, amount: payment.amount },
       },
     });
@@ -100,9 +102,10 @@ export async function verifyPayment(data: {
   caseId: string;
   status: "paid" | "rejected";
   rejectionReason: string | null;
-  adminId: string | null;
+  adminId: string;
+  verificationSource: "manual" | "auto";
 }) {
-  const { paymentId, caseId, status, rejectionReason, adminId } = data;
+  const { paymentId, caseId, status, rejectionReason, adminId, verificationSource } = data;
   return await prisma.$transaction(async (tx: any) => {
     const updatedPayment = await tx.payment.update({
       where: { id: paymentId },
@@ -110,7 +113,7 @@ export async function verifyPayment(data: {
         status,
         rejection_reason: rejectionReason,
         verified_by_auth_user_id: adminId,
-        verification_source: adminId ? "manual" : "auto",
+        verification_source: verificationSource,
         verified_at: new Date(),
       },
     });
@@ -124,10 +127,10 @@ export async function verifyPayment(data: {
 
     await tx.caseEvent.create({
       data: {
-        case_id: caseId,
+        case: { connect: { id: caseId } },
         event_type: status === "paid" ? "payment_verified" : "payment_rejected",
-        actor_auth_user_id: adminId,
-        payment_id: paymentId,
+        actor: { connect: { id: adminId } },
+        payment: { connect: { id: paymentId } },
         metadata_json: { payment_id: paymentId, rejection_reason: rejectionReason },
       },
     });
@@ -165,10 +168,10 @@ export async function verifyPayment(data: {
       // Create case event for credit purchase
       await tx.caseEvent.create({
         data: {
-          case_id: caseId,
+          case: { connect: { id: caseId } },
           event_type: "credits_purchased",
-          actor_auth_user_id: adminId,
-          payment_id: paymentId,
+          actor: { connect: { id: adminId } },
+          payment: { connect: { id: paymentId } },
           metadata_json: { quantity, new_balance: newBalance, payment_id: paymentId },
         },
       });

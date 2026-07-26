@@ -1,5 +1,5 @@
 import { prisma } from "../../../db.js";
-import { verifyPayment as defaultVerifyPayment } from "../infrastructure/persistence/payment.repository.js";
+import { verifyPayment as defaultVerifyPayment, SYSTEM_USER_ID } from "../infrastructure/persistence/payment.repository.js";
 import logger from "../../../shared/infrastructure/logger.js";
 
 // ---------------------------------------------------------------------------
@@ -91,7 +91,8 @@ export async function sepayWebhookUseCase(
       caseId: payment.case_id,
       status: "paid",
       rejectionReason: null,
-      adminId: null,
+      adminId: SYSTEM_USER_ID,
+      verificationSource: "auto",
     });
 
     // Store SePay transaction info — columns + metadata (expand-contract)
