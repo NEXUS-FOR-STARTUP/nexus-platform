@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
@@ -19,6 +19,7 @@ export default function PaymentPage() {
   const [uploadError, setUploadError] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [redirectCountdown, setRedirectCountdown] = useState(5);
 
   const { data: payment, isLoading, error } = useQuery({
     queryKey: ["payment", paymentId],
@@ -29,6 +30,23 @@ export default function PaymentPage() {
     enabled: !!paymentId,
     refetchInterval: 5000,
   });
+
+  // Auto-redirect to case page after 5s when payment succeeds
+  useEffect(() => {
+    if (payment?.status !== "paid") return;
+    setRedirectCountdown(5);
+    const interval = setInterval(() => {
+      setRedirectCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          router.push(`/dashboard/case/${payment.case_id}`);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [payment?.status, payment?.case_id, router]);
 
   if (!paymentId) {
     return (
@@ -248,6 +266,9 @@ export default function PaymentPage() {
           <div className="text-center space-y-3">
             <CheckCircle2 className="w-12 h-12 text-success mx-auto" />
             <p className="text-sm font-semibold text-text-app">Thanh toán thành công</p>
+            <p className="text-xs text-text-muted">
+              Tự động chuyển hướng sau {redirectCountdown} giây...
+            </p>
             <Button
               component="a"
               href={`/dashboard/case/${payment.case_id}`}
