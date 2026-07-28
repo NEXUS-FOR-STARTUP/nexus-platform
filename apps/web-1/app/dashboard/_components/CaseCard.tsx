@@ -38,20 +38,21 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
   return (
     <Link href={`${hrefPrefix}/${item.id}`} className="block group">
       <Card p="lg" radius="md" withBorder className="bg-surface-app group-hover:border-brand shadow-sm hover:shadow-md transition-all duration-200">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
-          <div className="space-y-1">
-            <span className="text-xs font-semibold text-text-subtle uppercase font-body tracking-wider">
-              {item.case_code}
-            </span>
-            <h3 className="font-heading text-lg font-bold text-text-app group-hover:text-brand transition-colors">
-              {item.team_name || "Hồ sơ chưa đặt tên nhóm"}
-            </h3>
-          </div>
+        <div className="mb-4 space-y-2.5">
+          {/* Row 1: case code */}
+          <span className="block text-xs font-semibold text-text-subtle uppercase font-body tracking-wider">
+            {item.case_code}
+          </span>
+          {/* Row 2: team name */}
+          <h3 className="font-heading text-lg font-bold text-text-app group-hover:text-brand transition-colors">
+            {item.team_name || "Hồ sơ chưa đặt tên nhóm"}
+          </h3>
+          {/* Row 3: status badges */}
           <div className="flex gap-2 flex-wrap">
-            <Badge size="sm" variant="light" color={userFacingStatusBadge.color} className="font-body text-[10px]">
+            <Badge size="sm" variant="light" color={userFacingStatusBadge.color} className="font-body text-[10px] whitespace-nowrap">
               {userFacingStatusBadge.label}
             </Badge>
-            <Badge size="sm" variant="light" color={paymentBadge.color} className="font-body text-[10px]">
+            <Badge size="sm" variant="light" color={paymentBadge.color} className="font-body text-[10px] whitespace-nowrap">
               {paymentBadge.label}
             </Badge>
           </div>
