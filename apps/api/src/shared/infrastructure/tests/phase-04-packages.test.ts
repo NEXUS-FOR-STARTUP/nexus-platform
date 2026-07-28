@@ -101,7 +101,6 @@ test("Phase 04 - Packages & attachments", async (t) => {
 
     try {
       await createCaseUseCase("user-1", validBody as any, {
-        findCaseByCode: async () => null,
         findPackageById: async () => ({
           id: "pkg-1",
           name: "Inactive",

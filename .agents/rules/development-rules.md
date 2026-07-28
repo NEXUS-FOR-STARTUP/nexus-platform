@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Development Rules
 
 **IMPORTANT:** Analyze the skills catalog and activate the skills that are needed for the task during the process.

@@ -1,5 +1,5 @@
 import { AppError } from "../../../shared/domain/app-error.js";
-import { isFinalCaseStage } from "../domain/case.types.js";
+import { isFinalCaseStage, requireCredits } from "../domain/case.types.js";
 import {
   findActiveDocumentTypeByCode,
 } from "../../documents/infrastructure/persistence/document-type.repository.js";
@@ -15,6 +15,7 @@ import {
   createSupporterOutput as defaultCreateSupporterOutput,
   createExternalFeedback as defaultCreateExternalFeedback,
 } from "../infrastructure/persistence/case.repository.js";
+import logger from "../../../shared/infrastructure/logger.js";
 import type {
   SubmitRevisionRequest,
   SubmitRevisionUploadRequest,
@@ -104,6 +105,7 @@ export async function submitRevisionUseCase(
   body: SubmitRevisionRequest,
   deps: SubmitRevisionDeps = {},
 ) {
+  const startTime = Date.now();
   const {
     findCaseByIdWithMembersAndCheckpoints,
     submitCaseRevision,
@@ -117,6 +119,8 @@ export async function submitRevisionUseCase(
   if (!caseDetails) {
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
   }
+
+  await requireCredits(caseId);
 
   const isOwner = caseDetails.owner_auth_user_id === userId;
   const isMember = caseDetails.members.some(
@@ -169,15 +173,22 @@ export async function submitRevisionUseCase(
 
   const nextVersion = checkpoint.latest_version_no + 1;
 
-  return await submitCaseRevision({
-    caseId,
-    checkpointId: checkpoint.id,
-    nextVersion,
-    userId,
-    changeSummary: change_summary,
-    documents: documentValidation.inputs,
-    remainingBlockers: remaining_blockers,
-  });
+  try {
+    const result = await submitCaseRevision({
+      caseId,
+      checkpointId: checkpoint.id,
+      nextVersion,
+      userId,
+      changeSummary: change_summary,
+      documents: documentValidation.inputs,
+      remainingBlockers: remaining_blockers,
+    });
+    logger.info({ caseId, transition: 'submit_revision', actorId: userId, duration_ms: Date.now() - startTime }, 'case transition: submit_revision');
+    return result;
+  } catch (error) {
+    logger.error({ err: error, caseId, transition: 'submit_revision', actorId: userId, duration_ms: Date.now() - startTime }, 'case transition failed: submit_revision');
+    throw error;
+  }
 }
 
 export async function submitRevisionUploadUseCase(
@@ -186,6 +197,7 @@ export async function submitRevisionUploadUseCase(
   body: SubmitRevisionUploadRequest,
   deps: SubmitRevisionDeps = {},
 ) {
+  const startTime = Date.now();
   const {
     findCaseByIdWithMembersAndCheckpoints,
     submitCaseRevision,
@@ -200,6 +212,8 @@ export async function submitRevisionUploadUseCase(
   if (!caseDetails) {
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
   }
+
+  await requireCredits(caseId);
 
   const isOwner = caseDetails.owner_auth_user_id === userId;
   const isMember = caseDetails.members.some(
@@ -232,15 +246,22 @@ export async function submitRevisionUploadUseCase(
 
   const nextVersion = checkpoint.latest_version_no + 1;
 
-  return await submitCaseRevision({
-    caseId,
-    checkpointId: checkpoint.id,
-    nextVersion,
-    userId,
-    changeSummary: body.change_summary,
-    documents: uploadedDocuments,
-    remainingBlockers: body.remaining_blockers,
-  });
+  try {
+    const result = await submitCaseRevision({
+      caseId,
+      checkpointId: checkpoint.id,
+      nextVersion,
+      userId,
+      changeSummary: body.change_summary,
+      documents: uploadedDocuments,
+      remainingBlockers: body.remaining_blockers,
+    });
+    logger.info({ caseId, transition: 'submit_revision', actorId: userId, duration_ms: Date.now() - startTime }, 'case transition: submit_revision');
+    return result;
+  } catch (error) {
+    logger.error({ err: error, caseId, transition: 'submit_revision', actorId: userId, duration_ms: Date.now() - startTime }, 'case transition failed: submit_revision');
+    throw error;
+  }
 }
 
 export async function submitSupporterOutputUploadUseCase(
@@ -248,7 +269,9 @@ export async function submitSupporterOutputUploadUseCase(
   caseId: string,
   body: SupporterOutputUploadRequest,
   deps: SubmitRevisionDeps = {},
+  userRole?: string,
 ) {
+  const startTime = Date.now();
   const {
     findCaseByIdWithMembersAndCheckpoints,
     createSupporterOutput,
@@ -263,26 +286,40 @@ export async function submitSupporterOutputUploadUseCase(
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
   }
 
-  const isSupporter = caseDetails.assigned_supporter_auth_user_id === userId;
+  const isSupporter = caseDetails.assigned_supporter_auth_user_id === userId || userRole === "admin";
   if (!isSupporter) {
     throw new AppError(403, "FORBIDDEN", "Không có quyền tải output supporter cho dự án này");
   }
 
   const uploadedDocuments = validatePostIntakeDocumentInputs(body.documents);
-  await validateDocumentsByFlow(findActiveDocumentTypeByCode, uploadedDocuments, "supporter_output", "version");
+  // Override ALL documents to supporter_output — the frontend no longer sends a
+  // meaningful document_type_code after the merge-supporter-output-doc-types refactor.
+  // This also protects against stale frontend clients still sending
+  // doc_type: "supporter_attachment" after the DB deactivation (T3).
+  const normalizedDocuments = uploadedDocuments.map(
+    (d) => ({ ...d, doc_type: "supporter_output" as const }),
+  );
+  await validateDocumentsByFlow(findActiveDocumentTypeByCode, normalizedDocuments, "supporter_output", "version");
 
   const checkpoint = selectCheckpoint(caseDetails);
   if (!checkpoint) {
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy thông tin checkpoint");
   }
 
-  return await createSupporterOutput({
-    caseId,
-    checkpointId: checkpoint.id,
-    userId,
-    note: body.note,
-    documents: uploadedDocuments,
-  });
+  try {
+    const result = await createSupporterOutput({
+      caseId,
+      checkpointId: checkpoint.id,
+      userId,
+      note: body.note,
+      documents: normalizedDocuments,
+    });
+    logger.info({ caseId, transition: 'supporter_output', actorId: userId, actorRole: 'supporter', duration_ms: Date.now() - startTime }, 'case transition: supporter_output');
+    return result;
+  } catch (error) {
+    logger.error({ err: error, caseId, transition: 'supporter_output', actorId: userId, actorRole: 'supporter', duration_ms: Date.now() - startTime }, 'case transition failed: supporter_output');
+    throw error;
+  }
 }
 
 export async function submitExternalFeedbackUploadUseCase(
@@ -291,6 +328,7 @@ export async function submitExternalFeedbackUploadUseCase(
   body: ExternalFeedbackUploadRequest,
   deps: SubmitRevisionDeps = {},
 ) {
+  const startTime = Date.now();
   const {
     findCaseByIdWithMembersAndCheckpoints,
     createExternalFeedback,
@@ -304,6 +342,8 @@ export async function submitExternalFeedbackUploadUseCase(
   if (!caseDetails) {
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
   }
+
+  await requireCredits(caseId);
 
   const isOwner = caseDetails.owner_auth_user_id === userId;
   const isMember = caseDetails.members.some(
@@ -322,13 +362,20 @@ export async function submitExternalFeedbackUploadUseCase(
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy thông tin checkpoint");
   }
 
-  return await createExternalFeedback({
-    caseId,
-    checkpointId: checkpoint.id,
-    userId,
-    note: body.note,
-    selectedVersionNo: metadata.selected_version_no,
-    metadataJson: toExternalFeedbackMetadataJson(metadata),
-    documents: uploadedDocuments,
-  });
+  try {
+    const result = await createExternalFeedback({
+      caseId,
+      checkpointId: checkpoint.id,
+      userId,
+      note: body.note,
+      selectedVersionNo: metadata.selected_version_no,
+      metadataJson: toExternalFeedbackMetadataJson(metadata),
+      documents: uploadedDocuments,
+    });
+    logger.info({ caseId, transition: 'external_feedback', actorId: userId, duration_ms: Date.now() - startTime }, 'case transition: external_feedback');
+    return result;
+  } catch (error) {
+    logger.error({ err: error, caseId, transition: 'external_feedback', actorId: userId, duration_ms: Date.now() - startTime }, 'case transition failed: external_feedback');
+    throw error;
+  }
 }

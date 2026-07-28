@@ -11,14 +11,12 @@ interface IntakeProgressStepperProps {
 }
 
 const steps = [
-  { step: IntakeStep.PACKAGE, label: "Gói dịch vụ" },
-  { step: IntakeStep.SITUATION, label: "Vấn đề" },
+  { step: IntakeStep.SITUATION, label: "Tình huống" },
   { step: IntakeStep.CONTACT, label: "Liên hệ" },
-  { step: IntakeStep.PROJECT_CONTEXT, label: "Nhóm" },
-  { step: IntakeStep.SUPPORT_NEEDS, label: "Hỗ trợ" },
+  { step: IntakeStep.PROJECT_CONTEXT, label: "Bối cảnh dự án" },
+  { step: IntakeStep.SUPPORT_NEEDS, label: "Nhu cầu hỗ trợ" },
   { step: IntakeStep.DOCUMENTS, label: "Tài liệu" },
-  { step: IntakeStep.DEADLINE, label: "Hạn chót" },
-  { step: IntakeStep.BOUNDARY, label: "Ranh giới" },
+  { step: IntakeStep.BOUNDARY, label: "Phạm vi" },
   { step: IntakeStep.REVIEW, label: "Xác nhận" },
 ];
 

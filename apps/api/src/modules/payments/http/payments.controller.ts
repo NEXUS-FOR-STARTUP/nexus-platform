@@ -6,9 +6,12 @@ import {
 } from "../../../shared/infrastructure/http-helpers.js";
 import { requireCaseAccess } from "../../../shared/infrastructure/authorization.js";
 import { listPaymentsUseCase } from "../application/list-payments.usecase.js";
+import { listMyPaymentsUseCase } from "../application/list-my-payments.usecase.js";
 import { uploadPaymentProofUseCase } from "../application/upload-payment-proof.usecase.js";
 import { verifyPaymentUseCase } from "../application/verify-payment.usecase.js";
-import type { VerifyPaymentRequest } from "../application/payments.dto.js";
+import { createPaymentUseCase } from "../application/create-payment.usecase.js";
+import { getPaymentUseCase } from "../application/get-payment.usecase.js";
+import type { VerifyPaymentRequest, CreatePaymentRequest } from "../application/payments.dto.js";
 
 // ---------------------------------------------------------------------------
 // GET /api/payments — Get all payments (Admin only)
@@ -22,6 +25,78 @@ export async function listPaymentsHandler(c: Context) {
 
   try {
     const result = await listPaymentsUseCase();
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/payments — Create new unpaid payment (Student/Owner only)
+// ---------------------------------------------------------------------------
+
+export async function createPaymentHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  try {
+    const body = await readJsonBody(c) as CreatePaymentRequest;
+    const { caseId, amount, metadataJson } = body;
+
+    if (!caseId || !amount) {
+      return c.json({ code: "VALIDATION_ERROR", message: "Thiếu caseId hoặc amount" }, 400);
+    }
+
+    const access = await requireCaseAccess(c, caseId, {
+      allowStudent: true,
+      allowSupporter: false,
+      allowAdmin: true,
+    });
+    if (!access.ok) {
+      return access.response;
+    }
+
+    const result = await createPaymentUseCase(session.user.id, { caseId, amount, metadataJson });
+    return c.json(result, 201);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/payments/my — Get current user payment history
+// ---------------------------------------------------------------------------
+
+export async function listMyPaymentsHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  try {
+    const result = await listMyPaymentsUseCase(session.user.id);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/payments/:id — Get payment detail
+// ---------------------------------------------------------------------------
+
+export async function getPaymentHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  const paymentId = c.req.param("id") || "";
+
+  try {
+    const result = await getPaymentUseCase(session.user.id, paymentId);
     return c.json(result);
   } catch (error: any) {
     return handleError(c, error);

@@ -109,15 +109,17 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
                   <div className="font-semibold text-text-app">{doc.document_type}:</div>
                   <div className="space-y-1">
                     <a
-                      href={doc.drive_url}
+                      href={doc.file_url}
                       target="_blank"
                       rel="noreferrer noopener"
                       className="text-blue-600 hover:underline break-all block"
                     >
-                      {doc.drive_url}
+                      {doc.original_name || doc.file_url}
                     </a>
-                    {doc.role_description && (
-                      <p className="text-xs text-text-muted italic">Mô tả tài liệu: {doc.role_description}</p>
+                    {doc.extension && (
+                      <span className="text-xs bg-surface-hover rounded px-1.5 py-0.5 text-text-muted font-mono">
+                        .{doc.extension}
+                      </span>
                     )}
                   </div>
                 </React.Fragment>

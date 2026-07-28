@@ -12,6 +12,9 @@ import {
   findLatestApprovedReport,
   findApprovedReports,
 } from "../../reports/infrastructure/persistence/report.repository.js";
+import { getCreditBalance, getCreditLedgerByCaseId } from "../infrastructure/persistence/credit-ledger.repository.js";
+import { canTransition } from "../infrastructure/persistence/case-workflow-engine.js";
+import { caseWorkflow } from "../domain/case-workflow.js";
 import { prisma } from "../../../db.js";
 
 function normalizeIntakeSnapshot(rawContent: string | null) {
@@ -56,6 +59,9 @@ function toBaseResponse(caseDetails: any) {
     assigned_supporter_auth_user_id: caseDetails.assigned_supporter_auth_user_id,
     user_facing_stage: caseDetails.user_facing_stage,
     deadline: caseDetails.deadline,
+    sla_deadline_at: caseDetails.sla_deadline_at
+      ? new Date(caseDetails.sla_deadline_at).toISOString()
+      : null,
     created_at: caseDetails.created_at,
     updated_at: caseDetails.updated_at,
     owner: caseDetails.owner,
@@ -65,6 +71,7 @@ function toBaseResponse(caseDetails: any) {
     checkpoints: caseDetails.checkpoints,
     lifecycle_units: caseDetails.lifecycle_units,
     reports: caseDetails.reports,
+    team_fit_report: caseDetails.team_fit_report,
     payments: caseDetails.payments,
     messages: caseDetails.messages,
     events: caseDetails.events,
@@ -137,6 +144,19 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
   const caseResponse = (userRole === 'admin' || userRole === 'supporter')
     ? extendWithInternalFields(baseCase, caseDetails)
     : baseCase;
+
+  // ── Derived fields ────────────────────────────────────────────────────────
+  const [credit_balance, credit_ledger] = await Promise.all([
+    getCreditBalance(caseId),
+    getCreditLedgerByCaseId(caseId),
+  ]);
+  const allowed_transitions = caseWorkflow.transitions
+    .filter(t => canTransition(caseDetails, t.name))
+    .map(t => t.name);
+
+  (caseResponse as Record<string, unknown>).credit_balance = credit_balance;
+  (caseResponse as Record<string, unknown>).credit_ledger = credit_ledger;
+  (caseResponse as Record<string, unknown>).allowed_transitions = allowed_transitions;
 
   return {
     case: caseResponse,

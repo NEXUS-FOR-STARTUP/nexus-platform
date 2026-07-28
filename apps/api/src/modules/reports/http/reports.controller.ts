@@ -7,35 +7,10 @@ import {
   handleError,
   readJsonBody,
 } from "../../../shared/infrastructure/http-helpers.js";
-import { generateDraftReportUseCase } from "../application/generate-draft-report.usecase.js";
 import { getDraftReportUseCase } from "../application/get-draft-report.usecase.js";
 import { editReportUseCase } from "../application/edit-report.usecase.js";
 import { approveReportUseCase } from "../application/approve-report.usecase.js";
 import { getLatestReportUseCase } from "../application/get-latest-report.usecase.js";
-
-export async function generateDraftReportHandler(c: Context) {
-  const caseId = c.req.param("caseId") || "";
-  const access = await requireCaseAccess(c, caseId, {
-    allowStudent: false,
-    allowSupporter: true,
-    allowAdmin: true,
-  });
-
-  if (!access.ok) {
-    return access.response;
-  }
-
-  try {
-    const result = await generateDraftReportUseCase(
-      access.session.user.id,
-      caseId,
-      access.caseRecord,
-    );
-    return c.json(result, 201);
-  } catch (error: any) {
-    return handleError(c, error);
-  }
-}
 
 export async function getDraftReportHandler(c: Context) {
   const caseId = c.req.param("caseId") || "";

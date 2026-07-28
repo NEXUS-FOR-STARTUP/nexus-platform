@@ -5,19 +5,17 @@ import { validateDocumentWriteInputs } from "../../documents/application/validat
 import { isValidPrice } from "../domain/case.types.js";
 import {
   createCaseWithCheckpointAndIntake,
-  findCaseByCode,
 } from "../infrastructure/persistence/case.repository.js";
 import { findPackageById as defaultFindPackageById } from "../../packages/infrastructure/persistence/package.repository.js";
+import logger from "../../../shared/infrastructure/logger.js";
 import type { CreateCaseRequest } from "./cases.dto.js";
 
 type CreateCaseDeps = {
-  findCaseByCode?: typeof findCaseByCode;
   findPackageById?: typeof defaultFindPackageById;
   createCaseWithCheckpointAndIntake?: typeof createCaseWithCheckpointAndIntake;
 };
 
 const defaultDeps = {
-  findCaseByCode,
   findPackageById: defaultFindPackageById,
   createCaseWithCheckpointAndIntake,
 };
@@ -40,12 +38,15 @@ function normalizeCreateCaseBody(body: CreateCaseRequest): CreateCaseRequest {
   };
 }
 
+const MAX_CODE_RETRIES = 5;
+
 export async function createCaseUseCase(
   userId: string,
   body: CreateCaseRequest,
   deps: CreateCaseDeps = {},
 ) {
-  const { findCaseByCode, findPackageById, createCaseWithCheckpointAndIntake } = {
+  const startTime = Date.now();
+  const { findPackageById, createCaseWithCheckpointAndIntake } = {
     ...defaultDeps,
     ...deps,
   };
@@ -72,28 +73,6 @@ export async function createCaseUseCase(
     throw new AppError(400, "VALIDATION_ERROR", "Deadline không hợp lệ");
   }
 
-  let randomCode = `NX-${Math.floor(100000 + Math.random() * 900000)}`;
-
-  let isUnique = false;
-  let retries = 0;
-  while (!isUnique && retries < 3) {
-    const existing = await findCaseByCode(randomCode);
-    if (!existing) {
-      isUnique = true;
-    } else {
-      randomCode = `NX-${Math.floor(100000 + Math.random() * 900000)}`;
-      retries++;
-    }
-  }
-
-  if (!isUnique) {
-    throw new AppError(
-      500,
-      "INTERNAL_ERROR",
-      "Không thể tạo mã case duy nhất, vui lòng thử lại.",
-    );
-  }
-
   const team_name = team_context?.project_name || null;
   const school = normalizedBody.school || null;
   const course_context = normalizedBody.course_context || null;
@@ -114,17 +93,41 @@ export async function createCaseUseCase(
 
   const isFree = lockedPrice === 0;
 
-  return await createCaseWithCheckpointAndIntake({
-    caseCode: randomCode,
-    userId,
-    teamName: team_name,
-    school,
-    courseContext: course_context,
-    groupNo: group_no,
-    packageId: package_id,
-    lockedPrice,
-    deadline: parsedDeadline,
-    isFree,
-    rawBody: normalizedBody,
-  });
+  // Optimistic retry: insert directly; let DB unique constraint catch collisions atomically.
+  // No TOCTOU race window.
+  for (let attempt = 0; attempt < MAX_CODE_RETRIES; attempt++) {
+    const caseCode = `NX-${Math.floor(100000 + Math.random() * 900000)}`;
+    try {
+      const result = await createCaseWithCheckpointAndIntake({
+        caseCode,
+        userId,
+        teamName: team_name,
+        school,
+        courseContext: course_context,
+        groupNo: group_no,
+        packageId: package_id,
+        lockedPrice,
+        deadline: parsedDeadline,
+        isFree,
+        rawBody: normalizedBody,
+      });
+      const caseId = result.id;
+      logger.info({ caseId, actorId: userId, duration_ms: Date.now() - startTime }, 'case created');
+      return result;
+    } catch (err: any) {
+      // P2002 = unique constraint violation on case_code → collision; retry with new code
+      if (err?.code === "P2002") {
+        continue;
+      }
+      logger.error({ err, actorId: userId, duration_ms: Date.now() - startTime }, 'case created failed');
+      throw err;
+    }
+  }
+
+  logger.error({ actorId: userId, duration_ms: Date.now() - startTime }, 'case created failed — unique code exhausted');
+  throw new AppError(
+    500,
+    "INTERNAL_ERROR",
+    "Không thể tạo mã case duy nhất, vui lòng thử lại.",
+  );
 }

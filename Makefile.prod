@@ -1,0 +1,158 @@
+# =============================================================================
+# Makefile.prod — Nexus Platform (VPS Operations)
+# =============================================================================
+# make setup              First time: create proxy-net
+# make deploy             Pull latest + start all
+# make deploy-api         Pull API + restart
+# make deploy-web         Pull Web + restart
+# make start              Start all containers
+# make stop               Stop all containers
+# make restart            Restart all containers
+# make ps                 Show running containers
+# make logs               Tail all logs
+# make start-api          Start API container
+# make stop-api           Stop API container
+# make restart-api        Restart API container
+# make api-logs           Tail API logs
+# make start-web          Start Web container
+# make stop-web           Stop Web container
+# make restart-web        Restart Web container
+# make web-logs           Tail Web logs
+# make start-db           Start DB container
+# make stop-db            Stop DB container
+# make db-logs            Tail DB logs
+# make migrate            Run pending Prisma migrations
+# make prune              Remove unused Docker resources
+# make clean              Stop + remove volumes (DESTROYS DATA!)
+# =============================================================================
+
+.PHONY: help setup deploy deploy-api deploy-web \
+	start stop restart ps logs \
+	start-api stop-api restart-api api-logs \
+	start-web stop-web restart-web web-logs \
+	start-db stop-db db-logs \
+	migrate migrate-status prune clean
+
+.DEFAULT_GOAL := help
+
+DOCKER_COMPOSE := docker compose --env-file .env.prod -f docker-compose.prod.yml
+
+# ──────────────────────────────────────────
+# Help
+# ──────────────────────────────────────────
+
+help: ## Show this help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-22s\033[0m %s\n", $$1, $$2}'
+
+# ──────────────────────────────────────────
+# Setup (first time on VPS)
+# ──────────────────────────────────────────
+
+setup: ## Init: create proxy-net (first time)
+	@docker network inspect proxy-net >/dev/null 2>&1 || docker network create proxy-net
+
+# ──────────────────────────────────────────
+# Deploy
+# ──────────────────────────────────────────
+
+deploy: ## Pull latest images + start all
+	@$(DOCKER_COMPOSE) pull
+	@$(DOCKER_COMPOSE) up -d
+
+deploy-api: ## Pull latest API image + restart
+	@$(DOCKER_COMPOSE) pull api
+	@$(DOCKER_COMPOSE) up -d --no-deps api
+
+deploy-web: ## Pull latest Web image + restart
+	@$(DOCKER_COMPOSE) pull web
+	@$(DOCKER_COMPOSE) up -d --no-deps web
+
+# ──────────────────────────────────────────
+# All services
+# ──────────────────────────────────────────
+
+start: ## Start all containers
+	@$(DOCKER_COMPOSE) up -d
+
+stop: ## Stop all containers
+	@$(DOCKER_COMPOSE) down
+
+restart: ## Restart all containers
+	@$(DOCKER_COMPOSE) down
+	@$(DOCKER_COMPOSE) up -d
+
+ps: ## Show running containers
+	@$(DOCKER_COMPOSE) ps
+
+# ──────────────────────────────────────────
+# API
+# ──────────────────────────────────────────
+
+start-api: ## Start API container
+	@$(DOCKER_COMPOSE) up -d api
+
+stop-api: ## Stop API container
+	@$(DOCKER_COMPOSE) stop api
+
+restart-api: ## Restart API container
+	@$(DOCKER_COMPOSE) restart api
+
+api-logs: ## Tail API logs
+	@$(DOCKER_COMPOSE) logs -f -t api
+
+# ──────────────────────────────────────────
+# Web
+# ──────────────────────────────────────────
+
+start-web: ## Start Web container
+	@$(DOCKER_COMPOSE) up -d web
+
+stop-web: ## Stop Web container
+	@$(DOCKER_COMPOSE) stop web
+
+restart-web: ## Restart Web container
+	@$(DOCKER_COMPOSE) restart web
+
+web-logs: ## Tail Web logs
+	@$(DOCKER_COMPOSE) logs -f -t web
+
+# ──────────────────────────────────────────
+# Database
+# ──────────────────────────────────────────
+
+start-db: ## Start DB container
+	@$(DOCKER_COMPOSE) up -d db
+
+stop-db: ## Stop DB container
+	@$(DOCKER_COMPOSE) stop db
+
+db-logs: ## Tail DB logs
+	@$(DOCKER_COMPOSE) logs -f -t db
+
+# ──────────────────────────────────────────
+# Logs (all)
+# ──────────────────────────────────────────
+
+logs: ## Tail all logs
+	@$(DOCKER_COMPOSE) logs -f -t
+
+# ──────────────────────────────────────────
+# Database migrations
+# ──────────────────────────────────────────
+
+migrate: ## Run pending Prisma migrations
+	@$(DOCKER_COMPOSE) run --rm migrate
+
+migrate-status: ## Dry-run migration check
+	@$(DOCKER_COMPOSE) run --rm migrate \
+		sh -c "npx prisma migrate deploy --schema ./prisma/schema.prisma --preview-feature"
+
+# ──────────────────────────────────────────
+# Maintenance
+# ──────────────────────────────────────────
+
+prune: ## Remove unused Docker resources
+	@docker system prune -f
+
+clean: ## Stop + remove volumes (WARNING: deletes data!)
+	@$(DOCKER_COMPOSE) down -v

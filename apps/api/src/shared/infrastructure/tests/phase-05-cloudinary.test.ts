@@ -63,7 +63,7 @@ test("Phase 05 - Cloudinary uploads", async (t) => {
         deleteFile: async (publicId: string) => {
           deleted = publicId;
         },
-        createPaymentProof: async (data: any) => ({
+        submitPaymentProof: async (data: any) => ({
           id: "pay-1",
           status: "pending_verification",
           ...data,
@@ -98,7 +98,7 @@ test("Phase 05 - Cloudinary uploads", async (t) => {
         deleteFile: async (publicId: string) => {
           deleted = publicId;
         },
-        createPaymentProof: async () => {
+        submitPaymentProof: async () => {
           throw new Error("db failure");
         },
       } as any,

@@ -15,7 +15,7 @@ export default function SupporterLayout({ children }: { children: React.ReactNod
       router.push("/auth");
     } else if (!isPending && session) {
       const userRole = (session.user as any).role;
-      if (userRole !== "supporter" && userRole !== "admin") {
+      if (userRole !== "supporter") {
         router.push("/dashboard");
       }
     }
@@ -25,7 +25,7 @@ export default function SupporterLayout({ children }: { children: React.ReactNod
     return <LoadingScreen message="Đang kiểm tra quyền Supporter..." />;
   }
 
-  if (!session || ((session.user as any).role !== "supporter" && (session.user as any).role !== "admin")) {
+  if (!session || (session.user as any).role !== "supporter") {
     return null;
   }
 

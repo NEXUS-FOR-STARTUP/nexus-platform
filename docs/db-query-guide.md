@@ -43,8 +43,8 @@ async function main() {
     
     // Viết câu lệnh SQL truy vấn của bạn ở đây
     const query = `
-      SELECT id, name, email, role 
-      FROM users 
+      SELECT id, name, email, role
+      FROM users
       LIMIT 5;
     `
     const res = await client.query(query)
@@ -77,12 +77,34 @@ npx tsx scripts/temp-query.ts
 
 ## 3. Các bảng dữ liệu chính trong Schema `public`
 
-Bạn có thể query các bảng chính được cấu hình trong [schema.prisma](file:///e:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/prisma/schema.prisma):
+Toàn bộ 19 bảng được cấu hình trong [schema.prisma](../prisma/schema.prisma), chia theo nhóm:
+
+### Auth (Better Auth quản lý)
 * `users` - Người dùng hệ thống.
+* `sessions` - Phiên đăng nhập.
+* `accounts` - Tài khoản liên kết (OAuth).
+* `verifications` - Mã xác thực (email, password reset).
+* `two_factors` - Xác thực 2 yếu tố.
+
+### Core Business
 * `cases` - Dự án phản biện/đánh giá.
-* `reports` - Báo cáo kết quả/đánh giá.
-* `lifecycle_units` - Tài liệu/Phiên bản nộp của dự án.
+* `case_members` - Thành viên tham gia dự án (student, admin, supporter).
+* `case_messages` - Tin nhắn trao đổi trong workspace.
 * `case_events` - Nhật ký hoạt động của dự án.
+* `checkpoints` - Mốc kiểm tra tiến độ.
+* `lifecycle_units` - Tài liệu/Phiên bản nộp của dự án.
+* `document_records` - Bản ghi tài liệu minh chứng.
+* `document_types` - Loại tài liệu.
+* `reports` - Báo cáo kết quả/đánh giá.
+* `team_fit_reports` - Báo cáo phân tích đội ngũ (AI).
+
+### Payments & Credits
+* `payments` - Thanh toán (bank transfer, SePay webhook).
+* `service_packages` - Gói dịch vụ.
+* `credit_ledgers` - Sổ cái credit (audit rounds).
+
+### AI
+* `ai_jobs` - Job xử lý AI (team-fit analysis, etc).
 
 Ví dụ câu lệnh kiểm tra số lượng bản ghi của tất cả các bảng:
 ```sql

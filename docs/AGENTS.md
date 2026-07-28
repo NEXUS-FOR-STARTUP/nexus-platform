@@ -11,12 +11,19 @@
 - `flows/` - user flow + operational flow canonical.
 - `requirements/` - functional requirement canonical.
 - `technical-notes/` - technical note tối thiểu sau khi product scope rõ.
+- `system-architecture.md` — kiến trúc hệ thống hiện trạng.
+- `project-overview-pdr.md` — MVP demo realignment PDR.
 
 ## Tài liệu hỗ trợ
 
 - `codebase-summary.md` - tóm tắt codebase.
 - `code-standards.md` - chuẩn code.
 - `tech-doc-urls.txt` - nguồn docs ngoài ưu tiên.
+
+## Tài liệu vận hành
+
+- `db-query-guide.md` — hướng dẫn truy vấn DB an toàn (READONLY_DATABASE_URL).
+- `db-backup-guide.md` — hướng dẫn backup DB (pg_dump via Docker).
 
 ## Tài liệu legacy
 
@@ -28,6 +35,7 @@
 2. Nếu thuộc business context, PRD, flow, requirement, technical note: cập nhật file canonical hiện có trước.
 3. Không tạo top-level folder docs mới nếu chưa có lý do rõ.
 4. Giữ tên file ngắn, mô tả đúng chủ đề, tránh trùng nghĩa.
+5. Tài liệu vận hành (DB guide, backup guide) đặt ở root `docs/`, không tạo folder riêng.
 
 ## `nexus-document/` — Tài liệu nguồn
 
@@ -38,6 +46,10 @@
 - **Khi cần ngữ cảnh business** (số liệu phỏng vấn, mô tả value proposition, PMF), tham khảo `nexus-document/` trước rồi cập nhật `docs/project-context.md` hoặc `docs/prd/` tương ứng.
 - **Cấu trúc `nexus-document/` được tổ chức theo CP** — xem [`structure-map.md`](./nexus-document/structure-map.md) cho navigation.
 - **`overview.md`** trong `nexus-document/` là overview business, không phải product overview.
+
+## journals/
+
+`journals/` chứa nhật ký hoàn thành implementation (1 file/ngày). Không phải tài liệu sản phẩm — không dùng làm source of truth cho business hay architecture. Sau khi feature shipped, journal có thể archive mà không ảnh hưởng docs chính.
 
 ## Quy tắc cập nhật
 
@@ -62,3 +74,7 @@
 - Ưu tiên sửa file canonical, không tạo bản chéo dư thừa.
 - Nếu thiếu dữ liệu, ghi `Missing`, `Unclear`, `Needs decision`, hoặc `Assumption`.
 - Chỉ ghi những gì kiểm tra được từ repo hiện tại hoặc docs đã xác nhận.
+
+## ai-rules/
+
+`ai-rules/` chứa quy tắc cho AI agent khi làm việc với documentation. Bổ trợ cho `.agents/rules/` — tập trung vào documentation-specific rules (ví dụ: `documentation-rules.md`).

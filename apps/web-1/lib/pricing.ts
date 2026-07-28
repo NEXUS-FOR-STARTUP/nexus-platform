@@ -1,4 +1,3 @@
-import { Case } from "@/types";
 import { notifications } from "@mantine/notifications";
 
 /**
@@ -14,24 +13,19 @@ export function getCaseEffectivePrice(caseData?: {
 
 /**
  * Determines whether a case requires a payment to be made.
- * A case requires payment if its effective price is greater than 0
- * and its payment status is not "paid".
+ * Checks the case-level payment status.
  */
-export function caseRequiresPayment(caseData: Case): boolean {
-  const price = getCaseEffectivePrice(caseData);
-  return price > 0 && caseData.payment_status !== "paid";
+export function caseRequiresPayment(caseData: { payment_status?: string }): boolean {
+  return caseData.payment_status === "unpaid" || caseData.payment_status === "pending_verification" || caseData.payment_status === "rejected";
 }
 
 /**
- * Formats a number as a standard VND currency string (e.g. 100.000 ₫).
+ * Formats a number as VND (e.g. 100.000 VND).
  */
 export function formatPrice(price: number): string {
   if (price === 0) return "Miễn phí";
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(price);
+  const num = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 }).format(price);
+  return `${num} VND`;
 }
 
 /**
@@ -50,12 +44,11 @@ export function validatePaymentProof(file: File): boolean {
     return false;
   }
   
-  // Validate type (image or pdf)
-  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
   if (!allowedTypes.includes(file.type)) {
     notifications.show({
       title: "Định dạng không hợp lệ",
-      message: "Chỉ chấp nhận định dạng ảnh (JPG, PNG, WEBP) hoặc PDF.",
+      message: "Chỉ chấp nhận định dạng ảnh (JPG, PNG, WEBP, HEIC/HEIF).",
       color: "red",
     });
     return false;

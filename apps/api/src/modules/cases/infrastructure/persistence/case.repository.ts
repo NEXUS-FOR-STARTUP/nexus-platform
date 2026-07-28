@@ -1,5 +1,6 @@
 import { prisma } from "../../../../db.js";
 import { createDocumentRecordsForUnit } from "../../../documents/infrastructure/persistence/document.repository.js";
+import { AppError } from "../../../../shared/domain/app-error.js";
 
 
 export async function findManyCasesByRole(userId: string, role: string) {
@@ -92,6 +93,7 @@ export async function findCaseByIdWithAllRelations(id: string) {
       reports: {
         orderBy: { created_at: "desc" },
       },
+      team_fit_report: true,
     },
   });
 }
@@ -217,9 +219,9 @@ export async function createCaseWithCheckpointAndIntake(data: {
 
     await tx.caseEvent.create({
       data: {
-        case_id: newCase.id,
+        case: { connect: { id: newCase.id } },
+        actor: { connect: { id: userId } },
         event_type: "case_submitted",
-        actor_auth_user_id: userId,
         metadata_json: { case_code: caseCode },
       },
     });
@@ -240,9 +242,9 @@ export async function acceptCase(caseId: string, adminId: string) {
 
     await tx.caseEvent.create({
       data: {
-        case_id: caseId,
+        case: { connect: { id: caseId } },
+        actor: { connect: { id: adminId } },
         event_type: "case_accepted",
-        actor_auth_user_id: adminId,
       },
     });
 
@@ -268,9 +270,9 @@ export async function rejectCase(caseId: string, adminId: string, reason: string
 
     await tx.caseEvent.create({
       data: {
-        case_id: caseId,
+        case: { connect: { id: caseId } },
         event_type: "case_rejected",
-        actor_auth_user_id: adminId,
+        actor: { connect: { id: adminId } },
         metadata_json: { reason },
       },
     });
@@ -291,9 +293,9 @@ export async function requestCaseMoreInfo(caseId: string, actorId: string, event
 
     await tx.caseEvent.create({
       data: {
-        case_id: caseId,
+        case: { connect: { id: caseId } },
         event_type: eventType,
-        actor_auth_user_id: actorId,
+        actor: { connect: { id: actorId } },
         metadata_json: { query },
       },
     });
@@ -314,9 +316,9 @@ export async function assignCaseSupporter(caseId: string, adminId: string, suppo
 
     await tx.caseEvent.create({
       data: {
-        case_id: caseId,
+        case: { connect: { id: caseId } },
         event_type: "supporter_assigned",
-        actor_auth_user_id: adminId,
+        actor: { connect: { id: adminId } },
         metadata_json: {
           supporter_id: supporterId,
           ...(supporterName ? { supporter_name: supporterName } : {}),
@@ -442,15 +444,14 @@ export async function submitCaseRevision(data: {
       where: { id: caseId },
       data: {
         user_facing_stage: "revision_submitted",
-        internal_status: "assigned",
       },
     });
 
     await tx.caseEvent.create({
       data: {
-        case_id: caseId,
+        case: { connect: { id: caseId } },
         event_type: "revision_submitted",
-        actor_auth_user_id: userId,
+        actor: { connect: { id: userId } },
         metadata_json: { version_no: nextVersion, change_summary: changeSummary },
       },
     });
@@ -475,7 +476,7 @@ export async function createSupporterOutput(data: {
     });
 
     if (!checkpoint) {
-      throw new Error("CHECKPOINT_NOT_FOUND");
+      throw new AppError(404, "CHECKPOINT_NOT_FOUND", "Không tìm thấy checkpoint");
     }
 
     const versionNo = checkpoint.latest_version_no;
@@ -491,7 +492,16 @@ export async function createSupporterOutput(data: {
     });
 
     if (!versionUnit) {
-      throw new Error("VERSION_UNIT_NOT_FOUND");
+      throw new AppError(404, "VERSION_UNIT_NOT_FOUND", "Không tìm thấy phiên bản");
+    }
+
+    const latestLedger = await tx.creditLedger.findFirst({
+      where: { case_id: caseId },
+      orderBy: { id: 'desc' },
+    });
+    const currentBalance = latestLedger?.balance_after ?? 0;
+    if (currentBalance < 1) {
+      throw new AppError(402, 'NO_CREDITS', 'Hết credit. Vui lòng mua thêm.');
     }
 
     await createDocumentRecordsForUnit(
@@ -516,14 +526,35 @@ export async function createSupporterOutput(data: {
 
     await tx.caseEvent.create({
       data: {
-        case_id: caseId,
+        case: { connect: { id: caseId } },
         event_type: "supporter_output_uploaded",
-        actor_auth_user_id: userId,
+        actor: { connect: { id: userId } },
         metadata_json: {
           unit_code: unitCode,
           document_count: documents.length,
           note: note || null,
         },
+      },
+    });
+
+    const newBalance = currentBalance - 1;
+    await tx.creditLedger.create({
+      data: {
+        case_id: caseId,
+        amount: -1,
+        balance_after: newBalance,
+        type: 'consumption',
+        reference_id: unitCode,
+        idempotency_key: `consume-${unitCode}-${caseId}`,
+      },
+    });
+
+    await tx.caseEvent.create({
+      data: {
+        case: { connect: { id: caseId } },
+        event_type: 'credit_used',
+        actor: { connect: { id: userId } },
+        metadata_json: { new_balance: newBalance },
       },
     });
 
@@ -553,7 +584,7 @@ export async function createExternalFeedback(data: {
     });
 
     if (!checkpoint) {
-      throw new Error("CHECKPOINT_NOT_FOUND");
+      throw new AppError(404, "CHECKPOINT_NOT_FOUND", "Không tìm thấy checkpoint");
     }
 
     const versionUnit = await tx.lifecycleUnit.findFirst({
@@ -567,7 +598,7 @@ export async function createExternalFeedback(data: {
     });
 
     if (!versionUnit) {
-      throw new Error("VERSION_UNIT_NOT_FOUND");
+      throw new AppError(404, "VERSION_UNIT_NOT_FOUND", "Không tìm thấy phiên bản");
     }
 
     const nextAssessmentNo = (checkpoint.latest_assessment_no ?? 0) + 1;
@@ -610,9 +641,9 @@ export async function createExternalFeedback(data: {
 
     await tx.caseEvent.create({
       data: {
-        case_id: caseId,
+        case: { connect: { id: caseId } },
         event_type: "external_feedback_uploaded",
-        actor_auth_user_id: userId,
+        actor: { connect: { id: userId } },
         metadata_json: {
           unit_code: assessmentUnit.unit_code,
           selected_version_no: selectedVersionNo,
@@ -644,22 +675,27 @@ export async function updateCaseStatus(caseId: string, userId: string, nextStage
 export async function createCaseEvent(caseId: string, userId: string, eventType: string, metadataJson?: any) {
   return await prisma.caseEvent.create({
     data: {
-      case_id: caseId,
+      case: { connect: { id: caseId } },
+      actor: { connect: { id: userId } },
       event_type: eventType,
-      actor_auth_user_id: userId,
       metadata_json: metadataJson,
     },
   });
 }
 
 export async function listCaseMessages(caseId: string) {
-  return await prisma.caseMessage.findMany({
-    where: { case_id: caseId },
-    include: {
-      sender: true,
-    },
-    orderBy: { created_at: "asc" },
-  });
+  try {
+    return await prisma.caseMessage.findMany({
+      where: { case_id: caseId },
+      include: {
+        sender: true,
+      },
+      orderBy: { created_at: "asc" },
+    });
+  } catch (error) {
+    console.error("[listCaseMessages] Failed to fetch case messages:", error);
+    return [];
+  }
 }
 
 export async function createCaseMessage(data: {
@@ -684,9 +720,9 @@ export async function createCaseMessage(data: {
 
     await tx.caseEvent.create({
       data: {
-        case_id: caseId,
+        case: { connect: { id: caseId } },
+        actor: { connect: { id: userId } },
         event_type: "message_sent",
-        actor_auth_user_id: userId,
         metadata_json: { message_id: newMessage.id },
       },
     });
@@ -724,6 +760,21 @@ export async function listAllSupporters() {
       id: true,
       name: true,
       email: true,
+    },
+  });
+}
+
+export async function upgradeCasePackage(
+  caseId: string,
+  packageId: string,
+  lockedPrice: number,
+) {
+  return await prisma.case.update({
+    where: { id: caseId },
+    data: {
+      package_id: packageId,
+      locked_price: lockedPrice,
+      payment_status: "unpaid",
     },
   });
 }

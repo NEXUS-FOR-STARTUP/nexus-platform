@@ -4,8 +4,23 @@
  * These types are intentionally free of Prisma runtime imports and application
  * concerns. They are the source of truth for document source kinds, document
  * types, and flow directions.
+ *
+ * **Convention**: Cloudinary is the primary document upload mechanism.
+ * `drive` source kind is deprecated for new documents but kept for backward
+ * compatibility with legacy records.
  */
 
+/**
+ * Document source kinds.
+ *
+ * - **cloudinary** — primary upload mechanism. Intake form documents and payment
+ *   proofs are uploaded via the Cloudinary Upload API and stored as public
+ *   `secure_url` values.
+ * - **drive** — @deprecated Kept for backward compatibility with legacy
+ *   documents that still carry a Google Drive public/share link. New documents
+ *   should use Cloudinary instead.
+ * - **generated** — system-produced documents (AI outputs, reports, etc.).
+ */
 export const DOCUMENT_SOURCE_KINDS = ["drive", "cloudinary", "generated"] as const;
 
 export type DocumentSourceKind = (typeof DOCUMENT_SOURCE_KINDS)[number];
@@ -137,6 +152,16 @@ export function mimeTypeFromExtension(ext: string): string {
 }
 import { isValidCloudinaryUrl } from '../../../services/cloudinary.js';
 
+/**
+ * Derive the document source kind from a URL.
+ *
+ * **Cloudinary-first**: Intake form documents now arrive via the Cloudinary
+ * Upload API, so Cloudinary URLs are the common case. Drive detection is kept
+ * for backward compatibility only — `drive` is deprecated for new uploads.
+ *
+ * Fallback: if the URL does not match any known source, it is classified as
+ * `generated` (system-produced content).
+ */
 export function deriveSourceKindFromUrl(url: string): DocumentSourceKind {
   try {
     const parsed = new URL(url);

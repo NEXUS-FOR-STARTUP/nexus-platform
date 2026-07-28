@@ -21,9 +21,9 @@ import { listMessagesUseCase } from "../application/list-messages.usecase.js";
 import { sendMessageUseCase } from "../application/send-message.usecase.js";
 import { updateCaseSettingsUseCase } from "../application/update-case-settings.usecase.js";
 import { deleteCaseUseCase } from "../application/delete-case.usecase.js";
-import { recallRevisionUseCase } from "../application/recall-revision.usecase.js";
 import { listDocumentTypesUseCase } from "../../documents/application/list-document-types.usecase.js";
 import { uploadManagedDocumentFile, deleteManagedDocumentFile } from "../../documents/application/upload-managed-document-file.js";
+
 import type {
   CreateCaseRequest,
   SubmitRevisionRequest,
@@ -31,7 +31,13 @@ import type {
   SupporterOutputUploadRequest,
   ExternalFeedbackUploadRequest,
   UpdateCaseSettingsRequest,
+  IntakeRequest,
 } from "../application/cases.dto.js";
+import { validateCp1Intake } from "./cases.schema.js";
+import { submitIntakeUseCase } from "../application/submit-intake.usecase.js";
+import { vetoCaseUseCase } from "../application/veto-case.usecase.js";
+import { completeCaseUseCase } from "../application/complete-case.usecase.js";
+import { upgradePackageUseCase } from "../application/upgrade-package.usecase.js";
 
 // ---------------------------------------------------------------------------
 // GET /api/cases — List cases based on role
@@ -232,39 +238,20 @@ export async function submitRevisionUploadHandler(c: Context) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// POST /api/cases/:id/revisions/recall — Student recalls submitted revision
-// ---------------------------------------------------------------------------
-
-export async function recallRevisionHandler(c: Context) {
-  const session = await getSession(c);
-  if (!session) {
-    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
-  }
-
-  const caseId = c.req.param("id") || "";
-
-  try {
-    const result = await recallRevisionUseCase(session.user.id, caseId);
-    return c.json(result, 200);
-  } catch (error: any) {
-    return handleError(c, error);
-  }
-}
-
 export async function submitSupporterOutputUploadHandler(c: Context) {
   const session = await getSession(c);
   if (!session) {
     return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
   }
 
+  const role = (session.user as any).role;
   const caseId = c.req.param("id") || "";
   let uploadedPublicIds: string[] = [];
 
   try {
     const body = await readJsonBody(c) as SupporterOutputUploadRequest;
     uploadedPublicIds = collectUploadedPublicIds(body?.documents);
-    const result = await submitSupporterOutputUploadUseCase(session.user.id, caseId, body);
+    const result = await submitSupporterOutputUploadUseCase(session.user.id, caseId, body, {}, role);
     return c.json(result, 201);
   } catch (error: any) {
     await Promise.all(uploadedPublicIds.map((publicId) => deleteManagedDocumentFile(publicId)));
@@ -442,6 +429,101 @@ export async function deleteCaseHandler(c: Context) {
       caseId,
     );
     return c.json({ success: true, message: "Đã xóa dự án thành công", data: result });
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/cases/:id/intake — Submit intake snapshot for existing case
+// ---------------------------------------------------------------------------
+
+export async function intakeHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  const caseId = c.req.param("id") || "";
+  const access = await requireCaseAccess(c, caseId, { allowStudent: true, allowSupporter: false, allowAdmin: true });
+  if (!access.ok) return access.response;
+
+  try {
+    const body = await readJsonBody(c) as IntakeRequest;
+    const errors = validateCp1Intake(body);
+    if (errors.length > 0) {
+      return c.json({ code: "VALIDATION_ERROR", message: errors.join("; ") }, 400);
+    }
+
+    const result = await submitIntakeUseCase(session.user.id, caseId, body);
+    return c.json(result, 201);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/cases/:id/veto — Admin veto (reject within 48h, refund credits)
+// ---------------------------------------------------------------------------
+
+export async function vetoHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session || session.user.role !== "admin") {
+    return c.json({ code: "FORBIDDEN", message: "Không có quyền quản trị" }, 403);
+  }
+
+  const caseId = c.req.param("id") || "";
+
+  try {
+    const body = await readJsonBody(c) as { reason: string };
+    const result = await vetoCaseUseCase(session.user.id, caseId, body.reason);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/cases/:id/complete — Supporter marks case as completed
+// ---------------------------------------------------------------------------
+
+export async function completeCaseHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  const role = (session.user as any).role;
+  if (role !== "supporter" && role !== "admin") {
+    return c.json({ code: "FORBIDDEN", message: "Chỉ supporter mới có quyền đánh dấu hoàn thành" }, 403);
+  }
+
+  const caseId = c.req.param("id") || "";
+
+  try {
+    const result = await completeCaseUseCase(session.user.id, role, caseId);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/cases/:id/upgrade-package — Student upgrades case from free to paid package
+// ---------------------------------------------------------------------------
+
+export async function upgradePackageHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  const caseId = c.req.param("id") || "";
+
+  try {
+    const body = await readJsonBody(c) as { packageId: string };
+    const result = await upgradePackageUseCase(session.user.id, caseId, body.packageId);
+    return c.json(result);
   } catch (error: any) {
     return handleError(c, error);
   }

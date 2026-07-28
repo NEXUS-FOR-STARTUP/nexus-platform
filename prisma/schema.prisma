@@ -6,6 +6,11 @@ datasource db {
   provider  = "postgresql"
 }
 
+enum VerificationSource {
+  auto
+  manual
+}
+
 model User {
   id                 String      @id
   name               String
@@ -31,6 +36,7 @@ model User {
   case_memberships   CaseMember[]  @relation("CaseMembers")
   approved_reports       Report[]      @relation("ReportApprover")
   verified_payments      Payment[]     @relation("PaymentVerifier")
+  payment_payments       Payment[]     @relation("PaymentPayer")
   sent_messages          CaseMessage[] @relation("MessageSender")
   acted_events           CaseEvent[]   @relation("EventActor")
   package_price_changes  ServicePackage[] @relation("PackagePriceChanger")
@@ -143,13 +149,14 @@ model Case {
   internal_status                 String   @default("unassigned")
   payment_status                  String   @default("unpaid")
   deadline                        DateTime?
+  sla_deadline_at                 DateTime?
   created_at                      DateTime @default(now())
   updated_at                      DateTime @updatedAt
 
   owner              User            @relation("OwnerCases", fields: [owner_auth_user_id], references: [id])
   assigned_supporter User?           @relation("AssignedCases", fields: [assigned_supporter_auth_user_id], references: [id])
   package            ServicePackage? @relation(fields: [package_id], references: [id])
-  
+
   members            CaseMember[]
   checkpoints        Checkpoint[]
   lifecycle_units    LifecycleUnit[]
@@ -159,6 +166,8 @@ model Case {
   events             CaseEvent[]
   ai_jobs            AiJob[]
   document_records   DocumentRecord[]
+  team_fit_report    TeamFitReport?
+  credit_ledgers     CreditLedger[]
 
   @@index([owner_auth_user_id])
   @@index([assigned_supporter_auth_user_id])
@@ -281,7 +290,6 @@ model Report {
   case_id                   String
   checkpoint_id             String
   lifecycle_unit_id         String?
-  audit_round_id            String?
   report_type               String
   content_md                String    @db.Text
   status                    String    @default("draft")
@@ -308,24 +316,37 @@ model Report {
 model Payment {
   id                       String    @id @default(uuid())
   case_id                  String
-  package_id               String
+  package_id               String?
   amount                   Int
   status                   String    @default("pending_verification")
   proof_file_url           String?
   rejection_reason         String?
   verified_by_auth_user_id String?
   verified_at              DateTime?
+  verification_source      VerificationSource @default(manual)
   created_at               DateTime  @default(now())
   updated_at               DateTime  @updatedAt
+  metadata_json             Json?
+  transfer_content          String?
+  bank_transaction_id       String?
+  bank_credited_at          DateTime?
+  payer_auth_user_id        String?
+  currency                  String     @default("VND")
+  payment_method            String     @default("bank_transfer")
 
   case        Case           @relation(fields: [case_id], references: [id], onDelete: Cascade)
-  package     ServicePackage @relation(fields: [package_id], references: [id])
+  package     ServicePackage? @relation(fields: [package_id], references: [id])
   verified_by User?          @relation("PaymentVerifier", fields: [verified_by_auth_user_id], references: [id])
   events      CaseEvent[]
+  payer       User?          @relation("PaymentPayer", fields: [payer_auth_user_id], references: [id], onDelete: SetNull)
 
   @@index([case_id])
   @@index([package_id])
   @@index([verified_by_auth_user_id])
+  @@unique([transfer_content])
+  @@index([transfer_content])
+  @@index([bank_transaction_id])
+  @@index([payer_auth_user_id])
   @@map("payments")
 }
 
@@ -352,7 +373,6 @@ model CaseEvent {
   actor_auth_user_id String
   document_id        String?
   report_id          String?
-  audit_round_id     String?
   payment_id         String?
   meeting_id         String?
   metadata_json      Json?
@@ -385,4 +405,36 @@ model AiJob {
 
   @@index([case_id])
   @@map("ai_jobs")
+}
+
+model TeamFitReport {
+  id              String   @id @default(cuid())
+  case_id         String
+  idea_snapshot   Json
+  team_snapshot   Json
+  result_snapshot Json
+  created_at      DateTime @default(now())
+
+  case            Case     @relation(fields: [case_id], references: [id], onDelete: Cascade)
+
+  @@unique([case_id])
+  @@index([case_id])
+  @@map("team_fit_reports")
+}
+
+model CreditLedger {
+  id              String   @id @default(cuid())
+  case_id         String
+  amount          Int
+  balance_after   Int
+  type            String
+  reference_id    String?
+  idempotency_key String   @unique
+  metadata_json   Json?
+  created_at      DateTime @default(now())
+
+  case            Case     @relation(fields: [case_id], references: [id], onDelete: Cascade)
+
+  @@index([case_id, created_at])
+  @@map("credit_ledgers")
 }

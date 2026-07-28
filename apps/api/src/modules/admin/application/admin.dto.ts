@@ -17,4 +17,5 @@ export interface AdminCaseListItemDto {
   completeness: number;
   owner_name: string;
   assigned_supporter: { id: string; name: string } | null;
+  sla_deadline_at: Date | null;
 }

@@ -4,11 +4,12 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useCaseChat } from "../hooks/useCaseChat";
 import { useSession } from "@/lib/auth-client";
-import { Send, MessageSquare, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
-import { ActionIcon, Textarea, Tooltip } from "@mantine/core";
+import { ArrowUp, MessageSquare, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
+import { ActionIcon, Textarea, Tooltip, Alert } from "@mantine/core";
 
 interface TabDiscussionChatProps {
   caseId: string;
+  creditBalance?: number;
 }
 
 /* ─── Helpers ─────────────────────────────────────────────── */
@@ -62,12 +63,26 @@ type Row =
   | { kind: "message"; msg: any };
 
 /* ─── Component ─────────────────────────────────────────────── */
-export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
+export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussionChatProps) {
   const { data: session } = useSession();
   const { messages, isLoading, isFetching, error, refetch, sendMessage, isSending } =
     useCaseChat(caseId);
 
+  const isLocked = (creditBalance ?? 1) <= 0;
   const [inputText, setInputText] = useState("");
+  const [isMultiLine, setIsMultiLine] = useState(false);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  /* track textarea rows for input border-radius */
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    const check = () => setIsMultiLine(el.rows > 1);
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
+    check();
+    return () => observer.disconnect();
+  }, []);
 
   /* scrollable container ref for virtualizer */
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -124,9 +139,8 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
   /* ─── Render ─────────────────────────────────────────────── */
   return (
     <div
-      className="flex flex-col overflow-hidden rounded-xl border border-border-app animate-fade-in"
+      className="flex flex-col overflow-hidden rounded-xl border border-border-app animate-fade-in h-full"
       style={{
-        height: "calc(100vh - 130px)", /* full remaining height */
         background: "var(--color-surface-app)",
         boxShadow: "var(--shadow-md)",
       }}
@@ -322,65 +336,83 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
 
       {/* ── Input area ── */}
       <div
-        className="shrink-0 px-4 py-3 border-t border-border-app"
+        className="shrink-0 px-4 py-4 border-t border-border-app"
         style={{ background: "var(--color-surface-soft)" }}
       >
-        <form onSubmit={handleSend} className="flex items-end gap-2">
-          <Textarea
-            aria-label="Nhập nội dung tin nhắn"
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            placeholder="Nhắn gì đó… (Shift+Enter = xuống dòng)"
-            className="flex-1"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSend(e);
-              }
-            }}
-            minRows={1}
-            maxRows={5}
-            autosize
-            styles={{
-              input: {
-                background: "var(--color-surface-app)",
-                border: "1px solid var(--color-border-strong)",
-                borderRadius: 12,
-                fontSize: 12,
-                padding: "8px 12px",
-              },
-            }}
-          />
-
-          {/* Send */}
-          <ActionIcon
-            type="submit"
-            disabled={!inputText.trim() || isSending}
-            size={38}
-            radius="xl"
-            color="brand"
-            className="shrink-0 cursor-pointer"
-            style={{
-              background:
-                inputText.trim() && !isSending ? "var(--color-brand)" : undefined,
-              boxShadow:
-                inputText.trim() && !isSending
-                  ? "0 2px 8px rgba(37,99,235,0.35)"
-                  : undefined,
-              transition: "all 0.15s ease",
-            }}
+        <form onSubmit={handleSend}>
+          <div
+            className={`flex items-end gap-2 border border-border-strong bg-surface-app px-5 py-3 transition-colors ${isMultiLine ? "rounded-2xl" : "rounded-full"}`}
+            style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
           >
+            <Textarea
+              ref={inputRef}
+              aria-label="Nhập nội dung tin nhắn"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              disabled={isLocked}
+              placeholder={isLocked ? "Hết credit — mua thêm để tiếp tục trao đổi" : "Nhắn gì đó…"}
+              className="flex-1"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend(e);
+                }
+              }}
+              minRows={1}
+              maxRows={5}
+              autosize
+              styles={{
+                input: {
+                  background: "transparent",
+                  border: "none",
+                  fontSize: 13,
+                  lineHeight: "1.5",
+                  padding: "6px 0",
+                  minHeight: "26px",
+                },
+                wrapper: {
+                  flex: 1,
+                },
+              }}
+            />
+
+            {/* Send */}
+            <ActionIcon
+              type="submit"
+              disabled={!inputText.trim() || isSending}
+              size={36}
+              radius="xl"
+              color="brand"
+              className="shrink-0 cursor-pointer"
+              style={{
+                background:
+                  inputText.trim() && !isSending ? "var(--color-brand)" : undefined,
+                boxShadow:
+                  inputText.trim() && !isSending
+                    ? "0 2px 8px rgba(37,99,235,0.35)"
+                    : undefined,
+                transition: "all 0.15s ease",
+              }}
+            >
             {isSending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Send className="w-4 h-4" />
+              <ArrowUp className="w-4.5 h-4.5" />
             )}
-          </ActionIcon>
+            </ActionIcon>
+          </div>
         </form>
 
-        <p className="text-[9px] text-text-subtle mt-1.5 ml-0.5">
-          Enter để gửi · Shift+Enter để xuống dòng
-        </p>
+        {isLocked && (
+          <Alert color="red" variant="light" radius="md" className="mt-2">
+            <div className="flex items-center gap-2 text-xs">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>Bạn đã hết credit. Mua thêm để tiếp tục trao đổi với supporter.</span>
+            </div>
+          </Alert>
+        )}
+
+        
       </div>
     </div>
   );

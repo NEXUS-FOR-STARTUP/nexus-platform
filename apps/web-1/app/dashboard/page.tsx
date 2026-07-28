@@ -5,7 +5,7 @@ import { useCasesList } from "./hooks/useCasesList";
 import CaseCard from "./_components/CaseCard";
 import DashboardEmptyState from "./_components/DashboardEmptyState";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { FolderPlus } from "lucide-react";
+import { CreditCard, Users } from "lucide-react";
 
 export default function StudentDashboard() {
   const { data: cases, isLoading, error } = useCasesList();
@@ -21,15 +21,24 @@ export default function StudentDashboard() {
           </p>
         </div>
         
-        {/* Only show Create button if there are cases, otherwise the empty state has it */}
+        {/* Only show CTA buttons if there are cases, otherwise the empty state has it */}
         {!isLoading && cases && cases.length > 0 && (
-          <Link
-            href="/dashboard/intake"
-            className="inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-brand hover:bg-brand-hover text-white px-4 py-2 h-10 rounded-lg shadow-sm shadow-brand/10 transition-colors cursor-pointer"
-          >
-            <FolderPlus className="w-4 h-4" />
-            <span>Tạo hồ sơ mới</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard/team-fit"
+              className="inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-brand hover:bg-brand-hover text-white px-4 py-2 h-10 rounded-lg shadow-sm shadow-brand/10 transition-colors cursor-pointer"
+            >
+              <Users className="w-4 h-4" />
+              <span>Đánh giá đội ngũ</span>
+            </Link>
+            <Link
+              href="/dashboard/intake?packageId=pkg_tf_audit"
+              className="inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-surface-app border border-border-app hover:border-brand/40 text-text-app px-4 py-2 h-10 rounded-lg transition-colors cursor-pointer"
+            >
+              <CreditCard className="w-4 h-4" />
+              <span>Mua kiểm tra chuyên sâu</span>
+            </Link>
+          </div>
         )}
       </div>
 

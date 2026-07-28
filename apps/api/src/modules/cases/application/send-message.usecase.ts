@@ -1,6 +1,6 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import { createCaseMessage, findCaseById } from "../infrastructure/persistence/case.repository.js";
-import { isFinalCaseStage } from "../domain/case.types.js";
+import { isFinalCaseStage, requireCredits } from "../domain/case.types.js";
 
 export async function sendMessageUseCase(
   userId: string,
@@ -30,6 +30,8 @@ export async function sendMessageUseCase(
   if (isFinalCaseStage(caseItem.user_facing_stage)) {
     throw new AppError(409, "INVALID_CASE_STAGE", "Không thể gửi tin nhắn khi hồ sơ đã đóng hoặc hoàn tất");
   }
+
+  await requireCredits(caseId);
 
   return await createCaseMessage({
     caseId,

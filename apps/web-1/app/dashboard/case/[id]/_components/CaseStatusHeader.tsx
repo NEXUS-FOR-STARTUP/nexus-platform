@@ -3,15 +3,16 @@
 import React, { useState, useEffect } from "react";
 import { Case } from "@/types";
 import { statusThemeMap } from "@/types";
-import VersionSelector from "./VersionSelector";
 import { Clock, Users, Calendar, AlertCircle } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
+import { Tooltip } from "@mantine/core";
 
 interface CaseStatusHeaderProps {
   caseData: Case;
   versions: number[];
   selectedVersion: number;
   onVersionChange: (version: number) => void;
+  onSelectTab?: (tab: any) => void;
 }
 
 export default function CaseStatusHeader({
@@ -19,6 +20,7 @@ export default function CaseStatusHeader({
   versions,
   selectedVersion,
   onVersionChange,
+  onSelectTab,
 }: CaseStatusHeaderProps) {
   const { data: session } = useSession();
   const user = session?.user ? (session.user as typeof session.user & { role?: string }) : undefined;
@@ -28,6 +30,8 @@ export default function CaseStatusHeader({
 
   const isPaused = caseData.internal_status === "need_clarification";
 
+  const slaSource = caseData.sla_deadline_at || caseData.deadline;
+
   useEffect(() => {
     if (isPaused) {
       setTimeLeft("Đang chờ nhóm bổ sung thông tin");
@@ -35,13 +39,13 @@ export default function CaseStatusHeader({
       return;
     }
 
-    if (!caseData.deadline) {
+    if (!slaSource) {
       setTimeLeft("Chưa thiết lập");
       setTimerColor("text-text-subtle");
       return;
     }
 
-    const targetDate = new Date(caseData.deadline).getTime();
+    const targetDate = new Date(slaSource).getTime();
 
     const updateTimer = () => {
       const now = new Date().getTime();
@@ -78,7 +82,7 @@ export default function CaseStatusHeader({
 
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [caseData.deadline, isPaused]);
+  }, [slaSource, isPaused]);
 
   // Translate stage label
   const getStageLabel = (stage: string) => {
@@ -112,6 +116,8 @@ export default function CaseStatusHeader({
     default: "bg-surface-muted text-text-muted border border-border-app",
   }[statusTheme.color as "primary" | "secondary" | "success" | "warning" | "danger" | "default"] || "bg-surface-muted text-text-muted border border-border-app";
 
+  const slaLabel = caseData.sla_deadline_at ? "Cam kết SLA:" : caseData.deadline ? "Hạn mong muốn:" : "";
+
   return (
     <div className="bg-surface-app border border-border-app rounded-lg p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
       {/* Case Basic Info */}
@@ -121,14 +127,20 @@ export default function CaseStatusHeader({
             Hồ sơ phản biện
           </span>
           <div className="flex flex-wrap items-center gap-3">
-            <h2 className="font-heading text-xl sm:text-2xl font-bold text-text-app">
-              {caseData.case_code}
-            </h2>
+            <Tooltip label="Xem tổng quan hồ sơ & ý tưởng khởi nghiệp" withArrow position="top">
+              <h2
+                onClick={() => onSelectTab?.("overview")}
+                className="font-heading text-xl sm:text-2xl font-bold text-text-app hover:text-brand transition-colors cursor-pointer"
+              >
+                {caseData.case_code}
+              </h2>
+            </Tooltip>
             <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold font-body shadow-xs border ${badgeClass}`}>
               {(caseData.user_facing_stage === "submitted" || 
                 caseData.user_facing_stage === "under_review" || 
                 caseData.user_facing_stage === "revision_submitted" ||
-                caseData.user_facing_stage === "need_more_information") && (
+                caseData.user_facing_stage === "need_more_information" ||
+                caseData.user_facing_stage === "intake_ready") && (
                 <span className="relative flex h-2 w-2 shrink-0">
                   <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
                     statusTheme.color === "primary" ? "bg-brand" : 
@@ -171,7 +183,7 @@ export default function CaseStatusHeader({
       <div className="flex flex-wrap md:flex-col items-start md:items-end gap-4 shrink-0 w-full md:w-auto">
         <div className="flex items-center gap-2 p-2 px-3 bg-surface-soft rounded-lg text-xs font-body">
           <Clock className="w-4 h-4 text-text-subtle" />
-          <span className="text-text-muted mr-1.5">Hạn phản biện:</span>
+          <span className="text-text-muted mr-1.5">{slaLabel}</span>
           <span className={timerColor}>{timeLeft}</span>
           {isPaused && (
             <div className="w-2 h-2 rounded-full bg-warning animate-ping ml-1" />

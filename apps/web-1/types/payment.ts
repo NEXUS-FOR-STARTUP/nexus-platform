@@ -12,10 +12,34 @@ export interface Payment {
   rejection_reason?: string | null;
   verified_by_auth_user_id?: string | null;
   verified_at?: string | null;
+  verification_source?: "auto" | "manual" | null;
+  currency: string;
+  payment_method: string;
+  transfer_content?: string | null;
+  bank_transaction_id?: string | null;
+  bank_credited_at?: string | null;
+  payer_auth_user_id?: string | null;
+  payer?: { id: string; name: string; display_username?: string | null } | null;
   created_at: string;
   updated_at: string;
 
   package?: ServicePackage;
   verified_by?: User | null;
   case?: Case;
+}
+
+/** Narrow history item returned by `GET /payments/my` — payer-visible only, no admin/internal fields. */
+export type PaymentHistoryStatus = "unpaid" | "pending_verification" | "paid" | "rejected";
+
+export interface PaymentHistoryItem {
+  id: string;
+  case_id: string;
+  case_code: string;
+  package_name?: string | null;
+  amount: number;
+  currency: string;
+  status: PaymentHistoryStatus;
+  verified_at?: string | null;
+  bank_transaction_id?: string | null;
+  created_at: string;
 }

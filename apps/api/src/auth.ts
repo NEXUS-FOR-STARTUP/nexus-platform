@@ -20,6 +20,8 @@ export const auth = betterAuth({
   trustedOrigins: [
     'http://localhost:3000',
     'http://localhost:3001',
+    'https://nexusforstartup.site',
+    'https://www.nexusforstartup.site',
   ],
   user: {
     modelName: 'user',

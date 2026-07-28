@@ -7,6 +7,7 @@ import { Send, AlertCircle, UploadCloud, FileText, X } from "lucide-react";
 import {
   useExternalFeedbackUpload,
   useDocumentTypeOptions,
+  type DocumentTypeOption,
 } from "../hooks/useCaseDocumentUploads";
 
 interface ExternalFeedbackUploadModalProps {
@@ -36,7 +37,7 @@ export default function ExternalFeedbackUploadModal({
 
   const typeOptions = useMemo(
     () =>
-      (typeOptionsData?.items || []).map((item) => ({
+      (typeOptionsData?.items || []).map((item: DocumentTypeOption) => ({
         value: item.code,
         label: item.label,
       })),

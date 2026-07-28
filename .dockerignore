@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+
+# Editors
+.vscode
+.idea
+.claude
+.agents
+.codegraph
+.playwright-mcp
+
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+**/dist
+**/.next
+**/out
+**/build
+
+# Environment
+.env
+.env.*
+!.env.example
+!.env.prod.example
+
+# Logs
+logs
+*.log
+
+# Temp
+temp
+.tmp
+.cache
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile*
+docker-compose*
+Makefile*
+.dockerignore
+docker-example

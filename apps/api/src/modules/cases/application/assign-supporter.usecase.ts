@@ -6,6 +6,7 @@ import {
   findSupporterById as defaultFindSupporterById,
 } from "../infrastructure/persistence/case.repository.js";
 import { auditLogger } from "../../../shared/infrastructure/audit-logger.js";
+import logger from "../../../shared/infrastructure/logger.js";
 
 type AssignSupporterDeps = {
   findCaseById?: typeof defaultFindCaseById;
@@ -26,6 +27,7 @@ export async function assignSupporterUseCase(
   deps: AssignSupporterDeps = {}
 ) {
   const { findCaseById, findSupporterById, assignCaseSupporter } = { ...defaultDeps, ...deps };
+  const startTime = Date.now();
   const timer = auditLogger.startTimer();
   const existingCase = await findCaseById(caseId);
 
@@ -58,6 +60,7 @@ export async function assignSupporterUseCase(
 
   const nextSupporterId = unassign ? null : supporterId;
   if (existingCase.assigned_supporter_auth_user_id === nextSupporterId) {
+    const durationMs = timer();
     auditLogger.log({
       operation: "case.assign_supporter",
       actor_id: adminId,
@@ -66,8 +69,9 @@ export async function assignSupporterUseCase(
       action: "no_op",
       old_state: { supporter_id: existingCase.assigned_supporter_auth_user_id },
       new_state: { supporter_id: nextSupporterId },
-      duration_ms: timer(),
+      duration_ms: durationMs,
     });
+    logger.info({ caseId, transition: 'assign_supporter', actorId: adminId, actorRole: 'admin', supporterId: nextSupporterId, action: 'no_op', duration_ms: Date.now() - startTime }, 'case transition: assign_supporter (no_op)');
     return {
       id: existingCase.id,
       assigned_supporter_auth_user_id: existingCase.assigned_supporter_auth_user_id,
@@ -75,22 +79,29 @@ export async function assignSupporterUseCase(
     };
   }
 
-  const result = await assignCaseSupporter(
-    caseId,
-    adminId,
-    nextSupporterId,
-    nextSupporterId ? "assigned" : "accepted_unassigned",
-    unassign ? undefined : supporterName,
-  );
-  auditLogger.log({
-    operation: "case.assign_supporter",
-    actor_id: adminId,
-    actor_role: "admin",
-    case_id: caseId,
-    action: unassign ? "unassigned" : "assigned",
-    old_state: { supporter_id: existingCase.assigned_supporter_auth_user_id, status: existingCase.internal_status },
-    new_state: { supporter_id: nextSupporterId, status: result.internal_status, supporter_name: supporterName },
-    duration_ms: timer(),
-  });
-  return result;
+  try {
+    const result = await assignCaseSupporter(
+      caseId,
+      adminId,
+      nextSupporterId,
+      nextSupporterId ? "assigned" : "accepted_unassigned",
+      unassign ? undefined : supporterName,
+    );
+    const durationMs = timer();
+    auditLogger.log({
+      operation: "case.assign_supporter",
+      actor_id: adminId,
+      actor_role: "admin",
+      case_id: caseId,
+      action: unassign ? "unassigned" : "assigned",
+      old_state: { supporter_id: existingCase.assigned_supporter_auth_user_id, status: existingCase.internal_status },
+      new_state: { supporter_id: nextSupporterId, status: result.internal_status, supporter_name: supporterName },
+      duration_ms: durationMs,
+    });
+    logger.info({ caseId, transition: 'assign_supporter', fromState: existingCase.internal_status, toState: result.internal_status, actorId: adminId, actorRole: 'admin', supporterId: nextSupporterId, duration_ms: Date.now() - startTime }, 'case transition: assign_supporter');
+    return result;
+  } catch (error) {
+    logger.error({ err: error, caseId, transition: 'assign_supporter', actorId: adminId, actorRole: 'admin', duration_ms: Date.now() - startTime }, 'case transition failed: assign_supporter');
+    throw error;
+  }
 }

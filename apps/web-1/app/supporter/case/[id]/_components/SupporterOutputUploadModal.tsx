@@ -1,13 +1,10 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { Modal, Button, Textarea, Select } from "@mantine/core";
+import React, { useState } from "react";
+import { Modal, Button, Textarea } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { Send, AlertCircle, UploadCloud, FileText, X } from "lucide-react";
-import {
-  useSupporterOutputUpload,
-  useDocumentTypeOptions,
-} from "../../../../dashboard/case/[id]/hooks/useCaseDocumentUploads";
+import { useSupporterOutputUpload } from "../../../../dashboard/case/[id]/hooks/useCaseDocumentUploads";
 
 interface SupporterOutputUploadModalProps {
   isOpen: boolean;
@@ -16,28 +13,16 @@ interface SupporterOutputUploadModalProps {
 }
 
 export default function SupporterOutputUploadModal({ isOpen, onClose, caseId }: SupporterOutputUploadModalProps) {
-  const [documentTypeCode, setDocumentTypeCode] = useState("");
   const [note, setNote] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const { data: typeOptionsData } = useDocumentTypeOptions("supporter_output", "version");
   const { submitSupporterOutputUpload, isSubmitting } = useSupporterOutputUpload(caseId);
-
-  const typeOptions = useMemo(
-    () =>
-      (typeOptionsData?.items || []).map((item) => ({
-        value: item.code,
-        label: item.label,
-      })),
-    [typeOptionsData],
-  );
 
   const handleSubmit = async () => {
     setError(null);
     try {
       await submitSupporterOutputUpload({
-        document_type_code: documentTypeCode,
         note: note || undefined,
         files,
       });
@@ -62,14 +47,13 @@ export default function SupporterOutputUploadModal({ isOpen, onClose, caseId }: 
   };
 
   const handleClose = () => {
-    setDocumentTypeCode("");
     setNote("");
     setFiles([]);
     setError(null);
     onClose();
   };
 
-  const isFormValid = documentTypeCode.trim().length > 0 && files.length > 0;
+  const isFormValid = files.length > 0;
 
   return (
     <Modal
@@ -87,16 +71,6 @@ export default function SupporterOutputUploadModal({ isOpen, onClose, caseId }: 
             <span>{error}</span>
           </div>
         )}
-
-        <Select
-          label="Loại tài liệu"
-          placeholder="Chọn loại tài liệu"
-          data={typeOptions}
-          value={documentTypeCode}
-          onChange={(value) => setDocumentTypeCode(value || "")}
-          required
-          radius="md"
-        />
 
         <div className="space-y-2">
           <label className="text-xs font-semibold text-text-app block">Tệp đính kèm</label>

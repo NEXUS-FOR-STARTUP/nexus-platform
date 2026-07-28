@@ -1,13 +1,11 @@
 export enum IntakeStep {
-  PACKAGE = 0,
-  SITUATION = 1,
-  CONTACT = 2,
-  PROJECT_CONTEXT = 3,
-  SUPPORT_NEEDS = 4,
-  DOCUMENTS = 5,
-  DEADLINE = 6,
-  BOUNDARY = 7,
-  REVIEW = 8,
+  SITUATION = 0,
+  CONTACT = 1,
+  PROJECT_CONTEXT = 2,
+  SUPPORT_NEEDS = 3,
+  DOCUMENTS = 4,
+  BOUNDARY = 5,
+  REVIEW = 6,
 }
 
 export interface IntakeContact {
@@ -48,8 +46,6 @@ export interface IntakeData {
   support_needs: IntakeSupportNeeds;
   documents: IntakeDocument[];
   lecturer_feedback?: string;
-  deadline?: string;
-  urgency?: string;
   expected_outputs: string;
   boundary_confirmations: string[];
   school?: string;

@@ -1,5 +1,7 @@
 # System Architecture
 
+_Cập nhật: 2026-07-23. Bám codebase hiện tại._
+
 ## 1. Mục tiêu tài liệu
 
 Tài liệu này mô tả architecture hiện trạng phục vụ MVP demo Nexus, bám codebase đang có thay vì mô tả tương lai giả định.
@@ -12,6 +14,41 @@ Nexus hiện là monorepo Turborepo với 3 vùng chính:
 - `packages/ui`: UI primitives dùng chung
 
 Data model trung tâm nằm ở `prisma/schema.prisma`, với auth, case, checkpoint, lifecycle unit, document record, report, payment, event, và AI job.
+
+## 2.1 Sơ đồ kiến trúc (text-based)
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  apps/web-1 (Next.js 16, Mantine UI v9, TanStack Query)      │
+│  ┌─────────┐ ┌──────────┐ ┌───────────┐ ┌───────────────┐   │
+│  │ Student │ │Supporter │ │   Admin   │ │   Auth / UI   │   │
+│  │ Intake  │ │Workspace │ │  Triage   │ │  (useSession) │   │
+│  │Dashboard│ │+ Output  │ │+ Packages │ │  Mantine v9   │   │
+│  │Workspace│ │  Upload  │ │           │ │  Lucide/TQ    │   │
+│  └────┬────┘ └────┬─────┘ └─────┬─────┘ └───────┬───────┘   │
+│       └───────────┴─────────────┴────────────────┘           │
+│                        │ Axios (HTTP)                        │
+└────────────────────────┼─────────────────────────────────────┘
+                         │
+┌────────────────────────┼─────────────────────────────────────┐
+│  apps/api (Hono, Better Auth, Prisma 7)                      │
+│  ┌──────────┐ ┌──────────┐ ┌────────┐ ┌──────────────────┐  │
+│  │  Cases   │ │Documents │ │Reports │ │ Admin/Supporter  │  │
+│  │  module  │ │  module  │ │ module │ │    modules       │  │
+│  │19 routes │ │          │ │        │ │                  │  │
+│  ├──────────┤ ├──────────┤ ├────────┤ ├──────────────────┤  │
+│  │ Payments │ │ Packages │ │AI Eng. │ │ Shared: AppError │  │
+│  │  module  │ │  module  │ │ module │ │ requireAuth, etc │  │
+│  └────┬─────┘ └────┬─────┘ └───┬────┘ └──────────────────┘  │
+│       └────────────┴───────────┴───────────────────────────  │
+│                         │ Prisma                              │
+└─────────────────────────┼────────────────────────────────────┘
+                          │
+                  ┌───────┴───────┐
+                  │  PostgreSQL   │
+                  │ (16 models)   │
+                  └───────────────┘
+```
 
 ## 3. Frontend surfaces chính
 
@@ -41,11 +78,12 @@ Tham chiếu:
 - supporter mở case bằng shell rất giống student workspace
 - supporter tái dùng `WorkspaceSidebar`, `CaseStatusHeader`, `TabDiscussionChat`, `ActivityTimeline`, `DocumentWorkspace`
 - supporter không có settings tab trong workspace
-- supporter có review page riêng để generate/edit/approve report
+- supporter có `SupporterOutputUploadModal` để upload output report
+- ⚠️ **Cần xác nhận:** Supporter không còn review page riêng (`apps/web-1/app/supporter/case/[id]/review/page.tsx` không tồn tại). Việc xuất report hiện qua modal upload thay vì page riêng.
 
 Tham chiếu:
 - `apps/web-1/app/supporter/case/[id]/page.tsx`
-- `apps/web-1/app/supporter/case/[id]/review/page.tsx`
+- `apps/web-1/app/supporter/case/[id]/_components/SupporterOutputUploadModal.tsx`
 
 ### 3.4 Admin triage
 - admin có modal chi tiết case để đọc intake snapshot, documents, support needs
@@ -124,10 +162,62 @@ Tham chiếu:
 - cho chọn checkpoint khi case có nhiều checkpoint
 - render các tab `overview`, `documents`, `external-feedback`
 - tách tài liệu support flow và tài liệu đánh giá bên ngoài
+- `VersionSelector` cho phép chuyển đổi giữa các version tài liệu
 
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/documents/DocumentWorkspace.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/VersionSelector.tsx`
 - `apps/api/src/modules/documents/domain/document-contract.ts`
+
+### 5.5 Workspace tabs abstraction
+Case workspace dùng `WorkspaceTabs` để điều hướng giữa các tab, mỗi tab là một component riêng:
+
+| Tab | Component | Vai trò |
+|-----|-----------|---------|
+| Nội dung ý tưởng | `TabIdeaContent` | Xem nội dung case và intake snapshot |
+| Trao đổi | `TabDiscussionChat` | Chat REST + polling 5s |
+| Kết quả đánh giá | `TabReportFindings` | Xem report và findings |
+| Timeline | `ActivityTimeline` | Event log liên tục |
+| Document | (qua `DocumentWorkspace`) | Tài liệu theo checkpoint |
+
+Tham chiếu:
+- `apps/web-1/app/dashboard/case/[id]/_components/WorkspaceTabs.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/TabIdeaContent.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/TabDiscussionChat.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/TabReportFindings.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/TabCaseSettings.tsx`
+
+### 5.6 Revision rounds
+Workspace hỗ trợ vòng sửa (revision rounds) qua:
+- `AuditRoundTimeline`: hiển thị lịch sử audit rounds
+- `RevisionSubmitModal`: student nộp bản sửa
+- `BuyRoundModal`: student mua thêm vòng sửa
+- `StatusGuidanceCard`: hướng dẫn trạng thái hiện tại và next action
+
+Tham chiếu:
+- `apps/web-1/app/dashboard/case/[id]/_components/AuditRoundTimeline.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/RevisionSubmitModal.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/BuyRoundModal.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/StatusGuidanceCard.tsx`
+
+### 5.7 Payment surface
+Payment hiện có 2 bề mặt:
+- `payment/page.tsx` — page riêng cho payment
+- `PaymentDrawer` — drawer inline trong workspace
+- `UnpaidAlertBanner` — cảnh báo khi chưa thanh toán
+
+Tham chiếu:
+- `apps/web-1/app/dashboard/case/[id]/payment/page.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/PaymentDrawer.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/UnpaidAlertBanner.tsx`
+
+### 5.8 External feedback upload
+- `ExternalFeedbackUploadModal`: cho phép upload phản hồi từ bên ngoài (lecturer feedback, v.v.)
+- `SupporterOutputUploadModal`: supporter upload output report
+
+Tham chiếu:
+- `apps/web-1/app/dashboard/case/[id]/_components/ExternalFeedbackUploadModal.tsx`
+- `apps/web-1/app/supporter/case/[id]/_components/SupporterOutputUploadModal.tsx`
 
 ## 6. Data model bề mặt frontend đáng chú ý
 
@@ -184,7 +274,7 @@ Tham chiếu:
 Tham chiếu:
 - `apps/web-1/app/dashboard/intake/_types/intake.types.ts`
 
-### 6.5 Additive document workspace contract
+### 6.6 Additive document workspace contract
 `document_workspace` hiện encode:
 - `selected_checkpoint_id`
 - `checkpoints[]`
@@ -228,7 +318,8 @@ Tham chiếu:
 ### Supporter
 - mở case workspace cùng shell
 - xem context, tài liệu, timeline, chat
-- vào review page để tạo hoặc chỉnh báo cáo phản biện
+- upload output report qua `SupporterOutputUploadModal`
+- upload external feedback qua `ExternalFeedbackUploadModal`
 
 ### Admin
 - triage, reject, request more info, approve

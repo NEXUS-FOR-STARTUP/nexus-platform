@@ -14,18 +14,16 @@ import { Alert, Button } from "@mantine/core";
 interface StatusGuidanceCardProps {
   caseData: Case;
   openRequestsForMoreInfo?: any[] | null;
-  onOpenRevision: () => void;
-  onRecallRevision: () => void;
-  isRecalling: boolean;
   onSelectTab: (tab: "documents" | "discussion" | "timeline" | "settings") => void;
+  onOpenPayment?: () => void;
+  onOpenIntake?: () => void;
 }
 
 export default function StatusGuidanceCard({
   caseData,
   openRequestsForMoreInfo,
-  onOpenRevision,
-  onRecallRevision,
-  isRecalling,
+  onOpenPayment,
+  onOpenIntake,
 }: StatusGuidanceCardProps) {
   const stage = caseData.user_facing_stage;
   const hasInfoRequest = openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0;
@@ -41,22 +39,12 @@ export default function StatusGuidanceCard({
         icon={<HelpCircle className="w-4.5 h-4.5 shrink-0" />}
         className="animate-fade-in font-body text-xs shrink-0"
       >
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-1.5">
-          <div className="space-y-1 flex-grow">
+        <div className="space-y-1 flex-grow">
             <p className="font-semibold text-warning-strong">Nội dung yêu cầu:</p>
             <p className="italic bg-surface-app/50 p-2.5 rounded border border-warning/10 font-body text-[11px] leading-relaxed">
               "{queryText}"
             </p>
           </div>
-          <Button
-            size="xs"
-            color="brand"
-            className="font-semibold shrink-0 cursor-pointer"
-            onClick={onOpenRevision}
-          >
-            Bổ sung thông tin
-          </Button>
-        </div>
       </Alert>
     );
   }
@@ -78,6 +66,22 @@ export default function StatusGuidanceCard({
         </Alert>
       );
 
+    case "need_more_information":
+      return (
+        <Alert
+          variant="light"
+          color="orange"
+          radius="md"
+          title="Yêu cầu bổ sung thông tin từ Supporter"
+          icon={<HelpCircle className="w-4.5 h-4.5 shrink-0" />}
+          className="animate-fade-in font-body text-xs shrink-0"
+        >
+          <p className="text-text-muted text-xs leading-relaxed">
+            Vui lòng kiểm tra lại tài liệu đã tải lên và bổ sung theo yêu cầu của Supporter.
+          </p>
+        </Alert>
+      );
+
     case "under_review":
       return (
         <Alert
@@ -95,31 +99,24 @@ export default function StatusGuidanceCard({
       );
 
     case "report_ready":
-    case "waiting_for_revision":
+    case "waiting_for_revision": {
       return (
         <Alert
           variant="light"
           color="green"
           radius="md"
-          title="Báo cáo phản biện đã sẵn sàng"
+          title="Báo cáo phản biện đã sẵn sàng — Nhóm có thể nộp bản sửa đổi"
           icon={<CheckCircle2 className="w-4.5 h-4.5 shrink-0" />}
           className="animate-fade-in font-body text-xs shrink-0"
         >
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-1">
+          <div className="mt-1">
             <p className="text-text-muted text-xs leading-relaxed">
-              Supporter đã hoàn thành đánh giá chi tiết. Bạn hãy đọc kỹ nhận xét tại tab Tài liệu và nhấp nút bên dưới để nộp bản sửa đổi vòng tiếp theo.
+              Supporter đã hoàn thành đánh giá chi tiết. Nhóm có thể xem kết quả phản biện bên dưới, tiến hành sửa đổi bài làm và nộp bản mới (v02, v03...) bằng nút <strong>"Tải tài liệu"</strong> để Supporter thẩm định vòng tiếp theo.
             </p>
-            <Button
-              size="xs"
-              color="brand"
-              className="font-semibold shrink-0 cursor-pointer"
-              onClick={onOpenRevision}
-            >
-              Nộp bản sửa đổi
-            </Button>
           </div>
         </Alert>
       );
+    }
 
     case "revision_submitted":
       return (
@@ -131,21 +128,25 @@ export default function StatusGuidanceCard({
           icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
           className="animate-fade-in font-body text-xs shrink-0"
         >
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-1">
-            <p className="text-text-muted text-xs leading-relaxed">
-              Supporter đang tiến hành thẩm định bản sửa đổi mới nhất của bạn. Nếu cần thay đổi thông tin trước khi Supporter chấm, bạn có thể thu hồi bản nộp.
-            </p>
-            <Button
-              size="xs"
-              color="red"
-              variant="filled"
-              className="font-semibold shrink-0 cursor-pointer"
-              loading={isRecalling}
-              onClick={onRecallRevision}
-            >
-              Thu hồi bản nộp
-            </Button>
-          </div>
+          <p className="text-text-muted text-xs leading-relaxed">
+            Supporter đang tiến hành thẩm định bản sửa đổi mới nhất của bạn.
+          </p>
+        </Alert>
+      );
+
+    case "closed":
+      return (
+        <Alert
+          variant="light"
+          color="gray"
+          radius="md"
+          title="Hồ sơ đã đóng"
+          icon={<AlertCircle className="w-4.5 h-4.5 shrink-0" />}
+          className="animate-fade-in font-body text-xs shrink-0"
+        >
+          <p className="text-text-muted text-xs leading-relaxed">
+            Hồ sơ phản biện này đã được đóng. Vui lòng liên hệ Ban tổ chức nếu cần thêm thông tin.
+          </p>
         </Alert>
       );
 
@@ -181,6 +182,62 @@ export default function StatusGuidanceCard({
           <p className="text-text-muted text-xs leading-relaxed">
             Yêu cầu phản biện dự án của bạn không được duyệt. Vui lòng liên hệ với Ban tổ chức hoặc gửi thắc mắc qua phần Thảo luận.
           </p>
+        </Alert>
+      );
+
+    case "intake_pending":
+      return (
+        <Alert
+          variant="light"
+          color="yellow"
+          radius="md"
+          title="Chờ thanh toán dịch vụ"
+          icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
+          className="animate-fade-in font-body text-xs shrink-0"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-text-muted text-xs leading-relaxed">
+              Vui lòng hoàn tất thanh toán để kích hoạt quy trình phản biện.
+            </p>
+            {onOpenPayment && (
+              <Button
+                size="sm"
+                color="brand"
+                className="shrink-0 cursor-pointer"
+                onClick={onOpenPayment}
+              >
+                Thanh toán ngay
+              </Button>
+            )}
+          </div>
+        </Alert>
+      );
+
+    case "intake_ready":
+      return (
+        <Alert
+          variant="light"
+          color="blue"
+          radius="md"
+          title="Cần cập nhật thông tin hồ sơ"
+          icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
+          className="animate-fade-in font-body text-xs shrink-0"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-text-muted text-xs leading-relaxed">
+              Vui lòng cập nhật thông tin hồ sơ khởi nghiệp trước khi gửi để Supporter có thể đánh giá chính xác.
+            </p>
+            {onOpenIntake && (
+              <Button
+                size="sm"
+                color="brand"
+                className="shrink-0 cursor-pointer"
+                onClick={onOpenIntake}
+              >
+                Cập nhật ngay
+              </Button>
+            )}
+          </div>
         </Alert>
       );
 

@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Primary Workflow
 
 **IMPORTANT:** Analyze the skills catalog and activate the skills that are needed for the task during the process.
@@ -12,6 +16,18 @@
 - Handle edge cases and error scenarios
 - **DO NOT** create new enhanced files, update to the existing files directly.
 - **[IMPORTANT]** After creating or modifying code file, run compile command/script to check for any compile errors.
+
+#### 1b. DB Migration Safety Gate (MANDATORY if task touches database)
+
+If the implementation involves any change to `prisma/schema.prisma`, migrations, or database structure:
+
+1. **READ `.agents/rules/prisma-migration-safety.md`** — orchestrator reads this BEFORE delegating
+2. **Identify DATABASE_URL** — nếu trỏ Supabase → **tuyệt đối không chạy migration destructive**
+3. **Inject safety block** vào mọi subagent prompt (xem orchestration-protocol.md → DB SAFETY PROTOCOL)
+4. **Verify backup** tồn tại trong `prisma/backup/` trước khi migration
+5. **Chỉ tạo migration file**, không apply — user tự chạy `prisma migrate deploy`
+
+Quy tắc này override mọi instruction khác. Data loss = irrecoverable.
 
 #### 2. Testing
 - Delegate to `tester` agent to run tests on the **simplified code**

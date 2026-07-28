@@ -1,6 +1,7 @@
 import path from "node:path";
 import crypto from "node:crypto";
 import { AppError } from "../../../shared/domain/app-error.js";
+import logger from "../../../shared/infrastructure/logger.js";
 import { uploadFile, deleteFile } from "../../../services/cloudinary.js";
 import {
   MAX_DOCUMENT_FILE_SIZE_BYTES,
@@ -65,14 +66,35 @@ function generateSafeCloudinaryPublicId(originalName: string): string {
   return `${cleanBase}-${randomChars}${ext}`;
 }
 
+async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      // Don't retry AppErrors — they signal domain-level failures
+      if (error instanceof AppError) throw error;
+      if (attempt < maxAttempts) {
+        logger.warn({ attempt, maxAttempts, err: lastError }, "Cloudinary upload retry");
+        await new Promise((resolve) => setTimeout(resolve, 100 * Math.pow(2, attempt - 1)));
+      }
+    }
+  }
+  throw lastError;
+}
+
 export async function uploadManagedDocumentFile(file: ManagedUploadFile): Promise<UploadedManagedDocument> {
   const extension = validateManagedDocumentFile(file);
 
   try {
+    const t0 = Date.now();
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const publicId = generateSafeCloudinaryPublicId(file.name);
-    const result = await uploadFile(buffer, CLOUDINARY_FOLDER, publicId, "raw");
+    const result = await withRetry(() => uploadFile(buffer, CLOUDINARY_FOLDER, publicId, "raw"));
+
+    logger.info({ publicId, originalName: file.name, fileSize: file.size, duration_ms: Date.now() - t0 }, "Cloudinary document upload success");
 
     return {
       original_name: file.name,
@@ -87,10 +109,13 @@ export async function uploadManagedDocumentFile(file: ManagedUploadFile): Promis
       throw error;
     }
 
+    // Log raw error for debugging, never leak SDK internals to client
+    logger.error({ err: error, fileName: file?.name }, "Cloudinary document upload failed");
+
     throw new AppError(
       500,
       "CLOUDINARY_UPLOAD_ERROR",
-      `Lỗi khi tải tài liệu lên Cloudinary: ${error?.message ?? "Unknown error"}`,
+      "Lỗi khi tải tài liệu lên Cloudinary",
     );
   }
 }

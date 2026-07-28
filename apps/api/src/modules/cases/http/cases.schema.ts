@@ -60,17 +60,15 @@ export function validateCp1Intake(body: any): string[] {
   // 3. Documents validation
   const documents = body.documents;
   if (!Array.isArray(documents) || documents.length === 0) {
-    errors.push("Thư mục Google Drive tài liệu là bắt buộc");
+    errors.push("Thư mục tài liệu là bắt buộc");
   } else {
     const folderDoc = documents[0];
-    if (
-      !folderDoc.drive_url ||
-      typeof folderDoc.drive_url !== "string" ||
-      !/^https?:\/\/(drive|docs)\.google\.com\/.*/.test(folderDoc.drive_url.trim())
-    ) {
-      errors.push(
-        "Đường dẫn thư mục Google Drive không hợp lệ (phải bắt đầu bằng drive.google.com hoặc docs.google.com)",
-      );
+    const hasValidUrl = !!(
+      (typeof folderDoc.file_url === 'string' && folderDoc.file_url.trim().length > 0) ||
+      (typeof folderDoc.drive_url === 'string' && folderDoc.drive_url.trim().length > 0)
+    );
+    if (!hasValidUrl) {
+      errors.push("Tài liệu phải có file_url hoặc drive_url hợp lệ");
     }
     if (
       !folderDoc.document_type ||

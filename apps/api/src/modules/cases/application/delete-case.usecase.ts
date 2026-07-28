@@ -3,12 +3,14 @@ import {
   findCaseByIdWithMembers,
   deleteCase,
 } from "../infrastructure/persistence/case.repository.js";
+import logger from "../../../shared/infrastructure/logger.js";
 
 export async function deleteCaseUseCase(
   userId: string,
   userRole: string,
   caseId: string,
 ) {
+  const startTime = Date.now();
   const existingCase = await findCaseByIdWithMembers(caseId);
 
   if (!existingCase) {
@@ -30,5 +32,12 @@ export async function deleteCaseUseCase(
     );
   }
 
-  return await deleteCase(caseId);
+  try {
+    const result = await deleteCase(caseId);
+    logger.info({ caseId, actorId: userId, actorRole: userRole, duration_ms: Date.now() - startTime }, 'case deleted');
+    return result;
+  } catch (error) {
+    logger.error({ err: error, caseId, actorId: userId, actorRole: userRole, duration_ms: Date.now() - startTime }, 'case deleted failed');
+    throw error;
+  }
 }

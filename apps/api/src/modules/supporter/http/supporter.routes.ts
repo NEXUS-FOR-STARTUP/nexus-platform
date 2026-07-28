@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 import {
-  createDraftReportHandler,
   getDraftReportHandler,
   editDraftReportHandler,
   publishReportHandler,
@@ -10,7 +9,6 @@ import {
 
 export const supporterRouter = new Hono();
 
-supporterRouter.post("/cases/:caseId/reports/draft", createDraftReportHandler);
 supporterRouter.get("/cases/:caseId/reports/draft", getDraftReportHandler);
 supporterRouter.put("/reports/:reportId", editDraftReportHandler);
 supporterRouter.post("/reports/:reportId/publish", publishReportHandler);

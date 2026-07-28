@@ -13,6 +13,7 @@ import type { ListAdminCasesRequest } from "../application/admin.dto.js";
 import { listAdminPackagesUseCase } from "../application/list-admin-packages.usecase.js";
 import { updatePackagePriceUseCase } from "../application/update-package-price.usecase.js";
 import { updatePackageStatusUseCase } from "../application/update-package-status.usecase.js";
+import { getAdminStatsUseCase } from "../application/get-admin-stats.usecase.js";
 
 // ---------------------------------------------------------------------------
 // Auth helper — admin-specific
@@ -258,6 +259,25 @@ export async function updatePackageStatusHandler(c: Context) {
 
     const result = await updatePackageStatusUseCase(packageId, body.is_active, adminId);
     return c.json({ ok: true, data: result });
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/admin/stats — Aggregate admin statistics
+// ---------------------------------------------------------------------------
+
+export async function getAdminStatsHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  try {
+    const period = c.req.query("period") || "30d";
+    const stats = await getAdminStatsUseCase(period);
+    return c.json(stats);
   } catch (error: any) {
     return handleError(c, error);
   }

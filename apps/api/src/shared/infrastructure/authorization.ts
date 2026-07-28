@@ -1,5 +1,6 @@
 import { prisma } from "../../db.js";
 import { auth } from "../../auth.js";
+import logger from "./logger.js";
 
 type Session = Awaited<ReturnType<typeof auth.api.getSession>>;
 
@@ -34,7 +35,7 @@ export async function getSession(c: any): Promise<Session> {
   try {
     return await auth.api.getSession({ headers: c.req.raw.headers });
   } catch (error) {
-    console.error("Error in getSession:", error);
+    logger.error({ err: error }, 'authorization getSession failed');
     return null;
   }
 }
@@ -96,17 +97,19 @@ export async function requireCaseAccess(
     })) as CaseAccessRecord | null;
 
     if (!caseRecord) {
+      logger.warn({ caseId, reason: 'not_found' }, 'requireCaseAccess: case not found')
       return { ok: false as const, response: c.json({ error: "Không tìm thấy dự án" }, 404) };
     }
 
     const mergedScope = { ...defaultScope, ...scope };
     if (!hasCaseAccess(session, caseRecord, mergedScope)) {
+      logger.warn({ caseId, userId: session.user.id, role: (session.user as any).role, reason: 'access_denied' }, 'requireCaseAccess: access denied')
       return { ok: false as const, response: c.json({ error: "Không có quyền truy cập dự án này" }, 403) };
     }
 
     return { ok: true as const, session, caseRecord };
   } catch (error: any) {
-    console.error("Error in requireCaseAccess:", error);
+    logger.error({ err: error, caseId }, 'requireCaseAccess failed');
     return { ok: false as const, response: c.json({ error: "Lỗi hệ thống khi xác thực quyền truy cập dự án" }, 500) };
   }
 }
@@ -145,22 +148,25 @@ export async function requireReportCaseAccess(
     })) as ReportAccessRecord | null;
 
     if (!report) {
+      logger.warn({ reportId, reason: 'not_found' }, 'requireReportCaseAccess: report not found')
       return { ok: false as const, response: c.json({ error: "Không tìm thấy báo cáo" }, 404) };
     }
 
     const caseRecord = report.case;
     if (!caseRecord) {
+      logger.warn({ reportId, caseId: report.case_id, reason: 'case_not_found' }, 'requireReportCaseAccess: case not found for report')
       return { ok: false as const, response: c.json({ error: "Không tìm thấy dự án liên quan đến báo cáo" }, 404) };
     }
 
     const mergedScope = { ...defaultScope, ...scope };
     if (!hasCaseAccess(session, caseRecord, mergedScope)) {
+      logger.warn({ reportId, caseId: caseRecord.id, userId: session.user.id, role: (session.user as any).role, reason: 'access_denied' }, 'requireReportCaseAccess: access denied')
       return { ok: false as const, response: c.json({ error: "Không có quyền truy cập báo cáo này" }, 403) };
     }
 
     return { ok: true as const, session, report, caseRecord };
   } catch (error: any) {
-    console.error("Error in requireReportCaseAccess:", error);
+    logger.error({ err: error, reportId }, 'requireReportCaseAccess failed');
     return { ok: false as const, response: c.json({ error: "Lỗi hệ thống khi xác thực quyền truy cập báo cáo" }, 500) };
   }
 }

@@ -79,6 +79,7 @@ export async function listAdminCasesUseCase(filters: ListAdminCasesRequest) {
             name: item.assigned_supporter.name,
           }
         : null,
+      sla_deadline_at: null,
     };
   });
 }

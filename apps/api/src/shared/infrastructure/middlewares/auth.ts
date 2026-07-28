@@ -1,5 +1,6 @@
 import { createMiddleware } from 'hono/factory'
 import { auth } from '../../../auth.js'
+import logger from '../../../shared/infrastructure/logger.js'
 
 export type SessionUser = typeof auth.$Infer.Session.user
 export type Session = typeof auth.$Infer.Session.session
@@ -16,6 +17,7 @@ export const requireAuth = createMiddleware<AuthEnv>(async (c, next) => {
     const session = await auth.api.getSession({ headers: c.req.raw.headers })
 
     if (!session) {
+      logger.warn({ reason: 'no_session' }, 'auth middleware: unauthorized')
       return c.json({ error: 'Unauthorized' }, 401)
     }
 
@@ -23,7 +25,7 @@ export const requireAuth = createMiddleware<AuthEnv>(async (c, next) => {
     c.set('session', session.session)
     await next()
   } catch (error) {
-    console.error("Middleware requireAuth error:", error);
+    logger.error({ err: error }, 'auth middleware failed')
     return c.json({ error: 'Unauthorized' }, 401)
   }
 })

@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { User } from "@/types";
-import { CheckCircle, Search, MoreVertical, Trash2, Eye } from "lucide-react";
-import { Button, Select, Badge, Table, Pagination, TextInput, Group, Menu, ActionIcon } from "@mantine/core";
+import { CheckCircle, Search, MoreVertical, Trash2, Eye, Shield } from "lucide-react";
+import { Button, Select, Badge, Table, Pagination, TextInput, Group, Menu, ActionIcon, Tooltip } from "@mantine/core";
 
 // Import extracted modals
 import AdminCaseDetailModal from "./AdminCaseDetailModal";
@@ -22,6 +22,15 @@ interface AdminCaseAssignmentTableProps {
   onRequestMoreInfo: (caseId: string, query: string) => Promise<void>;
   isCrudMode?: boolean;
   onDelete?: (caseId: string) => Promise<void>;
+}
+
+function getSlaRowClass(deadline: string | null | undefined): string {
+  if (!deadline) return "";
+  const diff = new Date(deadline).getTime() - Date.now();
+  if (diff <= 0) return "bg-danger-soft/30"; // overdue - red tint
+  if (diff < 12 * 60 * 60 * 1000) return "bg-warning-soft/30"; // <12h - yellow tint
+  if (diff < 24 * 60 * 60 * 1000) return "bg-warning-soft/15"; // <24h - subtle yellow
+  return ""; // OK - no tint
 }
 
 export default function AdminCaseAssignmentTable({
@@ -162,20 +171,21 @@ export default function AdminCaseAssignmentTable({
               <Table.Th className="text-left">Nhóm / Đề tài</Table.Th>
               <Table.Th className="text-left">Gói dịch vụ</Table.Th>
               <Table.Th className="text-left">Trạng thái</Table.Th>
+              <Table.Th className="text-center w-20">SLA</Table.Th>
               <Table.Th className="text-center w-24">Thao tác</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
             {filteredAndSortedCases.length === 0 ? (
               <Table.Tr>
-                <Table.Td colSpan={5} className="text-center py-8 text-text-muted">
+                <Table.Td colSpan={6} className="text-center py-8 text-text-muted">
                   Không tìm thấy kết quả phù hợp với bộ lọc hiện tại.
                 </Table.Td>
               </Table.Tr>
             ) : (
               paginatedCases.map((item) => {
                 return (
-                  <Table.Tr key={item.id} className="hover:bg-surface-soft/30 transition-colors">
+                  <Table.Tr key={item.id} className={`${getSlaRowClass(item.sla_deadline_at)} hover:bg-surface-soft/30 transition-colors`}>
                     <Table.Td className="font-heading font-bold text-xs" title={item.case_code}>
                       {item.case_code && item.case_code.length > 30 ? `${item.case_code.slice(0, 30)}...` : item.case_code}
                     </Table.Td>
@@ -208,6 +218,9 @@ export default function AdminCaseAssignmentTable({
                           ? "Chờ Phân Công"
                           : "Đã phân công"}
                       </Badge>
+                    </Table.Td>
+                    <Table.Td className="text-center">
+                      <SlaTimer deadline={item.sla_deadline_at} />
                     </Table.Td>
                     <Table.Td className="text-center">
                       {isCrudMode ? (
@@ -303,5 +316,56 @@ export default function AdminCaseAssignmentTable({
         onApprove={onAccept}
       />
     </div>
+  );
+}
+
+/* ── SLA Countdown Timer ── */
+function SlaTimer({ deadline }: { deadline: string | null | undefined }) {
+  const [timeLeft, setTimeLeft] = useState("");
+  const [colorClass, setColorClass] = useState("");
+
+  useEffect(() => {
+    if (!deadline) {
+      setTimeLeft("—");
+      setColorClass("text-text-muted");
+      return;
+    }
+    const target = new Date(deadline).getTime();
+    const update = () => {
+      const now = Date.now();
+      const diff = target - now;
+      if (diff <= 0) {
+        setTimeLeft("Quá hạn");
+        setColorClass("text-danger font-bold");
+        return;
+      }
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      if (hours > 24) {
+        const days = Math.floor(hours / 24);
+        setTimeLeft(`${days} ngày`);
+        setColorClass("text-green");
+      } else if (hours < 4) {
+        setTimeLeft(`${hours}h ${minutes}m`);
+        setColorClass("text-danger font-semibold");
+      } else if (hours < 12) {
+        setTimeLeft(`${hours}h ${minutes}m`);
+        setColorClass("text-warning font-semibold");
+      } else {
+        setTimeLeft(`${hours}h ${minutes}m`);
+        setColorClass("text-green");
+      }
+    };
+    update();
+    const interval = setInterval(update, 30000);
+    return () => clearInterval(interval);
+  }, [deadline]);
+
+  if (!deadline) return <span className={colorClass}>{timeLeft}</span>;
+
+  return (
+    <Tooltip label={new Date(deadline).toLocaleString("vi-VN")} withArrow position="top">
+      <span className={colorClass}>{timeLeft}</span>
+    </Tooltip>
   );
 }

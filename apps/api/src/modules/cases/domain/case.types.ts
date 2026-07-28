@@ -1,4 +1,6 @@
 export const VALID_CASE_STAGES = [
+  "intake_pending",
+  "intake_ready",
   "submitted",
   "need_more_information",
   "under_review",
@@ -45,6 +47,10 @@ export function isFinalCaseStage(stage?: string | null): boolean {
   return stage === "closed" || stage === "completed" || stage === "rejected";
 }
 
+export function isPreSubmissionStage(stage?: string | null): boolean {
+  return stage === "intake_pending" || stage === "intake_ready";
+}
+
 export function isValidStageTransition(from: string, to: string): boolean {
   if (from === to) return true;
   if (isFinalCaseStage(from)) return false;
@@ -63,5 +69,23 @@ export function isValidStageTransition(from: string, to: string): boolean {
 
 export function isValidPrice(price: unknown): price is number {
   return typeof price === "number" && Number.isInteger(price) && price >= 0;
+}
+
+import { getCreditBalance } from "../infrastructure/persistence/credit-ledger.repository.js";
+import { AppError } from "../../../shared/domain/app-error.js";
+
+export async function requireCredits(caseId: string, minCredits: number = 1): Promise<void> {
+  try {
+    const balance = await getCreditBalance(caseId);
+    if (balance < minCredits) {
+      throw new AppError(402, 'NO_CREDITS', 'Hết lượt kiểm tra. Vui lòng mua thêm credit.');
+    }
+  } catch (error: any) {
+    // Graceful fallback if credit_ledger table doesn't exist yet
+    if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
+      return; // Table not deployed — allow all operations
+    }
+    throw error;
+  }
 }
 

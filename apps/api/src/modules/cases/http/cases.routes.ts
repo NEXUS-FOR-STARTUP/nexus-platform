@@ -9,7 +9,6 @@ import {
   uploadManagedDocumentHandler,
   submitRevisionHandler,
   submitRevisionUploadHandler,
-  recallRevisionHandler,
   submitSupporterOutputUploadHandler,
   submitExternalFeedbackUploadHandler,
   assignSupporterHandler,
@@ -18,6 +17,10 @@ import {
   sendMessageHandler,
   updateCaseSettingsHandler,
   deleteCaseHandler,
+  intakeHandler,
+  vetoHandler,
+  completeCaseHandler,
+  upgradePackageHandler,
 } from "./cases.controller.js";
 
 export const casesRouter = new Hono();
@@ -31,7 +34,6 @@ casesRouter.get("/:id", getCaseDetailHandler);
 casesRouter.get("/:id/documents", getCaseDocumentsHandler);
 casesRouter.post("/:id/revisions", submitRevisionHandler);
 casesRouter.post("/:id/revisions/upload", submitRevisionUploadHandler);
-casesRouter.post("/:id/revisions/recall", recallRevisionHandler);
 casesRouter.post("/:id/supporter-outputs/upload", submitSupporterOutputUploadHandler);
 casesRouter.post("/:id/external-feedback/upload", submitExternalFeedbackUploadHandler);
 casesRouter.post("/:id/assign", assignSupporterHandler);
@@ -40,3 +42,7 @@ casesRouter.get("/:id/messages", listMessagesHandler);
 casesRouter.post("/:id/messages", sendMessageHandler);
 casesRouter.put("/:id/settings", updateCaseSettingsHandler);
 casesRouter.delete("/:id", deleteCaseHandler);
+casesRouter.post("/:id/intake", intakeHandler);
+casesRouter.post("/:id/veto", vetoHandler);
+casesRouter.post("/:id/complete", completeCaseHandler);
+casesRouter.post("/:id/upgrade-package", upgradePackageHandler);

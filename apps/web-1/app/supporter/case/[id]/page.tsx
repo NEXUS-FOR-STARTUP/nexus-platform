@@ -7,9 +7,11 @@ import { useCaseDetails } from "../../../dashboard/case/[id]/hooks/useCaseDetail
 import { caseRequiresPayment } from "@/lib/pricing";
 import CaseStatusHeader from "../../../dashboard/case/[id]/_components/CaseStatusHeader";
 import WorkspaceSidebar from "../../../dashboard/case/[id]/_components/WorkspaceSidebar";
+import type { WorkspaceTab } from "../../../dashboard/case/[id]/_components/WorkspaceSidebar";
 import DocumentWorkspace from "../../../dashboard/case/[id]/_components/documents/DocumentWorkspace";
 import TabDiscussionChat from "../../../dashboard/case/[id]/_components/TabDiscussionChat";
 import ActivityTimeline from "../../../dashboard/case/[id]/_components/ActivityTimeline";
+import CaseOverviewPanel from "../../../dashboard/case/[id]/_components/CaseOverviewPanel";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import SupporterOutputUploadModal from "./_components/SupporterOutputUploadModal";
 import { Button } from "@mantine/core";
@@ -23,15 +25,15 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
   const router = useRouter();
 
   const { data: session, isPending: isAuthPending } = useSession();
-  const { caseData, documentWorkspace, isLoading, error } = useCaseDetails(id);
-  const [activeTab, setActiveTab] = useState<"documents" | "discussion" | "timeline" | "settings">("documents");
+  const { caseData, intakeSnapshot, teamFitReport, documentWorkspace, isLoading, error } = useCaseDetails(id);
+  const [activeTab, setActiveTab] = useState<WorkspaceTab>("overview");
   const [isOutputUploadOpen, setIsOutputUploadOpen] = useState(false);
 
   React.useEffect(() => {
     if (!isAuthPending && !session) {
       router.push("/auth");
     } else if (!isAuthPending && session) {
-      const userRole = (session.user as any).role;
+      const userRole = (session.user as { role?: string }).role;
       if (userRole !== "supporter" && userRole !== "admin") {
         router.push("/dashboard");
       }
@@ -63,10 +65,19 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
         }}
         messageCount={caseData.messages?.length}
         hideSettings
+        hideCredits
       />
 
-      <div className="flex-grow flex flex-col h-full min-w-0 overflow-y-auto p-6 space-y-6">
-        <CaseStatusHeader caseData={caseData} versions={[]} selectedVersion={0} onVersionChange={() => {}} />
+      <div className={`flex-grow flex flex-col h-full min-w-0 p-6 space-y-6 ${activeTab === "discussion" ? "overflow-hidden" : "overflow-y-auto"}`}>
+        {activeTab !== "discussion" && activeTab !== "overview" && (
+          <CaseStatusHeader
+            caseData={caseData}
+            versions={[]}
+            selectedVersion={0}
+            onVersionChange={() => {}}
+            onSelectTab={(tab) => setActiveTab(tab)}
+          />
+        )}
 
         {caseRequiresPayment(caseData) && (
           <div className="p-4 rounded-xl bg-warning-soft border border-warning/15 text-warning font-body text-xs flex items-center gap-2 shrink-0">
@@ -74,7 +85,14 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
           </div>
         )}
 
-        <div className="flex-grow min-h-0">
+        <div className="flex-grow min-h-0 flex flex-col">
+          {activeTab === "overview" && (
+            <CaseOverviewPanel
+              caseData={caseData}
+              onSelectTab={(tab) => setActiveTab(tab)}
+            />
+          )}
+
           {activeTab === "documents" && (
             <>
               <div className="mb-4 flex justify-end">

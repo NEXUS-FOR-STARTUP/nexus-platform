@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { AppError } from '../shared/domain/app-error.js';
+import logger from '../shared/infrastructure/logger.js';
 
 // ---------------------------------------------------------------------------
 // Config (single source)
@@ -60,6 +61,7 @@ export async function uploadFile(
   resourceType: string = 'raw',
 ): Promise<UploadResult> {
   ensureConfig();
+  const t0 = Date.now();
 
   try {
     const result = await uploadBuffer(buffer, {
@@ -76,6 +78,8 @@ export async function uploadFile(
       throw new Error('Cloudinary upload missing url or public_id');
     }
 
+    logger.info({ publicId, folder, resourceType, duration_ms: Date.now() - t0 }, 'Cloudinary upload success');
+
     return {
       fileUrl,
       publicId: resultPublicId,
@@ -89,6 +93,7 @@ export async function uploadFile(
 
 export async function deleteFile(publicId: string, resourceType: string = 'raw'): Promise<void> {
   if (!publicId) return;
+  const t0 = Date.now();
 
   try {
     ensureConfig();
@@ -96,8 +101,9 @@ export async function deleteFile(publicId: string, resourceType: string = 'raw')
       resource_type: resourceType,
       invalidate: true,
     });
+    logger.info({ publicId, resourceType, duration_ms: Date.now() - t0 }, 'Cloudinary delete success');
   } catch (err) {
-    console.error('Failed to delete Cloudinary file:', publicId, err);
+    logger.error({ err, publicId, resourceType, duration_ms: Date.now() - t0 }, 'Cloudinary delete failed');
   }
 }
 

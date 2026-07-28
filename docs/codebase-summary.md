@@ -1,69 +1,91 @@
 # Tóm tắt codebase
 
-_Tổng hợp từ codebase hiện tại và docs canonical trong `docs/`._
+_Cập nhật: 2026-07-23. Tổng hợp từ codebase hiện tại và docs canonical trong `docs/`._
 
 ## Repo này là gì
 
 Turborepo monorepo cho Nexus Platform, đóng gói workflow `student -> admin -> supporter` quanh `Hồ sơ phản biện`, tài liệu minh chứng, báo cáo phản biện, và các vòng sửa.
 
+Công cụ hỗ trợ: **CodeGraph** (`.codegraph/`) — index code symbol, call path, blast radius. Dùng `codegraph_explore` trước grep/read. **Agent rules** (`.agents/rules/`) — 6 file hướng dẫn development, documentation, orchestration, workflow, migration safety.
+
 ## Khu vực chính
 
-### `apps/api`
+### `apps/api` (112 files, ~9,674 LOC)
 
 Backend Hono với:
+- modules: cases (2,446 LOC, 19 routes), documents (1,553 LOC), admin (841 LOC, 12 routes), payments (606 LOC), reports (382 LOC), supporter (213 LOC), ai-engine (379 LOC), packages (94 LOC)
+- shared infra: AppError, requireAuth, requireCaseAccess, audit-logger
+- services: Cloudinary (file upload), Google Generative AI
+- ~47 API endpoints, Hono + Better Auth + Prisma 7 + Vercel AI SDK
+- Kiến trúc: modular monolith + Clean Architecture (domain/application/infrastructure/presentation)
+- Auth: Better Auth (email/password, Google OAuth, admin plugin)
+- DB: Prisma + PostgreSQL, PgBouncer adapter
+- Imports: ESM với `.js` suffix
 
-- `/health`, `/stream`, `/session`
-- Better Auth tại `/api/auth/*`
-- route cho case, report, payment, package, admin, supporter, document workspace, và AI engine
-- ownership cho auth/session, authorization, case workflow, report flow, payment flow, message endpoints, admin/supporter actions
+### `apps/web-1` (~115 files, ~8,755 LOC)
 
-### `apps/web-1`
+Next.js 16.2.0 product app với:
+- 3 persona surfaces: Student (dashboard + case workspace), Supporter (case workspace + output upload), Admin (triage dashboard + package management)
+- Data fetching: TanStack Query + Axios, polling (10s case details, 5s chat)
+- Forms: TanStack Form everywhere
+- Auth: Better Auth client (`useSession`), role-based layout guards
+- State: server state qua TanStack Query, không Redux/Zustand
+- Pages: landing (`/`), auth (`/auth`), dashboard (`/dashboard`), intake (`/dashboard/intake`), team-fit (`/dashboard/team-fit`), case workspace (`/dashboard/case/[id]`), admin (`/admin`), supporter (`/supporter`)
+- UI: Mantine UI v9, Lucide React, Recharts, TipTap, Tailwind CSS v4
+- Port: 3001
 
-Next.js 16 product app với các bề mặt:
+### `packages/` (4 packages)
 
-- public app entry
-- auth
-- dashboard
-- intake flow nhiều bước
-- student case workspace
-- supporter case workspace
-- supporter review page
-- admin workspace
-
-### `packages/ui`
-
-Các primitive UI dùng chung giữa các bề mặt.
+| Package | Mô tả |
+|---------|-------|
+| `ui` | Primitive React components (Button, Card, Code) — placeholder, chưa dùng Mantine |
+| `validation` | Zod schemas (IdeaInput, TeamMemberInput, TeamFitInput) — shared giữa api và web-1 |
+| `eslint-config` | 3 ESLint 9 flat configs (base, next.js, react-internal) |
+| `typescript-config` | 3 tsconfig presets (base, nextjs, react-library) |
 
 ### `prisma/schema.prisma`
 
-Mô hình dữ liệu Postgres trung tâm cho auth, case, checkpoint, lifecycle unit, document record, document type, report, payment, case event, và AI job.
+16 models (430 lines): 4 auth (User, Session, Account, Verification, TwoFactor) + 12 business (ServicePackage, Case, CaseMember, Checkpoint, LifecycleUnit, DocumentRecord, DocumentType, Report, Payment, AuditRound, CaseMessage, CaseEvent, AiJob, TeamFitReport). 9 migrations.
 
 ## Tài liệu chính trong `docs/`
 
-- `docs/project-context.md`
-- `docs/project-overview-pdr.md`
-- `docs/prd/`
-- `docs/flows/`
-- `docs/requirements/`
-- `docs/technical-notes/`
-- `docs/archive/`
-- `docs/tech-doc-urls.txt`
+- `project-context.md` — business context canonical
+- `project-overview-pdr.md` — MVP demo realignment PDR
+- `system-architecture.md` — architecture hiện trạng
+- `code-standards.md` — chuẩn code và conventions
+- `codebase-summary.md` — tóm tắt codebase (file này)
+- `db-query-guide.md` — hướng dẫn truy vấn DB an toàn
+- `db-backup-guide.md` — hướng dẫn backup DB
+- `AGENTS.md` — hướng dẫn agent cho `docs/`
+- `README.md` — navigation docs
+- `prd/`, `flows/`, `requirements/`, `technical-notes/` — canonical product docs
+- `journals/` — journal entries (6 files, 2026-07-21)
+- `ai-rules/` — AI documentation rules
+- `archive/` — legacy reference
+- `nexus-document/` — tài liệu nguồn học thuật & vận hành
 
 ## Verified MVP surfaces
 
-- Student case workspace và supporter case workspace cùng bám shared shell, nhưng supporter còn có review page riêng cho báo cáo phản biện.
-- `DocumentWorkspace` là bề mặt first-class trong workspace hiện tại, với checkpoint selector và các tab `overview`, `documents`, `external-feedback`.
-- `TabDiscussionChat` đã có fetch + send message qua REST và polling 5 giây; chưa có realtime socket.
-- `ActivityTimeline` đã có và render `caseData.events`.
-- `useCaseDetails` polling 10 giây và expose `case`, `intake_snapshot`, `latest_report`, `latest_user_action`, `document_board_sections`, `round_history`, `open_requests_for_more_info`, và `document_workspace`.
-- Intake documents hiện vẫn dùng 1 Drive/Docs URL chính + checklist loại tài liệu trong thư mục, kèm template helper để copy Markdown hoặc tải `.docx`.
-- Payment tồn tại như bề mặt phụ trong case workspace qua `payment_status`, unpaid banner, và payment page; không phải golden path của demo. Hệ thống đã bổ sung chức năng cho phép Admin cập nhật giá tiền động của các gói dịch vụ qua tab Settings/Packages mới trong Admin panel, tích hợp cơ chế **Price Locking** (chốt `Case.locked_price` khi tạo) và **Pricing Change Audit Trail** (lưu vết `previous_price`, `last_price_changed_at`, `last_price_changed_by` trên `ServicePackage`). Logic giá và minh chứng thanh toán được tập trung qua các helper `getCaseEffectivePrice`, `formatPrice`, `caseRequiresPayment`, và `validatePaymentProof` trong `@/lib/pricing.ts`.
+- Student/supporter case workspace cùng bám shared shell (`WorkspaceSidebar`, `WorkspaceTabs`).
+- `DocumentWorkspace` là bề mặt first-class với checkpoint selector và các tab `overview`, `documents`, `external-feedback`.
+- `TabDiscussionChat` fetch + send message qua REST và polling 5 giây; chưa có realtime socket.
+- `ActivityTimeline` render `caseData.events`; `AuditRoundTimeline` hiển thị lịch sử vòng audit.
+- `useCaseDetails` polling 10 giây expose `case`, `intake_snapshot`, `latest_report`, `document_board_sections`, `round_history`, `document_workspace`, v.v.
+- Revision rounds: `RevisionSubmitModal` (nộp sửa), `BuyRoundModal` (mua thêm vòng).
+- Payment: `PaymentDrawer` (inline), `UnpaidAlertBanner`, `payment/page.tsx` riêng.
+- External feedback: `ExternalFeedbackUploadModal`, `SupporterOutputUploadModal`.
+- Version selector: `VersionSelector` cho tài liệu workspace.
+- Workspace tabs abstract: `TabIdeaContent`, `TabDiscussionChat`, `TabReportFindings`, `TabCaseSettings` với `TabIdeaContent`, `TabReportFindings`.
+- Intake: hybrid Drive/Docs URL + checklist, template helper.
+- Admin: `AdminCaseDetailModal`, Settings/Packages panel với Price Locking và Pricing Change Audit Trail.
+- Pricing logic tập trung: `getCaseEffectivePrice`, `formatPrice`, `caseRequiresPayment`, `validatePaymentProof` trong `@/lib/pricing.ts`.
 
 ## Ràng buộc vận hành
 
-- Chỉ dùng một root `.env`.
+- Một root `.env` duy nhất.
 - API sở hữu auth và session.
-- Runtime DB hiện dùng `DATABASE_URL` và `DIRECT_URL`; ad hoc read-only query script nên dùng `READONLY_DATABASE_URL`.
-- Prisma dùng plural table + snake_case columns.
-- Web dùng Mantine UI v9 và cấu trúc app router.
-- Docs phải bám code hiện tại, ghi rõ cái gì đã code-confirmed và cái gì còn deferred.
+- Runtime DB: `DATABASE_URL` + `DIRECT_URL`; read-only query script dùng `READONLY_DATABASE_URL` (xem `docs/db-query-guide.md`).
+- Prisma: plural table names + snake_case columns.
+- Web: Mantine UI v9, App Router, Tailwind CSS v4.
+- Code: TypeScript ESM, `.js` suffix trong relative imports.
+- Docs: bám code hiện tại, ghi rõ code-confirmed vs deferred.

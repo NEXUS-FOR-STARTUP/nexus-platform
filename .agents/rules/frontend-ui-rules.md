@@ -6,37 +6,23 @@ trigger: always_on
 
 ## 1. Design Intent
 
-Nexus uses **HeroUI + Tailwind** as the frontend stack.
+Nexus stack: **HeroUI + Tailwind**.
 
-The interface should feel:
+Interface feel: clear, focused, calm, practical, trustworthy, modern, polished, slightly creative, never confusing.
 
-* clear
-* focused
-* calm
-* practical
-* trustworthy
-* modern
-* polished
-* slightly creative, but never confusing
+No Material Design copy. No direct Google UI copy.
+Use Google-like product thinking: clarity, hierarchy, useful defaults, visible system status, understandable language, predictable interaction.
 
-Do not copy Material Design components.
-Do not copy Google UI directly.
-Use Google-like product thinking only: clarity, hierarchy, useful defaults, visible system status, understandable language, and predictable interaction.
-
-HeroUI is the component base, not the design ceiling. Custom layout, composition, spacing, visual rhythm, and product-specific UI patterns are allowed when they improve the experience.
+HeroUI = component base, not ceiling. Custom layout, composition, spacing, visual rhythm, product-specific UI patterns allowed when they improve experience.
 
 ## 2. Rule Priority
 
-Not every rule has the same weight.
+Priority:
+1. **Non-negotiable rules**: must follow
+2. **Design principles**: guide decisions, adaptable by screen
+3. **Pattern suggestions**: examples, not strict requirements
 
-Use this priority order:
-
-1. **Non-negotiable rules**: must be followed.
-2. **Design principles**: should guide decisions, but can be adapted by screen context.
-3. **Pattern suggestions**: examples, not strict requirements.
-
-When two rules conflict, prioritize:
-
+Conflict priority:
 1. User understanding
 2. User trust
 3. Task completion
@@ -44,465 +30,218 @@ When two rules conflict, prioritize:
 5. Visual polish
 6. Visual creativity
 
-Creativity is allowed when it improves clarity, hierarchy, emotion, or product memorability. Creativity is not allowed when it makes the user slower, confused, or less confident.
+Creativity OK when it improves clarity, hierarchy, emotion, memorability. Not OK when it makes user slower, confused, less confident.
 
 ## 3. Non-Negotiable Rules
 
-These rules must be followed across the frontend.
-
 ### 3.1 AI Output Must Be Explainable
 
-Any AI judgment shown to the user must explain itself.
+AI judgment must explain itself. No unsupported claims like "Pain point chưa rõ."
 
-Do not show unsupported AI conclusions like:
+Each AI finding includes: Field (which part), Status (problem type), Evidence (from input/docs), Reason (why assessed), Question (user must answer), Next action (what to do).
 
-> Pain point chưa rõ.
-
-Instead, each AI finding should include:
-
-* Field: phần nào đang có vấn đề
-* Status: loại vấn đề là gì
-* Evidence: bằng chứng từ input/tài liệu
-* Reason: vì sao bị đánh giá như vậy
-* Question: người dùng cần trả lời gì
-* Next action: người dùng nên làm gì tiếp theo
-
-If there is not enough evidence, say that evidence is missing. Do not make the AI look certain when the input is weak.
+Missing evidence → say so. Don't fake certainty on weak input.
 
 ### 3.2 Design for Trust, Not Magic
 
-Do not present Nexus as a magic AI tool.
+Nexus not magic AI tool.
 
-Avoid claims like:
+Avoid: "Tối ưu ý tưởng để chắc chắn pass.", "AI đảm bảo ý tưởng của bạn tốt hơn.", "Tự động sửa toàn bộ bài cho bạn."
 
-* “Tối ưu ý tưởng để chắc chắn pass.”
-* “AI đảm bảo ý tưởng của bạn tốt hơn.”
-* “Tự động sửa toàn bộ bài cho bạn.”
-
-Use trust-building language:
-
-* “Nexus kiểm tra tài liệu theo tiêu chí checkpoint.”
-* “Kết quả này là bản phản biện có cấu trúc, cần được xem lại bởi supporter.”
-* “AI draft chỉ là bản nháp, không phải quyết định cuối cùng.”
+Use: "Nexus kiểm tra tài liệu theo tiêu chí checkpoint.", "Kết quả này là bản phản biện có cấu trúc, cần được xem lại bởi supporter.", "AI draft chỉ là bản nháp, không phải quyết định cuối cùng."
 
 ### 3.3 Status Must Be Visible
 
-Important objects must show their status clearly:
+Show status clearly for: case, document, payment, report, AI draft, supporter review, revision/version.
 
-* case
-* document
-* payment
-* report
-* AI draft
-* supporter review
-* revision/version
-
-Do not rely on color alone. Always include readable labels.
-
-Example:
-
-* `Chưa thanh toán`
-* `Đang phản biện`
-* `Cần làm rõ`
-* `Đã gửi báo cáo`
-* `Bản mới nhất`
+Don't rely on color alone. Include readable labels: `Chưa thanh toán`, `Đang phản biện`, `Cần làm rõ`, `Đã gửi báo cáo`, `Bản mới nhất`
 
 ### 3.4 Separate Input, Output, and Decision
 
-Keep these layers visually and structurally separated:
+Keep layers separate:
+1. **Student Input**: user submitted
+2. **AI Output**: AI analyzed/drafted
+3. **Supporter/Admin Decision**: human reviewed/approved/rejected/sent
 
-1. **Student Input**: what the user submitted
-2. **AI Output**: what AI analyzed or drafted
-3. **Supporter/Admin Decision**: what a human reviewed, approved, rejected, or sent
-
-Do not mix original user data with AI interpretation.
-Do not make users think the AI has already rewritten or approved their work.
-Do not expose internal AI drafts to students unless they are approved for student view.
+Don't mix user data with AI interpretation. Don't make users think AI rewrote/approved work. Don't expose internal AI drafts to students unless approved for student view.
 
 ### 3.5 Error States Must Be Actionable
 
-Every error must tell the user:
+Every error tells: what happened, where, what to do next.
 
-* what happened
-* where it happened
-* what to do next
+Bad: "Upload failed."
+Better: "Không thể tải ảnh minh chứng. Hãy kiểm tra định dạng file hoặc thử tải lại."
 
-Bad:
-
-> Upload failed.
-
-Better:
-
-> Không thể tải ảnh minh chứng. Hãy kiểm tra định dạng file hoặc thử tải lại.
-
-Bad:
-
-> Something went wrong.
-
-Better:
-
-> Không thể chạy phản biện lúc này. Hãy thử lại hoặc kiểm tra tài liệu đã được cấp quyền xem.
+Bad: "Something went wrong."
+Better: "Không thể chạy phản biện lúc này. Hãy thử lại hoặc kiểm tra tài liệu đã được cấp quyền xem."
 
 ### 3.6 Empty States Must Guide Action
 
-Do not leave blank pages or generic “No data” states.
+No blank pages or generic "No data." Say: what's missing, why, what to do next.
 
-An empty state should say:
-
-* chưa có gì
-* vì sao chưa có
-* người dùng nên làm gì tiếp
-
-Example:
-
-> Chưa có dự án phản biện nào. Hãy gửi thông tin ý tưởng và link tài liệu để bắt đầu case đầu tiên.
+Example: "Chưa có dự án phản biện nào. Hãy gửi thông tin ý tưởng và link tài liệu để bắt đầu case đầu tiên."
 
 ### 3.7 Accessibility Is Default
 
-The UI must be readable and usable.
+Minimum: readable text, clear contrast, clickable buttons, labeled form fields, errors near field, keyboard nav not broken, states not color-only, motion not excessive.
 
-Minimum requirements:
-
-* Text is readable.
-* Contrast is clear.
-* Buttons are easy to click.
-* Form fields have labels or clear accessible names.
-* Error messages appear near the relevant field.
-* Keyboard navigation should not be broken.
-* Important states are not communicated by color alone.
-* Motion must not be excessive or required to understand the UI.
-
-Do not sacrifice basic accessibility for visual effects.
+Don't sacrifice accessibility for visual effects.
 
 ## 4. Core Design Principles
 
-These principles should guide design decisions, but they are not rigid laws.
+Guide decisions, not rigid laws.
 
 ### 4.1 Clarity Before Decoration
 
-The interface should be visually polished, but clarity comes first.
+Decoration OK when: improves hierarchy, directs attention, makes product feel complete, helps workflow understanding, creates trust.
 
-Decoration is allowed when it:
+Not OK when: competes with main task, makes content harder to read, looks generic AI SaaS template, adds noise without meaning.
 
-* improves hierarchy
-* directs attention
-* makes the product feel more complete
-* helps users understand workflow
-* creates trust or confidence
-
-Decoration is not allowed when it:
-
-* competes with the main task
-* makes content harder to read
-* makes the UI look like a generic AI SaaS template
-* adds noise without meaning
-
-Use visual design intentionally.
+Design intentionally.
 
 ### 4.2 One Main Job Per Screen
 
-Each screen should have one dominant user goal.
+Each screen = one dominant user goal.
 
-A screen may contain secondary actions, but users should immediately understand what the screen is mainly for.
+Examples: Landing (understand + start), Auth (sign in/register), Dashboard (see cases + start new), Intake (submit project stepwise), Case Workspace (understand status + continue), Supporter Review (inspect/edit/approve report), Admin (process tasks quickly).
 
-Examples:
-
-* Landing: understand Nexus and start.
-* Auth: sign in or create account.
-* Dashboard: see current cases and start a new one.
-* Intake: submit project information step by step.
-* Case Workspace: understand case status and continue work.
-* Supporter Review: inspect, edit, and approve report.
-* Admin: process operational tasks quickly.
-
-If a screen has multiple jobs, use hierarchy, sections, tabs, or progressive disclosure to make the main job obvious.
+Multiple jobs → hierarchy, sections, tabs, progressive disclosure.
 
 ### 4.3 Clear Primary Action Per Context
 
-Avoid multiple competing primary actions in the same context.
+One primary action per focused area. Not one per page — one per section.
 
-This does not mean the entire page can only have one important button. Large pages may have multiple sections, and each section may have its own main action.
-
-Use this rule:
-
-* One primary action per focused task area.
-* Avoid placing two equally loud primary buttons side by side.
-* Secondary actions should look visually quieter.
-* Destructive actions must not look like normal primary actions.
+Rules: one primary per area, no two equally loud buttons side by side, secondary quieter, destructive not look normal.
 
 ### 4.4 Progressive Disclosure
 
-Show the most important information first.
+Show most important first. Order: status → action → summary → key result → evidence → details → history.
 
-Preferred order:
-
-1. Current status
-2. Main action
-3. Summary
-4. Key problem or result
-5. Evidence/reason
-6. Details
-7. History/logs
-
-Use expandable areas, drawers, tabs, or detail panels when content is long.
-
-Do not force users to read long blocks before they know what to do.
+Use expandable areas, drawers, tabs for long content. Don't force reading long blocks before user knows what to do.
 
 ### 4.5 Familiar Patterns, Product-Specific Execution
 
-Use familiar patterns when they solve the problem well:
+Use: form, card, table, tabs, drawer, modal, accordion, timeline, stepper, toast, status badge.
 
-* form
-* card
-* table
-* tabs
-* drawer
-* modal
-* accordion
-* timeline
-* stepper
-* toast
-* status badge
+Don't let patterns make UI generic. OK to create: case progress header, report finding cards, evidence/reason panels, revision timeline, supporter review workspace, intake guidance, payment status panel.
 
-However, do not let familiar patterns make the UI generic.
-
-It is acceptable to create product-specific compositions, such as:
-
-* a case progress header
-* report finding cards
-* evidence/reason panels
-* revision timeline
-* supporter review workspace
-* intake guidance flow
-* payment status panel
-
-The interaction should feel familiar; the product should not feel visually generic.
+Interaction familiar; product not visually generic.
 
 ### 4.6 Calm but Not Boring
 
-Nexus should feel calm and serious because users are dealing with academic/startup evaluation.
+Calm + serious (academic/startup). Not plain/empty/dead.
 
-But calm does not mean plain, empty, or visually dead.
+Use: thoughtful spacing, subtle depth, clean typography, restrained accent colors, structured cards, timeline visuals, product preview blocks, soft gradients/surfaces, clear section rhythm, micro-interactions.
 
-The interface may use:
-
-* thoughtful spacing
-* subtle depth
-* clean typography
-* restrained accent colors
-* structured cards
-* timeline visuals
-* product preview blocks
-* soft gradients or surfaces
-* clear section rhythm
-* useful micro-interactions
-
-Avoid:
-
-* excessive animation
-* too many glowing effects
-* random gradients
-* decorative icons everywhere
-* every card looking equally important
-* dashboard clutter
+Avoid: excessive animation, glowing effects, random gradients, decorative icons everywhere, equal-looking cards, dashboard clutter.
 
 ### 4.7 Reduce User Thinking Load
 
-Do not make users guess what kind of answer is expected.
+Don't make user guess answer format.
 
-Bad:
+Bad: "Mô tả khách hàng mục tiêu."
+Better: "Ai là người trực tiếp gặp vấn đề này? Họ thuộc nhóm sinh viên nào, ở tình huống nào?"
 
-> Mô tả khách hàng mục tiêu.
-
-Better:
-
-> Ai là người trực tiếp gặp vấn đề này? Họ thuộc nhóm sinh viên nào, ở tình huống nào?
-
-Bad:
-
-> Phân tích giải pháp thay thế.
-
-Better:
-
-> Hiện tại họ đang xử lý vấn đề này bằng cách nào nếu chưa dùng Nexus?
-
-Good UX is not only layout. It is also asking the right question at the right time.
+Bad: "Phân tích giải pháp thay thế."
+Better: "Hiện tại họ đang xử lý vấn đề này bằng cách nào nếu chưa dùng Nexus?"
 
 ### 4.8 Plain Language, Not Marketing Language
 
-UI copy should be direct Vietnamese.
+UI copy = direct Vietnamese.
 
-Prefer:
+Prefer: "Gửi tài liệu", "Chạy phản biện", "Cần bổ sung", "Xem lý do", "Xem bằng chứng", "Nộp bản sửa", "Bản mới nhất", "Đã được supporter duyệt"
 
-* “Gửi tài liệu”
-* “Chạy phản biện”
-* “Cần bổ sung”
-* “Xem lý do”
-* “Xem bằng chứng”
-* “Nộp bản sửa”
-* “Bản mới nhất”
-* “Đã được supporter duyệt”
+Avoid: "Unlock", "Enhance", "Transform", "Leverage", "AI-powered journey", "Intelligent innovation platform"
 
-Avoid:
-
-* “Unlock”
-* “Enhance”
-* “Transform”
-* “Leverage”
-* “AI-powered journey”
-* “Intelligent innovation platform”
-
-Use English only for technical labels or product terms that are already familiar and useful.
+English only for tech labels / familiar product terms.
 
 ## 5. Screen-Level Guidance
 
 ### 5.1 Landing Page
 
-The landing page may be more creative than internal workspace pages.
+More creative than internal pages.
 
-Goal:
+Goal: explain Nexus, build trust, show workflow + pricing, answer FAQs, move users toward starting.
 
-* explain what Nexus does
-* build trust
-* show the workflow
-* show packages/pricing
-* answer common questions
-* move users toward starting
+Allowed: editorial/split layout, product mockups, workflow visualization, subtle gradients, visual metaphor for critique/audit/revision, stronger visual identity.
 
-Allowed:
-
-* editorial layout
-* split-screen layout
-* product preview mockups
-* workflow visualization
-* subtle gradients
-* visual metaphor for critique/audit/revision
-* stronger visual identity
-
-Avoid:
-
-* vague AI SaaS slogans
-* overpromising outcomes
-* exposing sensitive syllabus details
-* making Nexus sound like it does homework for students
-* making the page so minimal that it lacks persuasion
-
-Landing copy should be clear, practical, and credible.
+Avoid: vague AI SaaS slogans, overpromising, exposing syllabus details, making Nexus sound like homework-doer, page too minimal to persuade.
 
 ### 5.2 Auth
 
-Auth should feel secure, clean, and low-friction.
+Secure, clean, low-friction.
 
-Allowed:
+Allowed: simple form, Google OAuth, light side panel, short post-login explanation.
 
-* simple form
-* Google OAuth button if available
-* light visual side panel
-* short explanation of what users do after login
-
-Avoid:
-
-* heavy marketing
-* unnecessary animation
-* too many choices
-* visually noisy background
+Avoid: heavy marketing, unnecessary animation, too many choices, noisy background.
 
 ### 5.3 Student Dashboard
 
-The student dashboard should not feel like an admin table unless there are many cases.
+Not admin table (unless many cases). Prefer: case cards, status-first, clear next action, empty state with CTA, recent activity.
 
-For students, prefer:
-
-* case cards
-* status-first layout
-* clear next action
-* empty state with CTA
-* recent activity summary
-
-Tables are allowed when they improve scanning, but avoid making the first student experience feel like backend admin software.
+Tables OK when they improve scanning. Avoid making student experience feel like backend admin.
 
 ### 5.4 Intake Flow
 
-Intake should feel guided, not like a long bureaucratic form.
+Guided, not bureaucratic form. May include: stage, idea, customer, pain point, alternatives, team capability, deadline, Drive URL.
 
-Required information may include:
+Conversational look OK, but remain structured.
 
-* stage
-* idea
-* customer
-* pain point
-* alternatives
-* team capability
-* deadline
-* Google Drive URL
+Do: one question at a time, lightweight progress, review before submit, validation near input, save draft, redirect to workspace after submit.
 
-The flow may look conversational, but it must remain structured under the hood.
-
-Do:
-
-* ask one focused question at a time
-* show lightweight progress
-* allow review before submit
-* show validation near the relevant input
-* save draft locally when useful
-* redirect to the case workspace after successful submit
-
-Avoid:
-
-* fully free-form chat with no data structure
-* huge form with all fields exposed at once
-* progress UI that takes too much space
-* over-animated chat bubbles
+Avoid: free-form chat, huge form exposed at once, oversized progress UI, over-animated bubbles.
 
 ### 5.5 Case Workspace
 
-This is the core product screen.
+Core screen. User understands: current status, latest version, payment state, action needed?, where report/discussion is.
 
-The user should quickly understand:
+Structure: status/action header, main content (input/report/discussion), secondary panel/timeline, version switcher (only if versions exist), progressive disclosure for findings.
 
-* current case status
-* latest version
-* payment state if relevant
-* whether action is needed
-* where the report/feedback is
-* where discussion happens
+No fixed 3-column if crowded → tabs, panels, responsive.
 
-Recommended structure:
-
-* status/action header at the top
-* main content area for input/report/discussion
-* secondary panel or timeline when useful
-* version switcher only when versions exist
-* progressive disclosure for detailed findings
-
-Do not force a fixed 3-column layout if it makes the UI crowded. Use tabs, panels, or responsive composition when better.
-
-Separate clearly:
-
-* submitted input
-* AI/supporter feedback
-* discussion
-* activity history
-* payment state
+Separate: submitted input, AI/supporter feedback, discussion, activity history, payment state.
 
 ### 5.6 Report/Finding Display
 
-Reports should be scannable.
+Reports scannable. No AI essay. Use structured cards: severity/status, field, summary, evidence, reason, question, next action.
 
-Do not render AI output as one long essay.
+Evidence/reasoning collapsed by default on dense screens. User should know what to fix without reading every detail.
 
-Prefer structured finding cards or sections:
+## 6. Implementation Rules (Light/Dark Mode & Card)
 
-* severity/status
-* field
-* short summary
-* evidence
-* reason
-* question
-* next action
+### 6.1 Dark Mode Text Colors
 
-Evidence and detailed reasoning can be collapsed by default if the screen is dense.
+Hardcoded text colors (`c="#115e59"`, `color: #115e59`) break in dark mode → use CSS variables or Mantine theme color.
 
-The user should know what to fix without reading every detail.
+Mantine `c="dimmed"` auto-adapts (ok).
 
-#
+### 6.2 Card Background Override
+
+Global CSS overrides `.mantine-Card-root` background with `!important`. Tailwind gradient/background classes on Card ineffective.
+
+Fix: use inline `style` or CSS vars instead of className.
+
+### 6.3 No Shadow on Cards
+
+No `shadow` on Card/Paper. Border only + `borderWidth: 1.5px` for slim, premium look.
+
+### 6.4 No Gradient Backgrounds
+
+Solid color, no gradient.
+
+### 6.5 CSS Variables Pattern
+
+```css
+:root {
+  --cta-bg: #f0fdfa;
+  --cta-border: #99f6e4;
+  --cta-title: #115e59;
+}
+[data-mantine-color-scheme="dark"] {
+  --cta-bg: rgba(13, 148, 136, 0.15);
+  --cta-border: #0f766e;
+  --cta-title: #5eead4;
+}
+```
+
+Define in `globals.css`, use via `style={{ background: "var(--cta-bg)" }}`.

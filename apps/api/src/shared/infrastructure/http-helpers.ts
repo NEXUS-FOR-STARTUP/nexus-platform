@@ -1,5 +1,6 @@
 import { auth } from "../../auth.js";
 import { AppError } from "../domain/app-error.js";
+import logger from "./logger.js";
 
 /**
  * Get the authenticated session from the request context.
@@ -10,7 +11,7 @@ export async function getSession(c: any) {
     const session = await auth.api.getSession({ headers: c.req.raw.headers });
     return session;
   } catch (error) {
-    console.error("Error in getSession:", error);
+    logger.error({ err: error }, 'getSession failed');
     return null;
   }
 }
@@ -43,6 +44,7 @@ export function asNonEmptyString(value: unknown, min = 1): string {
  */
 export function handleError(c: any, e: unknown) {
   if (e instanceof AppError) {
+    logger.warn({ err: e, code: e.code, status: e.status }, 'handleError: app error');
     return c.json(
       {
         code: e.code,
@@ -52,6 +54,9 @@ export function handleError(c: any, e: unknown) {
       e.status,
     );
   }
-  console.error(e);
+  const msg = e instanceof Error ? e.message : String(e);
+  const stack = e instanceof Error ? e.stack : undefined;
+  logger.error({ err: e, code: 'INTERNAL_ERROR' }, `handleError: unhandled controller error — ${msg}`);
+  console.error('[handleError]', msg, stack ?? '');
   return c.json({ code: "INTERNAL_ERROR", message: "Lỗi hệ thống" }, 500);
 }

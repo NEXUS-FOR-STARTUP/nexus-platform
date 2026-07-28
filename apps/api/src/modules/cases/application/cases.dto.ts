@@ -57,7 +57,7 @@ export interface SubmitRevisionUploadRequest {
 }
 
 export interface SupporterOutputUploadRequest {
-  document_type_code: string;
+  document_type_code?: string;
   note?: string;
   documents: UploadedDocumentDraftInput[];
 }
@@ -75,6 +75,32 @@ export interface ExternalFeedbackUploadRequest {
 export interface DocumentTypeQueryRequest {
   flow?: DocumentTypeFlow;
   unit_scope?: DocumentUnitScope;
+}
+
+export interface IntakeRequest {
+  school?: string;
+  course_context?: string;
+  team_context?: {
+    project_name?: string;
+    group_no?: string;
+  };
+  contact: {
+    full_name: string;
+    student_code: string;
+    team_role: string;
+    zalo: string;
+    email: string;
+  };
+  current_blocker: string;
+  support_needs: {
+    primary_need: string;
+  };
+  documents: Array<{
+    file_url?: string;
+    drive_url?: string;
+    document_type: string;
+  }>;
+  boundary_confirmations: string[];
 }
 
 export interface UpdateCaseSettingsRequest {

@@ -124,7 +124,7 @@ test("backend demo regression coverage", async (t) => {
         deleteFile: async (publicId: string) => {
           cleaned = publicId;
         },
-        createPaymentProof: async () => {
+        submitPaymentProof: async () => {
           throw new Error("db failure");
         },
       } as any,

@@ -84,6 +84,11 @@
   --shadow-sm: 0 0 12px 1px rgba(15, 23, 42, 0.04), 0 2px 4px 0 rgba(15, 23, 42, 0.02);
   --shadow-md: 0 0 18px 2px rgba(15, 23, 42, 0.06), 0 4px 6px -1px rgba(15, 23, 42, 0.03);
 
+  /* Paid Audit CTA card */
+  --audit-cta-bg: #f0fdfa;
+  --audit-cta-border: #99f6e4;
+  --audit-cta-title: #115e59;
+
   /* Base next-themes backgrounds for compatibility */
   --background: var(--color-bg);
   --foreground: var(--color-text);
@@ -108,6 +113,11 @@
   --color-brand-hover: #60A5FA;
   --color-brand-soft: rgba(59, 130, 246, 0.16);
   --color-brand-subtle: rgba(59, 130, 246, 0.08);
+
+  /* Paid Audit CTA card — dark variant */
+  --audit-cta-bg: rgba(13, 148, 136, 0.15);
+  --audit-cta-border: #0f766e;
+  --audit-cta-title: #5eead4;
 
   /* Status Soft Colors for Dark Theme */
   --color-success-soft: rgba(16, 185, 129, 0.15);

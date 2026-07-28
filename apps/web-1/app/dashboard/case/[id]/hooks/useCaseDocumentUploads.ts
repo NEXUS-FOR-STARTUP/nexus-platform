@@ -80,7 +80,6 @@ export function useSupporterOutputUpload(caseId: string) {
 
   const mutation = useMutation({
     mutationFn: async (payload: {
-      document_type_code: string;
       note?: string;
       files: File[];
     }) => {
@@ -89,13 +88,12 @@ export function useSupporterOutputUpload(caseId: string) {
           const uploaded = await uploadManagedDocument(file);
           return {
             ...uploaded,
-            doc_type: payload.document_type_code,
+            doc_type: "supporter_output",
           };
         }),
       );
 
       const response = await apiClient.post(`/cases/${caseId}/supporter-outputs/upload`, {
-        document_type_code: payload.document_type_code,
         note: payload.note || undefined,
         documents,
       });
@@ -154,6 +152,40 @@ export function useExternalFeedbackUpload(caseId: string) {
 
   return {
     submitExternalFeedbackUpload: mutation.mutateAsync,
+    isSubmitting: mutation.isPending,
+    error: mutation.error,
+  };
+}
+
+export function useStudentDocumentUpload(caseId: string) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (payload: { note?: string; files: File[] }) => {
+      const documents = await Promise.all(
+        payload.files.map(async (file) => {
+          const uploaded = await uploadManagedDocument(file);
+          return {
+            ...uploaded,
+            doc_type: "revision_document",
+          };
+        }),
+      );
+
+      const changeSummary = `Tải lên: ${payload.files.map(f => f.name).join(', ')}`;
+
+      await apiClient.post(`/cases/${caseId}/revisions/upload`, {
+        change_summary: changeSummary,
+        documents,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["case", caseId] });
+    },
+  });
+
+  return {
+    submitStudentUpload: mutation.mutateAsync,
     isSubmitting: mutation.isPending,
     error: mutation.error,
   };

@@ -1,7 +1,13 @@
 /**
  * Structured audit logging for backend demo-critical operations.
- * All logs follow a consistent JSON format for observability.
+ *
+ * Backed by Pino instead of console.log — ships JSON to stdout
+ * and optionally to Grafana Cloud Loki for production tracing.
+ *
+ * Interface stays the same — no caller changes needed.
  */
+
+import baseLogger from './logger.js'
 
 export interface AuditLogEntry {
   timestamp: string;
@@ -26,41 +32,19 @@ class AuditLogger {
     return process.env.NODE_ENV !== "test";
   }
 
-  private format(entry: AuditLogEntry): string {
-    return JSON.stringify(entry);
-  }
-
   log(entry: Omit<AuditLogEntry, "timestamp" | "level">): void {
     if (!this.shouldLog()) return;
-    console.log(
-      this.format({
-        timestamp: new Date().toISOString(),
-        level: "INFO",
-        ...entry,
-      }),
-    );
+    baseLogger.info({ ...entry, event: 'audit' }, entry.operation)
   }
 
   warn(entry: Omit<AuditLogEntry, "timestamp" | "level">): void {
     if (!this.shouldLog()) return;
-    console.warn(
-      this.format({
-        timestamp: new Date().toISOString(),
-        level: "WARN",
-        ...entry,
-      }),
-    );
+    baseLogger.warn({ ...entry, event: 'audit' }, entry.operation)
   }
 
   error(entry: Omit<AuditLogEntry, "timestamp" | "level">): void {
     if (!this.shouldLog()) return;
-    console.error(
-      this.format({
-        timestamp: new Date().toISOString(),
-        level: "ERROR",
-        ...entry,
-      }),
-    );
+    baseLogger.error({ ...entry, event: 'audit' }, entry.operation)
   }
 
   startTimer(): () => number {

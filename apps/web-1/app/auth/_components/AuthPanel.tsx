@@ -64,13 +64,21 @@ export default function AuthPanel() {
   const [isLoading, setIsLoading] = useState(false);
   const [showQuickLogin, setShowQuickLogin] = useState(false);
 
+  // Compute redirect URL: returnUrl > package-specific > /dashboard
+  const getRedirectUrl = () => {
+    const returnUrl = searchParams.get("returnUrl");
+    if (returnUrl) return returnUrl;
+
+    const packageId = searchParams.get("packageId");
+    if (packageId === "pkg_tf_free") return "/dashboard/team-fit";
+    if (packageId === "pkg_tf_audit") return `/dashboard/intake?packageId=${packageId}`;
+    return "/dashboard";
+  };
+
   const handleQuickLogin = async (email: string) => {
     setAuthError(null);
     setIsLoading(true);
-    const packageId = searchParams.get("packageId");
-    const callbackUrl = packageId
-      ? `/dashboard/intake?packageId=${packageId}`
-      : "/dashboard";
+    const callbackUrl = getRedirectUrl();
 
     try {
       await signIn.email(
@@ -111,10 +119,7 @@ export default function AuthPanel() {
     setIsLoading(true);
     setAuthError(null);
 
-    const packageId = searchParams.get("packageId");
-    const callbackUrl = packageId
-      ? `${window.location.origin}/dashboard/intake?packageId=${packageId}`
-      : `${window.location.origin}/dashboard`;
+    const callbackUrl = `${window.location.origin}${getRedirectUrl()}`;
 
     try {
       await signIn.social({
@@ -155,10 +160,7 @@ export default function AuthPanel() {
       setAuthError(null);
       setIsLoading(true);
 
-      const packageId = searchParams.get("packageId");
-      const callbackUrl = packageId
-        ? `/dashboard/intake?packageId=${packageId}`
-        : "/dashboard";
+      const callbackUrl = getRedirectUrl();
 
       try {
         if (activeTab === "login") {
@@ -450,8 +452,8 @@ export default function AuthPanel() {
         </Anchor>
       </Group>
 
-      {/* Quick Login Collapsible */}
-      <div className="pt-4 mt-6 border-t border-border-app">
+      {/* Quick Login Collapsible — tạm ẩn */}
+      {/* <div className="pt-4 mt-6 border-t border-border-app">
         <button
           type="button"
           onClick={() => setShowQuickLogin(!showQuickLogin)}
@@ -506,7 +508,7 @@ export default function AuthPanel() {
             </button>
           </div>
         )}
-      </div>
+      </div> */}
     </div>
   );
 }

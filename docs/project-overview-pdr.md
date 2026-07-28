@@ -1,5 +1,16 @@
 # Project Overview PDR
 
+## Document Status
+
+- **Cập nhật lần cuối:** 2026-07-23
+- **Phiên bản:** MVP demo realignment (post-rebuild)
+- **Business context canonical:** [`project-context.md`](./project-context.md)
+- **Code references ghi theo đường dẫn thật:** `apps/web-1/` (không phải `apps/web`)
+
+> ⚠️ **Ghi chú đường dẫn:** Một số tham chiếu code cũ dùng `apps/web`. Tất cả đường dẫn dưới đây đã được xác nhận bám `apps/web-1`.
+
+---
+
 ## 1. Mục tiêu tài liệu
 
 Tài liệu này chốt product direction ngắn hạn cho MVP demo Nexus sau khi đối chiếu codebase hiện tại.
@@ -53,7 +64,7 @@ Các quyết định sau đây phải bám code hiện tại, không giả đị
 - Student case workspace đã có sidebar shell.
 - Supporter case workspace tái dùng cùng shell.
 - Student hiện ưu tiên `documents`, `discussion`, `timeline`, `settings`.
-- Supporter tái dùng shell và có review page riêng.
+- Supporter tái dùng shell và có output upload modal riêng.
 - Đây là hướng UX chính cần giữ.
 
 Tham chiếu:
@@ -87,16 +98,52 @@ Tham chiếu:
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/ActivityTimeline.tsx`
 
-### 5.5 Supporter review flow đã có
+### 5.5 Supporter review flow
 - Supporter đã có workspace riêng để đọc case.
-- Supporter đã có review page riêng để generate draft AI, chỉnh findings, và approve/send report.
-- Đây là output path chính thức cho báo cáo phản biện.
+- Supporter đã có `SupporterOutputUploadModal` để upload output report.
+- ⚠️ **Cần xác nhận:** Supporter không có review page riêng (`apps/web-1/app/supporter/case/[id]/review/page.tsx` không tồn tại). Việc create/edit report hiện có thể xử lý qua output upload modal thay vì page riêng.
 
 Tham chiếu:
 - `apps/web-1/app/supporter/case/[id]/page.tsx`
-- `apps/web-1/app/supporter/case/[id]/review/page.tsx`
+- `apps/web-1/app/supporter/case/[id]/_components/SupporterOutputUploadModal.tsx`
 
-### 5.6 Intake documents vẫn là hybrid sơ khai
+### 5.6 Bề mặt revision rounds (đã có)
+- `RevisionSubmitModal`: cho student nộp bản sửa.
+- `BuyRoundModal`: cho student mua thêm vòng sửa.
+- `AuditRoundTimeline`: hiển thị lịch sử các vòng audit.
+- Workspace tabs đã có tab `reports` và tab riêng cho findings.
+
+Tham chiếu:
+- `apps/web-1/app/dashboard/case/[id]/_components/RevisionSubmitModal.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/BuyRoundModal.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/AuditRoundTimeline.tsx`
+
+### 5.7 Payment drawer (đã có)
+- Ngoài payment page riêng, workspace đã có `PaymentDrawer` cho luồng thanh toán inline.
+- `UnpaidAlertBanner` hiển thị cảnh báo nếu chưa thanh toán.
+
+Tham chiếu:
+- `apps/web-1/app/dashboard/case/[id]/_components/PaymentDrawer.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/UnpaidAlertBanner.tsx`
+- `apps/web-1/app/dashboard/case/[id]/payment/page.tsx`
+
+### 5.8 External feedback upload (đã có)
+- `ExternalFeedbackUploadModal` cho phép supporter upload phản hồi từ bên ngoài.
+
+Tham chiếu:
+- `apps/web-1/app/dashboard/case/[id]/_components/ExternalFeedbackUploadModal.tsx`
+
+### 5.9 Version selector & workspace tabs (đã có)
+- `VersionSelector`: chọn version tài liệu trong workspace.
+- `WorkspaceTabs`: abstract tabs switching (`TabIdeaContent`, `TabDiscussionChat`, `TabReportFindings`, `TabCaseSettings`).
+
+Tham chiếu:
+- `apps/web-1/app/dashboard/case/[id]/_components/VersionSelector.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/WorkspaceTabs.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/TabIdeaContent.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/TabReportFindings.tsx`
+
+### 5.10 Intake documents vẫn là hybrid sơ khai
 - Intake dùng `documents[0]` làm primary document bundle.
 - User hiện nộp 1 Drive/Docs URL chính.
 - User chọn checklist loại tài liệu có trong thư mục.
@@ -108,8 +155,8 @@ Tham chiếu:
 - `apps/web-1/app/dashboard/intake/_components/Steps/DocumentInputStep.tsx`
 - `apps/web-1/app/dashboard/intake/hooks/useIntakeForm.ts`
 
-### 5.7 Payment tồn tại như surface phụ
-- Case workspace đã có `payment_status`, unpaid banner, và payment page.
+### 5.11 Payment tồn tại như surface phụ
+- Case workspace đã có `payment_status`, unpaid banner, payment page, và payment drawer.
 - Payment không phải golden path của demo, nhưng là surface thật trong codebase nên không được mô tả như thể không tồn tại.
 
 Tham chiếu:
@@ -123,20 +170,22 @@ Tham chiếu:
 - tạo `Hồ sơ phản biện`;
 - điền bối cảnh, nhu cầu hỗ trợ, thông tin liên hệ, xác nhận cần thiết;
 - nộp tài liệu minh chứng qua Drive/Docs link chính + checklist loại tài liệu;
-- vào case workspace để theo dõi tài liệu, trạng thái, timeline, trao đổi, báo cáo, và vòng sửa.
+- vào case workspace để theo dõi tài liệu, trạng thái, timeline, trao đổi, báo cáo, và vòng sửa;
+- nộp revision qua `RevisionSubmitModal`, mua thêm vòng qua `BuyRoundModal`.
 
 ### 6.2 Admin
 - xem case mới;
 - đọc nhanh summary, needs, documents;
 - yêu cầu làm rõ / từ chối / duyệt;
-- phân công supporter.
+- phân công supporter;
+- quản lý gói dịch vụ và giá qua Settings/Packages.
 
 ### 6.3 Supporter
 - mở cùng case workspace shell;
 - đọc context và tài liệu của case theo checkpoint;
 - trao đổi với sinh viên khi cần;
-- tạo hoặc biên tập báo cáo phản biện;
-- gửi phản hồi, yêu cầu bổ sung, theo dõi timeline.
+- tạo hoặc biên tập báo cáo phản biện (qua output upload modal);
+- gửi phản hồi, upload external feedback, yêu cầu bổ sung, theo dõi timeline.
 
 ## 7. Những gì phải giữ
 
@@ -146,7 +195,7 @@ Tham chiếu:
 - Giữ timeline/event trace.
 - Giữ intake document model hiện tại nếu không thật cần đổi schema.
 - Giữ shared shell giữa student và supporter.
-- Giữ review page riêng của supporter.
+- Giữ các bề mặt revision round, payment drawer, external feedback, version selector như đã có.
 
 ## 8. Những gì phải sửa
 
@@ -190,7 +239,7 @@ Không làm trước demo:
 3. Sinh viên nộp Drive folder / main doc cùng checklist tài liệu minh chứng.
 4. Admin vào triage, hiểu case rất nhanh, duyệt hoặc yêu cầu làm rõ.
 5. Supporter mở cùng workspace, đọc tài liệu theo checkpoint, trao đổi khi cần, biên tập báo cáo phản biện.
-6. Sinh viên nhận báo cáo, theo dõi timeline, và có thể nộp revision.
+6. Sinh viên nhận báo cáo, theo dõi timeline, và có thể nộp revision qua modal.
 
 ## 11. Acceptance criteria cho bản demo
 

@@ -1,5 +1,5 @@
 // Allowed file extensions for payment proof uploads
-export const ALLOWED_PROOF_EXTENSIONS = [".jpg", ".jpeg", ".png", ".pdf"] as const;
+export const ALLOWED_PROOF_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"] as const;
 
 // Max file size for payment proof uploads (5 MB)
 export const MAX_PROOF_FILE_SIZE_BYTES = 5 * 1024 * 1024;

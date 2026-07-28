@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Title, Text, Button, Container, Group, List, ThemeIcon } from "@mantine/core";
+import { Title, Text, Button, Container, Stack, Group, List, ThemeIcon } from "@mantine/core";
 import { ArrowRight, Check } from "lucide-react";
 import classes from "./HeroBullets.module.css";
 
@@ -46,29 +46,34 @@ export default function LandingHero() {
               </List.Item>
             </List>
 
-            <Group mt={30} className="w-full sm:w-auto">
-              <Button
-                component={Link}
-                href="/auth"
-                size="md"
-                color="brand"
-                radius="md"
-                rightSection={<ArrowRight className="w-4 h-4" />}
-                className={`${classes.control} font-semibold font-body shadow-md shadow-brand/10 transition-transform hover:-translate-y-0.5`}
-              >
-                Bắt đầu kiểm định
-              </Button>
-              <Button
-                component="a"
-                href="#packages"
-                size="md"
-                variant="default"
-                radius="md"
-                className={`${classes.control} font-semibold font-body text-text-muted hover:text-text-app border-border-strong`}
-              >
-                Xem bảng giá dịch vụ
-              </Button>
-            </Group>
+            <Stack mt={30} className="w-full sm:w-auto">
+              <Group>
+                <Button
+                  component={Link}
+                  href="/dashboard/team-fit"
+                  size="lg"
+                  color="brand"
+                  radius="md"
+                  data-cta="free"
+                  rightSection={<ArrowRight className="w-4 h-4" />}
+                  className={`${classes.control} font-semibold font-body shadow-md shadow-brand/10 transition-transform hover:-translate-y-0.5`}
+                >
+                  Kiểm tra miễn phí
+                </Button>
+                <Button
+                  component={Link}
+                  href="/dashboard/intake?packageId=pkg_tf_audit"
+                  size="lg"
+                  variant="outline"
+                  radius="md"
+                  data-cta="paid"
+                  className={`${classes.control} font-semibold font-body border-border-strong`}
+                >
+                  Mua kiểm tra chuyên sâu
+                </Button>
+              </Group>
+              <Text size="xs" c="dimmed">39.000đ / lượt</Text>
+            </Stack>
           </div>
         </div>
       </Container>

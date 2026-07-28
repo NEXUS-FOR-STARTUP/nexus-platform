@@ -1,9 +1,10 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import { fileStorageService } from "../infrastructure/file-storage.service.js";
-import { createPaymentProof } from "../infrastructure/persistence/payment.repository.js";
+import { submitPaymentProof } from "../infrastructure/persistence/payment.repository.js";
 import { normalizePaymentStatus } from "../domain/payment.types.js";
-import { findCaseByIdWithAllRelations } from "../../cases/infrastructure/persistence/case.repository.js";
-import { isValidPrice } from "../../cases/domain/case.types.js";
+import { findCaseById } from "../../cases/infrastructure/persistence/case.repository.js";
+import logger from "../../../shared/infrastructure/logger.js";
+import { prisma } from "../../../db.js";
 import type { UploadPaymentProofRequest } from "./payments.dto.js";
 
 type SavedProofFile = {
@@ -13,17 +14,17 @@ type SavedProofFile = {
 };
 
 type UploadPaymentProofDeps = {
-  findCaseByIdWithAllRelations?: typeof findCaseByIdWithAllRelations;
+  findCaseById?: typeof findCaseById;
   saveProofFile?: typeof fileStorageService.saveProofFile;
   deleteFile?: typeof fileStorageService.deleteFile;
-  createPaymentProof?: typeof createPaymentProof;
+  submitPaymentProof?: typeof submitPaymentProof;
 };
 
 const defaultDeps = {
-  findCaseByIdWithAllRelations,
+  findCaseById,
   saveProofFile: fileStorageService.saveProofFile.bind(fileStorageService),
   deleteFile: fileStorageService.deleteFile.bind(fileStorageService),
-  createPaymentProof,
+  submitPaymentProof,
 };
 
 export async function uploadPaymentProofUseCase(
@@ -33,73 +34,68 @@ export async function uploadPaymentProofUseCase(
   deps: UploadPaymentProofDeps = {},
 ) {
   const {
-    findCaseByIdWithAllRelations,
+    findCaseById,
     saveProofFile,
     deleteFile,
-    createPaymentProof,
+    submitPaymentProof,
   } = {
     ...defaultDeps,
     ...deps,
   };
+  const __log_start = Date.now();
 
-  const caseObj = await findCaseByIdWithAllRelations(caseId);
-
-  if (!caseObj) {
-    throw new AppError(404, "CASE_NOT_FOUND", "Không tìm thấy dự án");
-  }
-
-  const packageId = caseObj.package_id;
-  if (!packageId || !caseObj.package) {
-    throw new AppError(400, "INVALID_PACKAGE", "Dự án chưa có gói dịch vụ hợp lệ");
-  }
-
-  if (
-    caseObj.payment_status &&
-    caseObj.payment_status !== "unpaid" &&
-    caseObj.payment_status !== "rejected"
-  ) {
-    throw new AppError(
-      409,
-      "INVALID_PAYMENT_STATUS",
-      "Dự án đã có trạng thái thanh toán khác, không thể tạo minh chứng mới",
-    );
-  }
-
-  const lockedPrice = caseObj.locked_price;
-  if (!isValidPrice(lockedPrice)) {
-    throw new AppError(
-      400,
-      "INVALID_LOCKED_PRICE",
-      "Dự án thiếu thông tin giá đã khóa hợp lệ để tạo minh chứng thanh toán",
-    );
-  }
-
-  const amount = lockedPrice as number;
-  if (amount === 0) {
-    throw new AppError(
-      400,
-      "INVALID_AMOUNT",
-      "Gói dịch vụ không hợp lệ để tạo minh chứng thanh toán (gói miễn phí)",
-    );
-  }
-
-  const proofFile = (await saveProofFile(file)) as SavedProofFile;
+  let _paymentId: string | undefined;
+  let _fileUrl: string | undefined;
 
   try {
-    const payment = await createPaymentProof({
-      caseId,
-      packageId,
-      amount,
-      proofFileUrl: proofFile.fileUrl,
-      userId,
-    });
+    const caseObj = await findCaseById(caseId);
 
-    return {
-      ...payment,
-      status: normalizePaymentStatus(payment.status),
-    };
-  } catch (dbError) {
-    await deleteFile(proofFile.publicId);
-    throw dbError;
+    if (!caseObj) {
+      throw new AppError(404, "CASE_NOT_FOUND", "Không tìm thấy dự án");
+    }
+
+    const packageId = caseObj.package_id;
+    if (!packageId) {
+      throw new AppError(400, "INVALID_PACKAGE", "Dự án chưa có gói dịch vụ hợp lệ");
+    }
+
+    // Find unpaid Payment directly
+    const unpaidPayment = await prisma.payment.findFirst({
+      where: { case_id: caseId, status: "unpaid" },
+      orderBy: { created_at: "desc" },
+    });
+    if (!unpaidPayment) {
+      throw new AppError(
+        400,
+        "NO_UNPAID_PAYMENT",
+        "Không tìm thấy thông tin thanh toán đang chờ",
+      );
+    }
+    _paymentId = unpaidPayment.id;
+
+    const proofFile = (await saveProofFile(file)) as SavedProofFile;
+    _fileUrl = proofFile.fileUrl;
+
+    try {
+      const payment = await submitPaymentProof({
+        paymentId: unpaidPayment.id,
+        caseId,
+        proofFileUrl: proofFile.fileUrl,
+        userId,
+      });
+
+      logger.info({ paymentId: _paymentId, fileUrl: _fileUrl, fileSize: file.size, duration_ms: Date.now() - __log_start }, "payment proof uploaded");
+
+      return {
+        ...payment,
+        status: normalizePaymentStatus(payment.status),
+      };
+    } catch (dbError) {
+      await deleteFile(proofFile.publicId);
+      throw dbError;
+    }
+  } catch (error) {
+    logger.error({ err: error, caseId, paymentId: _paymentId, fileUrl: _fileUrl, duration_ms: Date.now() - __log_start }, "payment proof upload failed");
+    throw error;
   }
 }
