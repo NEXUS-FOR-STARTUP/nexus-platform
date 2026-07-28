@@ -13,7 +13,7 @@ export async function vetoCaseUseCase(adminId: string, caseId: string, reason: s
   }
 
   // Check case is in a state that allows veto (submitted or under_review)
-  if (!canTransition(caseRecord, 'veto')) {
+  if (!canTransition(caseRecord, 'cancel')) {
     throw new AppError(400, "INVALID_STAGE", "Dự án không ở trạng thái có thể từ chối");
   }
 
@@ -31,7 +31,7 @@ export async function vetoCaseUseCase(adminId: string, caseId: string, reason: s
       const currentBalance = await getCreditBalanceForTx(tx, caseId);
 
       // Apply symflow veto transition
-      applyTransition(caseRecord, 'veto');
+      applyTransition(caseRecord, 'cancel');
 
       // Insert refund ledger entry if credits exist
       if (currentBalance > 0) {
@@ -51,7 +51,7 @@ export async function vetoCaseUseCase(adminId: string, caseId: string, reason: s
       await tx.case.update({
         where: { id: caseId },
         data: {
-          internal_status: 'rejected',
+          internal_status: caseRecord.internal_status,
           user_facing_stage: 'rejected',
         },
       });
@@ -66,12 +66,12 @@ export async function vetoCaseUseCase(adminId: string, caseId: string, reason: s
         },
       });
 
-      logger.info({ caseId, transition: 'veto', fromState: caseRecord.internal_status, toState: 'rejected', actorId: adminId, actorRole: 'admin', duration_ms: Date.now() - startTime }, 'case transition: veto');
+      logger.info({ caseId, transition: 'cancel', fromState: caseRecord.internal_status, toState: 'cancelled', actorId: adminId, actorRole: 'admin', duration_ms: Date.now() - startTime }, 'case transition: cancel');
 
       return { success: true, case_id: caseId };
     });
   } catch (error) {
-    logger.error({ err: error, caseId, transition: 'veto', actorId: adminId, actorRole: 'admin', duration_ms: Date.now() - startTime }, 'case transition failed: veto');
+    logger.error({ err: error, caseId, transition: 'cancel', actorId: adminId, actorRole: 'admin', duration_ms: Date.now() - startTime }, 'case transition failed: cancel');
     throw error;
   }
 }
