@@ -4,7 +4,7 @@ phase: 1
 risk: low
 effort: 1h
 dependencies: none
-status: pending
+status: completed
 ---
 
 ## Goal

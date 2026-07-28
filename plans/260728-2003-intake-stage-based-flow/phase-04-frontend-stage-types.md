@@ -4,7 +4,7 @@ phase: 4
 risk: low
 effort: 0.5h
 dependencies: Phase 01
-status: pending
+status: completed
 ---
 
 ## Goal
