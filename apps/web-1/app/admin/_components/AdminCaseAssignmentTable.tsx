@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { User, statusThemeMap } from "@/types";
-import { CheckCircle, Search, MoreVertical, Trash2, Eye, Shield } from "lucide-react";
+import { CheckCircle, Search, MoreVertical, Trash2, Eye, Shield, RefreshCw } from "lucide-react";
 import { Button, Select, Badge, Table, Pagination, TextInput, Group, Menu, ActionIcon, Tooltip } from "@mantine/core";
 
 // Import extracted modals
@@ -22,6 +22,7 @@ interface AdminCaseAssignmentTableProps {
   onRequestMoreInfo: (caseId: string, query: string) => Promise<void>;
   isCrudMode?: boolean;
   onDelete?: (caseId: string) => Promise<void>;
+  onRefresh?: () => void;
 }
 
 function getSlaRowClass(deadline: string | null | undefined): string {
@@ -42,6 +43,7 @@ export default function AdminCaseAssignmentTable({
   onRequestMoreInfo,
   isCrudMode = false,
   onDelete,
+  onRefresh,
 }: AdminCaseAssignmentTableProps) {
   const [activePage, setActivePage] = useState(1);
   const itemsPerPage = 5;
@@ -161,6 +163,18 @@ export default function AdminCaseAssignmentTable({
           radius="md"
           style={{ width: 180 }}
         />
+        {onRefresh && (
+          <Tooltip label="Làm mới" position="bottom" withArrow>
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              onClick={onRefresh}
+              className="cursor-pointer"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </ActionIcon>
+          </Tooltip>
+        )}
       </Group>
 
       <Table.ScrollContainer minWidth={800}>

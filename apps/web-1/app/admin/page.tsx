@@ -38,6 +38,7 @@ export default function AdminHubPage() {
     rejectCase,
     requestMoreInfo,
     deleteCase,
+    refetchCases,
   } = useAdminCases();
 
   const {
@@ -547,6 +548,7 @@ export default function AdminHubPage() {
             ) : activeSection === "cases" ? (
               <div>
                 <AdminCaseAssignmentTable
+                  key={caseFilter}
                   cases={filteredCases}
                   supporters={supporters}
                   onAssign={handleAssignSupporter}
@@ -556,6 +558,7 @@ export default function AdminHubPage() {
                   onRequestMoreInfo={handleRequestMoreInfo}
                   isCrudMode={caseFilter === "crud"}
                   onDelete={handleDeleteCase}
+                  onRefresh={refetchCases}
                 />
               </div>
             ) : activeSection === "documents" ? (
