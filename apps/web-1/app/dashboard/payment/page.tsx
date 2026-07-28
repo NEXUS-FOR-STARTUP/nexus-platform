@@ -18,7 +18,19 @@ export default function PaymentPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Create preview URL when file changes; cleanup on unmount/change
+  useEffect(() => {
+    if (selectedFile) {
+      const url = URL.createObjectURL(selectedFile);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewUrl(null);
+    }
+  }, [selectedFile]);
   const [redirectCountdown, setRedirectCountdown] = useState(5);
 
   const { data: payment, isLoading, error } = useQuery({
@@ -196,7 +208,24 @@ export default function PaymentPage() {
             </div>
 
             {uploadOpen && (
-              <div className="border border-border-app rounded-lg p-5 space-y-4">
+              <div
+                className="border border-border-app rounded-lg p-5 space-y-4"
+                onPaste={(e) => {
+                  const items = e.clipboardData?.items;
+                  if (!items) return;
+                  for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    if (item.type.startsWith("image/")) {
+                      const file = item.getAsFile();
+                      if (file && validatePaymentProof(file)) {
+                        setSelectedFile(file);
+                        setUploadError("");
+                      }
+                      break;
+                    }
+                  }
+                }}
+              >
                 {/* Hidden native input */}
                 <input
                   ref={fileRef}
@@ -211,7 +240,7 @@ export default function PaymentPage() {
                 />
 
                 {!selectedFile ? (
-                  // Upload zone — click to select
+                  // Upload zone — click to select or Ctrl+V to paste
                   <button
                     type="button"
                     onClick={() => fileRef.current?.click()}
@@ -219,28 +248,40 @@ export default function PaymentPage() {
                   >
                     <Upload className="w-8 h-8" />
                     <span className="text-sm font-medium">Nhấn để chọn ảnh chụp</span>
-                    <span className="text-xs">Ảnh chụp màn hình chuyển khoản</span>
+                    <span className="text-xs">Hoặc nhấn Ctrl+V để dán ảnh từ bộ nhớ tạm</span>
+                    <span className="text-xs text-text-muted">Ảnh chụp màn hình chuyển khoản</span>
                   </button>
                 ) : (
-                  // File selected — show name + change button
-                  <div className="flex items-center justify-between gap-3 px-4 py-3 bg-surface-app/60 border border-border-app rounded-lg">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-text-app truncate">{selectedFile.name}</p>
-                        <p className="text-xs text-text-muted">{(selectedFile.size / 1024 / 1024).toFixed(1)} MB</p>
+                  // File selected — show preview + name + change button
+                  <div className="space-y-3">
+                    {previewUrl && (
+                      <div className="rounded-lg overflow-hidden border border-border-app bg-surface-app/40">
+                        <img
+                          src={previewUrl}
+                          alt="Xem trước ảnh chụp chuyển khoản"
+                          className="w-full max-h-[300px] object-contain"
+                        />
                       </div>
+                    )}
+                    <div className="flex items-center justify-between gap-3 px-4 py-3 bg-surface-app/60 border border-border-app rounded-lg">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-text-app truncate">{selectedFile.name}</p>
+                          <p className="text-xs text-text-muted">{(selectedFile.size / 1024 / 1024).toFixed(1)} MB</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedFile(null);
+                          if (fileRef.current) fileRef.current.value = "";
+                        }}
+                        className="text-xs text-text-muted hover:text-red-500 underline transition-colors shrink-0"
+                      >
+                        Đổi file
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedFile(null);
-                        if (fileRef.current) fileRef.current.value = "";
-                      }}
-                      className="text-xs text-text-muted hover:text-red-500 underline transition-colors shrink-0"
-                    >
-                      Đổi file
-                    </button>
                   </div>
                 )}
 
