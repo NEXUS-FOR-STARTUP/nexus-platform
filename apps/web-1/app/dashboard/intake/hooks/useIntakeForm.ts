@@ -58,26 +58,22 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      // Only load localStorage draft in CREATE mode, not UPDATE mode.
-      // UPDATE mode (caseId) should use intake_snapshot from API, not stale team-fit data.
-      if (!caseId) {
-        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            setDraftValues((prev) => ({
-              ...prev,
-              ...parsed,
-              package_id: packageId || parsed.package_id || "",
-            }));
-          } catch (e) {
-            localStorage.removeItem(LOCAL_STORAGE_KEY);
-          }
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          setDraftValues((prev) => ({
+            ...prev,
+            ...parsed,
+            package_id: packageId || parsed.package_id || "",
+          }));
+        } catch (e) {
+          localStorage.removeItem(LOCAL_STORAGE_KEY);
         }
       }
       setIsLoaded(true);
     }
-  }, [packageId, caseId]);
+  }, [packageId]);
 
   const submitMutation = useMutation({
     mutationFn: async (data: IntakeData) => {
