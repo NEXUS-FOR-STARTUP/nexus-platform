@@ -30,9 +30,10 @@ interface CaseOverviewPanelProps {
   intakeSnapshot?: any;
   onSelectTab?: (tab: "overview" | "documents" | "discussion" | "timeline" | "settings" | "credits") => void;
   onEditIntake?: () => void;
+  guidanceCard?: React.ReactNode;
 }
 
-export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTab, onEditIntake }: CaseOverviewPanelProps) {
+export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTab, onEditIntake, guidanceCard }: CaseOverviewPanelProps) {
   const statusTheme = statusThemeMap[caseData.user_facing_stage] || {
     label: caseData.user_facing_stage,
     color: "default",
@@ -63,9 +64,20 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
               <Badge variant="dot" color="blue" size="sm" className="font-semibold">
                 Mã: {caseData.case_code}
               </Badge>
-              <Badge variant="light" color="teal" size="sm" className="font-semibold">
-                {statusTheme.label}
-              </Badge>
+              {(() => {
+                const badgeColorMap: Record<string, string> = {
+                  success: "teal",
+                  warning: "yellow",
+                  danger: "red",
+                  primary: "brand",
+                };
+                const badgeColor = badgeColorMap[statusTheme.color] || "gray";
+                return (
+                  <Badge variant="light" color={badgeColor} size="sm" className="font-semibold">
+                    {statusTheme.label}
+                  </Badge>
+                );
+              })()}
             </div>
             <h3 className="text-xl sm:text-2xl font-bold font-heading text-text-app">
               {idea.project_name || caseData.team_name || `Dự án ${caseData.case_code}`}
@@ -96,6 +108,8 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
           </div>
         </div>
       </div>
+
+      {guidanceCard && <div className="shrink-0">{guidanceCard}</div>}
 
       {/* ── 2. Two-Column Grid: Contact & Team Context ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
