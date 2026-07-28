@@ -37,7 +37,7 @@ export async function editReportHandler(c: Context) {
   const access = await requireReportCaseAccess(c, reportId, {
     allowStudent: false,
     allowSupporter: true,
-    allowAdmin: true,
+    allowAdmin: false,
   });
 
   if (!access.ok) {
@@ -63,7 +63,7 @@ export async function approveReportHandler(c: Context) {
   const access = await requireReportCaseAccess(c, reportId, {
     allowStudent: false,
     allowSupporter: true,
-    allowAdmin: true,
+    allowAdmin: false,
   });
 
   if (!access.ok) {
