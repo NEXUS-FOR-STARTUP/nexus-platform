@@ -230,13 +230,13 @@ export async function createCaseWithCheckpointAndIntake(data: {
   });
 }
 
-export async function acceptCase(caseId: string, adminId: string) {
+export async function acceptCase(caseId: string, adminId: string, nextStatus: string, nextStage?: string) {
   return await prisma.$transaction(async (tx: any) => {
     const updated = await tx.case.update({
       where: { id: caseId },
       data: {
-        user_facing_stage: "under_review",
-        internal_status: "accepted_unassigned",
+        user_facing_stage: nextStage || "under_review",
+        internal_status: nextStatus,
       },
     });
 
@@ -258,13 +258,13 @@ export async function deleteCase(caseId: string) {
   });
 }
 
-export async function rejectCase(caseId: string, adminId: string, reason: string) {
+export async function rejectCase(caseId: string, adminId: string, reason: string, nextStatus?: string, nextStage?: string) {
   return await prisma.$transaction(async (tx: any) => {
     const updated = await tx.case.update({
       where: { id: caseId },
       data: {
-        user_facing_stage: "rejected",
-        internal_status: "cancelled",
+        user_facing_stage: nextStage || "rejected",
+        internal_status: nextStatus || "cancelled",
       },
     });
 
@@ -304,13 +304,14 @@ export async function requestCaseMoreInfo(caseId: string, actorId: string, event
   });
 }
 
-export async function assignCaseSupporter(caseId: string, adminId: string, supporterId: string | null, nextStatus: string, supporterName?: string) {
+export async function assignCaseSupporter(caseId: string, adminId: string, supporterId: string | null, nextStatus: string, supporterName?: string, nextStage?: string) {
   return await prisma.$transaction(async (tx: any) => {
     const updated = await tx.case.update({
       where: { id: caseId },
       data: {
         assigned_supporter_auth_user_id: supporterId,
         internal_status: nextStatus,
+        user_facing_stage: nextStage || "under_review",
       },
     });
 
