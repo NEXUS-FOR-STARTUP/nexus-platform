@@ -58,21 +58,25 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border-app text-xs font-body text-text-muted">
+        <div className="flex flex-col gap-2.5 pt-4 border-t border-border-app text-xs font-body text-text-muted">
           <div className="flex items-center gap-2">
-            <BookOpen className="w-3.5 h-3.5 text-text-subtle" />
-            <span className="truncate">{item.package?.name || "Gói dịch vụ"}</span>
+            <BookOpen className="w-3.5 h-3.5 text-text-subtle shrink-0" />
+            <span>{item.package?.name || "Gói dịch vụ"}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Calendar className="w-3.5 h-3.5 text-text-subtle" />
+            <Calendar className="w-3.5 h-3.5 text-text-subtle shrink-0" />
             <span>Ngày nộp hồ sơ: {formatDate(item.created_at)}</span>
           </div>
-          {item.school && (
-            <div className="flex items-center gap-2 col-span-2">
-              <User className="w-3.5 h-3.5 text-text-subtle" />
-              <span className="truncate">{item.school} {item.course_context ? `(${item.course_context})` : ""}</span>
-            </div>
-          )}
+          <div className="flex items-center gap-2 min-h-[20px]">
+            {item.school ? (
+              <>
+                <User className="w-3.5 h-3.5 text-text-subtle shrink-0" />
+                <span className="truncate">{item.school} {item.course_context ? `(${item.course_context})` : ""}</span>
+              </>
+            ) : (
+              <span className="invisible">placeholder</span>
+            )}
+          </div>
         </div>
       </Card>
     </Link>
