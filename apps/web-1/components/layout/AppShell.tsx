@@ -186,13 +186,18 @@ export default function AppShell({ children }: AppShellProps) {
 
           <Group gap="xs" justify="center">
             <ActionIcon
+              component="a"
+              href="https://www.facebook.com/profile.php?id=61591506814865"
+              target="_blank"
+              rel="noopener noreferrer"
               size="lg"
               color="gray"
               variant="subtle"
               radius="xl"
               className="cursor-pointer"
+              aria-label="Nexus Facebook Page"
             >
-              <FacebookIcon className="w-4.5 h-4.5" />
+              <FacebookIcon className="w-4.5 h-4.5 text-brand" />
             </ActionIcon>
           </Group>
 
