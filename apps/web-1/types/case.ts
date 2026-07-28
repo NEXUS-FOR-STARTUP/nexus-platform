@@ -14,10 +14,11 @@ export interface Case {
   package_id?: string | null;
   locked_price?: number | null;
   assigned_supporter_auth_user_id?: string | null;
-  user_facing_stage: "submitted" | "need_more_information" | "under_review" | "report_ready" | "waiting_for_revision" | "revision_submitted" | "completed" | "rejected" | "closed" | string;
+  user_facing_stage: "intake_pending" | "intake_ready" | "submitted" | "need_more_information" | "under_review" | "report_ready" | "waiting_for_revision" | "revision_submitted" | "completed" | "rejected" | "closed" | string;
   internal_status: "triage_pending" | "accepted_unassigned" | "assigned" | "waiting_user" | "supporter_working" | "report_ready_to_publish" | "done" | "cancelled" | string;
   payment_status: "unpaid" | "pending_verification" | "paid" | "rejected" | string;
   credit_balance?: number;              // NEW — derived from CreditLedger
+  credit_ledger?: CreditLedger[];
   sla_deadline_at?: string | null;      // NEW — from case.sla_deadline_at
   allowed_transitions?: string[];       // NEW — valid symflow transitions
   deadline?: string | null;
@@ -34,6 +35,25 @@ export interface Case {
   payments?: Payment[];
   messages?: CaseMessage[];
   events?: CaseEvent[];
+  team_fit_report?: TeamFitReport | null;
+}
+
+export interface TeamFitReport {
+  id: string;
+  case_id: string;
+  idea_snapshot: unknown;
+  team_snapshot: unknown;
+  result_snapshot: unknown;
+  created_at: string;
+}
+
+export interface CreditLedger {
+  id: string;
+  amount: number;
+  balance_after: number;
+  type: "purchase" | "consumption" | "refund";
+  reference_id: string | null;
+  created_at: string;
 }
 
 export interface CaseMember {
@@ -113,7 +133,7 @@ export interface CaseEvent {
   report_id?: string | null;
   payment_id?: string | null;
   meeting_id?: string | null;
-  metadata_json?: any;
+  metadata_json?: unknown;
   created_at: string;
   actor?: User;
   report?: Report | null;
@@ -193,6 +213,8 @@ export interface StatusThemeDetails {
 }
 
 export const statusThemeMap: Record<string, StatusThemeDetails> = {
+  intake_pending: { label: "Chờ thanh toán — Kích hoạt kiểm tra chuyên sâu", color: "primary" },
+  intake_ready: { label: "Sẵn sàng — Cập nhật thông tin hồ sơ", color: "primary" },
   submitted: {
     label: "Hồ sơ đã gửi — chờ xét duyệt",
     color: "primary",

@@ -53,7 +53,7 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
         data: {
           case_id: caseId,
           checkpoint_id: checkpointId,
-          unit_code: "intake",
+          unit_code: "v00",
           unit_type: "version",
           version_no: 1,
           content: JSON.stringify(body),
@@ -82,14 +82,18 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
           internal_status: 'submitted',
           user_facing_stage: 'submitted',
           payment_status: caseRecord.payment_status === 'paid' ? 'paid' : 'unpaid',
+          school: body.school || undefined,
+          course_context: body.course_context || undefined,
+          group_no: body.team_context?.group_no || undefined,
+          team_name: body.team_context?.project_name || undefined,
         },
       });
 
       await tx.caseEvent.create({
         data: {
           case: { connect: { id: caseId } },
+          actor: { connect: { id: userId } },
           event_type: "intake_submitted",
-          actor_auth_user_id: userId,
           metadata_json: {},
         },
       });

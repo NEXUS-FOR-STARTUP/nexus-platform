@@ -275,7 +275,8 @@ export async function getAdminStatsHandler(c: Context) {
   }
 
   try {
-    const stats = await getAdminStatsUseCase();
+    const period = c.req.query("period") || "30d";
+    const stats = await getAdminStatsUseCase(period);
     return c.json(stats);
   } catch (error: any) {
     return handleError(c, error);

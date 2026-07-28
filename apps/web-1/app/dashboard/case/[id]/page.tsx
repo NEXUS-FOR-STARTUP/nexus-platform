@@ -6,15 +6,18 @@ import { useCaseDetails } from "./hooks/useCaseDetails";
 import CaseStatusHeader from "./_components/CaseStatusHeader";
 import UnpaidAlertBanner from "./_components/UnpaidAlertBanner";
 import WorkspaceSidebar from "./_components/WorkspaceSidebar";
+import type { WorkspaceTab } from "./_components/WorkspaceSidebar";
 import DocumentWorkspace from "./_components/documents/DocumentWorkspace";
 import TabDiscussionChat from "./_components/TabDiscussionChat";
 import ActivityTimeline from "./_components/ActivityTimeline";
 import TabCaseSettings from "./_components/TabCaseSettings";
 import CreditPanel from "./_components/CreditPanel";
+import CaseOverviewPanel from "./_components/CaseOverviewPanel";
 import CreditQuantityModal from "./_components/CreditQuantityModal";
 import IntakeFormModal from "./_components/IntakeFormModal";
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
 import StudentDocumentUploadModal from "./_components/StudentDocumentUploadModal";
+import StatusGuidanceCard from "./_components/StatusGuidanceCard";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Button } from "@mantine/core";
 import { Users } from "lucide-react";
@@ -29,13 +32,14 @@ export default function CaseWorkspacePage({ params }: PageProps) {
 
   const {
     caseData,
-    openRequestsForMoreInfo,
+    intakeSnapshot,
+    teamFitReport,
     documentWorkspace,
     isLoading,
     error,
   } = useCaseDetails(id);
 
-  const [activeTab, setActiveTab] = useState<"documents" | "discussion" | "timeline" | "settings" | "credits">("documents");
+  const [activeTab, setActiveTab] = useState<WorkspaceTab>("overview");
   const [isStudentUploadOpen, setIsStudentUploadOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [creditBuyOpened, setCreditBuyOpened] = useState(false);
@@ -65,19 +69,42 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     );
   }
 
-  const canIntake = caseData.allowed_transitions?.includes("intake") ?? false;
+  const stage = caseData.user_facing_stage;
+  const isPreSubmission = stage === "intake_pending" || stage === "intake_ready";
+  const isIntakeReady = stage === "intake_ready";
+  const isIntakePending = stage === "intake_pending";
+
+  const isTabAvailable = (tab: WorkspaceTab): boolean => {
+    if (!isPreSubmission) return true;
+    if (stage === "intake_pending") return tab === "overview" || tab === "settings";
+    if (stage === "intake_ready") return tab === "overview" || tab === "documents" || tab === "settings";
+    return true;
+  };
+
+  const handleTabChange = (tab: WorkspaceTab) => {
+    if (isTabAvailable(tab)) setActiveTab(tab);
+  };
 
   return (
     <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden animate-fade-in">
       <WorkspaceSidebar
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         messageCount={caseData.messages?.length}
-        creditBalance={creditBalance}
+        creditBalance={creditBalance ?? undefined}
+        stage={stage}
       />
 
       <div className={`flex-grow flex flex-col h-full min-w-0 p-6 space-y-6 ${activeTab === "discussion" ? "overflow-hidden" : "overflow-y-auto"}`}>
-        {activeTab !== "discussion" && <CaseStatusHeader caseData={caseData} versions={[]} selectedVersion={0} onVersionChange={() => {}} />}
+        {activeTab !== "discussion" && activeTab !== "overview" && (
+          <CaseStatusHeader
+            caseData={caseData}
+            versions={[]}
+            selectedVersion={0}
+            onVersionChange={() => {}}
+            onSelectTab={(tab) => setActiveTab(tab)}
+          />
+        )}
 
         {(activeTab === "timeline" || activeTab === "settings") && (
           <UnpaidAlertBanner
@@ -86,32 +113,28 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           />
         )}
 
-        {/* Revision prompt banner — visible on report_ready / waiting_for_revision */}
-        {(caseData.user_facing_stage === "report_ready" || caseData.user_facing_stage === "waiting_for_revision") &&
-          (!openRequestsForMoreInfo || openRequestsForMoreInfo.length === 0) && (
-            <div className="p-4 bg-brand-soft/20 border border-brand/10 rounded-xl font-body text-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shrink-0 animate-fade-in">
-              <div className="space-y-1">
-                <h5 className="font-bold text-brand">Hồ sơ đã có báo cáo phản biện</h5>
-                <p className="text-text-muted">
-                  Nhóm có thể tiến hành sửa đổi bài làm và nộp bản mới để Supporter thẩm định vòng tiếp theo.
-                </p>
-              </div>
-              <Button
-                size="sm"
-                color="brand"
-                className="font-semibold cursor-pointer h-8.5 text-xs shrink-0"
-                onClick={() => setIsStudentUploadOpen(true)}
-              >
-                Tải tài liệu
-              </Button>
-            </div>
+        <div className="flex-grow min-h-0 flex flex-col">
+          {activeTab === "overview" && (
+            <CaseOverviewPanel
+              caseData={caseData}
+              onSelectTab={(tab) => setActiveTab(tab)}
+              onEditIntake={isIntakeReady ? () => setIntakeFormOpened(true) : undefined}
+              guidanceCard={
+                <StatusGuidanceCard
+                  caseData={caseData}
+                  openRequestsForMoreInfo={null}
+                  onSelectTab={(tab) => setActiveTab(tab)}
+                  onOpenPayment={isIntakePending ? () => setCreditBuyOpened(true) : undefined}
+                  onOpenIntake={isIntakeReady ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
+                />
+              }
+            />
           )}
 
-        <div className="flex-grow min-h-0 flex flex-col">
           {activeTab === "documents" && (
             <>
               <div className="mb-4 flex justify-end gap-3">
-                {canIntake && (
+                {stage === "intake_ready" && (
                   <Button
                     size="sm"
                     color="brand"
@@ -150,8 +173,10 @@ export default function CaseWorkspacePage({ params }: PageProps) {
             <CreditPanel
               creditBalance={creditBalance}
               creditLedger={creditLedger}
+              payments={caseData.payments}
               packageName={packageName}
               pricePerCredit={pricePerCredit && pricePerCredit > 0 ? pricePerCredit : undefined}
+              paymentStatus={caseData.payment_status}
               onBuyCredits={() => setCreditBuyOpened(true)}
             />
           )}
@@ -175,6 +200,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         caseId={id}
         opened={creditBuyOpened}
         onClose={() => setCreditBuyOpened(false)}
+        packageId={caseData?.package_id ?? undefined}
       />
     </div>
   );

@@ -9,17 +9,21 @@ import {
   CheckCircle2, 
   HelpCircle
 } from "lucide-react";
-import { Alert } from "@mantine/core";
+import { Alert, Button } from "@mantine/core";
 
 interface StatusGuidanceCardProps {
   caseData: Case;
   openRequestsForMoreInfo?: any[] | null;
   onSelectTab: (tab: "documents" | "discussion" | "timeline" | "settings") => void;
+  onOpenPayment?: () => void;
+  onOpenIntake?: () => void;
 }
 
 export default function StatusGuidanceCard({
   caseData,
   openRequestsForMoreInfo,
+  onOpenPayment,
+  onOpenIntake,
 }: StatusGuidanceCardProps) {
   const stage = caseData.user_facing_stage;
   const hasInfoRequest = openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0;
@@ -101,13 +105,13 @@ export default function StatusGuidanceCard({
           variant="light"
           color="green"
           radius="md"
-          title="Báo cáo phản biện đã sẵn sàng"
+          title="Báo cáo phản biện đã sẵn sàng — Nhóm có thể nộp bản sửa đổi"
           icon={<CheckCircle2 className="w-4.5 h-4.5 shrink-0" />}
           className="animate-fade-in font-body text-xs shrink-0"
         >
           <div className="mt-1">
             <p className="text-text-muted text-xs leading-relaxed">
-              Supporter đã hoàn thành đánh giá chi tiết. Vào tab Credit để mua thêm lượt nếu cần.
+              Supporter đã hoàn thành đánh giá chi tiết. Nhóm có thể xem kết quả phản biện bên dưới, tiến hành sửa đổi bài làm và nộp bản mới (v02, v03...) bằng nút <strong>"Tải tài liệu"</strong> để Supporter thẩm định vòng tiếp theo.
             </p>
           </div>
         </Alert>
@@ -178,6 +182,62 @@ export default function StatusGuidanceCard({
           <p className="text-text-muted text-xs leading-relaxed">
             Yêu cầu phản biện dự án của bạn không được duyệt. Vui lòng liên hệ với Ban tổ chức hoặc gửi thắc mắc qua phần Thảo luận.
           </p>
+        </Alert>
+      );
+
+    case "intake_pending":
+      return (
+        <Alert
+          variant="light"
+          color="yellow"
+          radius="md"
+          title="Chờ thanh toán dịch vụ"
+          icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
+          className="animate-fade-in font-body text-xs shrink-0"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-text-muted text-xs leading-relaxed">
+              Vui lòng hoàn tất thanh toán để kích hoạt quy trình phản biện.
+            </p>
+            {onOpenPayment && (
+              <Button
+                size="sm"
+                color="brand"
+                className="shrink-0 cursor-pointer"
+                onClick={onOpenPayment}
+              >
+                Thanh toán ngay
+              </Button>
+            )}
+          </div>
+        </Alert>
+      );
+
+    case "intake_ready":
+      return (
+        <Alert
+          variant="light"
+          color="blue"
+          radius="md"
+          title="Cần cập nhật thông tin hồ sơ"
+          icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
+          className="animate-fade-in font-body text-xs shrink-0"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-text-muted text-xs leading-relaxed">
+              Vui lòng cập nhật thông tin hồ sơ khởi nghiệp trước khi gửi để Supporter có thể đánh giá chính xác.
+            </p>
+            {onOpenIntake && (
+              <Button
+                size="sm"
+                color="brand"
+                className="shrink-0 cursor-pointer"
+                onClick={onOpenIntake}
+              >
+                Cập nhật ngay
+              </Button>
+            )}
+          </div>
         </Alert>
       );
 

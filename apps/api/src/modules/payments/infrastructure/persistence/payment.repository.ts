@@ -20,6 +20,38 @@ export async function findManyPaymentsWithCase() {
   });
 }
 
+export async function findManyMyPayments(userId: string) {
+  return await prisma.payment.findMany({
+    where: {
+      payer_auth_user_id: userId,
+      status: {
+        in: ["unpaid", "pending_verification", "paid", "rejected"],
+      },
+    },
+    select: {
+      id: true,
+      case_id: true,
+      currency: true,
+      bank_transaction_id: true,
+      amount: true,
+      status: true,
+      verified_at: true,
+      created_at: true,
+      case: {
+        select: {
+          case_code: true,
+          package: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { created_at: "desc" },
+  });
+}
+
 export async function findPaymentById(id: string) {
   return await prisma.payment.findUnique({
     where: { id },
@@ -136,6 +168,18 @@ export async function verifyPayment(data: {
     });
 
     if (status === "paid") {
+      // --- Intake pending → intake ready on successful payment ---
+      const caseRecord = await tx.case.findUnique({
+        where: { id: caseId },
+        select: { user_facing_stage: true },
+      });
+      if (caseRecord?.user_facing_stage === "intake_pending") {
+        await tx.case.update({
+          where: { id: caseId },
+          data: { user_facing_stage: "intake_ready" },
+        });
+      }
+
       // --- Credit purchase on successful verification ---
       const paymentRecord = await tx.payment.findUnique({ where: { id: paymentId } });
       // Read actual credit quantity from metadata_json first (set by CreditQuantityModal)

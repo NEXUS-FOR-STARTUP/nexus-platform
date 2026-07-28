@@ -269,6 +269,7 @@ export async function submitSupporterOutputUploadUseCase(
   caseId: string,
   body: SupporterOutputUploadRequest,
   deps: SubmitRevisionDeps = {},
+  userRole?: string,
 ) {
   const startTime = Date.now();
   const {
@@ -285,7 +286,7 @@ export async function submitSupporterOutputUploadUseCase(
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
   }
 
-  const isSupporter = caseDetails.assigned_supporter_auth_user_id === userId;
+  const isSupporter = caseDetails.assigned_supporter_auth_user_id === userId || userRole === "admin";
   if (!isSupporter) {
     throw new AppError(403, "FORBIDDEN", "Không có quyền tải output supporter cho dự án này");
   }

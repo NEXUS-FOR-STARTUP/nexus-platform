@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Container, Title, Text, TextInput, Textarea, Button, Card, SimpleGrid, Group } from "@mantine/core";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, Phone, Share2 } from "lucide-react";
 import { notifications } from "@mantine/notifications";
 
 export default function ContactUs() {
@@ -51,7 +51,22 @@ export default function ContactUs() {
                   <Phone className="w-5 h-5 text-brand shrink-0" />
                   <div>
                     <div className="text-[10px] text-text-muted font-bold uppercase">Hotline</div>
-                    <div className="text-xs text-text-app font-semibold">0776506822</div>
+                    <div className="text-xs text-text-app font-semibold">0776 506 822</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Share2 className="w-5 h-5 text-brand shrink-0" />
+                  <div>
+                    <div className="text-[10px] text-text-muted font-bold uppercase">Fanpage Facebook</div>
+                    <a
+                      href="https://www.facebook.com/profile.php?id=61591506814865"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-brand font-semibold hover:underline flex items-center gap-1"
+                    >
+                      <span>Nexus Platform</span>
+                    </a>
                   </div>
                 </div>
               </div>

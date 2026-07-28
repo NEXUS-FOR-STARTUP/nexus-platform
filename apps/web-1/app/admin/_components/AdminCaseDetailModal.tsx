@@ -277,6 +277,8 @@ export default function AdminCaseDetailModal({
               </>
             )}
 
+
+
             {detailData?.case && (detailData.case.internal_status === "accepted_unassigned" || detailData.case.internal_status === "assigned") && (
               <Button
                 onClick={() => {

@@ -98,7 +98,7 @@ aiEngineRouter.post('/team-fit/save', requireAuth, async (c: HonoContext<AuthEnv
                 course_context: null,
                 package_id: data.packageId,
                 locked_price: data.lockedPrice,
-                user_facing_stage: 'submitted',
+                user_facing_stage: 'intake_pending',
                 internal_status: 'draft',
                 payment_status: data.isFree ? 'not_required' : 'unpaid',
                 current_checkpoint: null,

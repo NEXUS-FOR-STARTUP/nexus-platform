@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { User } from "@/types";
-import { CheckCircle, Search, MoreVertical, Trash2, Eye } from "lucide-react";
+import { CheckCircle, Search, MoreVertical, Trash2, Eye, Shield } from "lucide-react";
 import { Button, Select, Badge, Table, Pagination, TextInput, Group, Menu, ActionIcon, Tooltip } from "@mantine/core";
 
 // Import extracted modals

@@ -2,16 +2,19 @@
 
 import React from "react";
 import { Tooltip, UnstyledButton } from "@mantine/core";
-import { FileText, MessageSquare, History, Settings, Coins } from "lucide-react";
+import { FileText, MessageSquare, History, Settings, CreditCard, LayoutDashboard } from "lucide-react";
 import classes from "../../../../../components/layout/DoubleNavbar.module.css";
 
+export type WorkspaceTab = "overview" | "documents" | "discussion" | "timeline" | "settings" | "credits";
+
 interface WorkspaceSidebarProps {
-  activeTab: "documents" | "discussion" | "timeline" | "settings" | "credits";
-  onTabChange: (tab: "documents" | "discussion" | "timeline" | "settings" | "credits") => void;
+  activeTab: WorkspaceTab;
+  onTabChange: (tab: WorkspaceTab) => void;
   messageCount?: number;
   creditBalance?: number;
   hideSettings?: boolean;
   hideCredits?: boolean;
+  stage?: string;
 }
 
 export default function WorkspaceSidebar({
@@ -21,30 +24,51 @@ export default function WorkspaceSidebar({
   creditBalance,
   hideSettings = false,
   hideCredits = false,
+  stage,
 }: WorkspaceSidebarProps) {
+  const isPreSubmission = stage === "intake_pending" || stage === "intake_ready";
+  const isIntakePending = stage === "intake_pending";
+
   const tabs = [
     {
-      id: "documents" as const,
-      label: "Tài liệu",
-      icon: FileText,
+      id: "overview" as const,
+      label: "Tổng quan",
+      icon: LayoutDashboard,
     },
-    {
-      id: "discussion" as const,
-      label: "Thảo luận & Phối hợp",
-      icon: MessageSquare,
-      count: messageCount,
-    },
-    {
-      id: "timeline" as const,
-      label: "Lịch sử hoạt động",
-      icon: History,
-    },
-    ...(!hideCredits
+    ...(!isIntakePending
+      ? [
+          {
+            id: "documents" as const,
+            label: "Tài liệu",
+            icon: FileText,
+          },
+        ]
+      : []),
+    ...(!isPreSubmission
+      ? [
+          {
+            id: "discussion" as const,
+            label: "Chat với Supporter",
+            icon: MessageSquare,
+            count: messageCount,
+          },
+        ]
+      : []),
+    ...(!isPreSubmission
+      ? [
+          {
+            id: "timeline" as const,
+            label: "Lịch sử hoạt động",
+            icon: History,
+          },
+        ]
+      : []),
+    ...(!isPreSubmission && !hideCredits
       ? [
           {
             id: "credits" as const,
-            label: "Credit",
-            icon: Coins,
+            label: "Quản lý số dư credit",
+            icon: CreditCard,
             count: creditBalance,
           },
         ]

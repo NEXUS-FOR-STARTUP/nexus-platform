@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Center, Loader } from "@mantine/core";
 import { useSession } from "@/lib/auth-client";
-import { apiClient } from "@/lib/api-client";
 import StepIndicator from "./_components/StepIndicator";
 import IdeaMadLibsStep from "./_components/IdeaMadLibsStep";
 import TeamInputStep from "./_components/TeamInputStep";
@@ -42,7 +41,6 @@ export default function TeamFitPage() {
   const [hasSaved, setHasSaved] = useState(false);
   const [savedCaseId, setSavedCaseId] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [isUpgrading, setIsUpgrading] = useState(false);
 
   // Auto-save blanks & members to localStorage on change
   useEffect(() => { saveToLS(LS_KEY_BLANKS, blanks); }, [blanks]);
@@ -155,6 +153,7 @@ export default function TeamFitPage() {
       const data = await saveMutation.mutateAsync(payload);
       setHasSaved(true);
       setSavedCaseId(data.caseId);
+      router.push(`/dashboard/case/${data.caseId}`);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : "Lưu kết quả thất bại");
     }
@@ -166,43 +165,15 @@ export default function TeamFitPage() {
     }
   };
 
-  const handleUpgrade = async () => {
-    setIsUpgrading(true);
+  const handleUpgrade = () => {
     setSaveError(null);
-    try {
-      let targetCaseId = savedCaseId;
 
-      // Save first if not yet saved
-      if (!targetCaseId) {
-        const payload = {
-          idea: {
-            projectName: blanks.projectName,
-            field: blanks.field,
-            targetCustomer: blanks.targetCustomer,
-            problem: blanks.problem,
-            solution: blanks.solution,
-            mvp: blanks.mvp,
-          },
-          team: members,
-          result: mutation.data!,
-          packageId: "pkg_tf_free",
-        };
-        const data = await saveMutation.mutateAsync(payload);
-        targetCaseId = data.caseId;
-        setHasSaved(true);
-        setSavedCaseId(targetCaseId);
-      }
-
-      await apiClient.post(`/cases/${targetCaseId}/upgrade-package`, {
-        packageId: "pkg_tf_audit",
-      });
-
-      router.push(`/dashboard/case/${targetCaseId}`);
-    } catch (err) {
-      setSaveError(err instanceof Error ? err.message : "Nâng cấp thất bại");
-    } finally {
-      setIsUpgrading(false);
+    if (savedCaseId) {
+      router.push(`/dashboard/case/${savedCaseId}`);
+      return;
     }
+
+    router.push("/dashboard");
   };
 
   const displayErrors = saveError
@@ -228,7 +199,7 @@ export default function TeamFitPage() {
       </div>
 
       {/* Step indicator */}
-      <StepIndicator currentStep={currentStep} />
+      <StepIndicator currentStep={currentStep} onStepClick={(step) => setCurrentStep(step)} />
 
       {/* Step content */}
       <div className="bg-surface-app border border-border-app rounded-2xl p-6">
@@ -257,7 +228,6 @@ export default function TeamFitPage() {
             onXemCase={handleXemCase}
             onUpgrade={handleUpgrade}
             isSaving={saveMutation.isPending}
-            isUpgrading={isUpgrading}
             hasSaved={hasSaved}
           />
         )}

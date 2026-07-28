@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Modal, Button, Textarea } from "@mantine/core";
+import { Dropzone, type FileRejection } from "@mantine/dropzone";
 import { notifications } from "@mantine/notifications";
 import { Send, AlertCircle, UploadCloud, FileText, X } from "lucide-react";
 import { useStudentDocumentUpload } from "../hooks/useCaseDocumentUploads";
@@ -13,6 +14,16 @@ interface StudentDocumentUploadModalProps {
 }
 
 const MAX_FILES = 5;
+const MAX_FILE_SIZE_MB = 15;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const ACCEPTED_MIME_TYPES = {
+  "application/pdf": [".pdf"],
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation": [".pptx"],
+  "text/markdown": [".md"],
+  "text/plain": [".txt", ".md"],
+};
 
 export default function StudentDocumentUploadModal({ isOpen, onClose, caseId }: StudentDocumentUploadModalProps) {
   const [note, setNote] = useState("");
@@ -20,6 +31,16 @@ export default function StudentDocumentUploadModal({ isOpen, onClose, caseId }: 
   const [error, setError] = useState<string | null>(null);
 
   const { submitStudentUpload, isSubmitting } = useStudentDocumentUpload(caseId);
+
+  const appendFiles = (selected: File[]) => {
+    const combined = [...files, ...selected];
+    if (combined.length > MAX_FILES) {
+      setError(`Chỉ được tải tối đa ${MAX_FILES} tài liệu. Bạn đã chọn ${combined.length} tệp.`);
+      return;
+    }
+    setError(null);
+    setFiles(combined);
+  };
 
   const handleSubmit = async () => {
     setError(null);
@@ -34,20 +55,27 @@ export default function StudentDocumentUploadModal({ isOpen, onClose, caseId }: 
         color: "green",
       });
       handleClose();
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Đã xảy ra lỗi khi tải tài liệu.");
+    } catch (err: unknown) {
+      const message = err && typeof err === "object" && "response" in err
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+        : undefined;
+      setError(message || "Đã xảy ra lỗi khi tải tài liệu.");
     }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(event.target.files || []);
-    const combined = [...files, ...selected];
-    if (combined.length > MAX_FILES) {
-      setError(`Chỉ được tải tối đa ${MAX_FILES} tài liệu. Bạn đã chọn ${combined.length} tệp.`);
+    appendFiles(selected);
+    event.target.value = "";
+  };
+
+  const handleRejectedFiles = (rejections: FileRejection[]) => {
+    const firstErrorCode = rejections[0]?.errors[0]?.code;
+    if (firstErrorCode === "file-too-large") {
+      setError(`Mỗi tệp tối đa ${MAX_FILE_SIZE_MB}MB.`);
       return;
     }
-    setError(null);
-    setFiles(combined);
+    setError("Định dạng tệp không được hỗ trợ. Vui lòng dùng PDF, DOCX, XLSX, PPTX, MD hoặc TXT.");
   };
 
   const removeFile = (index: number) => {
@@ -82,13 +110,23 @@ export default function StudentDocumentUploadModal({ isOpen, onClose, caseId }: 
 
         <div className="space-y-2">
           <label className="text-xs font-semibold text-text-app block">Tệp đính kèm</label>
-          <label className="border-2 border-dashed border-border-strong hover:border-brand/40 bg-surface-soft/40 rounded-xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3">
+          <Dropzone
+            onDrop={appendFiles}
+            onReject={handleRejectedFiles}
+            accept={ACCEPTED_MIME_TYPES}
+            maxSize={MAX_FILE_SIZE_BYTES}
+            maxFiles={MAX_FILES}
+            multiple
+            disabled={isSubmitting}
+            className="border-2 border-dashed border-border-strong hover:border-brand/40 bg-surface-soft/40 rounded-xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3"
+          >
             <input
               type="file"
               multiple
               accept=".pdf,.docx,.xlsx,.pptx,.md,.txt"
               className="hidden"
               onChange={handleFileChange}
+              disabled={isSubmitting}
             />
             <div className="w-10 h-10 rounded-full bg-brand-soft/40 text-brand flex items-center justify-center">
               <UploadCloud className="w-5 h-5" />
@@ -98,10 +136,10 @@ export default function StudentDocumentUploadModal({ isOpen, onClose, caseId }: 
                 Tải lên tài liệu bản sửa của nhóm...
               </p>
               <p className="font-body text-[10px] text-text-muted">
-                Hỗ trợ PDF, DOCX, XLSX, PPTX, MD, TXT. Tối đa 15MB mỗi tệp. Tối đa {MAX_FILES} tài liệu.
+                Hỗ trợ PDF, DOCX, XLSX, PPTX, MD, TXT. Tối đa {MAX_FILE_SIZE_MB}MB mỗi tệp. Tối đa {MAX_FILES} tài liệu.
               </p>
             </div>
-          </label>
+          </Dropzone>
 
           {files.length > 0 && (
             <div className="space-y-2">
@@ -157,6 +195,7 @@ export default function StudentDocumentUploadModal({ isOpen, onClose, caseId }: 
           <Button
             onClick={handleSubmit}
             disabled={!isFormValid || isSubmitting}
+            loading={isSubmitting}
             color="brand"
             leftSection={<Send className="w-3.5 h-3.5" />}
             className="flex-1 font-semibold cursor-pointer"

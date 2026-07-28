@@ -13,14 +13,20 @@ interface CreditQuantityModalProps {
   caseId: string;
   opened: boolean;
   onClose: () => void;
+  packageId?: string;
 }
 
-export default function CreditQuantityModal({ caseId, opened, onClose }: CreditQuantityModalProps) {
+export default function CreditQuantityModal({ caseId, opened, onClose, packageId }: CreditQuantityModalProps) {
   const router = useRouter();
   const [quantity, setQuantity] = useState<number>(1);
 
   const mutation = useMutation({
     mutationFn: async () => {
+      if (packageId === "pkg_tf_free") {
+        await apiClient.post(`/cases/${caseId}/upgrade-package`, {
+          packageId: "pkg_tf_audit",
+        });
+      }
       const res = await apiClient.post("/payments", {
         caseId,
         amount: quantity * CREDIT_PRICE,

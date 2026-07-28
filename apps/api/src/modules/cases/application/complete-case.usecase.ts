@@ -39,8 +39,8 @@ export async function completeCaseUseCase(userId: string, role: string, caseId: 
       await tx.caseEvent.create({
         data: {
           case: { connect: { id: caseId } },
+          actor: { connect: { id: userId } },
           event_type: "case_completed",
-          actor_auth_user_id: userId,
           metadata_json: {},
         },
       });

@@ -5,12 +5,14 @@ import { Case } from "@/types";
 import { statusThemeMap } from "@/types";
 import { Clock, Users, Calendar, AlertCircle } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
+import { Tooltip } from "@mantine/core";
 
 interface CaseStatusHeaderProps {
   caseData: Case;
   versions: number[];
   selectedVersion: number;
   onVersionChange: (version: number) => void;
+  onSelectTab?: (tab: any) => void;
 }
 
 export default function CaseStatusHeader({
@@ -18,6 +20,7 @@ export default function CaseStatusHeader({
   versions,
   selectedVersion,
   onVersionChange,
+  onSelectTab,
 }: CaseStatusHeaderProps) {
   const { data: session } = useSession();
   const user = session?.user ? (session.user as typeof session.user & { role?: string }) : undefined;
@@ -124,14 +127,20 @@ export default function CaseStatusHeader({
             Hồ sơ phản biện
           </span>
           <div className="flex flex-wrap items-center gap-3">
-            <h2 className="font-heading text-xl sm:text-2xl font-bold text-text-app">
-              {caseData.case_code}
-            </h2>
+            <Tooltip label="Xem tổng quan hồ sơ & ý tưởng khởi nghiệp" withArrow position="top">
+              <h2
+                onClick={() => onSelectTab?.("overview")}
+                className="font-heading text-xl sm:text-2xl font-bold text-text-app hover:text-brand transition-colors cursor-pointer"
+              >
+                {caseData.case_code}
+              </h2>
+            </Tooltip>
             <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold font-body shadow-xs border ${badgeClass}`}>
               {(caseData.user_facing_stage === "submitted" || 
                 caseData.user_facing_stage === "under_review" || 
                 caseData.user_facing_stage === "revision_submitted" ||
-                caseData.user_facing_stage === "need_more_information") && (
+                caseData.user_facing_stage === "need_more_information" ||
+                caseData.user_facing_stage === "intake_ready") && (
                 <span className="relative flex h-2 w-2 shrink-0">
                   <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
                     statusTheme.color === "primary" ? "bg-brand" : 

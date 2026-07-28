@@ -65,6 +65,7 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
           setDraftValues((prev) => ({
             ...prev,
             ...parsed,
+            current_blocker: "", // Never pre-fill — user must describe their own lecturer/team blocker
             package_id: packageId || parsed.package_id || "",
           }));
         } catch (e) {
@@ -78,7 +79,7 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
   const submitMutation = useMutation({
     mutationFn: async (data: IntakeData) => {
       if (caseId) {
-        const response = await apiClient.patch(`/cases/${caseId}`, data);
+        const response = await apiClient.post(`/cases/${caseId}/intake`, data);
         return response.data;
       }
       const response = await apiClient.post("/cases", data);
