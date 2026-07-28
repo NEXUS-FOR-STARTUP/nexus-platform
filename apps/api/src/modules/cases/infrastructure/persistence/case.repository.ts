@@ -93,6 +93,7 @@ export async function findCaseByIdWithAllRelations(id: string) {
       reports: {
         orderBy: { created_at: "desc" },
       },
+      team_fit_report: true,
     },
   });
 }

@@ -1,11 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
-import { Case } from "@/types";
+import type { Case, DocumentWorkspace } from "@/types";
+
+interface CaseDetailsResponse {
+  case: Case;
+  intake_snapshot?: unknown;
+  latest_report?: unknown;
+  latest_user_action?: unknown;
+  document_board_sections?: unknown;
+  round_history?: unknown;
+  open_requests_for_more_info?: unknown;
+  document_workspace?: DocumentWorkspace | null;
+}
 
 export function useCaseDetails(id: string) {
   const queryClient = useQueryClient();
 
-  const caseQuery = useQuery<any>({
+  const caseQuery = useQuery<CaseDetailsResponse>({
     queryKey: ["case", id],
     queryFn: async () => {
       const response = await apiClient.get(`/cases/${id}`);
@@ -55,6 +66,7 @@ export function useCaseDetails(id: string) {
     allowedTransitions: caseQuery.data?.case?.allowed_transitions || [],
     intakeSnapshot: caseQuery.data?.intake_snapshot || null,
     latestReport: caseQuery.data?.latest_report || null,
+    teamFitReport: caseQuery.data?.case?.team_fit_report || null,
     latestUserAction: caseQuery.data?.latest_user_action || null,
     documentBoardSections: caseQuery.data?.document_board_sections || null,
     roundHistory: caseQuery.data?.round_history || null,

@@ -2,12 +2,14 @@
 
 import React from "react";
 import { Tooltip, UnstyledButton } from "@mantine/core";
-import { FileText, MessageSquare, History, Settings, CreditCard } from "lucide-react";
+import { FileText, MessageSquare, History, Settings, CreditCard, LayoutDashboard } from "lucide-react";
 import classes from "../../../../../components/layout/DoubleNavbar.module.css";
 
+export type WorkspaceTab = "overview" | "documents" | "discussion" | "timeline" | "settings" | "credits";
+
 interface WorkspaceSidebarProps {
-  activeTab: "documents" | "discussion" | "timeline" | "settings" | "credits";
-  onTabChange: (tab: "documents" | "discussion" | "timeline" | "settings" | "credits") => void;
+  activeTab: WorkspaceTab;
+  onTabChange: (tab: WorkspaceTab) => void;
   messageCount?: number;
   creditBalance?: number;
   hideSettings?: boolean;
@@ -23,6 +25,11 @@ export default function WorkspaceSidebar({
   hideCredits = false,
 }: WorkspaceSidebarProps) {
   const tabs = [
+    {
+      id: "overview" as const,
+      label: "Tổng quan",
+      icon: LayoutDashboard,
+    },
     {
       id: "documents" as const,
       label: "Tài liệu",

@@ -101,13 +101,13 @@ export default function StatusGuidanceCard({
           variant="light"
           color="green"
           radius="md"
-          title="Báo cáo phản biện đã sẵn sàng"
+          title="Báo cáo phản biện đã sẵn sàng — Nhóm có thể nộp bản sửa đổi"
           icon={<CheckCircle2 className="w-4.5 h-4.5 shrink-0" />}
           className="animate-fade-in font-body text-xs shrink-0"
         >
           <div className="mt-1">
             <p className="text-text-muted text-xs leading-relaxed">
-              Supporter đã hoàn thành đánh giá chi tiết. Vào tab Credit để mua thêm lượt nếu cần.
+              Supporter đã hoàn thành đánh giá chi tiết. Nhóm có thể xem kết quả phản biện bên dưới, tiến hành sửa đổi bài làm và nộp bản mới (v02, v03...) bằng nút <strong>"Tải tài liệu"</strong> để Supporter thẩm định vòng tiếp theo.
             </p>
           </div>
         </Alert>

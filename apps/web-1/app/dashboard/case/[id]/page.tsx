@@ -6,11 +6,13 @@ import { useCaseDetails } from "./hooks/useCaseDetails";
 import CaseStatusHeader from "./_components/CaseStatusHeader";
 import UnpaidAlertBanner from "./_components/UnpaidAlertBanner";
 import WorkspaceSidebar from "./_components/WorkspaceSidebar";
+import type { WorkspaceTab } from "./_components/WorkspaceSidebar";
 import DocumentWorkspace from "./_components/documents/DocumentWorkspace";
 import TabDiscussionChat from "./_components/TabDiscussionChat";
 import ActivityTimeline from "./_components/ActivityTimeline";
 import TabCaseSettings from "./_components/TabCaseSettings";
 import CreditPanel from "./_components/CreditPanel";
+import CaseOverviewPanel from "./_components/CaseOverviewPanel";
 import CreditQuantityModal from "./_components/CreditQuantityModal";
 import IntakeFormModal from "./_components/IntakeFormModal";
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
@@ -29,13 +31,14 @@ export default function CaseWorkspacePage({ params }: PageProps) {
 
   const {
     caseData,
-    openRequestsForMoreInfo,
+    intakeSnapshot,
+    teamFitReport,
     documentWorkspace,
     isLoading,
     error,
   } = useCaseDetails(id);
 
-  const [activeTab, setActiveTab] = useState<"documents" | "discussion" | "timeline" | "settings" | "credits">("documents");
+  const [activeTab, setActiveTab] = useState<WorkspaceTab>("overview");
   const [isStudentUploadOpen, setIsStudentUploadOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [creditBuyOpened, setCreditBuyOpened] = useState(false);
@@ -73,11 +76,19 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         messageCount={caseData.messages?.length}
-        creditBalance={creditBalance}
+        creditBalance={creditBalance ?? undefined}
       />
 
       <div className={`flex-grow flex flex-col h-full min-w-0 p-6 space-y-6 ${activeTab === "discussion" ? "overflow-hidden" : "overflow-y-auto"}`}>
-        {activeTab !== "discussion" && <CaseStatusHeader caseData={caseData} versions={[]} selectedVersion={0} onVersionChange={() => {}} />}
+        {activeTab !== "discussion" && activeTab !== "overview" && (
+          <CaseStatusHeader
+            caseData={caseData}
+            versions={[]}
+            selectedVersion={0}
+            onVersionChange={() => {}}
+            onSelectTab={(tab) => setActiveTab(tab)}
+          />
+        )}
 
         {(activeTab === "timeline" || activeTab === "settings") && (
           <UnpaidAlertBanner
@@ -86,28 +97,15 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           />
         )}
 
-        {/* Revision prompt banner — visible on report_ready / waiting_for_revision */}
-        {(caseData.user_facing_stage === "report_ready" || caseData.user_facing_stage === "waiting_for_revision") &&
-          (!openRequestsForMoreInfo || openRequestsForMoreInfo.length === 0) && (
-            <div className="p-4 bg-brand-soft/20 border border-brand/10 rounded-xl font-body text-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shrink-0 animate-fade-in">
-              <div className="space-y-1">
-                <h5 className="font-bold text-brand">Hồ sơ đã có báo cáo phản biện</h5>
-                <p className="text-text-muted">
-                  Nhóm có thể tiến hành sửa đổi bài làm và nộp bản mới để Supporter thẩm định vòng tiếp theo.
-                </p>
-              </div>
-              <Button
-                size="sm"
-                color="brand"
-                className="font-semibold cursor-pointer h-8.5 text-xs shrink-0"
-                onClick={() => setIsStudentUploadOpen(true)}
-              >
-                Tải tài liệu
-              </Button>
-            </div>
+        <div className="flex-grow min-h-0 flex flex-col">
+          {activeTab === "overview" && (
+            <CaseOverviewPanel
+              caseData={caseData}
+              onSelectTab={(tab) => setActiveTab(tab)}
+              onEditIntake={() => setIntakeFormOpened(true)}
+            />
           )}
 
-        <div className="flex-grow min-h-0 flex flex-col">
           {activeTab === "documents" && (
             <>
               <div className="mb-4 flex justify-end gap-3">

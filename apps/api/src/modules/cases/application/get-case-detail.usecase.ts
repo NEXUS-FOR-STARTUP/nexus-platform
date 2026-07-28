@@ -71,6 +71,7 @@ function toBaseResponse(caseDetails: any) {
     checkpoints: caseDetails.checkpoints,
     lifecycle_units: caseDetails.lifecycle_units,
     reports: caseDetails.reports,
+    team_fit_report: caseDetails.team_fit_report,
     payments: caseDetails.payments,
     messages: caseDetails.messages,
     events: caseDetails.events,
