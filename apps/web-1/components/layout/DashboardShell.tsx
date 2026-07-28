@@ -109,22 +109,13 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                     </div>
                   </div>
                   {user.role === "admin" && (
-                    <>
-                      <Menu.Item
-                        leftSection={<Shield className="w-4 h-4 text-text-muted" />}
-                        onClick={() => router.push("/admin")}
-                        className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-xs font-semibold"
-                      >
-                        Bàn làm việc Admin
-                      </Menu.Item>
-                      <Menu.Item
-                        leftSection={<LayoutDashboard className="w-4 h-4 text-text-muted" />}
-                        onClick={() => router.push("/supporter")}
-                        className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-xs font-semibold"
-                      >
-                        Bàn làm việc Supporter
-                      </Menu.Item>
-                    </>
+                    <Menu.Item
+                      leftSection={<Shield className="w-4 h-4 text-text-muted" />}
+                      onClick={() => router.push("/admin")}
+                      className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-xs font-semibold"
+                    >
+                      Bàn làm việc Admin
+                    </Menu.Item>
                   )}
                   {user.role === "supporter" && (
                     <Menu.Item
