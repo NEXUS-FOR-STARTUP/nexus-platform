@@ -170,6 +170,12 @@ export default function TeamFitPage() {
   const handleUpgrade = () => {
     setSaveError(null);
 
+    // Nếu đã lưu case, redirect thẳng vào intake UPDATE mode để không tạo case trùng
+    if (savedCaseId) {
+      router.push(`/dashboard/intake?packageId=pkg_tf_audit&caseId=${savedCaseId}`);
+      return;
+    }
+
     const teamSummary = members
       .map((member, index) => {
         const strengths = member.strengths.join(", ");
