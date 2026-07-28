@@ -17,7 +17,7 @@ export default function AuthPage() {
     }
   }, [session, router]);
 
-  if (isPending || session) {
+  if (session) {
     return (
       <AuthShell>
         <div className="py-12 flex flex-col items-center justify-center min-h-[300px] gap-4">

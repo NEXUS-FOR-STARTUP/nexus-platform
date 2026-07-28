@@ -37,6 +37,7 @@ import { validateCp1Intake } from "./cases.schema.js";
 import { submitIntakeUseCase } from "../application/submit-intake.usecase.js";
 import { vetoCaseUseCase } from "../application/veto-case.usecase.js";
 import { completeCaseUseCase } from "../application/complete-case.usecase.js";
+import { upgradePackageUseCase } from "../application/upgrade-package.usecase.js";
 
 // ---------------------------------------------------------------------------
 // GET /api/cases — List cases based on role
@@ -500,6 +501,27 @@ export async function completeCaseHandler(c: Context) {
 
   try {
     const result = await completeCaseUseCase(session.user.id, role, caseId);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/cases/:id/upgrade-package — Student upgrades case from free to paid package
+// ---------------------------------------------------------------------------
+
+export async function upgradePackageHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  const caseId = c.req.param("id") || "";
+
+  try {
+    const body = await readJsonBody(c) as { packageId: string };
+    const result = await upgradePackageUseCase(session.user.id, caseId, body.packageId);
     return c.json(result);
   } catch (error: any) {
     return handleError(c, error);

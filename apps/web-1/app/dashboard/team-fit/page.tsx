@@ -228,7 +228,7 @@ export default function TeamFitPage() {
       </div>
 
       {/* Step indicator */}
-      <StepIndicator currentStep={currentStep} />
+      <StepIndicator currentStep={currentStep} onStepClick={(step) => setCurrentStep(step)} />
 
       {/* Step content */}
       <div className="bg-surface-app border border-border-app rounded-2xl p-6">

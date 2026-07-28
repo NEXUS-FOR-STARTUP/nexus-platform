@@ -13,7 +13,7 @@ import {
   Badge,
   Breadcrumbs
 } from "@mantine/core";
-import { LogOut, LayoutDashboard, Shield } from "lucide-react";
+import { CreditCard, LogOut, LayoutDashboard, Shield } from "lucide-react";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -30,7 +30,8 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       fetchOptions: {
         onSuccess: () => {
           queryClient.clear();
-          router.push("/auth");
+          router.replace("/auth");
+          router.refresh();
         },
       },
     });
@@ -45,6 +46,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
     if (part === "dashboard") label = "Dashboard";
     else if (part === "case") label = "Hồ sơ";
     else if (part === "intake") label = "Khởi tạo ý tưởng";
+    else if (part === "payments") label = "Lịch sử thanh toán";
     else if (part === "supporter") label = "Supporter Review";
     else if (part === "admin") label = "Quản trị viên";
     else if (part === "review") label = "Đánh giá";
@@ -85,6 +87,8 @@ export default function DashboardShell({ children }: DashboardShellProps) {
     if (user?.role === "supporter") return "/supporter";
     return "/dashboard";
   };
+
+  const isStudent = user?.role !== "admin" && user?.role !== "supporter";
 
   return (
     <div className="flex flex-col min-h-screen bg-bg-app transition-colors duration-200">
@@ -133,13 +137,22 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                     }
                     onClick={() => router.push(getHomeLink())}
                     className="text-text-app hover:bg-surface-soft cursor-pointer"
-                  >
+                    >
                     {user.role === "admin"
                       ? "Admin Panel"
                       : user.role === "supporter"
                       ? "Supporter Dashboard"
                       : "Hồ sơ của tôi"}
                   </Menu.Item>
+                  {isStudent && (
+                    <Menu.Item
+                      leftSection={<CreditCard className="w-4 h-4 text-text-muted" />}
+                      onClick={() => router.push("/dashboard/payments")}
+                      className="text-text-app hover:bg-surface-soft cursor-pointer"
+                    >
+                      Lịch sử thanh toán
+                    </Menu.Item>
+                  )}
                   <Menu.Item
                     leftSection={<LogOut className="w-4 h-4" />}
                     color="red"

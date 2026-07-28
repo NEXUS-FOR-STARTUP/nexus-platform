@@ -175,6 +175,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         caseId={id}
         opened={creditBuyOpened}
         onClose={() => setCreditBuyOpened(false)}
+        packageId={caseData?.package_id ?? undefined}
       />
     </div>
   );

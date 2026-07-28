@@ -2,10 +2,11 @@
 
 import { Check, Circle } from 'lucide-react';
 
-const STEPS = ['Mad Libs', 'Đội ngũ', 'Kết quả'];
+const STEPS = ['Mô tả ý tưởng', 'Đội ngũ', 'Kết quả'];
 
 interface StepIndicatorProps {
   currentStep: 0 | 1 | 2;
+  onStepClick?: (step: 0 | 1 | 2) => void;
 }
 
 function StepDot({
@@ -64,16 +65,31 @@ function StepLabel({
   );
 }
 
-export default function StepIndicator({ currentStep }: StepIndicatorProps) {
+export default function StepIndicator({ currentStep, onStepClick }: StepIndicatorProps) {
   return (
     <div className="flex w-full items-center gap-2 overflow-x-auto py-1">
       {STEPS.map((label, index) => {
         const isCompleted = index < currentStep;
         const isActive = index === currentStep;
+        const isClickable = isCompleted && currentStep !== 2 && !!onStepClick;
 
         return (
           <div key={label} className="contents">
-            <div className="flex shrink-0 items-center gap-2">
+            <div
+              className={[
+                'flex shrink-0 items-center gap-2',
+                isClickable ? 'cursor-pointer hover:opacity-80' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              onClick={() => {
+                if (isClickable) {
+                  onStepClick(index as 0 | 1 | 2);
+                }
+              }}
+              role={isClickable ? 'button' : undefined}
+              tabIndex={isClickable ? 0 : undefined}
+            >
               <StepDot index={index} isCompleted={isCompleted} isActive={isActive} />
               <StepLabel label={label} isCompleted={isCompleted} isActive={isActive} />
             </div>

@@ -51,7 +51,7 @@ export default function ContactUs() {
                   <Phone className="w-5 h-5 text-brand shrink-0" />
                   <div>
                     <div className="text-[10px] text-text-muted font-bold uppercase">Hotline</div>
-                    <div className="text-xs text-text-app font-semibold">0776506822</div>
+                    <div className="text-xs text-text-app font-semibold">0776 506 822</div>
                   </div>
                 </div>
               </div>
