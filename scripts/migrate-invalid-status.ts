@@ -5,6 +5,10 @@
  * Requires DATABASE_URL (write access) in root .env
  * SAFETY: This is a targeted UPDATE — only affects 13 cases
  */
+import { config as loadEnv } from "dotenv";
+
+loadEnv({ path: new URL("../.env", import.meta.url).pathname });
+
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 
