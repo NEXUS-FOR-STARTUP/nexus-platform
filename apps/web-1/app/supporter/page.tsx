@@ -5,25 +5,31 @@ import Link from "next/link";
 import { useCasesList } from "../dashboard/hooks/useCasesList";
 import CaseCard from "../dashboard/_components/CaseCard";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Sparkles, ClipboardList, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
+import { FileText, ClipboardList, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@mantine/core";
 
 export default function SupporterDashboard() {
   const { data: cases, isLoading, error, refetch } = useCasesList();
-  const [activeFilter, setActiveFilter] = useState<"pending" | "completed" | "all">("pending");
+  const [activeFilter, setActiveFilter] = useState<"pending" | "submitted" | "completed" | "all">("pending");
 
   // Filter cases assigned to the supporter
   const pendingCases = cases?.filter(
-    (c) => c.internal_status === "assigned" || c.internal_status === "auditing" || c.internal_status === "need_clarification"
+    (c) => c.internal_status === "assigned" || c.internal_status === "supporter_working" || c.internal_status === "waiting_user"
   ) || [];
 
   const completedCases = cases?.filter(
-    (c) => c.internal_status === "completed" || c.internal_status === "approved"
+    (c) => c.internal_status === "done"
+  ) || [];
+
+  const submittedReports = cases?.filter(
+    (c) => c.internal_status === "report_ready_to_publish"
   ) || [];
 
   const displayedCases = 
     activeFilter === "pending" 
       ? pendingCases 
+      : activeFilter === "submitted"
+      ? submittedReports
       : activeFilter === "completed" 
       ? completedCases 
       : cases || [];
@@ -66,6 +72,18 @@ export default function SupporterDashboard() {
         </button>
 
         <button
+          onClick={() => setActiveFilter("submitted")}
+          className={`pb-3 text-sm font-semibold border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+            activeFilter === "submitted"
+              ? "border-brand text-brand"
+              : "border-transparent text-text-muted hover:text-text-app"
+          }`}
+        >
+          <FileText className="w-4 h-4" />
+          <span>Đã gửi báo cáo ({submittedReports.length})</span>
+        </button>
+
+        <button
           onClick={() => setActiveFilter("completed")}
           className={`pb-3 text-sm font-semibold border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
             activeFilter === "completed"
@@ -103,23 +121,29 @@ export default function SupporterDashboard() {
         <div className="py-12 border border-border-app rounded-2xl bg-surface-app text-center flex flex-col items-center justify-center gap-4">
           <div className="w-12 h-12 rounded-full bg-surface-soft border border-border-app text-text-subtle flex items-center justify-center">
             {activeFilter === "pending" ? (
-              <CheckCircle2 className="w-6 h-6 text-success" />
+              <ClipboardList className="w-6 h-6 text-text-subtle" />
+            ) : activeFilter === "submitted" ? (
+              <FileText className="w-6 h-6 text-text-subtle" />
             ) : (
-              <ClipboardList className="w-6 h-6" />
+              <CheckCircle2 className="w-6 h-6 text-success" />
             )}
           </div>
           <div className="space-y-1.5 max-w-sm">
             <h4 className="font-heading font-semibold text-sm text-text-app">
               {activeFilter === "pending" 
                 ? "Không có hồ sơ cần phản biện" 
+                : activeFilter === "submitted"
+                ? "Chưa có báo cáo nào được gửi"
                 : activeFilter === "completed"
                 ? "Chưa có hồ sơ nào hoàn thành"
                 : "Không có hồ sơ nào được phân công"}
             </h4>
             <p className="font-body text-xs text-text-muted leading-relaxed">
               {activeFilter === "pending"
-                ? "Tất cả các hồ sơ được phân công đã được xuất báo cáo phản biện thành công hoặc chưa có hồ sơ mới được phân công."
-                : "Các hồ sơ sau khi bạn xuất báo cáo và phê duyệt chính thức sẽ hiển thị tại danh sách này."}
+                ? "Không có hồ sơ cần phản biện — tất cả đã được xử lý hoặc chưa có phân công mới."
+                : activeFilter === "submitted"
+                ? "Chưa có báo cáo nào được gửi — sau khi hoàn thành phản biện và gửi báo cáo, hồ sơ sẽ hiển thị tại đây."
+                : "Các hồ sơ sau khi hoàn thành sẽ hiển thị tại danh sách này."}
             </p>
           </div>
         </div>
