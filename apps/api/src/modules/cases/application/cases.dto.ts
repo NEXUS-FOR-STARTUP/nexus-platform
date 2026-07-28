@@ -78,6 +78,12 @@ export interface DocumentTypeQueryRequest {
 }
 
 export interface IntakeRequest {
+  school?: string;
+  course_context?: string;
+  team_context?: {
+    project_name?: string;
+    group_no?: string;
+  };
   contact: {
     full_name: string;
     student_code: string;

@@ -82,6 +82,10 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
           internal_status: 'submitted',
           user_facing_stage: 'submitted',
           payment_status: caseRecord.payment_status === 'paid' ? 'paid' : 'unpaid',
+          school: body.school || undefined,
+          course_context: body.course_context || undefined,
+          group_no: body.team_context?.group_no || undefined,
+          team_name: body.team_context?.project_name || undefined,
         },
       });
 
