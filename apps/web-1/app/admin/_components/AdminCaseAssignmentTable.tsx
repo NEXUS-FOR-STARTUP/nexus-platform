@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { User } from "@/types";
+import { User, statusThemeMap } from "@/types";
 import { CheckCircle, Search, MoreVertical, Trash2, Eye, Shield } from "lucide-react";
 import { Button, Select, Badge, Table, Pagination, TextInput, Group, Menu, ActionIcon, Tooltip } from "@mantine/core";
 
@@ -203,20 +203,17 @@ export default function AdminCaseAssignmentTable({
                     <Table.Td>
                       <Badge
                         color={
-                          item.internal_status === "triage_pending"
-                            ? "gray"
-                            : item.internal_status === "accepted_unassigned"
-                            ? "yellow"
-                            : "green"
+                          statusThemeMap[item.internal_status]?.color === "default" ? "gray"
+                          : statusThemeMap[item.internal_status]?.color === "primary" ? "brand"
+                          : statusThemeMap[item.internal_status]?.color === "warning" ? "yellow"
+                          : statusThemeMap[item.internal_status]?.color === "danger" ? "red"
+                          : statusThemeMap[item.internal_status]?.color === "success" ? "teal"
+                          : "gray"
                         }
                         variant="light"
-size="md"
+                        size="md"
                       >
-                        {item.internal_status === "triage_pending"
-                          ? "Chờ Duyệt"
-                          : item.internal_status === "accepted_unassigned"
-                          ? "Chờ Phân Công"
-                          : "Đã phân công"}
+                        {statusThemeMap[item.internal_status]?.label || item.internal_status}
                       </Badge>
                     </Table.Td>
                     <Table.Td className="text-center">

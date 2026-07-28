@@ -33,10 +33,12 @@ export default function CaseStatusHeader({
   const slaSource = caseData.sla_deadline_at || caseData.deadline;
 
   // Pre-supporter stages: SLA chưa áp dụng
-  const preSupporterStatuses = ["triage_pending", "accepted_unassigned", "assigned"];
+  // Dùng internal_status cho admin/supporter, fallback về user_facing_stage cho student
+  const preSupporterInternal = ["triage_pending", "accepted_unassigned", "assigned"];
+  const preSupporterUserFacing = ["intake_pending", "intake_ready", "submitted", "need_more_information"];
   const isPreSupporter = caseData.internal_status
-    ? preSupporterStatuses.includes(caseData.internal_status)
-    : false;
+    ? preSupporterInternal.includes(caseData.internal_status)
+    : preSupporterUserFacing.includes(caseData.user_facing_stage);
 
   useEffect(() => {
     if (isPaused) {

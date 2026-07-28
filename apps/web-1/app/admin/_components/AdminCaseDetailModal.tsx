@@ -3,6 +3,7 @@
 import React from "react";
 import { Modal, Button, Badge, Loader } from "@mantine/core";
 import { useAdminCaseDetail } from "../hooks/useAdminCases";
+import { statusThemeMap } from "@/types";
 
 interface AdminCaseDetailModalProps {
   caseId: string | null;
@@ -91,20 +92,16 @@ export default function AdminCaseDetailModal({
                   <div className="pt-0.5 font-normal">
                     <Badge
                       color={
-                        detailData.case.internal_status === "triage_pending"
-                          ? "gray"
-                          : detailData.case.internal_status === "accepted_unassigned"
-                            ? "yellow"
-                            : "green"
+                        statusThemeMap[detailData.case.internal_status]?.color === "primary" ? "brand"
+                        : statusThemeMap[detailData.case.internal_status]?.color === "warning" ? "yellow"
+                        : statusThemeMap[detailData.case.internal_status]?.color === "danger" ? "red"
+                        : statusThemeMap[detailData.case.internal_status]?.color === "success" ? "teal"
+                        : "gray"
                       }
                       variant="light"
                       size="md"
                     >
-                      {detailData.case.internal_status === "triage_pending"
-                        ? "Chờ Duyệt"
-                        : detailData.case.internal_status === "accepted_unassigned"
-                          ? "Chờ Phân Công"
-                          : "Đã phân công"}
+                      {statusThemeMap[detailData.case.internal_status]?.label || detailData.case.internal_status}
                     </Badge>
                   </div>
                 </div>
