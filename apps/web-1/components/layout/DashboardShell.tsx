@@ -108,23 +108,42 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                       {getRoleBadge(user.role)}
                     </div>
                   </div>
-                  <Menu.Item
-                    leftSection={
-                      user.role === "admin" ? (
-                        <Shield className="w-4 h-4 text-text-muted" />
-                      ) : (
-                        <LayoutDashboard className="w-4 h-4 text-text-muted" />
-                      )
-                    }
-                    onClick={() => router.push(getHomeLink())}
-                    className="text-text-app hover:bg-surface-soft cursor-pointer"
-                  >
-                    {user.role === "admin"
-                      ? "Bàn làm việc Admin"
-                      : user.role === "supporter"
-                      ? "Bàn làm việc Supporter"
-                      : "Hồ sơ của tôi"}
-                  </Menu.Item>
+                  {user.role === "admin" && (
+                    <>
+                      <Menu.Item
+                        leftSection={<Shield className="w-4 h-4 text-text-muted" />}
+                        onClick={() => router.push("/admin")}
+                        className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-xs font-semibold"
+                      >
+                        Bàn làm việc Admin
+                      </Menu.Item>
+                      <Menu.Item
+                        leftSection={<LayoutDashboard className="w-4 h-4 text-text-muted" />}
+                        onClick={() => router.push("/supporter")}
+                        className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-xs font-semibold"
+                      >
+                        Bàn làm việc Supporter
+                      </Menu.Item>
+                    </>
+                  )}
+                  {user.role === "supporter" && (
+                    <Menu.Item
+                      leftSection={<LayoutDashboard className="w-4 h-4 text-text-muted" />}
+                      onClick={() => router.push("/supporter")}
+                      className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-xs font-semibold"
+                    >
+                      Bàn làm việc Supporter
+                    </Menu.Item>
+                  )}
+                  {isStudent && (
+                    <Menu.Item
+                      leftSection={<LayoutDashboard className="w-4 h-4 text-text-muted" />}
+                      onClick={() => router.push("/dashboard")}
+                      className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-xs font-semibold"
+                    >
+                      Hồ sơ của tôi
+                    </Menu.Item>
+                  )}
                   {isStudent && (
                     <Menu.Item
                       leftSection={<CreditCard className="w-4 h-4 text-text-muted" />}

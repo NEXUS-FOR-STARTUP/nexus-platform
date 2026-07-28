@@ -244,13 +244,14 @@ export async function submitSupporterOutputUploadHandler(c: Context) {
     return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
   }
 
+  const role = (session.user as any).role;
   const caseId = c.req.param("id") || "";
   let uploadedPublicIds: string[] = [];
 
   try {
     const body = await readJsonBody(c) as SupporterOutputUploadRequest;
     uploadedPublicIds = collectUploadedPublicIds(body?.documents);
-    const result = await submitSupporterOutputUploadUseCase(session.user.id, caseId, body);
+    const result = await submitSupporterOutputUploadUseCase(session.user.id, caseId, body, {}, role);
     return c.json(result, 201);
   } catch (error: any) {
     await Promise.all(uploadedPublicIds.map((publicId) => deleteManagedDocumentFile(publicId)));

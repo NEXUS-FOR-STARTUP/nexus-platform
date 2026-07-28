@@ -159,30 +159,18 @@ export default function AdminPackagesSettings({
                     />
                   </Table.Td>
                   <Table.Td>
-                    <div className="flex flex-col gap-2 items-stretch">
-                      <Button
-                        onClick={() => handleUpdatePrice(pkg)}
-                        disabled={isUpdatingPrice || !isModified}
-                        loading={isUpdatingPrice}
-                        variant="filled"
-                        color="brand"
-                        size="xs"
-                        radius="md"
-                      >
-                        Cập nhật giá
-                      </Button>
-                      <Button
-                        onClick={() => handleToggleStatus(pkg)}
-                        disabled={isUpdatingStatus}
-                        loading={isUpdatingStatus}
-                        variant="light"
-                        color={pkg.is_active ? "red" : "green"}
-                        size="xs"
-                        radius="md"
-                      >
-                        {pkg.is_active ? "Tắt gói" : "Bật gói"}
-                      </Button>
-                    </div>
+                    <Button
+                      onClick={() => handleUpdatePrice(pkg)}
+                      disabled={isUpdatingPrice || !isModified}
+                      loading={isUpdatingPrice}
+                      variant="filled"
+                      color="brand"
+                      size="xs"
+                      radius="md"
+                      fullWidth
+                    >
+                      Cập nhật giá
+                    </Button>
                   </Table.Td>
                 </Table.Tr>
               );

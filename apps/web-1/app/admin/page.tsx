@@ -14,7 +14,7 @@ import RejectionReasonModal from "./_components/RejectionReasonModal";
 import ApprovePaymentModal from "./_components/ApprovePaymentModal";
 import { useAdminStats } from "./hooks/useAdminStats";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, AlertTriangle } from "lucide-react";
+import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, AlertTriangle, FolderKanban } from "lucide-react";
 import { Tooltip, UnstyledButton, Title, Text, Badge, Divider } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import classes from "../../components/layout/DoubleNavbar.module.css";
@@ -56,7 +56,8 @@ export default function AdminHubPage() {
     isUpdatingStatus,
   } = useAdminPackages();
 
-  const statsQuery = useAdminStats();
+  const [statsPeriod, setStatsPeriod] = useState("30d");
+  const statsQuery = useAdminStats(statsPeriod);
 
   // Modal control states
   const [rejectingPaymentId, setRejectingPaymentId] = useState<string | null>(null);
@@ -252,6 +253,52 @@ export default function AdminHubPage() {
     return active;
   }, [cases, caseFilter]);
 
+  const getHeaderInfo = () => {
+    if (activeSection === "stats") {
+      return {
+        title: "Thống kê hệ thống",
+        description: "Tổng quan dữ liệu case, doanh thu và hiệu suất vận hành theo mốc thời gian.",
+        icon: BarChart3,
+      };
+    }
+    if (activeSection === "payments") {
+      return {
+        title: "Duyệt minh chứng thanh toán",
+        description: "Kiểm tra thông tin giao dịch chuyển khoản và ảnh đối chiếu từ học viên.",
+        icon: CreditCard,
+      };
+    }
+    if (activeSection === "cases") {
+      if (caseFilter === "crud") {
+        return {
+          title: "Quản lý toàn bộ hồ sơ hệ thống",
+          description: "Xem chi tiết hoặc xóa hồ sơ khỏi cơ sở dữ liệu hệ thống.",
+          icon: FolderKanban,
+        };
+      }
+      return {
+        title: "Phân công Supporter chuyên môn",
+        description: "Chỉ định Supporter phụ trách đánh giá và sửa đổi bản thảo phản biện cho hồ sơ mới.",
+        icon: UserCheck,
+      };
+    }
+    if (activeSection === "documents") {
+      return {
+        title: "Quản lý hệ thống tài liệu",
+        description: "Xem, tải xuống và gỡ bỏ tài liệu khỏi cơ sở dữ liệu & Cloudinary.",
+        icon: FileText,
+      };
+    }
+    return {
+      title: "Thiết lập gói dịch vụ",
+      description: "Bật/tắt hiển thị với khách hàng mới và cập nhật đơn giá các gói trên hệ thống.",
+      icon: Settings,
+    };
+  };
+
+  const currentHeader = getHeaderInfo();
+  const HeaderIcon = currentHeader.icon;
+
   return (
     <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden animate-fade-in font-body text-xs text-text-app">
       {/* Sidebar Navigation (Mantine DoubleNavbar) - always visible */}
@@ -417,7 +464,7 @@ export default function AdminHubPage() {
                   className={classes.link}
                   data-active={caseFilter === "crud" || undefined}
                 >
-                  <span>Quản lý (CRUD)</span>
+                  <span>Quản lý toàn bộ hồ sơ</span>
                 </UnstyledButton>
               </div>
             ) : activeSection === "documents" ? (
@@ -445,14 +492,14 @@ export default function AdminHubPage() {
 
       {/* Main Content Area - Scrollable */}
       <div className="flex-grow flex flex-col h-full min-w-0 overflow-y-auto p-6 space-y-6">
-        {/* 1. Admin Console Header */}
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="w-10 h-10 rounded-full bg-brand-soft/40 text-brand flex items-center justify-center">
-            <Shield className="w-5 h-5" />
+        {/* Dynamic Main Header */}
+        <div className="flex items-center gap-3 shrink-0 pb-2 border-b border-border-app/50">
+          <div className="w-10 h-10 rounded-xl bg-brand-soft/40 text-brand flex items-center justify-center shrink-0">
+            <HeaderIcon className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="font-heading text-2xl font-bold text-text-app">Bàn làm việc Admin</h1>
-            <p className="text-text-muted text-xs">Quản lý giao dịch thanh toán và phân công Supporter chuyên môn hỗ trợ.</p>
+            <h1 className="font-heading text-xl sm:text-2xl font-bold text-text-app">{currentHeader.title}</h1>
+            <p className="text-text-muted text-xs mt-0.5">{currentHeader.description}</p>
           </div>
         </div>
 
@@ -473,11 +520,7 @@ export default function AdminHubPage() {
         ) : (
           <div className="flex-grow min-h-0">
             {activeSection === "stats" ? (
-              <div className="space-y-3">
-                <div className="pb-1.5 border-b border-border-app/55 shrink-0">
-                  <h3 className="font-heading font-bold text-sm text-text-app">Thống kê hệ thống</h3>
-                  <p className="text-[10px] text-text-muted">Tổng quan dữ liệu case, doanh thu và hiệu suất vận hành.</p>
-                </div>
+              <div>
                 {statsQuery.isLoading ? (
                   <LoadingSkeleton variant="card" count={1} />
                 ) : statsQuery.error ? (
@@ -485,15 +528,16 @@ export default function AdminHubPage() {
                     Không thể tải dữ liệu thống kê. Vui lòng thử lại sau.
                   </div>
                 ) : (
-                  <StatsDashboard data={statsQuery.data} isLoading={false} />
+                  <StatsDashboard
+                    data={statsQuery.data}
+                    isLoading={statsQuery.isLoading}
+                    period={statsPeriod}
+                    onPeriodChange={setStatsPeriod}
+                  />
                 )}
               </div>
             ) : activeSection === "payments" ? (
-              <div className="space-y-3">
-                <div className="pb-1.5 border-b border-border-app/55 shrink-0">
-                  <h3 className="font-heading font-bold text-sm text-text-app">Duyệt minh chứng thanh toán</h3>
-                  <p className="text-[10px] text-text-muted">Kiểm tra thông tin giao dịch chuyển khoản và ảnh đối chiếu từ học viên.</p>
-                </div>
+              <div>
                 <AdminPaymentVerificationTable
                   payments={filteredPayments}
                   onApprove={handleApproveClick}
@@ -501,11 +545,7 @@ export default function AdminHubPage() {
                 />
               </div>
             ) : activeSection === "cases" ? (
-              <div className="space-y-3">
-                <div className="pb-1.5 border-b border-border-app/55 shrink-0">
-                  <h3 className="font-heading font-bold text-sm text-text-app">Phân công Supporter chuyên môn</h3>
-                  <p className="text-[10px] text-text-muted">Chỉ định Supporter phụ trách đánh giá và sửa đổi bản thảo phản biện cho hồ sơ mới.</p>
-                </div>
+              <div>
                 <AdminCaseAssignmentTable
                   cases={filteredCases}
                   supporters={supporters}
@@ -519,11 +559,7 @@ export default function AdminHubPage() {
                 />
               </div>
             ) : activeSection === "documents" ? (
-              <div className="space-y-3">
-                <div className="pb-1.5 border-b border-border-app/55 shrink-0">
-                  <h3 className="font-heading font-bold text-sm text-text-app">Quản lý hệ thống tài liệu</h3>
-                  <p className="text-[10px] text-text-muted">Xem, tải xuống và gỡ bỏ tài liệu khỏi cơ sở dữ liệu & Cloudinary.</p>
-                </div>
+              <div>
                 <AdminDocumentsTable
                   documents={documents}
                   onDelete={handleDeleteDocument}
@@ -531,11 +567,7 @@ export default function AdminHubPage() {
                 />
               </div>
             ) : (
-              <div className="space-y-3">
-                <div className="pb-1.5 border-b border-border-app/55 shrink-0">
-                  <h3 className="font-heading font-bold text-sm text-text-app">Thiết lập gói dịch vụ</h3>
-                  <p className="text-[10px] text-text-muted">Bật/tắt hiển thị với khách hàng mới và cập nhật đơn giá các gói trên hệ thống.</p>
-                </div>
+              <div>
                 <AdminPackagesSettings
                   packages={packages}
                   onUpdatePrice={updatePackagePrice}
