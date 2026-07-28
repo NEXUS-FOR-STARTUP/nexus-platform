@@ -115,20 +115,20 @@ export default function CaseWorkspacePage({ params }: PageProps) {
 
         <div className="flex-grow min-h-0 flex flex-col">
           {activeTab === "overview" && (
-            <>
-              <StatusGuidanceCard
-                caseData={caseData}
-                openRequestsForMoreInfo={null}
-                onSelectTab={(tab) => setActiveTab(tab)}
-                onOpenPayment={isIntakePending ? () => setCreditBuyOpened(true) : undefined}
-                onOpenIntake={isIntakeReady ? () => setIntakeFormOpened(true) : undefined}
-              />
-              <CaseOverviewPanel
-                caseData={caseData}
-                onSelectTab={(tab) => setActiveTab(tab)}
-                onEditIntake={isIntakeReady ? () => setIntakeFormOpened(true) : undefined}
-              />
-            </>
+            <CaseOverviewPanel
+              caseData={caseData}
+              onSelectTab={(tab) => setActiveTab(tab)}
+              onEditIntake={isIntakeReady ? () => setIntakeFormOpened(true) : undefined}
+              guidanceCard={
+                <StatusGuidanceCard
+                  caseData={caseData}
+                  openRequestsForMoreInfo={null}
+                  onSelectTab={(tab) => setActiveTab(tab)}
+                  onOpenPayment={isIntakePending ? () => setCreditBuyOpened(true) : undefined}
+                  onOpenIntake={isIntakeReady ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
+                />
+              }
+            />
           )}
 
           {activeTab === "documents" && (
