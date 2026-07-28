@@ -7,11 +7,9 @@ import {
   Users, 
   Target, 
   Lightbulb, 
-  ShieldAlert, 
   Mail, 
   Phone, 
   Clock, 
-  FileText, 
   CheckCircle2, 
   AlertTriangle, 
   Sparkles, 
@@ -19,9 +17,7 @@ import {
   Layers,
   GraduationCap,
   MessageSquareCode,
-  Edit3
 } from "lucide-react";
-import { Badge } from "@mantine/core";
 
 import { statusThemeMap } from "@/types";
 
@@ -53,61 +49,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
 
   return (
     <div className="space-y-6 animate-fade-in font-body pb-8">
-      {/* ── 1. Hero Overview Banner Card ── */}
-      <div className="bg-gradient-to-r from-brand-soft/40 via-surface-app to-surface-app border border-brand/20 rounded-xl p-6 shadow-xs relative overflow-hidden">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 relative z-10">
-          <div className="space-y-2 max-w-3xl">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-base font-semibold text-brand uppercase tracking-wider bg-brand-soft/50 px-2.5 py-1 rounded-md">
-                Tổng Quan Hồ Sơ Khởi Nghiệp
-              </span>
-              <Badge variant="dot" color="blue" size="md" className="font-semibold">
-                Mã: {caseData.case_code}
-              </Badge>
-              {(() => {
-                const badgeColorMap: Record<string, string> = {
-                  success: "teal",
-                  warning: "yellow",
-                  danger: "red",
-                  primary: "brand",
-                };
-                const badgeColor = badgeColorMap[statusTheme.color] || "gray";
-                return (
-                  <Badge variant="light" color={badgeColor} size="md" className="font-semibold">
-                    {statusTheme.label}
-                  </Badge>
-                );
-              })()}
-            </div>
-            <h3 className="text-xl sm:text-2xl font-bold font-heading text-text-app">
-              {idea.project_name || caseData.team_name || `Dự án ${caseData.case_code}`}
-            </h3>
-            <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
-              {intake.case_summary || idea.problem || "Hồ sơ phản biện chuyên sâu ý tưởng khởi nghiệp sáng tạo."}
-            </p>
-          </div>
 
-          <div className="flex items-center gap-3 shrink-0">
-            {onEditIntake ? (
-              <button
-                onClick={onEditIntake}
-                className="px-4 py-2 bg-brand text-white text-xs font-semibold rounded-lg hover:bg-brand/90 transition-all flex items-center gap-2 shadow-xs cursor-pointer"
-              >
-                <Edit3 className="w-4 h-4" />
-                <span>Chỉnh sửa thông tin</span>
-              </button>
-            ) : onSelectTab ? (
-              <button
-                onClick={() => onSelectTab("documents")}
-                className="px-4 py-2 bg-brand text-white text-xs font-semibold rounded-lg hover:bg-brand/90 transition-all flex items-center gap-2 shadow-xs cursor-pointer"
-              >
-                <FileText className="w-4 h-4" />
-                <span>Xem tài liệu bài làm</span>
-              </button>
-            ) : null}
-          </div>
-        </div>
-      </div>
 
       {guidanceCard && <div className="shrink-0">{guidanceCard}</div>}
 
