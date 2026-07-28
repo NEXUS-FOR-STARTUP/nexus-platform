@@ -60,8 +60,8 @@ export default function IntakeProgressStepper({
                 {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : idx + 1}
               </span>
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-heading font-bold leading-tight block">{s.label}</span>
-                <span className={`text-[10px] leading-none mt-0.5 ${isActive ? "text-white/80" : "text-text-muted"}`}>
+                <span className="text-xs font-heading font-semibold leading-tight block">{s.label}</span>
+                <span className={`text-base leading-none mt-0.5 ${isActive ? "text-white/80" : "text-text-muted"}`}>
                   {isActive ? "Đang thực hiện" : isCompleted ? "Đã hoàn thành" : isSelectable ? "Sẵn sàng" : "Chưa mở khóa"}
                 </span>
               </div>
@@ -85,7 +85,7 @@ export default function IntakeProgressStepper({
                 className="flex items-center shrink-0 gap-1.5 focus:outline-none"
               >
                 <span
-                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 transition-colors ${
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-colors ${
                     isActive
                       ? "bg-brand text-white"
                       : isCompleted
@@ -96,13 +96,13 @@ export default function IntakeProgressStepper({
                   {isCompleted ? <Check className="w-2.5 h-2.5 stroke-[3]" /> : idx + 1}
                 </span>
                 <span
-                  className={`text-[11px] font-heading font-semibold whitespace-nowrap ${
-                    isActive ? "text-brand font-bold" : isCompleted ? "text-text-app font-medium" : "text-text-subtle font-normal"
+                  className={`text-base font-heading font-semibold whitespace-nowrap ${
+                    isActive ? "text-brand font-semibold" : isCompleted ? "text-text-app font-medium" : "text-text-subtle font-normal"
                   }`}
                 >
                   {s.label}
                 </span>
-                {idx < steps.length - 1 && <span className="text-text-subtle/30 mx-1 text-[10px]">/</span>}
+                {idx < steps.length - 1 && <span className="text-text-subtle/30 mx-1 text-base">/</span>}
               </button>
             );
           })}

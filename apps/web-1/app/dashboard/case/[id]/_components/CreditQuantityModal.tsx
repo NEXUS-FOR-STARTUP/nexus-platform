@@ -91,8 +91,8 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
             <span className="font-semibold">{quantity}</span>
           </div>
           <div className="border-t border-border-app pt-2 flex justify-between">
-            <span className="font-bold">Tổng cộng</span>
-            <span className="font-bold text-brand">
+            <span className="font-semibold">Tổng cộng</span>
+            <span className="font-semibold text-brand">
               {(quantity * CREDIT_PRICE).toLocaleString("vi-VN")}₫
             </span>
           </div>

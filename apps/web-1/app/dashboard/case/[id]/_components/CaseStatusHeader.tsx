@@ -53,7 +53,7 @@ export default function CaseStatusHeader({
 
       if (diff <= 0) {
         setTimeLeft("Quá hạn SLA");
-        setTimerColor("text-danger font-bold");
+        setTimerColor("text-danger font-semibold");
         return;
       }
 
@@ -123,7 +123,7 @@ export default function CaseStatusHeader({
       {/* Case Basic Info */}
       <div className="space-y-3">
         <div className="space-y-1">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-text-subtle">
+          <span className="text-base font-semibold uppercase tracking-wider text-text-subtle">
             Hồ sơ phản biện
           </span>
           <div className="flex flex-wrap items-center gap-3">

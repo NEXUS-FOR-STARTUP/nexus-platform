@@ -99,7 +99,7 @@ export default function PaymentHistoryList({ payments, items, isLoading = false,
                   </Text>
                 </Stack>
 
-                <Badge variant="light" color={status.color} size="sm" className="shrink-0 font-semibold">
+                <Badge variant="light" color={status.color} size="md" className="shrink-0 font-semibold">
                   {status.label}
                 </Badge>
               </Group>

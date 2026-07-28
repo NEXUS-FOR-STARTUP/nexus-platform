@@ -168,7 +168,7 @@ export default function AdminDocumentsTable({
         </div>
         <div className="space-y-0.5">
           <p className="font-heading font-semibold text-xs text-text-app">Không có tài liệu nào</p>
-          <p className="font-body text-[11px] text-text-muted">
+          <p className="font-body text-base text-text-muted">
             Hệ thống hiện tại chưa có dữ liệu tài liệu nào được tải lên.
           </p>
         </div>
@@ -281,15 +281,15 @@ export default function AdminDocumentsTable({
                   </Table.Td>
 
                   {/* Extension */}
-                  <Table.Td className="font-mono text-[10px]">
-                    <Badge color="gray" variant="light" size="xs">
+                  <Table.Td className="font-mono text-base">
+                    <Badge color="gray" variant="light" size="sm">
                       {doc.extension ? `.${doc.extension.toUpperCase()}` : "RAW"}
                     </Badge>
                   </Table.Td>
 
                   {/* Doc type */}
                   <Table.Td>
-                    <Badge color="blue" variant="light" size="xs">
+                    <Badge color="blue" variant="light" size="sm">
                       {doc.doc_type}
                     </Badge>
                   </Table.Td>
@@ -297,11 +297,11 @@ export default function AdminDocumentsTable({
                   {/* Related Case */}
                   <Table.Td>
                     <div className="flex flex-col gap-0.5">
-                      <span className="font-heading font-bold text-[11px] text-text-app flex items-center gap-1">
+                      <span className="font-heading font-semibold text-base text-text-app flex items-center gap-1">
                         <Folder className="w-3.5 h-3.5 text-brand" />
                         {doc.case_code}
                       </span>
-                      <span className="text-[10px] text-text-muted truncate max-w-[180px]">
+                      <span className="text-base text-text-muted truncate max-w-[180px]">
                         {doc.team_name}
                       </span>
                     </div>
@@ -310,18 +310,18 @@ export default function AdminDocumentsTable({
                   {/* Uploaded By */}
                   <Table.Td>
                     <div className="flex flex-col gap-0.5">
-                      <span className="font-semibold text-[11px] text-text-app flex items-center gap-1">
+                      <span className="font-semibold text-base text-text-app flex items-center gap-1">
                         <User className="w-3.5 h-3.5 text-text-muted" />
                         {doc.uploaded_by}
                       </span>
-                      <span className="text-[10px] text-text-muted truncate max-w-[180px]">
+                      <span className="text-base text-text-muted truncate max-w-[180px]">
                         {doc.uploaded_by_email}
                       </span>
                     </div>
                   </Table.Td>
 
                   {/* Date Created */}
-                  <Table.Td className="text-text-subtle text-[11px]">
+                  <Table.Td className="text-text-subtle text-base">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5 text-text-muted" />
                       {formatDate(doc.created_at)}

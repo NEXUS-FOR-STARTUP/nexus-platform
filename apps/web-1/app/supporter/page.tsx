@@ -109,7 +109,7 @@ export default function SupporterDashboard() {
             )}
           </div>
           <div className="space-y-1.5 max-w-sm">
-            <h4 className="font-heading font-bold text-sm text-text-app">
+            <h4 className="font-heading font-semibold text-sm text-text-app">
               {activeFilter === "pending" 
                 ? "Không có hồ sơ cần phản biện" 
                 : activeFilter === "completed"

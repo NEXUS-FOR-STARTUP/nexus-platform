@@ -44,15 +44,15 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
             {item.case_code}
           </span>
           {/* Row 2: team name */}
-          <h3 className="font-heading text-lg font-bold text-text-app group-hover:text-brand transition-colors">
+          <h3 className="font-heading text-lg font-semibold text-text-app group-hover:text-brand transition-colors">
             {item.team_name || "Hồ sơ chưa đặt tên nhóm"}
           </h3>
           {/* Row 3: status badges */}
           <div className="flex gap-2 flex-wrap">
-            <Badge size="sm" variant="light" color={userFacingStatusBadge.color} className="font-body text-[10px] whitespace-nowrap">
+            <Badge size="md" variant="light" color={userFacingStatusBadge.color} className="font-body text-sm whitespace-nowrap">
               {userFacingStatusBadge.label}
             </Badge>
-            <Badge size="sm" variant="light" color={paymentBadge.color} className="font-body text-[10px] whitespace-nowrap">
+            <Badge size="md" variant="light" color={paymentBadge.color} className="font-body text-sm whitespace-nowrap">
               {paymentBadge.label}
             </Badge>
           </div>

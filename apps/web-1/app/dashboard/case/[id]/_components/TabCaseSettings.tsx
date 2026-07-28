@@ -66,7 +66,7 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
         <div>
           <div className="flex items-center gap-2 text-text-app">
             <Settings className="w-5 h-5 text-brand" />
-            <h3 className="font-heading font-bold text-base">Cấu hình thông tin hồ sơ</h3>
+            <h3 className="font-heading font-semibold text-base">Cấu hình thông tin hồ sơ</h3>
           </div>
           <p className="text-text-muted text-xs mt-1">
             Cập nhật tên nhóm, trường học và bối cảnh lớp học để báo cáo phản biện hiển thị chính xác.
@@ -145,7 +145,7 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
         {caseData.user_facing_stage === "submitted" && (
           <div className="pt-6 border-t border-red-500/10 mt-6 space-y-4">
             <div>
-              <h4 className="font-heading font-bold text-sm text-red-500 flex items-center gap-2">
+              <h4 className="font-heading font-semibold text-sm text-red-500 flex items-center gap-2">
                 <Trash2 className="w-4.5 h-4.5" />
                 Vùng nguy hiểm
               </h4>
@@ -174,7 +174,7 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
           setDeleteConfirmText("");
         }}
         title={
-          <span className="font-heading font-bold text-sm text-red-600 flex items-center gap-1.5">
+          <span className="font-heading font-semibold text-sm text-red-600 flex items-center gap-1.5">
             <Trash2 className="w-4.5 h-4.5" />
             Xác nhận xóa hồ sơ dự án
           </span>

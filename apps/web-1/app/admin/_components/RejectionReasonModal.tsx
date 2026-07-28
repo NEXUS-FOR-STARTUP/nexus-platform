@@ -33,7 +33,7 @@ export default function RejectionReasonModal({
       opened={isOpen}
       onClose={handleClose}
       title={
-        <div className="flex items-center gap-1.5 text-danger font-heading font-bold text-sm">
+        <div className="flex items-center gap-1.5 text-danger font-heading font-semibold text-sm">
           <AlertCircle className="w-4 h-4" />
           <span>Từ chối giao dịch thanh toán</span>
         </div>
@@ -55,7 +55,7 @@ export default function RejectionReasonModal({
           variant="default"
           radius="md"
         />
-        <div className="flex justify-between items-center text-[10px] mt-1">
+        <div className="flex justify-between items-center text-base mt-1">
           <span className={reason.length < 10 ? "text-danger" : "text-success"}>
             {reason.length < 10 
               ? `Cần nhập tối thiểu 10 ký tự (Hiện tại: ${reason.length}/10)` 

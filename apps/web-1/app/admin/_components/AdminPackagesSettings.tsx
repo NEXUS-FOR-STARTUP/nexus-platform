@@ -130,7 +130,7 @@ export default function AdminPackagesSettings({
                     </Stack>
                   </Table.Td>
                   <Table.Td>
-                    <Badge color={pkg.is_active ? "green" : "gray"} variant="light">
+                    <Badge color={pkg.is_active ? "green" : "gray"} variant="light" size="lg">
                       {pkg.is_active ? "Đang bật" : "Đã tắt"}
                     </Badge>
                   </Table.Td>

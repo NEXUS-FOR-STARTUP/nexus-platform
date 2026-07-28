@@ -87,8 +87,8 @@ export default function TabIdeaContent({ caseData, selectedVersion }: TabIdeaCon
                   <Icon className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-heading font-bold text-sm text-text-app">{section.title}</h3>
-                  <p className="font-body text-[11px] text-text-muted">{section.desc}</p>
+                  <h3 className="font-heading font-semibold text-sm text-text-app">{section.title}</h3>
+                  <p className="font-body text-text-muted">{section.desc}</p>
                 </div>
               </div>
               <p className="font-body text-xs text-text-app leading-relaxed whitespace-pre-wrap pl-1">
@@ -103,7 +103,7 @@ export default function TabIdeaContent({ caseData, selectedVersion }: TabIdeaCon
       {driveUrl && (
         <div className="p-5 border border-border-app rounded-lg bg-surface-soft/40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="space-y-1">
-            <h4 className="font-heading font-bold text-sm text-text-app flex items-center gap-2">
+            <h4 className="font-heading font-semibold text-sm text-text-app flex items-center gap-2">
               <FolderOpen className="w-4.5 h-4.5 text-brand" />
               <span>Tài liệu minh chứng hồ sơ</span>
             </h4>

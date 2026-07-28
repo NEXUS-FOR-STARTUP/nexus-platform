@@ -177,7 +177,7 @@ export default function CreditTransactionHistory({ entries, payments, pricePerCr
       <div className="px-5 py-3.5 border-b border-border-app flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-brand" />
-          <h3 className="text-sm font-bold text-text-app">Lịch sử giao dịch & Credit</h3>
+          <h3 className="text-sm font-semibold text-text-app">Lịch sử giao dịch & Credit</h3>
         </div>
 
         {/* Quick Date Filters */}
@@ -209,7 +209,7 @@ export default function CreditTransactionHistory({ entries, payments, pricePerCr
           {groupedItems.map((group) => (
             <div key={group.dateHeader} className="space-y-0">
               {/* Date Section Header */}
-              <div className="bg-surface-soft/60 px-5 py-2 text-[11px] font-bold text-text-muted uppercase tracking-wider flex items-center gap-1.5 border-b border-border-app/50">
+              <div className="bg-surface-soft/60 px-5 py-2 text-base font-semibold text-text-muted uppercase tracking-wider flex items-center gap-1.5 border-b border-border-app/50">
                 <Calendar className="w-3 h-3 text-text-muted shrink-0" />
                 <span>{group.dateHeader}</span>
               </div>
@@ -242,31 +242,31 @@ export default function CreditTransactionHistory({ entries, payments, pricePerCr
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-semibold text-text-app">Mua credit</p>
                             <span
-                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                              className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
                                 isPending ? "bg-warning-soft text-warning border-warning/20" : "bg-danger-soft text-danger border-danger/20"
                               }`}
                             >
                               {isPending ? "Đang chờ Admin duyệt" : "Bị từ chối"}
                             </span>
                           </div>
-                          <p className="text-[11px] text-text-muted mt-0.5">
+                          <p className="text-base text-text-muted mt-0.5">
                             {formatTimeOnly(payment.created_at)}
                             {payment.transfer_content && ` • Nội dung: ${payment.transfer_content}`}
                           </p>
                           {payment.rejection_reason && (
-                            <p className="text-[11px] text-danger mt-1">Lý do từ chối: {payment.rejection_reason}</p>
+                            <p className="text-base text-danger mt-1">Lý do từ chối: {payment.rejection_reason}</p>
                           )}
                         </div>
                         <div className="text-right shrink-0">
                           <div className="flex items-center justify-end gap-1.5">
-                            <span className={`text-sm font-bold ${isPending ? "text-warning" : "text-danger"}`}>
+                            <span className={`text-sm font-semibold ${isPending ? "text-warning" : "text-danger"}`}>
                               +{estCredits} credit
                             </span>
                             <span className="text-xs font-semibold text-text-muted">
                               ({formatVND(payment.amount)})
                             </span>
                           </div>
-                          <p className="text-[10px] text-text-muted mt-0.5">
+                          <p className="text-base text-text-muted mt-0.5">
                             {isPending ? "Chờ xác nhận" : "Chưa hoàn tất"}
                           </p>
                         </div>
@@ -314,25 +314,25 @@ export default function CreditTransactionHistory({ entries, payments, pricePerCr
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-semibold text-text-app">{title}</p>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeStyle}`}>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${badgeStyle}`}>
                             {badgeText}
                           </span>
                         </div>
-                        <p className="text-[11px] text-text-muted mt-0.5">
+                        <p className="text-base text-text-muted mt-0.5">
                           {formatTimeOnly(entry.created_at)}
                           {entry.reference_id && ` • Nội dung: ${formatRefCode(entry.reference_id, payments)}`}
                         </p>
                       </div>
                       <div className="text-right shrink-0">
                         <div className="flex items-center justify-end gap-1.5">
-                          <span className={`text-sm font-bold ${isPositive ? "text-success" : colorClass}`}>
+                          <span className={`text-sm font-semibold ${isPositive ? "text-success" : colorClass}`}>
                             {isPositive ? `+${entry.amount}` : entry.amount} credit
                           </span>
                           <span className="text-xs font-semibold text-text-muted">
                             ({formatVND(approxValue)})
                           </span>
                         </div>
-                        <p className="text-[10px] text-text-muted mt-0.5">
+                        <p className="text-base text-text-muted mt-0.5">
                           Số dư sau GD: {entry.balance_after} credit
                         </p>
                       </div>

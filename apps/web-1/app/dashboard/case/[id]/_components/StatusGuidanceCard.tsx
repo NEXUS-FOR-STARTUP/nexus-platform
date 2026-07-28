@@ -41,7 +41,7 @@ export default function StatusGuidanceCard({
       >
         <div className="space-y-1 flex-grow">
             <p className="font-semibold text-warning-strong">Nội dung yêu cầu:</p>
-            <p className="italic bg-surface-app/50 p-2.5 rounded border border-warning/10 font-body text-[11px] leading-relaxed">
+            <p className="italic bg-surface-app/50 p-2.5 rounded border border-warning/10 font-body leading-relaxed">
               "{queryText}"
             </p>
           </div>

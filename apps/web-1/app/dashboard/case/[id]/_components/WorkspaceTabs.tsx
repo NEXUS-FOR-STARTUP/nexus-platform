@@ -64,7 +64,7 @@ export default function WorkspaceTabs({ activeTab, onTabChange, messageCount, hi
             <Icon className={`w-4 h-4 transition-colors ${isActive ? "text-brand" : "text-text-subtle"}`} />
             <span>{tab.label}</span>
             {tab.count !== undefined && tab.count > 0 && (
-              <span className="inline-flex items-center justify-center px-2 py-0.5 ml-1 text-[10px] font-bold leading-none bg-brand text-white rounded-full">
+              <span className="inline-flex items-center justify-center px-2 py-0.5 ml-1 text-xs font-semibold leading-none bg-brand text-white rounded-full">
                 {tab.count}
               </span>
             )}

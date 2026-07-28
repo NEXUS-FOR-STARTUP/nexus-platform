@@ -117,7 +117,7 @@ export default function AdminCaseAssignmentTable({
         </div>
         <div className="space-y-0.5">
           <p className="font-heading font-semibold text-xs text-text-app">Không có hồ sơ nào cần xử lý</p>
-          <p className="font-body text-[11px] text-text-muted">
+          <p className="font-body text-base text-text-muted">
             Tất cả các hồ sơ đã được xử lý xong hoặc không tìm thấy hồ sơ phù hợp.
           </p>
         </div>
@@ -186,14 +186,14 @@ export default function AdminCaseAssignmentTable({
               paginatedCases.map((item) => {
                 return (
                   <Table.Tr key={item.id} className={`${getSlaRowClass(item.sla_deadline_at)} hover:bg-surface-soft/30 transition-colors`}>
-                    <Table.Td className="font-heading font-bold text-xs" title={item.case_code}>
+                    <Table.Td className="font-heading font-semibold text-xs" title={item.case_code}>
                       {item.case_code && item.case_code.length > 30 ? `${item.case_code.slice(0, 30)}...` : item.case_code}
                     </Table.Td>
                     <Table.Td>
                       <div className="font-semibold text-text-app" title={item.team_name || "Chưa đặt tên"}>
                         {item.team_name && item.team_name.length > 30 ? `${item.team_name.slice(0, 30)}...` : (item.team_name || "Chưa đặt tên")}
                       </div>
-                      <div className="text-[10px] text-text-muted" title={item.owner_name}>
+                      <div className="text-base text-text-muted" title={item.owner_name}>
                         Chủ sở hữu: {item.owner_name && item.owner_name.length > 30 ? `${item.owner_name.slice(0, 30)}...` : item.owner_name}
                       </div>
                     </Table.Td>
@@ -210,7 +210,7 @@ export default function AdminCaseAssignmentTable({
                             : "green"
                         }
                         variant="light"
-                        size="sm"
+size="md"
                       >
                         {item.internal_status === "triage_pending"
                           ? "Chờ Duyệt"
@@ -336,7 +336,7 @@ function SlaTimer({ deadline }: { deadline: string | null | undefined }) {
       const diff = target - now;
       if (diff <= 0) {
         setTimeLeft("Quá hạn");
-        setColorClass("text-danger font-bold");
+        setColorClass("text-danger font-semibold");
         return;
       }
       const hours = Math.floor(diff / (1000 * 60 * 60));

@@ -43,7 +43,7 @@ export default function ApproveCaseModal({
       opened={caseId !== null}
       onClose={onClose}
       title={
-        <div className="flex items-center gap-1.5 text-green-600 font-heading font-bold text-sm">
+        <div className="flex items-center gap-1.5 text-green-600 font-heading font-semibold text-sm">
           <CheckCircle className="w-4 h-4 text-success" />
           <span>Xác nhận duyệt hồ sơ</span>
         </div>

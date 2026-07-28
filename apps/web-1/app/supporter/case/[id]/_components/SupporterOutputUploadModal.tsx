@@ -59,7 +59,7 @@ export default function SupporterOutputUploadModal({ isOpen, onClose, caseId }: 
     <Modal
       opened={isOpen}
       onClose={handleClose}
-      title={<span className="font-heading font-bold text-sm text-text-app">Tải output hỗ trợ</span>}
+      title={<span className="font-heading font-semibold text-sm text-text-app">Tải output hỗ trợ</span>}
       size="lg"
       radius="md"
       centered
@@ -89,7 +89,7 @@ export default function SupporterOutputUploadModal({ isOpen, onClose, caseId }: 
               <p className="font-body text-xs font-semibold text-text-app">
                 Chọn một hoặc nhiều tệp output
               </p>
-              <p className="font-body text-[10px] text-text-muted">
+              <p className="font-body text-base text-text-muted">
                 Hỗ trợ PDF, DOCX, XLSX, PPTX, MD, TXT. Tối đa 15MB mỗi tệp.
               </p>
             </div>

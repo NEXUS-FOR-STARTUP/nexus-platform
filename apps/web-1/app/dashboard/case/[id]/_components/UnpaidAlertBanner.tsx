@@ -78,7 +78,7 @@ export default function UnpaidAlertBanner({ caseData, onOpenPayment }: UnpaidAle
                 Minh chứng giao dịch của bạn không hợp lệ hoặc thông tin chuyển khoản chưa chính xác.
               </p>
             )}
-            <p className="font-body text-[11px] text-text-muted italic">
+            <p className="font-body text-text-muted italic">
               Vui lòng kiểm tra lại số tiền, nội dung giao dịch và tải lên minh chứng mới.
             </p>
           </div>

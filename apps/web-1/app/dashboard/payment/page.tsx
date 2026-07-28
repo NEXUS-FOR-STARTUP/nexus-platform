@@ -130,7 +130,7 @@ export default function PaymentPage() {
 
       <div className="bg-surface-app border border-border-app rounded-lg p-6 space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="font-heading font-bold text-lg text-text-app">Thanh toán</h2>
+          <h2 className="font-heading font-semibold text-lg text-text-app">Thanh toán</h2>
           <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold border ${
             statusInfo.color === "green" ? "bg-success-soft text-success border-success/20" :
             statusInfo.color === "red" ? "bg-danger-soft text-danger border-danger/20" :
@@ -159,23 +159,23 @@ export default function PaymentPage() {
 	              <div className="flex-1 w-full min-w-0 space-y-3 text-sm">
 	                <div className="flex justify-between py-1.5 border-b border-border-app/40 last:border-b-0">
 	                  <span className="text-text-muted">Ngân hàng</span>
-	                  <span className="font-bold text-right">{payment.bankInfo.bankName}</span>
+	                  <span className="font-semibold text-right">{payment.bankInfo.bankName}</span>
 	                </div>
 	                <div className="flex justify-between py-1.5 border-b border-border-app/40 last:border-b-0">
 	                  <span className="text-text-muted">Số tài khoản</span>
-	                  <span className="font-bold text-right">{payment.bankInfo.accountNumber}</span>
+	                  <span className="font-semibold text-right">{payment.bankInfo.accountNumber}</span>
 	                </div>
 	                <div className="flex justify-between py-1.5 border-b border-border-app/40 last:border-b-0">
 	                  <span className="text-text-muted">Chủ tài khoản</span>
-	                  <span className="font-bold text-right">{payment.bankInfo.accountName}</span>
+	                  <span className="font-semibold text-right">{payment.bankInfo.accountName}</span>
 	                </div>
 	                <div className="flex justify-between py-1.5 border-b border-border-app/40 last:border-b-0">
 	                  <span className="text-text-muted">Số tiền</span>
-	                  <span className="font-bold text-red-600 text-right">{payment.amount?.toLocaleString("vi-VN")} VND</span>
+	                  <span className="font-semibold text-red-600 text-right">{payment.amount?.toLocaleString("vi-VN")} VND</span>
 	                </div>
 	                <div className="flex justify-between py-1.5 border-b border-border-app/40 last:border-b-0">
 	                  <span className="text-text-muted">Nội dung CK</span>
-	                  <span className="font-bold text-right break-all max-w-[260px]">
+	                  <span className="font-semibold text-right break-all max-w-[260px]">
 	                    {payment.bankInfo.transferContent}
 	                  </span>
 	                </div>
@@ -185,7 +185,7 @@ export default function PaymentPage() {
 	            <div className="space-y-3 text-sm">
 	              <div className="flex justify-between py-1">
 	                <span className="text-text-muted">Số tiền</span>
-	                <span className="font-bold text-red-600">{payment.amount?.toLocaleString("vi-VN")} VND</span>
+	                <span className="font-semibold text-red-600">{payment.amount?.toLocaleString("vi-VN")} VND</span>
 	              </div>
 	              <p className="text-sm text-text-muted italic">Thông tin ngân hàng sẽ được cập nhật sau.</p>
 	            </div>

@@ -16,7 +16,7 @@ export default function NotFound() {
         {/* 404 Titles */}
         <div className="space-y-2">
           <h1 className="font-heading text-4xl font-extrabold tracking-tight text-brand">404</h1>
-          <h2 className="font-heading text-xl font-bold">Không tìm thấy trang</h2>
+          <h2 className="font-heading text-xl font-semibold">Không tìm thấy trang</h2>
           <p className="text-xs text-text-muted leading-relaxed">
             Đường dẫn bạn truy cập có thể đã thay đổi hoặc không tồn tại. Vui lòng quay lại trang chủ hoặc liên hệ hỗ trợ kỹ thuật.
           </p>
