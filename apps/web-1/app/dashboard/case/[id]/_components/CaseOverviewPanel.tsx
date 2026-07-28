@@ -2,22 +2,6 @@
 
 import React from "react";
 import { Case } from "@/types";
-import { 
-  Building2, 
-  Users, 
-  Target, 
-  Lightbulb, 
-  Mail, 
-  Phone, 
-  Clock, 
-  CheckCircle2, 
-  AlertTriangle, 
-  Sparkles, 
-  UserCheck, 
-  Layers,
-  GraduationCap,
-  MessageSquareCode,
-} from "lucide-react";
 
 import { statusThemeMap } from "@/types";
 
@@ -57,8 +41,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Contact Info Card */}
         <div className="bg-surface-app border border-border-app rounded-xl p-5 space-y-4 shadow-xs">
-          <div className="flex items-center gap-2.5 pb-3 border-b border-border-app">
-            <UserCheck className="w-5 h-5 text-brand shrink-0" />
+          <div className="pb-3 border-b border-border-app">
             <h4 className="font-semibold text-sm text-text-app">Người đại diện / Trưởng nhóm</h4>
           </div>
 
@@ -75,15 +58,13 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
             </div>
             <div>
               <span className="text-text-muted text-base">Email liên hệ:</span>
-              <p className="font-semibold text-text-app mt-0.5 flex items-center gap-1.5 truncate">
-                <Mail className="w-3.5 h-3.5 text-text-muted shrink-0" />
+              <p className="font-semibold text-text-app mt-0.5 truncate">
                 <span className="truncate">{contact.email || "Chưa cập nhật"}</span>
               </p>
             </div>
             <div>
               <span className="text-text-muted text-base">SĐT / Zalo:</span>
-              <p className="font-semibold text-text-app mt-0.5 flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5 text-text-muted shrink-0" />
+              <p className="font-semibold text-text-app mt-0.5">
                 <span>{contact.phone || contact.zalo || "Chưa cập nhật"}</span>
               </p>
             </div>
@@ -92,8 +73,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
 
         {/* Team Context Card */}
         <div className="bg-surface-app border border-border-app rounded-xl p-5 space-y-4 shadow-xs">
-          <div className="flex items-center gap-2.5 pb-3 border-b border-border-app">
-            <Building2 className="w-5 h-5 text-brand shrink-0" />
+          <div className="pb-3 border-b border-border-app">
             <h4 className="font-semibold text-sm text-text-app">Bối cảnh Đội ngũ & Trường học</h4>
           </div>
 
@@ -116,8 +96,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
 
       {/* ── 3. Startup Idea Detailed Breakdown ── */}
       <div className="bg-surface-app border border-border-app rounded-xl p-6 space-y-5 shadow-xs">
-        <div className="flex items-center gap-2.5 pb-3 border-b border-border-app">
-          <Lightbulb className="w-5 h-5 text-brand shrink-0" />
+        <div className="pb-3 border-b border-border-app">
           <h4 className="font-semibold text-base text-text-app">Chi tiết Ý tưởng Khởi nghiệp</h4>
         </div>
 
@@ -125,8 +104,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
           {/* Field & Target Customer */}
           <div className="space-y-4 bg-surface-soft/40 p-4 rounded-lg border border-border-app/60">
             <div>
-              <div className="flex items-center gap-1.5 text-brand font-semibold mb-1">
-                <Layers className="w-4 h-4" />
+              <div className="text-brand font-semibold mb-1">
                 <span>Lĩnh vực hoạt động:</span>
               </div>
               <p className="text-text-app font-medium leading-relaxed pl-5">
@@ -135,8 +113,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
             </div>
 
             <div>
-              <div className="flex items-center gap-1.5 text-brand font-semibold mb-1">
-                <Target className="w-4 h-4" />
+              <div className="text-brand font-semibold mb-1">
                 <span>Khách hàng mục tiêu:</span>
               </div>
               <p className="text-text-app font-medium leading-relaxed pl-5">
@@ -148,8 +125,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
           {/* Problem & Solution */}
           <div className="space-y-4 bg-surface-soft/40 p-4 rounded-lg border border-border-app/60">
             <div>
-              <div className="flex items-center gap-1.5 text-danger font-semibold mb-1">
-                <AlertTriangle className="w-4 h-4" />
+              <div className="text-danger font-semibold mb-1">
                 <span>Vấn đề cốt lõi (Problem):</span>
               </div>
               <p className="text-text-app font-medium leading-relaxed pl-5">
@@ -158,8 +134,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
             </div>
 
             <div>
-              <div className="flex items-center gap-1.5 text-success font-semibold mb-1">
-                <CheckCircle2 className="w-4 h-4" />
+              <div className="text-success font-semibold mb-1">
                 <span>Giải pháp đề xuất (Solution):</span>
               </div>
               <p className="text-text-app font-medium leading-relaxed pl-5">
@@ -172,8 +147,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
         {/* MVP Product Model */}
         {idea.mvp && (
           <div className="bg-brand-soft/10 border border-brand/20 p-4 rounded-lg space-y-1 text-xs">
-            <span className="font-semibold text-brand flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4" />
+            <span className="font-semibold text-brand">
               Sản phẩm khả thi tối thiểu (MVP):
             </span>
             <p className="text-text-app leading-relaxed pl-5 font-medium">{idea.mvp}</p>
@@ -185,8 +159,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
       {members && members.length > 0 && (
         <div className="bg-surface-app border border-border-app rounded-xl p-6 space-y-4 shadow-xs">
           <div className="flex items-center justify-between pb-3 border-b border-border-app">
-            <div className="flex items-center gap-2.5">
-              <Users className="w-5 h-5 text-brand shrink-0" />
+            <div>
               <h4 className="font-semibold text-base text-text-app">Đội ngũ thành viên ({members.length} người)</h4>
             </div>
           </div>
@@ -201,8 +174,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
                   </Badge>
                 </div>
                 {m.major && (
-                  <p className="text-text-muted flex items-center gap-1.5">
-                    <GraduationCap className="w-3.5 h-3.5 text-brand shrink-0" />
+                  <p className="text-text-muted">
                     <span>Ngành: <strong>{m.major}</strong></span>
                   </p>
                 )}
@@ -225,16 +197,14 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
       {/* ── 5. Feasibility Gaps & Support Needs ── */}
       {(situations.current_blocker || situations.support_needs || teamFit.team_gaps) && (
         <div className="bg-surface-app border border-border-app rounded-xl p-6 space-y-4 shadow-xs">
-          <div className="flex items-center gap-2.5 pb-3 border-b border-border-app">
-            <ShieldAlert className="w-5 h-5 text-warning shrink-0" />
+          <div className="pb-3 border-b border-border-app">
             <h4 className="font-semibold text-base text-text-app">Rủi ro & Nhu cầu hỗ trợ chuyên môn</h4>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             {situations.current_blocker && (
               <div className="bg-warning-soft/20 border border-warning/20 p-4 rounded-lg space-y-1">
-                <span className="font-semibold text-warning flex items-center gap-1.5">
-                  <AlertTriangle className="w-4 h-4" />
+                <span className="font-semibold text-warning">
                   Khó khăn hiện tại của nhóm:
                 </span>
                 <p className="text-text-app leading-relaxed pl-5">{situations.current_blocker}</p>
@@ -243,8 +213,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
 
             {situations.support_needs && (
               <div className="bg-brand-soft/20 border border-brand/20 p-4 rounded-lg space-y-1">
-                <span className="font-semibold text-brand flex items-center gap-1.5">
-                  <MessageSquareCode className="w-4 h-4" />
+                <span className="font-semibold text-brand">
                   Nhu cầu thẩm định từ Supporter:
                 </span>
                 <p className="text-text-app leading-relaxed pl-5">{situations.support_needs}</p>

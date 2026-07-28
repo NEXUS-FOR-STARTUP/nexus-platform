@@ -28,9 +28,15 @@ export default function CaseStatusHeader({
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [timerColor, setTimerColor] = useState<string>("text-text-muted");
 
-  const isPaused = caseData.internal_status === "need_clarification";
+  const isPaused = caseData.internal_status === "waiting_user";
 
   const slaSource = caseData.sla_deadline_at || caseData.deadline;
+
+  // Pre-supporter stages: SLA chưa áp dụng
+  const preSupporterStatuses = ["triage_pending", "accepted_unassigned", "assigned"];
+  const isPreSupporter = caseData.internal_status
+    ? preSupporterStatuses.includes(caseData.internal_status)
+    : false;
 
   useEffect(() => {
     if (isPaused) {
@@ -40,8 +46,13 @@ export default function CaseStatusHeader({
     }
 
     if (!slaSource) {
-      setTimeLeft("Chưa thiết lập");
-      setTimerColor("text-text-subtle");
+      if (isPreSupporter) {
+        setTimeLeft("Đang chờ phân công");
+        setTimerColor("text-info");
+      } else {
+        setTimeLeft("Chưa thiết lập");
+        setTimerColor("text-text-subtle");
+      }
       return;
     }
 
