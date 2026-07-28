@@ -213,7 +213,7 @@ export interface StatusThemeDetails {
 }
 
 export const statusThemeMap: Record<string, StatusThemeDetails> = {
-  intake_pending: { label: "Chờ thanh toán — Kích hoạt kiểm tra chuyên sâu", color: "warning" },
+  intake_pending: { label: "Chờ thanh toán — Kích hoạt kiểm tra chuyên sâu", color: "primary" },
   intake_ready: { label: "Sẵn sàng — Cập nhật thông tin hồ sơ", color: "primary" },
   submitted: {
     label: "Hồ sơ đã gửi — chờ xét duyệt",
