@@ -192,7 +192,8 @@ export default function CaseStatusHeader({
         </div>
       </div>
 
-      {/* SLA Timer & Version Selector */}
+      {/* MVP: SLA timer tạm ẩn — alert trong StatusGuidanceCard đã đủ thông tin
+      {/*
       <div className="flex flex-wrap md:flex-col items-start md:items-end gap-4 shrink-0 w-full md:w-auto">
         <div className="flex items-center gap-2 p-2 px-3 bg-surface-soft rounded-lg text-xs font-body">
           <Clock className="w-4 h-4 text-text-subtle" />
@@ -203,6 +204,7 @@ export default function CaseStatusHeader({
           )}
         </div>
       </div>
+      */}
     </div>
   );
 }
