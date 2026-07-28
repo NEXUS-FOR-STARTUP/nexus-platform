@@ -120,7 +120,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                 caseData={caseData}
                 openRequestsForMoreInfo={null}
                 onSelectTab={(tab) => setActiveTab(tab)}
-                onOpenPayment={isIntakePending ? () => router.push(`/dashboard/case/${id}/payment`) : undefined}
+                onOpenPayment={isIntakePending ? () => { if (id) router.push(`/dashboard/case/${id}/payment`); } : undefined}
                 onOpenIntake={isIntakeReady ? () => setIntakeFormOpened(true) : undefined}
               />
               <CaseOverviewPanel
