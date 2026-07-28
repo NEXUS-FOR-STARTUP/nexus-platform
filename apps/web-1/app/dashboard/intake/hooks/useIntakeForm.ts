@@ -65,6 +65,7 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
           setDraftValues((prev) => ({
             ...prev,
             ...parsed,
+            current_blocker: "", // Never pre-fill — user must describe their own lecturer/team blocker
             package_id: packageId || parsed.package_id || "",
           }));
         } catch (e) {
