@@ -219,8 +219,8 @@ export async function createCaseWithCheckpointAndIntake(data: {
     await tx.caseEvent.create({
       data: {
         case: { connect: { id: newCase.id } },
+        actor: { connect: { id: userId } },
         event_type: "case_submitted",
-        actor_auth_user_id: userId,
         metadata_json: { case_code: caseCode },
       },
     });
@@ -242,8 +242,8 @@ export async function acceptCase(caseId: string, adminId: string) {
     await tx.caseEvent.create({
       data: {
         case: { connect: { id: caseId } },
+        actor: { connect: { id: adminId } },
         event_type: "case_accepted",
-        actor_auth_user_id: adminId,
       },
     });
 
@@ -271,7 +271,7 @@ export async function rejectCase(caseId: string, adminId: string, reason: string
       data: {
         case: { connect: { id: caseId } },
         event_type: "case_rejected",
-        actor_auth_user_id: adminId,
+        actor: { connect: { id: adminId } },
         metadata_json: { reason },
       },
     });
@@ -294,7 +294,7 @@ export async function requestCaseMoreInfo(caseId: string, actorId: string, event
       data: {
         case: { connect: { id: caseId } },
         event_type: eventType,
-        actor_auth_user_id: actorId,
+        actor: { connect: { id: actorId } },
         metadata_json: { query },
       },
     });
@@ -317,7 +317,7 @@ export async function assignCaseSupporter(caseId: string, adminId: string, suppo
       data: {
         case: { connect: { id: caseId } },
         event_type: "supporter_assigned",
-        actor_auth_user_id: adminId,
+        actor: { connect: { id: adminId } },
         metadata_json: {
           supporter_id: supporterId,
           ...(supporterName ? { supporter_name: supporterName } : {}),
@@ -450,7 +450,7 @@ export async function submitCaseRevision(data: {
       data: {
         case: { connect: { id: caseId } },
         event_type: "revision_submitted",
-        actor_auth_user_id: userId,
+        actor: { connect: { id: userId } },
         metadata_json: { version_no: nextVersion, change_summary: changeSummary },
       },
     });
@@ -527,7 +527,7 @@ export async function createSupporterOutput(data: {
       data: {
         case: { connect: { id: caseId } },
         event_type: "supporter_output_uploaded",
-        actor_auth_user_id: userId,
+        actor: { connect: { id: userId } },
         metadata_json: {
           unit_code: unitCode,
           document_count: documents.length,
@@ -552,7 +552,7 @@ export async function createSupporterOutput(data: {
       data: {
         case: { connect: { id: caseId } },
         event_type: 'credit_used',
-        actor_auth_user_id: userId,
+        actor: { connect: { id: userId } },
         metadata_json: { new_balance: newBalance },
       },
     });
@@ -642,7 +642,7 @@ export async function createExternalFeedback(data: {
       data: {
         case: { connect: { id: caseId } },
         event_type: "external_feedback_uploaded",
-        actor_auth_user_id: userId,
+        actor: { connect: { id: userId } },
         metadata_json: {
           unit_code: assessmentUnit.unit_code,
           selected_version_no: selectedVersionNo,
@@ -683,13 +683,18 @@ export async function createCaseEvent(caseId: string, userId: string, eventType:
 }
 
 export async function listCaseMessages(caseId: string) {
-  return await prisma.caseMessage.findMany({
-    where: { case_id: caseId },
-    include: {
-      sender: true,
-    },
-    orderBy: { created_at: "asc" },
-  });
+  try {
+    return await prisma.caseMessage.findMany({
+      where: { case_id: caseId },
+      include: {
+        sender: true,
+      },
+      orderBy: { created_at: "asc" },
+    });
+  } catch (error) {
+    console.error("[listCaseMessages] Failed to fetch case messages:", error);
+    return [];
+  }
 }
 
 export async function createCaseMessage(data: {
@@ -715,8 +720,8 @@ export async function createCaseMessage(data: {
     await tx.caseEvent.create({
       data: {
         case: { connect: { id: caseId } },
+        actor: { connect: { id: userId } },
         event_type: "message_sent",
-        actor_auth_user_id: userId,
         metadata_json: { message_id: newMessage.id },
       },
     });

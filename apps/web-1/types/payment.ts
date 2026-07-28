@@ -27,3 +27,19 @@ export interface Payment {
   verified_by?: User | null;
   case?: Case;
 }
+
+/** Narrow history item returned by `GET /payments/my` — payer-visible only, no admin/internal fields. */
+export type PaymentHistoryStatus = "unpaid" | "pending_verification" | "paid" | "rejected";
+
+export interface PaymentHistoryItem {
+  id: string;
+  case_id: string;
+  case_code: string;
+  package_name?: string | null;
+  amount: number;
+  currency: string;
+  status: PaymentHistoryStatus;
+  verified_at?: string | null;
+  bank_transaction_id?: string | null;
+  created_at: string;
+}

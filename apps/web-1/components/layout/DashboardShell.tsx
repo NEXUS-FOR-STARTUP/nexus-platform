@@ -88,19 +88,36 @@ export default function DashboardShell({ children }: DashboardShellProps) {
     return "/dashboard";
   };
 
-  const isStudent = user?.role !== "admin" && user?.role !== "supporter";
+  const isStudent = !(user?.role === "admin" || user?.role === "supporter");
 
   return (
     <div className="flex flex-col min-h-screen bg-bg-app transition-colors duration-200">
       {/* Top Navbar */}
-      <nav className="border-b border-border-app bg-surface-app sticky top-0 z-40 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-sm">
-        <div className="flex items-center gap-6">
-          <Link href={getHomeLink()} className="flex items-center">
+      <nav className="border-b border-border-app bg-surface-app sticky top-0 z-40 h-16 flex items-center gap-4 px-4 sm:px-6 lg:px-8 shadow-sm">
+        <div className="flex items-center gap-4 min-w-0">
+          <Link href={getHomeLink()} className="flex items-center shrink-0">
             <Logo height={52} />
           </Link>
+          {breadcrumbsList.length > 0 && (
+            <Breadcrumbs separator="/" className="min-w-0 max-w-[50vw] overflow-hidden text-sm text-text-muted">
+              {breadcrumbsList.map((breadcrumb, index) => {
+                const isLast = index === breadcrumbsList.length - 1;
+
+                return isLast ? (
+                  <span key={breadcrumb.href} className="truncate font-medium text-text-app">
+                    {breadcrumb.label}
+                  </span>
+                ) : (
+                  <Link key={breadcrumb.href} href={breadcrumb.href} className="truncate hover:text-text-app">
+                    {breadcrumb.label}
+                  </Link>
+                );
+              })}
+            </Breadcrumbs>
+          )}
         </div>
  
-        <div className="flex items-center gap-4">
+        <div className="ml-auto flex items-center gap-4 shrink-0">
           <ThemeToggler />
  
           {/* User Menu */}

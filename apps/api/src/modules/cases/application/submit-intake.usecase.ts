@@ -88,8 +88,8 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
       await tx.caseEvent.create({
         data: {
           case: { connect: { id: caseId } },
+          actor: { connect: { id: userId } },
           event_type: "intake_submitted",
-          actor_auth_user_id: userId,
           metadata_json: {},
         },
       });

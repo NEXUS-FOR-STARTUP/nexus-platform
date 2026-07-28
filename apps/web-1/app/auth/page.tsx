@@ -4,11 +4,11 @@ import AuthShell from "@/components/layout/AuthShell";
 import AuthPanel from "./_components/AuthPanel";
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { Loader } from "@mantine/core";
 
 export default function AuthPage() {
-  const { data: session, isPending } = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
 
   useEffect(() => {
@@ -30,7 +30,9 @@ export default function AuthPage() {
 
   return (
     <AuthShell>
-      <AuthPanel />
+      <Suspense fallback={<div className="py-12 flex flex-col items-center justify-center min-h-[300px] gap-4"><Loader color="blue" size="lg" type="dots" /></div>}>
+        <AuthPanel />
+      </Suspense>
     </AuthShell>
   );
 }

@@ -11,6 +11,7 @@ import AdminDocumentsTable from "./_components/AdminDocumentsTable";
 import AdminPackagesSettings from "./_components/AdminPackagesSettings";
 import StatsDashboard from "./_components/StatsDashboard";
 import RejectionReasonModal from "./_components/RejectionReasonModal";
+import ApprovePaymentModal from "./_components/ApprovePaymentModal";
 import { useAdminStats } from "./hooks/useAdminStats";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, AlertTriangle } from "lucide-react";
@@ -57,28 +58,32 @@ export default function AdminHubPage() {
 
   const statsQuery = useAdminStats();
 
-  // Rejection modal control
+  // Modal control states
   const [rejectingPaymentId, setRejectingPaymentId] = useState<string | null>(null);
+  const [approvingPaymentId, setApprovingPaymentId] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages" | "stats">("stats");
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
   const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "unassigned" | "assigned" | "crud">("all");
 
-  const handleApprovePayment = async (paymentId: string) => {
-    if (window.confirm("Xác nhận đã nhận đủ số tiền thanh toán cho giao dịch này?")) {
-      try {
-        await verifyPayment({ paymentId, status: "paid" });
-        notifications.show({
-          title: "Duyệt thanh toán thành công",
-          message: "Đã duyệt thanh toán thành công!",
-          color: "green",
-        });
-      } catch (e) {
-        notifications.show({
-          title: "Lỗi",
-          message: "Gặp lỗi khi duyệt thanh toán.",
-          color: "red",
-        });
-      }
+  const handleApproveClick = (paymentId: string) => {
+    setApprovingPaymentId(paymentId);
+  };
+
+  const handleConfirmApprove = async (paymentId: string) => {
+    try {
+      await verifyPayment({ paymentId, status: "paid" });
+      notifications.show({
+        title: "Duyệt thanh toán thành công",
+        message: "Đã duyệt thanh toán thành công!",
+        color: "green",
+      });
+    } catch (e: any) {
+      notifications.show({
+        title: "Lỗi",
+        message: e?.response?.data?.message || "Gặp lỗi khi duyệt thanh toán.",
+        color: "red",
+      });
+      throw e;
     }
   };
 
@@ -491,7 +496,7 @@ export default function AdminHubPage() {
                 </div>
                 <AdminPaymentVerificationTable
                   payments={filteredPayments}
-                  onApprove={handleApprovePayment}
+                  onApprove={handleApproveClick}
                   onReject={handleRejectClick}
                 />
               </div>
@@ -550,6 +555,13 @@ export default function AdminHubPage() {
         onClose={() => setRejectingPaymentId(null)}
         onConfirm={handleConfirmReject}
         isSubmitting={isVerifying}
+      />
+
+      {/* 5. Approve Payment Modal */}
+      <ApprovePaymentModal
+        paymentId={approvingPaymentId}
+        onClose={() => setApprovingPaymentId(null)}
+        onConfirm={handleConfirmApprove}
       />
     </div>
   );
