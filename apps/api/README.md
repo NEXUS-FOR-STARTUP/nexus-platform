@@ -85,3 +85,23 @@ npm run dev --workspace=apps/api
 npm run build --workspace=apps/api
 npm run check-types --workspace=apps/api
 ```
+
+## Docker
+
+```bash
+docker build -t nexus-api -f apps/api/Dockerfile .
+```
+
+Full guide: `docs/docker-build-push-guide.md`
+
+## CI/CD
+
+GitHub Actions workflow: `docs/ci-guide.md`
+
+## Database
+
+| Guide | When to Read |
+|-------|-------------|
+| `docs/db-query-guide.md` | Safe DB query via READONLY_DATABASE_URL |
+| `docs/db-backup-guide.md` | Backup before migration |
+| `docs/db-migration-guide.md` | Prisma migration workflow |
