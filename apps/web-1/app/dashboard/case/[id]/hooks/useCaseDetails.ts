@@ -59,6 +59,17 @@ export function useCaseDetails(id: string) {
     },
   });
 
+  const resubmitMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.post(`/cases/${id}/resubmit`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["case", id] });
+      queryClient.invalidateQueries({ queryKey: ["cases"] });
+    },
+  });
+
   return {
     caseData: caseQuery.data?.case || null,
     creditBalance: caseQuery.data?.case?.credit_balance ?? 0,
@@ -81,5 +92,7 @@ export function useCaseDetails(id: string) {
     isUpdatingSettings: updateSettingsMutation.isPending,
     deleteCase: deleteCaseMutation.mutateAsync,
     isDeletingCase: deleteCaseMutation.isPending,
+    resubmitCase: resubmitMutation.mutateAsync,
+    isResubmitting: resubmitMutation.isPending,
   };
 }

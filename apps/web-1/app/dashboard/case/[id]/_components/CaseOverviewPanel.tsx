@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Case } from "@/types";
+import { Badge } from "@mantine/core";
 
 import { statusThemeMap } from "@/types";
 

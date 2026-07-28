@@ -281,6 +281,28 @@ export async function rejectCase(caseId: string, adminId: string, reason: string
   });
 }
 
+export async function resubmitCase(caseId: string, userId: string) {
+  return await prisma.$transaction(async (tx: any) => {
+    const updated = await tx.case.update({
+      where: { id: caseId },
+      data: {
+        user_facing_stage: "submitted",
+        internal_status: "triage_pending",
+      },
+    });
+
+    await tx.caseEvent.create({
+      data: {
+        case: { connect: { id: caseId } },
+        event_type: "case_resubmitted",
+        actor: { connect: { id: userId } },
+      },
+    });
+
+    return updated;
+  });
+}
+
 export async function requestCaseMoreInfo(caseId: string, actorId: string, eventType: string, query: string, nextStage: string, nextStatus: string) {
   return await prisma.$transaction(async (tx: any) => {
     const updated = await tx.case.update({

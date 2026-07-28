@@ -59,6 +59,10 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
                 </div>
                 <p className="text-xs text-text-muted leading-relaxed">
                   {desc}
+                  {(event.event_type === "case_rejected" || event.event_type === "vetoed") &&
+                    (event.metadata_json as any)?.reason && (
+                      <> — Lý do: {(event.metadata_json as any).reason}</>
+                    )}
                 </p>
                 {event.actor && (
                   <p className="text-base text-text-subtle">

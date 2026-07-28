@@ -22,6 +22,7 @@ export const caseWorkflow: WorkflowDefinition = {
     { name: "publish_report",     froms: ["supporter_working"],          tos: ["report_ready_to_publish"] },
     { name: "complete_case",      froms: ["report_ready_to_publish"],    tos: ["done"] },
     { name: "cancel",             froms: ["triage_pending", "accepted_unassigned"], tos: ["cancelled"] },
+    { name: "reopen",            froms: ["cancelled"],                  tos: ["triage_pending"] },
   ],
   initialMarking: ["triage_pending"],
 };

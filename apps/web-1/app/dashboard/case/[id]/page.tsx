@@ -125,7 +125,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                   openRequestsForMoreInfo={null}
                   onSelectTab={(tab) => setActiveTab(tab)}
                   onOpenPayment={isIntakePending ? () => setCreditBuyOpened(true) : undefined}
-                  onOpenIntake={isIntakeReady ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
+                  onOpenIntake={(isIntakeReady || stage === "rejected") ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
                 />
               }
             />

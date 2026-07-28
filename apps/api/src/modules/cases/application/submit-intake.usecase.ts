@@ -85,6 +85,27 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
         },
       });
 
+      // If case was rejected, transition back to submitted for re-review
+      if (caseRecord.user_facing_stage === "rejected") {
+        await tx.case.update({
+          where: { id: caseId },
+          data: {
+            user_facing_stage: "submitted",
+            internal_status: "triage_pending",
+          },
+        });
+
+        await tx.caseEvent.create({
+          data: {
+            case: { connect: { id: caseId } },
+            actor: { connect: { id: userId } },
+            event_type: "case_resubmitted",
+          },
+        });
+
+        logger.info({ caseId, transition: 'resubmit', fromState: 'rejected', toState: 'submitted', actorId: userId }, 'case resubmitted via intake edit');
+      }
+
       await tx.caseEvent.create({
         data: {
           case: { connect: { id: caseId } },
