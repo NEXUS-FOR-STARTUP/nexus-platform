@@ -312,7 +312,7 @@ export default function AdminHubPage() {
                   className={classes.mainLink}
                   data-active={activeSection === "stats" || undefined}
                 >
-                  <BarChart3 className="w-5 h-5" />
+                  <BarChart3 className="w-6 h-6" />
                 </UnstyledButton>
               </Tooltip>
 
@@ -322,7 +322,7 @@ export default function AdminHubPage() {
                   className={classes.mainLink}
                   data-active={activeSection === "payments" || undefined}
                 >
-                  <CreditCard className="w-5 h-5" />
+                  <CreditCard className="w-6 h-6" />
                   {pendingPaymentsCount > 0 && (
                     <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-xs font-semibold bg-warning text-white flex items-center justify-center border-2 border-surface-app">
                       {pendingPaymentsCount}
@@ -337,7 +337,7 @@ export default function AdminHubPage() {
                   className={classes.mainLink}
                   data-active={activeSection === "cases" || undefined}
                 >
-                  <UserCheck className="w-5 h-5" />
+                  <UserCheck className="w-6 h-6" />
                   {unassignedCasesCount > 0 && (
                     <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-xs font-semibold bg-brand text-white flex items-center justify-center border-2 border-surface-app">
                       {unassignedCasesCount}
@@ -352,7 +352,7 @@ export default function AdminHubPage() {
                   className={classes.mainLink}
                   data-active={activeSection === "documents" || undefined}
                 >
-                  <FileText className="w-5 h-5" />
+                  <FileText className="w-6 h-6" />
                 </UnstyledButton>
               </Tooltip>
 
@@ -362,7 +362,7 @@ export default function AdminHubPage() {
                   className={classes.mainLink}
                   data-active={activeSection === "packages" || undefined}
                 >
-                  <Settings className="w-5 h-5" />
+                  <Settings className="w-6 h-6" />
                 </UnstyledButton>
               </Tooltip>
             </aside>
