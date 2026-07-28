@@ -78,7 +78,7 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
   const submitMutation = useMutation({
     mutationFn: async (data: IntakeData) => {
       if (caseId) {
-        const response = await apiClient.patch(`/cases/${caseId}`, data);
+        const response = await apiClient.post(`/cases/${caseId}/intake`, data);
         return response.data;
       }
       const response = await apiClient.post("/cases", data);

@@ -164,7 +164,7 @@ export async function getAdminStatsUseCase(period: string = "30d"): Promise<Admi
 
   // 3. Conversion rate
   const nonIntakeCount = await prisma.case.count({
-    where: { user_facing_stage: { not: "intake" } },
+    where: { user_facing_stage: { notIn: ["intake_pending", "intake_ready"] } },
   });
   const conversionRate =
     nonIntakeCount > 0

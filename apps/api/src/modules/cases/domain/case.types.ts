@@ -1,4 +1,6 @@
 export const VALID_CASE_STAGES = [
+  "intake_pending",
+  "intake_ready",
   "submitted",
   "need_more_information",
   "under_review",
@@ -43,6 +45,10 @@ export function isValidInternalStatus(
 
 export function isFinalCaseStage(stage?: string | null): boolean {
   return stage === "closed" || stage === "completed" || stage === "rejected";
+}
+
+export function isPreSubmissionStage(stage?: string | null): boolean {
+  return stage === "intake_pending" || stage === "intake_ready";
 }
 
 export function isValidStageTransition(from: string, to: string): boolean {

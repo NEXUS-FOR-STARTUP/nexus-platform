@@ -168,6 +168,18 @@ export async function verifyPayment(data: {
     });
 
     if (status === "paid") {
+      // --- Intake pending → intake ready on successful payment ---
+      const caseRecord = await tx.case.findUnique({
+        where: { id: caseId },
+        select: { user_facing_stage: true },
+      });
+      if (caseRecord?.user_facing_stage === "intake_pending") {
+        await tx.case.update({
+          where: { id: caseId },
+          data: { user_facing_stage: "intake_ready" },
+        });
+      }
+
       // --- Credit purchase on successful verification ---
       const paymentRecord = await tx.payment.findUnique({ where: { id: paymentId } });
       // Read actual credit quantity from metadata_json first (set by CreditQuantityModal)

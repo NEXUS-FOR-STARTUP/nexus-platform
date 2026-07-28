@@ -27,16 +27,17 @@ import { statusThemeMap } from "@/types";
 
 interface CaseOverviewPanelProps {
   caseData: Case;
+  intakeSnapshot?: any;
   onSelectTab?: (tab: "overview" | "documents" | "discussion" | "timeline" | "settings" | "credits") => void;
   onEditIntake?: () => void;
 }
 
-export default function CaseOverviewPanel({ caseData, onSelectTab, onEditIntake }: CaseOverviewPanelProps) {
+export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTab, onEditIntake }: CaseOverviewPanelProps) {
   const statusTheme = statusThemeMap[caseData.user_facing_stage] || {
     label: caseData.user_facing_stage,
     color: "default",
   };
-  const intake = (caseData as any).intake_snapshot || {};
+  const intake = intakeSnapshot || {};
   const contact = intake.contact || {};
   const idea = intake.idea_context || intake.idea || {};
   const teamCtx = intake.team_context || {};

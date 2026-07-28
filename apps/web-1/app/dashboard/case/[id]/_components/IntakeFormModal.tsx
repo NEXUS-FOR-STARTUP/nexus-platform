@@ -39,7 +39,7 @@ export default function IntakeFormModal({ caseId, opened, onClose }: IntakeFormM
 
   const submitMutation = useMutation({
     mutationFn: async (payload: any) => {
-      const res = await apiClient.patch(`/cases/${caseId}`, payload);
+      const res = await apiClient.post(`/cases/${caseId}/intake`, payload);
       return res.data;
     },
     onSuccess: () => {
@@ -73,14 +73,20 @@ export default function IntakeFormModal({ caseId, opened, onClose }: IntakeFormM
   };
 
   const handleSubmit = async () => {
-    const payload: any = {};
-    if (contactName) payload.contact_name = contactName;
-    if (contactEmail) payload.contact_email = contactEmail;
-    if (contactPhone) payload.contact_zalo = contactPhone;
-    if (currentBlocker) payload.current_blocker = currentBlocker;
-    if (primaryNeed) payload.support_primary_need = primaryNeed;
-    if (extraNotes) payload.support_extra_notes = extraNotes;
-    if (boundaryConfirmations.length > 0) payload.boundary_confirmations = boundaryConfirmations;
+    const payload: any = {
+      contact: {
+        full_name: contactName,
+        email: contactEmail,
+        zalo: contactPhone,
+      },
+      current_blocker: currentBlocker,
+      support_needs: {
+        primary_need: primaryNeed,
+        extra_notes: extraNotes,
+      },
+      boundary_confirmations: boundaryConfirmations,
+      documents: selectedFile ? [{ file_url: "pending_upload" }] : [],
+    };
 
     // Upload file first if selected
     if (selectedFile) {

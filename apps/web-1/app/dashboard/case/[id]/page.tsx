@@ -17,6 +17,7 @@ import CreditQuantityModal from "./_components/CreditQuantityModal";
 import IntakeFormModal from "./_components/IntakeFormModal";
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
 import StudentDocumentUploadModal from "./_components/StudentDocumentUploadModal";
+import StatusGuidanceCard from "./_components/StatusGuidanceCard";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Button } from "@mantine/core";
 import { Users } from "lucide-react";
@@ -68,15 +69,30 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     );
   }
 
-  const canIntake = caseData.allowed_transitions?.includes("intake") ?? false;
+  const stage = caseData.user_facing_stage;
+  const isPreSubmission = stage === "intake_pending" || stage === "intake_ready";
+  const isIntakeReady = stage === "intake_ready";
+  const isIntakePending = stage === "intake_pending";
+
+  const isTabAvailable = (tab: WorkspaceTab): boolean => {
+    if (!isPreSubmission) return true;
+    if (stage === "intake_pending") return tab === "overview" || tab === "settings";
+    if (stage === "intake_ready") return tab === "overview" || tab === "documents" || tab === "settings";
+    return true;
+  };
+
+  const handleTabChange = (tab: WorkspaceTab) => {
+    if (isTabAvailable(tab)) setActiveTab(tab);
+  };
 
   return (
     <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden animate-fade-in">
       <WorkspaceSidebar
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         messageCount={caseData.messages?.length}
         creditBalance={creditBalance ?? undefined}
+        stage={stage}
       />
 
       <div className={`flex-grow flex flex-col h-full min-w-0 p-6 space-y-6 ${activeTab === "discussion" ? "overflow-hidden" : "overflow-y-auto"}`}>
@@ -99,17 +115,26 @@ export default function CaseWorkspacePage({ params }: PageProps) {
 
         <div className="flex-grow min-h-0 flex flex-col">
           {activeTab === "overview" && (
-            <CaseOverviewPanel
-              caseData={caseData}
-              onSelectTab={(tab) => setActiveTab(tab)}
-              onEditIntake={() => setIntakeFormOpened(true)}
-            />
+            <>
+              <StatusGuidanceCard
+                caseData={caseData}
+                openRequestsForMoreInfo={null}
+                onSelectTab={(tab) => setActiveTab(tab)}
+                onOpenPayment={isIntakePending ? () => router.push(`/dashboard/case/${id}/payment`) : undefined}
+                onOpenIntake={isIntakeReady ? () => setIntakeFormOpened(true) : undefined}
+              />
+              <CaseOverviewPanel
+                caseData={caseData}
+                onSelectTab={(tab) => setActiveTab(tab)}
+                onEditIntake={isIntakeReady ? () => setIntakeFormOpened(true) : undefined}
+              />
+            </>
           )}
 
           {activeTab === "documents" && (
             <>
               <div className="mb-4 flex justify-end gap-3">
-                {canIntake && (
+                {stage === "intake_ready" && (
                   <Button
                     size="sm"
                     color="brand"

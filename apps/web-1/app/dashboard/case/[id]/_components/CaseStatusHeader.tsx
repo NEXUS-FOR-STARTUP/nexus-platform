@@ -139,7 +139,8 @@ export default function CaseStatusHeader({
               {(caseData.user_facing_stage === "submitted" || 
                 caseData.user_facing_stage === "under_review" || 
                 caseData.user_facing_stage === "revision_submitted" ||
-                caseData.user_facing_stage === "need_more_information") && (
+                caseData.user_facing_stage === "need_more_information" ||
+                caseData.user_facing_stage === "intake_ready") && (
                 <span className="relative flex h-2 w-2 shrink-0">
                   <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
                     statusTheme.color === "primary" ? "bg-brand" : 

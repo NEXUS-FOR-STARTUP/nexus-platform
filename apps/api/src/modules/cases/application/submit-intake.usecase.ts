@@ -53,7 +53,7 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
         data: {
           case_id: caseId,
           checkpoint_id: checkpointId,
-          unit_code: "intake",
+          unit_code: "v00",
           unit_type: "version",
           version_no: 1,
           content: JSON.stringify(body),

@@ -14,7 +14,7 @@ export interface Case {
   package_id?: string | null;
   locked_price?: number | null;
   assigned_supporter_auth_user_id?: string | null;
-  user_facing_stage: "submitted" | "need_more_information" | "under_review" | "report_ready" | "waiting_for_revision" | "revision_submitted" | "completed" | "rejected" | "closed" | string;
+  user_facing_stage: "intake_pending" | "intake_ready" | "submitted" | "need_more_information" | "under_review" | "report_ready" | "waiting_for_revision" | "revision_submitted" | "completed" | "rejected" | "closed" | string;
   internal_status: "triage_pending" | "accepted_unassigned" | "assigned" | "waiting_user" | "supporter_working" | "report_ready_to_publish" | "done" | "cancelled" | string;
   payment_status: "unpaid" | "pending_verification" | "paid" | "rejected" | string;
   credit_balance?: number;              // NEW — derived from CreditLedger
@@ -213,6 +213,8 @@ export interface StatusThemeDetails {
 }
 
 export const statusThemeMap: Record<string, StatusThemeDetails> = {
+  intake_pending: { label: "Chờ thanh toán — Kích hoạt kiểm tra chuyên sâu", color: "warning" },
+  intake_ready: { label: "Sẵn sàng — Cập nhật thông tin hồ sơ", color: "primary" },
   submitted: {
     label: "Hồ sơ đã gửi — chờ xét duyệt",
     color: "primary",

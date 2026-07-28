@@ -14,6 +14,7 @@ interface WorkspaceSidebarProps {
   creditBalance?: number;
   hideSettings?: boolean;
   hideCredits?: boolean;
+  stage?: string;
 }
 
 export default function WorkspaceSidebar({
@@ -23,30 +24,46 @@ export default function WorkspaceSidebar({
   creditBalance,
   hideSettings = false,
   hideCredits = false,
+  stage,
 }: WorkspaceSidebarProps) {
+  const isPreSubmission = stage === "intake_pending" || stage === "intake_ready";
+  const isIntakePending = stage === "intake_pending";
+
   const tabs = [
     {
       id: "overview" as const,
       label: "Tổng quan",
       icon: LayoutDashboard,
     },
-    {
-      id: "documents" as const,
-      label: "Tài liệu",
-      icon: FileText,
-    },
-    {
-      id: "discussion" as const,
-      label: "Chat với Supporter",
-      icon: MessageSquare,
-      count: messageCount,
-    },
-    {
-      id: "timeline" as const,
-      label: "Lịch sử hoạt động",
-      icon: History,
-    },
-    ...(!hideCredits
+    ...(!isIntakePending
+      ? [
+          {
+            id: "documents" as const,
+            label: "Tài liệu",
+            icon: FileText,
+          },
+        ]
+      : []),
+    ...(!isPreSubmission
+      ? [
+          {
+            id: "discussion" as const,
+            label: "Chat với Supporter",
+            icon: MessageSquare,
+            count: messageCount,
+          },
+        ]
+      : []),
+    ...(!isPreSubmission
+      ? [
+          {
+            id: "timeline" as const,
+            label: "Lịch sử hoạt động",
+            icon: History,
+          },
+        ]
+      : []),
+    ...(!isPreSubmission && !hideCredits
       ? [
           {
             id: "credits" as const,
