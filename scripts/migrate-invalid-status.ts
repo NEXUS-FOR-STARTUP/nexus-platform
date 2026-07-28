@@ -5,9 +5,16 @@
  * Requires DATABASE_URL (write access) in root .env
  * SAFETY: This is a targeted UPDATE — only affects 13 cases
  */
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  console.error("DATABASE_URL not set. Aborting.");
+  process.exit(1);
+}
+
+const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
 
 async function main() {
   console.log("🔍 Checking for cases with invalid internal_status...");
