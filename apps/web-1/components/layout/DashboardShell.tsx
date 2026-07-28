@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useSession, signOut } from "@/lib/auth-client";
 import { useQueryClient } from "@tanstack/react-query";
 import ThemeToggler from "../ui/ThemeToggler";
@@ -11,7 +11,6 @@ import {
   Avatar,
   Menu,
   Badge,
-  Breadcrumbs
 } from "@mantine/core";
 import { CreditCard, LogOut, LayoutDashboard, Shield } from "lucide-react";
 
@@ -20,7 +19,6 @@ interface DashboardShellProps {
 }
 
 export default function DashboardShell({ children }: DashboardShellProps) {
-  const pathname = usePathname();
   const router = useRouter();
   const { data: sessionData, isPending } = useSession();
   const queryClient = useQueryClient();
@@ -36,23 +34,6 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       },
     });
   };
-
-  // Generate breadcrumbs from pathname
-  const pathParts = pathname.split("/").filter((p) => p);
-  const breadcrumbsList = pathParts.map((part, index) => {
-    const href = "/" + pathParts.slice(0, index + 1).join("/");
-    // Customize label
-    let label = part;
-    if (part === "dashboard") label = "Dashboard";
-    else if (part === "case") label = "Hồ sơ";
-    else if (part === "intake") label = "Khởi tạo ý tưởng";
-    else if (part === "payments") label = "Lịch sử thanh toán";
-    else if (part === "supporter") label = "Supporter Review";
-    else if (part === "admin") label = "Quản trị viên";
-    else if (part === "review") label = "Đánh giá";
-
-    return { href, label };
-  });
 
   const user = sessionData?.user ? (sessionData.user as typeof sessionData.user & { role?: string }) : undefined;
 
@@ -98,28 +79,11 @@ export default function DashboardShell({ children }: DashboardShellProps) {
           <Link href={getHomeLink()} className="flex items-center shrink-0">
             <Logo height={52} />
           </Link>
-          {breadcrumbsList.length > 0 && (
-            <Breadcrumbs separator="/" className="min-w-0 max-w-[50vw] overflow-hidden text-sm text-text-muted">
-              {breadcrumbsList.map((breadcrumb, index) => {
-                const isLast = index === breadcrumbsList.length - 1;
-
-                return isLast ? (
-                  <span key={breadcrumb.href} className="truncate font-medium text-text-app">
-                    {breadcrumb.label}
-                  </span>
-                ) : (
-                  <Link key={breadcrumb.href} href={breadcrumb.href} className="truncate hover:text-text-app">
-                    {breadcrumb.label}
-                  </Link>
-                );
-              })}
-            </Breadcrumbs>
-          )}
         </div>
- 
+
         <div className="ml-auto flex items-center gap-4 shrink-0">
           <ThemeToggler />
- 
+
           {/* User Menu */}
           {!isPending && user && (
             <div className="flex items-center gap-3">
@@ -154,27 +118,28 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                     }
                     onClick={() => router.push(getHomeLink())}
                     className="text-text-app hover:bg-surface-soft cursor-pointer"
-                    >
+                  >
                     {user.role === "admin"
-                      ? "Admin Panel"
+                      ? "Bàn làm việc Admin"
                       : user.role === "supporter"
-                      ? "Supporter Dashboard"
+                      ? "Bàn làm việc Supporter"
                       : "Hồ sơ của tôi"}
                   </Menu.Item>
                   {isStudent && (
                     <Menu.Item
                       leftSection={<CreditCard className="w-4 h-4 text-text-muted" />}
                       onClick={() => router.push("/dashboard/payments")}
-                      className="text-text-app hover:bg-surface-soft cursor-pointer"
+                      className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-xs font-semibold"
                     >
                       Lịch sử thanh toán
                     </Menu.Item>
                   )}
+                  <Menu.Divider />
                   <Menu.Item
-                    leftSection={<LogOut className="w-4 h-4" />}
                     color="red"
+                    leftSection={<LogOut className="w-4 h-4" />}
                     onClick={handleSignOut}
-                    className="hover:bg-danger-soft cursor-pointer"
+                    className="cursor-pointer font-body text-xs font-semibold"
                   >
                     Đăng xuất
                   </Menu.Item>
@@ -185,10 +150,8 @@ export default function DashboardShell({ children }: DashboardShellProps) {
         </div>
       </nav>
 
-      {/* Main Content Area */}
-      <main className="flex-grow w-full flex flex-col min-h-0">
-        {children}
-      </main>
+      {/* Main Content */}
+      <main className="flex-grow flex flex-col">{children}</main>
     </div>
   );
 }

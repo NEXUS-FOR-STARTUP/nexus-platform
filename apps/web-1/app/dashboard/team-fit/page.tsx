@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Center, Loader } from "@mantine/core";
 import { useSession } from "@/lib/auth-client";
-import { apiClient } from "@/lib/api-client";
 import StepIndicator from "./_components/StepIndicator";
 import IdeaMadLibsStep from "./_components/IdeaMadLibsStep";
 import TeamInputStep from "./_components/TeamInputStep";
@@ -16,6 +15,9 @@ import { TeamFitInputSchema } from "@repo/validation";
 import { LS_KEY_BLANKS, LS_KEY_MEMBERS, loadSaved, saveToLS, removeFromLS } from "./lib/storage";
 import { INITIAL_BLANKS, validateBlank, validateAllBlanks, formatIssue } from "./lib/validation";
 import type { TeamMemberInput } from "./hooks/useTeamFitMutation";
+import type { IntakeData } from "../intake/_types/intake.types";
+
+const INTAKE_DRAFT_STORAGE_KEY = "nexus_intake_draft";
 
 export default function TeamFitPage() {
   // ── Auth guard ──
@@ -42,7 +44,6 @@ export default function TeamFitPage() {
   const [hasSaved, setHasSaved] = useState(false);
   const [savedCaseId, setSavedCaseId] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [isUpgrading, setIsUpgrading] = useState(false);
 
   // Auto-save blanks & members to localStorage on change
   useEffect(() => { saveToLS(LS_KEY_BLANKS, blanks); }, [blanks]);
@@ -166,43 +167,60 @@ export default function TeamFitPage() {
     }
   };
 
-  const handleUpgrade = async () => {
-    setIsUpgrading(true);
+  const handleUpgrade = () => {
     setSaveError(null);
-    try {
-      let targetCaseId = savedCaseId;
 
-      // Save first if not yet saved
-      if (!targetCaseId) {
-        const payload = {
-          idea: {
-            projectName: blanks.projectName,
-            field: blanks.field,
-            targetCustomer: blanks.targetCustomer,
-            problem: blanks.problem,
-            solution: blanks.solution,
-            mvp: blanks.mvp,
-          },
-          team: members,
-          result: mutation.data!,
-          packageId: "pkg_tf_free",
-        };
-        const data = await saveMutation.mutateAsync(payload);
-        targetCaseId = data.caseId;
-        setHasSaved(true);
-        setSavedCaseId(targetCaseId);
-      }
+    const teamSummary = members
+      .map((member, index) => {
+        const strengths = member.strengths.join(", ");
+        const experience = member.experience.join(", ");
+        return `Thành viên ${index + 1}: ${member.major}; sở trường: ${strengths}; kinh nghiệm: ${experience || "chưa nhập"}`;
+      })
+      .join("\n");
 
-      await apiClient.post(`/cases/${targetCaseId}/upgrade-package`, {
-        packageId: "pkg_tf_audit",
-      });
+    const freeReport = mutation.data;
+    const reportNotes = freeReport
+      ? [
+          ...freeReport.teamGaps.map((gap) => `Thiếu hụt đội ngũ: ${gap}`),
+          ...freeReport.commercialGaps.map((gap) => `Điểm chưa rõ thương mại: ${gap}`),
+        ].join("\n")
+      : "";
 
-      router.push(`/dashboard/case/${targetCaseId}`);
-    } catch (err) {
-      setSaveError(err instanceof Error ? err.message : "Nâng cấp thất bại");
-    } finally {
-      setIsUpgrading(false);
-    }
+    const intakeDraft: IntakeData = {
+      package_id: "pkg_tf_audit",
+      current_blocker: blanks.problem,
+      current_situations: [
+        `Dự án ${blanks.projectName} trong lĩnh vực ${blanks.field}`,
+        `Khách hàng mục tiêu: ${blanks.targetCustomer}`,
+      ],
+      case_summary: `${blanks.solution}\n\nMVP: ${blanks.mvp}`,
+      contact: {
+        full_name: "",
+        student_code: "",
+        team_role: "",
+        zalo: "",
+        email: "",
+        telegram: "",
+      },
+      team_context: {
+        group_no: "",
+        project_name: blanks.projectName,
+        team_status_summary: teamSummary,
+      },
+      support_needs: {
+        primary_need: "Kiểm tra chuyên sâu Team-Idea Fit từ Supporter",
+        extra_notes: reportNotes,
+      },
+      documents: [],
+      lecturer_feedback: "",
+      expected_outputs: "Nhận phản biện chi tiết về độ phù hợp giữa đội ngũ, ý tưởng, thị trường và hướng cải thiện tiếp theo.",
+      boundary_confirmations: [],
+      school: "",
+      course_context: "",
+    };
+
+    localStorage.setItem(INTAKE_DRAFT_STORAGE_KEY, JSON.stringify(intakeDraft));
+    router.push("/dashboard/intake?packageId=pkg_tf_audit");
   };
 
   const displayErrors = saveError
@@ -257,7 +275,6 @@ export default function TeamFitPage() {
             onXemCase={handleXemCase}
             onUpgrade={handleUpgrade}
             isSaving={saveMutation.isPending}
-            isUpgrading={isUpgrading}
             hasSaved={hasSaved}
           />
         )}

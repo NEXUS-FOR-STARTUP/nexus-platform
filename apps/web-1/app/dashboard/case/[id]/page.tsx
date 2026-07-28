@@ -150,8 +150,10 @@ export default function CaseWorkspacePage({ params }: PageProps) {
             <CreditPanel
               creditBalance={creditBalance}
               creditLedger={creditLedger}
+              payments={caseData.payments}
               packageName={packageName}
               pricePerCredit={pricePerCredit && pricePerCredit > 0 ? pricePerCredit : undefined}
+              paymentStatus={caseData.payment_status}
               onBuyCredits={() => setCreditBuyOpened(true)}
             />
           )}

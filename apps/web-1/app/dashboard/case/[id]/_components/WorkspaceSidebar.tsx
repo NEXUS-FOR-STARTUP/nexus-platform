@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Tooltip, UnstyledButton } from "@mantine/core";
-import { FileText, MessageSquare, History, Settings, Coins } from "lucide-react";
+import { FileText, MessageSquare, History, Settings, CreditCard } from "lucide-react";
 import classes from "../../../../../components/layout/DoubleNavbar.module.css";
 
 interface WorkspaceSidebarProps {
@@ -30,7 +30,7 @@ export default function WorkspaceSidebar({
     },
     {
       id: "discussion" as const,
-      label: "Thảo luận & Phối hợp",
+      label: "Chat với Supporter",
       icon: MessageSquare,
       count: messageCount,
     },
@@ -43,8 +43,8 @@ export default function WorkspaceSidebar({
       ? [
           {
             id: "credits" as const,
-            label: "Credit",
-            icon: Coins,
+            label: "Quản lý số dư credit",
+            icon: CreditCard,
             count: creditBalance,
           },
         ]
