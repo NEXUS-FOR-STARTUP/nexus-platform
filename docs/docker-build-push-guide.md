@@ -51,6 +51,18 @@ Nếu thiếu dòng COPY này, build sẽ fail với lỗi:
 - **API**: `TS2307: Cannot find module '@ai-sdk/google'`
 - **Web**: `sh: next: not found`
 
+## ⚠️ Deploy Log — BẮT BUỘC
+
+**Trước khi build:** đọc [`docs/deploy-log.md`](./deploy-log.md) để biết image hiện tại đang ở commit nào.
+
+**Sau khi push thành công:** ghi log để trace được image nào chứa code nào:
+
+```bash
+echo "| $(date '+%Y-%m-%d %H:%M') | $(git rev-parse --short HEAD) | $(git branch --show-current) | $(git log --oneline -1 --format='%s') | 🔵 api 🟢 web |" >> docs/deploy-log.md
+```
+
+Nếu chỉ build API hoặc Web riêng, sửa `🔵 api 🟢 web` thành `🔵 api` hoặc `🟢 web`.
+
 ## Build and Push Commands
 
 ### 1. Login Docker Hub
@@ -93,6 +105,9 @@ make push
 
 # Hoặc 1 lệnh
 make build-push domain=nexusforstartup.site
+
+# ⚠️ Sau khi push: ghi deploy log
+echo "| $(date '+%Y-%m-%d %H:%M') | $(git rev-parse --short HEAD) | $(git branch --show-current) | $(git log --oneline -1 --format='%s') | 🔵 api 🟢 web |" >> docs/deploy-log.md
 ```
 
 ## Manual One-Liner
@@ -105,6 +120,9 @@ docker build --no-cache -f apps/api/Dockerfile -t lgdlong/nexus-api:latest . && 
 docker build -f apps/web-1/Dockerfile \
   --build-arg NEXT_PUBLIC_API_URL=https://nexusforstartup.site \
   -t lgdlong/nexus-web:latest . && docker push lgdlong/nexus-web:latest
+
+# ⚠️ Sau khi push: ghi deploy log
+echo "| $(date '+%Y-%m-%d %H:%M') | $(git rev-parse --short HEAD) | $(git branch --show-current) | $(git log --oneline -1 --format='%s') | 🔵 api 🟢 web |" >> docs/deploy-log.md
 ```
 
 ## On VPS — Deploy
@@ -197,4 +215,8 @@ $env:DOCKER_BUILDKIT=1
       --build-arg NEXT_PUBLIC_API_URL=https://nexusforstartup.site \
       -t lgdlong/nexus-web:latest .
     docker push lgdlong/nexus-web:latest
+
+- name: Ghi deploy log
+  run: |
+    echo "| $(date -u '+%Y-%m-%d %H:%M') | ${{ github.sha }} | ${{ github.ref_name }} | ${{ github.event.head_commit.message }} | 🔵 api 🟢 web |" >> docs/deploy-log.md
 ```
