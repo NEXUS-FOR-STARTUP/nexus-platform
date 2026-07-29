@@ -46,6 +46,7 @@ export function useCaseDetails(id: string) {
       idea?: Record<string, any>;
       current_blocker?: string;
       support_needs?: Record<string, any>;
+      boundary_confirmations?: string[];
     }) => {
       const response = await apiClient.put(`/cases/${id}/settings`, payload);
       return response.data;

@@ -129,4 +129,5 @@ export interface UpdateCaseSettingsRequest {
     primary_need?: string;
     extra_notes?: string;
   };
+  boundary_confirmations?: string[];
 }

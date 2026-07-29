@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { User, statusThemeMap } from "@/types";
-import { CheckCircle, Search, MoreVertical, Trash2, Eye, Shield, RefreshCw } from "lucide-react";
+import { CheckCircle, Search, MoreVertical, Trash2, Eye, Shield, RefreshCw, UserCheck } from "lucide-react";
 import { Button, Select, Badge, Table, Pagination, TextInput, Group, Menu, ActionIcon, Tooltip } from "@mantine/core";
 
 // Import extracted modals
@@ -185,6 +185,7 @@ export default function AdminCaseAssignmentTable({
               <Table.Th className="text-left">Nhóm / Đề tài</Table.Th>
               <Table.Th className="text-left">Gói dịch vụ</Table.Th>
               <Table.Th className="text-left">Trạng thái</Table.Th>
+              <Table.Th className="text-left">Người phụ trách</Table.Th>
               <Table.Th className="text-center w-20">SLA</Table.Th>
               <Table.Th className="text-center w-24">Thao tác</Table.Th>
             </Table.Tr>
@@ -192,7 +193,7 @@ export default function AdminCaseAssignmentTable({
           <Table.Tbody>
             {filteredAndSortedCases.length === 0 ? (
               <Table.Tr>
-                <Table.Td colSpan={6} className="text-center py-8 text-text-muted">
+                <Table.Td colSpan={7} className="text-center py-8 text-text-muted">
                   Không tìm thấy kết quả phù hợp với bộ lọc hiện tại.
                 </Table.Td>
               </Table.Tr>
@@ -229,6 +230,18 @@ export default function AdminCaseAssignmentTable({
                       >
                         {statusThemeMap[item.internal_status]?.label || item.internal_status}
                       </Badge>
+                    </Table.Td>
+                    <Table.Td>
+                      {item.assigned_supporter?.name ? (
+                        <div className="flex items-center gap-1.5 font-semibold text-text-app">
+                          <UserCheck className="w-3.5 h-3.5 text-brand shrink-0" />
+                          <span className="truncate" title={item.assigned_supporter.name}>
+                            {item.assigned_supporter.name}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-text-muted text-xs italic">Chưa phân công</span>
+                      )}
                     </Table.Td>
                     <Table.Td className="text-center">
                       <SlaTimer deadline={item.sla_deadline_at} />

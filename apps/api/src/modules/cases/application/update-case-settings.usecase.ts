@@ -144,6 +144,7 @@ export async function updateCaseSettingsUseCase(
         ...(parsedContent.support_needs || {}),
         ...(body.support_needs || {}),
       },
+      boundary_confirmations: body.boundary_confirmations !== undefined ? body.boundary_confirmations : parsedContent.boundary_confirmations,
       school: school || parsedContent.school,
       course_context: course_context || parsedContent.course_context,
     };
