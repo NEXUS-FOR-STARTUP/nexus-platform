@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { apiClient } from "@/lib/api-client";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { IntakeData, IntakeDocument } from "../_types/intake.types";
 
 const LOCAL_STORAGE_KEY = "nexus_intake_draft";
@@ -51,6 +51,7 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isLoaded, setIsLoaded] = useState(false);
+  const initializedKeyRef = useRef<string | null>(null);
 
   const getStorageKey = useCallback(
     () => (caseId ? `nexus_intake_draft_${caseId}` : LOCAL_STORAGE_KEY),
@@ -76,7 +77,9 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
     const storageKey = getStorageKey();
 
     if (caseId) {
-      if (initialData) {
+      if (initialData && initializedKeyRef.current !== `case_${caseId}`) {
+        initializedKeyRef.current = `case_${caseId}`;
+
         const merged: IntakeData = {
           ...INITIAL_VALUES,
           ...initialData,
@@ -102,22 +105,28 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
         setIsLoaded(true);
       }
     } else {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setDraftValues((prev) => ({
-            ...prev,
-            ...parsed,
-            package_id: packageId || parsed.package_id || "",
-          }));
-        } catch {
-          localStorage.removeItem(storageKey);
+      if (initializedKeyRef.current !== `new_${packageId}`) {
+        initializedKeyRef.current = `new_${packageId}`;
+
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            const finalValues = {
+              ...INITIAL_VALUES,
+              ...parsed,
+              package_id: packageId || parsed.package_id || "",
+            };
+            setDraftValues(finalValues);
+            form.reset(finalValues);
+          } catch {
+            localStorage.removeItem(storageKey);
+          }
         }
+        setIsLoaded(true);
       }
-      setIsLoaded(true);
     }
-  }, [caseId, initialData, packageId, getStorageKey]);
+  }, [caseId, initialData, packageId, getStorageKey, form]);
 
   const submitMutation = useMutation({
     mutationFn: async (data: IntakeData) => {
@@ -137,12 +146,6 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
       router.push(`/dashboard/case/${redirectId}`);
     },
   });
-
-  useEffect(() => {
-    if (isLoaded) {
-      form.reset(draftValues);
-    }
-  }, [isLoaded, draftValues]);
 
   const saveDraft = (values: IntakeData) => {
     if (typeof window !== "undefined") {

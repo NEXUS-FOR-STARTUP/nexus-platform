@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useMemo, Suspense } from "react";
 import { useStore } from "@tanstack/react-form";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -34,39 +34,40 @@ function IntakePageContent() {
     enabled: !isUpdateMode,
   });
 
-  const rawSnapshot = existingCaseData?.intake_snapshot || {};
-  const initialData: IntakeData | null = existingCaseData
-    ? {
-        ...rawSnapshot,
-        package_id: existingCaseData.package_id || rawSnapshot.package_id || "",
-        school: existingCaseData.school || rawSnapshot.school || rawSnapshot.team_context?.school || "Đại học FPT",
-        course_context: existingCaseData.course_context || rawSnapshot.course_context || rawSnapshot.team_context?.course_context || "EXE101",
-        current_blocker: rawSnapshot.current_blocker || "",
-        current_situations: rawSnapshot.current_situations || [],
-        case_summary: rawSnapshot.case_summary || "",
-        contact: {
-          full_name: rawSnapshot.contact?.full_name || existingCaseData.owner?.name || "",
-          student_code: rawSnapshot.contact?.student_code || "",
-          team_role: rawSnapshot.contact?.team_role || rawSnapshot.contact?.role || "Trưởng nhóm",
-          zalo: rawSnapshot.contact?.zalo || rawSnapshot.contact?.phone || "",
-          email: rawSnapshot.contact?.email || existingCaseData.owner?.email || "",
-          telegram: rawSnapshot.contact?.telegram || "",
-        },
-        team_context: {
-          group_no: existingCaseData.group_no || rawSnapshot.team_context?.group_no || "",
-          project_name: existingCaseData.team_name || rawSnapshot.team_context?.project_name || "",
-          team_status_summary: rawSnapshot.team_context?.team_status_summary || rawSnapshot.current_blocker || "",
-        },
-        support_needs: {
-          primary_need: rawSnapshot.support_needs?.primary_need || "clarify_customer_pain",
-          extra_notes: rawSnapshot.support_needs?.extra_notes || "",
-        },
-        documents: rawSnapshot.documents || [],
-        lecturer_feedback: rawSnapshot.lecturer_feedback || "",
-        expected_outputs: rawSnapshot.expected_outputs || "",
-        boundary_confirmations: rawSnapshot.boundary_confirmations || ["originality", "advisory_only", "accurate_contact"],
-      }
-    : null;
+  const initialData: IntakeData | null = useMemo(() => {
+    if (!existingCaseData) return null;
+    const rawSnapshot = existingCaseData.intake_snapshot || {};
+    return {
+      ...rawSnapshot,
+      package_id: existingCaseData.package_id || rawSnapshot.package_id || "",
+      school: existingCaseData.school || rawSnapshot.school || rawSnapshot.team_context?.school || "Đại học FPT",
+      course_context: existingCaseData.course_context || rawSnapshot.course_context || rawSnapshot.team_context?.course_context || "EXE101",
+      current_blocker: rawSnapshot.current_blocker || "",
+      current_situations: rawSnapshot.current_situations || [],
+      case_summary: rawSnapshot.case_summary || "",
+      contact: {
+        full_name: rawSnapshot.contact?.full_name || existingCaseData.owner?.name || "",
+        student_code: rawSnapshot.contact?.student_code || "",
+        team_role: rawSnapshot.contact?.team_role || rawSnapshot.contact?.role || "Trưởng nhóm",
+        zalo: rawSnapshot.contact?.zalo || rawSnapshot.contact?.phone || "",
+        email: rawSnapshot.contact?.email || existingCaseData.owner?.email || "",
+        telegram: rawSnapshot.contact?.telegram || "",
+      },
+      team_context: {
+        group_no: existingCaseData.group_no || rawSnapshot.team_context?.group_no || "",
+        project_name: existingCaseData.team_name || rawSnapshot.team_context?.project_name || "",
+        team_status_summary: rawSnapshot.team_context?.team_status_summary || rawSnapshot.current_blocker || "",
+      },
+      support_needs: {
+        primary_need: rawSnapshot.support_needs?.primary_need || "clarify_customer_pain",
+        extra_notes: rawSnapshot.support_needs?.extra_notes || "",
+      },
+      documents: rawSnapshot.documents || [],
+      lecturer_feedback: rawSnapshot.lecturer_feedback || "",
+      expected_outputs: rawSnapshot.expected_outputs || "",
+      boundary_confirmations: rawSnapshot.boundary_confirmations || ["originality", "advisory_only", "accurate_contact"],
+    };
+  }, [existingCaseData]);
 
   const { form, isLoaded, saveDraft, clearDraft, isSubmitting, error } =
     useIntakeForm({ packageId, caseId, initialData });

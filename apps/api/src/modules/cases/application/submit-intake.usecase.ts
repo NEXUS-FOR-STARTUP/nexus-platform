@@ -73,7 +73,12 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
         tx,
       );
 
-      // Update case record with intake data
+      // Update case record with intake data and transition stage to submitted
+      const isPreSubmissionOrRejected =
+        caseRecord.user_facing_stage === "intake_ready" ||
+        caseRecord.user_facing_stage === "intake_pending" ||
+        caseRecord.user_facing_stage === "rejected";
+
       await tx.case.update({
         where: { id: caseId },
         data: {
@@ -82,28 +87,28 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
           course_context: body.course_context || undefined,
           group_no: body.team_context?.group_no || undefined,
           team_name: body.team_context?.project_name || undefined,
+          ...(isPreSubmissionOrRejected
+            ? {
+                user_facing_stage: "submitted",
+                internal_status: "triage_pending",
+              }
+            : {}),
         },
       });
 
-      // If case was rejected, transition back to submitted for re-review
-      if (caseRecord.user_facing_stage === "rejected") {
-        await tx.case.update({
-          where: { id: caseId },
-          data: {
-            user_facing_stage: "submitted",
-            internal_status: "triage_pending",
-          },
-        });
-
+      if (isPreSubmissionOrRejected) {
         await tx.caseEvent.create({
           data: {
             case: { connect: { id: caseId } },
             actor: { connect: { id: userId } },
-            event_type: "case_resubmitted",
+            event_type: caseRecord.user_facing_stage === "rejected" ? "case_resubmitted" : "case_submitted",
           },
         });
 
-        logger.info({ caseId, transition: 'resubmit', fromState: 'rejected', toState: 'submitted', actorId: userId }, 'case resubmitted via intake edit');
+        logger.info(
+          { caseId, transition: 'submit_intake', fromState: caseRecord.user_facing_stage, toState: 'submitted', actorId: userId },
+          'case stage updated to submitted via intake submission'
+        );
       }
 
       await tx.caseEvent.create({
