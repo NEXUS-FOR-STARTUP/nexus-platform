@@ -102,7 +102,7 @@ export default function TeamFitResultStep({
 
       {/* Buttons row */}
       <Group justify="center" gap="sm">
-        <Button variant="subtle" color="gray" onClick={onReset}>
+        <Button variant="outline" color="red" onClick={onReset}>
           Làm lại
         </Button>
 
