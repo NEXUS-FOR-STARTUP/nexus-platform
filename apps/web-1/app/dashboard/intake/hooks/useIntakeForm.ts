@@ -1,3 +1,5 @@
+"use client";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { apiClient } from "@/lib/api-client";
@@ -50,31 +52,72 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
   const queryClient = useQueryClient();
   const [isLoaded, setIsLoaded] = useState(false);
 
+  const getStorageKey = useCallback(
+    () => (caseId ? `nexus_intake_draft_${caseId}` : LOCAL_STORAGE_KEY),
+    [caseId],
+  );
+
   const baseInitialValues: IntakeData = initialData
     ? { ...INITIAL_VALUES, ...initialData, package_id: packageId || initialData.package_id || "" }
     : { ...INITIAL_VALUES, package_id: packageId };
 
   const [draftValues, setDraftValues] = useState<IntakeData>(baseInitialValues);
 
+  const form = useForm({
+    defaultValues: draftValues,
+    onSubmit: async ({ value }) => {
+      await submitMutation.mutateAsync(value);
+    },
+  });
+
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (typeof window === "undefined") return;
+
+    const storageKey = getStorageKey();
+
+    if (caseId) {
+      if (initialData) {
+        const merged: IntakeData = {
+          ...INITIAL_VALUES,
+          ...initialData,
+          package_id: packageId || initialData.package_id || "",
+          contact: { ...INITIAL_VALUES.contact, ...(initialData.contact || {}) },
+          team_context: { ...INITIAL_VALUES.team_context, ...(initialData.team_context || {}) },
+          support_needs: { ...INITIAL_VALUES.support_needs, ...(initialData.support_needs || {}) },
+        };
+
+        const saved = localStorage.getItem(storageKey);
+        let finalValues = merged;
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            finalValues = { ...merged, ...parsed };
+          } catch {
+            localStorage.removeItem(storageKey);
+          }
+        }
+
+        setDraftValues(finalValues);
+        form.reset(finalValues);
+        setIsLoaded(true);
+      }
+    } else {
+      const saved = localStorage.getItem(storageKey);
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
           setDraftValues((prev) => ({
             ...prev,
             ...parsed,
-            current_blocker: "", // Never pre-fill — user must describe their own lecturer/team blocker
             package_id: packageId || parsed.package_id || "",
           }));
-        } catch (e) {
-          localStorage.removeItem(LOCAL_STORAGE_KEY);
+        } catch {
+          localStorage.removeItem(storageKey);
         }
       }
       setIsLoaded(true);
     }
-  }, [packageId]);
+  }, [caseId, initialData, packageId, getStorageKey]);
 
   const submitMutation = useMutation({
     mutationFn: async (data: IntakeData) => {
@@ -86,17 +129,12 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
       return response.data;
     },
     onSuccess: (result) => {
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(getStorageKey());
+      }
       queryClient.invalidateQueries({ queryKey: ["cases"] });
       const redirectId = caseId || result.id;
       router.push(`/dashboard/case/${redirectId}`);
-    },
-  });
-
-  const form = useForm({
-    defaultValues: draftValues,
-    onSubmit: async ({ value }) => {
-      await submitMutation.mutateAsync(value);
     },
   });
 
@@ -104,22 +142,28 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
     if (isLoaded) {
       form.reset(draftValues);
     }
-  }, [isLoaded, draftValues, form]);
+  }, [isLoaded, draftValues]);
 
   const saveDraft = (values: IntakeData) => {
     if (typeof window !== "undefined") {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(values));
+      localStorage.setItem(getStorageKey(), JSON.stringify(values));
     }
   };
 
   const clearDraft = () => {
     if (typeof window !== "undefined") {
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
+      localStorage.removeItem(getStorageKey());
     }
-    const resetValues: IntakeData = {
-      ...INITIAL_VALUES,
-      package_id: packageId,
-    };
+    const resetValues: IntakeData = initialData
+      ? {
+          ...INITIAL_VALUES,
+          ...initialData,
+          package_id: packageId || initialData.package_id || "",
+        }
+      : {
+          ...INITIAL_VALUES,
+          package_id: packageId,
+        };
     setDraftValues(resetValues);
     form.reset(resetValues);
   };
