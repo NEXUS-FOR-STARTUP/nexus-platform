@@ -14,18 +14,33 @@ interface TeamMemberCardProps {
   onRemove: (index: number) => void;
 }
 
+const ACCENT_COLORS = [
+  { border: 'border-l-emerald-500', bg: 'bg-emerald-500/5', badge: 'bg-emerald-500' },
+  { border: 'border-l-violet-500', bg: 'bg-violet-500/5', badge: 'bg-violet-500' },
+  { border: 'border-l-amber-500', bg: 'bg-amber-500/5', badge: 'bg-amber-500' },
+  { border: 'border-l-cyan-500', bg: 'bg-cyan-500/5', badge: 'bg-cyan-500' },
+  { border: 'border-l-rose-500', bg: 'bg-rose-500/5', badge: 'bg-rose-500' },
+  { border: 'border-l-indigo-500', bg: 'bg-indigo-500/5', badge: 'bg-indigo-500' },
+];
+
 export default function TeamMemberCard({
   member,
   index,
   onUpdate,
   onRemove,
 }: TeamMemberCardProps) {
+  const color = ACCENT_COLORS[index % ACCENT_COLORS.length];
+
   return (
-    <div className="bg-surface-app border border-border-app rounded-xl p-5 space-y-4">
+    <div
+      className={`bg-surface-app border border-border-app rounded-xl p-5 space-y-4 border-l-4 ${color.border} ${color.bg}`}
+    >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border-app pb-3">
         <div className="flex items-center gap-2.5">
-          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-brand text-white font-semibold text-xs shrink-0">
+          <span
+            className={`flex items-center justify-center w-7 h-7 rounded-full ${color.badge} text-white font-semibold text-xs shrink-0`}
+          >
             {index + 1}
           </span>
           <h3 className="text-text-app font-semibold text-base">Thành viên {index + 1}</h3>
@@ -53,7 +68,7 @@ export default function TeamMemberCard({
             onChange={(e) => onUpdate(index, { major: e.currentTarget.value })}
             classNames={{
               input:
-                'border-border-app bg-surface-app text-text-app focus:border-brand rounded-lg text-sm',
+                'border-border-app bg-white dark:bg-surface-app text-text-app focus:border-brand rounded-lg text-sm',
             }}
           />
         </div>
@@ -69,7 +84,7 @@ export default function TeamMemberCard({
           size="sm"
           classNames={{
             input:
-              'border-border-app bg-surface-app min-h-[42px] py-1 rounded-lg',
+              'border-border-app bg-white dark:bg-surface-app min-h-[42px] py-1 rounded-lg',
             label: 'text-text-app text-sm font-medium mb-1.5',
             pill: 'bg-brand/15 text-brand text-xs font-medium rounded-md border border-brand/20 h-7 m-[2px]',
             inputField: 'placeholder:text-text-muted text-sm',
@@ -87,7 +102,7 @@ export default function TeamMemberCard({
           size="sm"
           classNames={{
             input:
-              'border-border-app bg-surface-app min-h-[42px] py-1 rounded-lg',
+              'border-border-app bg-white dark:bg-surface-app min-h-[42px] py-1 rounded-lg',
             label: 'text-text-app text-sm font-medium mb-1.5',
             pill: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 text-xs font-medium rounded-md border border-blue-500/20 h-7 m-[2px]',
             inputField: 'placeholder:text-text-muted text-sm',

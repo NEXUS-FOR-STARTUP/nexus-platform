@@ -14,7 +14,7 @@ import RejectionReasonModal from "./_components/RejectionReasonModal";
 import ApprovePaymentModal from "./_components/ApprovePaymentModal";
 import { useAdminStats } from "./hooks/useAdminStats";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, AlertTriangle, FolderKanban } from "lucide-react";
+import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, AlertTriangle, FolderKanban, Activity } from "lucide-react";
 import { Tooltip, UnstyledButton, Title, Text, Badge, Divider } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import classes from "../../components/layout/DoubleNavbar.module.css";
@@ -277,9 +277,30 @@ export default function AdminHubPage() {
           icon: FolderKanban,
         };
       }
+      if (caseFilter === "triage") {
+        return {
+          title: "Duyệt hồ sơ mới",
+          description: "Kiểm tra và quyết định duyệt, từ chối hoặc yêu cầu làm rõ hồ sơ mới gửi.",
+          icon: CheckCircle,
+        };
+      }
+      if (caseFilter === "unassigned") {
+        return {
+          title: "Phân công Supporter chuyên môn",
+          description: "Chỉ định chuyên gia phụ trách đánh giá và phản biện cho hồ sơ đã duyệt.",
+          icon: UserCheck,
+        };
+      }
+      if (caseFilter === "assigned") {
+        return {
+          title: "Hồ sơ đang phản biện",
+          description: "Theo dõi tiến độ các hồ sơ đã được phân công Supporter.",
+          icon: Activity,
+        };
+      }
       return {
-        title: "Phân công Supporter chuyên môn",
-        description: "Chỉ định Supporter phụ trách đánh giá và sửa đổi bản thảo phản biện cho hồ sơ mới.",
+        title: "Hồ sơ cần xử lý",
+        description: "Duyệt, phân công hoặc theo dõi các hồ sơ đang trong quy trình xử lý.",
         icon: UserCheck,
       };
     }

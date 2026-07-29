@@ -73,12 +73,7 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
         tx,
       );
 
-      // Update case record with intake data and transition stage to submitted
-      const isPreSubmissionOrRejected =
-        caseRecord.user_facing_stage === "intake_ready" ||
-        caseRecord.user_facing_stage === "intake_pending" ||
-        caseRecord.user_facing_stage === "rejected";
-
+      // Update case record with intake data
       await tx.case.update({
         where: { id: caseId },
         data: {
@@ -87,28 +82,32 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
           course_context: body.course_context || undefined,
           group_no: body.team_context?.group_no || undefined,
           team_name: body.team_context?.project_name || undefined,
-          ...(isPreSubmissionOrRejected
-            ? {
-                user_facing_stage: "submitted",
-                internal_status: "triage_pending",
-              }
-            : {}),
         },
       });
 
-      if (isPreSubmissionOrRejected) {
+      // Transition user_facing_stage to submitted for first-time intake
+      // or re-submit after rejection. internal_status stays as-is (should already
+      // be triage_pending from creation/rejection path).
+      const isPreSubmitStage = ["intake_ready", "intake_pending", "rejected"].includes(
+        caseRecord.user_facing_stage,
+      );
+      if (isPreSubmitStage) {
+        await tx.case.update({
+          where: { id: caseId },
+          data: { user_facing_stage: "submitted" },
+        });
+
+        const eventType =
+          caseRecord.user_facing_stage === "rejected" ? "case_resubmitted" : "case_submitted";
         await tx.caseEvent.create({
           data: {
             case: { connect: { id: caseId } },
             actor: { connect: { id: userId } },
-            event_type: caseRecord.user_facing_stage === "rejected" ? "case_resubmitted" : "case_submitted",
+            event_type: eventType,
           },
         });
 
-        logger.info(
-          { caseId, transition: 'submit_intake', fromState: caseRecord.user_facing_stage, toState: 'submitted', actorId: userId },
-          'case stage updated to submitted via intake submission'
-        );
+        logger.info({ caseId, transition: 'submit', fromStage: caseRecord.user_facing_stage, toStage: 'submitted', actorId: userId, eventType }, 'case intake submitted');
       }
 
       await tx.caseEvent.create({

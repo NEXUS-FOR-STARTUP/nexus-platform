@@ -14,6 +14,8 @@ import TabCaseSettings from "./_components/TabCaseSettings";
 import CreditPanel from "./_components/CreditPanel";
 import CaseOverviewPanel from "./_components/CaseOverviewPanel";
 import CreditQuantityModal from "./_components/CreditQuantityModal";
+
+
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
 import StudentDocumentUploadModal from "./_components/StudentDocumentUploadModal";
 import StatusGuidanceCard from "./_components/StatusGuidanceCard";
@@ -116,7 +118,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               caseData={caseData}
               intakeSnapshot={intakeSnapshot}
               onSelectTab={(tab) => setActiveTab(tab)}
-              onEditIntake={() => router.push(`/dashboard/intake?caseId=${id}`)}
+              onEditIntake={isIntakeReady ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
               guidanceCard={
                 <StatusGuidanceCard
                   caseData={caseData}

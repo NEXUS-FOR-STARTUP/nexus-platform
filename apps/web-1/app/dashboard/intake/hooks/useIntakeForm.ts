@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { apiClient } from "@/lib/api-client";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { IntakeData, IntakeDocument } from "../_types/intake.types";
 
 const LOCAL_STORAGE_KEY = "nexus_intake_draft";
@@ -51,12 +51,6 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isLoaded, setIsLoaded] = useState(false);
-  const initializedKeyRef = useRef<string | null>(null);
-
-  const getStorageKey = useCallback(
-    () => (caseId ? `nexus_intake_draft_${caseId}` : LOCAL_STORAGE_KEY),
-    [caseId],
-  );
 
   const baseInitialValues: IntakeData = initialData
     ? { ...INITIAL_VALUES, ...initialData, package_id: packageId || initialData.package_id || "" }
@@ -72,61 +66,28 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
   });
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const storageKey = getStorageKey();
-
-    if (caseId) {
-      if (initialData && initializedKeyRef.current !== `case_${caseId}`) {
-        initializedKeyRef.current = `case_${caseId}`;
-
-        const merged: IntakeData = {
-          ...INITIAL_VALUES,
-          ...initialData,
-          package_id: packageId || initialData.package_id || "",
-          contact: { ...INITIAL_VALUES.contact, ...(initialData.contact || {}) },
-          team_context: { ...INITIAL_VALUES.team_context, ...(initialData.team_context || {}) },
-          support_needs: { ...INITIAL_VALUES.support_needs, ...(initialData.support_needs || {}) },
-        };
-
-        const saved = localStorage.getItem(storageKey);
-        let finalValues = merged;
+    if (typeof window !== "undefined") {
+      // UPDATE mode (caseId exists): skip localStorage, rely on initialData from API
+      // CREATE mode: restore saved draft from localStorage
+      if (!caseId) {
+        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
-            finalValues = { ...merged, ...parsed };
-          } catch {
-            localStorage.removeItem(storageKey);
-          }
-        }
-
-        setDraftValues(finalValues);
-        form.reset(finalValues);
-        setIsLoaded(true);
-      }
-    } else {
-      if (initializedKeyRef.current !== `new_${packageId}`) {
-        initializedKeyRef.current = `new_${packageId}`;
-
-        const saved = localStorage.getItem(storageKey);
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            const finalValues = {
-              ...INITIAL_VALUES,
+            setDraftValues((prev) => ({
+              ...prev,
               ...parsed,
+              current_blocker: "", // Never pre-fill — user must describe their own lecturer/team blocker
               package_id: packageId || parsed.package_id || "",
-            };
-            setDraftValues(finalValues);
-            form.reset(finalValues);
-          } catch {
-            localStorage.removeItem(storageKey);
+            }));
+          } catch (e) {
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
           }
         }
-        setIsLoaded(true);
       }
+      setIsLoaded(true);
     }
-  }, [caseId, initialData, packageId, getStorageKey, form]);
+  }, [packageId, caseId]);
 
   const submitMutation = useMutation({
     mutationFn: async (data: IntakeData) => {
@@ -139,23 +100,26 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
     },
     onSuccess: (result) => {
       if (typeof window !== "undefined") {
-        localStorage.removeItem(getStorageKey());
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
       }
       queryClient.invalidateQueries({ queryKey: ["cases"] });
       const redirectId = caseId || result.id;
+      queryClient.invalidateQueries({ queryKey: ["case", redirectId] });
       router.push(`/dashboard/case/${redirectId}`);
     },
   });
 
+  // Only persist draft for CREATE mode (new cases). UPDATE mode uses
+  // initialData from the case API, not localStorage.
   const saveDraft = (values: IntakeData) => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(getStorageKey(), JSON.stringify(values));
+    if (typeof window !== "undefined" && !caseId) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(values));
     }
   };
 
   const clearDraft = () => {
     if (typeof window !== "undefined") {
-      localStorage.removeItem(getStorageKey());
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
     }
     const resetValues: IntakeData = initialData
       ? {

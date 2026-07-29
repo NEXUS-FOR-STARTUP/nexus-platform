@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { Button, Alert } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
@@ -13,6 +13,7 @@ import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 export default function PaymentPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const paymentId = searchParams.get("pid");
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -46,6 +47,10 @@ export default function PaymentPage() {
   // Auto-redirect to case page after 5s when payment succeeds
   useEffect(() => {
     if (payment?.status !== "paid") return;
+
+    // Invalidate case detail query so redirected page fetches fresh data
+    queryClient.invalidateQueries({ queryKey: ["case", payment.case_id] });
+
     setRedirectCountdown(5);
     const interval = setInterval(() => {
       setRedirectCountdown((prev) => {
@@ -58,7 +63,7 @@ export default function PaymentPage() {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [payment?.status, payment?.case_id, router]);
+  }, [payment?.status, payment?.case_id, router, queryClient]);
 
   if (!paymentId) {
     return (
