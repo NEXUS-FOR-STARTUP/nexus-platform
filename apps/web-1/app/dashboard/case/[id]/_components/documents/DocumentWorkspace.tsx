@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Anchor, Badge, Card, Group, Stack, Table, Tabs, Text } from "@mantine/core";
-import { CheckCircle, FileText, FolderOpen, Lock } from "lucide-react";
+import { Anchor, Badge, Card, Group, Stack, Table, Tabs, Text, SegmentedControl } from "@mantine/core";
+import { CheckCircle, FileText, FolderOpen, Lock, User, ShieldCheck } from "lucide-react";
 import type { DocumentFile, DocumentUnit, DocumentWorkspace as DocumentWorkspaceType, ExternalFeedbackMetadata, ExternalFeedbackUnit } from "@/types/case";
 
 interface DocumentWorkspaceProps {
@@ -10,6 +10,7 @@ interface DocumentWorkspaceProps {
 }
 
 type WorkspaceTab = "documents" | "external-feedback";
+type FilterRole = "all" | "student" | "supporter";
 
 type DocumentRow = {
   key: string;
@@ -21,6 +22,7 @@ type DocumentRow = {
   sourceLabel: string;
   formatLabel: string;
   uploaderLabel: string;
+  uploaderRole: "student" | "supporter" | "admin" | "other";
   createdAt: string;
 };
 
@@ -134,61 +136,147 @@ function DocumentTable({
   versionHeader: string;
   contextHeader: string;
 }) {
+  const [filterRole, setFilterRole] = useState<FilterRole>("all");
+
+  const studentCount = useMemo(() => rows.filter((r) => r.uploaderRole === "student").length, [rows]);
+  const supporterCount = useMemo(() => rows.filter((r) => r.uploaderRole === "supporter" || r.uploaderRole === "admin").length, [rows]);
+
+  const filteredRows = useMemo(() => {
+    if (filterRole === "student") {
+      return rows.filter((r) => r.uploaderRole === "student");
+    }
+    if (filterRole === "supporter") {
+      return rows.filter((r) => r.uploaderRole === "supporter" || r.uploaderRole === "admin");
+    }
+    return rows;
+  }, [rows, filterRole]);
+
   if (rows.length === 0) {
     return <Text size="sm" c="dimmed">{emptyMessage}</Text>;
   }
 
   return (
-    <div className="border border-border-app bg-surface-app overflow-hidden">
-      <Table.ScrollContainer minWidth={780}>
-        <Table highlightOnHover verticalSpacing="md" horizontalSpacing="md">
-          <Table.Thead className="bg-surface-soft">
-            <Table.Tr>
-              <Table.Th style={{ width: "95px" }}>{versionHeader}</Table.Th>
-              <Table.Th style={{ width: "150px" }}>{contextHeader}</Table.Th>
-              <Table.Th style={{ width: "120px" }}>Người tải</Table.Th>
-              <Table.Th>Tài liệu / Đường dẫn</Table.Th>
-              <Table.Th style={{ width: "150px" }}>Ngày tải</Table.Th>
-              <Table.Th style={{ width: "140px" }}>Nguồn</Table.Th>
-              <Table.Th style={{ width: "110px" }}>Định dạng</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {rows.map((row) => (
-              <Table.Tr key={row.key}>
-                <Table.Td><Text>{row.versionLabel}</Text></Table.Td>
-                <Table.Td><Text>{row.contextLabel}</Text></Table.Td>
-                <Table.Td><Text>{row.uploaderLabel}</Text></Table.Td>
-                <Table.Td>
-                  {row.hasAction ? (
-                    <Anchor
-                      href={row.url ?? undefined}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      underline="always"
-                      color="brand"
-                      className="hover:text-brand-hover transition-colors break-all whitespace-normal block"
-                      style={{ maxWidth: "450px" }}
-                    >
-                      {row.displayName}
-                    </Anchor>
-                  ) : (
-                    <Group gap="xs" wrap="nowrap">
-                      <Lock className="w-3.5 h-3.5 text-text-muted" />
-                      <Text c="dimmed" className="break-all whitespace-normal block" style={{ maxWidth: "450px" }}>
-                        {row.displayName}
-                      </Text>
-                    </Group>
-                  )}
-                </Table.Td>
-                <Table.Td><Text>{formatDate(row.createdAt)}</Text></Table.Td>
-                <Table.Td><Text>{row.sourceLabel}</Text></Table.Td>
-                <Table.Td><Text style={{ fontFamily: "monospace" }}>{row.formatLabel}</Text></Table.Td>
+    <div className="space-y-3">
+      {/* Quick Filter Control */}
+      <div className="flex items-center justify-between gap-4 bg-surface-soft/40 p-2 rounded-xl border border-border-app">
+        <div className="flex items-center gap-2 text-xs font-semibold text-text-subtle px-2">
+          <span>Lọc người gửi:</span>
+        </div>
+        <SegmentedControl
+          size="xs"
+          radius="md"
+          value={filterRole}
+          onChange={(val) => setFilterRole(val as FilterRole)}
+          data={[
+            { label: `Tất cả (${rows.length})`, value: "all" },
+            { label: `Sinh viên (${studentCount})`, value: "student" },
+            { label: `Supporter (${supporterCount})`, value: "supporter" },
+          ]}
+          className="font-body text-xs"
+        />
+      </div>
+
+      <div className="border border-border-app bg-surface-app overflow-hidden rounded-xl">
+        <Table.ScrollContainer minWidth={780}>
+          <Table highlightOnHover verticalSpacing="md" horizontalSpacing="md">
+            <Table.Thead className="bg-surface-soft">
+              <Table.Tr>
+                <Table.Th style={{ width: "95px" }}>{versionHeader}</Table.Th>
+                <Table.Th style={{ width: "160px" }}>{contextHeader}</Table.Th>
+                <Table.Th style={{ width: "140px" }}>Người tải</Table.Th>
+                <Table.Th>Tài liệu / Đường dẫn</Table.Th>
+                <Table.Th style={{ width: "150px" }}>Ngày tải</Table.Th>
+                <Table.Th style={{ width: "130px" }}>Nguồn</Table.Th>
+                <Table.Th style={{ width: "110px" }}>Định dạng</Table.Th>
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
-      </Table.ScrollContainer>
+            </Table.Thead>
+            <Table.Tbody>
+              {filteredRows.length === 0 ? (
+                <Table.Tr>
+                  <Table.Td colSpan={7} className="text-center py-6 text-text-muted text-xs">
+                    Không có tài liệu nào thuộc bộ lọc này.
+                  </Table.Td>
+                </Table.Tr>
+              ) : (
+                filteredRows.map((row) => {
+                  const isSupporter = row.uploaderRole === "supporter" || row.uploaderRole === "admin";
+                  const isStudent = row.uploaderRole === "student";
+
+                  return (
+                    <Table.Tr key={row.key} className={isSupporter ? "bg-brand-soft/5 hover:bg-brand-soft/10" : undefined}>
+                      <Table.Td>
+                        <Text size="xs" fw={600} className="font-mono">{row.versionLabel}</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Badge
+                          size="sm"
+                          variant="light"
+                          color={isSupporter ? "violet" : row.contextLabel.includes("chính") ? "cyan" : "blue"}
+                          radius="sm"
+                        >
+                          {row.contextLabel}
+                        </Badge>
+                      </Table.Td>
+                      <Table.Td>
+                        {isSupporter ? (
+                          <Badge
+                            size="sm"
+                            variant="filled"
+                            color="violet"
+                            radius="sm"
+                            className="font-body text-xs"
+                          >
+                            Supporter
+                          </Badge>
+                        ) : isStudent ? (
+                          <Badge
+                            size="sm"
+                            variant="light"
+                            color="teal"
+                            radius="sm"
+                            className="font-body text-xs"
+                          >
+                            Sinh viên
+                          </Badge>
+                        ) : (
+                          <Badge size="sm" variant="light" color="gray" radius="sm">
+                            {row.uploaderLabel}
+                          </Badge>
+                        )}
+                      </Table.Td>
+                      <Table.Td>
+                        {row.hasAction ? (
+                          <Anchor
+                            href={row.url ?? undefined}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            underline="always"
+                            color="brand"
+                            className="hover:text-brand-hover transition-colors break-all whitespace-normal block text-xs font-medium"
+                            style={{ maxWidth: "450px" }}
+                          >
+                            {row.displayName}
+                          </Anchor>
+                        ) : (
+                          <Group gap="xs" wrap="nowrap">
+                            <Lock className="w-3.5 h-3.5 text-text-muted shrink-0" />
+                            <Text c="dimmed" className="break-all whitespace-normal block text-xs" style={{ maxWidth: "450px" }}>
+                              {row.displayName}
+                            </Text>
+                          </Group>
+                        )}
+                      </Table.Td>
+                      <Table.Td><Text size="xs" c="dimmed">{formatDate(row.createdAt)}</Text></Table.Td>
+                      <Table.Td><Text size="xs">{row.sourceLabel}</Text></Table.Td>
+                      <Table.Td><Text size="xs" className="font-mono uppercase">{row.formatLabel}</Text></Table.Td>
+                    </Table.Tr>
+                  );
+                })
+              )}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+      </div>
     </div>
   );
 }
@@ -198,7 +286,7 @@ function buildSupportFlowRows(units: DocumentUnit[]): DocumentRow[] {
     unit.files.map((file) => ({
       ...buildCommonRow(unit, file),
       versionLabel: `v${String(unit.version_no).padStart(2, "0")}`,
-      contextLabel: file.doc_type_label ?? (file.is_primary ? "Chính" : "Đính kèm"),
+      contextLabel: file.doc_type_label ?? (file.is_primary ? "Tài liệu chính" : "Output hỗ trợ"),
     })),
   );
 }
@@ -227,12 +315,17 @@ function buildCommonRow(unit: DocumentUnit | ExternalFeedbackUnit, file: Documen
   const url = file.file_url || file.download_url;
 
   let uploaderLabel = "—";
+  let uploaderRole: "student" | "supporter" | "admin" | "other" = "other";
+
   if (file.uploaded_by_role === "user") {
-    uploaderLabel = "Người dùng";
+    uploaderLabel = "Sinh viên";
+    uploaderRole = "student";
   } else if (file.uploaded_by_role === "supporter") {
     uploaderLabel = "Supporter";
+    uploaderRole = "supporter";
   } else if (file.uploaded_by_role === "admin") {
     uploaderLabel = "Admin";
+    uploaderRole = "admin";
   } else if (file.uploaded_by_name) {
     uploaderLabel = file.uploaded_by_name;
   } else if (file.source_kind === "generated") {
@@ -242,11 +335,14 @@ function buildCommonRow(unit: DocumentUnit | ExternalFeedbackUnit, file: Documen
     const userDocTypes = ["intake_document", "revision_document", "revision_attachment", "external_feedback", "external_evidence"];
     const supporterDocTypes = ["supporter_output", "supporter_attachment"];
     if (file.doc_type && userDocTypes.includes(file.doc_type)) {
-      uploaderLabel = "Người dùng";
+      uploaderLabel = "Sinh viên";
+      uploaderRole = "student";
     } else if (file.doc_type && supporterDocTypes.includes(file.doc_type)) {
       uploaderLabel = "Supporter";
+      uploaderRole = "supporter";
     } else if (file.source_kind === "drive") {
-      uploaderLabel = "Người dùng";
+      uploaderLabel = "Sinh viên";
+      uploaderRole = "student";
     }
   }
 
@@ -260,6 +356,7 @@ function buildCommonRow(unit: DocumentUnit | ExternalFeedbackUnit, file: Documen
     versionLabel: "",
     contextLabel: "",
     uploaderLabel,
+    uploaderRole,
     createdAt: file.created_at ?? "",
   };
 }

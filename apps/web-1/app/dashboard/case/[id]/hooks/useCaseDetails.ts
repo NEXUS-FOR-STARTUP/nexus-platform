@@ -37,7 +37,17 @@ export function useCaseDetails(id: string) {
   });
 
   const updateSettingsMutation = useMutation({
-    mutationFn: async (payload: { team_name?: string; school?: string; course_context?: string; group_no?: string }) => {
+    mutationFn: async (payload: {
+      team_name?: string;
+      school?: string;
+      course_context?: string;
+      group_no?: string;
+      contact?: Record<string, any>;
+      idea?: Record<string, any>;
+      current_blocker?: string;
+      support_needs?: Record<string, any>;
+      boundary_confirmations?: string[];
+    }) => {
       const response = await apiClient.put(`/cases/${id}/settings`, payload);
       return response.data;
     },

@@ -777,7 +777,7 @@ export async function findSupporterById(id: string) {
 export async function listAllSupporters() {
   return await prisma.user.findMany({
     where: {
-      OR: [{ role: "supporter" }, { role: "admin" }],
+      role: "supporter",
     },
     select: {
       id: true,

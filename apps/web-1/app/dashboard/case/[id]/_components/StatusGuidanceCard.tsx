@@ -129,21 +129,25 @@ export default function StatusGuidanceCard({
       );
     }
 
-    case "revision_submitted":
+    case "revision_submitted": {
+      const hasSupporter = !!(caseData.assigned_supporter_auth_user_id || caseData.assigned_supporter?.name);
       return (
         <Alert
           variant="light"
           color="blue"
           radius="md"
-          title="Bản sửa đổi đã gửi thành công — Chờ thẩm định"
+          title={hasSupporter ? "Bản sửa đổi đã gửi thành công — Chờ thẩm định" : "Bản sửa đổi đã gửi thành công — Chờ Admin phân công"}
           icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
           className="animate-fade-in font-body text-xs shrink-0"
         >
           <p className="text-text-muted text-xs leading-relaxed">
-            Supporter đang tiến hành thẩm định bản sửa đổi mới nhất của bạn.
+            {hasSupporter
+              ? "Supporter đang tiến hành thẩm định bản sửa đổi mới nhất của bạn."
+              : "Bản sửa đổi đã được ghi nhận. Ban tổ chức (Admin) đang phân công Supporter chuyên môn thẩm định bản mới này."}
           </p>
         </Alert>
       );
+    }
 
     case "closed":
       return (
@@ -226,6 +230,7 @@ export default function StatusGuidanceCard({
           title={isFree ? "Nâng cấp lên đánh giá chuyên sâu" : "Chờ thanh toán dịch vụ"}
           icon={isFree ? <Zap className="w-4.5 h-4.5 shrink-0" /> : <Clock className="w-4.5 h-4.5 shrink-0" />}
           className="animate-fade-in font-body text-xs shrink-0"
+          styles={{ wrapper: { alignItems: "center" } }}
         >
           <div className="flex items-center justify-between gap-4">
             <p className="text-text-muted text-xs leading-relaxed">
@@ -255,14 +260,17 @@ export default function StatusGuidanceCard({
           variant="light"
           color="blue"
           radius="md"
-          title="Cần cập nhật thông tin hồ sơ"
           icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
           className="animate-fade-in font-body text-xs shrink-0"
+          styles={{ wrapper: { alignItems: "center" } }}
         >
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-text-muted text-xs leading-relaxed">
-              Vui lòng cập nhật thông tin hồ sơ khởi nghiệp trước khi gửi để Supporter có thể đánh giá chính xác.
-            </p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-0.5">
+              <div className="mantine-Alert-title mb-0.5">Cần cập nhật thông tin hồ sơ</div>
+              <p className="text-text-muted text-xs leading-relaxed">
+                Vui lòng cập nhật thông tin hồ sơ khởi nghiệp trước khi gửi để Supporter có thể đánh giá chính xác.
+              </p>
+            </div>
             {onOpenIntake && (
               <Button
                 size="sm"

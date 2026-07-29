@@ -78,7 +78,7 @@ export async function createCaseHandler(c: Context) {
 }
 
 // ---------------------------------------------------------------------------
-// GET /api/cases/supporters — List supporters/admins (Admin only)
+// GET /api/cases/supporters — List assignable supporters (Admin only)
 // ---------------------------------------------------------------------------
 
 export async function listSupportersHandler(c: Context) {

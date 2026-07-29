@@ -1,3 +1,5 @@
+"use client";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { apiClient } from "@/lib/api-client";
@@ -56,6 +58,13 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
 
   const [draftValues, setDraftValues] = useState<IntakeData>(baseInitialValues);
 
+  const form = useForm({
+    defaultValues: draftValues,
+    onSubmit: async ({ value }) => {
+      await submitMutation.mutateAsync(value);
+    },
+  });
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       // UPDATE mode (caseId exists): skip localStorage, rely on initialData from API
@@ -90,7 +99,9 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
       return response.data;
     },
     onSuccess: (result) => {
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+      }
       queryClient.invalidateQueries({ queryKey: ["cases"] });
       const redirectId = caseId || result.id;
       queryClient.invalidateQueries({ queryKey: ["case", redirectId] });
@@ -98,22 +109,9 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
     },
   });
 
-  const form = useForm({
-    defaultValues: draftValues,
-    onSubmit: async ({ value }) => {
-      await submitMutation.mutateAsync(value);
-    },
-  });
-
-  useEffect(() => {
-    if (isLoaded) {
-      form.reset(draftValues);
-    }
-  }, [isLoaded, draftValues, form]);
-
+  // Only persist draft for CREATE mode (new cases). UPDATE mode uses
+  // initialData from the case API, not localStorage.
   const saveDraft = (values: IntakeData) => {
-    // Only persist draft for CREATE mode (new cases). UPDATE mode uses
-    // initialData from the case API, not localStorage.
     if (typeof window !== "undefined" && !caseId) {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(values));
     }
@@ -123,10 +121,16 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
     if (typeof window !== "undefined") {
       localStorage.removeItem(LOCAL_STORAGE_KEY);
     }
-    const resetValues: IntakeData = {
-      ...INITIAL_VALUES,
-      package_id: packageId,
-    };
+    const resetValues: IntakeData = initialData
+      ? {
+          ...INITIAL_VALUES,
+          ...initialData,
+          package_id: packageId || initialData.package_id || "",
+        }
+      : {
+          ...INITIAL_VALUES,
+          package_id: packageId,
+        };
     setDraftValues(resetValues);
     form.reset(resetValues);
   };

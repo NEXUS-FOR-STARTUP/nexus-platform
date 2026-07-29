@@ -15,6 +15,7 @@ import CreditPanel from "./_components/CreditPanel";
 import CaseOverviewPanel from "./_components/CaseOverviewPanel";
 import CreditQuantityModal from "./_components/CreditQuantityModal";
 
+
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
 import StudentDocumentUploadModal from "./_components/StudentDocumentUploadModal";
 import StatusGuidanceCard from "./_components/StatusGuidanceCard";
@@ -32,7 +33,6 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const {
     caseData,
     intakeSnapshot,
-    teamFitReport,
     documentWorkspace,
     isLoading,
     error,
@@ -71,11 +71,12 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const isPreSubmission = stage === "intake_pending" || stage === "intake_ready";
   const isIntakeReady = stage === "intake_ready";
   const isIntakePending = stage === "intake_pending";
+  const canSubmitRevision = ["report_ready", "waiting_for_revision", "need_more_information"].includes(stage);
 
   const isTabAvailable = (tab: WorkspaceTab): boolean => {
     if (!isPreSubmission) return true;
-    if (stage === "intake_pending") return tab === "overview" || tab === "settings";
-    if (stage === "intake_ready") return tab === "overview" || tab === "documents" || tab === "settings";
+    if (stage === "intake_pending") return tab === "overview" || tab === "settings" || tab === "credits";
+    if (stage === "intake_ready") return tab === "overview" || tab === "documents" || tab === "settings" || tab === "credits";
     return true;
   };
 
@@ -115,6 +116,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           {activeTab === "overview" && (
             <CaseOverviewPanel
               caseData={caseData}
+              intakeSnapshot={intakeSnapshot}
               onSelectTab={(tab) => setActiveTab(tab)}
               onEditIntake={isIntakeReady ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
               guidanceCard={
@@ -142,14 +144,16 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                     Cập nhật thông tin
                   </Button>
                 )}
-                <Button
-                  size="sm"
-                  color="brand"
-                  className="font-semibold cursor-pointer h-8.5 text-xs"
-                  onClick={() => setIsStudentUploadOpen(true)}
-                >
-                  Tải tài liệu
-                </Button>
+                {canSubmitRevision && (
+                  <Button
+                    size="sm"
+                    color="brand"
+                    className="font-semibold cursor-pointer h-8.5 text-xs"
+                    onClick={() => setIsStudentUploadOpen(true)}
+                  >
+                    Tải tài liệu
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   color="brand"
@@ -180,7 +184,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
 
           {activeTab === "timeline" && <ActivityTimeline caseData={caseData} />}
 
-          {activeTab === "settings" && <TabCaseSettings caseData={caseData} />}
+          {activeTab === "settings" && <TabCaseSettings caseData={caseData} intakeSnapshot={intakeSnapshot} />}
         </div>
       </div>
 

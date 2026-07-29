@@ -50,10 +50,7 @@ export async function assignSupporterUseCase(
   if (!unassign) {
     const supporterUser = await findSupporterById(supporterId);
 
-    if (
-      !supporterUser ||
-      (supporterUser.role !== "supporter" && supporterUser.role !== "admin")
-    ) {
+    if (!supporterUser || supporterUser.role !== "supporter") {
       throw new AppError(400, "VALIDATION_ERROR", "Supporter được gán không hợp lệ");
     }
     supporterName = supporterUser.name;
