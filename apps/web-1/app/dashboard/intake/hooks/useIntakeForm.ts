@@ -93,6 +93,7 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
       localStorage.removeItem(LOCAL_STORAGE_KEY);
       queryClient.invalidateQueries({ queryKey: ["cases"] });
       const redirectId = caseId || result.id;
+      queryClient.invalidateQueries({ queryKey: ["case", redirectId] });
       router.push(`/dashboard/case/${redirectId}`);
     },
   });
