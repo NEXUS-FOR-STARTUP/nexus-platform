@@ -191,14 +191,17 @@ export default function StatusGuidanceCard({
           variant="light"
           color="yellow"
           radius="md"
-          title="Chờ thanh toán dịch vụ"
           icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
           className="animate-fade-in font-body text-xs shrink-0"
+          styles={{ wrapper: { alignItems: "center" } }}
         >
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-text-muted text-xs leading-relaxed">
-              Vui lòng hoàn tất thanh toán để kích hoạt quy trình phản biện.
-            </p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-0.5">
+              <div className="mantine-Alert-title mb-0.5">Chờ thanh toán dịch vụ</div>
+              <p className="text-text-muted text-xs leading-relaxed">
+                Vui lòng hoàn tất thanh toán để kích hoạt quy trình phản biện.
+              </p>
+            </div>
             {onOpenPayment && (
               <Button
                 size="sm"
@@ -219,14 +222,17 @@ export default function StatusGuidanceCard({
           variant="light"
           color="blue"
           radius="md"
-          title="Cần cập nhật thông tin hồ sơ"
           icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
           className="animate-fade-in font-body text-xs shrink-0"
+          styles={{ wrapper: { alignItems: "center" } }}
         >
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-text-muted text-xs leading-relaxed">
-              Vui lòng cập nhật thông tin hồ sơ khởi nghiệp trước khi gửi để Supporter có thể đánh giá chính xác.
-            </p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-0.5">
+              <div className="mantine-Alert-title mb-0.5">Cần cập nhật thông tin hồ sơ</div>
+              <p className="text-text-muted text-xs leading-relaxed">
+                Vui lòng cập nhật thông tin hồ sơ khởi nghiệp trước khi gửi để Supporter có thể đánh giá chính xác.
+              </p>
+            </div>
             {onOpenIntake && (
               <Button
                 size="sm"

@@ -76,8 +76,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
 
   const isTabAvailable = (tab: WorkspaceTab): boolean => {
     if (!isPreSubmission) return true;
-    if (stage === "intake_pending") return tab === "overview" || tab === "settings";
-    if (stage === "intake_ready") return tab === "overview" || tab === "documents" || tab === "settings";
+    if (stage === "intake_pending") return tab === "overview" || tab === "settings" || tab === "credits";
+    if (stage === "intake_ready") return tab === "overview" || tab === "documents" || tab === "settings" || tab === "credits";
     return true;
   };
 
@@ -117,6 +117,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           {activeTab === "overview" && (
             <CaseOverviewPanel
               caseData={caseData}
+              intakeSnapshot={intakeSnapshot}
               onSelectTab={(tab) => setActiveTab(tab)}
               onEditIntake={isIntakeReady ? () => setIntakeFormOpened(true) : undefined}
               guidanceCard={
@@ -183,7 +184,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
 
           {activeTab === "timeline" && <ActivityTimeline caseData={caseData} />}
 
-          {activeTab === "settings" && <TabCaseSettings caseData={caseData} />}
+          {activeTab === "settings" && <TabCaseSettings caseData={caseData} intakeSnapshot={intakeSnapshot} />}
         </div>
       </div>
 

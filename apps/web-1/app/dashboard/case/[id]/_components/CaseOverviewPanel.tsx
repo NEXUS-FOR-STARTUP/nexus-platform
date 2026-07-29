@@ -38,18 +38,18 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
     label: caseData.user_facing_stage,
     color: "default",
   };
-  const intake = intakeSnapshot || {};
+  const intake = (intakeSnapshot as any) || {};
+  const teamFit = intake.team_fit_snapshot || (caseData as any).team_fit_report || {};
   const contact = intake.contact || {};
-  const idea = intake.idea_context || intake.idea || {};
+  const idea = intake.idea_context || intake.idea || intake.idea_snapshot || teamFit.idea_snapshot || {};
   const teamCtx = intake.team_context || {};
   const situations = intake.current_situations || {};
-  const members = intake.members || (caseData as any).members || [];
-  const teamFit = intake.team_fit_snapshot || {};
+  const members = (intake.members && intake.members.length > 0) ? intake.members : ((caseData as any).members || []);
 
   // Fallbacks from case root fields
-  const schoolName = caseData.school || teamCtx.school || "Chưa cập nhật";
-  const groupName = caseData.team_name || teamCtx.project_name || "Chưa cập nhật";
-  const courseContext = caseData.course_context || teamCtx.course_context || "Chưa cập nhật";
+  const schoolName = caseData.school || teamCtx.school || intake.school || "Chưa cập nhật";
+  const groupName = caseData.team_name || teamCtx.project_name || intake.project_name || intake.team_name || "Chưa cập nhật";
+  const courseContext = caseData.course_context || teamCtx.course_context || intake.course_context || "Chưa cập nhật";
 
   return (
     <div className="space-y-6 animate-fade-in font-body pb-8">
@@ -87,7 +87,8 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          {/* Tạm ẩn nút Xem tài liệu bài làm theo yêu cầu */}
+          {/* <div className="flex items-center gap-3 shrink-0">
             {onEditIntake ? (
               <button
                 onClick={onEditIntake}
@@ -105,7 +106,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
                 <span>Xem tài liệu bài làm</span>
               </button>
             ) : null}
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -188,7 +189,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
                 <span>Lĩnh vực hoạt động:</span>
               </div>
               <p className="text-text-app font-medium leading-relaxed pl-5">
-                {idea.field || "Chưa xác định lĩnh vực"}
+                {idea.field || intake.field || "Chưa xác định lĩnh vực"}
               </p>
             </div>
 
@@ -198,7 +199,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
                 <span>Khách hàng mục tiêu:</span>
               </div>
               <p className="text-text-app font-medium leading-relaxed pl-5">
-                {idea.target_customer || idea.targetCustomer || "Chưa mô tả đối tượng mục tiêu"}
+                {idea.target_customer || idea.targetCustomer || intake.target_customer || intake.targetCustomer || "Chưa mô tả đối tượng mục tiêu"}
               </p>
             </div>
           </div>
@@ -211,7 +212,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
                 <span>Vấn đề cốt lõi (Problem):</span>
               </div>
               <p className="text-text-app font-medium leading-relaxed pl-5">
-                {idea.problem || "Chưa liệt kê vấn đề thực tế"}
+                {idea.problem || intake.problem || "Chưa liệt kê vấn đề thực tế"}
               </p>
             </div>
 
@@ -221,20 +222,20 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, onSelectTa
                 <span>Giải pháp đề xuất (Solution):</span>
               </div>
               <p className="text-text-app font-medium leading-relaxed pl-5">
-                {idea.solution || "Chưa có mô tả giải pháp"}
+                {idea.solution || intake.solution || "Chưa có mô tả giải pháp"}
               </p>
             </div>
           </div>
         </div>
 
         {/* MVP Product Model */}
-        {idea.mvp && (
+        {(idea.mvp || intake.mvp) && (
           <div className="bg-brand-soft/10 border border-brand/20 p-4 rounded-lg space-y-1 text-xs">
             <span className="font-bold text-brand flex items-center gap-1.5">
               <Sparkles className="w-4 h-4" />
               Sản phẩm khả thi tối thiểu (MVP):
             </span>
-            <p className="text-text-app leading-relaxed pl-5 font-medium">{idea.mvp}</p>
+            <p className="text-text-app leading-relaxed pl-5 font-medium">{idea.mvp || intake.mvp}</p>
           </div>
         )}
       </div>

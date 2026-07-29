@@ -3,8 +3,10 @@ import { asNonEmptyString } from "../../../shared/infrastructure/http-helpers.js
 import { isFinalCaseStage } from "../domain/case.types.js";
 import {
   findCaseByIdWithMembers,
+  findFirstIntakeUnit,
   updateCaseSettings,
 } from "../infrastructure/persistence/case.repository.js";
+import { prisma } from "../../../db.js";
 import type { UpdateCaseSettingsRequest } from "./cases.dto.js";
 
 export async function updateCaseSettingsUseCase(
@@ -97,10 +99,62 @@ export async function updateCaseSettingsUseCase(
       ? existingCase.group_no
       : asNonEmptyString(body.group_no, 1) || null;
 
-  return await updateCaseSettings(caseId, {
+  const updatedCase = await updateCaseSettings(caseId, {
     team_name,
     school,
     course_context,
     group_no,
   });
+
+  // Also update intake snapshot JSON if contact/idea/intake fields are provided
+  if (body.contact || body.idea || body.current_blocker || body.support_needs) {
+    const intakeUnit = await findFirstIntakeUnit(caseId);
+    let parsedContent: Record<string, any> = {};
+    if (intakeUnit?.content) {
+      try {
+        parsedContent = JSON.parse(intakeUnit.content);
+      } catch {
+        parsedContent = {};
+      }
+    }
+
+    const mergedContent = {
+      ...parsedContent,
+      team_context: {
+        ...(parsedContent.team_context || {}),
+        project_name: team_name || parsedContent.team_context?.project_name,
+        group_no: group_no || parsedContent.team_context?.group_no,
+        school: school || parsedContent.team_context?.school,
+        course_context: course_context || parsedContent.team_context?.course_context,
+      },
+      contact: {
+        ...(parsedContent.contact || {}),
+        ...(body.contact || {}),
+      },
+      idea_context: {
+        ...(parsedContent.idea_context || parsedContent.idea || {}),
+        ...(body.idea || {}),
+      },
+      idea: {
+        ...(parsedContent.idea || parsedContent.idea_context || {}),
+        ...(body.idea || {}),
+      },
+      current_blocker: body.current_blocker !== undefined ? body.current_blocker : parsedContent.current_blocker,
+      support_needs: {
+        ...(parsedContent.support_needs || {}),
+        ...(body.support_needs || {}),
+      },
+      school: school || parsedContent.school,
+      course_context: course_context || parsedContent.course_context,
+    };
+
+    if (intakeUnit) {
+      await prisma.lifecycleUnit.update({
+        where: { id: intakeUnit.id },
+        data: { content: JSON.stringify(mergedContent) },
+      });
+    }
+  }
+
+  return updatedCase;
 }

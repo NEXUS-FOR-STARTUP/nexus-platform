@@ -108,4 +108,25 @@ export interface UpdateCaseSettingsRequest {
   school?: string;
   course_context?: string;
   group_no?: string;
+  contact?: {
+    full_name?: string;
+    student_code?: string;
+    team_role?: string;
+    email?: string;
+    zalo?: string;
+    phone?: string;
+  };
+  idea?: {
+    field?: string;
+    targetCustomer?: string;
+    target_customer?: string;
+    problem?: string;
+    solution?: string;
+    mvp?: string;
+  };
+  current_blocker?: string;
+  support_needs?: {
+    primary_need?: string;
+    extra_notes?: string;
+  };
 }

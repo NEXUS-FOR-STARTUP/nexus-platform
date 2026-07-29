@@ -63,7 +63,7 @@ export default function WorkspaceSidebar({
           },
         ]
       : []),
-    ...(!isPreSubmission && !hideCredits
+    ...(!hideCredits
       ? [
           {
             id: "credits" as const,
