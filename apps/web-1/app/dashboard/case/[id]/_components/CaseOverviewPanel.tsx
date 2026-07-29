@@ -16,7 +16,7 @@ import {
   MessageSquareCode,
   Send,
   HelpCircle,
-  FileText
+  FileText,
 } from "lucide-react";
 
 interface CaseOverviewPanelProps {
@@ -46,7 +46,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
   const groupName = caseData.team_name || teamCtx.project_name || intake.project_name || intake.team_name || "Chưa cập nhật";
   const courseContext = caseData.course_context || teamCtx.course_context || intake.course_context || "Chưa cập nhật";
   const groupNo = caseData.group_no || teamCtx.group_no || "";
-  const teamStatusSummary = teamCtx.team_status_summary || intake.current_blocker || "";
+  const currentBlocker = intake.current_blocker || teamCtx.team_status_summary || (caseData as any).current_blocker || "";
 
   const contactName = contact.full_name || (caseData.owner as any)?.name || "Chưa cập nhật";
   const studentCode = contact.student_code || "Chưa cập nhật";
@@ -96,14 +96,6 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
               <span className="text-text-muted text-xs font-medium block">Lớp học / Môn học / Cuộc thi:</span>
               <p className="font-semibold text-text-app mt-1">{courseContext}</p>
             </div>
-            {teamStatusSummary && (
-              <div className="sm:col-span-2 pt-2 border-t border-border-app/40 mt-1">
-                <span className="text-text-muted text-xs font-medium block">Hiện trạng & nút thắt nhóm:</span>
-                <p className="font-normal text-text-app mt-1.5 leading-relaxed bg-surface-soft/40 p-3 rounded-md border border-border-app/40 text-sm">
-                  {teamStatusSummary}
-                </p>
-              </div>
-            )}
           </div>
         </div>
 
@@ -152,7 +144,22 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
         </div>
       </div>
 
-      {/* ── 2. Startup Idea Detailed Breakdown ── */}
+      {/* ── 2. Nhóm đang kẹt ở đâu? ── */}
+      <div className="bg-surface-app border border-border-app rounded-xl p-5.5 space-y-3.5 shadow-xs">
+        <div className="flex items-center gap-2 pb-3 border-b border-border-app/60">
+          <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+          <h3 className="font-heading text-base font-bold text-text-app">Nhóm đang kẹt ở đâu?</h3>
+        </div>
+
+        <div>
+          <span className="text-text-muted text-xs font-medium block mb-1.5">Điểm kẹt hiện tại:</span>
+          <p className="font-normal text-text-app leading-relaxed bg-surface-soft/60 p-4 rounded-xl border border-border-app/60 text-sm">
+            {currentBlocker || "Chưa cập nhật điểm kẹt hiện tại."}
+          </p>
+        </div>
+      </div>
+
+      {/* ── 3. Startup Idea Detailed Breakdown ── */}
       <div className="bg-surface-app border border-border-app rounded-xl p-6 space-y-5 shadow-xs">
         <div className="flex items-center gap-2 pb-3 border-b border-border-app/60">
           <Lightbulb className="w-5 h-5 text-brand shrink-0" />
@@ -208,7 +215,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
         )}
       </div>
 
-      {/* ── 3. Nhu cầu hỗ trợ chuyên môn & Kỳ vọng Supporter ── */}
+      {/* ── 4. Nhu cầu hỗ trợ chuyên môn & Kỳ vọng Supporter ── */}
       <div className="bg-surface-app border border-border-app rounded-xl p-6 space-y-4.5 shadow-xs">
         <div className="flex items-center gap-2 pb-3 border-b border-border-app/60">
           <MessageSquareCode className="w-5 h-5 text-brand shrink-0" />
