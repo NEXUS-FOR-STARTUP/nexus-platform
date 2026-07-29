@@ -116,7 +116,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               caseData={caseData}
               intakeSnapshot={intakeSnapshot}
               onSelectTab={(tab) => setActiveTab(tab)}
-              onEditIntake={() => setActiveTab("settings")}
+              onEditIntake={() => router.push(`/dashboard/intake?caseId=${id}`)}
               guidanceCard={
                 <StatusGuidanceCard
                   caseData={caseData}
@@ -137,7 +137,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                     size="sm"
                     color="brand"
                     className="font-semibold cursor-pointer h-8.5 text-xs"
-                    onClick={() => setActiveTab("settings")}
+                    onClick={() => router.push(`/dashboard/intake?caseId=${id}`)}
                   >
                     Cập nhật thông tin
                   </Button>
