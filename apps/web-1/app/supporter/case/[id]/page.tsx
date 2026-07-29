@@ -25,7 +25,7 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
   const router = useRouter();
 
   const { data: session, isPending: isAuthPending } = useSession();
-  const { caseData, intakeSnapshot, teamFitReport, documentWorkspace, isLoading, error } = useCaseDetails(id);
+  const { caseData, intakeSnapshot, documentWorkspace, isLoading, error } = useCaseDetails(id);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("overview");
   const [isOutputUploadOpen, setIsOutputUploadOpen] = useState(false);
 
@@ -69,7 +69,7 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
       />
 
       <div className={`flex-grow flex flex-col h-full min-w-0 p-6 space-y-6 ${activeTab === "discussion" ? "overflow-hidden" : "overflow-y-auto"}`}>
-        {activeTab !== "discussion" && activeTab !== "overview" && (
+        {activeTab !== "discussion" && (
           <CaseStatusHeader
             caseData={caseData}
             versions={[]}
@@ -89,6 +89,7 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
           {activeTab === "overview" && (
             <CaseOverviewPanel
               caseData={caseData}
+              intakeSnapshot={intakeSnapshot}
               onSelectTab={(tab) => setActiveTab(tab)}
             />
           )}
