@@ -63,7 +63,7 @@ export default function CreditPanel({
             <Coins className="w-7 h-7" />
           </div>
           <div className="flex-1 text-center sm:text-left">
-            <h2 className="text-lg font-bold text-text-app">Mua credit để bắt đầu</h2>
+            <h2 className="text-lg font-semibold text-text-app">Mua credit để bắt đầu</h2>
             <p className="text-sm text-text-muted mt-1 max-w-md">
               Mua credit để mở khoá đầy đủ tính năng đánh giá chuyên sâu từ Supporter.
               Mỗi credit tương ứng một lượt đánh giá.

@@ -21,6 +21,7 @@ import {
   vetoHandler,
   completeCaseHandler,
   upgradePackageHandler,
+  resubmitCaseHandler,
 } from "./cases.controller.js";
 
 export const casesRouter = new Hono();
@@ -46,3 +47,4 @@ casesRouter.post("/:id/intake", intakeHandler);
 casesRouter.post("/:id/veto", vetoHandler);
 casesRouter.post("/:id/complete", completeCaseHandler);
 casesRouter.post("/:id/upgrade-package", upgradePackageHandler);
+casesRouter.post("/:id/resubmit", resubmitCaseHandler);

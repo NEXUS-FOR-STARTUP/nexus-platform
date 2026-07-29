@@ -473,10 +473,10 @@ export default function AuthPanel() {
               className="flex flex-col items-center justify-center p-2.5 rounded-lg border border-border-app bg-surface-soft hover:bg-brand-soft/20 hover:border-brand/30 transition-all cursor-pointer text-center group font-body"
               disabled={isLoading}
             >
-              <span className="font-heading font-bold text-xs text-text-app group-hover:text-brand transition-colors">
+              <span className="font-heading font-semibold text-xs text-text-app group-hover:text-brand transition-colors">
                 Student
               </span>
-              <span className="text-[9px] text-text-subtle mt-0.5 break-all">
+              <span className="text-base text-text-subtle mt-0.5 break-all">
                 student@example.com
               </span>
             </button>
@@ -486,10 +486,10 @@ export default function AuthPanel() {
               className="flex flex-col items-center justify-center p-2.5 rounded-lg border border-border-app bg-surface-soft hover:bg-brand-soft/20 hover:border-brand/30 transition-all cursor-pointer text-center group font-body"
               disabled={isLoading}
             >
-              <span className="font-heading font-bold text-xs text-text-app group-hover:text-brand transition-colors">
+              <span className="font-heading font-semibold text-xs text-text-app group-hover:text-brand transition-colors">
                 Supporter
               </span>
-              <span className="text-[9px] text-text-subtle mt-0.5 break-all">
+              <span className="text-base text-text-subtle mt-0.5 break-all">
                 supporter@example.com
               </span>
             </button>
@@ -499,10 +499,10 @@ export default function AuthPanel() {
               className="flex flex-col items-center justify-center p-2.5 rounded-lg border border-border-app bg-surface-soft hover:bg-brand-soft/20 hover:border-brand/30 transition-all cursor-pointer text-center group font-body"
               disabled={isLoading}
             >
-              <span className="font-heading font-bold text-xs text-text-app group-hover:text-brand transition-colors">
+              <span className="font-heading font-semibold text-xs text-text-app group-hover:text-brand transition-colors">
                 Admin
               </span>
-              <span className="text-[9px] text-text-subtle mt-0.5 break-all">
+              <span className="text-base text-text-subtle mt-0.5 break-all">
                 admin@example.com
               </span>
             </button>

@@ -25,12 +25,12 @@ export default function ErrorPage({ error, reset }: ErrorProps) {
 
         {/* Error content */}
         <div className="space-y-2">
-          <h1 className="font-heading text-xl font-bold">Đã xảy ra lỗi hệ thống</h1>
+          <h1 className="font-heading text-xl font-semibold">Đã xảy ra lỗi hệ thống</h1>
           <p className="text-xs text-text-muted leading-relaxed">
             Hệ thống gặp sự cố ngoài ý muốn khi tải trang này. Bạn có thể thử tải lại hoặc quay về trang chủ.
           </p>
           {error.digest && (
-            <p className="text-[10px] text-text-subtle font-mono mt-1">
+            <p className="text-base text-text-subtle font-mono mt-1">
               Mã sự cố: {error.digest}
             </p>
           )}

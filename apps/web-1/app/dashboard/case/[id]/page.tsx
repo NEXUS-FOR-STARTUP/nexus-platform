@@ -96,7 +96,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
       />
 
       <div className={`flex-grow flex flex-col h-full min-w-0 p-6 space-y-6 ${activeTab === "discussion" ? "overflow-hidden" : "overflow-y-auto"}`}>
-        {activeTab !== "discussion" && activeTab !== "overview" && (
+        {activeTab !== "discussion" && (
           <CaseStatusHeader
             caseData={caseData}
             versions={[]}
@@ -126,7 +126,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                   openRequestsForMoreInfo={null}
                   onSelectTab={(tab) => setActiveTab(tab)}
                   onOpenPayment={isIntakePending ? () => setCreditBuyOpened(true) : undefined}
-                  onOpenIntake={isIntakeReady ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
+                  onOpenIntake={(isIntakeReady || stage === "rejected") ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
                 />
               }
             />

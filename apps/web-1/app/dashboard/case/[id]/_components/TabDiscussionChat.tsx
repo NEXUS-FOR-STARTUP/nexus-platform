@@ -155,7 +155,7 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
           <span className="text-xs font-semibold text-text-app tracking-wide">Trao đổi</span>
           {messages.length > 0 && (
             <span
-              className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+              className="text-xs font-semibold px-1.5 py-0.5 rounded-full"
               style={{ background: "var(--color-brand-soft)", color: "var(--color-brand)" }}
             >
               {messages.length}
@@ -197,7 +197,7 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
             </div>
             <div className="text-center">
               <p className="text-xs font-semibold text-text-app mb-0.5">Chưa có trao đổi nào</p>
-              <p className="text-[11px] text-text-muted max-w-[260px] leading-relaxed">
+              <p className="text-base text-text-muted max-w-[260px] leading-relaxed">
                 Đây là nơi nhóm và Supporter phối hợp trong suốt quá trình phản biện.
               </p>
             </div>
@@ -227,7 +227,7 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
                     <div className="flex items-center gap-3 py-1">
                       <div className="flex-1 h-px" style={{ background: "var(--color-border)" }} />
                       <span
-                        className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full shrink-0"
+                        className="text-xs font-semibold px-2.5 py-0.5 rounded-full shrink-0"
                         style={{
                           background: "var(--color-surface-muted)",
                           color: "var(--color-text-subtle)",
@@ -255,7 +255,7 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
                         <div className={`flex gap-2.5 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
                           {/* Avatar */}
                           <div
-                            className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 mt-5 select-none"
+                            className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0 mt-5 select-none"
                             style={{ background: `hsl(${hue} 60% ${isMe ? "45%" : "50%"})` }}
                           >
                             {initials}
@@ -267,12 +267,12 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
                           >
                             {/* Sender + badge */}
                             <div className={`flex items-center gap-1.5 ${isMe ? "flex-row-reverse" : ""}`}>
-                              <span className="text-[11px] font-semibold text-text-app">
+                              <span className="text-base font-semibold text-text-app">
                                 {displayName}
                               </span>
                               {!isMe && (
                                 <span
-                                  className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${badge.cls}`}
+                                  className={`text-xs font-semibold px-1.5 py-0.5 rounded ${badge.cls}`}
                                 >
                                   {badge.label}
                                 </span>
@@ -305,7 +305,7 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
                                 {msg.content}
                               </p>
                               <p
-                                className="text-[9px] mt-1 select-none"
+                                className="text-base mt-1 select-none"
                                 style={{ textAlign: isMe ? "right" : "left", opacity: 0.6 }}
                               >
                                 {formatTime(msg.created_at)}
@@ -326,7 +326,7 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
       {/* ── Error bar ── */}
       {error && (
         <div
-          className="px-5 py-2 flex items-center gap-2 text-[11px] shrink-0"
+          className="px-5 py-2 flex items-center gap-2 text-base shrink-0"
           style={{ background: "var(--color-danger-soft)", color: "var(--color-danger)" }}
         >
           <AlertCircle className="w-3.5 h-3.5 shrink-0" />
@@ -365,7 +365,6 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
                 input: {
                   background: "transparent",
                   border: "none",
-                  fontSize: 13,
                   lineHeight: "1.5",
                   padding: "6px 0",
                   minHeight: "26px",

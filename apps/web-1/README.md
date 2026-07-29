@@ -1,33 +1,49 @@
 # Web-1
 
-Next.js app bootstrapped with `create-next-app`.
+Next.js 16 product app. Mantine UI v9, TanStack Query v5 / Form v1, Lucide React, Tailwind CSS v4. 3 persona surfaces: student, admin, supporter.
+
+## Tech Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **UI:** Mantine UI v9, Tailwind CSS v4
+- **State:** TanStack Query v5, TanStack Form v1
+- **Icons:** Lucide React
+- **Auth:** Better Auth client (`better-auth/react`)
+- **Charts:** Recharts (via @mantine/charts)
+- **Editor:** TipTap (@mantine/tiptap)
 
 ## Run dev
 
 ```bash
+npm run dev --workspace=apps/web-1
+# or from root:
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Port: `3001`
 
-Edit `app/page.tsx` — page auto-updates.
+## Build
 
-Uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) for [Geist](https://vercel.com/font).
+```bash
+npm run build --workspace=apps/web-1
+```
 
-## Resources
+## Docker
 
-- [Next.js Docs](https://nextjs.org/docs)
-- [Next.js Learn](https://nextjs.org/learn)
-- [Next.js GitHub](https://github.com/vercel/next.js)
+```bash
+docker build -t nexus-web -f apps/web-1/Dockerfile .
+```
 
-## Deploy
+Full guide: `docs/docker-build-push-guide.md`
 
-[Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme)
+## CI/CD
 
-[Deployment docs](https://nextjs.org/docs/app/building-your-application/deploying)
+GitHub Actions workflow: `docs/ci-guide.md`
+
+## Documentation
+
+| Doc | When to Read |
+|-----|-------------|
+| `apps/web-1/AGENTS.md` | Conventions, hooks, data fetching patterns |
+| `docs/docker-build-push-guide.md` | Build/push Docker image |
+| `docs/ci-guide.md` | CI/CD pipeline |

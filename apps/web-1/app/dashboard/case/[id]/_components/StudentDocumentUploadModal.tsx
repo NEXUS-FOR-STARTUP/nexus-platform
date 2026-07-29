@@ -95,7 +95,7 @@ export default function StudentDocumentUploadModal({ isOpen, onClose, caseId }: 
     <Modal
       opened={isOpen}
       onClose={handleClose}
-      title={<span className="font-heading font-bold text-sm text-text-app">Tải tài liệu</span>}
+      title={<span className="font-heading font-semibold text-sm text-text-app">Tải tài liệu</span>}
       size="lg"
       radius="md"
       centered
@@ -135,7 +135,7 @@ export default function StudentDocumentUploadModal({ isOpen, onClose, caseId }: 
               <p className="font-body text-xs font-semibold text-text-app">
                 Tải lên tài liệu bản sửa của nhóm...
               </p>
-              <p className="font-body text-[10px] text-text-muted">
+              <p className="font-body text-base text-text-muted">
                 Hỗ trợ PDF, DOCX, XLSX, PPTX, MD, TXT. Tối đa {MAX_FILE_SIZE_MB}MB mỗi tệp. Tối đa {MAX_FILES} tài liệu.
               </p>
             </div>

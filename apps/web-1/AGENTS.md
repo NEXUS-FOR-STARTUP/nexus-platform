@@ -98,3 +98,10 @@ Client-side only (no middleware guard):
 | recharts (via @mantine/charts) | Charts |
 | @tiptap/react | Rich text editor |
 | dayjs | Date formatting |
+
+## DOCUMENTATION REFERENCE
+
+| Doc | When to Read |
+|-----|-------------|
+| `docs/docker-build-push-guide.md` | Build/push Web Docker image |
+| `docs/ci-guide.md` | CI/CD pipeline, GitHub Actions |

@@ -46,7 +46,7 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
   return (
     <div className="font-body text-text-app max-w-3xl mx-auto space-y-10">
       <div className="space-y-1">
-        <h2 className="text-xl font-bold text-text-app">Xác nhận thông tin hồ sơ</h2>
+        <h2 className="text-xl font-semibold text-text-app">Xác nhận thông tin hồ sơ</h2>
         <p className="text-sm text-text-muted">
           Đây là gói bàn giao để Supporter bắt đầu xử lý. Kiểm tra lại trước khi xác nhận.
         </p>
@@ -60,7 +60,7 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
 
       <div className="space-y-10">
         <div className="space-y-4">
-          <h3 className="text-base font-bold text-brand uppercase tracking-wider">1. Điểm kẹt hiện tại</h3>
+          <h3 className="text-base font-semibold text-brand uppercase tracking-wider">1. Điểm kẹt hiện tại</h3>
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm pl-4">
             <div className="font-semibold text-text-app">Nhóm đang cần gỡ gì lúc này:</div>
             <div className="text-text-app leading-relaxed whitespace-pre-wrap">{getDisplayBlocker(values)}</div>
@@ -68,7 +68,7 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-base font-bold text-brand uppercase tracking-wider">2. Nhu cầu hỗ trợ</h3>
+          <h3 className="text-base font-semibold text-brand uppercase tracking-wider">2. Nhu cầu hỗ trợ</h3>
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm pl-4">
             <div className="font-semibold text-text-app">Nhu cầu hỗ trợ chính:</div>
             <div className="text-text-app">
@@ -101,7 +101,7 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-base font-bold text-brand uppercase tracking-wider">3. Tài liệu đính kèm</h3>
+          <h3 className="text-base font-semibold text-brand uppercase tracking-wider">3. Tài liệu đính kèm</h3>
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-5 gap-x-6 text-sm pl-4">
             {values.documents && values.documents.length > 0 ? (
               values.documents.map((doc: any, index: number) => (
@@ -134,7 +134,7 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-base font-bold text-brand uppercase tracking-wider">4. Hạn chót & gói dịch vụ</h3>
+          <h3 className="text-base font-semibold text-brand uppercase tracking-wider">4. Hạn chót & gói dịch vụ</h3>
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm pl-4">
             <div className="font-semibold text-text-app">Gói phản biện đã chọn:</div>
             <div className="text-text-app">
@@ -152,7 +152,7 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-base font-bold text-brand uppercase tracking-wider">5. Liên hệ</h3>
+          <h3 className="text-base font-semibold text-brand uppercase tracking-wider">5. Liên hệ</h3>
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm pl-4">
             <div className="font-semibold text-text-app">Họ tên & vai trò:</div>
             <div className="text-text-app">
@@ -172,7 +172,7 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-base font-bold text-brand uppercase tracking-wider">6. Metadata nhóm / môn học</h3>
+          <h3 className="text-base font-semibold text-brand uppercase tracking-wider">6. Metadata nhóm / môn học</h3>
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm pl-4">
             <div className="font-semibold text-text-app">Tên đề tài:</div>
             <div className="text-text-app">{values.team_context?.project_name || "N/A"}</div>

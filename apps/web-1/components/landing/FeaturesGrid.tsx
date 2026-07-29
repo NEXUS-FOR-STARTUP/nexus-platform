@@ -60,7 +60,7 @@ export default function FeaturesGrid() {
                     <Icon className="w-5 h-5" />
                   </ThemeIcon>
                   <div className="space-y-1">
-                    <Text className="font-heading font-bold text-sm text-text-app">
+                    <Text className="font-heading font-semibold text-sm text-text-app">
                       {item.title}
                     </Text>
                     <Text className="font-body text-xs text-text-muted leading-relaxed">

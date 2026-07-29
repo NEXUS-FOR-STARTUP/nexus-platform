@@ -19,9 +19,13 @@ import logger from "../../../shared/infrastructure/logger.js";
 
 /** Maps internal_status targets to symflow transition names */
 const SYMFLOW_TRANSITION_MAP: Record<string, string> = {
-  supporter_working: "assign_supporter",
-  completed: "complete",
-  rejected: "reject",
+  accepted_unassigned: "accept_case",
+  assigned: "assign_supporter",
+  supporter_working: "start_work",
+  waiting_user: "request_info",
+  report_ready_to_publish: "publish_report",
+  done: "complete_case",
+  cancelled: "cancel",
 };
 
 export async function updateCaseStatusUseCase(

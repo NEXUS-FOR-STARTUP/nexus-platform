@@ -124,7 +124,7 @@ export default function IntakeFormModal({ caseId, opened, onClose }: IntakeFormM
       opened={opened}
       onClose={handleClose}
       title={
-        <span className="font-heading font-bold text-base text-text-app">
+        <span className="font-heading font-semibold text-base text-text-app">
           Cập nhật thông tin hồ sơ
         </span>
       }

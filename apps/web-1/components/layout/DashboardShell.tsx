@@ -41,9 +41,9 @@ export default function DashboardShell({ children }: DashboardShellProps) {
   const getRoleBadge = (role?: string) => {
     if (role === "admin") {
       return (
-        <Badge color="red" variant="light" className="font-body text-xs py-1">
+        <Badge color="red" variant="light" className="font-body text-sm py-1">
           <span className="flex items-center gap-1">
-            <Shield className="w-3 h-3" />
+            <Shield className="w-3.5 h-3.5" />
             <span>Admin</span>
           </span>
         </Badge>
@@ -51,13 +51,13 @@ export default function DashboardShell({ children }: DashboardShellProps) {
     }
     if (role === "supporter") {
       return (
-        <Badge color="brand" variant="light" className="font-body text-xs py-1">
+        <Badge color="brand" variant="light" className="font-body text-sm py-1">
           Supporter
         </Badge>
       );
     }
     return (
-      <Badge color="gray" variant="light" className="font-body text-xs py-1">
+      <Badge color="gray" variant="light" className="font-body text-sm py-1">
         Student
       </Badge>
     );

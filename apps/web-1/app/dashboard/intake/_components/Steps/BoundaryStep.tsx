@@ -19,7 +19,7 @@ export default function BoundaryStep({ form, values }: BoundaryStepProps) {
   return (
     <div className="space-y-5 font-body">
       <div className="flex items-center gap-1.5 pb-1">
-        <h3 className="font-heading text-base font-bold text-text-app">Cam kết ranh giới</h3>
+        <h3 className="font-heading text-base font-semibold text-text-app">Cam kết ranh giới</h3>
         <Tooltip
           label="Đọc kỹ và tích chọn tất cả các cam kết dưới đây."
           position="top"

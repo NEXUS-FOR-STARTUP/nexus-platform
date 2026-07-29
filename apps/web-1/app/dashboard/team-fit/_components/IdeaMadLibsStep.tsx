@@ -53,7 +53,7 @@ export default function IdeaMadLibsStep({ blanks, onChange, errors = {}, onBlur 
                     hasError={!!error}
                   />
                   {error && (
-                    <span className="text-red-500 dark:text-red-400 text-[10px] leading-tight mt-0.5 whitespace-nowrap">
+                    <span className="text-red-500 dark:text-red-400 text-base leading-tight mt-0.5 whitespace-nowrap">
                       {error}
                     </span>
                   )}
@@ -73,7 +73,7 @@ export default function IdeaMadLibsStep({ blanks, onChange, errors = {}, onBlur 
           </p>
           <ul className="list-disc list-inside space-y-0.5">
             {Object.entries(errors).map(([key, msg]) => (
-              <li key={key} className="text-red-600 dark:text-red-400 text-[11px]">
+              <li key={key} className="text-red-600 dark:text-red-400 text-base">
                 <span className="font-medium">{FIELD_LABELS[key] ?? key}:</span> {msg}
               </li>
             ))}

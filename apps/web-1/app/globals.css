@@ -45,6 +45,8 @@
   --font-sans: var(--font-google-sans-flex), sans-serif;
   --font-heading: var(--font-google-sans-flex), sans-serif;
   --font-body: var(--font-google-sans-flex), sans-serif;
+  --text-xs: 1rem;
+  --text-sm: 1rem;
 }
 
 :root {

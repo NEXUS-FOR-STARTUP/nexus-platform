@@ -36,7 +36,7 @@ export default function CreditActions({ onBuyCredits, onViewHistory, hasCredits 
 
         {/* Future actions slot — add more buttons here without layout break */}
         <div className="flex-1" />
-        <p className="text-[11px] text-text-muted hidden sm:block">
+        <p className="text-base text-text-muted hidden sm:block">
           Mỗi credit tương ứng một lượt đánh giá từ Supporter
         </p>
       </div>

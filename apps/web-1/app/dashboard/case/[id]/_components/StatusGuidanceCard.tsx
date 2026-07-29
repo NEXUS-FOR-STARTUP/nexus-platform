@@ -7,7 +7,7 @@ import {
   Activity, 
   AlertCircle, 
   CheckCircle2, 
-  HelpCircle
+  HelpCircle,
 } from "lucide-react";
 import { Alert, Button } from "@mantine/core";
 
@@ -28,6 +28,16 @@ export default function StatusGuidanceCard({
   const stage = caseData.user_facing_stage;
   const hasInfoRequest = openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0;
 
+  // Extract rejection reason from events when case was rejected
+  const rejectionReason: string | null = (() => {
+    if (stage !== "rejected") return null;
+    const events = caseData.events || [];
+    const rejectionEvent = [...events]
+      .reverse()
+      .find(e => e.event_type === "case_rejected" || e.event_type === "vetoed");
+    return (rejectionEvent?.metadata_json as any)?.reason || null;
+  })();
+
   if (hasInfoRequest) {
     const queryText = openRequestsForMoreInfo[0].metadata_json?.query || "Vui lòng kiểm tra lại tài liệu đã tải lên.";
     return (
@@ -41,7 +51,7 @@ export default function StatusGuidanceCard({
       >
         <div className="space-y-1 flex-grow">
             <p className="font-semibold text-warning-strong">Nội dung yêu cầu:</p>
-            <p className="italic bg-surface-app/50 p-2.5 rounded border border-warning/10 font-body text-[11px] leading-relaxed">
+            <p className="italic bg-surface-app/50 p-2.5 rounded border border-warning/10 font-body leading-relaxed">
               "{queryText}"
             </p>
           </div>
@@ -179,9 +189,29 @@ export default function StatusGuidanceCard({
           icon={<AlertCircle className="w-4.5 h-4.5 shrink-0" />}
           className="animate-fade-in font-body text-xs shrink-0"
         >
-          <p className="text-text-muted text-xs leading-relaxed">
-            Yêu cầu phản biện dự án của bạn không được duyệt. Vui lòng liên hệ với Ban tổ chức hoặc gửi thắc mắc qua phần Thảo luận.
-          </p>
+          <div className="space-y-1 flex-grow">
+            {rejectionReason && (
+              <p className="font-semibold text-danger">Lý do từ chối:</p>
+            )}
+            <p className="text-text-muted text-xs leading-relaxed">
+              {rejectionReason
+                ? rejectionReason
+                : "Yêu cầu phản biện dự án của bạn không được duyệt. Vui lòng liên hệ với Ban tổ chức hoặc gửi thắc mắc qua phần Thảo luận."
+              }
+            </p>
+            {onOpenIntake && (
+              <div className="pt-2">
+                <Button
+                  size="sm"
+                  color="brand"
+                  className="shrink-0 cursor-pointer"
+                  onClick={onOpenIntake}
+                >
+                  Chỉnh sửa hồ sơ để nộp lại
+                </Button>
+              </div>
+            )}
+          </div>
         </Alert>
       );
 

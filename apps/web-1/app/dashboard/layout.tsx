@@ -37,5 +37,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return null;
   }
 
+  // Render-phase role guard: prevent content flash for admin/supporter
+  // on /dashboard routes before useEffect redirect fires
+  const role = (session.user as any).role;
+  if (role === "admin" || role === "supporter") {
+    return null;
+  }
+
   return <DashboardShell>{children}</DashboardShell>;
 }

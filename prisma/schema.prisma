@@ -146,7 +146,7 @@ model Case {
   locked_price                    Int?
   assigned_supporter_auth_user_id String?
   user_facing_stage               String   @default("intake")
-  internal_status                 String   @default("unassigned")
+  internal_status                 String   @default("triage_pending")
   payment_status                  String   @default("unpaid")
   deadline                        DateTime?
   sla_deadline_at                 DateTime?

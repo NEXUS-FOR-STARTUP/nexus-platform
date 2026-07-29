@@ -6,6 +6,7 @@
 - Mô tả một dòng: web đóng gói dịch vụ audit và review tài liệu/ý tưởng để giúp nhóm sinh viên tăng khả năng pass CP1 theo hướng có cấu trúc, nhiều vòng, và có truy vết.
 - Giai đoạn hiện tại: chốt MVP cho flow audit CP1 end-to-end.
 - Trạng thái tài liệu: đang làm việc
+- Research đã thực hiện: logging best practices (Pino + SigNoz/Loki) — xem `plans/reports/research-logging-best-practices-2026.md`
 
 ## 2. Bối cảnh business
 

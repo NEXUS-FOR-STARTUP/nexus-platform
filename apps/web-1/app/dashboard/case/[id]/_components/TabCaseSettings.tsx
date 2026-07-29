@@ -137,7 +137,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
         <div>
           <div className="flex items-center gap-2 text-text-app">
             <Settings className="w-5 h-5 text-brand" />
-            <h3 className="font-heading font-bold text-base">Cấu hình & Cập nhật Hồ sơ Dự án</h3>
+            <h3 className="font-heading font-semibold text-base">Cấu hình & Cập nhật Hồ sơ Dự án</h3>
           </div>
           <p className="text-text-muted text-xs mt-1">
             Cập nhật thông tin đội ngũ, thông tin người đại diện, chi tiết ý tưởng khởi nghiệp và nhu cầu hỗ trợ để Supporter đánh giá chính xác.
@@ -165,7 +165,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
           {/* Section 1: Project & Team Context (Format matching Intake ProjectContextStep) */}
           <div className="bg-surface-app border border-border-app/80 rounded-xl p-5 space-y-4 shadow-xs">
             <div className="flex items-center gap-1.5 pb-2 border-b border-border-app/60">
-              <h3 className="font-heading text-base font-bold text-text-app">Thông tin Nhóm / Đề tài</h3>
+              <h3 className="font-heading text-base font-semibold text-text-app">Thông tin Nhóm / Đề tài</h3>
               <Tooltip label="Thông tin bối cảnh học tập và hoạt động của nhóm." position="top" withArrow>
                 <span className="flex items-center">
                   <HelpCircle className="w-4 h-4 text-text-muted hover:text-text-app cursor-help" />
@@ -270,7 +270,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
           {/* Section 2: Contact Person (Format matching Intake ContactStep) */}
           <div className="bg-surface-app border border-border-app/80 rounded-xl p-5 space-y-4 shadow-xs">
             <div className="flex items-center gap-1.5 pb-2 border-b border-border-app/60">
-              <h3 className="font-heading text-base font-bold text-text-app">Thông tin người liên hệ</h3>
+              <h3 className="font-heading text-base font-semibold text-text-app">Thông tin người liên hệ</h3>
               <Tooltip label="Thông tin của bạn để Supporter tiện liên hệ hỗ trợ khi cần thiết." position="top" withArrow>
                 <span className="flex items-center">
                   <HelpCircle className="w-4 h-4 text-text-muted hover:text-text-app cursor-help" />
@@ -350,7 +350,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
           {/* Section 3: Startup Idea Details */}
           <div className="bg-surface-app border border-border-app/80 rounded-xl p-5 space-y-4 shadow-xs">
             <div className="flex items-center gap-1.5 pb-2 border-b border-border-app/60">
-              <h3 className="font-heading text-base font-bold text-text-app">Chi tiết Ý tưởng Khởi nghiệp</h3>
+              <h3 className="font-heading text-base font-semibold text-text-app">Chi tiết Ý tưởng Khởi nghiệp</h3>
               <Tooltip label="Mô tả ý tưởng, nỗi đau khách hàng và giải pháp của nhóm." position="top" withArrow>
                 <span className="flex items-center">
                   <HelpCircle className="w-4 h-4 text-text-muted hover:text-text-app cursor-help" />
@@ -416,7 +416,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
           {/* Section 4: Support Needs (Format matching Intake SupportNeedsStep) */}
           <div className="bg-surface-app border border-border-app/80 rounded-xl p-5 space-y-4 shadow-xs">
             <div className="flex items-center gap-1.5 pb-2 border-b border-border-app/60">
-              <h3 className="font-heading text-base font-bold text-text-app">Nhu cầu hỗ trợ</h3>
+              <h3 className="font-heading text-base font-semibold text-text-app">Nhu cầu hỗ trợ</h3>
               <Tooltip
                 label="Chỉ cần chọn hướng hỗ trợ chính. Phần ghi chú thêm và kỳ vọng đầu ra là tùy chọn."
                 position="top"
@@ -493,7 +493,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
         {caseData.user_facing_stage === "submitted" && (
           <div className="pt-6 border-t border-red-500/10 mt-6 space-y-4">
             <div>
-              <h4 className="font-heading font-bold text-sm text-red-500 flex items-center gap-2">
+              <h4 className="font-heading font-semibold text-sm text-red-500 flex items-center gap-2">
                 <Trash2 className="w-4.5 h-4.5" />
                 Vùng nguy hiểm
               </h4>
@@ -522,7 +522,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
           setDeleteConfirmText("");
         }}
         title={
-          <span className="font-heading font-bold text-sm text-red-600 flex items-center gap-1.5">
+          <span className="font-heading font-semibold text-sm text-red-600 flex items-center gap-1.5">
             <Trash2 className="w-4.5 h-4.5" />
             Xác nhận xóa hồ sơ dự án
           </span>

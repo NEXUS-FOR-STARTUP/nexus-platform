@@ -31,7 +31,7 @@ export default function ContactUs() {
           {/* Info Card */}
           <Card p="lg" radius="lg" withBorder className="bg-surface-app border-border-app flex flex-col justify-between">
             <div className="space-y-6">
-              <Title order={4} className="font-heading font-bold text-text-app">
+              <Title order={4} className="font-heading font-semibold text-text-app">
                 Thông tin liên hệ
               </Title>
               <Text className="font-body text-text-muted">
@@ -42,7 +42,7 @@ export default function ContactUs() {
                 <div className="flex items-center gap-3">
                   <Mail className="w-5 h-5 text-brand shrink-0" />
                   <div>
-                    <div className="text-[10px] text-text-muted font-bold uppercase">Email</div>
+                    <div className="text-base text-text-muted font-semibold uppercase">Email</div>
                     <div className="text-xs text-text-app font-semibold">phungluuhoanglong@gmail.com</div>
                   </div>
                 </div>
@@ -50,7 +50,7 @@ export default function ContactUs() {
                 <div className="flex items-center gap-3">
                   <Phone className="w-5 h-5 text-brand shrink-0" />
                   <div>
-                    <div className="text-[10px] text-text-muted font-bold uppercase">Hotline</div>
+                    <div className="text-base text-text-muted font-semibold uppercase">Hotline</div>
                     <div className="text-xs text-text-app font-semibold">0776 506 822</div>
                   </div>
                 </div>
@@ -58,7 +58,7 @@ export default function ContactUs() {
                 <div className="flex items-center gap-3">
                   <Share2 className="w-5 h-5 text-brand shrink-0" />
                   <div>
-                    <div className="text-[10px] text-text-muted font-bold uppercase">Fanpage Facebook</div>
+                    <div className="text-base text-text-muted font-semibold uppercase">Fanpage Facebook</div>
                     <a
                       href="https://www.facebook.com/profile.php?id=61591506814865"
                       target="_blank"

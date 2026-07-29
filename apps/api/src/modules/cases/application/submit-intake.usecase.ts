@@ -1,6 +1,5 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import { requireCredits } from "../domain/case.types.js";
-import { applyTransition } from "../infrastructure/persistence/case-workflow-engine.js";
 import { findCaseByIdWithMembersAndCheckpoints } from "../infrastructure/persistence/case.repository.js";
 import { createDocumentRecordsForUnit } from "../../documents/infrastructure/persistence/document.repository.js";
 import { prisma } from "../../../db.js";
@@ -74,13 +73,10 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
         tx,
       );
 
-      // Apply symflow transition and update status
-      applyTransition(caseRecord, 'submit_intake');
+      // Update case record with intake data
       await tx.case.update({
         where: { id: caseId },
         data: {
-          internal_status: 'submitted',
-          user_facing_stage: 'submitted',
           payment_status: caseRecord.payment_status === 'paid' ? 'paid' : 'unpaid',
           school: body.school || undefined,
           course_context: body.course_context || undefined,
@@ -88,6 +84,27 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
           team_name: body.team_context?.project_name || undefined,
         },
       });
+
+      // If case was rejected, transition back to submitted for re-review
+      if (caseRecord.user_facing_stage === "rejected") {
+        await tx.case.update({
+          where: { id: caseId },
+          data: {
+            user_facing_stage: "submitted",
+            internal_status: "triage_pending",
+          },
+        });
+
+        await tx.caseEvent.create({
+          data: {
+            case: { connect: { id: caseId } },
+            actor: { connect: { id: userId } },
+            event_type: "case_resubmitted",
+          },
+        });
+
+        logger.info({ caseId, transition: 'resubmit', fromState: 'rejected', toState: 'submitted', actorId: userId }, 'case resubmitted via intake edit');
+      }
 
       await tx.caseEvent.create({
         data: {
@@ -98,12 +115,12 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
         },
       });
 
-      logger.info({ caseId, transition: 'submit_intake', fromState: caseRecord.internal_status, toState: 'submitted', actorId: userId, duration_ms: Date.now() - startTime }, 'case transition: submit_intake');
+      logger.info({ caseId, actorId: userId, duration_ms: Date.now() - startTime }, 'intake submitted');
 
       return { success: true, case_id: caseId, intake_unit_id: intakeUnit.id };
     });
   } catch (error) {
-    logger.error({ err: error, caseId, transition: 'submit_intake', duration_ms: Date.now() - startTime }, 'case transition failed: submit_intake');
+    logger.error({ err: error, caseId, duration_ms: Date.now() - startTime }, 'intake submission failed');
     throw error;
   }
 }

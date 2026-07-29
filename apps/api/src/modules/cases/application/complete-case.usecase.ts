@@ -17,20 +17,20 @@ export async function completeCaseUseCase(userId: string, role: string, caseId: 
   }
 
   // Check symflow transition is valid
-  if (!canTransition(caseRecord, 'complete')) {
+  if (!canTransition(caseRecord, 'complete_case')) {
     throw new AppError(400, "INVALID_STAGE", "Dự án không ở trạng thái có thể hoàn thành");
   }
 
   try {
     return await prisma.$transaction(async (tx: any) => {
       // Apply symflow complete transition
-      applyTransition(caseRecord, 'complete');
+      applyTransition(caseRecord, 'complete_case');
 
       // Update case to completed
       await tx.case.update({
         where: { id: caseId },
         data: {
-          internal_status: 'completed',
+          internal_status: caseRecord.internal_status, // "done" from symflow
           user_facing_stage: 'completed',
         },
       });
@@ -45,12 +45,12 @@ export async function completeCaseUseCase(userId: string, role: string, caseId: 
         },
       });
 
-      logger.info({ caseId, transition: 'complete', fromState: caseRecord.internal_status, toState: 'completed', actorId: userId, actorRole: role, duration_ms: Date.now() - startTime }, 'case transition: complete');
+      logger.info({ caseId, transition: 'complete_case', fromState: caseRecord.internal_status, toState: 'done', actorId: userId, actorRole: role, duration_ms: Date.now() - startTime }, 'case transition: complete_case');
 
       return { success: true, case_id: caseId };
     });
   } catch (error) {
-    logger.error({ err: error, caseId, transition: 'complete', actorId: userId, actorRole: role, duration_ms: Date.now() - startTime }, 'case transition failed: complete');
+    logger.error({ err: error, caseId, transition: 'complete_case', actorId: userId, actorRole: role, duration_ms: Date.now() - startTime }, 'case transition failed: complete_case');
     throw error;
   }
 }

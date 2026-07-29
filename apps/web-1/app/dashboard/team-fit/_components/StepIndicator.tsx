@@ -32,7 +32,7 @@ function StepDot({
       {isCompleted ? (
         <Check className="h-4 w-4" />
       ) : isActive ? (
-        <span className="text-sm font-bold leading-none">{index + 1}</span>
+        <span className="text-sm font-semibold leading-none">{index + 1}</span>
       ) : (
         <Circle className="h-4 w-4 opacity-40" />
       )}
@@ -53,7 +53,7 @@ function StepLabel({
     <span
       className={[
         'whitespace-nowrap text-sm transition-colors',
-        isActive && 'font-bold text-app',
+        isActive && 'font-semibold text-app',
         isCompleted && 'text-muted',
         !isActive && !isCompleted && 'text-muted',
       ]

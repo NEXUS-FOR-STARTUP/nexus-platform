@@ -53,6 +53,12 @@ const EVENT_MAP: Record<string, EventDetails> = {
     icon: XCircle,
     colorClass: "bg-danger-soft text-danger border-danger/20",
   },
+  case_resubmitted: {
+    label: "Nộp lại hồ sơ",
+    desc: "Hồ sơ đã được nộp lại sau khi chỉnh sửa và đang chờ xét duyệt.",
+    icon: Upload,
+    colorClass: "bg-brand-soft text-brand border-brand/20",
+  },
   supporter_assigned: {
     label: "Đã phân công người hỗ trợ",
     desc: "Người hỗ trợ đã được phân công để đánh giá và phản biện hồ sơ.",
@@ -172,6 +178,30 @@ const EVENT_MAP: Record<string, EventDetails> = {
     desc: "Tài liệu đã được gỡ bỏ khỏi hệ thống bởi quản trị viên.",
     icon: Trash2,
     colorClass: "bg-danger-soft text-danger border-danger/20",
+  },
+  intake_submitted: {
+    label: "Đã gửi thông tin hồ sơ",
+    desc: "Thông tin hồ sơ khởi tạo đã được gửi lên hệ thống thành công.",
+    icon: Upload,
+    colorClass: "bg-brand-soft text-brand border-brand/20",
+  },
+  case_completed: {
+    label: "Hồ sơ hoàn thành",
+    desc: "Quy trình phản biện cho hồ sơ đã hoàn tất.",
+    icon: CheckCircle,
+    colorClass: "bg-success-soft text-success border-success/20",
+  },
+  vetoed: {
+    label: "Hồ sơ bị từ chối",
+    desc: "Hồ sơ đã bị quản trị viên từ chối và đóng lại.",
+    icon: XCircle,
+    colorClass: "bg-danger-soft text-danger border-danger/20",
+  },
+  package_upgraded: {
+    label: "Nâng cấp gói dịch vụ",
+    desc: "Gói dịch vụ của hồ sơ đã được nâng cấp thành công.",
+    icon: ArrowUpRight,
+    colorClass: "bg-brand-soft text-brand border-brand/20",
   },
 };
 

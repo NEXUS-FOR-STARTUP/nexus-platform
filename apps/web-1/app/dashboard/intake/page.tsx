@@ -200,7 +200,7 @@ function IntakePageContent() {
         title={
           <div className="flex items-center gap-2 text-text-app">
             <AlertTriangle className="w-5 h-5 text-danger shrink-0" />
-            <span className="font-heading font-bold text-lg leading-snug">
+            <span className="font-heading font-semibold text-lg leading-snug">
               Xác nhận xóa bản nháp
             </span>
           </div>

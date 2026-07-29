@@ -23,7 +23,7 @@ function FieldList({ fields }: { fields: OverviewField[] }) {
     <dl className="space-y-3">
       {fields.map((field) => (
         <div key={field.label}>
-          <dt className="text-[11px] uppercase tracking-[0.16em] text-text-muted font-semibold">{field.label}</dt>
+          <dt className="text-base uppercase tracking-[0.16em] text-text-muted font-semibold">{field.label}</dt>
           <dd className="mt-1 text-sm text-text-primary leading-relaxed font-body">{field.value}</dd>
         </div>
       ))}
@@ -38,7 +38,7 @@ function SectionCard({ title, icon: Icon, children }: { title: string; icon: typ
         <span className="w-8 h-8 rounded-lg bg-brand-soft/40 text-brand flex items-center justify-center">
           <Icon className="w-4 h-4" />
         </span>
-        <h3 className="font-heading text-base font-bold text-text-primary">{title}</h3>
+        <h3 className="font-heading text-base font-semibold text-text-primary">{title}</h3>
       </div>
       {children}
     </Card>
@@ -53,7 +53,7 @@ function MemberList({ members }: { members: OverviewMember[] }) {
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {members.map((member, index) => (
           <div key={`${member.name}-${index}`} className="rounded-xl border border-border-subtle bg-surface-app p-4">
-            <p className="font-heading text-sm font-bold text-text-primary">{member.name}</p>
+            <p className="font-heading text-sm font-semibold text-text-primary">{member.name}</p>
             <p className="mt-1 text-xs leading-relaxed text-text-muted font-body">{member.detail}</p>
             {member.meta && <p className="mt-2 text-xs text-brand font-semibold font-body">{member.meta}</p>}
           </div>
@@ -68,7 +68,7 @@ function GapList({ title, items }: { title: string; items: string[] }) {
 
   return (
     <div>
-      <h4 className="text-sm font-bold text-text-primary font-heading mb-2">{title}</h4>
+      <h4 className="text-sm font-semibold text-text-primary font-heading mb-2">{title}</h4>
       <ul className="space-y-2">
         {items.map((item, index) => (
           <li key={`${title}-${index}`} className="flex gap-2 text-sm text-text-primary font-body leading-relaxed">
@@ -103,11 +103,11 @@ export default function CaseOverviewTab({ caseData, intakeSnapshot, teamFitRepor
           </div>
           <div className="grid gap-2 text-sm font-body text-text-primary min-w-60">
             <div className="rounded-xl bg-surface-app/80 border border-border-subtle px-4 py-3">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-text-muted font-semibold">Gói dịch vụ</p>
+              <p className="text-base uppercase tracking-[0.16em] text-text-muted font-semibold">Gói dịch vụ</p>
               <p className="mt-1 font-semibold">{model.summary.packageName}</p>
             </div>
             <div className="rounded-xl bg-surface-app/80 border border-border-subtle px-4 py-3">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-text-muted font-semibold">SLA / Deadline</p>
+              <p className="text-base uppercase tracking-[0.16em] text-text-muted font-semibold">SLA / Deadline</p>
               <p className="mt-1 font-semibold">{model.summary.deadline}</p>
             </div>
           </div>
@@ -138,13 +138,13 @@ export default function CaseOverviewTab({ caseData, intakeSnapshot, teamFitRepor
             <GapList title="Khoảng trống thương mại" items={model.commercialGaps} />
             {model.currentBlocker && (
               <div>
-                <h4 className="text-sm font-bold text-text-primary font-heading mb-2">Vướng mắc hiện tại</h4>
+                <h4 className="text-sm font-semibold text-text-primary font-heading mb-2">Vướng mắc hiện tại</h4>
                 <p className="text-sm text-text-primary leading-relaxed font-body">{model.currentBlocker}</p>
               </div>
             )}
             {model.supportNeeds.length > 0 && (
               <div>
-                <h4 className="text-sm font-bold text-text-primary font-heading mb-2">Nhu cầu hỗ trợ</h4>
+                <h4 className="text-sm font-semibold text-text-primary font-heading mb-2">Nhu cầu hỗ trợ</h4>
                 <ul className="space-y-2">
                   {model.supportNeeds.map((item, index) => (
                     <li key={`support-${index}`} className="text-sm text-text-primary leading-relaxed font-body">{item}</li>
@@ -154,7 +154,7 @@ export default function CaseOverviewTab({ caseData, intakeSnapshot, teamFitRepor
             )}
             {model.expectedOutputs && (
               <div className="lg:col-span-2 rounded-xl border border-border-subtle bg-surface-app p-4">
-                <h4 className="text-sm font-bold text-text-primary font-heading mb-2">Kết quả mong đợi</h4>
+                <h4 className="text-sm font-semibold text-text-primary font-heading mb-2">Kết quả mong đợi</h4>
                 <p className="text-sm text-text-primary leading-relaxed font-body">{model.expectedOutputs}</p>
               </div>
             )}
@@ -165,7 +165,7 @@ export default function CaseOverviewTab({ caseData, intakeSnapshot, teamFitRepor
       <Card withBorder radius="lg" className="border-border-subtle bg-surface-panel shadow-none">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <h3 className="font-heading text-base font-bold text-text-primary">Đi tiếp nhanh</h3>
+            <h3 className="font-heading text-base font-semibold text-text-primary">Đi tiếp nhanh</h3>
             <p className="mt-1 text-xs text-text-muted font-body">Mở tài liệu hoặc lịch sử mà không lặp lại bảng dữ liệu trong tab tổng quan.</p>
           </div>
           <div className="flex flex-wrap gap-2">

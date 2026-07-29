@@ -47,6 +47,16 @@ npm run check-types --workspace=apps/api
 - API is backend-only; no UI conventions here.
 - Configure provider API keys in root `.env` (`GOOGLE_GENERATIVE_AI_API_KEY`, `OPENAI_API_KEY`) for AI Engine.
 
+## DOCUMENTATION REFERENCE
+
+| Doc | When to Read |
+|-----|-------------|
+| `docs/db-query-guide.md` | DB query, READONLY_DATABASE_URL usage |
+| `docs/db-backup-guide.md` | DB backup before migration |
+| `docs/db-migration-guide.md` | Prisma migration workflow |
+| `docs/docker-build-push-guide.md` | Build/push API Docker image |
+| `docs/ci-guide.md` | CI/CD pipeline, GitHub Actions |
+
 ## 1. MODULE MAP
 
 | Module | Mount Path | Routes | Auth | domain/ | application/ | infrastructure/ | http/ |

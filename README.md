@@ -94,3 +94,6 @@ npm run prisma:migrate
 | `docs/code-standards.md` | Chuẩn code và conventions |
 | `docs/db-query-guide.md` | Hướng dẫn truy vấn DB an toàn |
 | `docs/db-backup-guide.md` | Hướng dẫn backup DB |
+| `docs/db-migration-guide.md` | Hướng dẫn migration Prisma |
+| `docs/docker-build-push-guide.md` | Hướng dẫn build/push Docker image |
+| `docs/ci-guide.md` | Hướng dẫn CI/CD với GitHub Actions |

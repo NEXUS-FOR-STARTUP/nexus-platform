@@ -28,9 +28,17 @@ export default function CaseStatusHeader({
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [timerColor, setTimerColor] = useState<string>("text-text-muted");
 
-  const isPaused = caseData.internal_status === "need_clarification";
+  const isPaused = caseData.internal_status === "waiting_user";
 
   const slaSource = caseData.sla_deadline_at || caseData.deadline;
+
+  // Pre-supporter stages: SLA chưa áp dụng
+  // Dùng internal_status cho admin/supporter, fallback về user_facing_stage cho student
+  const preSupporterInternal = ["triage_pending", "accepted_unassigned", "assigned"];
+  const preSupporterUserFacing = ["intake_pending", "intake_ready", "submitted", "need_more_information"];
+  const isPreSupporter = caseData.internal_status
+    ? preSupporterInternal.includes(caseData.internal_status)
+    : preSupporterUserFacing.includes(caseData.user_facing_stage);
 
   useEffect(() => {
     if (isPaused) {
@@ -40,8 +48,13 @@ export default function CaseStatusHeader({
     }
 
     if (!slaSource) {
-      setTimeLeft("Chưa thiết lập");
-      setTimerColor("text-text-subtle");
+      if (isPreSupporter) {
+        setTimeLeft("Đang chờ phân công");
+        setTimerColor("text-info");
+      } else {
+        setTimeLeft("Chưa thiết lập");
+        setTimerColor("text-text-subtle");
+      }
       return;
     }
 
@@ -53,7 +66,7 @@ export default function CaseStatusHeader({
 
       if (diff <= 0) {
         setTimeLeft("Quá hạn SLA");
-        setTimerColor("text-danger font-bold");
+        setTimerColor("text-danger font-semibold");
         return;
       }
 
@@ -123,7 +136,7 @@ export default function CaseStatusHeader({
       {/* Case Basic Info */}
       <div className="space-y-3">
         <div className="space-y-1">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-text-subtle">
+          <span className="text-base font-semibold uppercase tracking-wider text-text-subtle">
             Hồ sơ phản biện
           </span>
           <div className="flex flex-wrap items-center gap-3">
@@ -179,7 +192,8 @@ export default function CaseStatusHeader({
         </div>
       </div>
 
-      {/* SLA Timer & Version Selector */}
+      {/* MVP: SLA timer tạm ẩn — alert trong StatusGuidanceCard đã đủ thông tin
+      {/*
       <div className="flex flex-wrap md:flex-col items-start md:items-end gap-4 shrink-0 w-full md:w-auto">
         <div className="flex items-center gap-2 p-2 px-3 bg-surface-soft rounded-lg text-xs font-body">
           <Clock className="w-4 h-4 text-text-subtle" />
@@ -190,6 +204,7 @@ export default function CaseStatusHeader({
           )}
         </div>
       </div>
+      */}
     </div>
   );
 }

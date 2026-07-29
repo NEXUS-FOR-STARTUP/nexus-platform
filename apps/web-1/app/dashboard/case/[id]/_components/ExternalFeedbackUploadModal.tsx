@@ -132,7 +132,7 @@ export default function ExternalFeedbackUploadModal({
     <Modal
       opened={isOpen}
       onClose={handleClose}
-      title={<span className="font-heading font-bold text-sm text-text-app">Tải đánh giá bên ngoài</span>}
+      title={<span className="font-heading font-semibold text-sm text-text-app">Tải đánh giá bên ngoài</span>}
       size="lg"
       radius="md"
       centered
@@ -213,7 +213,7 @@ export default function ExternalFeedbackUploadModal({
               <p className="font-body text-xs font-semibold text-text-app">
                 Chọn một hoặc nhiều tệp đánh giá
               </p>
-              <p className="font-body text-[10px] text-text-muted">
+              <p className="font-body text-base text-text-muted">
                 Hỗ trợ PDF, DOCX, XLSX, PPTX, MD, TXT. Tối đa 15MB mỗi tệp.
               </p>
             </div>

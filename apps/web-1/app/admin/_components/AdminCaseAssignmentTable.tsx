@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { User } from "@/types";
-import { CheckCircle, Search, MoreVertical, Trash2, Eye, Shield } from "lucide-react";
+import { User, statusThemeMap } from "@/types";
+import { CheckCircle, Search, MoreVertical, Trash2, Eye, Shield, RefreshCw } from "lucide-react";
 import { Button, Select, Badge, Table, Pagination, TextInput, Group, Menu, ActionIcon, Tooltip } from "@mantine/core";
 
 // Import extracted modals
@@ -22,6 +22,7 @@ interface AdminCaseAssignmentTableProps {
   onRequestMoreInfo: (caseId: string, query: string) => Promise<void>;
   isCrudMode?: boolean;
   onDelete?: (caseId: string) => Promise<void>;
+  onRefresh?: () => void;
 }
 
 function getSlaRowClass(deadline: string | null | undefined): string {
@@ -42,6 +43,7 @@ export default function AdminCaseAssignmentTable({
   onRequestMoreInfo,
   isCrudMode = false,
   onDelete,
+  onRefresh,
 }: AdminCaseAssignmentTableProps) {
   const [activePage, setActivePage] = useState(1);
   const itemsPerPage = 5;
@@ -117,7 +119,7 @@ export default function AdminCaseAssignmentTable({
         </div>
         <div className="space-y-0.5">
           <p className="font-heading font-semibold text-xs text-text-app">Không có hồ sơ nào cần xử lý</p>
-          <p className="font-body text-[11px] text-text-muted">
+          <p className="font-body text-base text-text-muted">
             Tất cả các hồ sơ đã được xử lý xong hoặc không tìm thấy hồ sơ phù hợp.
           </p>
         </div>
@@ -161,6 +163,18 @@ export default function AdminCaseAssignmentTable({
           radius="md"
           style={{ width: 180 }}
         />
+        {onRefresh && (
+          <Tooltip label="Làm mới" position="bottom" withArrow>
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              onClick={onRefresh}
+              className="cursor-pointer"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </ActionIcon>
+          </Tooltip>
+        )}
       </Group>
 
       <Table.ScrollContainer minWidth={800}>
@@ -186,14 +200,14 @@ export default function AdminCaseAssignmentTable({
               paginatedCases.map((item) => {
                 return (
                   <Table.Tr key={item.id} className={`${getSlaRowClass(item.sla_deadline_at)} hover:bg-surface-soft/30 transition-colors`}>
-                    <Table.Td className="font-heading font-bold text-xs" title={item.case_code}>
+                    <Table.Td className="font-heading font-semibold text-xs" title={item.case_code}>
                       {item.case_code && item.case_code.length > 30 ? `${item.case_code.slice(0, 30)}...` : item.case_code}
                     </Table.Td>
                     <Table.Td>
                       <div className="font-semibold text-text-app" title={item.team_name || "Chưa đặt tên"}>
                         {item.team_name && item.team_name.length > 30 ? `${item.team_name.slice(0, 30)}...` : (item.team_name || "Chưa đặt tên")}
                       </div>
-                      <div className="text-[10px] text-text-muted" title={item.owner_name}>
+                      <div className="text-base text-text-muted" title={item.owner_name}>
                         Chủ sở hữu: {item.owner_name && item.owner_name.length > 30 ? `${item.owner_name.slice(0, 30)}...` : item.owner_name}
                       </div>
                     </Table.Td>
@@ -203,20 +217,17 @@ export default function AdminCaseAssignmentTable({
                     <Table.Td>
                       <Badge
                         color={
-                          item.internal_status === "triage_pending"
-                            ? "gray"
-                            : item.internal_status === "accepted_unassigned"
-                            ? "yellow"
-                            : "green"
+                          statusThemeMap[item.internal_status]?.color === "default" ? "gray"
+                          : statusThemeMap[item.internal_status]?.color === "primary" ? "brand"
+                          : statusThemeMap[item.internal_status]?.color === "warning" ? "yellow"
+                          : statusThemeMap[item.internal_status]?.color === "danger" ? "red"
+                          : statusThemeMap[item.internal_status]?.color === "success" ? "teal"
+                          : "gray"
                         }
                         variant="light"
-                        size="sm"
+                        size="md"
                       >
-                        {item.internal_status === "triage_pending"
-                          ? "Chờ Duyệt"
-                          : item.internal_status === "accepted_unassigned"
-                          ? "Chờ Phân Công"
-                          : "Đã phân công"}
+                        {statusThemeMap[item.internal_status]?.label || item.internal_status}
                       </Badge>
                     </Table.Td>
                     <Table.Td className="text-center">
@@ -336,7 +347,7 @@ function SlaTimer({ deadline }: { deadline: string | null | undefined }) {
       const diff = target - now;
       if (diff <= 0) {
         setTimeLeft("Quá hạn");
-        setColorClass("text-danger font-bold");
+        setColorClass("text-danger font-semibold");
         return;
       }
       const hours = Math.floor(diff / (1000 * 60 * 60));

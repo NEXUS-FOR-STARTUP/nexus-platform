@@ -25,7 +25,7 @@ export default function TeamMemberCard({
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border-app pb-3">
         <div className="flex items-center gap-2.5">
-          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-brand text-white font-bold text-xs shrink-0">
+          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-brand text-white font-semibold text-xs shrink-0">
             {index + 1}
           </span>
           <h3 className="text-text-app font-semibold text-base">Thành viên {index + 1}</h3>

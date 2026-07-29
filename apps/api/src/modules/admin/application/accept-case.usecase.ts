@@ -1,5 +1,6 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import { acceptCase as defaultAcceptCase, findCaseById as defaultFindCaseById } from "../../cases/infrastructure/persistence/case.repository.js";
+import { applyTransition, canTransition } from "../../cases/infrastructure/persistence/case-workflow-engine.js";
 import { auditLogger } from "../../../shared/infrastructure/audit-logger.js";
 
 type AcceptCaseDeps = {
@@ -41,13 +42,24 @@ export async function acceptCaseUseCase(adminId: string, caseId: string, deps: A
     return caseItem;
   }
 
-  const result = await acceptCase(caseId, adminId);
+  // Check symflow transition is valid
+  if (!canTransition(caseItem, "accept_case")) {
+    throw new AppError(409, "INVALID_TRANSITION",
+      `Không thể duyệt hồ sơ từ trạng thái '${caseItem.internal_status}'`);
+  }
+
+  // Apply symflow transition (mutates caseItem.internal_status)
+  applyTransition(caseItem, "accept_case");
+
+  const result = await acceptCase(caseId, adminId,
+    caseItem.internal_status,  // "accepted_unassigned" from symflow
+    caseItem.user_facing_stage || "under_review");
   auditLogger.log({
     operation: "admin.accept_case",
     actor_id: adminId,
     actor_role: "admin",
     case_id: caseId,
-    action: "accepted",
+    action: "accept_case",
     old_state: { stage: caseItem.user_facing_stage, status: caseItem.internal_status },
     new_state: { stage: result.user_facing_stage, status: result.internal_status },
     duration_ms: timer(),
