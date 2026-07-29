@@ -8,6 +8,7 @@ import {
   AlertCircle, 
   CheckCircle2, 
   HelpCircle,
+  Zap,
 } from "lucide-react";
 import { Alert, Button } from "@mantine/core";
 
@@ -215,19 +216,23 @@ export default function StatusGuidanceCard({
         </Alert>
       );
 
-    case "intake_pending":
+    case "intake_pending": {
+      const isFree = caseData.package_id === "pkg_tf_free";
       return (
         <Alert
           variant="light"
-          color="yellow"
+          color={isFree ? "blue" : "yellow"}
           radius="md"
-          title="Chờ thanh toán dịch vụ"
-          icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
+          title={isFree ? "Nâng cấp lên đánh giá chuyên sâu" : "Chờ thanh toán dịch vụ"}
+          icon={isFree ? <Zap className="w-4.5 h-4.5 shrink-0" /> : <Clock className="w-4.5 h-4.5 shrink-0" />}
           className="animate-fade-in font-body text-xs shrink-0"
         >
           <div className="flex items-center justify-between gap-4">
             <p className="text-text-muted text-xs leading-relaxed">
-              Vui lòng hoàn tất thanh toán để kích hoạt quy trình phản biện.
+              {isFree
+                ? "Bạn đang dùng gói miễn phí. Mua lượt đánh giá chuyên sâu để nhận phản biện chi tiết từ chuyên gia."
+                : "Vui lòng hoàn tất thanh toán để kích hoạt quy trình phản biện."
+              }
             </p>
             {onOpenPayment && (
               <Button
@@ -236,12 +241,13 @@ export default function StatusGuidanceCard({
                 className="shrink-0 cursor-pointer"
                 onClick={onOpenPayment}
               >
-                Thanh toán ngay
+                {isFree ? "Mua lượt đánh giá" : "Thanh toán ngay"}
               </Button>
             )}
           </div>
         </Alert>
       );
+    }
 
     case "intake_ready":
       return (

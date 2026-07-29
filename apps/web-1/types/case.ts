@@ -267,6 +267,10 @@ export const statusThemeMap: Record<string, StatusThemeDetails> = {
     label: "Đã gửi báo cáo",
     color: "success",
   },
+  not_required: {
+    label: "Gói miễn phí",
+    color: "success",
+  },
   unpaid: {
     label: "Chưa thanh toán",
     color: "warning",

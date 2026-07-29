@@ -176,7 +176,7 @@ export async function createCaseWithCheckpointAndIntake(data: {
         package_id: packageId,
         locked_price: lockedPrice,
         deadline,
-        user_facing_stage: "submitted",
+        user_facing_stage: isFree ? "submitted" : "intake_pending",
         internal_status: "triage_pending",
         payment_status: isFree ? "paid" : "unpaid",
         current_checkpoint: "CP1",

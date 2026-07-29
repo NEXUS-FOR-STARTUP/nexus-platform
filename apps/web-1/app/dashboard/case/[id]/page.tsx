@@ -14,13 +14,12 @@ import TabCaseSettings from "./_components/TabCaseSettings";
 import CreditPanel from "./_components/CreditPanel";
 import CaseOverviewPanel from "./_components/CaseOverviewPanel";
 import CreditQuantityModal from "./_components/CreditQuantityModal";
-import IntakeFormModal from "./_components/IntakeFormModal";
+
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
 import StudentDocumentUploadModal from "./_components/StudentDocumentUploadModal";
 import StatusGuidanceCard from "./_components/StatusGuidanceCard";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Button } from "@mantine/core";
-import { Users } from "lucide-react";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -43,7 +42,6 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const [isStudentUploadOpen, setIsStudentUploadOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [creditBuyOpened, setCreditBuyOpened] = useState(false);
-  const [intakeFormOpened, setIntakeFormOpened] = useState(false);
 
   const creditBalance = caseData?.credit_balance ?? null;
   const creditLedger = caseData?.credit_ledger ?? undefined;
@@ -118,7 +116,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
             <CaseOverviewPanel
               caseData={caseData}
               onSelectTab={(tab) => setActiveTab(tab)}
-              onEditIntake={isIntakeReady ? () => setIntakeFormOpened(true) : undefined}
+              onEditIntake={isIntakeReady ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
               guidanceCard={
                 <StatusGuidanceCard
                   caseData={caseData}
@@ -139,9 +137,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                     size="sm"
                     color="brand"
                     className="font-semibold cursor-pointer h-8.5 text-xs"
-                    onClick={() => setIntakeFormOpened(true)}
+                    onClick={() => router.push(`/dashboard/intake?caseId=${id}`)}
                   >
-                    <Users className="w-4 h-4" />
                     Cập nhật thông tin
                   </Button>
                 )}
@@ -188,7 +185,6 @@ export default function CaseWorkspacePage({ params }: PageProps) {
       </div>
 
       <StudentDocumentUploadModal isOpen={isStudentUploadOpen} onClose={() => setIsStudentUploadOpen(false)} caseId={id} />
-      <IntakeFormModal caseId={id} opened={intakeFormOpened} onClose={() => setIntakeFormOpened(false)} />
       <ExternalFeedbackUploadModal
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}

@@ -85,25 +85,29 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
         },
       });
 
-      // If case was rejected, transition back to submitted for re-review
-      if (caseRecord.user_facing_stage === "rejected") {
+      // Transition user_facing_stage to submitted for first-time intake
+      // or re-submit after rejection. internal_status stays as-is (should already
+      // be triage_pending from creation/rejection path).
+      const isPreSubmitStage = ["intake_ready", "intake_pending", "rejected"].includes(
+        caseRecord.user_facing_stage,
+      );
+      if (isPreSubmitStage) {
         await tx.case.update({
           where: { id: caseId },
-          data: {
-            user_facing_stage: "submitted",
-            internal_status: "triage_pending",
-          },
+          data: { user_facing_stage: "submitted" },
         });
 
+        const eventType =
+          caseRecord.user_facing_stage === "rejected" ? "case_resubmitted" : "case_submitted";
         await tx.caseEvent.create({
           data: {
             case: { connect: { id: caseId } },
             actor: { connect: { id: userId } },
-            event_type: "case_resubmitted",
+            event_type: eventType,
           },
         });
 
-        logger.info({ caseId, transition: 'resubmit', fromState: 'rejected', toState: 'submitted', actorId: userId }, 'case resubmitted via intake edit');
+        logger.info({ caseId, transition: 'submit', fromStage: caseRecord.user_facing_stage, toStage: 'submitted', actorId: userId, eventType }, 'case intake submitted');
       }
 
       await tx.caseEvent.create({

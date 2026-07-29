@@ -58,23 +58,27 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setDraftValues((prev) => ({
-            ...prev,
-            ...parsed,
-            current_blocker: "", // Never pre-fill — user must describe their own lecturer/team blocker
-            package_id: packageId || parsed.package_id || "",
-          }));
-        } catch (e) {
-          localStorage.removeItem(LOCAL_STORAGE_KEY);
+      // UPDATE mode (caseId exists): skip localStorage, rely on initialData from API
+      // CREATE mode: restore saved draft from localStorage
+      if (!caseId) {
+        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            setDraftValues((prev) => ({
+              ...prev,
+              ...parsed,
+              current_blocker: "", // Never pre-fill — user must describe their own lecturer/team blocker
+              package_id: packageId || parsed.package_id || "",
+            }));
+          } catch (e) {
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+          }
         }
       }
       setIsLoaded(true);
     }
-  }, [packageId]);
+  }, [packageId, caseId]);
 
   const submitMutation = useMutation({
     mutationFn: async (data: IntakeData) => {
@@ -107,7 +111,9 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
   }, [isLoaded, draftValues, form]);
 
   const saveDraft = (values: IntakeData) => {
-    if (typeof window !== "undefined") {
+    // Only persist draft for CREATE mode (new cases). UPDATE mode uses
+    // initialData from the case API, not localStorage.
+    if (typeof window !== "undefined" && !caseId) {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(values));
     }
   };
