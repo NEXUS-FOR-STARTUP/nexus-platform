@@ -3,30 +3,71 @@
 import React, { useState } from "react";
 import { Case } from "@/types";
 import { useCaseDetails } from "../hooks/useCaseDetails";
-import { Settings, Save, AlertCircle, CheckCircle2, Loader2, Trash2 } from "lucide-react";
+import {
+  Settings,
+  Save,
+  Loader2,
+  Trash2,
+} from "lucide-react";
 import { Button, TextInput, Modal } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface TabCaseSettingsProps {
   caseData: Case;
+  intakeSnapshot?: any;
 }
 
-export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
+export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSettingsProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { updateSettings, isUpdatingSettings, deleteCase, isDeletingCase } = useCaseDetails(caseData.id);
 
-  const [teamName, setTeamName] = useState(caseData.team_name || "");
-  const [school, setSchool] = useState(caseData.school || "");
-  const [courseContext, setCourseContext] = useState(caseData.course_context || "");
-  const [groupNo, setGroupNo] = useState(caseData.group_no || "");
+  const intake = (intakeSnapshot as any) || {};
+  const teamCtx = intake.team_context || {};
+
+  // Fields matching simple settings configuration
+  const [teamName, setTeamName] = useState(caseData.team_name || teamCtx.project_name || intake.team_name || "");
+  const [groupNo, setGroupNo] = useState(caseData.group_no || teamCtx.group_no || intake.group_no || "");
+  const [school, setSchool] = useState(caseData.school || teamCtx.school || intake.school || "");
+  const [courseContext, setCourseContext] = useState(caseData.course_context || teamCtx.course_context || intake.course_context || "");
+
+  // Validation Error State
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
-  const [statusMsg, setStatusMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const clearError = (fieldName: string) => {
+    if (errors[fieldName]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[fieldName];
+        return next;
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatusMsg(null);
+
+    const newErrors: Record<string, string> = {};
+    if (!teamName.trim()) newErrors.teamName = "Tên nhóm / Tên đề tài là bắt buộc.";
+    if (!school.trim()) newErrors.school = "Trường học / Viện đào tạo là bắt buộc.";
+    if (!courseContext.trim()) newErrors.courseContext = "Lớp học / Môn học là bắt buộc.";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      notifications.show({
+        title: "Chưa thể lưu cấu hình",
+        message: "Vui lòng kiểm tra và điền đầy đủ các trường thông tin bắt buộc.",
+        color: "red",
+      });
+      return;
+    }
+
+    setErrors({});
 
     try {
       await updateSettings({
@@ -35,11 +76,17 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
         course_context: courseContext,
         group_no: groupNo,
       });
-      setStatusMsg({ type: "success", text: "Đã cập nhật thông tin hồ sơ thành công!" });
+      queryClient.invalidateQueries({ queryKey: ["case", caseData.id] });
+      notifications.show({
+        title: "Thành công",
+        message: "Đã cập nhật thông tin hồ sơ thành công!",
+        color: "green",
+      });
     } catch (err: any) {
-      setStatusMsg({
-        type: "error",
-        text: err?.response?.data?.error || "Gặp lỗi khi lưu thông tin cấu hình.",
+      notifications.show({
+        title: "Lỗi",
+        message: err?.response?.data?.message || err?.response?.data?.error || "Gặp lỗi khi lưu thông tin cấu hình.",
+        color: "red",
       });
     }
   };
@@ -50,92 +97,96 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
     try {
       await deleteCase();
       setIsDeleteModalOpen(false);
+      notifications.show({
+        title: "Thành công",
+        message: "Đã xóa hồ sơ dự án.",
+        color: "green",
+      });
       router.push("/dashboard");
     } catch (err: any) {
-      setStatusMsg({
-        type: "error",
-        text: err?.response?.data?.error || "Gặp lỗi khi xóa hồ sơ dự án.",
+      notifications.show({
+        title: "Lỗi",
+        message: err?.response?.data?.error || "Gặp lỗi khi xóa hồ sơ dự án.",
+        color: "red",
       });
       setIsDeleteModalOpen(false);
     }
   };
 
   return (
-    <div className="bg-surface-app border border-border-app rounded-lg p-6 font-body text-xs text-text-app animate-fade-in">
-      <div className="max-w-xl space-y-6">
+    <div className="bg-surface-app border border-border-app rounded-lg p-6 font-body text-sm text-text-app animate-fade-in space-y-6">
+      <div className="w-full space-y-6">
         <div>
           <div className="flex items-center gap-2 text-text-app">
-            <Settings className="w-5 h-5 text-brand" />
-            <h3 className="font-heading font-bold text-base">Cấu hình thông tin hồ sơ</h3>
+            <Settings className="w-5.5 h-5.5 text-brand" />
+            <h3 className="font-heading font-bold text-lg">Cấu hình thông tin hồ sơ</h3>
           </div>
-          <p className="text-text-muted text-xs mt-1">
+          <p className="text-text-muted text-sm mt-1">
             Cập nhật tên nhóm, trường học và bối cảnh lớp học để báo cáo phản biện hiển thị chính xác.
           </p>
         </div>
 
-        {statusMsg && (
-          <div
-            className={`p-3.5 rounded-lg border flex items-start gap-2.5 text-xs animate-fade-in ${
-              statusMsg.type === "success"
-                ? "bg-success-soft text-success border-success/15"
-                : "bg-danger-soft text-danger border-danger/15"
-            }`}
-          >
-            {statusMsg.type === "success" ? (
-              <CheckCircle2 className="w-4.5 h-4.5 shrink-0 mt-0.5" />
-            ) : (
-              <AlertCircle className="w-4.5 h-4.5 shrink-0 mt-0.5" />
-            )}
-            <span>{statusMsg.text}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <TextInput
               label="Tên nhóm / Tên đề tài"
-              placeholder="Ví dụ: MedTech, Team Sáng Tạo..."
+              placeholder="Nhập tên nhóm hoặc đề tài"
               value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
-              variant="default"
+              onChange={(e) => {
+                setTeamName(e.target.value);
+                clearError("teamName");
+              }}
+              error={errors.teamName}
               radius="md"
+              withAsterisk
             />
 
             <TextInput
               label="Mã số nhóm / Số thứ tự"
-              placeholder="Ví dụ: N03, Group 5..."
+              placeholder="Ví dụ: 5"
               value={groupNo}
-              onChange={(e) => setGroupNo(e.target.value)}
-              variant="default"
+              onChange={(e) => {
+                setGroupNo(e.target.value);
+                clearError("groupNo");
+              }}
+              error={errors.groupNo}
               radius="md"
             />
 
             <TextInput
               label="Trường học / Viện đào tạo"
-              placeholder="Ví dụ: Đại học FPT, Đại học Bách Khoa..."
+              placeholder="Ví dụ: Đại học FPT"
               value={school}
-              onChange={(e) => setSchool(e.target.value)}
-              variant="default"
+              onChange={(e) => {
+                setSchool(e.target.value);
+                clearError("school");
+              }}
+              error={errors.school}
               radius="md"
+              withAsterisk
             />
 
             <TextInput
               label="Lớp học / Môn học"
-              placeholder="Ví dụ: EXE101, MKT301..."
+              placeholder="Ví dụ: EXE101"
               value={courseContext}
-              onChange={(e) => setCourseContext(e.target.value)}
-              variant="default"
+              onChange={(e) => {
+                setCourseContext(e.target.value);
+                clearError("courseContext");
+              }}
+              error={errors.courseContext}
               radius="md"
+              withAsterisk
             />
           </div>
 
-          <div className="pt-2 border-t border-border-app/40 flex justify-end">
+          <div className="pt-2 flex justify-end">
             <Button
               type="submit"
               disabled={isUpdatingSettings}
               color="brand"
               leftSection={isUpdatingSettings ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-              className="font-semibold text-xs h-9 px-4 cursor-pointer disabled:opacity-60"
+              className="font-semibold text-xs h-9 px-6 cursor-pointer disabled:opacity-60"
             >
               <span>{isUpdatingSettings ? "Đang lưu..." : "Lưu thay đổi"}</span>
             </Button>
@@ -145,7 +196,7 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
         {caseData.user_facing_stage === "submitted" && (
           <div className="pt-6 border-t border-red-500/10 mt-6 space-y-4">
             <div>
-              <h4 className="font-heading font-bold text-sm text-red-500 flex items-center gap-2">
+              <h4 className="font-heading font-semibold text-sm text-red-500 flex items-center gap-2">
                 <Trash2 className="w-4.5 h-4.5" />
                 Vùng nguy hiểm
               </h4>
@@ -174,7 +225,7 @@ export default function TabCaseSettings({ caseData }: TabCaseSettingsProps) {
           setDeleteConfirmText("");
         }}
         title={
-          <span className="font-heading font-bold text-sm text-red-600 flex items-center gap-1.5">
+          <span className="font-heading font-semibold text-sm text-red-600 flex items-center gap-1.5">
             <Trash2 className="w-4.5 h-4.5" />
             Xác nhận xóa hồ sơ dự án
           </span>

@@ -37,7 +37,17 @@ export function useCaseDetails(id: string) {
   });
 
   const updateSettingsMutation = useMutation({
-    mutationFn: async (payload: { team_name?: string; school?: string; course_context?: string; group_no?: string }) => {
+    mutationFn: async (payload: {
+      team_name?: string;
+      school?: string;
+      course_context?: string;
+      group_no?: string;
+      contact?: Record<string, any>;
+      idea?: Record<string, any>;
+      current_blocker?: string;
+      support_needs?: Record<string, any>;
+      boundary_confirmations?: string[];
+    }) => {
       const response = await apiClient.put(`/cases/${id}/settings`, payload);
       return response.data;
     },
@@ -56,6 +66,17 @@ export function useCaseDetails(id: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cases"] });
       queryClient.invalidateQueries({ queryKey: ["admin-cases"] });
+    },
+  });
+
+  const resubmitMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.post(`/cases/${id}/resubmit`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["case", id] });
+      queryClient.invalidateQueries({ queryKey: ["cases"] });
     },
   });
 
@@ -81,5 +102,7 @@ export function useCaseDetails(id: string) {
     isUpdatingSettings: updateSettingsMutation.isPending,
     deleteCase: deleteCaseMutation.mutateAsync,
     isDeletingCase: deleteCaseMutation.isPending,
+    resubmitCase: resubmitMutation.mutateAsync,
+    isResubmitting: resubmitMutation.isPending,
   };
 }

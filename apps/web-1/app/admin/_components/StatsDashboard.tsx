@@ -128,8 +128,8 @@ export default function StatsDashboard({
       <div className="bg-surface-app border border-border-app p-4 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xs">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-brand" />
-          <span className="font-heading font-bold text-sm text-text-app">Mốc thời gian thống kê:</span>
-          <Badge variant="light" color="brand" size="sm">
+          <span className="font-heading font-semibold text-sm text-text-app">Mốc thời gian thống kê:</span>
+          <Badge variant="light" color="brand" size="md">
             {period === "7d"
               ? "7 Ngày gần nhất"
               : period === "30d"

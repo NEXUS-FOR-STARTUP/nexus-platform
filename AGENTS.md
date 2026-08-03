@@ -35,7 +35,9 @@ root/
 | Web UI          | `apps/web-1/app/*`                                    | Mantine UI v9 app; read `apps/web-1/AGENTS.md` first         |
 | Shared UI       | `packages/ui/src/*`                                   | Common primitives for shared React usage                     |
 | DB schema       | `prisma/schema-*.md` or `prisma/schema.prisma`        | 16 models, plural snake_case fields                          |
+| DB migration    | `docs/db-migration-guide.md`                          | Prisma migration workflow, generate/migrate/deploy          |
 | Tech docs       | `docs/tech-doc-urls.txt`                              | Source of truth for external docs                            |
+| CI/CD           | `docs/ci-guide.md`                                    | GitHub Actions workflow, automate build/test/deploy          |
 | Workspace rules | `package.json`, `turbo.json`                          | Root scripts + Turbo task graph                              |
 | Shared packages | `packages/validation/src/`, `packages/ui/src/`        | Zod schemas, React primitives                                |
 | Agent rules     | `.agents/rules/`                                      | Development, docs, orchestration, workflow, prisma-migration |
@@ -58,7 +60,8 @@ root/
 - TanStack Form for form state management.
 - Lucide React for icons (not Mantine icons).
 - Test: Node built-in runner (`node:test` + `node:assert`), only in apps/api.
-- No CI/CD configured (no GitHub Actions, Docker, Makefile).
+- CI/CD: see `docs/ci-guide.md` for GitHub Actions workflow setup.
+- Docker build: see `docs/docker-build-push-guide.md` for API & Web images.
 
 ## ANTI-PATTERNS
 
@@ -95,8 +98,6 @@ npm run prisma:migrate
 ## BUILD & CI
 
 ```bash
-No CI/CD configured. All commands run locally.
-
 # Dev
 npm run dev                    # parallel: API (tsx watch :8000) + Web (next dev :3001)
 npm run build                  # prisma generate → tsc (API) + next build (Web)
@@ -110,6 +111,10 @@ npm run format                 # Prettier (not in CI pipeline)
 ## DOCKER BUILD & DEPLOY
 
 > Full guide: `docs/docker-build-push-guide.md` — troubleshooting, Makefile shortcuts, CI/CD template.
+
+## CI/CD
+
+> Full guide: `docs/ci-guide.md` — GitHub Actions workflow, automate build/test/deploy.
 
 ## CRITICAL — DATABASE SAFETY
 

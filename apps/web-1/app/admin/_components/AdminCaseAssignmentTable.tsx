@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { User } from "@/types";
-import { CheckCircle, Search, MoreVertical, Trash2, Eye, Shield } from "lucide-react";
+import { User, statusThemeMap } from "@/types";
+import { CheckCircle, Search, MoreVertical, Trash2, Eye, Shield, RefreshCw, UserCheck } from "lucide-react";
 import { Button, Select, Badge, Table, Pagination, TextInput, Group, Menu, ActionIcon, Tooltip } from "@mantine/core";
 
 // Import extracted modals
@@ -22,6 +22,7 @@ interface AdminCaseAssignmentTableProps {
   onRequestMoreInfo: (caseId: string, query: string) => Promise<void>;
   isCrudMode?: boolean;
   onDelete?: (caseId: string) => Promise<void>;
+  onRefresh?: () => void;
 }
 
 function getSlaRowClass(deadline: string | null | undefined): string {
@@ -42,6 +43,7 @@ export default function AdminCaseAssignmentTable({
   onRequestMoreInfo,
   isCrudMode = false,
   onDelete,
+  onRefresh,
 }: AdminCaseAssignmentTableProps) {
   const [activePage, setActivePage] = useState(1);
   const itemsPerPage = 5;
@@ -117,7 +119,7 @@ export default function AdminCaseAssignmentTable({
         </div>
         <div className="space-y-0.5">
           <p className="font-heading font-semibold text-xs text-text-app">Không có hồ sơ nào cần xử lý</p>
-          <p className="font-body text-[11px] text-text-muted">
+          <p className="font-body text-base text-text-muted">
             Tất cả các hồ sơ đã được xử lý xong hoặc không tìm thấy hồ sơ phù hợp.
           </p>
         </div>
@@ -161,6 +163,18 @@ export default function AdminCaseAssignmentTable({
           radius="md"
           style={{ width: 180 }}
         />
+        {onRefresh && (
+          <Tooltip label="Làm mới" position="bottom" withArrow>
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              onClick={onRefresh}
+              className="cursor-pointer"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </ActionIcon>
+          </Tooltip>
+        )}
       </Group>
 
       <Table.ScrollContainer minWidth={800}>
@@ -171,6 +185,7 @@ export default function AdminCaseAssignmentTable({
               <Table.Th className="text-left">Nhóm / Đề tài</Table.Th>
               <Table.Th className="text-left">Gói dịch vụ</Table.Th>
               <Table.Th className="text-left">Trạng thái</Table.Th>
+              <Table.Th className="text-left">Người phụ trách</Table.Th>
               <Table.Th className="text-center w-20">SLA</Table.Th>
               <Table.Th className="text-center w-24">Thao tác</Table.Th>
             </Table.Tr>
@@ -178,7 +193,7 @@ export default function AdminCaseAssignmentTable({
           <Table.Tbody>
             {filteredAndSortedCases.length === 0 ? (
               <Table.Tr>
-                <Table.Td colSpan={6} className="text-center py-8 text-text-muted">
+                <Table.Td colSpan={7} className="text-center py-8 text-text-muted">
                   Không tìm thấy kết quả phù hợp với bộ lọc hiện tại.
                 </Table.Td>
               </Table.Tr>
@@ -186,14 +201,14 @@ export default function AdminCaseAssignmentTable({
               paginatedCases.map((item) => {
                 return (
                   <Table.Tr key={item.id} className={`${getSlaRowClass(item.sla_deadline_at)} hover:bg-surface-soft/30 transition-colors`}>
-                    <Table.Td className="font-heading font-bold text-xs" title={item.case_code}>
+                    <Table.Td className="font-heading font-semibold text-xs" title={item.case_code}>
                       {item.case_code && item.case_code.length > 30 ? `${item.case_code.slice(0, 30)}...` : item.case_code}
                     </Table.Td>
                     <Table.Td>
                       <div className="font-semibold text-text-app" title={item.team_name || "Chưa đặt tên"}>
                         {item.team_name && item.team_name.length > 30 ? `${item.team_name.slice(0, 30)}...` : (item.team_name || "Chưa đặt tên")}
                       </div>
-                      <div className="text-[10px] text-text-muted" title={item.owner_name}>
+                      <div className="text-base text-text-muted" title={item.owner_name}>
                         Chủ sở hữu: {item.owner_name && item.owner_name.length > 30 ? `${item.owner_name.slice(0, 30)}...` : item.owner_name}
                       </div>
                     </Table.Td>
@@ -203,21 +218,30 @@ export default function AdminCaseAssignmentTable({
                     <Table.Td>
                       <Badge
                         color={
-                          item.internal_status === "triage_pending"
-                            ? "gray"
-                            : item.internal_status === "accepted_unassigned"
-                            ? "yellow"
-                            : "green"
+                          statusThemeMap[item.internal_status]?.color === "default" ? "gray"
+                          : statusThemeMap[item.internal_status]?.color === "primary" ? "brand"
+                          : statusThemeMap[item.internal_status]?.color === "warning" ? "yellow"
+                          : statusThemeMap[item.internal_status]?.color === "danger" ? "red"
+                          : statusThemeMap[item.internal_status]?.color === "success" ? "teal"
+                          : "gray"
                         }
                         variant="light"
-                        size="sm"
+                        size="md"
                       >
-                        {item.internal_status === "triage_pending"
-                          ? "Chờ Duyệt"
-                          : item.internal_status === "accepted_unassigned"
-                          ? "Chờ Phân Công"
-                          : "Đã phân công"}
+                        {statusThemeMap[item.internal_status]?.label || item.internal_status}
                       </Badge>
+                    </Table.Td>
+                    <Table.Td>
+                      {item.assigned_supporter?.name ? (
+                        <div className="flex items-center gap-1.5 font-semibold text-text-app">
+                          <UserCheck className="w-3.5 h-3.5 text-brand shrink-0" />
+                          <span className="truncate" title={item.assigned_supporter.name}>
+                            {item.assigned_supporter.name}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-text-muted text-xs italic">Chưa phân công</span>
+                      )}
                     </Table.Td>
                     <Table.Td className="text-center">
                       <SlaTimer deadline={item.sla_deadline_at} />
@@ -336,7 +360,7 @@ function SlaTimer({ deadline }: { deadline: string | null | undefined }) {
       const diff = target - now;
       if (diff <= 0) {
         setTimeLeft("Quá hạn");
-        setColorClass("text-danger font-bold");
+        setColorClass("text-danger font-semibold");
         return;
       }
       const hours = Math.floor(diff / (1000 * 60 * 60));

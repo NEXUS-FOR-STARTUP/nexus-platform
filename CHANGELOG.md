@@ -13,6 +13,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [1.0.0] - 2026-08-03
+
+### Added
+- Unified status workflow engine (symflow): 8 case states aligned with VALID_INTERNAL_STATUSES, guarded transitions across 7 use cases
+- Dedicated intake form page with submit and resubmit flow
+- CaseOverviewPanel for structured case dashboard display
+- CaseStatusHeader replacing the hero banner on case pages
+- Case rejection reason display and resubmit after rejection
+- Case profile settings editing (student-facing)
+- Demo data preset with DemoDataFAB for quick demonstration
+- Data migration script to fix invalid internal_status values
+- Deploy log documentation and mandatory logging step in docker guide
+
+### Changed
+- Symflow places redefined: 8 places, 8 transitions matching VALID_INTERNAL_STATUSES
+- Default case internal_status changed to `triage_pending`
+- Credit tab always visible in sidebar across all case stages
+- Team-fit navigation and member card UI refreshed
+- Dashboard sidebar enlarged with role guard; admin/supporter content no longer flashes before redirect
+- TanStack devtools disabled in production
+- Case data refreshes on navigation (staleTime 0s, query invalidation)
+- Badge sizes bumped one level across web components
+- Admin case table header paginates dynamically per subtab
+- Supporter tab filters use valid internal_status, adding `report_ready_to_publish` tab
+- Case profile edits routed to intake form
+
+### Fixed
+- AI engine creating cases with wrong status (`triage_pending` now set on creation)
+- Revision upload gating by case stage
+- Migration script dotenv path and PrismaPg adapter usage
+- Admin case detail cache not invalidated after mutations
+- Supporter assignment not restricted properly
+- Intake form not hydrating saved case profiles
+- SLA timer visible to users (comment out for MVP)
+
 ## [0.0.1] - 2026-07-28
 
 ### Added
@@ -92,5 +127,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Codebase summary with file structure
 - Research logging best practices
 
-[Unreleased]: https://github.com/CHECKPOINT-00/nexus-platform/compare/v0.0.1...HEAD
+[Unreleased]: https://github.com/CHECKPOINT-00/nexus-platform/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/CHECKPOINT-00/nexus-platform/compare/v0.0.1...v1.0.0
 [0.0.1]: https://github.com/CHECKPOINT-00/nexus-platform/releases/tag/v0.0.1

@@ -13,7 +13,7 @@ export default function ProjectContextStep({ form, values }: ProjectContextStepP
   return (
     <div className="space-y-5 font-body">
       <div className="flex items-center gap-1.5 pb-1">
-        <h3 className="font-heading text-base font-bold text-text-app">Thông tin Nhóm / Đề tài</h3>
+        <h3 className="font-heading text-base font-semibold text-text-app">Thông tin Nhóm / Đề tài</h3>
         <Tooltip
           label="Thông tin bối cảnh học tập và hoạt động của nhóm."
           position="top"

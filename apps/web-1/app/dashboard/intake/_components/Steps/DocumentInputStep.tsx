@@ -163,7 +163,7 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
     <div className="space-y-5 font-body">
       {/* ─── Template Reference Alert ─── */}
       <div className="flex items-center gap-1.5 pb-1">
-        <h3 className="font-heading text-base font-bold text-text-app">
+        <h3 className="font-heading text-base font-semibold text-text-app">
           Hồ sơ của nhóm đã có sẵn chưa?
         </h3>
         <Tooltip
@@ -233,7 +233,7 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
               {/* Upload control */}
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-1.5">
-                  <label className="text-sm font-bold text-text-app">
+                  <label className="text-sm font-semibold text-text-app">
                     Tải lên tài liệu hồ sơ <span className="text-danger">*</span>
                   </label>
                   <Tooltip
@@ -290,7 +290,7 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
               {/* Uploaded documents list */}
               {hasDocs && (
                 <Stack gap="sm">
-                  <label className="text-sm font-bold text-text-app">
+                  <label className="text-sm font-semibold text-text-app">
                     Tài liệu đã tải lên ({docs.length})
                   </label>
 
@@ -311,7 +311,7 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                               {doc.original_name}
                             </Text>
                             <Group gap="xs" mt={2}>
-                              <Badge size="xs" variant="light" color="gray">
+                              <Badge size="sm" variant="light" color="gray">
                                 {doc.extension?.toUpperCase() ?? "FILE"}
                               </Badge>
                               <Text size="xs" c="dimmed">

@@ -8,7 +8,7 @@ export default function DashboardEmptyState() {
         <Users className="w-8 h-8" />
       </div>
       
-      <h3 className="font-heading text-xl font-bold text-text-app mb-2">Chưa có hồ sơ phản biện nào</h3>
+      <h3 className="font-heading text-xl font-semibold text-text-app mb-2">Chưa có hồ sơ phản biện nào</h3>
       <p className="font-body text-text-muted text-sm max-w-md mb-8 leading-relaxed">
         Đánh giá đội ngũ khởi nghiệp của bạn trước, sau đó tạo hồ sơ phản biện với các checkpoint chuẩn.
       </p>

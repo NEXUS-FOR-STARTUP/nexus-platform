@@ -48,7 +48,7 @@ export default function AssignSupporterModal({
       opened={caseId !== null}
       onClose={onClose}
       title={
-        <div className="flex items-center gap-1.5 text-brand font-heading font-bold text-sm">
+        <div className="flex items-center gap-1.5 text-brand font-heading font-semibold text-sm">
           <UserCheck className="w-4 h-4" />
           <span>Phân công Supporter</span>
         </div>
@@ -62,7 +62,7 @@ export default function AssignSupporterModal({
           </div>
         )}
 
-        <p className="text-[11px] text-text-muted">Chọn Supporter chuyên môn phụ trách đánh giá và hỗ trợ hồ sơ này.</p>
+        <p className="text-base text-text-muted">Chọn Supporter chuyên môn phụ trách đánh giá và hỗ trợ hồ sơ này.</p>
         
         <Select
           label="Supporter"

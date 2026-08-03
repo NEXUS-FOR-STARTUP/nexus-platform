@@ -50,18 +50,22 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
               {/* Event Content card */}
               <div className="space-y-1.5 font-body">
                 <div className="flex flex-wrap items-baseline gap-2">
-                  <h4 className="font-heading font-bold text-xs text-text-app">
+                  <h4 className="font-heading font-semibold text-xs text-text-app">
                     {label}
                   </h4>
-                  <span className="text-[10px] text-text-subtle">
+                  <span className="text-base text-text-subtle">
                     {formatDateTime(event.created_at)}
                   </span>
                 </div>
                 <p className="text-xs text-text-muted leading-relaxed">
                   {desc}
+                  {(event.event_type === "case_rejected" || event.event_type === "vetoed") &&
+                    (event.metadata_json as any)?.reason && (
+                      <> — Lý do: {(event.metadata_json as any).reason}</>
+                    )}
                 </p>
                 {event.actor && (
-                  <p className="text-[10px] text-text-subtle">
+                  <p className="text-base text-text-subtle">
                     Thực hiện bởi: <strong className="text-text-muted">{event.actor.name}</strong> ({event.actor.role === "admin" ? "Admin" : event.actor.role === "supporter" ? "Supporter" : "Sinh viên"})
                   </p>
                 )}

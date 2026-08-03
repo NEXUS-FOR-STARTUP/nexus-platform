@@ -1,0 +1,125 @@
+=== TEAM-FIT FORM ===
+Mỗi dòng = 1 ô. Copy từng dòng paste vào ô tương ứng.
+
+--- MAD LIBS (6 ô) ---
+
+projectName:
+Nexus
+
+field:
+EdTech - Hỗ trợ khởi nghiệp
+
+targetCustomer:
+team sinh viên FPT học EXE101 gặp khó khăn ở Checkpoint 1 (chưa có idea, idea mơ hồ, hoặc đã rớt CP1)
+
+problem:
+không biết lỗi gốc của ý tưởng nằm ở đâu và không biết sửa phần nào trước — ChatGPT chung chung, bạn bè thiếu nhất quán, giảng viên quá bận
+
+solution:
+dịch vụ audit ý tưởng có cấu trúc: nhận tài liệu, chỉ ra lỗi gốc và thứ tự ưu tiên sửa, re-audit sau mỗi lần team chỉnh sửa — không làm bài hộ, không chọn idea thay
+
+mvp:
+Concierge MVP (Google Form + Sheet + Zalo + AI prompt nội bộ) — đã test 9 team, điểm CP1 từ ~3.5 lên >=8/10
+
+
+--- THÀNH VIÊN 1 ---
+Chuyên ngành: Công nghệ phần mềm
+Sở trường: quản lý dự án, full-stack development, thiết kế kiến trúc hệ thống, thiết kế database, AI prompt engineering
+Kinh nghiệm: Project Manager & Tech Lead Nexus, xây dựng quy trình audit, trực tiếp hỗ trợ 9 team EXE101
+
+--- THÀNH VIÊN 2 ---
+Chuyên ngành: Công nghệ phần mềm
+Sở trường: full-stack development, bảo mật hệ thống, kiểm tra an ninh ứng dụng
+Kinh nghiệm: Technical Member Nexus, phát triển hệ thống, phụ trách bảo mật
+
+--- THÀNH VIÊN 3 ---
+Chuyên ngành: Truyền thông đa phương tiện
+Sở trường: sáng tạo nội dung, phân tích thị trường, lập kế hoạch marketing, thiết kế Canva
+Kinh nghiệm: Marketing Member Nexus, phỏng vấn khách hàng EXE101
+
+--- THÀNH VIÊN 4 ---
+Chuyên ngành: Truyền thông đa phương tiện
+Sở trường: nghiên cứu thị trường, phân tích customer insight, content marketing, social media
+Kinh nghiệm: Marketing Member Nexus, thực hiện 16/25 cuộc phỏng vấn sâu
+
+--- THÀNH VIÊN 5 ---
+Chuyên ngành: Truyền thông đa phương tiện
+Sở trường: lập kế hoạch ngân sách, phân tích dữ liệu tài chính, hỗ trợ sales, tổ chức sự kiện
+Kinh nghiệm: Finance Member Nexus, xây dựng P&L và dự báo tài chính 10 quý
+
+--- THÀNH VIÊN 6 ---
+Chuyên ngành: Công nghệ phần mềm
+Sở trường: thiết kế visual, thiết kế logo banner, Figma, Canva, PowerPoint
+Kinh nghiệm: Design Member Nexus, thiết kế visual identity và slide pitch deck
+
+
+=== INTAKE FORM ===
+
+Họ tên người liên hệ:
+Phùng Lưu Hoàng Long
+
+MSSV:
+SE190377
+
+Vai trò trong nhóm:
+Project Manager & Tech Lead
+
+Zalo:
+...
+
+Email:
+...
+
+Tên nhóm:
+Nexus
+
+Số nhóm:
+13
+
+Tên dự án:
+Nexus
+
+Tóm tắt tình trạng nhóm:
+Nhóm 6 người (3 CNPM + 3 Truyền thông ĐPT). Đã hoàn thành CP1-CP4. Đã hỗ trợ 9 team EXE101 cải thiện điểm CP1 từ ~3.5 lên >=8.0. Đang chuyển từ Concierge MVP sang Web App MVP.
+
+Điểm kẹt hiện tại:
+Nhóm đã hoàn thành 4 CP với điểm tốt nhưng chưa có doanh thu thật từ 9 team đã hỗ trợ (đều miễn phí do GV chuyển đến). Cần kiểm chứng willingness-to-pay và chuyển từ Concierge MVP sang Web App MVP. Cạnh tranh với ChatGPT/Gemini đang ngày càng mạnh.
+
+Tình trạng cụ thể:
+- Đã test MVP với khách hàng thật (9 team)
+- Đã phỏng vấn khách hàng (25 người)
+- Đã có quy trình audit + template + checklist
+- Đang xây web app (Next.js + Hono + Prisma)
+- Đã có Lean Canvas + SWOT + kế hoạch tài chính 10 quý
+- Chưa có doanh thu
+
+Nhu cầu chính:
+team_fit (Đánh giá đội ngũ)
+
+Nhu cầu chi tiết:
+- Team có đủ năng lực scale không? (3 CNPM + 3 Truyền thông)
+- Rủi ro phụ thuộc founder (Long)?
+- Cần thêm vai trò gì khi mở rộng?
+- Đánh giá mô hình doanh thu 149K-599K/nhóm
+
+Gói dịch vụ:
+Audit & Review (249K)
+
+Phản hồi giảng viên:
+- CP2: "Làm web app hẳn hoi, không chỉ Google Form + Sheet"
+- CP3: "Đừng phụ thuộc rubric — xây tiêu chí đánh giá riêng"
+- CP4: "Không oversell — Nexus hỗ trợ, không cam kết điểm"
+
+Output mong đợi:
+Báo cáo team-fit: điểm mạnh/yếu, gaps, rủi ro nhân sự, vai trò cần bổ sung.
+
+Xác nhận:
+- Không NDA
+- Đã tự rà soát nội dung
+- Đồng ý điều khoản dịch vụ
+
+Trường:
+FPT University HCMC
+
+Môn học:
+EXE101 - Summer 2026

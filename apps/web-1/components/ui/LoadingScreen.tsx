@@ -38,10 +38,10 @@ export default function LoadingScreen({ message = "Đang xác thực tài khoả
 
         {/* Text info */}
         <div className="space-y-1">
-          <p className="font-heading font-bold text-xs text-text-app tracking-wide uppercase">
+          <p className="font-heading font-semibold text-xs text-text-app tracking-wide uppercase">
             Nexus Platform
           </p>
-          <p className="font-body text-[11px] text-text-muted animate-pulse">
+          <p className="font-body text-text-muted animate-pulse">
             {message}
           </p>
         </div>

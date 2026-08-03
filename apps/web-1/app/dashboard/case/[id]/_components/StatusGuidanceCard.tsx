@@ -7,7 +7,8 @@ import {
   Activity, 
   AlertCircle, 
   CheckCircle2, 
-  HelpCircle
+  HelpCircle,
+  Zap,
 } from "lucide-react";
 import { Alert, Button } from "@mantine/core";
 
@@ -28,6 +29,16 @@ export default function StatusGuidanceCard({
   const stage = caseData.user_facing_stage;
   const hasInfoRequest = openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0;
 
+  // Extract rejection reason from events when case was rejected
+  const rejectionReason: string | null = (() => {
+    if (stage !== "rejected") return null;
+    const events = caseData.events || [];
+    const rejectionEvent = [...events]
+      .reverse()
+      .find(e => e.event_type === "case_rejected" || e.event_type === "vetoed");
+    return (rejectionEvent?.metadata_json as any)?.reason || null;
+  })();
+
   if (hasInfoRequest) {
     const queryText = openRequestsForMoreInfo[0].metadata_json?.query || "Vui lòng kiểm tra lại tài liệu đã tải lên.";
     return (
@@ -41,7 +52,7 @@ export default function StatusGuidanceCard({
       >
         <div className="space-y-1 flex-grow">
             <p className="font-semibold text-warning-strong">Nội dung yêu cầu:</p>
-            <p className="italic bg-surface-app/50 p-2.5 rounded border border-warning/10 font-body text-[11px] leading-relaxed">
+            <p className="italic bg-surface-app/50 p-2.5 rounded border border-warning/10 font-body leading-relaxed">
               "{queryText}"
             </p>
           </div>
@@ -118,21 +129,25 @@ export default function StatusGuidanceCard({
       );
     }
 
-    case "revision_submitted":
+    case "revision_submitted": {
+      const hasSupporter = !!(caseData.assigned_supporter_auth_user_id || caseData.assigned_supporter?.name);
       return (
         <Alert
           variant="light"
           color="blue"
           radius="md"
-          title="Bản sửa đổi đã gửi thành công — Chờ thẩm định"
+          title={hasSupporter ? "Bản sửa đổi đã gửi thành công — Chờ thẩm định" : "Bản sửa đổi đã gửi thành công — Chờ Admin phân công"}
           icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
           className="animate-fade-in font-body text-xs shrink-0"
         >
           <p className="text-text-muted text-xs leading-relaxed">
-            Supporter đang tiến hành thẩm định bản sửa đổi mới nhất của bạn.
+            {hasSupporter
+              ? "Supporter đang tiến hành thẩm định bản sửa đổi mới nhất của bạn."
+              : "Bản sửa đổi đã được ghi nhận. Ban tổ chức (Admin) đang phân công Supporter chuyên môn thẩm định bản mới này."}
           </p>
         </Alert>
       );
+    }
 
     case "closed":
       return (
@@ -179,25 +194,50 @@ export default function StatusGuidanceCard({
           icon={<AlertCircle className="w-4.5 h-4.5 shrink-0" />}
           className="animate-fade-in font-body text-xs shrink-0"
         >
-          <p className="text-text-muted text-xs leading-relaxed">
-            Yêu cầu phản biện dự án của bạn không được duyệt. Vui lòng liên hệ với Ban tổ chức hoặc gửi thắc mắc qua phần Thảo luận.
-          </p>
+          <div className="space-y-1 flex-grow">
+            {rejectionReason && (
+              <p className="font-semibold text-danger">Lý do từ chối:</p>
+            )}
+            <p className="text-text-muted text-xs leading-relaxed">
+              {rejectionReason
+                ? rejectionReason
+                : "Yêu cầu phản biện dự án của bạn không được duyệt. Vui lòng liên hệ với Ban tổ chức hoặc gửi thắc mắc qua phần Thảo luận."
+              }
+            </p>
+            {onOpenIntake && (
+              <div className="pt-2">
+                <Button
+                  size="sm"
+                  color="brand"
+                  className="shrink-0 cursor-pointer"
+                  onClick={onOpenIntake}
+                >
+                  Chỉnh sửa hồ sơ để nộp lại
+                </Button>
+              </div>
+            )}
+          </div>
         </Alert>
       );
 
-    case "intake_pending":
+    case "intake_pending": {
+      const isFree = caseData.package_id === "pkg_tf_free";
       return (
         <Alert
           variant="light"
-          color="yellow"
+          color={isFree ? "blue" : "yellow"}
           radius="md"
-          title="Chờ thanh toán dịch vụ"
-          icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
+          title={isFree ? "Nâng cấp lên đánh giá chuyên sâu" : "Chờ thanh toán dịch vụ"}
+          icon={isFree ? <Zap className="w-4.5 h-4.5 shrink-0" /> : <Clock className="w-4.5 h-4.5 shrink-0" />}
           className="animate-fade-in font-body text-xs shrink-0"
+          styles={{ wrapper: { alignItems: "center" } }}
         >
           <div className="flex items-center justify-between gap-4">
             <p className="text-text-muted text-xs leading-relaxed">
-              Vui lòng hoàn tất thanh toán để kích hoạt quy trình phản biện.
+              {isFree
+                ? "Bạn đang dùng gói miễn phí. Mua lượt đánh giá chuyên sâu để nhận phản biện chi tiết từ chuyên gia."
+                : "Vui lòng hoàn tất thanh toán để kích hoạt quy trình phản biện."
+              }
             </p>
             {onOpenPayment && (
               <Button
@@ -206,12 +246,13 @@ export default function StatusGuidanceCard({
                 className="shrink-0 cursor-pointer"
                 onClick={onOpenPayment}
               >
-                Thanh toán ngay
+                {isFree ? "Mua lượt đánh giá" : "Thanh toán ngay"}
               </Button>
             )}
           </div>
         </Alert>
       );
+    }
 
     case "intake_ready":
       return (
@@ -219,14 +260,17 @@ export default function StatusGuidanceCard({
           variant="light"
           color="blue"
           radius="md"
-          title="Cần cập nhật thông tin hồ sơ"
           icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
           className="animate-fade-in font-body text-xs shrink-0"
+          styles={{ wrapper: { alignItems: "center" } }}
         >
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-text-muted text-xs leading-relaxed">
-              Vui lòng cập nhật thông tin hồ sơ khởi nghiệp trước khi gửi để Supporter có thể đánh giá chính xác.
-            </p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-0.5">
+              <div className="mantine-Alert-title mb-0.5">Cần cập nhật thông tin hồ sơ</div>
+              <p className="text-text-muted text-xs leading-relaxed">
+                Vui lòng cập nhật thông tin hồ sơ khởi nghiệp trước khi gửi để Supporter có thể đánh giá chính xác.
+              </p>
+            </div>
             {onOpenIntake && (
               <Button
                 size="sm"

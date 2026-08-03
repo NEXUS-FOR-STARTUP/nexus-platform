@@ -1,3 +1,5 @@
+"use client";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { apiClient } from "@/lib/api-client";
@@ -56,25 +58,36 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
 
   const [draftValues, setDraftValues] = useState<IntakeData>(baseInitialValues);
 
+  const form = useForm({
+    defaultValues: draftValues,
+    onSubmit: async ({ value }) => {
+      await submitMutation.mutateAsync(value);
+    },
+  });
+
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setDraftValues((prev) => ({
-            ...prev,
-            ...parsed,
-            current_blocker: "", // Never pre-fill — user must describe their own lecturer/team blocker
-            package_id: packageId || parsed.package_id || "",
-          }));
-        } catch (e) {
-          localStorage.removeItem(LOCAL_STORAGE_KEY);
+      // UPDATE mode (caseId exists): skip localStorage, rely on initialData from API
+      // CREATE mode: restore saved draft from localStorage
+      if (!caseId) {
+        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            setDraftValues((prev) => ({
+              ...prev,
+              ...parsed,
+              current_blocker: "", // Never pre-fill — user must describe their own lecturer/team blocker
+              package_id: packageId || parsed.package_id || "",
+            }));
+          } catch (e) {
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+          }
         }
       }
       setIsLoaded(true);
     }
-  }, [packageId]);
+  }, [packageId, caseId]);
 
   const submitMutation = useMutation({
     mutationFn: async (data: IntakeData) => {
@@ -86,28 +99,20 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
       return response.data;
     },
     onSuccess: (result) => {
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+      }
       queryClient.invalidateQueries({ queryKey: ["cases"] });
       const redirectId = caseId || result.id;
+      queryClient.invalidateQueries({ queryKey: ["case", redirectId] });
       router.push(`/dashboard/case/${redirectId}`);
     },
   });
 
-  const form = useForm({
-    defaultValues: draftValues,
-    onSubmit: async ({ value }) => {
-      await submitMutation.mutateAsync(value);
-    },
-  });
-
-  useEffect(() => {
-    if (isLoaded) {
-      form.reset(draftValues);
-    }
-  }, [isLoaded, draftValues, form]);
-
+  // Only persist draft for CREATE mode (new cases). UPDATE mode uses
+  // initialData from the case API, not localStorage.
   const saveDraft = (values: IntakeData) => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && !caseId) {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(values));
     }
   };
@@ -116,10 +121,16 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
     if (typeof window !== "undefined") {
       localStorage.removeItem(LOCAL_STORAGE_KEY);
     }
-    const resetValues: IntakeData = {
-      ...INITIAL_VALUES,
-      package_id: packageId,
-    };
+    const resetValues: IntakeData = initialData
+      ? {
+          ...INITIAL_VALUES,
+          ...initialData,
+          package_id: packageId || initialData.package_id || "",
+        }
+      : {
+          ...INITIAL_VALUES,
+          package_id: packageId,
+        };
     setDraftValues(resetValues);
     form.reset(resetValues);
   };

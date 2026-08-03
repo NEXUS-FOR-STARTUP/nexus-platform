@@ -63,7 +63,7 @@ export default function WorkspaceSidebar({
           },
         ]
       : []),
-    ...(!isPreSubmission && !hideCredits
+    ...(!hideCredits
       ? [
           {
             id: "credits" as const,
@@ -105,10 +105,10 @@ export default function WorkspaceSidebar({
                   className={classes.mainLink}
                   data-active={isActive || undefined}
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-6 h-6" />
                   {tab.count !== undefined && tab.count > 0 && (
                     <span
-                      className={`absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-[9px] font-bold flex items-center justify-center border-2 ${
+                      className={`absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-xs font-semibold flex items-center justify-center border-2 ${
                         isActive ? "bg-white text-brand border-brand" : "bg-brand text-white border-surface-app"
                       }`}
                     >

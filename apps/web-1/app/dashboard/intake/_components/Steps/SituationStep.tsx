@@ -12,7 +12,7 @@ export default function SituationStep({ form, values }: SituationStepProps) {
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-1.5 pb-1">
-        <h3 className="font-heading text-base font-bold text-text-app">Nhóm đang kẹt ở đâu?</h3>
+        <h3 className="font-heading text-base font-semibold text-text-app">Nhóm đang kẹt ở đâu?</h3>
         <Tooltip
           label="Mô tả ngắn gọn nút thắt hiện tại để Supporter tập trung giải quyết."
           position="top"

@@ -5,7 +5,12 @@ import { Case, User } from "@/types";
 export function useAdminCases() {
   const queryClient = useQueryClient();
 
-  const casesQuery = useQuery<any[]>({
+  const {
+    data: casesData,
+    isLoading: isCasesLoading,
+    error: casesError,
+    refetch: refetchCases,
+  } = useQuery<any[]>({
     queryKey: ["admin-cases"],
     queryFn: async () => {
       const response = await apiClient.get("/admin/cases");
@@ -28,6 +33,7 @@ export function useAdminCases() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-cases"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-case-detail"] });
       queryClient.invalidateQueries({ queryKey: ["case"] });
     },
   });
@@ -39,6 +45,7 @@ export function useAdminCases() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-cases"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-case-detail"] });
       queryClient.invalidateQueries({ queryKey: ["case"] });
     },
   });
@@ -50,6 +57,7 @@ export function useAdminCases() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-cases"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-case-detail"] });
       queryClient.invalidateQueries({ queryKey: ["case"] });
     },
   });
@@ -63,6 +71,7 @@ export function useAdminCases() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-cases"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-case-detail"] });
       queryClient.invalidateQueries({ queryKey: ["case"] });
     },
   });
@@ -74,14 +83,16 @@ export function useAdminCases() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-cases"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-case-detail"] });
       queryClient.invalidateQueries({ queryKey: ["case"] });
     },
   });
 
   return {
-    cases: casesQuery.data || [],
-    isCasesLoading: casesQuery.isLoading,
-    casesError: casesQuery.error,
+    cases: casesData || [],
+    isCasesLoading,
+    casesError,
+    refetchCases,
     supporters: supportersQuery.data || [],
     isSupportersLoading: supportersQuery.isLoading,
     acceptCase: acceptCaseMutation.mutateAsync,

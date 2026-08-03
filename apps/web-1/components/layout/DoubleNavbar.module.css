@@ -14,7 +14,7 @@
 }
 
 .aside {
-  flex: 0 0 60px;
+  flex: 0 0 72px;
   background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7));
   display: flex;
   flex-direction: column;
@@ -33,8 +33,8 @@
 }
 
 .mainLink {
-  width: 44px;
-  height: 44px;
+  width: 52px;
+  height: 52px;
   border-radius: var(--mantine-radius-md);
   display: flex;
   align-items: center;
@@ -86,20 +86,20 @@
 }
 
 .singleWidth {
-  width: 80px;
+  width: 100px;
   background-color: var(--color-brand);
   border-right: none;
 }
 
 .singleWidth .aside {
-  flex: 0 0 80px;
+  flex: 0 0 100px;
   border-right: none;
   background-color: var(--color-brand);
 }
 
 .singleWidth .mainLink {
-  width: 52px;
-  height: 52px;
+  width: 64px;
+  height: 64px;
   color: rgba(255, 255, 255, 0.85);
 }
 

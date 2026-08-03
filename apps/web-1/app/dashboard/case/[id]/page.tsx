@@ -14,13 +14,13 @@ import TabCaseSettings from "./_components/TabCaseSettings";
 import CreditPanel from "./_components/CreditPanel";
 import CaseOverviewPanel from "./_components/CaseOverviewPanel";
 import CreditQuantityModal from "./_components/CreditQuantityModal";
-import IntakeFormModal from "./_components/IntakeFormModal";
+
+
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
 import StudentDocumentUploadModal from "./_components/StudentDocumentUploadModal";
 import StatusGuidanceCard from "./_components/StatusGuidanceCard";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Button } from "@mantine/core";
-import { Users } from "lucide-react";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -33,7 +33,6 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const {
     caseData,
     intakeSnapshot,
-    teamFitReport,
     documentWorkspace,
     isLoading,
     error,
@@ -43,7 +42,6 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const [isStudentUploadOpen, setIsStudentUploadOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [creditBuyOpened, setCreditBuyOpened] = useState(false);
-  const [intakeFormOpened, setIntakeFormOpened] = useState(false);
 
   const creditBalance = caseData?.credit_balance ?? null;
   const creditLedger = caseData?.credit_ledger ?? undefined;
@@ -73,11 +71,12 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const isPreSubmission = stage === "intake_pending" || stage === "intake_ready";
   const isIntakeReady = stage === "intake_ready";
   const isIntakePending = stage === "intake_pending";
+  const canSubmitRevision = ["report_ready", "waiting_for_revision", "need_more_information"].includes(stage);
 
   const isTabAvailable = (tab: WorkspaceTab): boolean => {
     if (!isPreSubmission) return true;
-    if (stage === "intake_pending") return tab === "overview" || tab === "settings";
-    if (stage === "intake_ready") return tab === "overview" || tab === "documents" || tab === "settings";
+    if (stage === "intake_pending") return tab === "overview" || tab === "settings" || tab === "credits";
+    if (stage === "intake_ready") return tab === "overview" || tab === "documents" || tab === "settings" || tab === "credits";
     return true;
   };
 
@@ -96,7 +95,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
       />
 
       <div className={`flex-grow flex flex-col h-full min-w-0 p-6 space-y-6 ${activeTab === "discussion" ? "overflow-hidden" : "overflow-y-auto"}`}>
-        {activeTab !== "discussion" && activeTab !== "overview" && (
+        {activeTab !== "discussion" && (
           <CaseStatusHeader
             caseData={caseData}
             versions={[]}
@@ -117,15 +116,16 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           {activeTab === "overview" && (
             <CaseOverviewPanel
               caseData={caseData}
+              intakeSnapshot={intakeSnapshot}
               onSelectTab={(tab) => setActiveTab(tab)}
-              onEditIntake={isIntakeReady ? () => setIntakeFormOpened(true) : undefined}
+              onEditIntake={isIntakeReady ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
               guidanceCard={
                 <StatusGuidanceCard
                   caseData={caseData}
                   openRequestsForMoreInfo={null}
                   onSelectTab={(tab) => setActiveTab(tab)}
                   onOpenPayment={isIntakePending ? () => setCreditBuyOpened(true) : undefined}
-                  onOpenIntake={isIntakeReady ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
+                  onOpenIntake={(isIntakeReady || stage === "rejected") ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
                 />
               }
             />
@@ -139,20 +139,21 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                     size="sm"
                     color="brand"
                     className="font-semibold cursor-pointer h-8.5 text-xs"
-                    onClick={() => setIntakeFormOpened(true)}
+                    onClick={() => router.push(`/dashboard/intake?caseId=${id}`)}
                   >
-                    <Users className="w-4 h-4" />
                     Cập nhật thông tin
                   </Button>
                 )}
-                <Button
-                  size="sm"
-                  color="brand"
-                  className="font-semibold cursor-pointer h-8.5 text-xs"
-                  onClick={() => setIsStudentUploadOpen(true)}
-                >
-                  Tải tài liệu
-                </Button>
+                {canSubmitRevision && (
+                  <Button
+                    size="sm"
+                    color="brand"
+                    className="font-semibold cursor-pointer h-8.5 text-xs"
+                    onClick={() => setIsStudentUploadOpen(true)}
+                  >
+                    Tải tài liệu
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   color="brand"
@@ -183,12 +184,11 @@ export default function CaseWorkspacePage({ params }: PageProps) {
 
           {activeTab === "timeline" && <ActivityTimeline caseData={caseData} />}
 
-          {activeTab === "settings" && <TabCaseSettings caseData={caseData} />}
+          {activeTab === "settings" && <TabCaseSettings caseData={caseData} intakeSnapshot={intakeSnapshot} />}
         </div>
       </div>
 
       <StudentDocumentUploadModal isOpen={isStudentUploadOpen} onClose={() => setIsStudentUploadOpen(false)} caseId={id} />
-      <IntakeFormModal caseId={id} opened={intakeFormOpened} onClose={() => setIntakeFormOpened(false)} />
       <ExternalFeedbackUploadModal
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}

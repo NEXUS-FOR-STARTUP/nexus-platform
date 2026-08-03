@@ -3,9 +3,10 @@
 import * as React from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { TanStackDevtools } from "@tanstack/react-devtools";
-import { formDevtoolsPlugin } from "@tanstack/react-form-devtools";
+// Devtools — disabled on prod
+// import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+// import { TanStackDevtools } from "@tanstack/react-devtools";
+// import { formDevtoolsPlugin } from "@tanstack/react-form-devtools";
 import { createTheme, MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 
@@ -26,8 +27,15 @@ const theme = createTheme({
     ],
   },
   fontFamily: "var(--font-google-sans-flex), sans-serif",
+  fontSizes: {
+    xs: "1rem",
+    sm: "1rem",
+  },
   headings: {
     fontFamily: "var(--font-google-sans-flex), sans-serif",
+    sizes: {
+      h6: { fontSize: "1rem" },
+    },
   },
 });
 
@@ -38,7 +46,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000,
+            staleTime: 0,
             refetchOnWindowFocus: false,
           },
         },
@@ -53,8 +61,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           {children}
         </MantineProvider>
       </NextThemesProvider>
+      {/* Devtools — chỉ bật khi dev
       <ReactQueryDevtools initialIsOpen={false} />
       <TanStackDevtools plugins={[formDevtoolsPlugin()]} />
+      */}
     </QueryClientProvider>
   );
 }

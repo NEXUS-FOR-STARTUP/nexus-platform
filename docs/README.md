@@ -48,6 +48,14 @@ Giá trị chính:
 - [`system-architecture.md`](./system-architecture.md): architecture hiện trạng, document workspace, payment surface, shared shell
 - [`tech-doc-urls.txt`](./tech-doc-urls.txt): nguồn docs ngoài cho library/framework
 
+## Tài liệu vận hành
+
+- [`db-query-guide.md`](./db-query-guide.md): hướng dẫn truy vấn DB an toàn qua READONLY_DATABASE_URL
+- [`db-backup-guide.md`](./db-backup-guide.md): hướng dẫn backup DB (pg_dump via Docker)
+- [`db-migration-guide.md`](./db-migration-guide.md): hướng dẫn migration Prisma
+- [`docker-build-push-guide.md`](./docker-build-push-guide.md): hướng dẫn build/push Docker image
+- [`ci-guide.md`](./ci-guide.md): hướng dẫn CI/CD với GitHub Actions
+
 ## Tài liệu nguồn — `nexus-document/`
 
 [`nexus-document/`](./nexus-document/) chứa **tài liệu gốc của dự án Nexus** — bài nộp checkpoint, biên bản mentoring, phản hồi giảng viên, tài liệu hướng dẫn và vận hành thủ công.

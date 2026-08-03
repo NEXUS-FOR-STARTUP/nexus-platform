@@ -4,6 +4,10 @@ import {
   findCaseById,
   findSupporterById,
 } from "../../cases/infrastructure/persistence/case.repository.js";
+import {
+  applyTransition,
+  canTransition,
+} from "../../cases/infrastructure/persistence/case-workflow-engine.js";
 
 export async function adminAssignSupporterUseCase(
   adminId: string,
@@ -19,10 +23,7 @@ export async function adminAssignSupporterUseCase(
   }
 
   const supporterUser = await findSupporterById(supporterId);
-  if (
-    !supporterUser ||
-    (supporterUser.role !== "supporter" && supporterUser.role !== "admin")
-  ) {
+  if (!supporterUser || supporterUser.role !== "supporter") {
     throw new AppError(400, "VALIDATION_ERROR", "Supporter được gán không hợp lệ");
   }
 
@@ -35,11 +36,24 @@ export async function adminAssignSupporterUseCase(
     return caseItem;
   }
 
+  // Validate symflow transition
+  if (!canTransition(caseItem, "assign_supporter")) {
+    throw new AppError(
+      409,
+      "INVALID_TRANSITION",
+      `Không thể phân công từ trạng thái '${caseItem.internal_status}'`,
+    );
+  }
+
+  // Apply symflow transition (mutates caseItem)
+  applyTransition(caseItem, "assign_supporter");
+
   return await assignCaseSupporter(
     caseId,
     adminId,
     supporterId,
-    "assigned",
+    caseItem.internal_status, // "assigned" from symflow
     supporterUser.name,
+    caseItem.user_facing_stage || "under_review", // nextStage
   );
 }

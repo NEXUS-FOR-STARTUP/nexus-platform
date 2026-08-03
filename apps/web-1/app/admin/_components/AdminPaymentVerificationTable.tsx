@@ -88,7 +88,7 @@ export default function AdminPaymentVerificationTable({
         </div>
         <div className="space-y-0.5">
           <p className="font-heading font-semibold text-xs text-text-app">Không có giao dịch nào</p>
-          <p className="font-body text-[11px] text-text-muted">
+          <p className="font-body text-base text-text-muted">
             Danh sách trống hoặc chưa có dữ liệu giao dịch phù hợp.
           </p>
         </div>
@@ -163,7 +163,7 @@ export default function AdminPaymentVerificationTable({
             ) : (
               paginatedPayments.map((payment) => (
                 <Table.Tr key={payment.id} className="hover:bg-surface-soft/30 transition-colors">
-                  <Table.Td className="font-heading font-bold text-xs" title={payment.case?.case_code || "CASE"}>
+                  <Table.Td className="font-heading font-semibold text-xs" title={payment.case?.case_code || "CASE"}>
                     {payment.case?.case_code && payment.case.case_code.length > 30 ? `${payment.case.case_code.slice(0, 30)}...` : (payment.case?.case_code || "CASE")}
                   </Table.Td>
                   <Table.Td className="font-semibold text-text-muted" title={payment.package?.name || "Gói dịch vụ"}>
@@ -233,11 +233,11 @@ export default function AdminPaymentVerificationTable({
                         </Menu.Dropdown>
                       </Menu>
                     ) : payment.status === "paid" ? (
-                      <Badge color="green" variant="light" size="sm" className="font-semibold">
+                      <Badge color="green" variant="light" size="md" className="font-semibold">
                         Đã duyệt
                       </Badge>
                     ) : (
-                      <Badge color="red" variant="light" size="sm" className="font-semibold">
+                      <Badge color="red" variant="light" size="md" className="font-semibold">
                         Bị từ chối
                       </Badge>
                     )}
@@ -255,7 +255,7 @@ export default function AdminPaymentVerificationTable({
             total={totalPages}
             value={activePage}
             onChange={setActivePage}
-            size="sm"
+            size="md"
             color="brand"
             radius="md"
           />

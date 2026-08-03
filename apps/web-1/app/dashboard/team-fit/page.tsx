@@ -15,6 +15,8 @@ import { TeamFitInputSchema } from "@repo/validation";
 import { LS_KEY_BLANKS, LS_KEY_MEMBERS, loadSaved, saveToLS, removeFromLS } from "./lib/storage";
 import { INITIAL_BLANKS, validateBlank, validateAllBlanks, formatIssue } from "./lib/validation";
 import type { TeamMemberInput } from "./hooks/useTeamFitMutation";
+import DemoDataFAB from "@/components/ui/DemoDataFAB";
+import { NEXUS_PRESET, DEMO_PRESETS } from "./_data/demo-preset";
 
 export default function TeamFitPage() {
   // ── Auth guard ──
@@ -165,15 +167,36 @@ export default function TeamFitPage() {
     }
   };
 
-  const handleUpgrade = () => {
-    setSaveError(null);
-
+  const handleUpgrade = async () => {
+    // Nếu đã lưu rồi thì vào thẳng case
     if (savedCaseId) {
       router.push(`/dashboard/case/${savedCaseId}`);
       return;
     }
 
-    router.push("/dashboard");
+    // Chưa lưu: save team-fit trước, sau đó vào case để chọn lượt audit + thanh toán
+    setSaveError(null);
+    try {
+      const payload = {
+        idea: {
+          projectName: blanks.projectName,
+          field: blanks.field,
+          targetCustomer: blanks.targetCustomer,
+          problem: blanks.problem,
+          solution: blanks.solution,
+          mvp: blanks.mvp,
+        },
+        team: members,
+        result: mutation.data!,
+        packageId: "pkg_tf_free",
+      };
+      const data = await saveMutation.mutateAsync(payload);
+      setHasSaved(true);
+      setSavedCaseId(data.caseId);
+      router.push(`/dashboard/case/${data.caseId}`);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Lưu kết quả thất bại");
+    }
   };
 
   const displayErrors = saveError
@@ -241,6 +264,19 @@ export default function TeamFitPage() {
         onBack={() => setCurrentStep((currentStep - 1) as 0 | 1 | 2)}
         onNextFromStep0={handleNextFromStep0}
         onEvaluate={handleEvaluate}
+        onReset={handleReset}
+      />
+
+      {/* Demo data FAB */}
+      <DemoDataFAB
+        presets={DEMO_PRESETS}
+        onSelect={(data) => {
+          const preset = data as typeof NEXUS_PRESET;
+          setBlanks(preset.blanks);
+          setMembers(preset.members);
+          setFieldErrors({});
+        }}
+        onClear={handleReset}
       />
     </div>
   );

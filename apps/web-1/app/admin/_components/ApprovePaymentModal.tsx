@@ -37,7 +37,7 @@ export default function ApprovePaymentModal({
       opened={paymentId !== null}
       onClose={onClose}
       title={
-        <div className="flex items-center gap-2 text-teal-600 font-heading font-bold text-sm">
+        <div className="flex items-center gap-2 text-teal-600 font-heading font-semibold text-sm">
           <CheckCircle2 className="w-5 h-5 text-teal-600 shrink-0" />
           <span>Xác nhận duyệt thanh toán</span>
         </div>
@@ -59,7 +59,7 @@ export default function ApprovePaymentModal({
             <p className="text-xs font-semibold text-text-app">
               Xác nhận đã nhận đủ số tiền thanh toán cho giao dịch này?
             </p>
-            <p className="text-[11px] text-text-muted leading-relaxed">
+            <p className="text-base text-text-muted leading-relaxed">
               Sau khi xác nhận, hệ thống sẽ tự động chuyển trạng thái giao dịch sang <strong>Đã thanh toán (Paid)</strong>, kích hoạt lượt Credit tương ứng và cập nhật tiến độ hồ sơ cho sinh viên.
             </p>
           </div>

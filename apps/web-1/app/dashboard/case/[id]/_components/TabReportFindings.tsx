@@ -68,7 +68,7 @@ export default function TabReportFindings({ caseData, selectedVersion, report }:
           <FileText className="w-6 h-6" />
         </div>
         <div className="space-y-1.5 max-w-sm">
-          <h4 className="font-heading font-bold text-sm text-text-app">{title}</h4>
+          <h4 className="font-heading font-semibold text-sm text-text-app">{title}</h4>
           <p className="font-body text-xs text-text-muted leading-relaxed">{desc}</p>
         </div>
       </div>
@@ -90,7 +90,7 @@ export default function TabReportFindings({ caseData, selectedVersion, report }:
           <CheckCircle className="w-6 h-6 text-success" />
         </div>
         <div className="space-y-1.5 max-w-sm">
-          <h4 className="font-heading font-bold text-sm text-text-app">Hồ sơ hoàn thiện!</h4>
+          <h4 className="font-heading font-semibold text-sm text-text-app">Hồ sơ hoàn thiện!</h4>
           <p className="font-body text-xs text-text-muted leading-relaxed">
             Supporter không tìm thấy lỗi logic hay thiếu sót nghiêm trọng nào trong hồ sơ của bạn.
           </p>
@@ -104,8 +104,8 @@ export default function TabReportFindings({ caseData, selectedVersion, report }:
       <div className="flex items-center gap-2 pb-2 border-b border-border-app/55">
         <Lightbulb className="w-5 h-5 text-brand" />
         <div>
-          <h3 className="font-heading font-bold text-sm text-text-app">Kết quả phản biện thực tế</h3>
-          <p className="font-body text-[11px] text-text-muted">
+          <h3 className="font-heading font-semibold text-sm text-text-app">Kết quả phản biện thực tế</h3>
+          <p className="font-body text-text-muted">
             Dưới đây là các điểm cần làm rõ/cải thiện được tìm thấy trong bản nộp của bạn.
           </p>
         </div>
@@ -127,10 +127,10 @@ export default function TabReportFindings({ caseData, selectedVersion, report }:
                 className="p-4 md:p-5 flex justify-between items-center gap-4 cursor-pointer select-none bg-surface-soft/40"
               >
                 <div className="flex flex-wrap items-center gap-2.5">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-body uppercase border ${colorClass}`}>
+                  <span className={`px-2 py-0.5 rounded text-xs font-semibold font-body uppercase border ${colorClass}`}>
                     {label}
                   </span>
-                  <span className="px-2 py-0.5 rounded bg-danger-soft text-danger border border-danger/10 text-[10px] font-bold font-body">
+                  <span className="px-2 py-0.5 rounded bg-danger-soft text-danger border border-danger/10 text-xs font-semibold font-body">
                     {finding.status}
                   </span>
                   <h4 className="font-heading font-semibold text-xs text-text-app line-clamp-1">

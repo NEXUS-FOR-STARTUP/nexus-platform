@@ -1,4 +1,5 @@
 import { AppError } from "../../../shared/domain/app-error.js";
+import { applyTransition, canTransition } from "../infrastructure/persistence/case-workflow-engine.js";
 import { isFinalCaseStage } from "../domain/case.types.js";
 import {
   assignCaseSupporter as defaultAssignCaseSupporter,
@@ -49,10 +50,7 @@ export async function assignSupporterUseCase(
   if (!unassign) {
     const supporterUser = await findSupporterById(supporterId);
 
-    if (
-      !supporterUser ||
-      (supporterUser.role !== "supporter" && supporterUser.role !== "admin")
-    ) {
+    if (!supporterUser || supporterUser.role !== "supporter") {
       throw new AppError(400, "VALIDATION_ERROR", "Supporter được gán không hợp lệ");
     }
     supporterName = supporterUser.name;
@@ -80,12 +78,31 @@ export async function assignSupporterUseCase(
   }
 
   try {
+    // Apply symflow transition for assign/unassign
+    let nextStatus: string;
+    let nextStage: string;
+
+    if (nextSupporterId) {
+      if (!canTransition(existingCase, 'assign_supporter')) {
+        throw new AppError(409, "INVALID_TRANSITION",
+          `Không thể phân công từ trạng thái '${existingCase.internal_status}'`);
+      }
+      applyTransition(existingCase, 'assign_supporter');
+      nextStatus = existingCase.internal_status; // "assigned"
+      nextStage = existingCase.user_facing_stage || "under_review";
+    } else {
+      // Unassign: keep "accepted_unassigned"
+      nextStatus = "accepted_unassigned";
+      nextStage = "under_review";
+    }
+
     const result = await assignCaseSupporter(
       caseId,
       adminId,
       nextSupporterId,
-      nextSupporterId ? "assigned" : "accepted_unassigned",
+      nextStatus,
       unassign ? undefined : supporterName,
+      nextStage,
     );
     const durationMs = timer();
     auditLogger.log({

@@ -14,7 +14,7 @@ import RejectionReasonModal from "./_components/RejectionReasonModal";
 import ApprovePaymentModal from "./_components/ApprovePaymentModal";
 import { useAdminStats } from "./hooks/useAdminStats";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, AlertTriangle, FolderKanban } from "lucide-react";
+import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, AlertTriangle, FolderKanban, Activity } from "lucide-react";
 import { Tooltip, UnstyledButton, Title, Text, Badge, Divider } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import classes from "../../components/layout/DoubleNavbar.module.css";
@@ -38,6 +38,7 @@ export default function AdminHubPage() {
     rejectCase,
     requestMoreInfo,
     deleteCase,
+    refetchCases,
   } = useAdminCases();
 
   const {
@@ -276,9 +277,30 @@ export default function AdminHubPage() {
           icon: FolderKanban,
         };
       }
+      if (caseFilter === "triage") {
+        return {
+          title: "Duyệt hồ sơ mới",
+          description: "Kiểm tra và quyết định duyệt, từ chối hoặc yêu cầu làm rõ hồ sơ mới gửi.",
+          icon: CheckCircle,
+        };
+      }
+      if (caseFilter === "unassigned") {
+        return {
+          title: "Phân công Supporter chuyên môn",
+          description: "Chỉ định chuyên gia phụ trách đánh giá và phản biện cho hồ sơ đã duyệt.",
+          icon: UserCheck,
+        };
+      }
+      if (caseFilter === "assigned") {
+        return {
+          title: "Hồ sơ đang phản biện",
+          description: "Theo dõi tiến độ các hồ sơ đã được phân công Supporter.",
+          icon: Activity,
+        };
+      }
       return {
-        title: "Phân công Supporter chuyên môn",
-        description: "Chỉ định Supporter phụ trách đánh giá và sửa đổi bản thảo phản biện cho hồ sơ mới.",
+        title: "Hồ sơ cần xử lý",
+        description: "Duyệt, phân công hoặc theo dõi các hồ sơ đang trong quy trình xử lý.",
         icon: UserCheck,
       };
     }
@@ -312,7 +334,7 @@ export default function AdminHubPage() {
                   className={classes.mainLink}
                   data-active={activeSection === "stats" || undefined}
                 >
-                  <BarChart3 className="w-5 h-5" />
+                  <BarChart3 className="w-6 h-6" />
                 </UnstyledButton>
               </Tooltip>
 
@@ -322,9 +344,9 @@ export default function AdminHubPage() {
                   className={classes.mainLink}
                   data-active={activeSection === "payments" || undefined}
                 >
-                  <CreditCard className="w-5 h-5" />
+                  <CreditCard className="w-6 h-6" />
                   {pendingPaymentsCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-[9px] font-bold bg-warning text-white flex items-center justify-center border-2 border-surface-app">
+                    <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-xs font-semibold bg-warning text-white flex items-center justify-center border-2 border-surface-app">
                       {pendingPaymentsCount}
                     </span>
                   )}
@@ -337,9 +359,9 @@ export default function AdminHubPage() {
                   className={classes.mainLink}
                   data-active={activeSection === "cases" || undefined}
                 >
-                  <UserCheck className="w-5 h-5" />
+                  <UserCheck className="w-6 h-6" />
                   {unassignedCasesCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-[9px] font-bold bg-brand text-white flex items-center justify-center border-2 border-surface-app">
+                    <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-xs font-semibold bg-brand text-white flex items-center justify-center border-2 border-surface-app">
                       {unassignedCasesCount}
                     </span>
                   )}
@@ -352,7 +374,7 @@ export default function AdminHubPage() {
                   className={classes.mainLink}
                   data-active={activeSection === "documents" || undefined}
                 >
-                  <FileText className="w-5 h-5" />
+                  <FileText className="w-6 h-6" />
                 </UnstyledButton>
               </Tooltip>
 
@@ -362,7 +384,7 @@ export default function AdminHubPage() {
                   className={classes.mainLink}
                   data-active={activeSection === "packages" || undefined}
                 >
-                  <Settings className="w-5 h-5" />
+                  <Settings className="w-6 h-6" />
                 </UnstyledButton>
               </Tooltip>
             </aside>
@@ -373,7 +395,7 @@ export default function AdminHubPage() {
               <Title order={6} className={classes.title}>
                 {activeSection === "stats" ? "Thống kê" : activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : activeSection === "documents" ? "Quản lý tài liệu" : "Cấu hình gói"}
               </Title>
-              <Text size="xs" c="dimmed" className="font-body text-[11px]">
+              <Text size="sm" c="dimmed" className="font-body">
                 {activeSection === "stats"
                   ? "Tổng quan dữ liệu vận hành."
                   : activeSection === "payments"
@@ -408,7 +430,7 @@ export default function AdminHubPage() {
                   <div className="flex items-center justify-between w-full">
                     <span>Chờ xác minh</span>
                     {pendingPaymentsCount > 0 && (
-                      <Badge color="warning" size="xs" variant="light">
+                      <Badge color="warning" size="sm" variant="light">
                         {pendingPaymentsCount}
                       </Badge>
                     )}
@@ -432,7 +454,7 @@ export default function AdminHubPage() {
                   <div className="flex items-center justify-between w-full">
                     <span>Tất cả cần xử lý</span>
                     {unassignedCasesCount > 0 && (
-                      <Badge color="brand" size="xs" variant="light">
+                      <Badge color="brand" size="sm" variant="light">
                         {unassignedCasesCount}
                       </Badge>
                     )}
@@ -547,6 +569,7 @@ export default function AdminHubPage() {
             ) : activeSection === "cases" ? (
               <div>
                 <AdminCaseAssignmentTable
+                  key={caseFilter}
                   cases={filteredCases}
                   supporters={supporters}
                   onAssign={handleAssignSupporter}
@@ -556,6 +579,7 @@ export default function AdminHubPage() {
                   onRequestMoreInfo={handleRequestMoreInfo}
                   isCrudMode={caseFilter === "crud"}
                   onDelete={handleDeleteCase}
+                  onRefresh={refetchCases}
                 />
               </div>
             ) : activeSection === "documents" ? (
