@@ -5,7 +5,7 @@ status: pending
 priority: P1
 effort: 6h
 issue: null
-branch: dev
+branch: feat/codebase-cleanup-shared-validation
 tags: [refactor, tech-debt, backend, frontend, validation]
 blockedBy: []
 blocks: []
