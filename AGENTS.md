@@ -62,6 +62,7 @@ root/
 - Test: Node built-in runner (`node:test` + `node:assert`), only in apps/api.
 - CI/CD: see `docs/ci-guide.md` for GitHub Actions workflow setup.
 - Docker build: see `docs/docker-build-push-guide.md` for API & Web images.
+- Shared validation: see `docs/shared-validation-convention.md` for zod/entity rules.
 
 ## ANTI-PATTERNS
 

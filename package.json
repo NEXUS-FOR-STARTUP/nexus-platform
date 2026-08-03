@@ -8,9 +8,11 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "prisma:generate": "prisma generate --schema prisma/schema.prisma",
-    "prisma:migrate": "prisma migrate dev --schema prisma/schema.prisma"
+    "prisma:migrate": "prisma migrate dev --schema prisma/schema.prisma",
+    "knip": "knip"
   },
   "devDependencies": {
+    "knip": "^6.31.0",
     "prettier": "^3.7.4",
     "turbo": "^2.10.0",
     "typescript": "5.9.2"

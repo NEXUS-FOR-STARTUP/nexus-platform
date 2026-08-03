@@ -1,0 +1,30 @@
+{
+  "$schema": "https://unpkg.com/knip/schema.json",
+  "workspaces": {
+    "apps/api": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "apps/web-1": {
+      "entry": ["app/layout.tsx", "app/page.tsx"],
+      "project": ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}", "hooks/**/*.ts", "lib/**/*.ts", "types/**/*.ts"]
+    },
+    "packages/*": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.{ts,tsx}"]
+    }
+  },
+  "ignore": [
+    "prisma/**",
+    "prisma.config.ts"
+  ],
+  "ignoreDependencies": [
+    "prettier",
+    "turbo"
+  ],
+  "rules": {
+    "files": "warn",
+    "exports": "warn",
+    "dependencies": "warn"
+  }
+}
