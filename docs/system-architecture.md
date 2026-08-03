@@ -1,6 +1,6 @@
 # System Architecture
 
-_Cập nhật: 2026-07-23. Bám codebase hiện tại._
+_Cập nhật: 2026-08-03. Bám codebase hiện tại._
 
 ## 1. Mục tiêu tài liệu
 
@@ -13,7 +13,7 @@ Nexus hiện là monorepo Turborepo với 3 vùng chính:
 - `apps/api`: backend Hono + Better Auth + Prisma
 - `packages/ui`: UI primitives dùng chung
 
-Data model trung tâm nằm ở `prisma/schema.prisma`, với auth, case, checkpoint, lifecycle unit, document record, report, payment, event, và AI job.
+Data model trung tâm nằm ở `prisma/schema.prisma` (19 models), với auth, case, checkpoint, lifecycle unit, document record, report, payment, event, AI job, team-fit report, và credit ledger.
 
 ## 2.1 Sơ đồ kiến trúc (text-based)
 
@@ -35,10 +35,10 @@ Data model trung tâm nằm ở `prisma/schema.prisma`, với auth, case, checkp
 │  ┌──────────┐ ┌──────────┐ ┌────────┐ ┌──────────────────┐  │
 │  │  Cases   │ │Documents │ │Reports │ │ Admin/Supporter  │  │
 │  │  module  │ │  module  │ │ module │ │    modules       │  │
-│  │19 routes │ │          │ │        │ │                  │  │
+│  │22 routes │ │          │ │        │ │                  │  │
 │  ├──────────┤ ├──────────┤ ├────────┤ ├──────────────────┤  │
 │  │ Payments │ │ Packages │ │AI Eng. │ │ Shared: AppError │  │
-│  │  module  │ │  module  │ │ module │ │ requireAuth, etc │  │
+│  │7 routes  │ │  module  │ │ module │ │ requireAuth, etc │  │
 │  └────┬─────┘ └────┬─────┘ └───┬────┘ └──────────────────┘  │
 │       └────────────┴───────────┴───────────────────────────  │
 │                         │ Prisma                              │
@@ -46,7 +46,7 @@ Data model trung tâm nằm ở `prisma/schema.prisma`, với auth, case, checkp
                           │
                   ┌───────┴───────┐
                   │  PostgreSQL   │
-                  │ (16 models)   │
+                  │ (19 models)   │
                   └───────────────┘
 ```
 
@@ -65,25 +65,32 @@ Tham chiếu:
 - dashboard liệt kê case của user
 - case workspace có sidebar shell
 - điều hướng chính hiện bám `documents`, `discussion`, `timeline`, `settings`
-- page dùng `useCaseDetails(id)` để lấy dữ liệu workspace
-- payment tồn tại như surface phụ qua unpaid banner và payment page riêng
+- page dùng `useCaseDetails(id)` để lấy dữ liệu workspace (polling 10s)
+- stage-based case flow: `CaseStatusHeader` (hiển thị `user_facing_stage` + next action), `StatusGuidanceCard`, `CaseOverviewPanel`
+- credit/ledger economy: `CreditPanel`, `CreditQuantityModal`, `CreditActions`, `CreditTransactionHistory`, `CreditBalanceCard` — mua credit, xem lịch sử giao dịch, số dư hiện tại
+- payment/credit là core economy (không còn là surface phụ): mua credit qua sepay webhook, admin veto-with-refund (48h)
 
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/page.tsx`
 - `apps/web-1/app/dashboard/case/[id]/hooks/useCaseDetails.ts`
 - `apps/web-1/app/dashboard/case/[id]/_components/WorkspaceSidebar.tsx`
-- `apps/web-1/app/dashboard/case/[id]/payment/page.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CreditPanel.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CaseStatusHeader.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/StatusGuidanceCard.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CaseOverviewPanel.tsx`
 
 ### 3.3 Supporter workspace
 - supporter mở case bằng shell rất giống student workspace
 - supporter tái dùng `WorkspaceSidebar`, `CaseStatusHeader`, `TabDiscussionChat`, `ActivityTimeline`, `DocumentWorkspace`
 - supporter không có settings tab trong workspace
 - supporter có `SupporterOutputUploadModal` để upload output report
-- ⚠️ **Cần xác nhận:** Supporter không còn review page riêng (`apps/web-1/app/supporter/case/[id]/review/page.tsx` không tồn tại). Việc xuất report hiện qua modal upload thay vì page riêng.
+- ✅ **Đã xác nhận:** Supporter không có review page riêng (`apps/web-1/app/supporter/case/[id]/review/page.tsx` không tồn tại). Việc biên tập báo cáo chuyển qua usecases `get-draft-report`/`edit-draft-report` trong supporter module; xuất report qua modal upload thay vì page riêng.
 
 Tham chiếu:
 - `apps/web-1/app/supporter/case/[id]/page.tsx`
 - `apps/web-1/app/supporter/case/[id]/_components/SupporterOutputUploadModal.tsx`
+- `apps/api/src/modules/supporter/application/get-draft-report.usecase.ts`
+- `apps/api/src/modules/supporter/application/edit-draft-report.usecase.ts`
 
 ### 3.4 Admin triage
 - admin có modal chi tiết case để đọc intake snapshot, documents, support needs
@@ -105,7 +112,8 @@ Tham chiếu:
 - frontend không sở hữu workflow semantics; frontend chủ yếu map và trình bày
 
 ### 4.3 Report workflow
-- supporter review page làm việc với draft report và approve/send flow
+- supporter biên tập draft report qua usecases `get-draft-report` (GET `/supporter/cases/:caseId/reports/draft`) và `edit-draft-report` (PUT `/supporter/reports/:reportId`) trong supporter module
+- publish report qua `publish-report` (POST `/supporter/reports/:reportId/publish`)
 - report là output chính thức của supporter, không để chat thay vai trò này
 
 ### 4.4 Document workflow
@@ -162,12 +170,12 @@ Tham chiếu:
 - cho chọn checkpoint khi case có nhiều checkpoint
 - render các tab `overview`, `documents`, `external-feedback`
 - tách tài liệu support flow và tài liệu đánh giá bên ngoài
-- `VersionSelector` cho phép chuyển đổi giữa các version tài liệu
 
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/documents/DocumentWorkspace.tsx`
-- `apps/web-1/app/dashboard/case/[id]/_components/VersionSelector.tsx`
 - `apps/api/src/modules/documents/domain/document-contract.ts`
+
+> Ghi chú: component `VersionSelector` không còn tồn tại trong codebase — version switching không còn là bề mặt UI riêng.
 
 ### 5.5 Workspace tabs abstraction
 Case workspace dùng `WorkspaceTabs` để điều hướng giữa các tab, mỗi tab là một component riêng:
@@ -187,36 +195,48 @@ Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/TabReportFindings.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/TabCaseSettings.tsx`
 
-### 5.6 Revision rounds
-Workspace hỗ trợ vòng sửa (revision rounds) qua:
-- `AuditRoundTimeline`: hiển thị lịch sử audit rounds
-- `RevisionSubmitModal`: student nộp bản sửa
-- `BuyRoundModal`: student mua thêm vòng sửa
+### 5.6 Stage flow & revision rounds
+Workspace điều hướng theo stage (`user_facing_stage`) và revision rounds qua:
+- `CaseStatusHeader`: hiển thị stage hiện tại + next action
 - `StatusGuidanceCard`: hướng dẫn trạng thái hiện tại và next action
+- `CaseOverviewPanel`: tóm tắt case
+- Revision upload được gate theo stage (chỉ ở stage `waiting_for_revision`)
+- Backend: `internal_status` chạy symflow transitions, `allowed_transitions` trả về trong case detail, SLA `sla_deadline_at`
+
+> Ghi chú: `RevisionSubmitModal`, `BuyRoundModal`, `AuditRoundTimeline` không còn tồn tại trong codebase — luồng vòng sửa được xử lý qua stage-based flow + revision upload gating, không phải modal mua vòng riêng.
 
 Tham chiếu:
-- `apps/web-1/app/dashboard/case/[id]/_components/AuditRoundTimeline.tsx`
-- `apps/web-1/app/dashboard/case/[id]/_components/RevisionSubmitModal.tsx`
-- `apps/web-1/app/dashboard/case/[id]/_components/BuyRoundModal.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CaseStatusHeader.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/StatusGuidanceCard.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CaseOverviewPanel.tsx`
+- `apps/api/src/modules/cases/domain/case-workflow.ts`
 
-### 5.7 Payment surface
-Payment hiện có 2 bề mặt:
-- `payment/page.tsx` — page riêng cho payment
-- `PaymentDrawer` — drawer inline trong workspace
-- `UnpaidAlertBanner` — cảnh báo khi chưa thanh toán
+### 5.7 Credit / payment surface
+Credit/ledger economy là core của hệ thống (không còn là surface phụ):
+- `CreditPanel` + `CreditQuantityModal` + `CreditActions`: mua credit
+- `CreditTransactionHistory` + `CreditBalanceCard`: lịch sử giao dịch + số dư
+- Backend: model `CreditLedger` (purchase/consumption/refund, `balance_after`), error `NO_CREDITS` (402), events `credit_used`/`credits_purchased`
+- Thanh toán: sepay webhook (`POST /api/payments/sepay-webhook`) xác minh bank transfer, admin veto-with-refund (48h)
+- Giá: 39,000 VND/credit
+- `payment/page.tsx` riêng vẫn tồn tại cho admin payment transparency
 
 Tham chiếu:
-- `apps/web-1/app/dashboard/case/[id]/payment/page.tsx`
-- `apps/web-1/app/dashboard/case/[id]/_components/PaymentDrawer.tsx`
-- `apps/web-1/app/dashboard/case/[id]/_components/UnpaidAlertBanner.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CreditPanel.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CreditQuantityModal.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CreditTransactionHistory.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CreditBalanceCard.tsx`
+- `apps/api/src/modules/payments/http/sepay.routes.ts`
 
-### 5.8 External feedback upload
+> Ghi chú: `PaymentDrawer` không còn tồn tại trong codebase — luồng thanh toán chuyển sang credit purchase.
+
+### 5.8 External feedback & document upload
 - `ExternalFeedbackUploadModal`: cho phép upload phản hồi từ bên ngoài (lecturer feedback, v.v.)
+- `StudentDocumentUploadModal`: student upload tài liệu minh chứng trong case workspace
 - `SupporterOutputUploadModal`: supporter upload output report
 
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/ExternalFeedbackUploadModal.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/StudentDocumentUploadModal.tsx`
 - `apps/web-1/app/supporter/case/[id]/_components/SupporterOutputUploadModal.tsx`
 
 ## 6. Data model bề mặt frontend đáng chú ý
@@ -227,6 +247,8 @@ Tham chiếu:
 - `internal_status`
 - `payment_status`
 - `locked_price`
+- `sla_deadline_at`
+- `credit_ledgers`
 - `messages`
 - `events`
 - `checkpoints`
@@ -234,7 +256,7 @@ Tham chiếu:
 - `lifecycle_units`
 - `reports`
 
-Điều này cho thấy workspace hiện tại đã bám model giàu hơn nhiều so với form submit đơn giản.
+Điều này cho thấy workspace hiện tại đã bám model giàu hơn nhiều so với form submit đơn giản, kèm credit ledger và SLA deadline cho stage flow.
 
 ### 6.2 ServicePackage
 `ServicePackage` hiện đã có các trường cấu hình giá và audit trail:
@@ -311,9 +333,10 @@ Tham chiếu:
 ### Student
 - tạo case
 - xem case workspace
-- theo dõi tài liệu, timeline, status, payment state
+- theo dõi tài liệu, timeline, status, credit balance
+- mua credit qua `CreditPanel`/`CreditQuantityModal`
 - chat với supporter/admin nếu luồng cho phép
-- xem report và nộp revision
+- xem report và nộp revision (gate theo stage)
 
 ### Supporter
 - mở case workspace cùng shell
@@ -332,7 +355,7 @@ Tham chiếu:
 - Không nên giới thiệu websocket/realtime claims nếu code chưa có.
 - Không nên mô tả intake upload flow như đã hoàn chỉnh nếu UI vẫn thiên về Drive link + checklist.
 - Không nên phá shared workspace shell; đây là lợi thế hiện tại của codebase.
-- Không nên để payment lấn narrative chính của audit/review flow, dù payment vẫn là surface thật.
+- Không nên để credit/payment lấn narrative chính của audit/review flow, dù credit ledger + sepay webhook + veto-with-refund là core economy đã code xong.
 
 ## 10. Architectural direction ngắn hạn đã chốt
 
@@ -343,6 +366,7 @@ Tham chiếu:
 - Xem text chat là coordination path.
 - Xem timeline là continuity/trust layer.
 - Xem report là output chính thức của supporter.
+- Xem credit ledger + stage flow là trạng thái vận hành hiện tại (đã code), không còn là mục tiêu deferred.
 
 ## 11. Những gì chưa nên hứa trong tài liệu
 

@@ -61,14 +61,16 @@ npm run check-types --workspace=apps/api
 
 | Module | Mount Path | Routes | Auth | domain/ | application/ | infrastructure/ | http/ |
 |--------|-----------|--------|------|---------|-------------|----------------|-------|
-| **Cases** | `/api/cases` | 19 | Mixed | ✅ CaseStage, InternalStatus | ✅ 12 use cases | ✅ case.repository | ✅ routes |
-| **Admin** | `/api/admin` | 12 | Admin only | ✅ admin.types | ✅ 11 use cases | ❌ uses shared DB directly | ✅ routes |
+| **Cases** | `/api/cases` | 22 | Mixed | ✅ CaseStage, InternalStatus | ✅ use cases | ✅ case.repository | ✅ routes |
+| **Admin** | `/api/admin` | 12 | Admin only | ✅ admin.types | ✅ use cases | ❌ uses shared DB directly | ✅ routes |
 | **Supporter** | `/api/supporter` | 5 | Supporter/Admin | ❌ (.gitkeep) | ✅ 5 use cases | ❌ uses shared DB directly | ✅ routes |
 | **Reports** | `/api/reports` | 4 | Supporter/Admin | ✅ AiCritiqueReport | ✅ 4 use cases | ✅ report.repository | ✅ routes |
-| **Payments** | `/api/payments` | 3 | Mixed | ✅ PaymentDecision | ✅ 3 use cases | ✅ payment.repository | ✅ routes |
+| **Payments** | `/api/payments` | 7 | Mixed | ✅ PaymentDecision | ✅ use cases | ✅ payment.repository | ✅ routes |
 | **Packages** | `/api/packages` | 1 | Public | ⚠️ stub | ✅ list-packages | ✅ package.repository | ✅ routes |
 | **AI Engine** | `/api/ai-engine` | 2 | Authenticated | ✅ DTOs (from @repo/validation) | ✅ 2 use cases | ❌ (.gitkeep) | ✅ routes |
 | **Documents** | `/api/documents` | 1 | Authenticated | ✅ DocumentContract | ✅ 5 use cases | ✅ document.repository | ✅ routes |
+
+> Payments 7 routes = 6 routes (`payments.routes.ts`) + 1 sepay webhook (`sepay.routes.ts` — `POST /sepay-webhook`).
 
 ## 2. SHARED INFRASTRUCTURE
 
@@ -107,16 +109,16 @@ Uncaught  → global app.onError → { code: "INTERNAL_ERROR", message: "Lỗi h
 
 System (4): GET /, /health, /stream, /session
 Auth: POST|GET /api/auth/* (Better Auth handler)
-Cases (19): CRUD, revisions, messaging, upgrades, buy-round
+Cases (22): CRUD, intake, revisions, messaging, assign, veto, complete, upgrade-package, resubmit, supporter-outputs upload, external-feedback upload
 Admin (12): Case triage, documents, stats, packages
-Supporter (5): Draft report, edit, publish, request info, close
+Supporter (5): Draft report get/edit, publish, request info, close
 Reports (4): Draft, edit, approve, latest
-Payments (3): List, proof upload, verify
+Payments (7): List, create, my, detail, proof upload, verify, sepay webhook
 AI Engine (2): Team-fit evaluate, save
 Documents (1): Upload
 Packages (1): List active
 
-Total: 51 endpoints across 10 mount points.
+Total: ~59 endpoints (58 route registrations + Better Auth handler) across 10 mount points.
 
 ## 7. KNOWN DEVIATIONS
 

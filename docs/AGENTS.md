@@ -23,10 +23,11 @@
 ## Tài liệu vận hành
 
 - `db-query-guide.md` — hướng dẫn truy vấn DB an toàn (READONLY_DATABASE_URL).
-- `db-backup-guide.md` — hướng dẫn backup DB (pg_dump via Docker).
+- `db-backup-guide.md` — hướng dẫn backup DB (pg_dump via Docker, self-hosted Postgres 18.4 trên VPS).
 - `db-migration-guide.md` — hướng dẫn migration Prisma (generate/migrate/deploy).
 - `docker-build-push-guide.md` — hướng dẫn build/push Docker image cho API và Web.
 - `ci-guide.md` — hướng dẫn CI/CD với GitHub Actions.
+- `deploy-log.md` — log các lần deploy image lên Docker Hub (commit/branch/message).
 
 ## Tài liệu legacy
 

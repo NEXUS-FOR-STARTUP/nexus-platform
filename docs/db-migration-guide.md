@@ -2,6 +2,8 @@
 
 Hướng dẫn chạy Prisma migration an toàn trên production sử dụng Docker container.
 
+_Cập nhật: 2026-08-03. Hiện có 14 migration folders trong `prisma/migrations/` (latest: `20260729000000_fix_internal_status_default`)._
+
 > ⚠️ **ĐỌC TRƯỚC KHI CHẠY BẤT CỨ LỆNH NÀO**
 >
 > Migration trên production DB là thao tác **nguy hiểm**. Sai sót có thể gây mất dữ liệu không thể khôi phục.
@@ -135,10 +137,11 @@ Migration có lỗi SQL. Rollback bằng cách deploy image cũ và sửa migrat
 |-----------|-----------|---------|
 | `prisma migrate deploy` | ✅ | Chỉ chạy migration chưa applied |
 | `prisma migrate status` | ✅ | Chỉ đọc, an toàn |
-| `prisma migrate dev` | ❌ | **Tuyệt đối không** — chạy full run, có thể reset DB |
+| `prisma migrate dev --create-only` | ✅ | Tạo migration file ở local, không áp dụng lên DB |
+| `prisma migrate dev` (full run) | ❌ | **Tuyệt đối không** — chạy full run, có thể reset DB |
 | `prisma migrate reset` | ❌ | Sẽ xoá toàn bộ dữ liệu |
 | `prisma db push` | ❌ | Không qua migration, không thể rollback |
-| `prisma migrate resolve` | ⚠️ | Chỉ khi có người hiểu rõ hậu quả |
+| `prisma migrate resolve` | ❌ | Tuyệt đối không chạy trên production (xem `.agents/rules/prisma-migration-safety.md` — thuộc danh sách Absolute Forbidden) |
 
 ## Reference
 

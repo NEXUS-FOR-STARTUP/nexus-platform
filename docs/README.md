@@ -55,6 +55,7 @@ Giá trị chính:
 - [`db-migration-guide.md`](./db-migration-guide.md): hướng dẫn migration Prisma
 - [`docker-build-push-guide.md`](./docker-build-push-guide.md): hướng dẫn build/push Docker image
 - [`ci-guide.md`](./ci-guide.md): hướng dẫn CI/CD với GitHub Actions
+- [`deploy-log.md`](./deploy-log.md): log các lần deploy image lên Docker Hub (commit/branch/message)
 
 ## Tài liệu nguồn — `nexus-document/`
 
