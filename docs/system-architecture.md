@@ -11,7 +11,8 @@ Tài liệu này mô tả architecture hiện trạng phục vụ MVP demo Nexus
 Nexus hiện là monorepo Turborepo với 3 vùng chính:
 - `apps/web-1`: product frontend Next.js 16
 - `apps/api`: backend Hono + Better Auth + Prisma
-- `packages/ui`: UI primitives dùng chung
+- `packages/validation`: Zod schemas dùng chung (FE↔BE)
+- Mantine UI v9: design system chính cho web-1
 
 Data model trung tâm nằm ở `prisma/schema.prisma` (19 models), với auth, case, checkpoint, lifecycle unit, document record, report, payment, event, AI job, team-fit report, và credit ledger.
 

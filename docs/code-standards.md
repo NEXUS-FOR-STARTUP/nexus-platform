@@ -6,7 +6,7 @@ _Cập nhật: 2026-08-03_
 
 - `apps/api`: Hono backend, Better Auth, Prisma, document/report/payment workflows.
 - `apps/web-1`: Next.js 16 product app (Mantine UI v9).
-- `packages/ui`: shared React primitives.
+- `packages/validation`: shared Zod schemas.
 - `packages/validation`: Zod schemas chia sẻ giữa api và web-1.
 - `prisma/schema.prisma`: single source of truth cho data model.
 - Tài liệu DB tham khảo: [`db-query-guide.md`](./db-query-guide.md), [`db-backup-guide.md`](./db-backup-guide.md).
@@ -58,7 +58,7 @@ _Cập nhật: 2026-08-03_
 ## Web standards
 
 - Next.js App Router, route groups: public, auth, dashboard, supporter, admin.
-- Giữ UI consistent với Mantine UI v9 và shared primitives (`packages/ui`).
+- Giữ UI consistent với Mantine UI v9.
 - Không đưa business logic nặng vào component page — tách hook/module.
 - Với Nexus MVP, ưu tiên shared workspace shell thay vì page flow rời rạc.
 - Phân biệt rõ 2 lớp document flow: intake (hybrid Drive/Docs + checklist) và workspace (checkpoint/version/assessment).

@@ -76,6 +76,18 @@ None. This is a standalone cleanup plan.
 | 4 | Phase 6 peer deps: VERIFY or keep all? | VERIFY — grep component JS import before deleting |
 | 5 | getSession canonical error message? | Keep authorization.ts message (more specific for auth flow) |
 
+## Execution Protocol
+
+Mỗi phase, TUẦN TỰ:
+
+1. Implement các thay đổi của phase
+2. Chạy gate (`check-types` + `build`, snapshot test nếu Phase 4)
+3. **Commit ngay** — message: `[Phase N] <tên-phase>`
+4. **Báo cáo** — tóm tắt việc đã làm, kết quả gate, commit hash
+5. **Hỏi** — "Tiếp tục Phase N+1?" — chỉ proceed khi user xác nhận
+
+Không phase nào được implement khi chưa confirm phase trước đã pass.
+
 ## Dependencies
 
 - Research reports: `research/researcher-01-zod-package.md`, `research/researcher-02-dead-code-tools.md`
