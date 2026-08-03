@@ -1,8 +1,6 @@
 import { prisma } from "../../db.js";
-import { auth } from "../../auth.js";
 import logger from "./logger.js";
-
-type Session = Awaited<ReturnType<typeof auth.api.getSession>>;
+import { getSession } from "./http-helpers.js";
 
 type CaseAccessScope = {
   allowStudent?: boolean;
@@ -31,17 +29,8 @@ const defaultScope: Required<CaseAccessScope> = {
   allowAdmin: true,
 };
 
-export async function getSession(c: any): Promise<Session> {
-  try {
-    return await auth.api.getSession({ headers: c.req.raw.headers });
-  } catch (error) {
-    logger.error({ err: error }, 'authorization getSession failed');
-    return null;
-  }
-}
-
 function hasCaseAccess(
-  session: NonNullable<Session>,
+  session: NonNullable<Awaited<ReturnType<typeof getSession>>>,
   caseRecord: CaseAccessRecord,
   scope: Required<CaseAccessScope>,
 ) {

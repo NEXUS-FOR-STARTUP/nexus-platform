@@ -35,7 +35,7 @@ function ensureConfig() {
 // Upload / Delete
 // ---------------------------------------------------------------------------
 
-export interface UploadResult {
+interface UploadResult {
   fileUrl: string;
   publicId: string;
   resourceType: string;
@@ -115,7 +115,7 @@ export function getCloudName(): string {
   return requiredEnv('CLOUDINARY_CLOUD_NAME');
 }
 
-export function getCloudinaryHost(): string {
+function getCloudinaryHost(): string {
   return 'res.cloudinary.com';
 }
 
@@ -129,7 +129,7 @@ export function isValidCloudinaryUrl(url: string): boolean {
   }
 }
 
-export function validateCloudinaryUrl(url: string): void {
+function validateCloudinaryUrl(url: string): void {
   if (!isValidCloudinaryUrl(url)) {
     throw new Error('INVALID_CLOUDINARY_HOST');
   }

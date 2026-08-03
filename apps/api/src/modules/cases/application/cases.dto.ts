@@ -72,7 +72,7 @@ export interface ExternalFeedbackUploadRequest {
   documents: UploadedDocumentDraftInput[];
 }
 
-export interface DocumentTypeQueryRequest {
+interface DocumentTypeQueryRequest {
   flow?: DocumentTypeFlow;
   unit_scope?: DocumentUnitScope;
 }

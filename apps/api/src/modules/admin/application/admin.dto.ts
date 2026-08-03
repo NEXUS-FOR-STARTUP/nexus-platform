@@ -4,7 +4,7 @@ export interface ListAdminCasesRequest {
   limit?: string;
 }
 
-export interface AdminCaseListItemDto {
+interface AdminCaseListItemDto {
   id: string;
   case_code: string;
   team_name: string | null;

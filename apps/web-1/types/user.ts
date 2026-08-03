@@ -1,1 +1,1 @@
-export { type User, type Session } from '@repo/validation';
+export { type User } from '@repo/validation';
