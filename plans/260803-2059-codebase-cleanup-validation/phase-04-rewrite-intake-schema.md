@@ -2,7 +2,7 @@
 
 ## Overview
 - **Priority:** P1
-- **Status:** Pending
+- **Status:** Done
 - **Effort:** 1h30m
 - **Risk:** HIGH — rewrites 89-line imperative function to declarative zod. Function is used in 1 place (cases.controller). MUST have pre-refactor test before touching function.
 - **Phase gate:** Phase 3 must pass first (ServicePackage type migrated, import paths verified).

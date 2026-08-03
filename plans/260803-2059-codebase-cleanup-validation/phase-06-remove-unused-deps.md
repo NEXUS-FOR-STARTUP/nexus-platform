@@ -2,7 +2,7 @@
 
 ## Overview
 - **Priority:** P2
-- **Status:** Pending
+- **Status:** Done
 - **Effort:** 20m
 - **Risk:** LOW — verified 0 JS imports. CSS-only imports count as "used" per research (researcher-02). Some Mantine packages have CSS imports in globals.css.
 

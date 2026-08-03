@@ -2,7 +2,7 @@
 
 ## Overview
 - **Priority:** P1
-- **Status:** Pending
+- **Status:** Done
 - **Effort:** 20m
 - **Risk:** LOW — file is 0 importers currently, move = safe. Adding to @repo/validation makes it available for paid tier
 

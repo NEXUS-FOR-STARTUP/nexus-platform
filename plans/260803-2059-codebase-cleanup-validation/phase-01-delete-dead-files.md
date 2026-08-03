@@ -2,7 +2,7 @@
 
 ## Overview
 - **Priority:** P1
-- **Status:** Pending
+- **Status:** Done
 - **Effort:** 30m
 - **Risk:** LOW — all verified 0 importers, revert-safe via git
 

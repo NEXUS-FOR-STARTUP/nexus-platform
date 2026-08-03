@@ -2,7 +2,7 @@
 
 ## Overview
 - **Priority:** P1
-- **Status:** Pending
+- **Status:** Done
 - **Effort:** 2h
 - **Risk:** MEDIUM — touches 12+ files across FE + BE for 4 entities. Expand→Migrate→Contract per entity, dual-export during transition
 

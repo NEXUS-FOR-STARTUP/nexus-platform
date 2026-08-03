@@ -2,7 +2,7 @@
 
 ## Overview
 - **Priority:** P2
-- **Status:** Pending
+- **Status:** Done
 - **Effort:** 30m
 - **Risk:** LOW — tooling addition, CI warning-level only
 

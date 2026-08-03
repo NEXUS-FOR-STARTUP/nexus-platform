@@ -2,7 +2,7 @@
 
 ## Overview
 - **Priority:** P2
-- **Status:** Pending
+- **Status:** Done
 - **Effort:** 45m
 - **Risk:** MEDIUM — getSession dedup touches auth flow. Dead exports: safe delete. Dead components: safe delete.
 

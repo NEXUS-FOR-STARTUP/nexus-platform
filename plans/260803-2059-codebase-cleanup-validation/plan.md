@@ -1,7 +1,7 @@
 ---
 title: "Codebase Cleanup & Shared Validation Convention"
 description: "Delete dead code, migrate types to @repo/validation, remove unused deps, enforce shared validation convention"
-status: pending
+status: done
 priority: P1
 effort: 6h
 issue: null
@@ -30,13 +30,13 @@ None. This is a standalone cleanup plan.
 
 | Phase | Name | Status |
 |-------|------|--------|
-| 1 | [Delete Dead Tracked Files](./phase-01-delete-dead-files.md) | Pending |
-| 2 | [Move Team-Fit Schema to @repo/validation](./phase-02-move-team-fit-schema.md) | Pending |
-| 3 | [Migrate Entity Types to @repo/validation](./phase-03-migrate-entity-types.md) | Pending |
-| 4 | [Rewrite Cp1Intake Schema to Zod](./phase-04-rewrite-intake-schema.md) | Pending |
-| 5 | [Cleanup Duplicates & Dead Exports](./phase-05-cleanup-duplicates-exports.md) | Pending |
-| 6 | [Remove Unused Dependencies](./phase-06-remove-unused-deps.md) | Pending |
-| 7 | [Add Knip + Convention Document](./phase-07-knip-convention.md) | Pending |
+| 1 | [Delete Dead Tracked Files](./phase-01-delete-dead-files.md) | Done |
+| 2 | [Move Team-Fit Schema to @repo/validation](./phase-02-move-team-fit-schema.md) | Done |
+| 3 | [Migrate Entity Types to @repo/validation](./phase-03-migrate-entity-types.md) | Done |
+| 4 | [Rewrite Cp1Intake Schema to Zod](./phase-04-rewrite-intake-schema.md) | Done |
+| 5 | [Cleanup Duplicates & Dead Exports](./phase-05-cleanup-duplicates-exports.md) | Done |
+| 6 | [Remove Unused Dependencies](./phase-06-remove-unused-deps.md) | Done |
+| 7 | [Add Knip + Convention Document](./phase-07-knip-convention.md) | Done |
 
 ## Red Team Review
 
