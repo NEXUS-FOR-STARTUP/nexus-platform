@@ -51,6 +51,10 @@
 - **Cấu trúc `nexus-document/` được tổ chức theo CP** — xem [`structure-map.md`](./nexus-document/structure-map.md) cho navigation.
 - **`overview.md`** trong `nexus-document/` là overview business, không phải product overview.
 
+## backlog/
+
+`backlog/` chứa structured future work items — mỗi file là một ý tưởng/việc cần làm kèm context, decisions, notes, gotchas. Phân biệt với `plans/` (execution workspace) và `requirements/` (feature canonical). File có status (Draft → Researching → Planned → In Progress → Done → Deferred → Rejected). Khi item chuyển sang Planned → tạo plan trong `plans/`. Khi Done → update `project-changelog.md`, xem xét archive.
+
 ## journals/
 
 `journals/` chứa nhật ký hoàn thành implementation (1 file/ngày). Không phải tài liệu sản phẩm — không dùng làm source of truth cho business hay architecture. Sau khi feature shipped, journal có thể archive mà không ảnh hưởng docs chính.
