@@ -1,6 +1,8 @@
 # Production Database Script Query Guide (Read-Only)
 
-Tài liệu này hướng dẫn cách viết file script tạm thời để truy vấn dữ liệu từ Production Database của Supabase một cách nhanh chóng, an toàn bằng Node.js/TypeScript, sử dụng tài khoản Read-Only `guest` đã được cấu hình trong file `.env`.
+_Cập nhật: 2026-08-03. Production DB là self-hosted PostgreSQL 18.4 trên VPS (docker-compose.prod.yml)._
+
+Tài liệu này hướng dẫn cách viết file script tạm thời để truy vấn dữ liệu từ Production Database một cách nhanh chóng, an toàn bằng Node.js/TypeScript, sử dụng tài khoản Read-Only `guest` đã được cấu hình trong file `.env`.
 
 > [!NOTE]
 > Tài khoản **`guest`** đã được cấu hình toàn bộ quyền đọc (`SELECT`) trên toàn bộ bảng hiện tại và tương lai của schema `public`, đảm bảo an toàn tối đa cho DB Production. Mọi câu lệnh thay đổi dữ liệu (`INSERT`, `UPDATE`, `DELETE`) đều sẽ bị từ chối truy cập.
@@ -101,7 +103,7 @@ Toàn bộ 19 bảng được cấu hình trong [schema.prisma](../prisma/schema
 ### Payments & Credits
 * `payments` - Thanh toán (bank transfer, SePay webhook).
 * `service_packages` - Gói dịch vụ.
-* `credit_ledgers` - Sổ cái credit (audit rounds).
+* `credit_ledgers` - Sổ cái credit (purchase/consumption/refund).
 
 ### AI
 * `ai_jobs` - Job xử lý AI (team-fit analysis, etc).

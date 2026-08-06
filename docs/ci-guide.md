@@ -1,10 +1,16 @@
 # CI Guide
 
+_Cập nhật: 2026-08-03._
+
 ## Overview
 
 GitHub Actions workflow defined in `.github/workflows/ci.yml`.
 
-**Jobs:** `build` + `check-types` (không chạy unit test).
+**Jobs:** 1 job duy nhất `build-and-typecheck` — chạy tuần tự `npm run build` rồi `npm run check-types` (không chạy unit test).
+
+Job env:
+- `TURBO_TELEMETRY_DISABLED: 1` — tắt telemetry của Turbo.
+- `DATABASE_URL` placeholder (dummy) — Prisma cần để generate client, không cần DB thật.
 
 ## Trigger
 

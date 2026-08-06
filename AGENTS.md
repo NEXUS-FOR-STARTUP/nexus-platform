@@ -33,13 +33,13 @@ root/
 | --------------- | ----------------------------------------------------- | ------------------------------------------------------------ |
 | Backend/API     | `apps/api/src/index.ts`, `auth.ts`, `db.ts`, `env.ts` | Hono entry, auth mount, DB wiring                            |
 | Web UI          | `apps/web-1/app/*`                                    | Mantine UI v9 app; read `apps/web-1/AGENTS.md` first         |
-| Shared UI       | `packages/ui/src/*`                                   | Common primitives for shared React usage                     |
+| Shared UI       | Mantine UI v9                                          | Real design system for web-1                                 |
 | DB schema       | `prisma/schema-*.md` or `prisma/schema.prisma`        | 16 models, plural snake_case fields                          |
 | DB migration    | `docs/db-migration-guide.md`                          | Prisma migration workflow, generate/migrate/deploy          |
 | Tech docs       | `docs/tech-doc-urls.txt`                              | Source of truth for external docs                            |
 | CI/CD           | `docs/ci-guide.md`                                    | GitHub Actions workflow, automate build/test/deploy          |
 | Workspace rules | `package.json`, `turbo.json`                          | Root scripts + Turbo task graph                              |
-| Shared packages | `packages/validation/src/`, `packages/ui/src/`        | Zod schemas, React primitives                                |
+| Shared packages | `packages/validation/src/`                             | Zod schemas (shared FE↔BE)                                   |
 | Agent rules     | `.agents/rules/`                                      | Development, docs, orchestration, workflow, prisma-migration |
 | Test infra      | `apps/api/src/shared/infrastructure/tests/`           | 12 test files, Node built-in runner                          |
 | DB query (prod) | `docs/db-query-guide.md`                              | Read-only query via READONLY_DATABASE_URL, guest account     |
@@ -62,6 +62,7 @@ root/
 - Test: Node built-in runner (`node:test` + `node:assert`), only in apps/api.
 - CI/CD: see `docs/ci-guide.md` for GitHub Actions workflow setup.
 - Docker build: see `docs/docker-build-push-guide.md` for API & Web images.
+- Shared validation: see `docs/shared-validation-convention.md` for zod/entity rules.
 
 ## ANTI-PATTERNS
 
@@ -83,7 +84,7 @@ root/
 
 - `apps/web-1`: Mantine UI v9 + TanStack Form + Lucide React.
 - `apps/api`: Hono streaming helpers, Better Auth plugins, Vercel AI SDK for Google/OpenAI.
-- `packages/ui`: tiny, stable, shared; keep changes minimal.
+- `packages/validation`: Zod schemas shared FE↔BE; single source of truth for entity types.
 
 ## COMMANDS
 

@@ -23,7 +23,7 @@ root/
 │   ├── validation/  # Zod schemas (IdeaInput, TeamFitInput...)
 │   ├── eslint-config/ # ESLint 9 flat configs
 │   └── typescript-config/ # tsconfig presets
-├── prisma/          # Root Prisma schema (16 models)
+├── prisma/          # Root Prisma schema (19 models)
 ├── docs/            # Product + technical documentation
 ├── .agents/rules/   # Agent development rules
 └── .codegraph/      # Code intelligence index
@@ -97,3 +97,4 @@ npm run prisma:migrate
 | `docs/db-migration-guide.md` | Hướng dẫn migration Prisma |
 | `docs/docker-build-push-guide.md` | Hướng dẫn build/push Docker image |
 | `docs/ci-guide.md` | Hướng dẫn CI/CD với GitHub Actions |
+| `docs/deploy-log.md` | Log các lần deploy image lên Docker Hub |

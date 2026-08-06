@@ -1,5 +1,0 @@
-/**
- * Supporter module schemas.
- */
-
-export {};

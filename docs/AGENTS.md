@@ -23,10 +23,11 @@
 ## Tài liệu vận hành
 
 - `db-query-guide.md` — hướng dẫn truy vấn DB an toàn (READONLY_DATABASE_URL).
-- `db-backup-guide.md` — hướng dẫn backup DB (pg_dump via Docker).
+- `db-backup-guide.md` — hướng dẫn backup DB (pg_dump via Docker, self-hosted Postgres 18.4 trên VPS).
 - `db-migration-guide.md` — hướng dẫn migration Prisma (generate/migrate/deploy).
 - `docker-build-push-guide.md` — hướng dẫn build/push Docker image cho API và Web.
 - `ci-guide.md` — hướng dẫn CI/CD với GitHub Actions.
+- `deploy-log.md` — log các lần deploy image lên Docker Hub (commit/branch/message).
 
 ## Tài liệu legacy
 
@@ -49,6 +50,10 @@
 - **Khi cần ngữ cảnh business** (số liệu phỏng vấn, mô tả value proposition, PMF), tham khảo `nexus-document/` trước rồi cập nhật `docs/project-context.md` hoặc `docs/prd/` tương ứng.
 - **Cấu trúc `nexus-document/` được tổ chức theo CP** — xem [`structure-map.md`](./nexus-document/structure-map.md) cho navigation.
 - **`overview.md`** trong `nexus-document/` là overview business, không phải product overview.
+
+## backlog/
+
+`backlog/` chứa structured future work items — mỗi file là một ý tưởng/việc cần làm kèm context, decisions, notes, gotchas. Phân biệt với `plans/` (execution workspace) và `requirements/` (feature canonical). File có status (Draft → Researching → Planned → In Progress → Done → Deferred → Rejected). Khi item chuyển sang Planned → tạo plan trong `plans/`. Khi Done → update `project-changelog.md`, xem xét archive.
 
 ## journals/
 

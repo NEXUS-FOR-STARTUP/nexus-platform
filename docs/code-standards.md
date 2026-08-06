@@ -1,12 +1,12 @@
 # Code standards
 
-_Cập nhật: 2026-07-23_
+_Cập nhật: 2026-08-03_
 
 ## Repo structure
 
 - `apps/api`: Hono backend, Better Auth, Prisma, document/report/payment workflows.
 - `apps/web-1`: Next.js 16 product app (Mantine UI v9).
-- `packages/ui`: shared React primitives.
+- `packages/validation`: shared Zod schemas.
 - `packages/validation`: Zod schemas chia sẻ giữa api và web-1.
 - `prisma/schema.prisma`: single source of truth cho data model.
 - Tài liệu DB tham khảo: [`db-query-guide.md`](./db-query-guide.md), [`db-backup-guide.md`](./db-backup-guide.md).
@@ -58,26 +58,24 @@ _Cập nhật: 2026-07-23_
 ## Web standards
 
 - Next.js App Router, route groups: public, auth, dashboard, supporter, admin.
-- Giữ UI consistent với Mantine UI v9 và shared primitives (`packages/ui`).
+- Giữ UI consistent với Mantine UI v9.
 - Không đưa business logic nặng vào component page — tách hook/module.
 - Với Nexus MVP, ưu tiên shared workspace shell thay vì page flow rời rạc.
 - Phân biệt rõ 2 lớp document flow: intake (hybrid Drive/Docs + checklist) và workspace (checkpoint/version/assessment).
 - Discussion/chat hiện là REST + polling; không viết tài liệu hoặc UI như thể đã có realtime socket.
-- Payment là surface phụ; không để nó lấn narrative chính của audit/review flow.
+- Credit/ledger economy là core (CreditPanel/CreditQuantityModal/CreditTransactionHistory/CreditBalanceCard + sepay webhook); không để credit lấn narrative chính của audit/review flow.
 - Data fetching: TanStack Query + Axios. Không dùng Redux/Zustand — server state qua query.
 - Forms: TanStack Form everywhere.
 - Icons: Lucide React, không dùng Mantine icons.
 
 ## Testing standards
 
-_Trạng thái hiện tại: Chưa có test file trong codebase._
+_Trạng thái hiện tại: 12 test files tại `apps/api/src/shared/infrastructure/tests/` — Node built-in runner (`node:test` + `node:assert`), chạy qua `tsx --test` (chỉ trong apps/api)._
 
-- **Unit test:** prefer Vitest (phù hợp với Vite/esbuild toolchain của Turborepo).
-- **Component test:** Testing Library + Vitest (nếu setup sau này).
-- **E2E test:** Playwright (khuyến nghị, chưa setup).
-- **API test:** Vitest + Hono `app.request()` helper.
-- Test naming: `{module}.test.ts` hoặc `{component}.test.tsx`, đặt cạnh file cần test.
-- Coverage: không bắt buộc ở MVP, nhưng khuyến khích cho core business logic.
+- **Unit test:** Node built-in runner (`node:test`) + `tsx --test` — chuẩn hiện tại của repo, không dùng Vitest.
+- **Test naming:** `{module}.test.ts`, đặt trong `apps/api/src/shared/infrastructure/tests/`.
+- **Coverage:** không bắt buộc ở MVP, nhưng khuyến khích cho core business logic.
+- **Frontend/component test:** chưa setup.
 
 ## Documentation standards
 
@@ -93,7 +91,7 @@ _Trạng thái hiện tại: Chưa có test file trong codebase._
 
 - Plural table names: `service_packages`, `case_members`, `document_records`.
 - Snake_case columns: `user_facing_stage`, `locked_price`, `last_price_changed_at`.
-- Migration: tạo qua `prisma migrate dev`, commit migration files.
+- Migration: tạo qua `prisma migrate dev --create-only` (tuyệt đối không chạy full `migrate dev` trên production — xem [.agents/rules/prisma-migration-safety.md](../.agents/rules/prisma-migration-safety.md)); deploy lên production qua `prisma migrate deploy`.
 - Read-only queries: dùng `READONLY_DATABASE_URL` (xem [`db-query-guide.md`](./db-query-guide.md)).
 - Backup: tham khảo [`db-backup-guide.md`](./db-backup-guide.md).
 

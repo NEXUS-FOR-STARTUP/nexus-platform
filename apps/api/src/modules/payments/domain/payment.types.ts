@@ -1,3 +1,5 @@
+export { type Payment } from '@repo/validation';
+
 // Allowed file extensions for payment proof uploads
 export const ALLOWED_PROOF_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"] as const;
 

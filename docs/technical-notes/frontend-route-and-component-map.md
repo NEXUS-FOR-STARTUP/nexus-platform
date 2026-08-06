@@ -162,6 +162,9 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | `TabIdeaContent` | Có thể đổi thành panel `Tài liệu nhóm đã gửi` |
 | `TabReportFindings` | Giữ làm lõi của latest report view |
 | `useCaseDetails` | Giữ làm hook chính cho workspace |
+| `CreditPanel` / `CreditQuantityModal` / `CreditActions` | Core economy — mua credit trong workspace |
+| `CreditTransactionHistory` / `CreditBalanceCard` | Lịch sử giao dịch + số dư credit |
+| `StatusGuidanceCard` / `CaseOverviewPanel` | Hướng dẫn next action theo stage + tóm tắt case |
 
 ### Existing components nên bỏ khỏi golden flow hoặc hạ ưu tiên
 
@@ -169,9 +172,10 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | --- | --- |
 | `TabDiscussionChat` | Phase 1 không dùng chat tự do làm core flow |
 | `TabCaseSettings` | Không phải giá trị chính cho khách hàng trong MVP |
-| `PaymentDrawer` | Payment ra khỏi luồng chính |
 | `UnpaidAlertBanner` | Chỉ giữ nếu thật sự cần warning nội bộ; không để chi phối UI khách hàng |
 | `WorkspaceSidebar` / `WorkspaceTabs` | Có thể giữ tạm, nhưng cần refactor để ưu tiên `report + next action` thay vì portal tab-heavy |
+
+> Ghi chú (cập nhật 2026-08-03): `PaymentDrawer` không còn tồn tại trong codebase — luồng thanh toán đã chuyển sang credit/ledger economy (`CreditPanel`, `CreditQuantityModal`, `CreditActions`, `CreditTransactionHistory`, `CreditBalanceCard`).
 
 ### New user-facing components cần thêm
 
@@ -183,7 +187,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | `RequestMoreInfoNotice` | Hiển thị yêu cầu bổ sung có CTA rõ |
 | `DocumentBoard` | Gom tài liệu theo nhóm và theo round |
 | `DocumentBoardSection` | Section con cho từng nhóm tài liệu |
-| `RevisionSubmitModal` | Modal/drawer gửi bản sửa mới |
+| `RevisionUploadGate` | Nộp bản sửa mới, gate theo stage (`waiting_for_revision`) |
 | `RoundHistoryPanel` | Cho user thấy các vòng đã qua mà không áp đảo UI |
 
 ## 8.5 Admin components
@@ -287,11 +291,12 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 - `IntakeChatFlow`
 - `TabDiscussionChat`
 - `TabCaseSettings`
-- `PaymentDrawer`
 - `UnpaidAlertBanner`
 - `AdminPaymentVerificationTable`
 - `usePaymentUpload`
 - `useAdminPayments`
+
+> Ghi chú (cập nhật 2026-08-03): `PaymentDrawer` không còn trong codebase; thanh toán đã chuyển sang credit/ledger economy (`CreditPanel`, `CreditQuantityModal`, `CreditActions`, `CreditTransactionHistory`, `CreditBalanceCard`).
 
 ### New components required to finish MVP cleanly
 
@@ -299,7 +304,6 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 - `LatestReportPanel`
 - `RequestMoreInfoNotice`
 - `DocumentBoard`
-- `RevisionSubmitModal`
 - `AdminTriageQueueTable`
 - `AdminCaseSummaryPanel`
 - `AdminTriageActionPanel`
@@ -307,13 +311,15 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 - `SupporterRoundComparisonPanel`
 - `CloseCaseModal`
 
+> Ghi chú (cập nhật 2026-08-03): `RevisionSubmitModal` không còn trong codebase — revision được xử lý qua stage-based flow (`user_facing_stage` + revision upload gating), với `CaseStatusHeader`/`StatusGuidanceCard` làm hướng dẫn next action.
+
 ## 10. Implement-first order
 
 1. Refactor `/dashboard/intake` thành wizard đúng spec.
 2. Refactor `/dashboard/case/[id]` thành report-centric workspace.
-3. Tạo `RevisionSubmitModal` trong user workspace.
+3. Thêm revision upload gating theo stage trong user workspace.
 4. Refactor `/supporter` và `/supporter/case/[id]`.
-5. Refactor `/supporter/case/[id]/review` thành report composer sạch hơn.
+5. Chuyển `/supporter/case/[id]/review` sang draft report composer (get-draft-report/edit-draft-report usecases).
 6. Refactor `/admin` thành triage queue.
 7. Triển khai `/admin/case/[id]` như detail page riêng cho admin.
 

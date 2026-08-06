@@ -1,6 +1,6 @@
 # Tóm tắt codebase
 
-_Cập nhật: 2026-07-23. Tổng hợp từ codebase hiện tại và docs canonical trong `docs/`._
+_Cập nhật: 2026-08-03. Tổng hợp từ codebase hiện tại và docs canonical trong `docs/`._
 
 ## Repo này là gì
 
@@ -10,19 +10,19 @@ Công cụ hỗ trợ: **CodeGraph** (`.codegraph/`) — index code symbol, call
 
 ## Khu vực chính
 
-### `apps/api` (112 files, ~9,674 LOC)
+### `apps/api` (126 files, ~9,700 LOC)
 
 Backend Hono với:
-- modules: cases (2,446 LOC, 19 routes), documents (1,553 LOC), admin (841 LOC, 12 routes), payments (606 LOC), reports (382 LOC), supporter (213 LOC), ai-engine (379 LOC), packages (94 LOC)
+- modules: cases (22 routes), documents, admin (12 routes), payments (7 routes, gồm sepay webhook), reports (4 routes), supporter (5 routes), ai-engine (2 routes), packages (1 route), system (4 route: `/`, `/health`, `/stream`, `/session`)
 - shared infra: AppError, requireAuth, requireCaseAccess, audit-logger
 - services: Cloudinary (file upload), Google Generative AI
-- ~47 API endpoints, Hono + Better Auth + Prisma 7 + Vercel AI SDK
+- ~59 API endpoints (58 route registrations + Better Auth handler), Hono + Better Auth + Prisma 7 + Vercel AI SDK
 - Kiến trúc: modular monolith + Clean Architecture (domain/application/infrastructure/presentation)
 - Auth: Better Auth (email/password, Google OAuth, admin plugin)
 - DB: Prisma + PostgreSQL, PgBouncer adapter
 - Imports: ESM với `.js` suffix
 
-### `apps/web-1` (~115 files, ~8,755 LOC)
+### `apps/web-1` (127 files, ~8,755 LOC)
 
 Next.js 16.2.0 product app với:
 - 3 persona surfaces: Student (dashboard + case workspace), Supporter (case workspace + output upload), Admin (triage dashboard + package management)
@@ -30,7 +30,7 @@ Next.js 16.2.0 product app với:
 - Forms: TanStack Form everywhere
 - Auth: Better Auth client (`useSession`), role-based layout guards
 - State: server state qua TanStack Query, không Redux/Zustand
-- Pages: landing (`/`), auth (`/auth`), dashboard (`/dashboard`), intake (`/dashboard/intake`), team-fit (`/dashboard/team-fit`), case workspace (`/dashboard/case/[id]`), admin (`/admin`), supporter (`/supporter`)
+- Pages: landing (`/`), auth (`/auth`), dashboard (`/dashboard`), intake (`/dashboard/intake` — trang riêng, submit/resubmit), team-fit (`/dashboard/team-fit`), case workspace (`/dashboard/case/[id]`), payment (`/dashboard/payment`), admin (`/admin`), supporter (`/supporter`)
 - UI: Mantine UI v9, Lucide React, Recharts, TipTap, Tailwind CSS v4
 - Port: 3001
 
@@ -45,7 +45,9 @@ Next.js 16.2.0 product app với:
 
 ### `prisma/schema.prisma`
 
-16 models (430 lines): 4 auth (User, Session, Account, Verification, TwoFactor) + 12 business (ServicePackage, Case, CaseMember, Checkpoint, LifecycleUnit, DocumentRecord, DocumentType, Report, Payment, AuditRound, CaseMessage, CaseEvent, AiJob, TeamFitReport). 9 migrations.
+19 models (430+ lines): 5 auth (User, Session, Account, Verification, TwoFactor) + 14 business (ServicePackage, Case, CaseMember, Checkpoint, LifecycleUnit, DocumentRecord, DocumentType, Report, Payment, CaseMessage, CaseEvent, AiJob, TeamFitReport, CreditLedger). 14 migrations (latest: `20260729000000_fix_internal_status_default`).
+
+> Ghi chú: migration `20260722000000_add_audit_rounds` vẫn còn trong lịch sử migrations (tạo bảng `audit_rounds`), nhưng model `AuditRound` không còn trong schema hiện tại — luồng vòng sửa đã chuyển sang stage-based + credit ledger. Mọi tham chiếu tài liệu tới model `AuditRound` là stale.
 
 ## Tài liệu chính trong `docs/`
 
@@ -69,14 +71,13 @@ Next.js 16.2.0 product app với:
 - Student/supporter case workspace cùng bám shared shell (`WorkspaceSidebar`, `WorkspaceTabs`).
 - `DocumentWorkspace` là bề mặt first-class với checkpoint selector và các tab `overview`, `documents`, `external-feedback`.
 - `TabDiscussionChat` fetch + send message qua REST và polling 5 giây; chưa có realtime socket.
-- `ActivityTimeline` render `caseData.events`; `AuditRoundTimeline` hiển thị lịch sử vòng audit.
+- `ActivityTimeline` render `caseData.events`.
 - `useCaseDetails` polling 10 giây expose `case`, `intake_snapshot`, `latest_report`, `document_board_sections`, `round_history`, `document_workspace`, v.v.
-- Revision rounds: `RevisionSubmitModal` (nộp sửa), `BuyRoundModal` (mua thêm vòng).
-- Payment: `PaymentDrawer` (inline), `UnpaidAlertBanner`, `payment/page.tsx` riêng.
-- External feedback: `ExternalFeedbackUploadModal`, `SupporterOutputUploadModal`.
-- Version selector: `VersionSelector` cho tài liệu workspace.
-- Workspace tabs abstract: `TabIdeaContent`, `TabDiscussionChat`, `TabReportFindings`, `TabCaseSettings` với `TabIdeaContent`, `TabReportFindings`.
-- Intake: hybrid Drive/Docs URL + checklist, template helper.
+- Stage-based case flow: `user_facing_stage` (intake_pending → intake_ready → submitted → need_more_information → under_review → report_ready → waiting_for_revision → revision_submitted → completed/rejected/closed) + `internal_status` (symflow transitions) + `allowed_transitions` + SLA `sla_deadline_at`. UI: `CaseStatusHeader`, `StatusGuidanceCard`, `CaseOverviewPanel`.
+- Credit/ledger economy: `CreditLedger` model, `CreditPanel`, `CreditQuantityModal`, `CreditActions`, `CreditTransactionHistory`, `CreditBalanceCard`; backend `NO_CREDITS` (402), events `credit_used`/`credits_purchased`, admin veto-with-refund, sepay webhook, price 39,000 VND/credit.
+- Document upload: `StudentDocumentUploadModal`, `ExternalFeedbackUploadModal`, `SupporterOutputUploadModal`.
+- Intake: trang riêng (`apps/web-1/app/dashboard/intake/page.tsx`) với submit/resubmit, hybrid Drive/Docs URL + checklist, template helper. Demo presets + `DemoDataFAB` (components/ui/DemoDataFAB.tsx).
+- Team-fit: `apps/web-1/app/dashboard/team-fit/` (IdeaMadLibsStep, TeamInputStep, TeamFitResultStep) + API `/ai-engine/team-fit` và `/ai-engine/team-fit/save`.
 - Admin: `AdminCaseDetailModal`, Settings/Packages panel với Price Locking và Pricing Change Audit Trail.
 - Pricing logic tập trung: `getCaseEffectivePrice`, `formatPrice`, `caseRequiresPayment`, `validatePaymentProof` trong `@/lib/pricing.ts`.
 

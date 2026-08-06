@@ -25,6 +25,7 @@ Giá trị chính:
 - [`flows/`](./flows/): user flow, operational flow, round flow, screen-level journey, UX spec cho MVP
 - [`requirements/`](./requirements/): functional requirement canonical, user story, acceptance criteria, business rules
 - [`technical-notes/`](./technical-notes/): technical note tối thiểu, route map + component map cho frontend MVP
+- [`backlog/`](./backlog/): structured future work — việc sẽ làm, nên làm, lưu ý cho tương lai (Draft → Researching → Planned → In Progress → Done)
 - [`archive/`](./archive/): legacy reference, spec cũ, deferred docs
 
 ## Thứ tự đọc
@@ -36,10 +37,11 @@ Giá trị chính:
 5. `flows/cp1-audit-end-to-end-flow.md`
 6. `flows/cp1-mvp-screen-spec.md`
 7. `technical-notes/frontend-route-and-component-map.md`
-8. flow liên quan trong `flows/`
-9. requirement liên quan trong `requirements/`
-10. note liên quan trong `technical-notes/`
-11. `archive/` khi cần legacy/deferred scope
+8. [`backlog/`](./backlog/) — việc sẽ làm, nên làm, lưu ý tương lai
+9. flow liên quan trong `flows/`
+10. requirement liên quan trong `requirements/`
+11. note liên quan trong `technical-notes/`
+12. `archive/` khi cần legacy/deferred scope
 
 ## Tài liệu hỗ trợ
 
@@ -55,6 +57,7 @@ Giá trị chính:
 - [`db-migration-guide.md`](./db-migration-guide.md): hướng dẫn migration Prisma
 - [`docker-build-push-guide.md`](./docker-build-push-guide.md): hướng dẫn build/push Docker image
 - [`ci-guide.md`](./ci-guide.md): hướng dẫn CI/CD với GitHub Actions
+- [`deploy-log.md`](./deploy-log.md): log các lần deploy image lên Docker Hub (commit/branch/message)
 
 ## Tài liệu nguồn — `nexus-document/`
 
