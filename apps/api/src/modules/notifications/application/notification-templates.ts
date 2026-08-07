@@ -61,6 +61,9 @@ const TEMPLATES: Record<string, Template> = {
     studentBody: (p) =>
       `Thanh toán ${fmtAmount(p.amount)} VND của case ${p.caseCode} đã được xác nhận${p.source === "auto" ? " tự động" : ""}.`,
     studentLink: (p) => `/dashboard/case/${p.caseId}`,
+    adminBody: (p) =>
+      `Case ${p.caseCode} đã thanh toán ${fmtAmount(p.amount)} VND${p.source === "auto" ? " (tự động)" : ""}. Sẵn sàng duyệt và phân công supporter.`,
+    adminLink: () => `/admin?tab=triages`,
   },
   "payment.rejected": {
     title: "Thanh toán bị từ chối",

@@ -276,6 +276,75 @@ test("Phase 08 - Notifications", async (t) => {
     await prisma.case.delete({ where: { id: caseRec.id } });
   });
 
+  await t.test("channelsFor - admin nhận telegram khi payment.verified", async () => {
+    const { channelsFor } = await import("../../../modules/notifications/application/recipients.js");
+
+    assert.deepStrictEqual(channelsFor("payment.verified", "admin"), ["in_app", "telegram"]);
+    assert.deepStrictEqual(channelsFor("payment.verified", "supporter"), ["in_app"]);
+    assert.deepStrictEqual(channelsFor("payment.verified", "student", { source: "manual" }), ["in_app", "email"]);
+    assert.deepStrictEqual(channelsFor("payment.verified", "student", { source: "auto" }), ["in_app"]);
+    assert.deepStrictEqual(channelsFor("case.approved", "admin"), ["in_app"]);
+  });
+
+  await t.test("resolveRecipients - payment.verified → admins (actor skip)", async () => {
+    const { resolveRecipients } = await import("../../../modules/notifications/application/recipients.js");
+    const adminA = randomUUID();
+    const adminB = randomUUID();
+    createdUserIds.push(adminA, adminB);
+    await prisma.user.create({
+      data: { id: adminA, name: "admin-a", email: `${adminA}@test.local`, role: "admin" },
+    });
+    await prisma.user.create({
+      data: { id: adminB, name: "admin-b", email: `${adminB}@test.local`, role: "admin" },
+    });
+
+    const ev = {
+      eventId: randomUUID(),
+      type: "payment.verified",
+      actorId: adminA,
+      occurredAt: new Date(),
+      payload: { caseId: "case-x", caseCode: "NX-1", amount: 39000, source: "manual" },
+    };
+    const recs = await resolveRecipients(ev as never);
+    assert.ok(recs.length >= 1, "còn admin khác actor");
+    assert.ok(!recs.some((r) => r.userId === adminA), "actor admin bị skip");
+    assert.ok(recs.some((r) => r.userId === adminB && r.role === "admin"), "admin khác vẫn nhận");
+    assert.ok(recs.every((r) => r.role === "admin"), "chỉ admin trong recipients");
+
+    // SePay auto-verify — actor null (system) → không skip ai, cả 2 admin đều nhận
+    const evAuto = {
+      eventId: randomUUID(),
+      type: "payment.verified",
+      actorId: null,
+      occurredAt: new Date(),
+      payload: { caseId: "case-x", caseCode: "NX-1", amount: 39000, source: "auto" },
+    };
+    const recsAuto = await resolveRecipients(evAuto as never);
+    assert.ok(recsAuto.some((r) => r.userId === adminA), "adminA nhận khi system event");
+    assert.ok(recsAuto.some((r) => r.userId === adminB), "adminB nhận khi system event");
+    assert.ok(recsAuto.every((r) => r.role === "admin"));
+  });
+
+  await t.test("templates - payment.verified admin có body + link", async () => {
+    const { renderTemplate } = await import("../../../modules/notifications/application/notification-templates.js");
+
+    const r = renderTemplate(
+      "payment.verified",
+      { caseId: "c1", caseCode: "NX-1", amount: 39000, source: "manual" },
+      "admin",
+    );
+    assert.ok(r.body?.includes("NX-1"));
+    assert.ok(r.body?.includes("39.000"));
+    assert.strictEqual(r.link, "/admin?tab=triages");
+
+    const auto = renderTemplate(
+      "payment.verified",
+      { caseId: "c1", caseCode: "NX-1", amount: 39000, source: "auto" },
+      "admin",
+    );
+    assert.ok(auto.body?.includes("tự động"));
+  });
+
   // ------------------------------------------------------------------
   // Relay — retry backoff + in_app insert + purge
   // ------------------------------------------------------------------

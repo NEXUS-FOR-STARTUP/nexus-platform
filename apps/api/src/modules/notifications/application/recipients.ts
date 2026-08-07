@@ -24,7 +24,10 @@ const STUDENT_EVENTS: Set<string> = new Set([
   DOMAIN_EVENTS.REQUEST_MORE_INFO,
 ]);
 
-const ADMIN_EVENTS: Set<string> = new Set([DOMAIN_EVENTS.PAYMENT_PROOF_UPLOADED]);
+const ADMIN_EVENTS: Set<string> = new Set([
+  DOMAIN_EVENTS.PAYMENT_PROOF_UPLOADED,
+  DOMAIN_EVENTS.PAYMENT_VERIFIED,
+]);
 
 const STUDENT_EMAIL_EVENTS: Set<string> = new Set([
   DOMAIN_EVENTS.CASE_ASSIGNED,
@@ -126,7 +129,12 @@ export function channelsFor(type: string, role: RecipientRole, payload: Record<s
   } else if (role === "supporter") {
     if (type === DOMAIN_EVENTS.CASE_ASSIGNED) chans.push("telegram");
   } else if (role === "admin") {
-    if (type === DOMAIN_EVENTS.PAYMENT_PROOF_UPLOADED) chans.push("telegram");
+    if (
+      type === DOMAIN_EVENTS.PAYMENT_PROOF_UPLOADED ||
+      type === DOMAIN_EVENTS.PAYMENT_VERIFIED
+    ) {
+      chans.push("telegram");
+    }
   }
 
   return chans;
