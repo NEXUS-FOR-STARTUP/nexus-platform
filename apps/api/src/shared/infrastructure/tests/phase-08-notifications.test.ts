@@ -442,6 +442,63 @@ test("Phase 08 - Notifications", async (t) => {
     assert.strictEqual(pinged, "u-1");
   });
 
+  await t.test("relay - telegram disabled (null msgId) → delivery failure, KHÔNG markSent", async () => {
+    const { relayTick } = await import("../../../modules/notifications/application/notification-relay.js");
+
+    let markedFailed: string | null = null;
+    let markedSent = false;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const deps: any = {
+      claimBatch: async () => [
+        { id: "o-tg", channel: "telegram", recipient_type: "chat", recipient: "chat-1", title: "T", body: null, link: null, payload_json: null, attempts: 4 },
+      ],
+      sendTelegramMsg: async () => null, // bot disabled
+      markRetry: async () => {},
+      markFailed: async (id: string) => {
+        markedFailed = id;
+      },
+      markSent: async () => {
+        markedSent = true;
+      },
+    };
+    await relayTick(deps);
+
+    assert.strictEqual(markedSent, false, "telegram disabled → KHÔNG được markSent");
+    assert.strictEqual(markedFailed, "o-tg", "phải xử lý như delivery failure → markFailed");
+  });
+
+  await t.test("listener - skip tạo telegram row khi bot disabled", async () => {
+    const { handleEvent } = await import("../../../modules/notifications/application/notification-listener.js");
+    const { telegramBot } = await import("../../../modules/notifications/infrastructure/telegram.service.js");
+
+    const inserted: any[] = [];
+    const insert = async (data: any) => {
+      inserted.push(data);
+      return { id: randomUUID() };
+    };
+
+    await handleEvent(
+      {
+        eventId: randomUUID(),
+        type: "payment.verified",
+        actorId: null,
+        occurredAt: new Date(),
+        payload: { caseId: "case-1", caseCode: "NX-1", source: "manual" },
+      } as never,
+      {
+        resolve: async () => [{ userId: "a1", email: "a1@x.com", role: "admin", telegramChatId: "chat-1" }],
+        channels: () => ["in_app", "telegram"],
+        insert,
+      } as never,
+    );
+
+    // Bot enabled → cả 2 channel được tạo; bot disabled → skip telegram
+    const expected = telegramBot ? 2 : 1;
+    assert.strictEqual(inserted.length, expected, `telegram row skip logic sai (bot=${!!telegramBot})`);
+    assert.strictEqual(inserted[0].channel, "in_app");
+  });
+
   await t.test("outbox repo - purgeSentOutbox chỉ xóa sent > cutoff", async () => {
     const { purgeSentOutbox } = await import("../../../modules/notifications/infrastructure/persistence/notification-outbox.repository.js");
 
