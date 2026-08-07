@@ -1,5 +1,13 @@
-import { TextInput, TagsInput } from '@mantine/core';
-import { Trash2 } from 'lucide-react';
+"use client";
+
+import { Autocomplete, TagsInput } from "@mantine/core";
+import { Trash2 } from "lucide-react";
+import {
+  MAJOR_PRESETS,
+  SKILLS_BY_MAJOR,
+  COMMON_SKILLS,
+  EXPERIENCE_PRESETS,
+} from "../_data/dictionary";
 
 interface TeamMember {
   major: string;
@@ -23,6 +31,11 @@ const ACCENT_COLORS = [
   { border: 'border-l-indigo-500', bg: 'bg-indigo-500/5', badge: 'bg-indigo-500' },
 ];
 
+const MAX_TAGS = 10;
+
+const baseInputClass =
+  'border-border-app bg-white dark:bg-surface-app text-text-app focus:border-brand rounded-lg text-sm';
+
 export default function TeamMemberCard({
   member,
   index,
@@ -30,6 +43,11 @@ export default function TeamMemberCard({
   onRemove,
 }: TeamMemberCardProps) {
   const color = ACCENT_COLORS[index % ACCENT_COLORS.length];
+
+  const majorKey = Object.keys(SKILLS_BY_MAJOR).find(
+    (key) => key.toLowerCase() === member.major.trim().toLowerCase(),
+  );
+  const skillSuggestions = majorKey ? SKILLS_BY_MAJOR[majorKey] : COMMON_SKILLS;
 
   return (
     <div
@@ -62,13 +80,14 @@ export default function TeamMemberCard({
           <label className="text-text-app text-sm font-medium mb-1.5 block">
             Chuyên ngành <span className="text-red-500">*</span>
           </label>
-          <TextInput
-            placeholder="Ví dụ: Fullstack Developer, Product Manager..."
+          <Autocomplete
+            data={MAJOR_PRESETS}
+            limit={8}
+            placeholder="Ví dụ: Công nghệ phần mềm, Marketing..."
             value={member.major}
-            onChange={(e) => onUpdate(index, { major: e.currentTarget.value })}
+            onChange={(value) => onUpdate(index, { major: value })}
             classNames={{
-              input:
-                'border-border-app bg-white dark:bg-surface-app text-text-app focus:border-brand rounded-lg text-sm',
+              input: baseInputClass,
             }}
           />
         </div>
@@ -79,7 +98,9 @@ export default function TeamMemberCard({
           placeholder="Nhập sở trường và nhấn Enter"
           value={member.strengths}
           onChange={(val) => onUpdate(index, { strengths: val })}
-          maxTags={10}
+          data={skillSuggestions}
+          limit={8}
+          maxTags={MAX_TAGS}
           clearable
           size="sm"
           classNames={{
@@ -97,7 +118,9 @@ export default function TeamMemberCard({
           placeholder="Nhập kinh nghiệm và nhấn Enter"
           value={member.experience}
           onChange={(val) => onUpdate(index, { experience: val })}
-          maxTags={10}
+          data={EXPERIENCE_PRESETS}
+          limit={8}
+          maxTags={MAX_TAGS}
           clearable
           size="sm"
           classNames={{
