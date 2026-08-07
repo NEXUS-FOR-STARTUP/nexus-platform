@@ -71,9 +71,10 @@ export async function relayTick(deps: RelayDeps = {}): Promise<void> {
           break;
         case "telegram":
           // Plain text — mặc định parse_mode plain, Telegram tự escape. Truncate 4000 (giới hạn 4096)
+          // Không kèm link: row.link là path tương đối (vd /admin?tab=payments) — vô dụng trên Telegram
           const msgId = await sendTelegramMsg(
             row.recipient,
-            `${row.title}\n${row.body ?? ""}\n${row.link ?? ""}`.slice(0, 4000),
+            `${row.title}\n${row.body ?? ""}`.slice(0, 4000),
           );
           providerMessageId = msgId === null ? null : String(msgId);
           break;
