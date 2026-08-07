@@ -32,9 +32,15 @@ export default function InlineBlank({
     }
   }, [value, isFocused]);
 
+  const MAX_LENGTH = 2000;
+
   const handleInput = () => {
     if (spanRef.current) {
-      const rawText = spanRef.current.innerText.replace(/[\r\n]+/g, " ");
+      let rawText = spanRef.current.innerText.replace(/[\r\n]+/g, " ");
+      if (rawText.length > MAX_LENGTH) {
+        rawText = rawText.slice(0, MAX_LENGTH);
+        spanRef.current.innerText = rawText;
+      }
       if (rawText.trim() === "" && spanRef.current.innerHTML !== "") {
         spanRef.current.innerHTML = "";
       }
@@ -51,8 +57,14 @@ export default function InlineBlank({
 
   const handlePaste = (e: React.ClipboardEvent<HTMLSpanElement>) => {
     e.preventDefault();
-    const text = e.clipboardData.getData("text/plain").replace(/[\r\n]+/g, " ");
-    document.execCommand("insertText", false, text);
+    let text = e.clipboardData.getData("text/plain").replace(/[\r\n]+/g, " ");
+    const currentLength = value ? value.length : 0;
+    if (currentLength + text.length > MAX_LENGTH) {
+      text = text.slice(0, Math.max(0, MAX_LENGTH - currentLength));
+    }
+    if (text) {
+      document.execCommand("insertText", false, text);
+    }
   };
 
   const isEmpty = !value || value.trim() === "";
@@ -81,13 +93,13 @@ export default function InlineBlank({
       onInput={handleInput}
       onKeyDown={handleKeyDown}
       onPaste={handlePaste}
-      className={`inline cursor-text outline-none transition-all rounded-xs px-1.5 py-0.5 mx-0.5 break-words ${
+      className={`inline cursor-text outline-none transition-all rounded-xs px-2 py-0.5 mx-0.5 break-words ${
         hasError && !isFocused
-          ? "border-b-2 border-red-400 dark:border-red-500 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400"
+          ? "border-b-2 border-red-400 dark:border-red-500 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 min-w-[100px] empty:before:content-[attr(data-placeholder)]"
           : isEmpty && !isFocused
-          ? "border-b-2 border-dashed border-border-app text-text-muted bg-transparent hover:border-brand hover:text-brand empty:before:content-[attr(data-placeholder)] empty:before:italic"
+          ? "border-b-2 border-dashed border-border-app text-text-muted bg-transparent hover:border-brand hover:text-brand min-w-[100px] empty:before:content-[attr(data-placeholder)]"
           : isFocused
-          ? "border-b-2 border-brand bg-brand/15 text-brand empty:before:content-[attr(data-placeholder)] empty:before:italic empty:before:text-text-muted"
+          ? "border-b-2 border-brand bg-brand/15 text-brand min-w-[100px] empty:before:content-[attr(data-placeholder)] empty:before:text-text-muted"
           : "border-b-2 border-brand/50 text-brand hover:border-brand hover:bg-brand/10"
       }`}
     />

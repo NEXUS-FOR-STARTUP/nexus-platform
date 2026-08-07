@@ -43,7 +43,7 @@ export default function IdeaMadLibsStep({ blanks, onChange, errors = {}, onBlur 
             <Fragment key={idx}>
               <span>{item.text}</span>
               {item.blank && (
-                <span className="relative inline-flex flex-col align-middle">
+                <>
                   {' '}
                   <InlineBlank
                     value={blanks[item.blank] ?? ''}
@@ -52,12 +52,7 @@ export default function IdeaMadLibsStep({ blanks, onChange, errors = {}, onBlur 
                     onBlurField={() => onBlur?.(item.blank as string)}
                     hasError={!!error}
                   />
-                  {error && (
-                    <span className="text-red-500 dark:text-red-400 text-base leading-tight mt-0.5 whitespace-nowrap">
-                      {error}
-                    </span>
-                  )}
-                </span>
+                </>
               )}
               {nextItem && !nextStartsWithPunct && ' '}
             </Fragment>
