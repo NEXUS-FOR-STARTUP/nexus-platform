@@ -1,3 +1,4 @@
+import type { NotificationType } from "@repo/validation";
 import { AppError } from "../../../shared/domain/app-error.js";
 import { countNotifications, listNotifications } from "../infrastructure/persistence/notification.repository.js";
 
@@ -20,7 +21,7 @@ export async function listNotificationsUseCase(userId: string, page = 1, limit =
   return {
     items: items.map((n) => ({
       id: n.id,
-      type: n.type,
+      type: n.type as NotificationType,
       title: n.title,
       body: n.body,
       link: n.link,
