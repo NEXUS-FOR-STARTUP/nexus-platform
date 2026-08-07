@@ -42,28 +42,28 @@ export default function ContactUs() {
                 <div className="flex items-center gap-3">
                   <Mail className="w-5 h-5 text-brand shrink-0" />
                   <div>
-                    <div className="text-base text-text-muted font-semibold uppercase">Email</div>
-                    <div className="text-xs text-text-app font-semibold">phungluuhoanglong@gmail.com</div>
+                    <div className="text-xs text-text-muted font-semibold uppercase tracking-wider">Email</div>
+                    <div className="text-sm text-text-app font-medium">phungluuhoanglong@gmail.com</div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <Phone className="w-5 h-5 text-brand shrink-0" />
                   <div>
-                    <div className="text-base text-text-muted font-semibold uppercase">Hotline</div>
-                    <div className="text-xs text-text-app font-semibold">0776 506 822</div>
+                    <div className="text-xs text-text-muted font-semibold uppercase tracking-wider">Hotline</div>
+                    <div className="text-sm text-text-app font-medium">0776 506 822</div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <Share2 className="w-5 h-5 text-brand shrink-0" />
                   <div>
-                    <div className="text-base text-text-muted font-semibold uppercase">Fanpage Facebook</div>
+                    <div className="text-xs text-text-muted font-semibold uppercase tracking-wider">Fanpage Facebook</div>
                     <a
                       href="https://www.facebook.com/profile.php?id=61591506814865"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-brand font-semibold hover:underline flex items-center gap-1"
+                      className="text-sm text-brand font-medium hover:underline flex items-center gap-1"
                     >
                       <span>Nexus Platform</span>
                     </a>
