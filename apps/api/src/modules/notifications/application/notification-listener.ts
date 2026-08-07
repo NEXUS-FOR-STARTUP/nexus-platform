@@ -2,6 +2,7 @@ import { DOMAIN_EVENTS, type DomainEvent } from "../../../shared/domain/domain-e
 import { onEvent } from "../../../shared/infrastructure/event-bus.js";
 import logger from "../../../shared/infrastructure/logger.js";
 import { insertOutboxRow } from "../infrastructure/persistence/notification-outbox.repository.js";
+import { telegramBot } from "../infrastructure/telegram.service.js";
 import { channelsFor, resolveRecipients } from "./recipients.js";
 import { renderTemplate } from "./notification-templates.js";
 
@@ -39,7 +40,8 @@ export async function handleEvent(
       let recipientType: string;
       let recipient: string;
       if (channel === "telegram") {
-        if (!r.telegramChatId) continue; // thiếu env → skip telegram rows
+        // thiếu env HOẶC bot disabled → skip telegram rows (không tạo row chết)
+        if (!telegramBot || !r.telegramChatId) continue;
         recipientType = "chat";
         recipient = r.telegramChatId;
       } else if (channel === "email") {

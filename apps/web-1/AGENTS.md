@@ -41,21 +41,21 @@ RootLayout → Providers
 
 - TanStack Query + Axios apiClient
 - Query keys: `["cases"]`, `["case", id]`, `["case-messages", caseId]`
-- Polling: case details (10s), chat messages (5s)
+- Realtime chat: Centrifugo WebSocket qua `useRealtimeChat` (sub `chat:{caseId}`, token từ `/api/realtime/cases/:caseId/subscribe-token`) → setQueryData trực tiếp
+- Polling: case details (10s), chat messages (60s fallback — realtime chính qua WebSocket)
 - Mutations invalidate related queries on success
 - No Redux/Zustand
 
-## CUSTOM HOOKS (16 total)
+## CUSTOM HOOKS (15 total)
 
 | Hook | File | Purpose |
 |------|------|---------|
 | useCasesList | dashboard/hooks/ | Student case list |
+| useMyPayments | dashboard/hooks/ | Student payment history |
 | useCaseDetails | case/[id]/hooks/ | Single case + workspace (10s poll) |
-| useCaseChat | case/[id]/hooks/ | Messages + send (5s poll) |
-| useCaseDocumentUploads | case/[id]/hooks/ | 4 sub-hooks for file uploads |
-| useCaseRevision | case/[id]/hooks/ | Submit revision |
-| useRecallRevision | case/[id]/hooks/ | Recall last revision |
-| usePaymentUpload | case/[id]/hooks/ | Payment proof upload (progress) |
+| useCaseChat | case/[id]/hooks/ | Messages + send (60s poll fallback) |
+| useRealtimeChat | case/[id]/hooks/ | Centrifugo WS subscription `chat:{caseId}` → live messages |
+| useCaseDocumentUploads | case/[id]/hooks/ | 4 sub-hooks: document types, student upload, supporter-output upload, external-feedback upload |
 | useIntakeForm | intake/hooks/ | 7-step wizard (TanStack Form + localStorage) |
 | useTeamFitMutation | team-fit/hooks/ | AI team-fit analysis |
 | useTeamFitSaveMutation | team-fit/hooks/ | Save as case |
@@ -64,6 +64,7 @@ RootLayout → Providers
 | useAdminDocuments | admin/hooks/ | Document CRUD |
 | useAdminPayments | admin/hooks/ | Payment verification |
 | useAdminPackages | admin/hooks/ | Package management |
+| useNotifications | lib/hooks/ | Notification list + unread count |
 
 ## MANTINE UI STYLING RULE
 
@@ -94,6 +95,7 @@ Client-side only (no middleware guard):
 | lucide-react | Icons |
 | axios | HTTP client |
 | better-auth/react | Auth client + useSession |
+| centrifuge | Realtime chat WebSocket client (useRealtimeChat) |
 | next-themes | Dark/light mode |
 | recharts (via @mantine/charts) | Charts |
 | @tiptap/react | Rich text editor |

@@ -37,6 +37,9 @@ export function useNotifications() {
       // M1 fix (review): v5 exact matching — invalidate cả unread-count, không chỉ list
       queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
     };
+    // SSE — named event `ping` = notification mới → refetch cả 2
+    // (onmessage chỉ nhận unnamed events = heartbeat "hb")
+    es.addEventListener("ping", refresh);
     es.onmessage = (e) => {
       if (e.data === "hb") return; // heartbeat — ignore
       refresh();

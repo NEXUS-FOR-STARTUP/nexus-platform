@@ -67,7 +67,10 @@ export default function NotificationBell() {
                 tabIndex={0}
                 onClick={() => handleItemClick(n.id, n.link)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") handleItemClick(n.id, n.link);
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleItemClick(n.id, n.link);
+                  }
                 }}
                 className={`px-3 py-2.5 cursor-pointer border-b border-border-app last:border-b-0 transition-colors ${
                   n.read_at ? "" : "bg-brand-soft/30"

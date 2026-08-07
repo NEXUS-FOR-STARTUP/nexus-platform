@@ -76,7 +76,9 @@ export async function relayTick(deps: RelayDeps = {}): Promise<void> {
             row.recipient,
             `${row.title}\n${row.body ?? ""}`.slice(0, 4000),
           );
-          providerMessageId = msgId === null ? null : String(msgId);
+          // Telegram disabled (null) → delivery failure — không đánh dấu sent
+          if (msgId === null) throw new Error("telegram disabled — delivery failed");
+          providerMessageId = String(msgId);
           break;
       }
       await markSent(row.id, providerMessageId ?? undefined);
