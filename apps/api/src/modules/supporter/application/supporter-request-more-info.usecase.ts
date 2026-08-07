@@ -2,6 +2,8 @@ import { AppError } from "../../../shared/domain/app-error.js";
 import { isFinalCaseStage } from "../../cases/domain/case.types.js";
 import { findCaseById, requestCaseMoreInfo } from "../../cases/infrastructure/persistence/case.repository.js";
 import logger from "../../../shared/infrastructure/logger.js";
+import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
+import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 
 export async function supporterRequestMoreInfoUseCase(
   userId: string,
@@ -46,6 +48,13 @@ export async function supporterRequestMoreInfoUseCase(
       "waiting_user",
     );
     logger.info({ caseId, actorId: userId, queryLength: query?.length, duration_ms: Math.round(performance.now() - start) }, 'more info requested');
+    emitEvent({
+      eventId: crypto.randomUUID(),
+      type: DOMAIN_EVENTS.REQUEST_MORE_INFO,
+      actorId: userId,
+      occurredAt: new Date(),
+      payload: { caseId, caseCode: currentCase.case_code, query: trimmedQuery },
+    });
     return result;
   } catch (error) {
     logger.error({ err: error, caseId, duration_ms: Math.round(performance.now() - start) }, 'more info request failed');

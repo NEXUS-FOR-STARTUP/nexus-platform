@@ -1,5 +1,8 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import { findCaseById, requestCaseMoreInfo } from "../../cases/infrastructure/persistence/case.repository.js";
+import { isFinalCaseStage } from "../../cases/domain/case.types.js";
+import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
+import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 
 export async function closeCaseUseCase(userId: string, caseId: string) {
   const currentCase = await findCaseById(caseId);
@@ -15,7 +18,12 @@ export async function closeCaseUseCase(userId: string, caseId: string) {
     return currentCase;
   }
 
-  return await requestCaseMoreInfo(
+  // M2 fix (review): chặn đóng case đã ở trạng thái cuối (completed/rejected) — backdoor qua API
+  if (isFinalCaseStage(currentCase.user_facing_stage)) {
+    return currentCase;
+  }
+
+  const result = await requestCaseMoreInfo(
     caseId,
     userId,
     "case_closed",
@@ -23,4 +31,20 @@ export async function closeCaseUseCase(userId: string, caseId: string) {
     "closed",
     "done",
   );
+
+  // Fix review: close-case KHÔNG đi qua update-case-status → emit riêng
+  emitEvent({
+    eventId: crypto.randomUUID(),
+    type: DOMAIN_EVENTS.CASE_STAGE_CHANGED,
+    actorId: userId,
+    occurredAt: new Date(),
+    payload: {
+      caseId,
+      caseCode: currentCase.case_code,
+      fromStage: currentCase.user_facing_stage,
+      toStage: "closed",
+    },
+  });
+
+  return result;
 }

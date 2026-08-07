@@ -1,6 +1,8 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import { findCaseById, rejectCase } from "../../cases/infrastructure/persistence/case.repository.js";
 import logger from "../../../shared/infrastructure/logger.js";
+import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
+import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 
 export async function rejectCaseUseCase(
   adminId: string,
@@ -33,6 +35,13 @@ export async function rejectCaseUseCase(
   try {
     const result = await rejectCase(caseId, adminId, reason);
     logger.info({ caseId, transition: 'reject', fromState: caseItem.internal_status, toState: 'cancelled', actorId: adminId, actorRole: 'admin', duration_ms: Date.now() - startTime }, 'case transition: reject');
+    emitEvent({
+      eventId: crypto.randomUUID(),
+      type: DOMAIN_EVENTS.CASE_REJECTED,
+      actorId: adminId,
+      occurredAt: new Date(),
+      payload: { caseId, caseCode: caseItem.case_code, reason },
+    });
     return result;
   } catch (error) {
     logger.error({ err: error, caseId, transition: 'reject', actorId: adminId, actorRole: 'admin', duration_ms: Date.now() - startTime }, 'case transition failed: reject');

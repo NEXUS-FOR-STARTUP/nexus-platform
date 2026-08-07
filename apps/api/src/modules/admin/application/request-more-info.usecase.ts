@@ -1,5 +1,8 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import { findCaseById, requestCaseMoreInfo } from "../../cases/infrastructure/persistence/case.repository.js";
+import logger from "../../../shared/infrastructure/logger.js";
+import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
+import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 
 export async function adminRequestMoreInfoUseCase(
   adminId: string,
@@ -30,7 +33,8 @@ export async function adminRequestMoreInfoUseCase(
     return caseItem;
   }
 
-  return await requestCaseMoreInfo(
+  logger.info({ caseId, actorId: adminId, queryLength: query.length }, 'admin more info requested');
+  const result = await requestCaseMoreInfo(
     caseId,
     adminId,
     "more_info_requested",
@@ -38,4 +42,12 @@ export async function adminRequestMoreInfoUseCase(
     "need_more_information",
     "waiting_user",
   );
+  emitEvent({
+    eventId: crypto.randomUUID(),
+    type: DOMAIN_EVENTS.REQUEST_MORE_INFO,
+    actorId: adminId,
+    occurredAt: new Date(),
+    payload: { caseId, caseCode: caseItem.case_code, query },
+  });
+  return result;
 }

@@ -7,6 +7,7 @@ import { useSession, signOut } from "@/lib/auth-client";
 import { useQueryClient } from "@tanstack/react-query";
 import ThemeToggler from "../ui/ThemeToggler";
 import Logo from "../ui/Logo";
+import NotificationBell from "./NotificationBell";
 import {
   Avatar,
   Menu,
@@ -82,6 +83,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
         </div>
 
         <div className="ml-auto flex items-center gap-4 shrink-0">
+          <NotificationBell />
           <ThemeToggler />
 
           {/* User Menu */}

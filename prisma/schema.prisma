@@ -42,6 +42,8 @@ model User {
   package_price_changes  ServicePackage[] @relation("PackagePriceChanger")
 
   document_records       DocumentRecord[]
+  notifications          Notification[]
+
   @@unique([email])
   @@unique([username])
   @@map("users")
@@ -168,6 +170,7 @@ model Case {
   document_records   DocumentRecord[]
   team_fit_report    TeamFitReport?
   credit_ledgers     CreditLedger[]
+  notifications      Notification[]
 
   @@index([owner_auth_user_id])
   @@index([assigned_supporter_auth_user_id])
@@ -437,4 +440,56 @@ model CreditLedger {
 
   @@index([case_id, created_at])
   @@map("credit_ledgers")
+}
+
+// ==========================================
+// NOTIFICATION MODULE MODELS
+// ==========================================
+
+model Notification {
+  id            String    @id @default(uuid())
+  user_id       String
+  type          String
+  title         String
+  body          String?
+  link          String?
+  case_id       String?
+  metadata_json Json?
+  read_at       DateTime?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  user          User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  case          Case?     @relation(fields: [case_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, read_at])
+  @@index([user_id, created_at(sort: Desc)])
+  @@map("notifications")
+}
+
+model NotificationOutbox {
+  id                  String    @id @default(uuid())
+  event_id            String
+  type                String
+  channel             String
+  recipient_type      String    @default("user") // user | email | chat (telegram)
+  recipient           String
+  title               String
+  body                String?
+  link                String?
+  payload_json        Json?
+  status              String    @default("pending")
+  attempts            Int       @default(0)
+  processing_at       DateTime?
+  next_retry_at       DateTime?
+  sent_at             DateTime?
+  provider_message_id String?
+  last_error          String?
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+
+  @@unique([event_id, channel, recipient])
+  @@index([status, next_retry_at])
+  @@index([status, sent_at]) // purge job
+  @@map("notification_outbox")
 }

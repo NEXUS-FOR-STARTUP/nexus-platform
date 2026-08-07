@@ -88,6 +88,13 @@ services:
       - "traefik.http.routers.nexus-api.tls.certresolver=letsencrypt"
       - "traefik.http.routers.nexus-api.middlewares=compress,security-headers"
       - "traefik.http.services.nexus-api.loadbalancer.server.port=8000"
+      # SSE stream router — KHÔNG compress (compress + SSE rủi ro buffer/treo connection)
+      - "traefik.http.routers.nexus-api-stream.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/notifications/stream`)"
+      - "traefik.http.routers.nexus-api-stream.entrypoints=websecure"
+      - "traefik.http.routers.nexus-api-stream.tls=true"
+      - "traefik.http.routers.nexus-api-stream.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.nexus-api-stream.middlewares=security-headers"
+      - "traefik.http.services.nexus-api-stream.loadbalancer.server.port=8000"
 
   web:
     image: lgdlong/nexus-web:latest

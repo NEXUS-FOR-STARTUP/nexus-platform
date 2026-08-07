@@ -6,6 +6,8 @@ import {
   normalizePaymentStatus,
 } from "../domain/payment.types.js";
 import logger from "../../../shared/infrastructure/logger.js";
+import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
+import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 import type { VerifyPaymentRequest } from "./payments.dto.js";
 
 type VerifyPaymentDeps = {
@@ -73,6 +75,19 @@ export async function verifyPaymentUseCase(
     const newStatus = normalizePaymentStatus(result.status);
 
     logger.info({ paymentId, decision: status, verifierId: adminId, previousStatus, newStatus, duration_ms: Date.now() - __log_start }, "payment verified");
+
+    emitEvent({
+      eventId: crypto.randomUUID(),
+      type: status === "paid" ? DOMAIN_EVENTS.PAYMENT_VERIFIED : DOMAIN_EVENTS.PAYMENT_REJECTED,
+      actorId: adminId,
+      occurredAt: new Date(),
+      payload: {
+        caseId: payment.case_id,
+        paymentId,
+        amount: payment.amount,
+        ...(status === "rejected" ? { reason: rejectionReason } : { source: "manual" }),
+      },
+    });
 
     return {
       ...result,
