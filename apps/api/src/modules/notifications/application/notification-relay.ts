@@ -14,28 +14,17 @@ import { ping as defaultPing } from "../infrastructure/sse-hub.js";
 const BACKOFF_MS = [2_000, 8_000, 32_000, 120_000, 600_000];
 const MAX_ATTEMPTS = 5;
 
+const boundSendEmail = emailService.send.bind(emailService);
+
 type RelayDeps = {
   claimBatch?: typeof defaultClaimBatch;
   insertNotification?: typeof defaultInsertNotification;
   markSent?: typeof defaultMarkSent;
   markRetry?: typeof defaultMarkRetry;
   markFailed?: typeof defaultMarkFailed;
-  purgeSentOutbox?: typeof defaultPurgeSentOutbox;
   ping?: typeof defaultPing;
   sendEmail?: typeof emailService.send;
   sendTelegramMsg?: typeof sendTelegram;
-};
-
-const defaultDeps: RelayDeps = {
-  claimBatch: defaultClaimBatch,
-  insertNotification: defaultInsertNotification,
-  markSent: defaultMarkSent,
-  markRetry: defaultMarkRetry,
-  markFailed: defaultMarkFailed,
-  purgeSentOutbox: defaultPurgeSentOutbox,
-  ping: defaultPing,
-  sendEmail: emailService.send.bind(emailService),
-  sendTelegramMsg: sendTelegram,
 };
 
 export async function relayTick(deps: RelayDeps = {}): Promise<void> {
@@ -48,8 +37,8 @@ export async function relayTick(deps: RelayDeps = {}): Promise<void> {
     markRetry = defaultMarkRetry,
     markFailed = defaultMarkFailed,
     ping = defaultPing,
-    sendEmail = defaultDeps.sendEmail!,
-    sendTelegramMsg = defaultDeps.sendTelegramMsg!,
+    sendEmail = boundSendEmail,
+    sendTelegramMsg = sendTelegram,
   } = deps;
 
   const batch = await claimBatch();

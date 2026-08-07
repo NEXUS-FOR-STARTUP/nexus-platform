@@ -26,6 +26,16 @@ const STUDENT_EVENTS: Set<string> = new Set([
 
 const ADMIN_EVENTS: Set<string> = new Set([DOMAIN_EVENTS.PAYMENT_PROOF_UPLOADED]);
 
+const STUDENT_EMAIL_EVENTS: Set<string> = new Set([
+  DOMAIN_EVENTS.CASE_ASSIGNED,
+  DOMAIN_EVENTS.CASE_APPROVED,
+  DOMAIN_EVENTS.CASE_REJECTED,
+  DOMAIN_EVENTS.PAYMENT_VERIFIED,
+  DOMAIN_EVENTS.PAYMENT_REJECTED,
+  DOMAIN_EVENTS.REPORT_PUBLISHED,
+  DOMAIN_EVENTS.REQUEST_MORE_INFO,
+]);
+
 async function fetchCaseStudents(caseId: string): Promise<Recipient[]> {
   // Query riêng — không đụng findCaseByIdWithMembers (dùng chung, select khác)
   const caseRecord = await prisma.case.findUnique({
@@ -108,21 +118,11 @@ export async function resolveRecipients(event: DomainEvent): Promise<Recipient[]
 export function channelsFor(type: string, role: RecipientRole, payload: Record<string, unknown> = {}): string[] {
   const chans: string[] = ["in_app"];
 
-  const studentEmail: Set<string> = new Set([
-    DOMAIN_EVENTS.CASE_ASSIGNED,
-    DOMAIN_EVENTS.CASE_APPROVED,
-    DOMAIN_EVENTS.CASE_REJECTED,
-    DOMAIN_EVENTS.PAYMENT_VERIFIED,
-    DOMAIN_EVENTS.PAYMENT_REJECTED,
-    DOMAIN_EVENTS.REPORT_PUBLISHED,
-    DOMAIN_EVENTS.REQUEST_MORE_INFO,
-  ]);
-
   if (role === "student") {
     // auto-verified (sepay) → in_app only — student tự thanh toán biết rồi
     const isAutoVerified =
       type === DOMAIN_EVENTS.PAYMENT_VERIFIED && payload.source === "auto";
-    if (studentEmail.has(type) && !isAutoVerified) chans.push("email");
+    if (STUDENT_EMAIL_EVENTS.has(type) && !isAutoVerified) chans.push("email");
   } else if (role === "supporter") {
     if (type === DOMAIN_EVENTS.CASE_ASSIGNED) chans.push("telegram");
   } else if (role === "admin") {

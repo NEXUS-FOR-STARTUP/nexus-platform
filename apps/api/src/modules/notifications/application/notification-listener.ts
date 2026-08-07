@@ -15,10 +15,9 @@ type ListenerDeps = {
 };
 
 export function registerNotificationListener(deps: ListenerDeps = {}): void {
-  const { resolve = resolveRecipients, channels = channelsFor, insert = insertOutboxRow } = deps;
   for (const type of Object.values(DOMAIN_EVENTS)) {
     onEvent(type, (event) => {
-      void handleEvent(event, { resolve, channels, insert }).catch((error) => {
+      void handleEvent(event, deps).catch((error) => {
         logger.error({ eventId: event.eventId, type: event.type, err: error }, "notification listener failed");
       });
     });
