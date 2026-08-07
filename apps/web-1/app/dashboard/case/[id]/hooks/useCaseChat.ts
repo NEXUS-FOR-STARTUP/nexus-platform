@@ -12,7 +12,7 @@ export function useCaseChat(caseId: string) {
       return response.data;
     },
     enabled: !!caseId,
-    refetchInterval: 5000, // Poll every 5 seconds for chat messages
+    refetchInterval: 60_000, // Fallback an toàn — realtime chính qua WebSocket (useRealtimeChat)
   });
 
   const sendMessageMutation = useMutation({

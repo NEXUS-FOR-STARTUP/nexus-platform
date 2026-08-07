@@ -69,8 +69,12 @@ npm run check-types --workspace=apps/api
 | **Packages** | `/api/packages` | 1 | Public | ⚠️ stub | ✅ list-packages | ✅ package.repository | ✅ routes |
 | **AI Engine** | `/api/ai-engine` | 2 | Authenticated | ✅ DTOs (from @repo/validation) | ✅ 2 use cases | ❌ (.gitkeep) | ✅ routes |
 | **Documents** | `/api/documents` | 1 | Authenticated | ✅ DocumentContract | ✅ 5 use cases | ✅ document.repository | ✅ routes |
+| **Notifications** | `/api/notifications` | 5 | Authenticated | ✅ notification.types | ✅ 4 use cases + listener/relay | ✅ email/telegram/sse-hub/persistence | ✅ routes |
+| **Realtime** | `/api/realtime` | 2 | Authenticated | ✅ realtime.types | ❌ (JWT/publish logic trong infrastructure) | ✅ centrifugo.service, centrifugo-token.service | ✅ routes |
 
 > Payments 7 routes = 6 routes (`payments.routes.ts`) + 1 sepay webhook (`sepay.routes.ts` — `POST /sepay-webhook`).
+>
+> Realtime (2): `GET /connection-token` + `GET /cases/:caseId/subscribe-token` — JWT HS256 (`jose`), TTL 15 phút, channel `chat:{caseId}`. Server-side publish từ `cases/send-message.usecase.ts` gọi `publishToChannel` (Centrifugo HTTP API).
 
 ## 2. SHARED INFRASTRUCTURE
 
@@ -117,8 +121,10 @@ Payments (7): List, create, my, detail, proof upload, verify, sepay webhook
 AI Engine (2): Team-fit evaluate, save
 Documents (1): Upload
 Packages (1): List active
+Notifications (5): List, unread count, mark read, mark all read, SSE stream
+Realtime (2): Connection token, case subscribe token (JWT HS256, TTL 15m, channel `chat:{caseId}`)
 
-Total: ~59 endpoints (58 route registrations + Better Auth handler) across 10 mount points.
+Total: ~66 endpoints (65 route registrations + Better Auth handler) across 10 module mount paths (11 `app.route()` calls — payments mounts 2 routers: `payments.routes.ts` + `sepay.routes.ts`).
 
 ## 7. KNOWN DEVIATIONS
 

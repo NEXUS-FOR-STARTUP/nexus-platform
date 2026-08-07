@@ -2,14 +2,15 @@
 
 Guide build và push Docker images cho Nexus Platform lên Docker Hub.
 
-> ⚠️ **WARNING — Web image bắt BUỘC `--build-arg NEXT_PUBLIC_API_URL`**
+> ⚠️ **WARNING — Web image bắt BUỘC `--build-arg NEXT_PUBLIC_API_URL` và `--build-arg NEXT_PUBLIC_CENTRIFUGO_URL`**
 >
-> `NEXT_PUBLIC_API_URL` là **build-time argument**, Next.js inline giá trị này vào JS bundle.
-> **Không phải runtime env**. Nếu thiếu, bundle sẽ dùng fallback `http://localhost:8000`
-> → trình duyệt user fetch tới localhost của chính họ → **auth loop, loading vô hạn**.
+> `NEXT_PUBLIC_API_URL` và `NEXT_PUBLIC_CENTRIFUGO_URL` là **build-time argument**, Next.js inline giá trị này vào JS bundle.
+> **Không phải runtime env**. Nếu thiếu:
+> - `NEXT_PUBLIC_API_URL`: bundle dùng fallback `http://localhost:8000` → browser fetch tới localhost → **auth loop, loading vô hạn**.
+> - `NEXT_PUBLIC_CENTRIFUGO_URL`: bundle dùng fallback `ws://localhost:8010/connection/websocket` → WebSocket không kết nối được ngoài dev local.
 >
-> **Phải có `--build-arg NEXT_PUBLIC_API_URL=...` trong lệnh `docker build` web image.**
-> Kiểm tra bằng `docker exec nexus-web env | grep NEXT_PUBLIC` — nếu không thấy là sai.
+> **Phải có cả 2 `--build-arg` trong lệnh `docker build` web image.**
+> Kiểm tra bằng `docker exec nexus-web env | grep NEXT_PUBLIC` — nếu không thấy đủ 2 biến là sai.
 
 ## Prerequisites
 
@@ -82,13 +83,14 @@ docker build --no-cache -f apps/api/Dockerfile -t lgdlong/nexus-api:latest .
 ### 3. Build Web Image
 
 ```bash
-# NEXT_PUBLIC_API_URL baked at build time (Next.js inlines vào JS bundle)
+# NEXT_PUBLIC_API_URL và NEXT_PUBLIC_CENTRIFUGO_URL baked at build time (Next.js inlines vào JS bundle)
 docker build -f apps/web-1/Dockerfile \
   --build-arg NEXT_PUBLIC_API_URL=https://nexusforstartup.site \
+  --build-arg NEXT_PUBLIC_CENTRIFUGO_URL="wss://nexusforstartup.site/connection/websocket" \
   -t lgdlong/nexus-web:latest .
 ```
 
-`NEXT_PUBLIC_API_URL` là build-time only — không cần trong `.env.prod` hay compose environment.
+`NEXT_PUBLIC_API_URL` và `NEXT_PUBLIC_CENTRIFUGO_URL` là build-time only — không cần trong `.env.prod` hay compose environment.
 
 ### 4. Push cả 2 lên Docker Hub
 
@@ -119,6 +121,7 @@ docker build --no-cache -f apps/api/Dockerfile -t lgdlong/nexus-api:latest . && 
 # Build & push Web
 docker build -f apps/web-1/Dockerfile \
   --build-arg NEXT_PUBLIC_API_URL=https://nexusforstartup.site \
+  --build-arg NEXT_PUBLIC_CENTRIFUGO_URL="wss://nexusforstartup.site/connection/websocket" \
   -t lgdlong/nexus-web:latest . && docker push lgdlong/nexus-web:latest
 
 # ⚠️ Sau khi push: ghi deploy log
@@ -230,6 +233,7 @@ $env:DOCKER_BUILDKIT=1
   run: |
     docker build -f apps/web-1/Dockerfile \
       --build-arg NEXT_PUBLIC_API_URL=https://nexusforstartup.site \
+      --build-arg NEXT_PUBLIC_CENTRIFUGO_URL="wss://nexusforstartup.site/connection/websocket" \
       -t lgdlong/nexus-web:latest .
     docker push lgdlong/nexus-web:latest
 
