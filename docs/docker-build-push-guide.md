@@ -136,6 +136,23 @@ docker compose -f docker-compose.prod.yml up -d
 
 `pull_policy: always` trong `docker-compose.prod.yml` đảm bảo luôn pull image mới nhất.
 
+### ⚠️ SSE stream router (Notifications)
+
+Từ phase notifications, `docker-compose.prod.yml` có **router Traefik riêng** cho SSE:
+
+```yaml
+# SSE stream router — KHÔNG compress (compress + SSE rủi ro buffer/treo connection)
+- "traefik.http.routers.nexus-api-stream.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/notifications/stream`)"
+- "traefik.http.routers.nexus-api-stream.middlewares=security-headers"
+- "traefik.http.services.nexus-api-stream.loadbalancer.server.port=8000"
+```
+
+- Router `nexus-api` (middleware `compress`) **không** match `/api/notifications/stream` — route stream qua `nexus-api-stream` (chỉ `security-headers`, **bỏ compress**).
+- Cả 2 router trỏ cùng service port `8000`.
+- Sau khi sửa labels: chạy lại `docker compose -f docker-compose.prod.yml up -d` để Traefik nhận label mới.
+
+> Khi **schema thay đổi** (vd migration `20260807040000_add_notifications`) → **bắt buộc `--no-cache`** build API: `prisma generate` chạy trong build stage, cache layer không invalidate khi chỉ schema đổi → image cũ chạy Prisma Client cũ → lỗi `Unknown argument`/missing field khi ghi notification.
+
 ## Troubleshooting
 
 ### "file not found" khi build

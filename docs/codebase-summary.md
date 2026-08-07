@@ -1,6 +1,6 @@
 # Tóm tắt codebase
 
-_Cập nhật: 2026-08-03. Tổng hợp từ codebase hiện tại và docs canonical trong `docs/`._
+_Cập nhật: 2026-08-07. Tổng hợp từ codebase hiện tại và docs canonical trong `docs/`._
 
 ## Repo này là gì
 
@@ -13,10 +13,10 @@ Công cụ hỗ trợ: **CodeGraph** (`.codegraph/`) — index code symbol, call
 ### `apps/api` (126 files, ~9,700 LOC)
 
 Backend Hono với:
-- modules: cases (22 routes), documents, admin (12 routes), payments (7 routes, gồm sepay webhook), reports (4 routes), supporter (5 routes), ai-engine (2 routes), packages (1 route), system (4 route: `/`, `/health`, `/stream`, `/session`)
-- shared infra: AppError, requireAuth, requireCaseAccess, audit-logger
+- modules: cases (22 routes), documents, admin (12 routes), payments (7 routes, gồm sepay webhook), reports (4 routes), supporter (5 routes), ai-engine (2 routes), packages (1 route), notifications (5 routes: list, unread-count, read, read-all, SSE stream), system (4 route: `/`, `/health`, `/stream`, `/session`)
+- shared infra: AppError, requireAuth, requireCaseAccess, audit-logger, **event-bus + domain-events** (9 event types) + **outbox pattern** cho notifications
 - services: Cloudinary (file upload), Google Generative AI
-- ~59 API endpoints (58 route registrations + Better Auth handler), Hono + Better Auth + Prisma 7 + Vercel AI SDK
+- ~64 API endpoints (63 route registrations + Better Auth handler), Hono + Better Auth + Prisma 7 + Vercel AI SDK
 - Kiến trúc: modular monolith + Clean Architecture (domain/application/infrastructure/presentation)
 - Auth: Better Auth (email/password, Google OAuth, admin plugin)
 - DB: Prisma + PostgreSQL, PgBouncer adapter
@@ -45,7 +45,7 @@ Next.js 16.2.0 product app với:
 
 ### `prisma/schema.prisma`
 
-19 models (430+ lines): 5 auth (User, Session, Account, Verification, TwoFactor) + 14 business (ServicePackage, Case, CaseMember, Checkpoint, LifecycleUnit, DocumentRecord, DocumentType, Report, Payment, CaseMessage, CaseEvent, AiJob, TeamFitReport, CreditLedger). 14 migrations (latest: `20260729000000_fix_internal_status_default`).
+21 models (495 lines): 5 auth (User, Session, Account, Verification, TwoFactor) + 16 business (ServicePackage, Case, CaseMember, Checkpoint, LifecycleUnit, DocumentRecord, DocumentType, Report, Payment, CaseMessage, CaseEvent, AiJob, TeamFitReport, CreditLedger, Notification, NotificationOutbox). 15 migrations (latest: `20260807040000_add_notifications` — thêm Notification + NotificationOutbox cho hệ thống notifications).
 
 > Ghi chú: migration `20260722000000_add_audit_rounds` vẫn còn trong lịch sử migrations (tạo bảng `audit_rounds`), nhưng model `AuditRound` không còn trong schema hiện tại — luồng vòng sửa đã chuyển sang stage-based + credit ledger. Mọi tham chiếu tài liệu tới model `AuditRound` là stale.
 
@@ -79,6 +79,7 @@ Next.js 16.2.0 product app với:
 - Intake: trang riêng (`apps/web-1/app/dashboard/intake/page.tsx`) với submit/resubmit, hybrid Drive/Docs URL + checklist, template helper. Demo presets + `DemoDataFAB` (components/ui/DemoDataFAB.tsx).
 - Team-fit: `apps/web-1/app/dashboard/team-fit/` (IdeaMadLibsStep, TeamInputStep, TeamFitResultStep) + API `/ai-engine/team-fit` và `/ai-engine/team-fit/save`.
 - Admin: `AdminCaseDetailModal`, Settings/Packages panel với Price Locking và Pricing Change Audit Trail.
+- Notifications (2026-08-07): module notifications 5 endpoints + SSE stream `/api/notifications/stream`; event bus `shared/domain/domain-events.ts` + `shared/infrastructure/event-bus.ts`; outbox pattern (NotificationOutbox); frontend `useNotifications` + `NotificationBell` (SSE + TanStack Query). Env mới: RESEND_*, TELEGRAM_*, NOTIFICATIONS_ENABLED.
 - Pricing logic tập trung: `getCaseEffectivePrice`, `formatPrice`, `caseRequiresPayment`, `validatePaymentProof` trong `@/lib/pricing.ts`.
 
 ## Ràng buộc vận hành

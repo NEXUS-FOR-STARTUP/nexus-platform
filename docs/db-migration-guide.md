@@ -2,7 +2,9 @@
 
 Hướng dẫn chạy Prisma migration an toàn trên production sử dụng Docker container.
 
-_Cập nhật: 2026-08-03. Hiện có 14 migration folders trong `prisma/migrations/` (latest: `20260729000000_fix_internal_status_default`)._
+_Cập nhật: 2026-08-07. Hiện có 15 migration folders trong `prisma/migrations/` (latest: `20260807040000_add_notifications`)._
+
+> **Migration `20260807040000_add_notifications`** (bảng `notifications` + `notification_outbox`): đã áp dụng local dev DB ngày 2026-08-07. Khi deploy lên VPS — sau khi pull image API mới, **bắt buộc chạy `migrate deploy`** (bước 5) để tạo 2 bảng, không thì API fail khi ghi notification.
 
 > ⚠️ **ĐỌC TRƯỚC KHI CHẠY BẤT CỨ LỆNH NÀO**
 >

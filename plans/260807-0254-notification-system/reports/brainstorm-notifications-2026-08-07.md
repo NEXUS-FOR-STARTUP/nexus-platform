@@ -1,5 +1,7 @@
 # Brainstorm: Hệ thống Notification
 
+> ✅ **IMPLEMENTED 2026-08-07** — commit `3f07bd5`. Chi tiết triển khai: `plans/260807-0254-notification-system/plan.md` + các phase.
+
 **Ngày:** 2026-08-07
 **Trạng thái:** Đã chốt thiết kế, chưa implement
 

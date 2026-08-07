@@ -1,6 +1,6 @@
 # System Architecture
 
-_Cập nhật: 2026-08-03. Bám codebase hiện tại._
+_Cập nhật: 2026-08-07. Bám codebase hiện tại._
 
 ## 1. Mục tiêu tài liệu
 
@@ -14,7 +14,7 @@ Nexus hiện là monorepo Turborepo với 3 vùng chính:
 - `packages/validation`: Zod schemas dùng chung (FE↔BE)
 - Mantine UI v9: design system chính cho web-1
 
-Data model trung tâm nằm ở `prisma/schema.prisma` (19 models), với auth, case, checkpoint, lifecycle unit, document record, report, payment, event, AI job, team-fit report, và credit ledger.
+Data model trung tâm nằm ở `prisma/schema.prisma` (21 models), với auth, case, checkpoint, lifecycle unit, document record, report, payment, event, AI job, team-fit report, credit ledger, và notification (Notification + NotificationOutbox).
 
 ## 2.1 Sơ đồ kiến trúc (text-based)
 
@@ -47,9 +47,11 @@ Data model trung tâm nằm ở `prisma/schema.prisma` (19 models), với auth, 
                           │
                   ┌───────┴───────┐
                   │  PostgreSQL   │
-                  │ (19 models)   │
+                  │ (21 models)   │
                   └───────────────┘
 ```
+
+> Sơ đồ trên là snapshot trước phase notifications. Module mới `notifications` (5 routes: list, unread-count, `:id/read` PATCH, read-all PATCH, `stream` SSE) + event bus `shared/` (xem §4.5) chưa vẽ vào.
 
 ## 3. Frontend surfaces chính
 
@@ -121,6 +123,17 @@ Tham chiếu:
 - backend documents module đã encode document workspace theo checkpoint/version/assessment
 - contract mới được expose theo kiểu additive từ case detail payload, giữ tương thích với field cũ
 - document type và document record đã có module riêng trong backend
+
+### 4.5 Notification workflow (SSE + event bus + outbox)
+- Module mới `apps/api/src/modules/notifications/` theo clean architecture: domain (`notification.types`), application (4 inbox usecases: list, unread-count, mark-read, mark-all-read + `notification-listener` + `notification-relay` + `notification-templates` + `recipients`), infrastructure (`notification.repository`, `notification-outbox.repository`, `sse-hub`, `email.service` (Resend), `telegram.service` (grammY)), http (`notifications.routes` + controller)
+- **Event bus mới** `shared/domain/domain-events.ts` (9 event types) + `shared/infrastructure/event-bus.ts` (`emitEvent`/`onEvent`, queueMicrotask) — khác với "direct module-to-module calls" trước đây: usecase emit event, notifications module subscribe
+- **Outbox pattern**: listener ghi outbox rows → relay worker (setInterval 2s) xử lý kênh in-app/email/telegram với retry exponential backoff; crash/restart → pending rows xử lý lại
+- **SSE**: `GET /api/notifications/stream` (requireAuth, cap 5 connection/user, heartbeat 25s, `retry: 5000`); chỉ gửi ping → client refetch REST list. CORS allowMethods mở rộng thêm `PATCH`
+- Endpoints (5): `GET /api/notifications` (list), `GET /api/notifications/unread-count`, `PATCH /api/notifications/:id/read`, `PATCH /api/notifications/read-all`, `GET /api/notifications/stream` (SSE)
+- Frontend: `apps/web-1/lib/hooks/useNotifications.ts` (SSE + TanStack Query), `components/layout/NotificationBell.tsx`, `types/notification.ts`
+- Env mới (optional, 6): `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ADMIN_CHAT_ID`, `TELEGRAM_SUPPORTER_CHAT_ID`, `NOTIFICATIONS_ENABLED`
+- Test: `apps/api/src/shared/infrastructure/tests/phase-08-notifications.test.ts` (16 tests, all pass)
+- Chat vẫn là REST + polling (không socket); SSE chỉ dùng cho notifications
 
 ## 5. Case workspace data flow
 
