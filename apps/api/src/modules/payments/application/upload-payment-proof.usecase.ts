@@ -98,6 +98,7 @@ export async function uploadPaymentProofUseCase(
           caseCode: caseObj.case_code,
           paymentId: payment.id,
           amount: payment.amount,
+          transferContent: (payment as any).transfer_content ?? null,
         },
       });
 
