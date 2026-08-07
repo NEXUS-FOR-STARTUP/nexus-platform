@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ActionIcon, Badge, Button, Divider, Menu, ScrollArea, Text } from "@mantine/core";
-import { Bell, CheckCheck } from "lucide-react";
+import { ActionIcon, Badge, Menu, ScrollArea, Text } from "@mantine/core";
+import { Bell } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/vi";
@@ -18,8 +18,8 @@ export default function NotificationBell() {
   const unreadCount = unreadQuery.data ?? 0;
   const items = listQuery.data ?? [];
 
-  const handleItemClick = (id: string, link: string | null) => {
-    markRead.mutate(id);
+  const handleItemClick = async (id: string, link: string | null) => {
+    await markRead.mutateAsync(id);
     if (link) router.push(link);
   };
 
@@ -50,19 +50,8 @@ export default function NotificationBell() {
       </Menu.Target>
 
       <Menu.Dropdown className="bg-surface-app border border-border-app rounded-lg p-1">
-        <div className="px-3 py-2 flex items-center justify-between border-b border-border-app mb-1">
+        <div className="px-3 py-2 border-b border-border-app mb-1">
           <Text className="font-semibold font-body text-sm text-text-app">Thông báo</Text>
-          {unreadCount > 0 && (
-            <Button
-              size="compact-xs"
-              variant="subtle"
-              leftSection={<CheckCheck className="w-3.5 h-3.5" />}
-              onClick={() => markAllRead.mutate()}
-              className="font-body"
-            >
-              Đánh dấu tất cả đã đọc
-            </Button>
-          )}
         </div>
 
         {items.length === 0 ? (
@@ -109,7 +98,16 @@ export default function NotificationBell() {
             ))}
           </ScrollArea>
         )}
-        <Divider className="mt-1" />
+        <div className="px-3 pt-1 pb-1.5">
+          <button
+            type="button"
+            onClick={() => markAllRead.mutate()}
+            disabled={unreadCount === 0}
+            className="text-[11px] font-body text-text-muted hover:text-brand disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+          >
+            Đánh dấu tất cả đã đọc
+          </button>
+        </div>
       </Menu.Dropdown>
     </Menu>
   );

@@ -83,6 +83,7 @@ export async function verifyPaymentUseCase(
       occurredAt: new Date(),
       payload: {
         caseId: payment.case_id,
+        caseCode: payment.case?.case_code ?? "",
         paymentId,
         amount: payment.amount,
         ...(status === "rejected" ? { reason: rejectionReason } : { source: "manual" }),

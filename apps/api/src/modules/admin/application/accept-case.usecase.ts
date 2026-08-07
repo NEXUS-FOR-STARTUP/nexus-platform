@@ -55,7 +55,7 @@ export async function acceptCaseUseCase(adminId: string, caseId: string, deps: A
 
   const result = await acceptCase(caseId, adminId,
     caseItem.internal_status,  // "accepted_unassigned" from symflow
-    caseItem.user_facing_stage || "under_review");
+    "under_review");
   auditLogger.log({
     operation: "admin.accept_case",
     actor_id: adminId,

@@ -60,12 +60,14 @@ export function useNotifications() {
     mutationFn: (id: string) => apiClient.patch(`/notifications/${id}/read`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
     },
   });
   const markAllRead = useMutation({
     mutationFn: () => apiClient.patch("/notifications/read-all"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
     },
   });
 

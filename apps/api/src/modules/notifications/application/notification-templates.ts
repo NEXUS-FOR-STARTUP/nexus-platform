@@ -54,7 +54,7 @@ const TEMPLATES: Record<string, Template> = {
   "payment.proof_uploaded": {
     title: "Minh chứng thanh toán cần duyệt",
     adminBody: (p) => `Case ${p.caseCode} vừa tải minh chứng ${fmtAmount(p.amount)} VND cần kiểm duyệt.`,
-    adminLink: () => `/admin`,
+    adminLink: () => `/admin?tab=payments`,
   },
   "payment.verified": {
     title: "Thanh toán đã được duyệt",

@@ -91,7 +91,7 @@ export async function assignSupporterUseCase(
       }
       applyTransition(existingCase, 'assign_supporter');
       nextStatus = existingCase.internal_status; // "assigned"
-      nextStage = existingCase.user_facing_stage || "under_review";
+      nextStage = "under_review";
     } else {
       // Unassign: keep "accepted_unassigned"
       nextStatus = "accepted_unassigned";

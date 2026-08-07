@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAdminPayments } from "./hooks/useAdminPayments";
 import { useAdminCases } from "./hooks/useAdminCases";
 import { useAdminDocuments } from "./hooks/useAdminDocuments";
@@ -20,6 +21,15 @@ import { notifications } from "@mantine/notifications";
 import classes from "../../components/layout/DoubleNavbar.module.css";
 
 export default function AdminHubPage() {
+  return (
+    <Suspense fallback={<LoadingSkeleton variant="card" count={1} />}>
+      <AdminHubPageInner />
+    </Suspense>
+  );
+}
+
+function AdminHubPageInner() {
+  const searchParams = useSearchParams();
   const {
     payments,
     isLoading: isPaymentsLoading,
@@ -66,6 +76,13 @@ export default function AdminHubPage() {
   const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages" | "stats">("stats");
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
   const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "unassigned" | "assigned" | "crud">("all");
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "payments" || tab === "cases" || tab === "documents" || tab === "packages" || tab === "stats") {
+      setActiveSection(tab);
+    }
+  }, [searchParams]);
 
   const handleApproveClick = (paymentId: string) => {
     setApprovingPaymentId(paymentId);

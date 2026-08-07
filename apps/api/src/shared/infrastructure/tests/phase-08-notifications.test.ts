@@ -53,8 +53,8 @@ test("Phase 08 - Notifications", async (t) => {
     assert.strictEqual(page1.page, 1);
     assert.strictEqual(page1.limit, 2);
     // mới nhất trước
-    const t1 = new Date(page1.items[0].createdAt).getTime();
-    const t2 = new Date(page1.items[1].createdAt).getTime();
+    const t1 = new Date(page1.items[0].created_at).getTime();
+    const t2 = new Date(page1.items[1].created_at).getTime();
     assert.ok(t1 >= t2);
     // chỉ row của user
     const other = await listNotificationsUseCase(randomUUID(), 1, 20);

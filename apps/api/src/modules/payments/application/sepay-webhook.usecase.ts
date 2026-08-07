@@ -105,6 +105,7 @@ export async function sepayWebhookUseCase(
       occurredAt: new Date(),
       payload: {
         caseId: payment.case_id,
+        caseCode: payment.case?.case_code ?? "",
         paymentId: payment.id,
         amount: payment.amount,
         source: "auto",
@@ -156,5 +157,10 @@ function extractCodeFromContent(content: string): string | null {
 async function findPaymentByTransferContent(code: string) {
   return await prisma.payment.findFirst({
     where: { transfer_content: code, status: { notIn: ["paid", "rejected"] } },
+    include: {
+      case: {
+        select: { case_code: true },
+      },
+    },
   });
 }

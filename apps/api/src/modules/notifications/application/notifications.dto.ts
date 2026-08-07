@@ -4,8 +4,8 @@ export interface NotificationItem {
   title: string;
   body: string | null;
   link: string | null;
-  readAt: string | null;
-  createdAt: string;
+  read_at: string | null;
+  created_at: string;
 }
 
 export interface ListNotificationsResponse {
