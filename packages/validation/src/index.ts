@@ -284,3 +284,42 @@ export const Cp1IntakeSchema = z.object({
 });
 
 export type Cp1Intake = z.infer<typeof Cp1IntakeSchema>;
+
+// ---------------------------------------------------------------------------
+// Notification — shared entity types (FE + BE)
+// ---------------------------------------------------------------------------
+
+export const NOTIFICATION_TYPES = [
+  "case.assigned",
+  "case.approved",
+  "case.rejected",
+  "payment.proof_uploaded",
+  "payment.verified",
+  "payment.rejected",
+  "case.stage_changed",
+  "report.published",
+  "request_more_info",
+] as const;
+
+export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
+
+export const NotificationItemSchema = z.object({
+  id: z.string(),
+  type: z.enum(NOTIFICATION_TYPES),
+  title: z.string(),
+  body: z.string().nullable(),
+  link: z.string().nullable(),
+  read_at: z.string().datetime().nullable(),
+  created_at: z.string().datetime(),
+});
+
+export type NotificationItem = z.infer<typeof NotificationItemSchema>;
+
+export const ListNotificationsResponseSchema = z.object({
+  items: z.array(NotificationItemSchema),
+  total: z.number().int(),
+  page: z.number().int(),
+  limit: z.number().int(),
+});
+
+export type ListNotificationsResponse = z.infer<typeof ListNotificationsResponseSchema>;

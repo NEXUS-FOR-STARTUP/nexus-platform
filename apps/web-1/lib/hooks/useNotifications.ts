@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
-import type { Notification } from "@/types/notification";
+import type { NotificationItem } from "@/types/notification";
 
 const SSE_URL = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/notifications/stream`;
 
@@ -14,7 +14,7 @@ export function useNotifications() {
     queryKey: ["notifications"],
     queryFn: async () => {
       const res = await apiClient.get("/notifications?page=1&limit=20");
-      return res.data.items as Notification[];
+      return res.data.items as NotificationItem[];
     },
     refetchOnWindowFocus: false,
   });
@@ -37,6 +37,9 @@ export function useNotifications() {
       // M1 fix (review): v5 exact matching — invalidate cả unread-count, không chỉ list
       queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
     };
+    // SSE — named event `ping` = notification mới → refetch cả 2
+    // (onmessage chỉ nhận unnamed events = heartbeat "hb")
+    es.addEventListener("ping", refresh);
     es.onmessage = (e) => {
       if (e.data === "hb") return; // heartbeat — ignore
       refresh();

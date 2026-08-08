@@ -9,6 +9,15 @@ https://hono.dev/llms.txt
 https://hono.dev/docs/helpers/streaming
 
 
+https://centrifugal.dev/llms.txt
+https://centrifugal.dev/docs/server/configuration
+https://centrifugal.dev/docs/server/channels
+https://centrifugal.dev/docs/server/authentication
+https://centrifugal.dev/docs/server/channel_token_auth
+https://centrifugal.dev/docs/server/server_api
+https://centrifugal.dev/docs/transports/client_sdk
+https://centrifugal.dev/docs/transports/client_api
+
 https://mantine.dev/llms.txt
 https://mantine.dev/guides/next/
 https://mantine.dev/styles/styles-overview/

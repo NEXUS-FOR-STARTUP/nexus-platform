@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useCaseChat } from "../hooks/useCaseChat";
+import { useRealtimeChat } from "../hooks/useRealtimeChat";
 import { useSession } from "@/lib/auth-client";
 import { ArrowUp, MessageSquare, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
 import { ActionIcon, Textarea, Tooltip, Alert } from "@mantine/core";
@@ -67,6 +68,7 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
   const { data: session } = useSession();
   const { messages, isLoading, isFetching, error, refetch, sendMessage, isSending } =
     useCaseChat(caseId);
+  useRealtimeChat(caseId);
 
   const isLocked = (creditBalance ?? 1) <= 0;
   const [inputText, setInputText] = useState("");
