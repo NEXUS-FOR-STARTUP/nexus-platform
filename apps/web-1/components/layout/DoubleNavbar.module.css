@@ -87,30 +87,30 @@
 
 .singleWidth {
   width: 100px;
-  background-color: var(--color-brand);
-  border-right: none;
+  background-color: light-dark(var(--color-brand), #0e1a38);
+  border-right: 1px solid light-dark(transparent, #17274f);
 }
 
 .singleWidth .aside {
   flex: 0 0 100px;
-  border-right: none;
-  background-color: var(--color-brand);
+  border-right: 1px solid light-dark(transparent, #17274f);
+  background-color: light-dark(var(--color-brand), #0e1a38);
 }
 
 .singleWidth .mainLink {
   width: 64px;
   height: 64px;
-  color: rgba(255, 255, 255, 0.85);
+  color: light-dark(rgba(255, 255, 255, 0.85), #93c5fd);
 }
 
 .singleWidth .mainLink:hover {
-  background-color: var(--color-brand-hover);
+  background-color: light-dark(var(--color-brand-hover), #172752);
   color: #ffffff;
 }
 
 .singleWidth .mainLink[data-active] {
-  background-color: #ffffff;
-  color: var(--color-brand);
+  background-color: light-dark(#ffffff, #1d4ed8);
+  color: light-dark(var(--color-brand), #ffffff);
 }
 
 
