@@ -283,7 +283,7 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
 
                             {/* Bubble */}
                             <div
-                              className={`relative px-3.5 pt-2.5 pb-2 text-xs leading-relaxed break-words w-fit ${
+                              className={`relative px-3.5 pt-2.5 pb-2 text-sm leading-relaxed break-words w-fit ${
                                 isMe
                                   ? "rounded-2xl rounded-tr-sm text-white"
                                   : "rounded-2xl rounded-tl-sm"
@@ -293,22 +293,27 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
                                   ? {
                                       background: "var(--color-brand)",
                                       boxShadow: "0 2px 8px rgba(37,99,235,0.28)",
-                                      maxWidth: "min(360px,68vw)",
+                                      maxWidth: "min(380px,72vw)",
                                     }
                                   : {
                                       background: "var(--color-surface-soft)",
                                       border: "1px solid var(--color-border)",
                                       boxShadow: "var(--shadow-sm)",
-                                      maxWidth: "min(360px,68vw)",
+                                      maxWidth: "min(380px,72vw)",
                                     }
                               }
                             >
-                              <p style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                              <p style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", fontSize: "15px", fontWeight: 500, lineHeight: "1.4" }}>
                                 {msg.content}
                               </p>
                               <p
-                                className="text-base mt-1 select-none"
-                                style={{ textAlign: isMe ? "right" : "left", opacity: 0.6 }}
+                                className="mt-1 select-none"
+                                style={{
+                                  textAlign: isMe ? "right" : "left",
+                                  fontSize: "10px",
+                                  opacity: isMe ? 0.75 : 0.6,
+                                  lineHeight: "1",
+                                }}
                               >
                                 {formatTime(msg.created_at)}
                               </p>
@@ -368,8 +373,10 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
                   background: "transparent",
                   border: "none",
                   lineHeight: "1.5",
+                  fontSize: "14px",
                   padding: "6px 0",
                   minHeight: "26px",
+                  color: "var(--color-text-app)",
                 },
                 wrapper: {
                   flex: 1,
