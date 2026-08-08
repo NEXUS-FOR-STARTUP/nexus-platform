@@ -158,15 +158,27 @@ export default function ProjectContextStep({ form, values }: ProjectContextStepP
               const hasError = (field.state.meta.isTouched || !!field.state.value) && !!field.state.meta.errors.length;
               return (
                 <TextInput
-                  label="Tên đề tài"
-                  placeholder="Ví dụ: EduMap"
+                  label={
+                    <div className="flex items-center gap-1">
+                      <span>Tên đề tài</span>
+                      <span className="text-red-500 font-bold">*</span>
+                      <Tooltip
+                        label="Tên đề tài có thể thay đổi sau trong phần Cài đặt."
+                        position="top"
+                        withArrow
+                      >
+                        <span className="inline-flex items-center ml-0.5">
+                          <HelpCircle className="w-3.5 h-3.5 text-text-muted hover:text-text-app cursor-help" />
+                        </span>
+                      </Tooltip>
+                    </div>
+                  }
+                  placeholder="Ví dụ: Nexus"
                   value={field.state.value || ""}
                   onBlur={field.handleBlur}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                   error={hasError ? field.state.meta.errors[0] : undefined}
-                  description="Tên đề tài có thể thay đổi sau trong phần Cài đặt."
                   radius="md"
-                  withAsterisk
                 />
               );
             }}
