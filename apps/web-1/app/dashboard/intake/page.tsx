@@ -53,7 +53,7 @@ const NEXUS_INTAKE_PRESET: IntakeData = {
     'CP2: "Làm web app hẳn hoi, không chỉ Google Form + Sheet". CP3: "Đừng phụ thuộc rubric — xây tiêu chí đánh giá riêng". CP4: "Không oversell — Nexus hỗ trợ, không cam kết điểm".',
   expected_outputs:
     "Báo cáo team-fit: điểm mạnh/yếu, gaps, rủi ro, vai trò cần bổ sung.",
-  boundary_confirmations: ["no_nda", "self_reviewed", "agree_tos"],
+  boundary_confirmations: [],
   school: "FPT University HCMC",
   course_context: "EXE101 - Summer 2026",
 };
@@ -117,7 +117,7 @@ function IntakePageContent() {
       documents: rawSnapshot.documents || [],
       lecturer_feedback: rawSnapshot.lecturer_feedback || "",
       expected_outputs: rawSnapshot.expected_outputs || "",
-      boundary_confirmations: rawSnapshot.boundary_confirmations || ["originality", "advisory_only", "accurate_contact"],
+      boundary_confirmations: rawSnapshot.boundary_confirmations || [],
     };
   }, [existingCaseData]);
 

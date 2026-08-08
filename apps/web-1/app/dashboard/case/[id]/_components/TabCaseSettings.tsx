@@ -113,21 +113,38 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
     }
   };
 
+  // Check if case is editable (only editable before admin approves: intake_pending, intake_ready, submitted)
+  const isEditable = ["intake_pending", "intake_ready", "submitted"].includes(caseData.user_facing_stage);
+
   return (
     <div className="bg-surface-app border border-border-app rounded-lg p-6 font-body text-sm text-text-app animate-fade-in space-y-6">
       <div className="w-full space-y-6">
-        <div>
-          <div className="flex items-center gap-2 text-text-app">
-            <Settings className="w-5.5 h-5.5 text-brand" />
-            <h3 className="font-heading font-bold text-lg">Cấu hình thông tin hồ sơ</h3>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-text-app">
+              <Settings className="w-5.5 h-5.5 text-brand" />
+              <h3 className="font-heading font-bold text-lg">Cấu hình thông tin hồ sơ</h3>
+            </div>
+            <p className="text-text-muted text-sm mt-1">
+              Cập nhật tên nhóm, trường học và bối cảnh lớp học để báo cáo phản biện hiển thị chính xác.
+            </p>
           </div>
-          <p className="text-text-muted text-sm mt-1">
-            Cập nhật tên nhóm, trường học và bối cảnh lớp học để báo cáo phản biện hiển thị chính xác.
-          </p>
+
+          {!isEditable && (
+            <div className="px-3 py-1.5 rounded-lg bg-surface-soft border border-border-app text-text-subtle text-xs font-semibold flex items-center gap-1.5">
+              <span>🔒 Hồ sơ đã được Admin duyệt — Không thể chỉnh sửa</span>
+            </div>
+          )}
         </div>
 
+        {!isEditable && (
+          <div className="p-3.5 rounded-lg bg-info-soft/40 border border-info/20 text-info text-xs leading-relaxed">
+            Hồ sơ này đã chính thức được phê duyệt vào quy trình phản biện chuyên sâu. Toàn bộ thông tin cấu hình ban đầu đã được khóa cố định để đảm bảo tính minh bạch cho báo cáo.
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${!isEditable ? "opacity-60 pointer-events-none select-none" : ""}`}>
             <TextInput
               label="Tên nhóm / Tên đề tài"
               placeholder="Nhập tên nhóm hoặc đề tài"
@@ -137,6 +154,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
                 clearError("teamName");
               }}
               error={errors.teamName}
+              disabled={!isEditable}
               radius="md"
               withAsterisk
             />
@@ -150,6 +168,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
                 clearError("groupNo");
               }}
               error={errors.groupNo}
+              disabled={!isEditable}
               radius="md"
             />
 
@@ -162,6 +181,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
                 clearError("school");
               }}
               error={errors.school}
+              disabled={!isEditable}
               radius="md"
               withAsterisk
             />
@@ -175,6 +195,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
                 clearError("courseContext");
               }}
               error={errors.courseContext}
+              disabled={!isEditable}
               radius="md"
               withAsterisk
             />
@@ -183,7 +204,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
           <div className="pt-2 flex justify-end">
             <Button
               type="submit"
-              disabled={isUpdatingSettings}
+              disabled={!isEditable || isUpdatingSettings}
               color="brand"
               leftSection={isUpdatingSettings ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
               className="font-semibold text-xs h-9 px-6 cursor-pointer disabled:opacity-60"
