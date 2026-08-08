@@ -82,16 +82,11 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
     }
   };
 
-  // --- File upload ---
+  // --- File processing helper ---
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>, parentField: any) => {
-    const file = e.target.files?.[0];
+  const uploadFileObject = async (file: File, parentField: any) => {
     if (!file) return;
 
-    // Reset so same file can be selected again
-    e.target.value = "";
-
-    // Client-side size validation
     if (file.size > MAX_DOCUMENT_FILE_SIZE_BYTES) {
       setUploadError(`File "${file.name}" vượt quá giới hạn 15MB. Vui lòng chọn file nhỏ hơn.`);
       return;
@@ -124,13 +119,47 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
       parentField.handleChange([...currentDocs, newDoc]);
       parentField.handleBlur();
     } catch (error: any) {
-      // Try to surface a user-friendly message; fall back to generic
       const apiMessage =
         error?.response?.data?.message ??
         `Lỗi khi tải lên "${file.name}". Vui lòng thử lại.`;
       setUploadError(apiMessage);
     } finally {
       setUploading(false);
+    }
+  };
+
+  // --- File upload ---
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>, parentField: any) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    e.target.value = "";
+    await uploadFileObject(file, parentField);
+  };
+
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDragging) setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent, parentField: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      await uploadFileObject(file, parentField);
     }
   };
 
@@ -248,7 +277,7 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                   </Tooltip>
                 </div>
 
-                {/* Hidden file input + visible trigger */}
+                {/* Hidden file input */}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -256,21 +285,6 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                   onChange={(e) => handleFileSelect(e, parentField)}
                   className="hidden"
                 />
-
-                <Button
-                  variant="outline"
-                  leftSection={<Upload className="w-4 h-4" />}
-                  onClick={() => fileInputRef.current?.click()}
-                  loading={uploading}
-                  disabled={uploading}
-                  className="font-body font-semibold cursor-pointer h-10 px-4 rounded-xl text-sm border-border-strong text-text-app hover:bg-surface-hover w-fit"
-                >
-                  {uploading ? "Đang tải lên..." : "Chọn file tài liệu"}
-                </Button>
-
-                <Text size="xs" c="dimmed">
-                  .pdf, .docx, .xlsx, .pptx, .md, .txt &bull; tối đa 15MB
-                </Text>
 
                 {/* Upload error banner */}
                 {uploadError && (
@@ -354,13 +368,39 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                 </p>
               )}
 
-              {/* Empty state */}
-              {!hasDocs && !uploading && (
-                <div className="p-6 border-2 border-dashed rounded-xl bg-surface-soft/40 border-border-strong text-center">
-                  <Upload className="w-8 h-8 text-text-muted mx-auto mb-2" />
-                  <Text size="sm" c="dimmed">
-                    Chưa có tài liệu nào được tải lên. Nhấn &quot;Chọn file tài liệu&quot; để bắt đầu.
-                  </Text>
+              {/* Interactive Dropzone Box */}
+              {!uploading && (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, parentField)}
+                  className={`p-8 border-2 border-dashed rounded-xl text-center cursor-pointer transition-all duration-200 group space-y-2 ${
+                    isDragging
+                      ? "border-brand bg-brand-soft/30 scale-[1.01]"
+                      : "bg-surface-soft/40 hover:bg-surface-soft/80 border-border-strong hover:border-brand/40"
+                  }`}
+                >
+                  <Upload className={`w-8 h-8 mx-auto transition-colors duration-200 ${
+                    isDragging ? "text-brand animate-pulse" : "text-text-muted group-hover:text-brand"
+                  }`} />
+                  <div className="space-y-1">
+                    <p className={`text-sm font-semibold transition-colors duration-200 ${
+                      isDragging ? "text-brand" : "text-text-app group-hover:text-brand"
+                    }`}>
+                      {isDragging ? "Thả file vào đây để tải lên" : "Kéo thả file vào đây hoặc nhấn để chọn file"}
+                    </p>
+                    <p className="text-xs text-text-muted">
+                      .pdf, .docx, .xlsx, .pptx, .md, .txt &bull; tối đa 15MB mỗi file
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {uploading && (
+                <div className="p-8 border-2 border-dashed rounded-xl bg-surface-soft/40 border-border-strong text-center space-y-2">
+                  <Upload className="w-8 h-8 text-brand animate-bounce mx-auto" />
+                  <p className="text-sm font-semibold text-brand">Đang tải tài liệu lên...</p>
                 </div>
               )}
             </div>
