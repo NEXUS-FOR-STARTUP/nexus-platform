@@ -54,6 +54,8 @@ Client (web-1) ──REST POST /cases/:id/messages──▶ API sendMessageUseCa
 
 **Secret quản lý như JWT secret** — chia sẻ 2 nơi (API env + container env), không commit, không log.
 
+> ⚠️ **`.env.example` thiếu 2 var**: `CENTRIFUGO_EXPOSED_PORT` và `CENTRIFUGO_ALLOWED_ORIGINS` chưa có trong `.env.example` (chỉ có CENTRIFUGO_URL/TOKEN_SECRET/API_KEY/NEXT_PUBLIC_CENTRIFUGO_URL). Khi dùng local/container theo bảng trên, thêm 2 var đó vào `.env` local thủ công — docs này là source of truth cho cả 5 var.
+
 ## `CENTRIFUGO_ALLOWED_ORIGINS` — env-driven, KHÔNG hardcode https
 
 `docker-compose.prod.yml` fallback mặc định:

@@ -1,6 +1,6 @@
 # System Architecture
 
-_Cập nhật: 2026-08-07. Bám codebase hiện tại._
+_Cập nhật: 2026-08-08. Bám codebase hiện tại._
 
 ## 1. Mục tiêu tài liệu
 
@@ -51,7 +51,7 @@ Data model trung tâm nằm ở `prisma/schema.prisma` (21 models), với auth, 
                   └───────────────┘
 ```
 
-> Sơ đồ trên là snapshot trước phase notifications. Module mới `notifications` (5 routes: list, unread-count, `:id/read` PATCH, read-all PATCH, `stream` SSE) + event bus `shared/` (xem §4.5) chưa vẽ vào.
+> Sơ đồ trên là snapshot trước phase notifications + realtime. Module mới `notifications` (5 routes: list, unread-count, `:id/read` PATCH, read-all PATCH, `stream` SSE) + `realtime` (2 routes: connection-token, `cases/:caseId/subscribe-token`) + event bus `shared/` (xem §4.5, §4.6) chưa vẽ vào. API hiện: 10 modules, 65 routes (61 module + 4 system: `/`, `/health`, `/stream`, `/session`).
 
 ## 3. Frontend surfaces chính
 
@@ -132,8 +132,21 @@ Tham chiếu:
 - Endpoints (5): `GET /api/notifications` (list), `GET /api/notifications/unread-count`, `PATCH /api/notifications/:id/read`, `PATCH /api/notifications/read-all`, `GET /api/notifications/stream` (SSE)
 - Frontend: `apps/web-1/lib/hooks/useNotifications.ts` (SSE + TanStack Query), `components/layout/NotificationBell.tsx`, `types/notification.ts`
 - Env mới (optional, 6): `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ADMIN_CHAT_ID`, `TELEGRAM_SUPPORTER_CHAT_ID`, `NOTIFICATIONS_ENABLED`
+- Kênh Telegram: admin alert tự động trên event `payment.verified`; `payment.proof_uploaded` gửi kèm `transferContent` ("Nội dung chuyển khoản")
+- Types/validation dùng chung FE↔BE qua `@repo/validation` (single source of truth): `NOTIFICATION_TYPES` (9 events), `NotificationItemSchema`, `ListNotificationsResponseSchema`
 - Test: `apps/api/src/shared/infrastructure/tests/phase-08-notifications.test.ts` (16 tests, all pass)
-- Chat vẫn là REST + polling (không socket); SSE chỉ dùng cho notifications
+- SSE chỉ dùng cho notifications; chat realtime đi qua Centrifugo (xem §4.6)
+
+### 4.6 Realtime chat workflow (Centrifugo v6) — đã ship 2026-08-08
+- Module mới `apps/api/src/modules/realtime/`: 2 routes — `GET /api/realtime/connection-token`, `GET /api/realtime/cases/:caseId/subscribe-token` (cả 2 qua `requireAuth` + `requireCaseAccess`)
+- Token: HS256 JWT qua `jose`, TTL 15 phút, channel `chat:{caseId}`
+- Publish: `infrastructure/centrifugo.service.ts` POST `{CENTRIFUGO_URL}/api/publish` với header `X-API-Key`; fire-and-forget sau khi insert message trong `send-message.usecase.ts` (`toPublishMessage` sanitize payload — không leak email)
+- **DB = source of truth**; Centrifugo chỉ transport realtime. Client không publish trực tiếp — tin phải qua REST để giữ credit check + stage lock + access control
+- Env: `CENTRIFUGO_URL` (default `http://localhost:8010`), `CENTRIFUGO_API_KEY` (thiếu → bỏ publish + warn), `CENTRIFUGO_TOKEN_SECRET` (thiếu → 503)
+- Web-1: `lib/realtime/centrifuge-client.ts` (singleton, `NEXT_PUBLIC_CENTRIFUGO_URL` default `ws://localhost:8010/connection/websocket`), `hooks/useRealtimeChat.ts` (per-sub token, dedup theo message id), `TabDiscussionChat.tsx`
+- Fallback: `useCaseChat` polling `refetchInterval: 60_000` khi Centrifugo down
+- Test: `apps/api/src/shared/infrastructure/tests/phase-09-realtime-chat.test.ts`
+- Ops chi tiết: [`realtime-centrifugo-guide.md`](./realtime-centrifugo-guide.md)
 
 ## 5. Case workspace data flow
 
@@ -157,16 +170,16 @@ Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/hooks/useCaseDetails.ts`
 
 ### 5.2 Chat / discussion
-`useCaseChat(caseId)` hiện:
-- GET `/cases/:id/messages`
-- POST `/cases/:id/messages`
-- polling mỗi 5 giây
-- invalidate query sau khi gửi
-
-Đây là text chat bằng REST + polling, không phải realtime socket.
+Chat hiện là **realtime qua Centrifugo (WebSocket primary)** + REST fallback:
+- `useRealtimeChat(caseId)`: lấy subscribe-token qua `/api/realtime/cases/:caseId/subscribe-token`, sub WebSocket `chat:{caseId}`, publication → `setQueryData` cache + dedupe theo message id
+- REST (source of truth): GET `/cases/:id/messages`, POST `/cases/:id/messages`
+- Fallback khi Centrifugo down: `useCaseChat` polling `refetchInterval: 60_000` (không còn 5s polling)
+- Client KHÔNG publish trực tiếp — tin qua REST để giữ credit check + stage lock + access control
 
 Tham chiếu:
+- `apps/web-1/app/dashboard/case/[id]/hooks/useRealtimeChat.ts`
 - `apps/web-1/app/dashboard/case/[id]/hooks/useCaseChat.ts`
+- `apps/web-1/lib/realtime/centrifuge-client.ts`
 - `apps/web-1/app/dashboard/case/[id]/_components/TabDiscussionChat.tsx`
 
 ### 5.3 Timeline / activity log
@@ -197,7 +210,7 @@ Case workspace dùng `WorkspaceTabs` để điều hướng giữa các tab, m�
 | Tab | Component | Vai trò |
 |-----|-----------|---------|
 | Nội dung ý tưởng | `TabIdeaContent` | Xem nội dung case và intake snapshot |
-| Trao đổi | `TabDiscussionChat` | Chat REST + polling 5s |
+| Trao đổi | `TabDiscussionChat` | Chat realtime Centrifugo (WS), REST + polling 60s fallback |
 | Kết quả đánh giá | `TabReportFindings` | Xem report và findings |
 | Timeline | `ActivityTimeline` | Event log liên tục |
 | Document | (qua `DocumentWorkspace`) | Tài liệu theo checkpoint |
@@ -366,7 +379,6 @@ Tham chiếu:
 
 - Không nên refactor backend workflow trước demo.
 - Không nên thay schema tài liệu lớn trước demo.
-- Không nên giới thiệu websocket/realtime claims nếu code chưa có.
 - Không nên mô tả intake upload flow như đã hoàn chỉnh nếu UI vẫn thiên về Drive link + checklist.
 - Không nên phá shared workspace shell; đây là lợi thế hiện tại của codebase.
 - Không nên để credit/payment lấn narrative chính của audit/review flow, dù credit ledger + sepay webhook + veto-with-refund là core economy đã code xong.
@@ -385,8 +397,9 @@ Tham chiếu:
 ## 11. Những gì chưa nên hứa trong tài liệu
 
 Không ghi như thể đã có sẵn:
-- realtime chat bằng socket;
 - intake document ingestion file-by-file hoàn chỉnh;
 - event sourcing đầy đủ;
 - document version manager hoàn chỉnh cho mọi artifact ngoài scope hiện tại;
 - automation AI mới chưa tồn tại trong luồng hiện tại.
+
+> Realtime chat qua Centrifugo đã ship (xem §4.6) — không còn thuộc danh sách này.

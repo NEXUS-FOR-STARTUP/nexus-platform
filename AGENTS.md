@@ -13,14 +13,14 @@ Turborepo monorepo. Stack: Next.js 16, Hono, Better Auth, Prisma 7, Mantine UI v
 
 ```
 root/
-├── apps/api/         # Hono backend (8 modules, 51 endpoints)
+├── apps/api/         # Hono backend (10 modules, 65 endpoints)
 ├── apps/web-1/       # Next.js 16 product app (port 3001)
 ├── packages/         # Shared packages
 │   ├── ui/           # React primitives (Button, Card, Code)
 │   ├── validation/   # Zod schemas (shared frontend↔backend)
 │   ├── eslint-config/# ESLint 9 flat configs
 │   └── typescript-config/ # tsconfig presets
-├── prisma/           # Root Prisma schema (16 models)
+├── prisma/           # Root Prisma schema (21 models)
 ├── docs/             # Product + technical documentation
 ├── .agents/rules/    # Agent development rules
 ├── .codegraph/       # Code intelligence index
@@ -34,14 +34,15 @@ root/
 | Backend/API     | `apps/api/src/index.ts`, `auth.ts`, `db.ts`, `env.ts` | Hono entry, auth mount, DB wiring                            |
 | Web UI          | `apps/web-1/app/*`                                    | Mantine UI v9 app; read `apps/web-1/AGENTS.md` first         |
 | Shared UI       | Mantine UI v9                                          | Real design system for web-1                                 |
-| DB schema       | `prisma/schema-*.md` or `prisma/schema.prisma`        | 16 models, plural snake_case fields                          |
+| DB schema       | `prisma/schema-*.md` or `prisma/schema.prisma`        | 21 models, plural snake_case fields                          |
 | DB migration    | `docs/db-migration-guide.md`                          | Prisma migration workflow, generate/migrate/deploy          |
 | Tech docs       | `docs/tech-doc-urls.txt`                              | Source of truth for external docs                            |
 | CI/CD           | `docs/ci-guide.md`                                    | GitHub Actions workflow, automate build/test/deploy          |
 | Workspace rules | `package.json`, `turbo.json`                          | Root scripts + Turbo task graph                              |
 | Shared packages | `packages/validation/src/`                             | Zod schemas (shared FE↔BE)                                   |
 | Agent rules     | `.agents/rules/`                                      | Development, docs, orchestration, workflow, prisma-migration |
-| Test infra      | `apps/api/src/shared/infrastructure/tests/`           | 12 test files, Node built-in runner                          |
+| Test infra      | `apps/api/src/shared/infrastructure/tests/`           | 15 test files, Node built-in runner                          |
+| Realtime chat   | `apps/api/src/modules/realtime/`                      | Centrifugo v6; ops: `docs/realtime-centrifugo-guide.md`     |
 | DB query (prod) | `docs/db-query-guide.md`                              | Read-only query via READONLY_DATABASE_URL, guest account     |
 | DB backup       | `docs/db-backup-guide.md`                             | pg_dump via Docker, safe SQL on VPS, restore                 |
 | Docker build    | `docs/docker-build-push-guide.md`                     | Build/push API & Web images, deploy to VPS                   |
@@ -50,7 +51,7 @@ root/
 
 - One root `.env`.
 - TypeScript ESM, NodeNext-style relative imports use `.js`.
-- API `8000`; web `3000`.
+- API `8000`; web `3001`.
 - Better Auth in `apps/api`; frontend only consumes client/session helpers.
 - Prisma schema: plural tables + snake_case columns.
 - Mantine UI web-only.
@@ -75,7 +76,7 @@ root/
 - Add manual Tailwind positioning classes (`fixed`, `inset-0`, `flex`, `items-center`, `justify-center`) to Mantine UI components (`Modal`, `Drawer`). Mantine has default layout; override classes break display (e.g., center alignment).
 - Split `.env` per app (3 violations found: `apps/web-1/.env`, `apps/web-1/.env.prod`, `.env.prod`).
 - Direct `apiClient` calls in UI components instead of hooks.
-- `as any` type escapes (107 occurrences in API, 11 in web-1).
+- `as any` type escapes (126 occurrences in API, 20 in web-1 — số đếm hiện tại, có thể trôi).
 - try/catch in component code (delegate to hook/query layer).
 - Files exceeding 200-line limit (20 files across API and web-1).
 - Shadows on Mantine Card/Paper (`shadow-sm`, `shadow-md` on 22 files).
@@ -142,8 +143,8 @@ Nếu DATABASE_URL trỏ `supabase.co` hoặc `pooler.supabase.com` → **tuyệ
   - [documentation-management.md](.agents/rules/documentation-management.md): Roadmaps, changelogs, plan files.
   - [orchestration-protocol.md](.agents/rules/orchestration-protocol.md): Subagent delegation and parallel execution — **includes DB Safety Protocol**.
   - [primary-workflow.md](.agents/rules/primary-workflow.md): Planning, implementation, testing, code quality, integration, visual explanations — **includes DB Migration Safety Gate**.
-- Apps/api: 51 endpoints across 8 modules. Clean Architecture (domain/application/infrastructure/http). Some modules lack infrastructure layer (admin, supporter). Direct module-to-module calls (no event bus).
-- Apps/web-1: 16 custom hooks across 4 route groups. Auth entirely client-side (no middleware guard). Vietnamese-first UI.
+- Apps/api: 65 endpoints across 10 modules. Clean Architecture (domain/application/infrastructure/http). Some modules lack infrastructure layer (admin, supporter). Event bus (`shared/domain/domain-events.ts`) dùng cho notifications (9 event types); còn lại phần lớn là direct module-to-module calls.
+- Apps/web-1: 14 custom hooks across route groups. Auth entirely client-side (no middleware guard). Vietnamese-first UI.
 - Packages/validation: Zod v4, shared schemas for IdeaInput, TeamMemberInput, TeamFitInput.
 - Packages/ui: 3 scaffold components — these are NOT the real design system (Mantine is).
 

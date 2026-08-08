@@ -23,7 +23,7 @@ root/
 │   ├── validation/  # Zod schemas (IdeaInput, TeamFitInput...)
 │   ├── eslint-config/ # ESLint 9 flat configs
 │   └── typescript-config/ # tsconfig presets
-├── prisma/          # Root Prisma schema (19 models)
+├── prisma/          # Root Prisma schema (21 models)
 ├── docs/            # Product + technical documentation
 ├── .agents/rules/   # Agent development rules
 └── .codegraph/      # Code intelligence index
@@ -50,8 +50,15 @@ Tạo root `.env` từ `.env.example`, set:
 - `CLOUDINARY_API_SECRET`
 - `GOOGLE_GENERATIVE_AI_API_KEY` *(tuỳ chọn, cho AI engine)*
 - `OPENAI_API_KEY` *(tuỳ chọn, cho AI engine)*
+- `TELEGRAM_BOT_TOKEN` / `TELEGRAM_ADMIN_CHAT_ID` / `TELEGRAM_SUPPORTER_CHAT_ID` *(tuỳ chọn, kênh Telegram notifications)*
+- `RESEND_API_KEY` / `RESEND_FROM_EMAIL` *(tuỳ chọn, email notifications)*
+- `NOTIFICATIONS_ENABLED` *(tuỳ chọn, mặc định `true`)*
+- `CENTRIFUGO_URL` / `CENTRIFUGO_TOKEN_SECRET` / `CENTRIFUGO_API_KEY` *(realtime chat — bắt buộc nếu dùng Centrifugo)*
+- `NEXT_PUBLIC_CENTRIFUGO_URL` *(build-time, Web client)*
 
 Cloudinary dùng cho upload minh chứng thanh toán. Lưu `secure_url` trong payment record.
+
+Notifications/realtime chi tiết: [`docs/realtime-centrifugo-guide.md`](docs/realtime-centrifugo-guide.md).
 
 ## Run
 
@@ -95,6 +102,8 @@ npm run prisma:migrate
 | `docs/db-query-guide.md` | Hướng dẫn truy vấn DB an toàn |
 | `docs/db-backup-guide.md` | Hướng dẫn backup DB |
 | `docs/db-migration-guide.md` | Hướng dẫn migration Prisma |
+| `docs/realtime-centrifugo-guide.md` | Vận hành & troubleshooting realtime chat (Centrifugo v6) |
+| `docs/shared-validation-convention.md` | Quy ước zod/entity dùng chung FE↔BE |
 | `docs/docker-build-push-guide.md` | Hướng dẫn build/push Docker image |
 | `docs/ci-guide.md` | Hướng dẫn CI/CD với GitHub Actions |
 | `docs/deploy-log.md` | Log các lần deploy image lên Docker Hub |
