@@ -8,6 +8,7 @@ import {
   Calendar,
   User,
   Folder,
+  AlertTriangle,
 } from "lucide-react";
 import {
   Table,
@@ -19,6 +20,8 @@ import {
   Group,
   Text,
   Tooltip,
+  Modal,
+  Button,
 } from "@mantine/core";
 
 interface DocumentRecordDto {
@@ -59,6 +62,7 @@ export default function AdminDocumentsTable({
   const [selectedExtension, setSelectedExtension] = useState("all");
   const [selectedDocType, setSelectedDocType] = useState("all");
   const [sortBy, setSortBy] = useState("created_at_desc");
+  const [deletingDoc, setDeletingDoc] = useState<{ id: string; name: string } | null>(null);
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleString("vi-VN", {
@@ -242,7 +246,7 @@ export default function AdminDocumentsTable({
               <Table.Th className="text-left min-w-[150px]">Dự án liên quan</Table.Th>
               <Table.Th className="text-left min-w-[150px]">Người tải lên</Table.Th>
               <Table.Th className="text-left min-w-[140px]">Ngày tải</Table.Th>
-              <Table.Th className="text-center w-20">Thao tác</Table.Th>
+              <Table.Th className="text-center w-20" style={{ textAlign: "center" }}>Thao tác</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -334,7 +338,7 @@ export default function AdminDocumentsTable({
                       <ActionIcon
                         variant="subtle"
                         color="red"
-                        onClick={() => handleDeleteClick(doc.id, doc.original_name)}
+                        onClick={() => setDeletingDoc({ id: doc.id, name: doc.original_name })}
                         disabled={isDeleting}
                         className="cursor-pointer mx-auto"
                       >
@@ -362,6 +366,58 @@ export default function AdminDocumentsTable({
           />
         </div>
       )}
+
+      {/* Document Delete Confirmation Modal */}
+      <Modal
+        opened={!!deletingDoc}
+        onClose={() => setDeletingDoc(null)}
+        title={
+          <div className="flex items-center gap-2 text-danger font-heading font-semibold text-base">
+            <AlertTriangle className="w-5 h-5" />
+            <span>Xác nhận xóa tài liệu</span>
+          </div>
+        }
+        centered
+        radius="lg"
+        padding="lg"
+        overlayProps={{ opacity: 0.55, blur: 4 }}
+      >
+        <div className="space-y-5 font-body">
+          <p className="text-text-app text-sm leading-relaxed">
+            Bạn có chắc chắn muốn xóa tài liệu{" "}
+            <span className="font-bold text-danger bg-danger-soft/40 px-2 py-0.5 rounded-md inline-block my-0.5 border border-danger/20">
+              {deletingDoc?.name}
+            </span>{" "}
+            khỏi hệ thống không?
+          </p>
+          <div className="p-3 bg-danger-soft/20 border border-danger/20 rounded-xl text-xs text-danger font-medium">
+            Tài liệu sẽ bị xóa khỏi hệ thống và lưu trữ, hành động này không thể hoàn tác.
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => setDeletingDoc(null)}
+              className="font-medium cursor-pointer"
+            >
+              Hủy bỏ
+            </Button>
+            <Button
+              color="red"
+              size="sm"
+              onClick={() => {
+                if (deletingDoc) {
+                  onDelete(deletingDoc.id);
+                  setDeletingDoc(null);
+                }
+              }}
+              className="font-medium cursor-pointer"
+            >
+              Xác nhận xóa
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

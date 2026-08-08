@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { User, statusThemeMap } from "@/types";
-import { CheckCircle, Search, MoreVertical, Trash2, Eye, Shield, RefreshCw, UserCheck } from "lucide-react";
-import { Button, Select, Badge, Table, Pagination, TextInput, Group, Menu, ActionIcon, Tooltip } from "@mantine/core";
+import { CheckCircle, Search, MoreVertical, Trash2, Eye, Shield, RefreshCw, UserCheck, AlertTriangle } from "lucide-react";
+import { Button, Select, Badge, Table, Pagination, TextInput, Group, Menu, ActionIcon, Tooltip, Modal } from "@mantine/core";
 
 // Import extracted modals
 import AdminCaseDetailModal from "./AdminCaseDetailModal";
@@ -54,6 +54,7 @@ export default function AdminCaseAssignmentTable({
   const [rejectingCaseId, setRejectingCaseId] = useState<string | null>(null);
   const [infoRequestCaseId, setInfoRequestCaseId] = useState<string | null>(null);
   const [acceptingCaseId, setAcceptingCaseId] = useState<string | null>(null);
+  const [deletingCase, setDeletingCase] = useState<{ id: string; name: string; code: string } | null>(null);
 
   // Search, filter, and sort state
   const [searchQuery, setSearchQuery] = useState("");
@@ -177,17 +178,17 @@ export default function AdminCaseAssignmentTable({
         )}
       </Group>
 
-      <Table.ScrollContainer minWidth={800}>
-        <Table striped highlightOnHover withTableBorder withColumnBorders verticalSpacing="sm" horizontalSpacing="md">
+      <Table.ScrollContainer minWidth={1000}>
+        <Table striped highlightOnHover withTableBorder withColumnBorders verticalSpacing="sm" horizontalSpacing="xs">
           <Table.Thead className="bg-brand-soft">
             <Table.Tr>
-              <Table.Th className="text-left">Mã hồ sơ</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap min-w-[120px]">Mã hồ sơ</Table.Th>
               <Table.Th className="text-left">Nhóm / Đề tài</Table.Th>
               <Table.Th className="text-left">Gói dịch vụ</Table.Th>
               <Table.Th className="text-left">Trạng thái</Table.Th>
               <Table.Th className="text-left">Người phụ trách</Table.Th>
               <Table.Th className="text-center w-20">SLA</Table.Th>
-              <Table.Th className="text-center w-24">Thao tác</Table.Th>
+              <Table.Th className="text-center whitespace-nowrap min-w-[120px]" style={{ textAlign: "center" }}>Thao tác</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -201,7 +202,7 @@ export default function AdminCaseAssignmentTable({
               paginatedCases.map((item) => {
                 return (
                   <Table.Tr key={item.id} className={`${getSlaRowClass(item.sla_deadline_at)} hover:bg-surface-soft/30 transition-colors`}>
-                    <Table.Td className="font-heading font-semibold text-xs" title={item.case_code}>
+                    <Table.Td className="font-heading font-semibold text-xs whitespace-nowrap" title={item.case_code}>
                       {item.case_code && item.case_code.length > 30 ? `${item.case_code.slice(0, 30)}...` : item.case_code}
                     </Table.Td>
                     <Table.Td>
@@ -247,42 +248,44 @@ export default function AdminCaseAssignmentTable({
                       <SlaTimer deadline={item.sla_deadline_at} />
                     </Table.Td>
                     <Table.Td className="text-center">
-                      {isCrudMode ? (
-                        <Menu shadow="md" width={160} position="bottom-end">
-                          <Menu.Target>
-                            <ActionIcon variant="subtle" color="gray" className="cursor-pointer mx-auto">
-                              <MoreVertical className="w-4 h-4" />
-                            </ActionIcon>
-                          </Menu.Target>
+                      <div className="flex items-center justify-center w-full">
+                        {isCrudMode ? (
+                          <Menu shadow="md" width={160} position="bottom-end">
+                            <Menu.Target>
+                              <ActionIcon variant="subtle" color="gray" className="cursor-pointer">
+                                <MoreVertical className="w-4 h-4" />
+                              </ActionIcon>
+                            </Menu.Target>
 
-                          <Menu.Dropdown className="bg-surface-app border border-border-app p-1 rounded-lg">
-                            <Menu.Item
-                              leftSection={<Eye className="w-3.5 h-3.5 text-brand" />}
-                              onClick={() => setDetailCaseId(item.id)}
-                              className="text-text-app hover:bg-surface-soft cursor-pointer text-xs font-semibold"
-                            >
-                              Xem chi tiết
-                            </Menu.Item>
-                            <Menu.Item
-                              leftSection={<Trash2 className="w-3.5 h-3.5 text-danger" />}
-                              onClick={() => onDelete && onDelete(item.id)}
-                              className="text-danger hover:bg-danger-soft cursor-pointer text-xs font-semibold"
-                            >
-                              Xoá hồ sơ
-                            </Menu.Item>
-                          </Menu.Dropdown>
-                        </Menu>
-                      ) : (
-                        <Button
-                          variant="subtle"
-                          size="xs"
-                          color="brand"
-                          onClick={() => setDetailCaseId(item.id)}
-                          className="font-semibold cursor-pointer mx-auto"
-                        >
-                          Xem chi tiết
-                        </Button>
-                      )}
+                            <Menu.Dropdown className="bg-surface-app border border-border-app p-1 rounded-lg">
+                              <Menu.Item
+                                leftSection={<Eye className="w-3.5 h-3.5 text-brand" />}
+                                onClick={() => setDetailCaseId(item.id)}
+                                className="text-text-app hover:bg-surface-soft cursor-pointer text-xs font-semibold"
+                              >
+                                Xem chi tiết
+                              </Menu.Item>
+                              <Menu.Item
+                                leftSection={<Trash2 className="w-3.5 h-3.5 text-danger" />}
+                                onClick={() => setDeletingCase({ id: item.id, name: item.team_name || "Chưa đặt tên", code: item.case_code })}
+                                className="text-danger hover:bg-danger-soft cursor-pointer text-xs font-semibold"
+                              >
+                                Xoá hồ sơ
+                              </Menu.Item>
+                            </Menu.Dropdown>
+                          </Menu>
+                        ) : (
+                          <Button
+                            variant="subtle"
+                            size="xs"
+                            color="brand"
+                            onClick={() => setDetailCaseId(item.id)}
+                            className="font-semibold cursor-pointer"
+                          >
+                            Xem chi tiết
+                          </Button>
+                        )}
+                      </div>
                     </Table.Td>
                   </Table.Tr>
                 );
@@ -339,6 +342,59 @@ export default function AdminCaseAssignmentTable({
         onClose={() => setAcceptingCaseId(null)}
         onApprove={onAccept}
       />
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        opened={!!deletingCase}
+        onClose={() => setDeletingCase(null)}
+        title={
+          <div className="flex items-center gap-2 text-danger font-heading font-semibold text-base">
+            <AlertTriangle className="w-5 h-5" />
+            <span>Xác nhận xóa hồ sơ đề tài</span>
+          </div>
+        }
+        centered
+        radius="lg"
+        padding="lg"
+        overlayProps={{ opacity: 0.55, blur: 4 }}
+      >
+        <div className="space-y-5 font-body">
+          <p className="text-text-app text-sm leading-relaxed">
+            Bạn có chắc chắn muốn xóa hồ sơ đề tài{" "}
+            <span className="font-bold text-danger bg-danger-soft/40 px-2 py-0.5 rounded-md inline-block my-0.5 border border-danger/20">
+              {deletingCase?.name} ({deletingCase?.code})
+            </span>{" "}
+            không?
+          </p>
+          <div className="p-3 bg-danger-soft/20 border border-danger/20 rounded-xl text-xs text-danger font-medium">
+            Hành động này sẽ xóa hoàn toàn dữ liệu hồ sơ khỏi hệ thống và không thể hoàn tác.
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => setDeletingCase(null)}
+              className="font-medium cursor-pointer"
+            >
+              Hủy bỏ
+            </Button>
+            <Button
+              color="red"
+              size="sm"
+              onClick={async () => {
+                if (deletingCase && onDelete) {
+                  const targetId = deletingCase.id;
+                  setDeletingCase(null);
+                  await onDelete(targetId);
+                }
+              }}
+              className="font-medium cursor-pointer"
+            >
+              Xác nhận xóa
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

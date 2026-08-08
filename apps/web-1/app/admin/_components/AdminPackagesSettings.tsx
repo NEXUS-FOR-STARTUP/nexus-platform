@@ -99,7 +99,7 @@ export default function AdminPackagesSettings({
               <Table.Th className="text-left w-52">Hiển thị với khách mới</Table.Th>
               <Table.Th className="text-left w-56">Đơn giá hiện tại (VNĐ)</Table.Th>
               <Table.Th className="text-left w-56">Thiết lập giá mới (VNĐ)</Table.Th>
-              <Table.Th className="text-center w-44">Thao tác</Table.Th>
+              <Table.Th className="text-center w-44" style={{ textAlign: "center" }}>Thao tác</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -158,19 +158,20 @@ export default function AdminPackagesSettings({
                       radius="md"
                     />
                   </Table.Td>
-                  <Table.Td>
-                    <Button
-                      onClick={() => handleUpdatePrice(pkg)}
-                      disabled={isUpdatingPrice || !isModified}
-                      loading={isUpdatingPrice}
-                      variant="filled"
-                      color="brand"
-                      size="xs"
-                      radius="md"
-                      fullWidth
-                    >
-                      Cập nhật giá
-                    </Button>
+                  <Table.Td className="text-center">
+                    <div className="flex items-center justify-center w-full">
+                      <Button
+                        onClick={() => handleUpdatePrice(pkg)}
+                        disabled={isUpdatingPrice || !isModified}
+                        loading={isUpdatingPrice}
+                        variant="filled"
+                        color="brand"
+                        size="xs"
+                        radius="md"
+                      >
+                        Cập nhật giá
+                      </Button>
+                    </div>
                   </Table.Td>
                 </Table.Tr>
               );

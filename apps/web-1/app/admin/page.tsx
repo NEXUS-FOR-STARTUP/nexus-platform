@@ -202,21 +202,19 @@ function AdminHubPageInner() {
   };
 
   const handleDeleteCase = async (caseId: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa hồ sơ đề tài này không? Hành động này không thể hoàn tác.")) {
-      try {
-        await deleteCase(caseId);
-        notifications.show({
-          title: "Xóa hồ sơ thành công",
-          message: "Đã xóa hồ sơ khỏi hệ thống.",
-          color: "green",
-        });
-      } catch (e) {
-        notifications.show({
-          title: "Lỗi",
-          message: "Gặp lỗi khi thực hiện xóa hồ sơ.",
-          color: "red",
-        });
-      }
+    try {
+      await deleteCase(caseId);
+      notifications.show({
+        title: "Xóa hồ sơ thành công",
+        message: "Đã xóa hồ sơ khỏi hệ thống.",
+        color: "green",
+      });
+    } catch (e) {
+      notifications.show({
+        title: "Lỗi",
+        message: "Gặp lỗi khi thực hiện xóa hồ sơ.",
+        color: "red",
+      });
     }
   };
 

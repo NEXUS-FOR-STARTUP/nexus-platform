@@ -139,19 +139,19 @@ export default function AdminPaymentVerificationTable({
         />
       </Group>
 
-      <Table.ScrollContainer minWidth={600}>
-        <Table striped highlightOnHover withTableBorder withColumnBorders verticalSpacing="sm" horizontalSpacing="md">
+      <Table.ScrollContainer minWidth={1050}>
+        <Table striped highlightOnHover withTableBorder withColumnBorders verticalSpacing="sm" horizontalSpacing="xs">
           <Table.Thead className="bg-brand-soft">
             <Table.Tr>
-              <Table.Th className="text-left">Mã hồ sơ</Table.Th>
-              <Table.Th className="text-left">Gói dịch vụ</Table.Th>
-              <Table.Th className="text-left">Người nộp</Table.Th>
-              <Table.Th className="text-left">Số tiền</Table.Th>
-              <Table.Th className="text-left">Nội dung chuyển khoản</Table.Th>
-              <Table.Th className="text-left">Mã GD ngân hàng</Table.Th>
-              <Table.Th className="text-left">Thời gian gửi</Table.Th>
-              <Table.Th className="text-left">Biên lai giao dịch</Table.Th>
-              <Table.Th className="text-center w-28">Thao tác</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap min-w-[100px]">Mã hồ sơ</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap min-w-[100px]">Gói dịch vụ</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap min-w-[90px]">Người nộp</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap min-w-[90px]">Số tiền</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap min-w-[150px]">Nội dung chuyển khoản</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap min-w-[120px]">Mã GD ngân hàng</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap min-w-[110px]">Thời gian gửi</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap min-w-[120px]">Biên lai giao dịch</Table.Th>
+              <Table.Th className="text-center whitespace-nowrap min-w-[130px]" style={{ textAlign: "center" }}>Thao tác</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -164,16 +164,16 @@ export default function AdminPaymentVerificationTable({
             ) : (
               paginatedPayments.map((payment) => (
                 <Table.Tr key={payment.id} className="hover:bg-surface-soft/30 transition-colors">
-                  <Table.Td className="font-heading font-semibold text-xs" title={payment.case?.case_code || "CASE"}>
+                  <Table.Td className="font-heading font-semibold text-xs whitespace-nowrap" title={payment.case?.case_code || "CASE"}>
                     {payment.case?.case_code && payment.case.case_code.length > 30 ? `${payment.case.case_code.slice(0, 30)}...` : (payment.case?.case_code || "CASE")}
                   </Table.Td>
-                  <Table.Td className="font-semibold text-text-muted" title={payment.package?.name || "Gói dịch vụ"}>
+                  <Table.Td className="font-semibold text-text-muted whitespace-nowrap" title={payment.package?.name || "Gói dịch vụ"}>
                     {payment.package?.name && payment.package.name.length > 30 ? `${payment.package.name.slice(0, 30)}...` : (payment.package?.name || "Gói dịch vụ")}
                   </Table.Td>
-                  <Table.Td className="text-text-subtle">
+                  <Table.Td className="text-text-subtle whitespace-nowrap">
                     {payment.payer?.display_username || payment.payer?.name || "—"}
                   </Table.Td>
-                  <Table.Td className="font-heading font-semibold text-red-600 text-xs">
+                  <Table.Td className="font-heading font-semibold text-red-600 text-xs whitespace-nowrap">
                     {formatPrice(payment.amount)}
                   </Table.Td>
                   <Table.Td className="text-text-subtle font-mono text-xs">
@@ -211,40 +211,42 @@ export default function AdminPaymentVerificationTable({
                     )}
                   </Table.Td>
                   <Table.Td className="text-center">
-                    {payment.status === "pending_verification" ? (
-                      <Menu shadow="md" width={160} position="bottom-end">
-                        <Menu.Target>
-                          <ActionIcon variant="subtle" color="gray" className="cursor-pointer mx-auto">
-                            <MoreVertical className="w-4 h-4" />
-                          </ActionIcon>
-                        </Menu.Target>
+                    <div className="flex items-center justify-center w-full">
+                      {payment.status === "pending_verification" ? (
+                        <Menu shadow="md" width={160} position="bottom-end">
+                          <Menu.Target>
+                            <ActionIcon variant="subtle" color="gray" className="cursor-pointer">
+                              <MoreVertical className="w-4 h-4" />
+                            </ActionIcon>
+                          </Menu.Target>
 
-                        <Menu.Dropdown className="bg-surface-app border border-border-app p-1 rounded-lg">
-                          <Menu.Item
-                            leftSection={<Check className="w-3.5 h-3.5 text-success" />}
-                            onClick={() => onApprove(payment.id)}
-                            className="text-text-app hover:bg-surface-soft cursor-pointer text-xs font-semibold"
-                          >
-                            Duyệt
-                          </Menu.Item>
-                          <Menu.Item
-                            leftSection={<X className="w-3.5 h-3.5 text-danger" />}
-                            onClick={() => onReject(payment.id)}
-                            className="text-danger hover:bg-danger-soft cursor-pointer text-xs font-semibold"
-                          >
-                            Từ chối
-                          </Menu.Item>
-                        </Menu.Dropdown>
-                      </Menu>
-                    ) : payment.status === "paid" ? (
-                      <Badge color="green" variant="light" size="md" className="font-semibold">
-                        Đã duyệt
-                      </Badge>
-                    ) : (
-                      <Badge color="red" variant="light" size="md" className="font-semibold">
-                        Bị từ chối
-                      </Badge>
-                    )}
+                          <Menu.Dropdown className="bg-surface-app border border-border-app p-1 rounded-lg">
+                            <Menu.Item
+                              leftSection={<Check className="w-3.5 h-3.5 text-success" />}
+                              onClick={() => onApprove(payment.id)}
+                              className="text-text-app hover:bg-surface-soft cursor-pointer text-xs font-semibold"
+                            >
+                              Duyệt
+                            </Menu.Item>
+                            <Menu.Item
+                              leftSection={<X className="w-3.5 h-3.5 text-danger" />}
+                              onClick={() => onReject(payment.id)}
+                              className="text-danger hover:bg-danger-soft cursor-pointer text-xs font-semibold"
+                            >
+                              Từ chối
+                            </Menu.Item>
+                          </Menu.Dropdown>
+                        </Menu>
+                      ) : payment.status === "paid" ? (
+                        <Badge color="green" variant="light" size="md" className="font-semibold whitespace-nowrap">
+                          Đã duyệt
+                        </Badge>
+                      ) : (
+                        <Badge color="red" variant="light" size="md" className="font-semibold whitespace-nowrap">
+                          Bị từ chối
+                        </Badge>
+                      )}
+                    </div>
                   </Table.Td>
                 </Table.Tr>
               ))
