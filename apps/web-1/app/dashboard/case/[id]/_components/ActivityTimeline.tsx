@@ -48,26 +48,32 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
               </div>
 
               {/* Event Content card */}
-              <div className="space-y-1.5 font-body">
-                <div className="flex flex-wrap items-baseline gap-2">
-                  <h4 className="font-heading font-semibold text-xs text-text-app">
+              <div className="space-y-1 font-body">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h4 className="font-heading font-bold text-base text-text-app tracking-tight">
                     {label}
                   </h4>
-                  <span className="text-base text-text-subtle">
+                  <span className="text-[11px] text-text-subtle font-mono bg-surface-soft px-2 py-0.5 rounded border border-border-app/40 shrink-0">
                     {formatDateTime(event.created_at)}
                   </span>
                 </div>
-                <p className="text-xs text-text-muted leading-relaxed">
+
+                <p className="text-xs text-text-muted leading-relaxed font-normal pt-0.5">
                   {desc}
                   {(event.event_type === "case_rejected" || event.event_type === "vetoed") &&
                     (event.metadata_json as any)?.reason && (
-                      <> — Lý do: {(event.metadata_json as any).reason}</>
+                      <span className="text-danger font-medium"> — Lý do: {(event.metadata_json as any).reason}</span>
                     )}
                 </p>
+
                 {event.actor && (
-                  <p className="text-base text-text-subtle">
-                    Thực hiện bởi: <strong className="text-text-muted">{event.actor.name}</strong> ({event.actor.role === "admin" ? "Admin" : event.actor.role === "supporter" ? "Supporter" : "Sinh viên"})
-                  </p>
+                  <div className="pt-1 flex items-center gap-1.5 text-[11px] text-text-subtle">
+                    <span>Thực hiện bởi:</span>
+                    <span className="font-semibold text-text-app bg-surface-soft px-2 py-0.5 rounded border border-border-app/60 inline-flex items-center gap-1">
+                      {event.actor.name}
+                      <span className="text-text-subtle font-normal">({event.actor.role === "admin" ? "Admin" : event.actor.role === "supporter" ? "Supporter" : "Sinh viên"})</span>
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
