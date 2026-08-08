@@ -227,23 +227,31 @@ export default function StatusGuidanceCard({
           variant="light"
           color={isFree ? "blue" : "yellow"}
           radius="md"
-          title={isFree ? "Nâng cấp lên đánh giá chuyên sâu" : "Chờ thanh toán dịch vụ"}
-          icon={isFree ? <Zap className="w-4.5 h-4.5 shrink-0" /> : <Clock className="w-4.5 h-4.5 shrink-0" />}
-          className="animate-fade-in font-body text-xs shrink-0"
-          styles={{ wrapper: { alignItems: "center" } }}
+          icon={isFree ? <Zap className="w-5 h-5 shrink-0 text-blue-600 dark:text-blue-400" /> : <Clock className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400" />}
+          className="animate-fade-in font-body text-xs shrink-0 border border-blue-100 dark:border-blue-950/60 shadow-xs"
+          styles={{
+            wrapper: { alignItems: "center" },
+            body: { gap: "2px" },
+          }}
         >
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-text-muted text-xs leading-relaxed">
-              {isFree
-                ? "Bạn đang dùng gói miễn phí. Mua lượt đánh giá chuyên sâu để nhận phản biện chi tiết từ chuyên gia."
-                : "Vui lòng hoàn tất thanh toán để kích hoạt quy trình phản biện."
-              }
-            </p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 py-0.5">
+            <div className="space-y-0.5">
+              <h4 className="font-semibold text-sm text-text-primary tracking-tight">
+                {isFree ? "Nâng cấp lên đánh giá chuyên sâu" : "Chờ thanh toán dịch vụ"}
+              </h4>
+              <p className="text-text-muted text-xs leading-relaxed max-w-2xl">
+                {isFree
+                  ? "Bạn đang dùng gói miễn phí. Mua lượt đánh giá chuyên sâu để nhận phản biện chi tiết từ chuyên gia."
+                  : "Vui lòng hoàn tất thanh toán để kích hoạt quy trình phản biện."
+                }
+              </p>
+            </div>
             {onOpenPayment && (
               <Button
                 size="sm"
                 color="brand"
-                className="shrink-0 cursor-pointer"
+                variant="filled"
+                className="shrink-0 cursor-pointer self-start md:self-auto font-medium shadow-xs hover:shadow-md transition-all duration-200"
                 onClick={onOpenPayment}
               >
                 {isFree ? "Mua lượt đánh giá" : "Thanh toán ngay"}

@@ -67,7 +67,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
   const extraNotes = supportNeeds.extra_notes || "";
 
   return (
-    <div className="space-y-6 animate-fade-in font-body pb-8 text-sm text-text-app">
+    <div className="space-y-6 animate-fade-in font-body pb-8 text-text-app">
       {guidanceCard && <div className="shrink-0">{guidanceCard}</div>}
 
       {/* ── 1. Grid 2 Cột: Bối cảnh Đội ngũ & Thông tin Người liên hệ ── */}
@@ -76,25 +76,25 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
         <div className="bg-surface-app border border-border-app rounded-xl p-5.5 space-y-4 shadow-xs">
           <div className="flex items-center gap-2 pb-3 border-b border-border-app/60">
             <Building2 className="w-5 h-5 text-brand shrink-0" />
-            <h3 className="font-heading text-base font-bold text-text-app">Thông tin Đội ngũ & Trường học</h3>
+            <h3 className="font-heading text-lg font-semibold text-text-app leading-snug">Thông tin Đội ngũ & Trường học</h3>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4.5 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4.5">
             <div>
-              <span className="text-text-muted text-xs font-medium block">Tên nhóm / Tên đề tài:</span>
-              <p className="font-semibold text-text-app mt-1">{groupName}</p>
+              <span className="text-text-muted text-[13px] font-medium block leading-normal">Tên nhóm / Tên đề tài:</span>
+              <p className="font-semibold text-text-app text-base mt-1 leading-snug">{groupName}</p>
             </div>
             <div>
-              <span className="text-text-muted text-xs font-medium block">Số thứ tự nhóm (Group No):</span>
-              <p className="font-semibold text-text-app mt-1">{groupNo || "Chưa cập nhật"}</p>
+              <span className="text-text-muted text-[13px] font-medium block leading-normal">Số thứ tự nhóm (Group No):</span>
+              <p className="font-semibold text-text-app text-base mt-1 leading-snug">{groupNo || "Chưa cập nhật"}</p>
             </div>
             <div>
-              <span className="text-text-muted text-xs font-medium block">Trường đại học / Viện đào tạo:</span>
-              <p className="font-semibold text-text-app mt-1">{schoolName}</p>
+              <span className="text-text-muted text-[13px] font-medium block leading-normal">Trường đại học / Viện đào tạo:</span>
+              <p className="font-semibold text-text-app text-base mt-1 leading-snug">{schoolName}</p>
             </div>
             <div>
-              <span className="text-text-muted text-xs font-medium block">Lớp học / Môn học / Cuộc thi:</span>
-              <p className="font-semibold text-text-app mt-1">{courseContext}</p>
+              <span className="text-text-muted text-[13px] font-medium block leading-normal">Lớp học / Môn học / Cuộc thi:</span>
+              <p className="font-semibold text-text-app text-base mt-1 leading-snug">{courseContext}</p>
             </div>
           </div>
         </div>
@@ -103,39 +103,39 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
         <div className="bg-surface-app border border-border-app rounded-xl p-5.5 space-y-4 shadow-xs">
           <div className="flex items-center gap-2 pb-3 border-b border-border-app/60">
             <UserCheck className="w-5 h-5 text-brand shrink-0" />
-            <h3 className="font-heading text-base font-bold text-text-app">Thông tin Người đại diện / Trưởng nhóm</h3>
+            <h3 className="font-heading text-lg font-semibold text-text-app leading-snug">Thông tin Người đại diện / Trưởng nhóm</h3>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4.5 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4.5">
             <div>
-              <span className="text-text-muted text-xs font-medium block">Họ và tên:</span>
-              <p className="font-semibold text-text-app mt-1">{contactName}</p>
+              <span className="text-text-muted text-[13px] font-medium block leading-normal">Họ và tên:</span>
+              <p className="font-semibold text-text-app text-base mt-1 leading-snug">{contactName}</p>
             </div>
             <div>
-              <span className="text-text-muted text-xs font-medium block">Mã số sinh viên (MSSV):</span>
-              <p className="font-semibold text-text-app mt-1">{studentCode}</p>
+              <span className="text-text-muted text-[13px] font-medium block leading-normal">Mã số sinh viên (MSSV):</span>
+              <p className="font-semibold text-text-app text-base mt-1 leading-snug">{studentCode}</p>
             </div>
             <div>
-              <span className="text-text-muted text-xs font-medium block">Email liên hệ:</span>
-              <p className="font-semibold text-text-app mt-1 flex items-center gap-1.5 truncate">
+              <span className="text-text-muted text-[13px] font-medium block leading-normal">Email liên hệ:</span>
+              <p className="font-semibold text-text-app text-base mt-1 flex items-center gap-1.5 truncate leading-snug">
                 <Mail className="w-4 h-4 text-text-muted shrink-0" />
                 <span className="truncate">{contactEmail}</span>
               </p>
             </div>
             <div>
-              <span className="text-text-muted text-xs font-medium block">Số điện thoại / Zalo:</span>
-              <p className="font-semibold text-text-app mt-1 flex items-center gap-1.5">
+              <span className="text-text-muted text-[13px] font-medium block leading-normal">Số điện thoại / Zalo:</span>
+              <p className="font-semibold text-text-app text-base mt-1 flex items-center gap-1.5 leading-snug">
                 <Phone className="w-4 h-4 text-text-muted shrink-0" />
                 <span>{contactPhone}</span>
               </p>
             </div>
             <div>
-              <span className="text-text-muted text-xs font-medium block">Vai trò trong nhóm:</span>
-              <p className="font-semibold text-text-app mt-1">{teamRole}</p>
+              <span className="text-text-muted text-[13px] font-medium block leading-normal">Vai trò trong nhóm:</span>
+              <p className="font-semibold text-text-app text-base mt-1 leading-snug">{teamRole}</p>
             </div>
             <div>
-              <span className="text-text-muted text-xs font-medium block">Telegram Username:</span>
-              <p className="font-semibold text-text-app mt-1 flex items-center gap-1.5">
+              <span className="text-text-muted text-[13px] font-medium block leading-normal">Telegram Username:</span>
+              <p className="font-semibold text-text-app text-base mt-1 flex items-center gap-1.5 leading-snug">
                 <Send className="w-4 h-4 text-brand shrink-0" />
                 <span>{contactTelegram || "Chưa cập nhật"}</span>
               </p>
@@ -148,12 +148,12 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
       <div className="bg-surface-app border border-border-app rounded-xl p-5.5 space-y-3.5 shadow-xs">
         <div className="flex items-center gap-2 pb-3 border-b border-border-app/60">
           <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
-          <h3 className="font-heading text-base font-bold text-text-app">Nhóm đang kẹt ở đâu?</h3>
+          <h3 className="font-heading text-lg font-semibold text-text-app leading-snug">Nhóm đang kẹt ở đâu?</h3>
         </div>
 
         <div>
-          <span className="text-text-muted text-xs font-medium block mb-1.5">Điểm kẹt hiện tại:</span>
-          <p className="font-normal text-text-app leading-relaxed bg-surface-soft/60 p-4 rounded-xl border border-border-app/60 text-sm">
+          <span className="text-text-muted text-[13px] font-medium block mb-1.5 leading-normal">Điểm kẹt hiện tại:</span>
+          <p className="font-medium text-text-app text-base leading-relaxed bg-surface-soft/60 p-4 rounded-xl border border-border-app/60">
             {currentBlocker || "Chưa cập nhật điểm kẹt hiện tại."}
           </p>
         </div>
@@ -163,54 +163,54 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
       <div className="bg-surface-app border border-border-app rounded-xl p-6 space-y-5 shadow-xs">
         <div className="flex items-center gap-2 pb-3 border-b border-border-app/60">
           <Lightbulb className="w-5 h-5 text-brand shrink-0" />
-          <h3 className="font-heading text-base font-bold text-text-app">Chi tiết Ý tưởng Khởi nghiệp</h3>
+          <h3 className="font-heading text-lg font-semibold text-text-app leading-snug">Chi tiết Ý tưởng Khởi nghiệp</h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4 bg-surface-soft/40 p-4.5 rounded-lg border border-border-app/60">
             <div>
-              <div className="flex items-center gap-1.5 text-brand font-bold mb-1.5">
+              <div className="flex items-center gap-1.5 text-brand font-bold mb-1.5 text-[13px]">
                 <Layers className="w-4.5 h-4.5" />
                 <span>Lĩnh vực hoạt động:</span>
               </div>
-              <p className="text-text-app font-medium leading-relaxed pl-6">{field}</p>
+              <p className="text-text-app font-medium text-base leading-relaxed pl-6">{field}</p>
             </div>
 
             <div>
-              <div className="flex items-center gap-1.5 text-brand font-bold mb-1.5">
+              <div className="flex items-center gap-1.5 text-brand font-bold mb-1.5 text-[13px]">
                 <Target className="w-4.5 h-4.5" />
                 <span>Khách hàng mục tiêu:</span>
               </div>
-              <p className="text-text-app font-medium leading-relaxed pl-6">{targetCustomer}</p>
+              <p className="text-text-app font-medium text-base leading-relaxed pl-6">{targetCustomer}</p>
             </div>
           </div>
 
           <div className="space-y-4 bg-surface-soft/40 p-4.5 rounded-lg border border-border-app/60">
             <div>
-              <div className="flex items-center gap-1.5 text-danger font-bold mb-1.5">
+              <div className="flex items-center gap-1.5 text-danger font-bold mb-1.5 text-[13px]">
                 <AlertTriangle className="w-4.5 h-4.5" />
                 <span>Vấn đề cốt lõi (Problem):</span>
               </div>
-              <p className="text-text-app font-medium leading-relaxed pl-6">{problem}</p>
+              <p className="text-text-app font-medium text-base leading-relaxed pl-6">{problem}</p>
             </div>
 
             <div>
-              <div className="flex items-center gap-1.5 text-success font-bold mb-1.5">
+              <div className="flex items-center gap-1.5 text-success font-bold mb-1.5 text-[13px]">
                 <CheckCircle2 className="w-4.5 h-4.5" />
                 <span>Giải pháp đề xuất (Solution):</span>
               </div>
-              <p className="text-text-app font-medium leading-relaxed pl-6">{solution}</p>
+              <p className="text-text-app font-medium text-base leading-relaxed pl-6">{solution}</p>
             </div>
           </div>
         </div>
 
         {mvp && (
-          <div className="bg-brand-soft/10 border border-brand/20 p-4.5 rounded-lg space-y-1.5 text-sm">
-            <span className="font-bold text-brand flex items-center gap-1.5">
+          <div className="bg-brand-soft/10 border border-brand/20 p-4.5 rounded-lg space-y-1.5">
+            <span className="font-bold text-brand text-[13px] flex items-center gap-1.5">
               <Sparkles className="w-4.5 h-4.5" />
               Sản phẩm khả thi tối thiểu (MVP):
             </span>
-            <p className="text-text-app leading-relaxed pl-6 font-medium">{mvp}</p>
+            <p className="text-text-app text-base leading-relaxed pl-6 font-medium">{mvp}</p>
           </div>
         )}
       </div>
@@ -219,35 +219,35 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
       <div className="bg-surface-app border border-border-app rounded-xl p-6 space-y-4.5 shadow-xs">
         <div className="flex items-center gap-2 pb-3 border-b border-border-app/60">
           <MessageSquareCode className="w-5 h-5 text-brand shrink-0" />
-          <h3 className="font-heading text-base font-bold text-text-app">Nhu cầu hỗ trợ chuyên môn</h3>
+          <h3 className="font-heading text-lg font-semibold text-text-app leading-snug">Nhu cầu hỗ trợ chuyên môn</h3>
         </div>
 
-        <div className="space-y-4 text-sm">
+        <div className="space-y-4">
           <div className="bg-brand-soft/20 border border-brand/20 p-4.5 rounded-lg space-y-1.5">
-            <span className="font-bold text-brand flex items-center gap-1.5">
+            <span className="font-bold text-brand text-[13px] flex items-center gap-1.5">
               <CheckCircle2 className="w-4.5 h-4.5" />
               Nhu cầu hỗ trợ chính:
             </span>
-            <p className="text-text-app font-semibold leading-relaxed pl-6">
+            <p className="text-text-app font-semibold text-base leading-relaxed pl-6">
               {primaryNeedText || "Cần phản biện để làm rõ khách hàng mục tiêu và vấn đề cốt lõi"}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4.5">
             <div className="bg-surface-soft/60 border border-border-app/80 p-4.5 rounded-lg space-y-1.5">
-              <span className="font-bold text-text-app flex items-center gap-1.5">
+              <span className="font-bold text-text-app text-[13px] flex items-center gap-1.5">
                 <FileText className="w-4.5 h-4.5 text-brand" />
                 Kết quả mong đợi sau phản biện:
               </span>
-              <p className="text-text-muted leading-relaxed pl-6">{expectedOutputs || "Chưa nhập ghi chú kỳ vọng"}</p>
+              <p className="text-text-app text-base font-medium leading-relaxed pl-6">{expectedOutputs || "Chưa nhập ghi chú kỳ vọng"}</p>
             </div>
 
             <div className="bg-surface-soft/60 border border-border-app/80 p-4.5 rounded-lg space-y-1.5">
-              <span className="font-bold text-text-app flex items-center gap-1.5">
+              <span className="font-bold text-text-app text-[13px] flex items-center gap-1.5">
                 <HelpCircle className="w-4.5 h-4.5 text-brand" />
                 Ghi chú thêm cho Supporter:
               </span>
-              <p className="text-text-muted leading-relaxed pl-6">{extraNotes || "Chưa nhập ghi chú thêm"}</p>
+              <p className="text-text-app text-base font-medium leading-relaxed pl-6">{extraNotes || "Chưa nhập ghi chú thêm"}</p>
             </div>
           </div>
         </div>
