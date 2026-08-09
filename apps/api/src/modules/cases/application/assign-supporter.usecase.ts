@@ -8,6 +8,8 @@ import {
 } from "../infrastructure/persistence/case.repository.js";
 import { auditLogger } from "../../../shared/infrastructure/audit-logger.js";
 import logger from "../../../shared/infrastructure/logger.js";
+import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
+import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 
 type AssignSupporterDeps = {
   findCaseById?: typeof defaultFindCaseById;
@@ -89,7 +91,7 @@ export async function assignSupporterUseCase(
       }
       applyTransition(existingCase, 'assign_supporter');
       nextStatus = existingCase.internal_status; // "assigned"
-      nextStage = existingCase.user_facing_stage || "under_review";
+      nextStage = "under_review";
     } else {
       // Unassign: keep "accepted_unassigned"
       nextStatus = "accepted_unassigned";
@@ -116,6 +118,21 @@ export async function assignSupporterUseCase(
       duration_ms: durationMs,
     });
     logger.info({ caseId, transition: 'assign_supporter', fromState: existingCase.internal_status, toState: result.internal_status, actorId: adminId, actorRole: 'admin', supporterId: nextSupporterId, duration_ms: Date.now() - startTime }, 'case transition: assign_supporter');
+    // Emit sau commit — chỉ khi assign (unassign supporterId=null → không emit)
+    if (nextSupporterId) {
+      emitEvent({
+        eventId: crypto.randomUUID(),
+        type: DOMAIN_EVENTS.CASE_ASSIGNED,
+        actorId: adminId,
+        occurredAt: new Date(),
+        payload: {
+          caseId,
+          caseCode: existingCase.case_code,
+          supporterId: nextSupporterId,
+          supporterName,
+        },
+      });
+    }
     return result;
   } catch (error) {
     logger.error({ err: error, caseId, transition: 'assign_supporter', actorId: adminId, actorRole: 'admin', duration_ms: Date.now() - startTime }, 'case transition failed: assign_supporter');

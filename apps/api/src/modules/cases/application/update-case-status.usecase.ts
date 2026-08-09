@@ -16,6 +16,8 @@ import {
   canTransition,
 } from "../infrastructure/persistence/case-workflow-engine.js";
 import logger from "../../../shared/infrastructure/logger.js";
+import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
+import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 
 /** Maps internal_status targets to symflow transition names */
 const SYMFLOW_TRANSITION_MAP: Record<string, string> = {
@@ -149,6 +151,22 @@ export async function updateCaseStatusUseCase(
       logger.info({ caseId, transition: transitionName, fromState: fromStatus, toState: nextStatus, actorId: userId, actorRole: userRole, duration_ms: Date.now() - startTime }, `case transition: ${transitionName}`);
     } else {
       logger.info({ caseId, fromState: fromStatus, toState: nextStatus ?? nextStage, actorId: userId, actorRole: userRole, duration_ms: Date.now() - startTime }, 'case status updated');
+    }
+
+    // Chỉ emit khi user_facing_stage thực sự đổi — đổi internal_status không phải stage transition
+    if (nextStage !== undefined && nextStage !== caseObj.user_facing_stage) {
+      emitEvent({
+        eventId: crypto.randomUUID(),
+        type: DOMAIN_EVENTS.CASE_STAGE_CHANGED,
+        actorId: userId,
+        occurredAt: new Date(),
+        payload: {
+          caseId,
+          caseCode: caseObj.case_code,
+          fromStage: caseObj.user_facing_stage,
+          toStage: updatedCase.user_facing_stage,
+        },
+      });
     }
 
     return updatedCase;

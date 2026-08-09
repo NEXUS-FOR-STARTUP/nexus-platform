@@ -3,6 +3,8 @@ import { applyTransition, canTransition } from "../infrastructure/persistence/ca
 import { findCaseById } from "../infrastructure/persistence/case.repository.js";
 import { prisma } from "../../../db.js";
 import logger from "../../../shared/infrastructure/logger.js";
+import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
+import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 
 export async function completeCaseUseCase(userId: string, role: string, caseId: string) {
   const startTime = Date.now();
@@ -22,7 +24,7 @@ export async function completeCaseUseCase(userId: string, role: string, caseId: 
   }
 
   try {
-    return await prisma.$transaction(async (tx: any) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Apply symflow complete transition
       applyTransition(caseRecord, 'complete_case');
 
@@ -49,6 +51,22 @@ export async function completeCaseUseCase(userId: string, role: string, caseId: 
 
       return { success: true, case_id: caseId };
     });
+
+    // Emit sau commit — student nhận noti case hoàn thành (case.stage_changed)
+    emitEvent({
+      eventId: crypto.randomUUID(),
+      type: DOMAIN_EVENTS.CASE_STAGE_CHANGED,
+      actorId: userId,
+      occurredAt: new Date(),
+      payload: {
+        caseId,
+        caseCode: caseRecord.case_code,
+        fromStage: caseRecord.user_facing_stage,
+        toStage: "completed",
+      },
+    });
+
+    return result;
   } catch (error) {
     logger.error({ err: error, caseId, transition: 'complete_case', actorId: userId, actorRole: role, duration_ms: Date.now() - startTime }, 'case transition failed: complete_case');
     throw error;

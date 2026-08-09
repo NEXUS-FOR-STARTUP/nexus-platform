@@ -16,6 +16,10 @@ import { aiEngineRouter } from './modules/ai-engine/http/ai-engine.routes.js'
 import { adminRouter } from './modules/admin/http/admin.routes.js'
 import { supporterRouter } from './modules/supporter/http/supporter.routes.js'
 import { documentsRouter } from './modules/documents/http/documents.routes.js'
+import { notificationsRouter } from './modules/notifications/http/notifications.routes.js'
+import { realtimeRouter } from './modules/realtime/http/realtime.routes.js'
+import { registerNotificationListener } from './modules/notifications/application/notification-listener.js'
+import { startRelay } from './modules/notifications/application/notification-relay.js'
 import { prisma } from './db.js'
 import { AppError } from './shared/domain/app-error.js'
 import logger from './shared/infrastructure/logger.js'
@@ -37,7 +41,7 @@ app.use(
       return allowedOrigins.some((r) => r.test(origin)) ? origin : null
     },
     allowHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
   }),
 )
@@ -148,6 +152,8 @@ app.route('/api/ai-engine', aiEngineRouter)
 app.route('/api/admin', adminRouter)
 app.route('/api/supporter', supporterRouter)
 app.route('/api/documents', documentsRouter)
+app.route('/api/notifications', notificationsRouter)
+app.route('/api/realtime', realtimeRouter)
 
 // Global error handler — catches unhandled errors, no stack trace leak
 app.onError((err, c) => {
@@ -164,6 +170,9 @@ app.onError((err, c) => {
 export { app }
 
 if (process.env.NODE_ENV !== 'test') {
+  registerNotificationListener();
+  startRelay();
+
   serve({
     fetch: app.fetch,
     port

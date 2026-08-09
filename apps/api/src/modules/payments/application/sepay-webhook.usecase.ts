@@ -1,6 +1,8 @@
 import { prisma } from "../../../db.js";
 import { verifyPayment as defaultVerifyPayment, SYSTEM_USER_ID } from "../infrastructure/persistence/payment.repository.js";
 import logger from "../../../shared/infrastructure/logger.js";
+import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
+import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -82,10 +84,10 @@ export async function sepayWebhookUseCase(
   }
 
   // 7. Auto-verify payment
-  dedupSet.add(txnId);
-  setTimeout(() => dedupSet.delete(txnId), DEDUP_TTL_MS);
-
   try {
+    dedupSet.add(txnId);
+    setTimeout(() => dedupSet.delete(txnId), DEDUP_TTL_MS);
+
     await defaultVerifyPayment({
       paymentId: payment.id,
       caseId: payment.case_id,
@@ -93,6 +95,21 @@ export async function sepayWebhookUseCase(
       rejectionReason: null,
       adminId: SYSTEM_USER_ID,
       verificationSource: "auto",
+    });
+
+    // Payment đã commit verified → emit ngay (không chờ metadata update — update fail không mất notification)
+    emitEvent({
+      eventId: crypto.randomUUID(),
+      type: DOMAIN_EVENTS.PAYMENT_VERIFIED,
+      actorId: null,
+      occurredAt: new Date(),
+      payload: {
+        caseId: payment.case_id,
+        caseCode: payment.case?.case_code ?? "",
+        paymentId: payment.id,
+        amount: payment.amount,
+        source: "auto",
+      },
     });
 
     // Store SePay transaction info — columns + metadata (expand-contract)
@@ -140,5 +157,10 @@ function extractCodeFromContent(content: string): string | null {
 async function findPaymentByTransferContent(code: string) {
   return await prisma.payment.findFirst({
     where: { transfer_content: code, status: { notIn: ["paid", "rejected"] } },
+    include: {
+      case: {
+        select: { case_code: true },
+      },
+    },
   });
 }

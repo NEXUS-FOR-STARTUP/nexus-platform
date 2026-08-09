@@ -8,6 +8,8 @@ import {
   applyTransition,
   canTransition,
 } from "../../cases/infrastructure/persistence/case-workflow-engine.js";
+import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
+import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 
 export async function adminAssignSupporterUseCase(
   adminId: string,
@@ -48,12 +50,28 @@ export async function adminAssignSupporterUseCase(
   // Apply symflow transition (mutates caseItem)
   applyTransition(caseItem, "assign_supporter");
 
-  return await assignCaseSupporter(
+  const result = await assignCaseSupporter(
     caseId,
     adminId,
     supporterId,
     caseItem.internal_status, // "assigned" from symflow
     supporterUser.name,
-    caseItem.user_facing_stage || "under_review", // nextStage
+    "under_review", // nextStage — nâng stage student thấy từ submitted → under_review
   );
+
+  // Emit sau commit — supporter + student nhận notification (case.assigned)
+  emitEvent({
+    eventId: crypto.randomUUID(),
+    type: DOMAIN_EVENTS.CASE_ASSIGNED,
+    actorId: adminId,
+    occurredAt: new Date(),
+    payload: {
+      caseId,
+      caseCode: caseItem.case_code,
+      supporterId,
+      supporterName: supporterUser.name,
+    },
+  });
+
+  return result;
 }

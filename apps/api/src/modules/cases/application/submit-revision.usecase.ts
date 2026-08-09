@@ -16,6 +16,8 @@ import {
   createExternalFeedback as defaultCreateExternalFeedback,
 } from "../infrastructure/persistence/case.repository.js";
 import logger from "../../../shared/infrastructure/logger.js";
+import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
+import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 import type {
   SubmitRevisionRequest,
   SubmitRevisionUploadRequest,
@@ -183,6 +185,19 @@ export async function submitRevisionUseCase(
       documents: documentValidation.inputs,
       remainingBlockers: remaining_blockers,
     });
+    // Emit sau commit — supporter nhận noti đã nộp bản sửa (case.stage_changed)
+    emitEvent({
+      eventId: crypto.randomUUID(),
+      type: DOMAIN_EVENTS.CASE_STAGE_CHANGED,
+      actorId: userId,
+      occurredAt: new Date(),
+      payload: {
+        caseId,
+        caseCode: caseDetails.case_code,
+        fromStage: caseDetails.user_facing_stage,
+        toStage: "revision_submitted",
+      },
+    });
     logger.info({ caseId, transition: 'submit_revision', actorId: userId, duration_ms: Date.now() - startTime }, 'case transition: submit_revision');
     return result;
   } catch (error) {
@@ -256,6 +271,19 @@ export async function submitRevisionUploadUseCase(
       documents: uploadedDocuments,
       remainingBlockers: body.remaining_blockers,
     });
+    // Emit sau commit — supporter nhận noti đã nộp bản sửa (case.stage_changed)
+    emitEvent({
+      eventId: crypto.randomUUID(),
+      type: DOMAIN_EVENTS.CASE_STAGE_CHANGED,
+      actorId: userId,
+      occurredAt: new Date(),
+      payload: {
+        caseId,
+        caseCode: caseDetails.case_code,
+        fromStage: caseDetails.user_facing_stage,
+        toStage: "revision_submitted",
+      },
+    });
     logger.info({ caseId, transition: 'submit_revision', actorId: userId, duration_ms: Date.now() - startTime }, 'case transition: submit_revision');
     return result;
   } catch (error) {
@@ -313,6 +341,18 @@ export async function submitSupporterOutputUploadUseCase(
       userId,
       note: body.note,
       documents: normalizedDocuments,
+    });
+    // Emit sau commit — báo cáo phản biện sẵn sàng → student nhận noti (report.published)
+    emitEvent({
+      eventId: crypto.randomUUID(),
+      type: DOMAIN_EVENTS.REPORT_PUBLISHED,
+      actorId: userId,
+      occurredAt: new Date(),
+      payload: {
+        caseId,
+        caseCode: caseDetails.case_code,
+        reportId: null,
+      },
     });
     logger.info({ caseId, transition: 'supporter_output', actorId: userId, actorRole: 'supporter', duration_ms: Date.now() - startTime }, 'case transition: supporter_output');
     return result;

@@ -4,6 +4,8 @@ import { findCaseById } from "../infrastructure/persistence/case.repository.js";
 import { getCreditBalanceForTx } from "../infrastructure/persistence/credit-ledger.repository.js";
 import { prisma } from "../../../db.js";
 import logger from "../../../shared/infrastructure/logger.js";
+import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
+import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 
 export async function vetoCaseUseCase(adminId: string, caseId: string, reason: string) {
   const startTime = Date.now();
@@ -26,7 +28,7 @@ export async function vetoCaseUseCase(adminId: string, caseId: string, reason: s
   }
 
   try {
-    return await prisma.$transaction(async (tx: any) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Get current credit balance
       const currentBalance = await getCreditBalanceForTx(tx, caseId);
 
@@ -70,6 +72,17 @@ export async function vetoCaseUseCase(adminId: string, caseId: string, reason: s
 
       return { success: true, case_id: caseId };
     });
+
+    // Emit sau commit — student nhận noti bị từ chối (case.rejected)
+    emitEvent({
+      eventId: crypto.randomUUID(),
+      type: DOMAIN_EVENTS.CASE_REJECTED,
+      actorId: adminId,
+      occurredAt: new Date(),
+      payload: { caseId, caseCode: caseRecord.case_code, reason },
+    });
+
+    return result;
   } catch (error) {
     logger.error({ err: error, caseId, transition: 'cancel', actorId: adminId, actorRole: 'admin', duration_ms: Date.now() - startTime }, 'case transition failed: cancel');
     throw error;

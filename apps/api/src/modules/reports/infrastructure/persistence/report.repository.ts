@@ -15,6 +15,7 @@ export async function findReportById(id: string) {
       case: {
         select: {
           id: true,
+          case_code: true,
           owner_auth_user_id: true,
           assigned_supporter_auth_user_id: true,
           user_facing_stage: true,

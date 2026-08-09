@@ -41,6 +41,8 @@ COPY --from=deps /app/apps/web-1/node_modules ./apps/web-1/node_modules
 # Build-time envs
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_CENTRIFUGO_URL
+ENV NEXT_PUBLIC_CENTRIFUGO_URL=$NEXT_PUBLIC_CENTRIFUGO_URL
 ENV NODE_ENV=production
 
 RUN npm run build --workspace=nexus-platform-web-1

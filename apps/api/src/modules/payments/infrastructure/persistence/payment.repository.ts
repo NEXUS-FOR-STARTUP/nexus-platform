@@ -55,7 +55,12 @@ export async function findManyMyPayments(userId: string) {
 export async function findPaymentById(id: string) {
   return await prisma.payment.findUnique({
     where: { id },
-    include: { payer: true },
+    include: {
+      payer: true,
+      case: {
+        select: { case_code: true },
+      },
+    },
   });
 }
 
