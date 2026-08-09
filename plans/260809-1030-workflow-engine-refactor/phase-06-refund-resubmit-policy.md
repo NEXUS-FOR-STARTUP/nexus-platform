@@ -1,85 +1,80 @@
-# Phase 06 — Refund/Resubmit Policy 🔒 BLOCKED
+# Phase 06 — Refund/Resubmit Policy (T12-T15)
 
-- Priority: P1 | Status: Blocked | Effort: 0h (estimate ~4h sau khi mở)
-- Depends: Phase 03 (CaseTransitionService), quyết định sản phẩm Q1 Q3 Q4
+- Priority: P1 | Status: Pending | Effort: 4h
+- Depends: Phase 03 (CaseTransitionService + refundCredit action)
 - Blocks: Cleanup symflow
 
 ## Overview
 
-Pha 2: Implement T12-T15 (reject/veto/complete/cancel) + refund policy sau khi quyết định sản phẩm Q1 Q3 Q4 được chốt. Script fix data kẹt trên prod (SELECT chỉ đọc, script an toàn).
+Implement T12-T15 (reject/veto/complete/cancel) + T3/T4 resubmit + refund policy. **Policy sản phẩm đã chốt 2026-08-09 (one-shot — hết blocker).** Script fix data kẹt trên prod (SELECT chỉ đọc, script an toàn). Cuối phase: cleanup symflow.
 
-## BLOCKERS — Quyết định sản phẩm cần chốt
+## Quyết định sản phẩm ĐÃ CHỐT (2026-08-09)
 
-| Q | Câu hỏi | Ảnh hưởng | Transition |
-|---|---|---|---|
-| **Q1** | Resubmit sau veto: free re-triage hay mua credit mới? | Quyết định guard `hasCredit` trong T3/T4 + action refund bao nhiêu | T3, T4 |
-| **Q3** | Reject khi supporter ĐÃ render (service rendered): refund hay không? | Guard `blocked_Q3` → logic thực: nếu rendered → no refund | T12 |
-| **Q4** | Ai bấm "hoàn thành"? User confirm hay supporter tự đóng? | Guard `isOwner` hay `isAssignedSupporter`; nếu user confirm → FE cần nút | T14 |
-| **Q5** (optional) | Check credit lúc nộp hồ sơ hay lúc duyệt? | Vị trí credit check: T2 guard hay T5 guard. Hiện tại check ở cả 2 nơi (split) | T2, T5 |
+| Q | Quyết định | Áp dụng |
+|---|---|---|
+| **Q1a** | T3 resubmit sau reject thường: free nếu credit đã hoàn; **tốn credit mới nếu chưa hoàn** | T3 guard `hasCredit` |
+| **Q1b** | T4 resubmit sau veto: **hoàn 100% credit + nộp lại miễn phí** (giữ hành vi vetoCaseUseCase hiện tại) | T4 guard KHÔNG cần hasCredit |
+| **Q3** | Reject/hủy: supporter đã render → **giữ credit**; chưa render → credit chưa trừ = không mất gì | T12, T15 |
+| **Q4** | T14 hoàn thành: **supporter tự đóng** → notify user (fix #5) | T14 guard isAssignedSupporter |
+| **Q5** | Check credit **khi admin duyệt (T5)**; KHÔNG check khi nộp (T2) — xóa `requireCredits` khỏi submit-intake | T2, T5 |
 
-## Requirements (sau khi Q được chốt)
+## Requirements
 
 ### T12 — Reject thường (Admin)
 - Từ `submitted / triage_pending` → `rejected / cancelled`
 - Guard: `isAdmin` + `reasonMinLength` (lý do ≥ 10 ký tự)
-- **Q3 resolved**: nếu supporter đã render → refund 0; nếu chưa → refund toàn bộ credit
-- Action: `resetStatus` → đổi cả 2 cột
+- **Q3**: T12 chỉ xảy ra ở `submitted` (chưa duyệt) → supporter CHƯA BAO GIỜ render → credit chưa trừ → KHÔNG có gì để refund. Action rỗng (không refund)
+- Emit `CASE_REJECTED` (L5)
 
 ### T13 — Veto 48h (Admin)
 - Từ `submitted|under_review / bất kỳ` → `rejected / cancelled`
 - Guard: `isAdmin` + `isWithin48h` (case.created_at < 48h)
-- **Q1 resolved**: hoàn toàn bộ credit (refund) + cho phép resubmit miễn phí (T4)
+- **Q1b**: hoàn toàn bộ credit — action `refundCredit` → zero-out balance (pattern vetoCaseUseCase:31-50 — creditLedger `type: 'refund'`, idempotency_key `veto_{caseId}_{ts}`)
+- Emit `CASE_REJECTED` (L5)
 
-### T14 — Hoàn thành
+### T14 — Hoàn thành (Supporter tự đóng — Q4)
 - Từ `report_ready / report_ready_to_publish` → `completed / done`
-- **Q4 resolved**: guard tương ứng (owner hoặc supporter)
-- Action: `emitStageChanged` → notify 2 phía
-- **Fix #5**: notify user + supporter khi case hoàn thành
+- Guard: `isAssignedSupporter` (Q4 — supporter bấm sau khi gửi report)
+- Action: emit `CASE_STAGE_CHANGED` + notify user + supporter (L5 — **fix #5**)
 
 ### T15 — User hủy
-- Từ mọi stage mở (chưa final) → `closed / cancelled`
+- Từ MỌI stage mở (chưa final) → `closed / cancelled`
 - Guard: `isOwner`
-- **Q3 context**: refund theo policy (nếu supporter chưa render → refund; nếu đã render → no refund)
+- **Q3**: credit CHƯA trừ (chưa qua T11) → không mất gì, balance nguyên vẹn (coi như được trả). Credit ĐÃ trừ (đã submit output) → giữ, không hoàn. Kết quả thực tế: T15 KHÔNG hoàn credit — chỉ T13 (veto) hoàn 100%
 
 ### T3 — Resubmit sau reject thường
 - Từ `rejected / cancelled` → `submitted / triage_pending`
-- **Q1 resolved**: guard isOwner + credit check (nếu cần mua credit mới)
-- Action: `upsertDoc` (version_no++), `resetStatus`
+- **Q1a**: guard `isOwner` + `hasCredit` (creditBalance ≥ 1). Lưu ý: T12 chỉ từ `submitted` (chưa trừ credit) → credit còn nguyên → hasCredit thường pass; guard vẫn bắt buộc chặn user hết credit
+- Action: `upsertDoc` (version mới — **fix #12**: content được upsert), `resetStatus` → đổi cả 2 cột
 
 ### T4 — Resubmit sau veto (BP1)
-- **Q1 resolved**: free re-triage (không cần credit) hay mua credit mới
-- Action: `resetStatus` + credit policy
+- Từ `rejected / cancelled` → `submitted / triage_pending`
+- **Q1b**: guard `isOwner` — KHÔNG cần hasCredit (veto đã refund → balance = 0 nhưng nộp lại free)
+- Action: `resetStatus` + `upsertDoc` (**fix BP1**: hết kẹt cancelled)
 
-## Architecture (pseudocode — incomplete, cần Q để hoàn thiện)
+## Architecture (pseudocode — policy thật, không placeholder)
 
 ```typescript
-// transition-registry.ts — unblock T12-T15
+// transition-registry.ts — unblock T12-T15, guards policy thật
 
-// Thay blocked_Q3 = logic thực
 const guards = {
   // ... (giữ guards cũ)
 
-  // Q3: reject khi supporter chưa render → refund; đã render → no refund
-  canRejectWithRefund: ({ event }) => {
-    // Logic phụ thuộc Q3 answer
-    // if (Q3 === 'refund_only_if_not_rendered') {
-    //   return !event.data.supporterHasRendered;
-    // }
-    return false; // placeholder
+  // Q1a: T3 resubmit sau reject thường — tốn credit nếu chưa hoàn
+  canResubmitAfterReject: ({ event }) => {
+    // Q1a: nếu credit đã hoàn (balance ≥ 1 sau refund/không trừ) → free.
+    // Thực tế T12 chỉ từ submitted (chưa trừ) → balance còn nguyên → pass.
+    // Guard chặn trường hợp balance = 0 (user hết credit) → cần mua mới
+    return event.data.creditBalance >= 1;
   },
 
-  // Q1: resubmit policy
-  canResubmitAfterVeto: ({ event }) => {
-    // if (Q1 === 'free') return true;
-    // if (Q1 === 'buy_new_credit') return event.data.creditBalance >= 1;
-    return false; // placeholder
-  },
+  // Q3: T12 reject — supporter chưa render (case chưa duyệt) → không refund.
+  // T15 hủy — không hoàn credit (đã chốt). Cả 2 không cần guard refund riêng
 
-  // Q4: who completes
-  canComplete: ({ event, context }) => {
-    // if (Q4 === 'supporter') return event.actor.role === 'SUPPORTER';
-    // if (Q4 === 'user') return event.actor.id === event.data.caseOwnerId;
-    return false; // placeholder
+  // Q4: T14 complete — supporter tự đóng
+  canComplete: ({ event }) => {
+    return event.data.roleVerified === 'SUPPORTER'
+      && event.data.caseAssignedSupporterId === event.actor.id;
   },
 };
 ```
@@ -157,17 +152,19 @@ Sửa imports:
 
 ## Todo List
 
-- [ ] **TRƯỚC KHI BẮT ĐẦU**: Chốt Q1, Q3, Q4 với product owner
+- [ ] **ĐÃ CHỐT 2026-08-09**: Q1a/Q1b/Q3/Q4/Q5 (không cần hỏi PO)
 - [ ] Tạo `scripts/fix-stuck-cases-2026-08-09.sql` (F15) — READ-ONLY, theo db-query-guide
-- [ ] Implement T12 guard + action (refund policy)
-- [ ] Implement T13 guard + action (veto 48h)
-- [ ] Implement T14 guard + action (complete + notify)
-- [ ] Implement T15 guard + action (cancel + refund)
-- [ ] Implement T3, T4 (resubmit policy + upsert content — fix #12)
+- [ ] Unblock T12-T15 + T3/T4 trong transition-registry (phase-02 machine) + guards policy thật
+- [ ] Implement T12 (reject thường: isAdmin + reasonMinLength, KHÔNG refund — Q3)
+- [ ] Implement T13 (veto 48h: isWithin48h + action `refundCredit` — Q1b)
+- [ ] Implement T14 (complete: isAssignedSupporter — Q4 + notify 2 phía — fix #5)
+- [ ] Implement T15 (cancel: isOwner, KHÔNG refund — Q3)
+- [ ] Implement T3, T4 (resubmit: hasCredit T3 / free T4 + upsert content — fix #12 + BP1)
+- [ ] Thêm action `refundCredit` vào executor phase-03 (pattern vetoCaseUseCase:31-50)
 - [ ] Chạy script SELECT fix data kẹt → báo cáo (KHÔNG tự UPDATE/DELETE — F15)
 - [ ] Cleanup symflow: xóa package + 2 files + sửa imports
 - [ ] Unit test: T12-T15 guard pass/fail
-- [ ] Integration test: refund credit đúng policy
+- [ ] Integration test: refund credit đúng policy (T13 hoàn 100%, T12/T15 không hoàn)
 - [ ] Regression test: mọi test cũ vẫn pass sau cleanup
 - [ ] check-types root PASS
 
@@ -183,10 +180,10 @@ Sửa imports:
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| Q1-Q4 không được chốt → phase kéo dài vô hạn | Trung bình | Cao | Phase này là pha 2 — pha 1 chạy độc lập. Deadline pha 2 phụ thuộc product |
+| Refund policy sai → mất tiền user | Cao | Rất cao | Test kỹ refund action (T13 hoàn 100%, T12/T15 không hoàn). Manual verify trước prod. Rollback script sẵn |
 | Cleanup symflow quên import → build fail | Trung bình | Trung bình | Search toàn bộ codebase `symflow`, `case-workflow`, `caseWorkflow` trước khi xóa |
 | Script SELECT chạm data nhạy cảm | Thấp | Thấp | Dùng READONLY_DATABASE_URL (guest). Script chỉ SELECT, không UPDATE |
-| Refund policy sai → mất tiền user | Cao | Rất cao | Test kỹ refund action. Manual verify trước prod. Rollback script sẵn |
+| T15/T12 nhầm thành refund (Q3) → mất tiền | Trung bình | Cao | Policy ghi rõ ở requirements: chỉ T13 refund. Integration test assert T12/T15 KHÔNG tạo creditLedger entry |
 
 ## Security Considerations
 

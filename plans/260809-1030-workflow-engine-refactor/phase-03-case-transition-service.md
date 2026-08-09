@@ -107,6 +107,14 @@ async function executeAction(
       // Key trùng (replay) → KHÔNG lỗi, trả về success (idempotent)
       break;
     }
+    case 'refundCredit': {
+      // T13 veto — Q1b: hoàn 100% credit. Pattern vetoCaseUseCase:31-50 (đã verify code thật):
+      // getCreditBalanceForTx(tx, caseId) → balance > 0 → creditLedger.create({
+      //   case_id, amount: -balance, balance_after: 0, type: 'refund',
+      //   idempotency_key: `veto_{caseId}_{Date.now()}`, metadata_json: { action: 'admin_veto', admin_id, reason } })
+      // CHỈ T13 gọi — T12/T15 KHÔNG refund (Q3). Zero-out balance, atomic trong tx (F2)
+      break;
+    }
     case 'setSlaDeadline': {
       // Set sla_deadline_at = now + 48h trên case (pattern từ symflow SLA hook)
       break;
@@ -155,8 +163,10 @@ export async function executeTransition(
   const { transition: transitionName, caseId, actorId, roleVerified, data } = params;
 
   // === L1: Validation (ngoài tx — không đụng DB) ===
+  // isBlockedTransition giờ luôn trả false (policy chốt 2026-08-09 — hết blocked).
+  // Giữ check để bảo vệ tương lai (nếu có transition tạm khóa mới)
   if (isBlockedTransition(transitionName)) {
-    throw new AppError(501, 'NOT_IMPLEMENTED', `Transition ${transitionName} chưa được implement — chờ quyết định sản phẩm`);
+    throw new AppError(501, 'NOT_IMPLEMENTED', `Transition ${transitionName} chưa được implement`);
   }
 
   // === F2: L2 + L3 + L4 trong MỘT transaction (chống TOCTOU) ===
@@ -178,7 +188,7 @@ export async function executeTransition(
         caseCreatedAt: caseRecord.created_at,
         caseVersionNo: caseRecord.version_no,
         // F2: fetch TRONG tx (dữ liệu mới nhất, không race):
-        creditBalance: transitionName === 'T11_SUBMIT_OUTPUT'
+        creditBalance: ['T11_SUBMIT_OUTPUT', 'T5_ACCEPT', 'T3_RESUBMIT_AFTER_REJECT'].includes(transitionName)
           ? await getCreditBalanceInTx(tx, actorId)       // SELECT ... FOR UPDATE
           : undefined,
         paymentStatus: transitionName === 'T5_ACCEPT'

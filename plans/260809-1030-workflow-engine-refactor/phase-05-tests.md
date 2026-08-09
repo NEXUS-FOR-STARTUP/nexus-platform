@@ -107,36 +107,58 @@ test('T16_EDIT_INTAKE — từ triage_pending → triage_pending (giữ nguyên,
 });
 
 // ============================================================
-// Nhóm B: blocked transitions (T12-T15)
+// Nhóm B: policy transitions T12-T15 (chốt 2026-08-09 — hết blocked)
 // ============================================================
-test('Blocked transitions — T12-T15 all blocked', () => {
-  assert.equal(isBlockedTransition('T12_REJECT'), true);
-  assert.equal(isBlockedTransition('T13_VETO'), true);
-  assert.equal(isBlockedTransition('T14_COMPLETE'), true);
-  assert.equal(isBlockedTransition('T15_CANCEL'), true);
+test('T12_REJECT — isAdmin + reasonMinLength; reason ngắn → null', () => {
+  const ok = { type: 'T12_REJECT' as const, actor: { id: 'admin-1', role: 'ADMIN' }, data: { roleVerified: 'ADMIN', reason: 'Hồ sơ sai quy định đăng ký kinh doanh' } };
+  assert.ok(tryTransition('triage_pending', ok), 'T12 từ submitted/triage_pending hợp lệ');
+  const short = { type: 'T12_REJECT' as const, actor: { id: 'admin-1', role: 'ADMIN' }, data: { roleVerified: 'ADMIN', reason: 'ngắn' } };
+  assert.equal(tryTransition('triage_pending', short), null, 'reason < 10 ký tự → chặn');
 });
 
-test('T12_REJECT — không khai báo trong machine → tryTransition null (F12)', () => {
-  const event = { type: 'T12_REJECT' as const, actor: { id: 'admin-1', role: 'ADMIN' }, data: { roleVerified: 'ADMIN' } };
-  const result = tryTransition('triage_pending', event);
-  assert.equal(result, null, 'T12 không có trong states.on → không thực thi được');
+test('T13_VETO — isWithin48h; quá 48h → null', () => {
+  const ok = { type: 'T13_VETO' as const, actor: { id: 'admin-1', role: 'ADMIN' }, data: { roleVerified: 'ADMIN', caseCreatedAt: new Date(Date.now() - 1 * 3600_000).toISOString() } };
+  assert.ok(tryTransition('assigned', ok), 'veto trong 48h hợp lệ');
+  const expired = { type: 'T13_VETO' as const, actor: { id: 'admin-1', role: 'ADMIN' }, data: { roleVerified: 'ADMIN', caseCreatedAt: new Date(Date.now() - 72 * 3600_000).toISOString() } };
+  assert.equal(tryTransition('assigned', expired), null, 'quá 48h → chặn');
+});
+
+test('T14_COMPLETE — isAssignedSupporter (Q4); không phải supporter assigned → null', () => {
+  const ok = { type: 'T14_COMPLETE' as const, actor: { id: 'supporter-1', role: 'SUPPORTER' }, data: { roleVerified: 'SUPPORTER', caseAssignedSupporterId: 'supporter-1' } };
+  assert.ok(tryTransition('report_ready_to_publish', ok));
+  const wrong = { type: 'T14_COMPLETE' as const, actor: { id: 'user-1', role: 'USER' }, data: { roleVerified: 'USER', caseAssignedSupporterId: 'supporter-1' } };
+  assert.equal(tryTransition('report_ready_to_publish', wrong), null);
+});
+
+test('T3_RESUBMIT_AFTER_REJECT — hasCredit (Q1a); balance 0 → null', () => {
+  const ok = { type: 'T3_RESUBMIT_AFTER_REJECT' as const, actor: { id: 'user-1', role: 'USER' }, data: { roleVerified: 'USER', creditBalance: 1 } };
+  assert.ok(tryTransition('cancelled', ok));
+  const broke = { type: 'T3_RESUBMIT_AFTER_REJECT' as const, actor: { id: 'user-1', role: 'USER' }, data: { roleVerified: 'USER', creditBalance: 0 } };
+  assert.equal(tryTransition('cancelled', broke), null);
+});
+
+test('T4_RESUBMIT_AFTER_VETO — free không cần credit (Q1b); balance 0 vẫn pass', () => {
+  const ok = { type: 'T4_RESUBMIT_AFTER_VETO' as const, actor: { id: 'user-1', role: 'USER' }, data: { roleVerified: 'USER', creditBalance: 0 } };
+  assert.ok(tryTransition('cancelled', ok), 'veto đã refund → nộp lại free dù balance 0');
+});
+
+test('T15_CANCEL — isOwner; không owner → null', () => {
+  const ok = { type: 'T15_CANCEL' as const, actor: { id: 'user-1', role: 'USER' }, data: { roleVerified: 'USER', caseOwnerId: 'user-1' } };
+  assert.ok(tryTransition('supporter_working', ok), 'user hủy từ mọi stage mở');
+  const notOwner = { type: 'T15_CANCEL' as const, actor: { id: 'user-2', role: 'USER' }, data: { roleVerified: 'USER', caseOwnerId: 'user-1' } };
+  assert.equal(tryTransition('supporter_working', notOwner), null);
 });
 
 // ============================================================
-// Nhóm C: getAvailableTransitions (F12: không trả blocked)
+// Nhóm C: getAvailableTransitions (hết blocked — mọi transition active)
 // ============================================================
-test('getAvailableTransitions — triage_pending có T2, T5, T16', () => {
+test('getAvailableTransitions — triage_pending có T2, T5, T16, T12, T15', () => {
   const transitions = getAvailableTransitions('triage_pending');
   assert.ok(transitions.includes('T2_SUBMIT_INTAKE'));
   assert.ok(transitions.includes('T5_ACCEPT'));
   assert.ok(transitions.includes('T16_EDIT_INTAKE'));
-});
-
-test('getAvailableTransitions — KHÔNG trả blocked T12-T15 (F12)', () => {
-  const transitions = getAvailableTransitions('triage_pending');
-  assert.ok(!transitions.includes('T12_REJECT'));
-  assert.ok(!transitions.includes('T13_VETO'));
-  assert.ok(!transitions.includes('T15_CANCEL'));
+  assert.ok(transitions.includes('T12_REJECT'));
+  assert.ok(transitions.includes('T15_CANCEL'));
 });
 
 // ============================================================

@@ -1,10 +1,10 @@
 ---
 title: "Workflow Engine Refactor — symflow → XState v5"
-description: "Thay symflow bằng XState v5: 1 cổng CaseTransitionService 5 lớp cho mọi use case thay đổi state. Fix 14 bugs backlog. 2 pha: pha 1 (T1-T11+T16) tự chạy, pha 2 (T12-T15) chờ quyết định sản phẩm Q1 Q3 Q4."
+description: "Thay symflow bằng XState v5: 1 cổng CaseTransitionService 5 lớp cho mọi use case thay đổi state. Fix 14 bugs backlog. ONE-SHOT: T1-T16, policy sản phẩm Q1-Q5 đã chốt 2026-08-09 — không còn blocker."
 status: pending
 priority: P1
-effort: 16.5h
-branch: feat/notification-system
+effort: 20.5h
+branch: feat/workflow-engine-refactor
 tags: [refactor, workflow, engine, xstate, bug-fix]
 blockedBy: []
 blocks: []
@@ -53,7 +53,7 @@ Nguồn: `docs/research/workflow-engine-refactor-brainstorm-2026-08-09.md` + `re
 > - **F12:** T12-T15 không khai báo trong machine (không nút ma); check FE consumers (AdminCaseDetailModal hardcode)
 > - **F13:** metadata caseEvent whitelist + `CaseEvent.actor_role` (schema phase-01)
 > - **F14:** merge strategy cụ thể (keep newest) + down migration + unique nullable limitation
-> - **F15:** script fix data prod tách operational (root `docs/` theo docs/AGENTS.md — không tạo folder mới); bỏ wrapper thừa (restoreMachine đơn giản hóa, bỏ initialCaseTransition); bug #12 không claim pha 1; resubmit/veto KHÔNG ĐỔI trong file map
+> - **F15:** script fix data prod tách operational (`scripts/fix-stuck-cases-2026-08-09.sql` — convention scripts/, không tạo folder mới); bỏ wrapper thừa (restoreMachine đơn giản hóa, bỏ initialCaseTransition); resubmit/veto KHÔNG ĐỔI trong file map cho đến phase 06 — sau khi Q chốt (2026-08-09) chuyển T3/T4/T12-T15 qua cổng + fix #12/BP1
 
 ## Phases
 
@@ -64,7 +64,7 @@ Nguồn: `docs/research/workflow-engine-refactor-brainstorm-2026-08-09.md` + `re
 | 03 | [CaseTransitionService + submit-revision](./phase-03-case-transition-service.md) | 🔲 Pending | **5h** |
 | 04 | [Lan use case qua cổng + FE](./phase-04-spread-use-cases.md) | 🔲 Pending | 3h |
 | 05 | [Tests](./phase-05-tests.md) | 🔲 Pending | **4h** |
-| 06 | [Refund/Resubmit policy (BLOCKED)](./phase-06-blocked-refund-policy.md) | 🔒 Blocked | 0h |
+| 06 | [Refund/Resubmit Policy T12-T15](./phase-06-refund-resubmit-policy.md) | 🔲 Pending | **4h** |
 
 ## Dependencies
 
@@ -74,7 +74,7 @@ Phase 01 (schema migration + xstate install + types)
        └─ Phase 03 (CaseTransitionService + submit-revision — cần registry)
             ├─ Phase 04 (lan use case qua cổng — cần service hoạt động)
             │    └─ Phase 05 (tests — cần mọi use case chuyển xong)
-            └─ Phase 06 (refund/resubmit — blocked Q1 Q3 Q4, không phụ thuộc 04/05)
+            └─ Phase 06 (T12-T15 refund/resubmit — cần service + registry; cleanup symflow cuối)
 ```
 
 ## Rủi ro chính
@@ -89,7 +89,8 @@ Phase 01 (schema migration + xstate install + types)
 | upsertDocumentRecordsForUnit 0 caller/0 test | Cao | F7: integration test TRƯỚC khi wire + upsert composite unique |
 | case.repository.ts 573+ dòng → chạm limit | Trung bình | Service mới giảm logic trong repo. KHÔNG refactor toàn bộ repo trong plan này |
 | DB safety — destructive migration | Cao | Migration chỉ `--create-only`. Tuân `prisma-migration-safety.md` tuyệt đối |
-| Q1-Q5 chưa chốt → phase 6 không chạy được | Thấp (đã plan riêng) | Pha 1 (T1-T11+T16) không phụ thuộc Q. Pha 2 ghi rõ blocked + điều kiện mở |
+| Q1-Q5 đã chốt 2026-08-09 → phase 06 không còn blocked | Thấp (đã resolve) | — | Chốt policy trong validation session 2: T3 hasCredit / T4 free / T12-T15 no-refund trừ T13 refund 100% / T14 supporter đóng / Q5 check T5 |
+| Refund policy sai (T12/T15 nhầm thành refund) → mất tiền | Trung bình | Rất cao | Chỉ T13 gọi refundCredit. Integration test assert T12/T15 KHÔNG tạo creditLedger entry |
 | Nested $transaction (submit-intake) | Cao | F8: xóa outer tx khi chuyển qua service |
 | AppError sai signature | Trung bình | F3: 3-arg (status, code, message, details?) — verify file thật |
 
@@ -119,8 +120,8 @@ SỬA  prisma/schema.prisma (+@@unique DocumentRecord, +version_no Case, +actor_
 KHÔNG ĐỔI  case-workflow.ts (domain, symflow — giữ nguyên đến phase cuối)
 KHÔNG ĐỔI  case-workflow-engine.ts (infrastructure — giữ nguyên đến phase cuối)
 KHÔNG ĐỔI  complete-case.usecase.ts (giữ nguyên — mẫu chuẩn, chuyển sau khi Q4 chốt)
-KHÔNG ĐỔI  veto-case.usecase.ts (giữ logic cũ pha 1 — chuyển pha 2)             (F15: xóa khỏi danh sách SỬA)
-KHÔNG ĐỔI  resubmit-case.usecase.ts (giữ logic cũ pha 1 — chuyển pha 2, fix #12) (F15)
+KHÔNG ĐỔI  veto-case.usecase.ts (giữ logic cũ — chuyển phase 06)                (F15)
+KHÔNG ĐỔI  resubmit-case.usecase.ts (giữ logic cũ — chuyển phase 06, fix #12)    (F15)
 ```
 
 ## Success Criteria
@@ -130,10 +131,11 @@ KHÔNG ĐỔI  resubmit-case.usecase.ts (giữ logic cũ pha 1 — chuyển pha 
 - [ ] Không transition nào đổi 1 cột — stage + status luôn đi đôi (F1: TARGET_STAGE per transition)
 - [ ] **F2:** L2-L4 trong 1 tx + optimistic lock version_no — test 2 request concurrent → 1 thành công 1 409
 - [ ] `phase-07` + test mới chuyển XState pass (16 assertions + 8 unit test executeAction — F10)
-- [ ] Case kẹt cũ trên prod được fix data (pha 2, SELECT chỉ đọc — F15: file operational riêng)
+- [ ] Case kẹt cũ trên prod được fix data (SELECT chỉ đọc — F15: file operational riêng)
 - [ ] allowed_transitions FE render đúng theo stage (không hardcode, gồm admin modal — F12)
 - [ ] **F11:** `grep isValidStageTransition` = 0 caller
-- [ ] **F5:** `applyTransition` (symflow) chỉ còn gọi bởi transition CHƯA chuyển
+- [ ] **F5:** `applyTransition` (symflow) chỉ còn gọi bởi transition CHƯA chuyển — cuối phase 06 = 0 caller
+- [ ] **Policy Q1-Q5 (chốt):** T3 hasCredit / T4 free / T13 refund 100% / T12+T15 no-refund / T14 supporter đóng / credit check T5
 - [ ] check-types root 3/3 PASS, eslint web 0 warning
 
 ## Validation Summary
@@ -141,14 +143,30 @@ KHÔNG ĐỔI  resubmit-case.usecase.ts (giữ logic cũ pha 1 — chuyển pha 
 **Validated:** 2026-08-09
 **Questions asked:** 5
 
-### Confirmed Decisions
+**Validated:** 2026-08-09
+**Questions asked:** 5 (session 1) + 4 (session 2 — one-shot, hết blocker)
+
+### Confirmed Decisions — Session 1
 - F5 cơ chế vô hiệu update-case-status: **hardcode remove per-transition** (KHÔNG env flag) — rollback = revert commit
 - version_no scope: **chỉ bảo vệ transition qua cổng mới** — code cũ (complete/veto/resubmit) không bump, chấp nhận vì F5 đã loại per-transition
 - FE label map: **FE tự map** TransitionName → label/nút (BE giữ contract `TransitionName[]` sạch)
 - xstate version: **giữ `xstate@latest`** (monorepo lockfile đủ) — không pin
 - phase-05:230 T9 stage sai → **đã sửa** `under_review` → `revision_submitted` (khớp TARGET_STAGE phase-03:68)
 
+### Confirmed Decisions — Session 2 (policy sản phẩm, one-shot)
+- **Q1a (T3)** resubmit sau reject thường: free nếu credit đã hoàn; **tốn credit mới nếu chưa hoàn** → guard `hasCredit` + `isOwner`
+- **Q1b (T4)** resubmit sau veto: **hoàn 100% credit + nộp lại miễn phí** (giữ hành vi vetoCaseUseCase:31-50 — action `refundCredit`)
+- **Q3 (T12/T15)** reject thường + user hủy: supporter đã render → giữ credit; chưa render → credit chưa trừ = không mất gì. **Chỉ T13 hoàn 100%**
+- **Q4 (T14)** hoàn thành: **supporter tự đóng** (guard `isAssignedSupporter`) → notify user + supporter (fix #5)
+- **Q5** credit check: **khi admin duyệt T5** (guard `hasCredit`); KHÔNG check khi nộp T2 — xóa `requireCredits` khỏi submit-intake
+
 ### Action Items
+- [x] Phase-02: khai báo T3/T4/T12-T15 trong machine (hết blocked), `isBlockedTransition` trả false
+- [x] Phase-03: thêm action `refundCredit` (executor) + T5/T3 cần creditBalance trong tx
+- [x] Phase-04: xóa `requireCredits` submit-intake (Q5), accept thêm guard hasCredit
+- [x] Phase-05: thay nhóm test blocked bằng 6 test policy T12-T15
+- [x] Phase-06: unblock — requirements + guards policy thật, effort 4h
+- [x] plan.md: effort 16.5h → 20.5h, phase-06 Pending, branch frontmatter → feat/workflow-engine-refactor
 - [ ] Phase-04: hardcode remove per-transition trong update-case-status (không viết feature flag)
 - [ ] Phase-04 FE: tạo const map `TransitionName → label/nút` dùng chung StatusGuidanceCard + AdminCaseDetailModal
 - [ ] Phase-01: giữ `xstate@latest` (đã chốt) — spike ._action (F9) vẫn bắt buộc đầu phase-02

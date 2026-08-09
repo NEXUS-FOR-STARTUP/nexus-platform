@@ -13,12 +13,13 @@ B3: Chuyển 5 use case còn lại qua CaseTransitionService. BE: filter allowed
 ## Key Insights
 
 - **submit-intake**: 2 đường: nộp lần đầu (T2) + sửa thông tin (T16). Cùng POST `/cases/:id/intake`. Phân biệt: nếu case chưa nộp → T16; đã nộp → T2
+- **Q5 (chốt 2026-08-09)**: T2 KHÔNG check credit — XÓA `requireCredits` (case.types.ts:22) khỏi submit-intake. Credit check chuyển về T5 (accept)
 - **F8 — nested transaction**: `submitIntakeUseCase` HIỆN TẠI có `prisma.$transaction` riêng (submit-intake.usecase.ts:25). Prisma KHÔNG hỗ trợ nested → **PHẢI xóa outer tx** khi chuyển qua service (service tự lo tx)
 - **submit-supporter-output** (T11): credit check trong L2 TRONG tx (F2). Idempotency key `consume-{unitCode}-{caseId}-v{versionNo}`
-- **accept** (T5): guard `isPaid` — payment status fetch TRONG tx (F2)
+- **accept** (T5): guard `isPaid` + `hasCredit` — payment status + credit balance fetch TRONG tx (F2, Q5)
 - **F5 — split-brain**: `update-case-status.usecase.ts` (13 callers, symflow `applyTransition`) VẪN active khi T5/T6/T7/T8 chuyển XState → 2 engine cùng ghi internal_status → race. **Khi 1 use case chuyển xong → vô hiệu code path cũ ngay** (feature flag hoặc bỏ route handler). Update-case-status chỉ giữ cho transition CHƯA chuyển
-- **veto** (T13 — BLOCKED pha 1): GIỮ NGUYÊN logic cũ (qua symflow). Ghi chú chuyển ở pha 2
-- **resubmit** (T3/T4 — BLOCKED pha 1): GIỮ NGUYÊN `resubmitCaseUseCase`. **LƯU Ý F15: bug #12 (resubmit không cập nhật content) CHỈ fix ở pha 2** (T3/T4 blocked) — không claim đã fix trong phase này
+- **veto** (T13): GIỮ NGUYÊN logic cũ (qua symflow) trong phase này — chuyển qua cổng ở phase 06 (kèm T12/T14/T15/T3/T4)
+- **resubmit** (T3/T4): GIỮ NGUYÊN `resubmitCaseUseCase` trong phase này — chuyển qua cổng ở phase 06. **F15: bug #12 (resubmit không cập nhật content) fix ở phase 06** — không claim trong phase này
 - **FE**: `get-case-detail.usecase.ts:153-159` trả `allowed_transitions` — HIỆN TẠI trả nguyên transitions của symflow, chưa filter. Cần filter theo stage hiện tại + transition-registry
 - **F12 — FE consumers**: `AdminCaseDetailModal.tsx:237` hardcode `internal_status === "triage_pending"` — KHÔNG dùng allowed_transitions. Phải check MỌI consumer + update admin modal
 - **F11 — 3 nguồn truth**: xóa `isValidStageTransition` (case.types.ts:54) khi `getAvailableTransitions` thay thế. Verify `grep isValidStageTransition` → 0 caller
@@ -96,7 +97,7 @@ export async function submitSupporterOutputUploadUseCase(prisma, params) {
 ```typescript
 // accept-case.usecase.ts (SỬA)
 export async function acceptCaseUseCase(prisma, params) {
-  // F2: payment status fetch TRONG tx (service lo) — không pre-fetch ngoài
+  // F2 + Q5: payment status + credit balance fetch TRONG tx (service lo) — không pre-fetch ngoài
 
   const { stage, status } = await executeTransition(prisma, {
     transition: 'T5_ACCEPT',
@@ -109,6 +110,7 @@ export async function acceptCaseUseCase(prisma, params) {
 }
 ```
 - **Fix #9**: accept chỉ allowed khi payment = paid (guard isPaid — service fetch trong tx)
+- **Q5**: accept chặn khi balance < 1 (guard hasCredit — service fetch trong tx) — chuyển credit check từ T2 về T5
 
 ### 4. BE allowed_transitions filter (pseudocode)
 ```typescript
@@ -122,8 +124,8 @@ import { getAvailableTransitions } from '../domain/transition-registry.js';
 
 const allowed_transitions = getAvailableTransitions(case_.internal_status);
 // Trả về TransitionName[] mà case HIỆN TẠI có thể thực hiện
-// VD: 'triage_pending' → ['T2_SUBMIT_INTAKE', 'T5_ACCEPT', 'T16_EDIT_INTAKE']
-// F12: KHÔNG bao giờ chứa T3/T4/T12-T15 (blocked không khai báo trong machine)
+// VD: 'triage_pending' → ['T2_SUBMIT_INTAKE', 'T5_ACCEPT', 'T16_EDIT_INTAKE', 'T12_REJECT', 'T15_CANCEL']
+// (policy chốt 2026-08-09 — mọi transition active)
 
 caseResponse.allowed_transitions = allowed_transitions;
 ```
@@ -218,7 +220,7 @@ const allowedTransitions = case_.allowed_transitions ?? [];
 - FE hiển thị nút đúng theo stage (không hardcode, fix #7) — gồm admin modal (F12)
 - **F5:** không transition nào còn 2 engine active — `applyTransition` chỉ cho transition chưa chuyển
 - **F11:** `grep isValidStageTransition` = 0 caller
-- **F15:** bug #12 KHÔNG claim trong phase này (fix ở pha 2 — T3/T4 blocked)
+- **F15:** bug #12 KHÔNG claim trong phase này (fix ở phase 06 — T3/T4 resubmit chuyển qua cổng)
 - Bug #13 #17 #2 #4 #9 #7: verified đóng
 - case.repository.ts giảm logic (không vượt thêm)
 
