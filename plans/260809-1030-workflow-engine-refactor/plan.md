@@ -135,3 +135,20 @@ KHÔNG ĐỔI  resubmit-case.usecase.ts (giữ logic cũ pha 1 — chuyển pha 
 - [ ] **F11:** `grep isValidStageTransition` = 0 caller
 - [ ] **F5:** `applyTransition` (symflow) chỉ còn gọi bởi transition CHƯA chuyển
 - [ ] check-types root 3/3 PASS, eslint web 0 warning
+
+## Validation Summary
+
+**Validated:** 2026-08-09
+**Questions asked:** 5
+
+### Confirmed Decisions
+- F5 cơ chế vô hiệu update-case-status: **hardcode remove per-transition** (KHÔNG env flag) — rollback = revert commit
+- version_no scope: **chỉ bảo vệ transition qua cổng mới** — code cũ (complete/veto/resubmit) không bump, chấp nhận vì F5 đã loại per-transition
+- FE label map: **FE tự map** TransitionName → label/nút (BE giữ contract `TransitionName[]` sạch)
+- xstate version: **giữ `xstate@latest`** (monorepo lockfile đủ) — không pin
+- phase-05:230 T9 stage sai → **đã sửa** `under_review` → `revision_submitted` (khớp TARGET_STAGE phase-03:68)
+
+### Action Items
+- [ ] Phase-04: hardcode remove per-transition trong update-case-status (không viết feature flag)
+- [ ] Phase-04 FE: tạo const map `TransitionName → label/nút` dùng chung StatusGuidanceCard + AdminCaseDetailModal
+- [ ] Phase-01: giữ `xstate@latest` (đã chốt) — spike ._action (F9) vẫn bắt buộc đầu phase-02

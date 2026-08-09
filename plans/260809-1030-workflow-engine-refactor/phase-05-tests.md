@@ -227,7 +227,7 @@ test('Integration: accept (T5) with isPaid=false → throw (fix #9)', async () =
 test('Integration: submit-revision (T9) → auto-resume (fix #18)', async () => {
   // Case ở waiting_user
   // Gọi executeTransition(T9)
-  // Verify: status='supporter_working', stage='under_review'
+  // Verify: status='supporter_working', stage='revision_submitted' (F1: TARGET_STAGE T9 — KHÔNG phải under_review)
 });
 
 test('Integration: submit-supporter-output (T11) with credit=0 → fail (fix #2)', async () => {
