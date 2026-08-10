@@ -45,19 +45,19 @@ export default function StatusGuidanceCard({
       <Alert
         variant="light"
         color="orange"
-        radius="md"
-        icon={<HelpCircle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400" />}
-        className="animate-fade-in font-body text-xs shrink-0 border border-amber-200 dark:border-amber-900/60 shadow-xs"
+        radius="lg"
+        icon={<HelpCircle className="w-6 h-6 shrink-0 text-amber-600 dark:text-amber-400" />}
+        className="animate-fade-in font-body text-base shrink-0 border border-amber-200 dark:border-amber-900/60 shadow-xs p-5"
         styles={{
           wrapper: { alignItems: "center" },
-          body: { gap: "2px" },
+          body: { gap: "4px" },
         }}
       >
         <div className="space-y-1 py-0.5">
-          <h4 className="font-semibold text-sm text-amber-900 dark:text-amber-200 tracking-tight">
+          <h4 className="font-bold text-h4 text-amber-900 dark:text-amber-200 tracking-tight">
             Yêu cầu bổ sung thông tin từ Supporter
           </h4>
-          <p className="italic bg-surface-app/60 p-2.5 rounded-lg border border-amber-200/50 dark:border-amber-900/40 text-text-app text-xs leading-relaxed">
+          <p className="italic bg-surface-app/60 p-3 rounded-lg border border-amber-200/50 dark:border-amber-900/40 text-text-app text-base leading-relaxed">
             "{queryText}"
           </p>
         </div>
@@ -71,29 +71,28 @@ export default function StatusGuidanceCard({
         <Alert
           variant="light"
           color="blue"
-          radius="md"
-          icon={<Clock className="w-5 h-5 shrink-0 text-brand" />}
-          className="animate-fade-in font-body text-xs shrink-0 border border-blue-100 dark:border-blue-950/60 shadow-xs"
+          radius="lg"
+          icon={<Clock className="w-6 h-6 shrink-0 text-brand" />}
+          className="animate-fade-in font-body text-base shrink-0 border border-blue-100 dark:border-blue-950/60 shadow-xs p-5"
           styles={{
             wrapper: { alignItems: "center" },
-            body: { gap: "2px" },
+            body: { gap: "4px" },
           }}
         >
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-0.5">
-            <div className="space-y-0.5">
-              <h4 className="font-semibold text-sm text-brand tracking-tight">
+            <div className="space-y-1">
+              <h4 className="font-bold text-h4 text-brand tracking-tight">
                 Hồ sơ đã gửi thành công — Chờ xét duyệt
               </h4>
-              <p className="text-text-app text-xs leading-relaxed max-w-2xl">
+              <p className="text-text-app text-base leading-relaxed max-w-2xl">
                 Ban tổ chức đang kiểm tra hồ sơ và phân công Supporter chuyên môn phụ trách dự án (thường mất 12-24 giờ). Bạn vẫn có thể cập nhật lại thông tin hồ sơ trước khi Admin phê duyệt.
               </p>
             </div>
             {onOpenIntake && (
               <Button
-                size="sm"
                 color="brand"
                 variant="filled"
-                className="shrink-0 cursor-pointer font-medium shadow-xs hover:shadow-md transition-all duration-200"
+                className="shrink-0 cursor-pointer font-semibold text-base h-10 px-5 shadow-xs hover:shadow-md transition-all duration-200"
                 onClick={onOpenIntake}
               >
                 Chỉnh sửa hồ sơ
