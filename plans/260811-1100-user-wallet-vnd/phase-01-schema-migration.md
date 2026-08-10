@@ -19,7 +19,8 @@ model UserWallet {
   id           String              @id @default(uuid())
   userId       String              @unique @map("user_id")
   user         User                @relation(fields: [userId], references: [id])
-  balance      Int                 @default(0) // VND — cached, updated atomically trong tx
+  balance      Int                 @default(0) // cached, updated atomically trong tx
+  currency     String              @default("VND") @map("currency") // VND | USD — mở rộng sau
   createdAt    DateTime            @default(now()) @map("created_at")
   updatedAt    DateTime            @updatedAt @map("updated_at")
   transactions WalletTransaction[]
@@ -39,7 +40,8 @@ model WalletTransaction {
   walletId        String      @map("wallet_id")
   wallet         UserWallet  @relation(fields: [walletId], references: [id])
   type           WalletTxType
-  amount         Int         // VND — dương = vào, âm = ra
+  amount         Int         // dương = vào, âm = ra
+  currency       String      @default("VND") @map("currency") // VND | USD
   balanceBefore  Int         @map("balance_before")
   balanceAfter   Int         @map("balance_after")
   sourceType     String      @map("source_type") // topup | credit_purchase | case_consume | admin_refund | platform_bonus | migration
@@ -72,7 +74,8 @@ model WalletTopup {
   id                  String    @id @default(uuid())
   userId              String    @map("user_id")
   user                User      @relation(fields: [userId], references: [id])
-  amount              Int       // VND
+  amount              Int       // trị giá topup
+  currency            String    @default("VND") @map("currency") // VND | USD
   transferContent     String    @map("transfer_content") // "CR" + code — SePay matching
   status              String    @default("pending") // pending | completed | failed
   verifiedBy          String?   @map("verified_by") // "auto" | admin user_id
