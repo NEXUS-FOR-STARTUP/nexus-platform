@@ -92,7 +92,7 @@ export default function NotificationBell() {
                         {n.body}
                       </Text>
                     )}
-                    <Text className="font-body text-[11px] text-text-muted/70 mt-1">
+                    <Text className="font-body text-base text-text-muted/70 mt-1">
                       {dayjs(n.created_at).fromNow()}
                     </Text>
                   </div>
@@ -106,7 +106,7 @@ export default function NotificationBell() {
             type="button"
             onClick={() => markAllRead.mutate()}
             disabled={unreadCount === 0}
-            className="text-[11px] font-body text-text-muted hover:text-brand disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+            className="text-base font-body text-text-muted hover:text-brand disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
           >
             Đánh dấu tất cả đã đọc
           </button>

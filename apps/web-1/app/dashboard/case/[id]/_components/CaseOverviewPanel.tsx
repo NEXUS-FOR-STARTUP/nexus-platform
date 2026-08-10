@@ -81,19 +81,19 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4.5">
             <div>
-              <span className="text-text-muted text-[13px] font-medium block leading-normal">Tên nhóm / Tên đề tài:</span>
+              <span className="text-text-muted text-base font-medium block leading-normal">Tên nhóm / Tên đề tài:</span>
               <p className="font-semibold text-text-app text-base mt-1 leading-snug">{groupName}</p>
             </div>
             <div>
-              <span className="text-text-muted text-[13px] font-medium block leading-normal">Số thứ tự nhóm (Group No):</span>
+              <span className="text-text-muted text-base font-medium block leading-normal">Số thứ tự nhóm (Group No):</span>
               <p className="font-semibold text-text-app text-base mt-1 leading-snug">{groupNo || "Chưa cập nhật"}</p>
             </div>
             <div>
-              <span className="text-text-muted text-[13px] font-medium block leading-normal">Trường đại học / Viện đào tạo:</span>
+              <span className="text-text-muted text-base font-medium block leading-normal">Trường đại học / Viện đào tạo:</span>
               <p className="font-semibold text-text-app text-base mt-1 leading-snug">{schoolName}</p>
             </div>
             <div>
-              <span className="text-text-muted text-[13px] font-medium block leading-normal">Lớp học / Môn học / Cuộc thi:</span>
+              <span className="text-text-muted text-base font-medium block leading-normal">Lớp học / Môn học / Cuộc thi:</span>
               <p className="font-semibold text-text-app text-base mt-1 leading-snug">{courseContext}</p>
             </div>
           </div>
@@ -108,33 +108,33 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4.5">
             <div>
-              <span className="text-text-muted text-[13px] font-medium block leading-normal">Họ và tên:</span>
+              <span className="text-text-muted text-base font-medium block leading-normal">Họ và tên:</span>
               <p className="font-semibold text-text-app text-base mt-1 leading-snug">{contactName}</p>
             </div>
             <div>
-              <span className="text-text-muted text-[13px] font-medium block leading-normal">Mã số sinh viên (MSSV):</span>
+              <span className="text-text-muted text-base font-medium block leading-normal">Mã số sinh viên (MSSV):</span>
               <p className="font-semibold text-text-app text-base mt-1 leading-snug">{studentCode}</p>
             </div>
             <div>
-              <span className="text-text-muted text-[13px] font-medium block leading-normal">Email liên hệ:</span>
+              <span className="text-text-muted text-base font-medium block leading-normal">Email liên hệ:</span>
               <p className="font-semibold text-text-app text-base mt-1 flex items-center gap-1.5 truncate leading-snug">
                 <Mail className="w-4 h-4 text-text-muted shrink-0" />
                 <span className="truncate">{contactEmail}</span>
               </p>
             </div>
             <div>
-              <span className="text-text-muted text-[13px] font-medium block leading-normal">Số điện thoại / Zalo:</span>
+              <span className="text-text-muted text-base font-medium block leading-normal">Số điện thoại / Zalo:</span>
               <p className="font-semibold text-text-app text-base mt-1 flex items-center gap-1.5 leading-snug">
                 <Phone className="w-4 h-4 text-text-muted shrink-0" />
                 <span>{contactPhone}</span>
               </p>
             </div>
             <div>
-              <span className="text-text-muted text-[13px] font-medium block leading-normal">Vai trò trong nhóm:</span>
+              <span className="text-text-muted text-base font-medium block leading-normal">Vai trò trong nhóm:</span>
               <p className="font-semibold text-text-app text-base mt-1 leading-snug">{teamRole}</p>
             </div>
             <div>
-              <span className="text-text-muted text-[13px] font-medium block leading-normal">Telegram Username:</span>
+              <span className="text-text-muted text-base font-medium block leading-normal">Telegram Username:</span>
               <p className="font-semibold text-text-app text-base mt-1 flex items-center gap-1.5 leading-snug">
                 <Send className="w-4 h-4 text-brand shrink-0" />
                 <span>{contactTelegram || "Chưa cập nhật"}</span>
@@ -152,7 +152,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
         </div>
 
         <div>
-          <span className="text-text-muted text-[13px] font-medium block mb-1.5 leading-normal">Điểm kẹt hiện tại:</span>
+          <span className="text-text-muted text-base font-medium block mb-1.5 leading-normal">Điểm kẹt hiện tại:</span>
           <p className="font-medium text-text-app text-base leading-relaxed bg-surface-soft/60 p-4 rounded-xl border border-border-app/60">
             {currentBlocker || "Chưa cập nhật điểm kẹt hiện tại."}
           </p>
@@ -169,7 +169,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4 bg-surface-soft/40 p-4.5 rounded-lg border border-border-app/60">
             <div>
-              <div className="flex items-center gap-1.5 text-brand font-bold mb-1.5 text-[13px]">
+              <div className="flex items-center gap-1.5 text-brand font-bold mb-1.5 text-base">
                 <Layers className="w-4.5 h-4.5" />
                 <span>Lĩnh vực hoạt động:</span>
               </div>
@@ -177,7 +177,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
             </div>
 
             <div>
-              <div className="flex items-center gap-1.5 text-brand font-bold mb-1.5 text-[13px]">
+              <div className="flex items-center gap-1.5 text-brand font-bold mb-1.5 text-base">
                 <Target className="w-4.5 h-4.5" />
                 <span>Khách hàng mục tiêu:</span>
               </div>
@@ -187,7 +187,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
 
           <div className="space-y-4 bg-surface-soft/40 p-4.5 rounded-lg border border-border-app/60">
             <div>
-              <div className="flex items-center gap-1.5 text-danger font-bold mb-1.5 text-[13px]">
+              <div className="flex items-center gap-1.5 text-danger font-bold mb-1.5 text-base">
                 <AlertTriangle className="w-4.5 h-4.5" />
                 <span>Vấn đề cốt lõi (Problem):</span>
               </div>
@@ -195,7 +195,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
             </div>
 
             <div>
-              <div className="flex items-center gap-1.5 text-success font-bold mb-1.5 text-[13px]">
+              <div className="flex items-center gap-1.5 text-success font-bold mb-1.5 text-base">
                 <CheckCircle2 className="w-4.5 h-4.5" />
                 <span>Giải pháp đề xuất (Solution):</span>
               </div>
@@ -206,7 +206,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
 
         {mvp && (
           <div className="bg-brand-soft/10 border border-brand/20 p-4.5 rounded-lg space-y-1.5">
-            <span className="font-bold text-brand text-[13px] flex items-center gap-1.5">
+            <span className="font-bold text-brand text-base flex items-center gap-1.5">
               <Sparkles className="w-4.5 h-4.5" />
               Sản phẩm khả thi tối thiểu (MVP):
             </span>
@@ -224,7 +224,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
 
         <div className="space-y-4">
           <div className="bg-brand-soft/20 border border-brand/20 p-4.5 rounded-lg space-y-1.5">
-            <span className="font-bold text-brand text-[13px] flex items-center gap-1.5">
+            <span className="font-bold text-brand text-base flex items-center gap-1.5">
               <CheckCircle2 className="w-4.5 h-4.5" />
               Nhu cầu hỗ trợ chính:
             </span>
@@ -235,7 +235,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4.5">
             <div className="bg-surface-soft/60 border border-border-app/80 p-4.5 rounded-lg space-y-1.5">
-              <span className="font-bold text-text-app text-[13px] flex items-center gap-1.5">
+              <span className="font-bold text-text-app text-base flex items-center gap-1.5">
                 <FileText className="w-4.5 h-4.5 text-brand" />
                 Kết quả mong đợi sau phản biện:
               </span>
@@ -243,7 +243,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
             </div>
 
             <div className="bg-surface-soft/60 border border-border-app/80 p-4.5 rounded-lg space-y-1.5">
-              <span className="font-bold text-text-app text-[13px] flex items-center gap-1.5">
+              <span className="font-bold text-text-app text-base flex items-center gap-1.5">
                 <HelpCircle className="w-4.5 h-4.5 text-brand" />
                 Ghi chú thêm cho Supporter:
               </span>

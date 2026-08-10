@@ -53,12 +53,12 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
                   <h4 className="font-heading font-bold text-base text-text-app tracking-tight">
                     {label}
                   </h4>
-                  <span className="text-[11px] text-text-subtle font-mono bg-surface-soft px-2 py-0.5 rounded border border-border-app/40 shrink-0">
+                  <span className="text-base text-text-subtle font-mono bg-surface-soft px-2 py-0.5 rounded border border-border-app/40 shrink-0">
                     {formatDateTime(event.created_at)}
                   </span>
                 </div>
 
-                <p className="text-xs text-text-muted leading-relaxed font-normal pt-0.5">
+                <p className="text-base text-text-muted leading-relaxed font-normal pt-0.5">
                   {desc}
                   {(event.event_type === "case_rejected" || event.event_type === "vetoed") &&
                     (event.metadata_json as any)?.reason && (
@@ -67,7 +67,7 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
                 </p>
 
                 {event.actor && (
-                  <div className="pt-1 flex items-center gap-1.5 text-[11px] text-text-subtle">
+                  <div className="pt-1 flex items-center gap-1.5 text-base text-text-subtle">
                     <span>Thực hiện bởi:</span>
                     <span className="font-semibold text-text-app bg-surface-soft px-2 py-0.5 rounded border border-border-app/60 inline-flex items-center gap-1">
                       {event.actor.name}

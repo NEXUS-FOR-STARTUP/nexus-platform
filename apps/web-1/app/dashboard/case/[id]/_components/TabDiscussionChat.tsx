@@ -303,14 +303,13 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
                                     }
                               }
                             >
-                              <p style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", fontSize: "15px", fontWeight: 500, lineHeight: "1.4" }}>
+                              <p className="text-base" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", fontWeight: 500, lineHeight: "1.4" }}>
                                 {msg.content}
                               </p>
                               <p
-                                className="mt-1 select-none"
+                                className="mt-1 select-none text-base"
                                 style={{
                                   textAlign: isMe ? "right" : "left",
-                                  fontSize: "10px",
                                   opacity: isMe ? 0.75 : 0.6,
                                   lineHeight: "1",
                                 }}
@@ -373,7 +372,6 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
                   background: "transparent",
                   border: "none",
                   lineHeight: "1.5",
-                  fontSize: "14px",
                   padding: "6px 0",
                   minHeight: "26px",
                   color: "var(--color-text-app)",
