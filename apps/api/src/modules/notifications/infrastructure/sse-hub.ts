@@ -2,7 +2,7 @@ import type { SSEStreamingApi } from "hono/streaming";
 
 type Client = { stream: SSEStreamingApi; userId: string };
 
-const MAX_CONNECTIONS_PER_USER = 5; // chống DoS — mở vô hạn connection
+const MAX_CONNECTIONS_PER_USER = 100; // chống DoS — mở vô hạn connection
 
 // Map<userId, Set<Client>> — 1 user nhiều tab
 const connections = new Map<string, Set<Client>>();
