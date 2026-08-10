@@ -55,3 +55,7 @@ https://tanstack.com/form/latest/docs/installation
 https://tanstack.com/form/latest/docs/framework/react/quick-start
 https://tanstack.com/form/latest/docs/framework/react/guides/basic-concepts
 https://tanstack.com/form/latest/docs/framework/react/guides/validation
+
+https://stately.ai/docs/cheatsheet
+https://stately.ai/docs/quick-start
+https://stately.ai/docs/examples

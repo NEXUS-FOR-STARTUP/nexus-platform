@@ -148,6 +148,20 @@ export type ActionName =
   | 'refundCredit' | 'setSlaDeadline' | 'emitStageChanged'
   | 'notifyUser' | 'resetStatus' | 'autoResumeWork'
   | 'lockPrice';
+
+// Transition table entry (plain data — runtime engine, không dùng machine.transition())
+export interface TransitionDef {
+  name: TransitionName;
+  guard: GuardName[];
+  to: InternalStatus;
+  actions: ActionName[];
+}
+
+// Action descriptor trả về từ tryTransition → executor loop xử lý
+export interface ActionDescriptor {
+  type: ActionName;
+  params?: unknown;
+}
 ```
 
 ### 4. Verify sau setup

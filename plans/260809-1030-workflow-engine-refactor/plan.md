@@ -11,6 +11,10 @@ blocks: [260811-1100-user-wallet-vnd]
 created: 2026-08-09
 ---
 
+> **Docs tham khảo XState v5:** `docs/tech-doc-urls.txt` lines 59-61:  
+> https://stately.ai/docs/cheatsheet &nbsp;|&nbsp; https://stately.ai/docs/quick-start &nbsp;|&nbsp; https://stately.ai/docs/examples  
+> **V5 changes verified 2026-08-11:** `transition()` standalone + `machine.transition(state, event)` đã bỏ. Dùng transition table + `setup({types, guards}).createMachine({...})`. Chi tiết: `phase-02`.
+
 # Workflow Engine Refactor — symflow → XState v5
 
 ## Overview

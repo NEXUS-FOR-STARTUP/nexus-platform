@@ -15,7 +15,7 @@ B2: Viết `case-transition.service.ts` — cổng 5 lớp (L1→L5) cho mọi u
 - **Mẫu chuẩn**: `completeCaseUseCase` (complete-case.usecase.ts:9) — `canTransition` + `applyTransition` trong tx + emit `CASE_STAGE_CHANGED` sau commit. Pattern 5 lớp ánh xạ direct:
   - L1: zod validation (đã có sẵn trong use case, không cần thêm)
   - L2: guard (fetch case TRONG tx, nạp vào event.data, gọi `tryTransition`)
-  - L3: transition (XState `transition()`) — chỉ quản lý internal_status
+  - L3: transition (table lookup — `tryTransition`) — trả `{to, actions[]}`, v5 không có `machine.transition()`
   - L4: action executor (cùng tx: upsert doc, đổi stage+status, trừ credit)
   - L5: emit event bus sau commit
 - **F2 — KHÔNG TOCTOU**: `findUniqueOrThrow` + guard + transition + actions trong 1 `prisma.$transaction(async tx => {...})`. Case đọc TRONG tx. Kèm optimistic lock `version_no` (thêm ở phase-01): `UPDATE ... WHERE id = ? AND version_no = ?` → 0 row affected = conflict → throw 409 retry. Credit/payment fetch TRONG tx (chống double-spend T11, T16 sửa sau nộp)
@@ -44,7 +44,7 @@ B2: Viết `case-transition.service.ts` — cổng 5 lớp (L1→L5) cho mọi u
 // apps/api/src/modules/cases/application/case-transition.service.ts (MỚI ~250 dòng)
 
 import type { Prisma, PrismaClient } from '@prisma/client';
-import { tryTransition, isBlockedTransition, restoreMachine } from '../domain/transition-registry.js';
+import { tryTransition, isBlockedTransition } from '../domain/transition-registry.js';
 import type { TransitionName, TransitionEvent, ActionName, CaseStage, InternalStatus } from '../domain/transition.types.js';
 import { upsertDocumentRecordsForUnit } from '../../documents/infrastructure/persistence/document.repository.js';
 import { emitEvent } from '../../../shared/domain/domain-events.js';
@@ -211,8 +211,7 @@ export async function executeTransition(
       throw new AppError(400, 'INVALID_TRANSITION', `Không thể thực hiện ${transitionName} từ trạng thái hiện tại`);
     }
 
-    const [nextState, actions] = transitionResult;
-    const nextStatus = nextState.value as InternalStatus;
+    const { to: nextStatus, actions } = transitionResult;
     // F1: stage đích từ TARGET_STAGE theo transition — KHÔNG suy từ status
     const nextStage = targetStageFor(transitionName);
 
@@ -318,7 +317,7 @@ export async function submitRevisionUseCase(
 | `apps/api/src/modules/documents/infrastructure/persistence/document.repository.ts` | **SỬA** | Đổi `upsertDocumentRecord` sang `where: { lifecycle_unit_id_doc_type_seq }` (composite unique — F7) + wire `upsertDocumentRecordsForUnit` (0 caller → gọi từ executor) |
 | `apps/api/src/shared/domain/domain-events.ts` | **THAM CHIẾU** | Dùng `DOMAIN_EVENTS.CASE_STAGE_CHANGED`. Verify DomainEvent type: actorId + occurredAt (F5) |
 | `apps/api/src/shared/domain/app-error.ts` | **THAM CHIẾU** | AppError(status, code, message, details?) — 3-arg (F3). Verify import path thật |
-| `apps/api/src/modules/cases/domain/transition-registry.ts` | **THAM CHIẾU** | Gọi `tryTransition`, `isBlockedTransition`, `restoreMachine` |
+| `apps/api/src/modules/cases/domain/transition-registry.ts` | **THAM CHIẾU** | Gọi `tryTransition`, `isBlockedTransition` |
 | `apps/api/src/modules/cases/domain/transition.types.ts` | **THAM CHIẾU** | Types |
 | `apps/api/src/shared/infrastructure/tests/phase-07-symflow-transitions.test.ts` | **SỬA** | Thêm test T9 (phase 05 sẽ migrate toàn bộ) |
 
