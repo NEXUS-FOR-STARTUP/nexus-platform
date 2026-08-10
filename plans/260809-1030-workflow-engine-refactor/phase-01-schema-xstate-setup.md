@@ -139,7 +139,7 @@ export interface StageStatus {
 export type GuardName =
   | 'isOwnerOrMember' | 'isOwner' | 'isAssignedSupporter'
   | 'isAdmin' | 'isSupporter' | 'hasCredit'
-  | 'isPaid' | 'isWithin48h' | 'isBeforeSubmission'
+  | 'isWithin48h' | 'isBeforeSubmission'
   | 'reasonMinLength';
 
 // Action names (string map trong setup)

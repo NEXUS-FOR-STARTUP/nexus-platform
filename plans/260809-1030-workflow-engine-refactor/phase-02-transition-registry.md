@@ -19,13 +19,13 @@ B1: Viết `transition-registry.ts` — XState v5 machine config từ transition
 - **KHÔNG có map stage 1:1 ở đây** — `targetStage` của từng transition nằm ở phase-03 `TARGET_STAGE` (F1: map 1:1 sai vì 1 internal_status → nhiều stage tùy ngữ cảnh, VD triage_pending → intake_pending (khởi tạo) nhưng → submitted (sau T2))
 - Context rỗng `{}` — dữ liệu từ DB qua executor closure
 - **Guard KHÔNG nhận `event.actor.role`** làm nguồn tin cậy — role phải được service inject từ session (F6, chi tiết phase-03)
-- **Policy sản phẩm (chốt 2026-08-09):** T3 = hasCredit (Q1a), T4 = free (Q1b), T12 = no-refund (Q3), T13 = refund 100% (Q1b), T14 = isAssignedSupporter (Q4), T15 = isOwner no-refund (Q3), T5 = hasCredit (Q5)
+- **Policy sản phẩm (chốt 2026-08-09, amended 2026-08-11):** T3 = hasCredit (Q1a), T4 = free (Q1b), T12 = no-refund (Q3), T13 = refund 100% → WalletService.refund() sau wallet plan (Q1b), T14 = isAssignedSupporter (Q4), T15 = isOwner no-refund (Q3), T5 = hasCredit, bỏ isPaid (Amendment #3 — credit mua từ ví VND)
 
 ## Requirements
 
 1. 8 state nodes (internal_status làm state name): triage_pending, accepted_unassigned, assigned, supporter_working, waiting_user, report_ready_to_publish, done, cancelled
 2. Transitions ACTIVE trên các state node (theo bảng v2): T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16 (mọi transition — hết blocked)
-3. Guards active: isOwnerOrMember, isOwner, isAssignedSupporter, isAdmin, isSupporter, hasCredit, isPaid, isWithin48h, isBeforeSubmission, reasonMinLength
+3. Guards active: isOwnerOrMember, isOwner, isAssignedSupporter, isAdmin, isSupporter, hasCredit, isWithin48h, isBeforeSubmission, reasonMinLength
 4. Actions active: upsertDoc, subtractCredit, refundCredit (MỚI — T13), setSlaDeadline, autoResumeWork, resetStatus, notifyUser, emitStageChanged, lockPrice
 5. `restoreMachine(status: string)` → validate status ∈ VALID_STATES rồi trả snapshot `{value: status}` (F4: resolveState throw nếu status không hợp lệ — check TRƯỚC)
 6. T1 (createCase): KHÔNG phải transition — initial state string `'triage_pending'` trong machine. Bỏ `initialCaseTransition` helper (F15)
@@ -52,8 +52,12 @@ const guards = {
   // F6: role KHÔNG lấy từ event.actor.role — service inject roleVerified (từ session) vào event.data
   isAdmin: ({ event }) => { /* event.data.roleVerified === 'ADMIN' */ },
   isSupporter: ({ event }) => { /* event.data.roleVerified === 'SUPPORTER' */ },
-  hasCredit: ({ event }) => { /* event.data.creditBalance >= 1 — fetch trong tx (F2) */ },
-  isPaid: ({ event }) => { /* event.data.paymentStatus === 'paid' */ },
+  hasCredit: ({ event }) => {
+    // Free case (price=0, team_fit) → always pass. Paid case → check credit_balance >= 1.
+    // Credit mua từ ví VND lúc tạo case — engine chỉ biết credit_ledgers, không biết VND.
+    if (event.data.packagePrice === 0) return true;
+    return event.data.creditBalance >= 1;
+  },
   isWithin48h: ({ event }) => { /* case.created_at < 48h ago */ },
   isBeforeSubmission: ({ event }) => { /* case chưa nộp — stage intake_pending|intake_ready */ },
   reasonMinLength: ({ event }) => { /* event.data.reason.length >= 10 */ },
@@ -97,9 +101,11 @@ const caseMachine = setup({
         },
         T5_ACCEPT: {
           target: 'accepted_unassigned',
-          // F6: isAdmin — roleVerified từ session (service inject). F2: paymentStatus fetch TRONG tx, nạp vào event.data → guard isPaid (sync) check
-          // Q5: hasCredit — check credit khi duyệt (balance ≥ 1), fetch TRONG tx (F2)
-          guard: ['isAdmin', 'isPaid', 'hasCredit'],
+          // F6: isAdmin — roleVerified từ session (service inject).
+          // AMENDMENT 2026-08-11: bỏ isPaid — credit mua từ ví VND lúc tạo case.
+          // hasCredit: check credit_balance >= 1 (paid) hoặc skip nếu free (price=0).
+          // Sau wallet plan → hasCredit thay bằng WalletService.getBalance().
+          guard: ['isAdmin', 'hasCredit'],
           actions: []
         },
         // T16: edit intake — giữ nguyên stage. AMENDMENT 2026-08-11: self-loop hợp lệ nhờ
@@ -302,7 +308,7 @@ export { caseMachine };
 
 **LƯU Ý quan trọng về guard implementation:**
 - Guard trong XState chạy **sync** — không await DB. Pattern: service (phase-03) fetch data TRONG transaction rồi nạp vào `event.data` → guard chỉ check data đã có
-- `isOwnerOrMember`, `isAssignedSupporter`, `isPaid`, `isWithin48h`: service fetch case record/payment trong tx, nạp vào `event.data` → guard check data
+- `isOwnerOrMember`, `isAssignedSupporter`, `hasCredit`, `isWithin48h`: service fetch case record/payment trong tx, nạp vào `event.data` → guard check data
 - `hasCredit` (T11): service fetch credit balance TRONG tx, nạp `event.data.creditBalance` → guard check (F2 — chống TOCTOU)
 - **F6:** `isAdmin`/`isSupporter` check `event.data.roleVerified` — service inject từ session, KHÔNG tin `event.actor.role`
 - Đây là thiết kế chuẩn XState: guard = pure function, không side effect

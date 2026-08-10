@@ -117,6 +117,10 @@ async function executeAction(
       //   idempotency_key: `veto_{caseId}_{Date.now()}_{nonce}`, metadata_json: { action: 'admin_veto', admin_id, reason } })
       // AMENDMENT 2026-08-11: + nonce (crypto.randomUUID()) — đồng bộ chống pre-claim key (S7)
       // CHỈ T13 gọi — T12/T15 KHÔNG refund (Q3). Zero-out balance, atomic trong tx (F2)
+      //
+      // TODO WALLET (Amendment #3): sau khi User Wallet plan hoàn thành → swap implementation
+      // sang WalletService.refund(tx, case.ownerId, case.locked_price, caseId, idempotencyKey)
+      // — hoàn VND về ví thay vì zero-out credit_ledgers. Giữ idempotency key + atomic trong tx.
       break;
     }
     case 'setSlaDeadline': {

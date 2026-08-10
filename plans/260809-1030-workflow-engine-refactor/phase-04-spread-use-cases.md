@@ -16,7 +16,7 @@ B3: Chuyển 9 use case qua CaseTransitionService (T2/T16/T5/T11 + T6/T7/T8/T10 
 - **Q5 (chốt 2026-08-09)**: T2 KHÔNG check credit — XÓA `requireCredits` (case.types.ts:22) khỏi submit-intake. Credit check chuyển về T5 (accept)
 - **F8 — nested transaction**: `submitIntakeUseCase` HIỆN TẠI có `prisma.$transaction` riêng (submit-intake.usecase.ts:25). Prisma KHÔNG hỗ trợ nested → **PHẢI xóa outer tx** khi chuyển qua service (service tự lo tx)
 - **submit-supporter-output** (T11): credit check trong L2 TRONG tx (F2). Idempotency key `consume-{unitCode}-{caseId}-v{versionNo}`
-- **accept** (T5): guard `isPaid` + `hasCredit` — payment status + credit balance fetch TRONG tx (F2, Q5)
+- **accept** (T5): guard `isAdmin` + `hasCredit` — role verified từ session + credit balance fetch TRONG tx (F2). AMENDMENT 2026-08-11: bỏ `isPaid` — credit mua từ ví VND lúc tạo case. Free case (price=0) → hasCredit tự skip.
 - **F5 — split-brain**: `update-case-status.usecase.ts` (13 callers, symflow `applyTransition`) VẪN active khi T5/T6/T7/T8/T10/T11 chuyển XState → 2 engine cùng ghi internal_status → race. **Khi 1 transition chuyển xong → vô hiệu code path cũ ngay** trong update-case-status. Cuối phase này: T5/T6/T7/T8/T10/T11 đã chuyển → chỉ còn T12/T13/T14/T15 qua update-case-status cũ → phase 06 chuyển nốt
 - **T6/T7/T8/T10 — AMENDMENT 2026-08-11**: 4 transition đơn giản (chỉ check quyền + đổi state + ghi log, không credit, không file). Chuyển qua cổng trong phase này (ban đầu để ngỏ "tùy quyết định" — đã chốt). Code path: sửa `update-case-status.usecase.ts` — gọi `executeTransition` cho 4 transition này. T6 (gán supporter): accepted_unassigned → assigned. T7 (bắt đầu làm): assigned → supporter_working. T8 (yêu cầu thêm info): supporter_working → waiting_user. T10 (bắt đầu chấm lại): supporter_working → supporter_working (self-loop).
 - **veto** (T13): GIỮ NGUYÊN logic cũ (qua symflow) trong phase này — chuyển qua cổng ở phase 06 (kèm T12/T14/T15/T3/T4)
@@ -30,7 +30,7 @@ B3: Chuyển 9 use case qua CaseTransitionService (T2/T16/T5/T11 + T6/T7/T8/T10 
 ### BE
 1. Chuyển `submitIntakeUseCase` → gọi `executeTransition` (T2 hoặc T16 tùy trạng thái)
 2. Chuyển `submitSupporterOutput` → gọi `executeTransition(T11)` + credit check trong L2
-3. Chuyển `acceptCaseUseCase` → gọi `executeTransition(T5)` + guard isPaid
+3. Chuyển `acceptCaseUseCase` → gọi `executeTransition(T5)` + guard isAdmin + hasCredit (bỏ isPaid — Amendment #3)
 4. Chuyển `update-case-status.usecase.ts` cho T6/T7/T8/T10: gọi `executeTransition` (không credit, không file — AMENDMENT 2026-08-11)
 5. Sửa `get-case-detail.usecase.ts`: filter `allowed_transitions` theo stage hiện tại
 6. GIỮ NGUYÊN: veto (T13), resubmit (T3/T4), completeCase (T14) — logic cũ (chuyển phase 06)
@@ -111,7 +111,7 @@ export async function acceptCaseUseCase(prisma, params) {
   return { stage, status };
 }
 ```
-- **Fix #9**: accept chỉ allowed khi payment = paid (guard isPaid — service fetch trong tx)
+- **Fix #9**: accept chỉ allowed khi hasCredit (phải mua credit trước, credit mua từ ví VND). Free case (team_fit, price=0) → hasCredit tự skip.
 - **Q5**: accept chặn khi balance < 1 (guard hasCredit — service fetch trong tx) — chuyển credit check từ T2 về T5
 
 ### 4. Assign, Start Work, Request Info, Start Review (T6/T7/T8/T10 — AMENDMENT 2026-08-11)
@@ -212,7 +212,7 @@ const allowedTransitions = case_.allowed_transitions ?? [];
 |---|---|---|
 | `apps/api/src/modules/cases/application/submit-intake.usecase.ts` | **SỬA** | Gọi executeTransition (T2/T16) + **xóa outer tx (F8)** |
 | `apps/api/src/modules/cases/application/submit-revision.usecase.ts` | **SỬA** | `submitSupporterOutputUploadUseCase` (:295) gọi executeTransition (T11) — cùng file với submitRevisionUseCase |
-| `apps/api/src/modules/cases/application/accept-case.usecase.ts` | **SỬA** | Gọi executeTransition (T5) + guard isPaid (service fetch trong tx) |
+| `apps/api/src/modules/cases/application/accept-case.usecase.ts` | **SỬA** | Gọi executeTransition (T5) + guard isAdmin + hasCredit (bỏ isPaid — Amendment #3) |
 | `apps/api/src/modules/cases/application/get-case-detail.usecase.ts` | **SỬA** | Filter allowed_transitions (getAvailableTransitions) |
 | `apps/api/src/modules/cases/application/update-case-status.usecase.ts` | **SỬA** | F5: gọi executeTransition cho T6/T7/T8/T10 (AMENDMENT 2026-08-11); giữ symflow cho T12/T13/T14/T15 (chuyển phase 06) |
 | `apps/api/src/modules/cases/domain/transition-registry.ts` | **SỬA** | `getAvailableTransitions()` (đã thêm phase-02) |
@@ -275,7 +275,7 @@ const allowedTransitions = case_.allowed_transitions ?? [];
 
 ## Security Considerations
 
-- isPaid guard: fetch payment TRONG tx (không trust client input) (F2)
+- hasCredit guard: fetch credit balance TRONG tx (không trust client input) (F2). Free case (price=0) → skip.
 - Credit check: TRONG tx (không trust client, không race) (F2)
 - Actor role: `roleVerified` từ auth middleware — service không tin caller (F6)
 - roleVerified từ session (đã verify)

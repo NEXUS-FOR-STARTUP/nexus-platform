@@ -48,7 +48,7 @@ import {
 // ============================================================
 // Nhóm A: transitions path hợp lệ (F10: 16 assertions — KHÔNG pass/fail ×2)
 // ============================================================
-test('T5_ACCEPT — pass when isPaid=true + roleVerified=ADMIN', () => {
+test('T5_ACCEPT — pass when hasCredit=true + roleVerified=ADMIN', () => {
   const event = {
     type: 'T5_ACCEPT' as const,
     actor: { id: 'admin-1', role: 'ADMIN' },
@@ -239,11 +239,11 @@ test('Integration: submit-intake (T2) → stage + status đổi', async () => {
   // Verify DB: user_facing_stage='submitted', internal_status='triage_pending'
 });
 
-test('Integration: accept (T5) with isPaid=true → success', async () => {
+test('Integration: accept (T5) with hasCredit=true → success', async () => {
   // Verify DB: stage='under_review', status='accepted_unassigned'
 });
 
-test('Integration: accept (T5) with isPaid=false → throw (fix #9)', async () => {
+test('Integration: accept (T5) with hasCredit=false → throw (fix #9)', async () => {
   // Expect AppError
 });
 
@@ -272,7 +272,7 @@ test('Integration: submit-supporter-output (T11) idempotent (fix #4)', async () 
 | 4 | Output version 2 = NO_CREDITS | Integration test T11 version 2 with credit |
 | 5 | Complete không notify | Phase 03 L5 emit test (khi Q4 chốt) |
 | 7 | FE render nút sai thời điểm | Phase 04 FE test + manual |
-| 9 | Accept khi chưa paid | Integration test T5 isPaid=false → fail |
+| 9 | Accept khi chưa có credit | Integration test T5 hasCredit=false → fail |
 | 12 | Resubmit không update content | Phase 02 check: T3/T4 upsert doc action |
 | 13 | Intake lần đầu tạo doc trùng | Phase 01 unique constraint + T2 test |
 | 14 | Intake thiếu field → lỗi | L1 validation (zod) — giữ nguyên |

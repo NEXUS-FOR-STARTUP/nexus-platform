@@ -29,7 +29,7 @@ Implement T12-T15 (reject/veto/complete/cancel) + T3/T4 resubmit + refund policy
 ### T13 — Veto 48h (Admin)
 - Từ `submitted|under_review / bất kỳ` → `rejected / cancelled`
 - Guard: `isAdmin` + `isWithin48h` (case.created_at < 48h)
-- **Q1b**: hoàn toàn bộ credit — action `refundCredit` → zero-out balance (pattern vetoCaseUseCase:31-50 — creditLedger `type: 'refund'`, idempotency_key `veto_{caseId}_{ts}`)
+- **Q1b**: hoàn toàn bộ credit — action `refundCredit` → zero-out balance (pattern vetoCaseUseCase:31-50 — creditLedger `type: 'refund'`, idempotency_key `veto_{caseId}_{ts}`). **TODO Wallet (Amendment #3):** sau User Wallet plan → swap sang `WalletService.refund(tx, ownerId, locked_price, caseId, key)` hoàn VND về ví.
 - Emit `CASE_REJECTED` (L5)
 
 ### T14 — Hoàn thành (Supporter tự đóng — Q4)
