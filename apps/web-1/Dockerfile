@@ -25,7 +25,7 @@ RUN turbo prune nexus-platform-web-1 --docker
 FROM base AS deps
 COPY --from=turbo /app/out/json/ .
 COPY --from=turbo /app/out/package-lock.json ./package-lock.json
-RUN npm ci
+RUN npm ci && mkdir -p /app/apps/web-1/node_modules
 
 # -----------------------------------------------------------------------------
 # Stage 4: Build
