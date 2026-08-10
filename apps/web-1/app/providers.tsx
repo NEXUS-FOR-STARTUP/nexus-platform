@@ -27,15 +27,31 @@ const theme = createTheme({
     ],
   },
   fontFamily: "var(--font-google-sans-flex), sans-serif",
+  // Nexus Type Scale v1 — see design-system/nexus-platform/typography.md
   fontSizes: {
-    xs: "1rem",
-    sm: "1rem",
+    xs: "0.75rem", // caption 12px
+    sm: "0.875rem", // small 14px
+    md: "1rem", // body 16px
+    lg: "1.0625rem", // lead 17px
+    xl: "1.125rem", // h4 18px
   },
   headings: {
     fontFamily: "var(--font-google-sans-flex), sans-serif",
     sizes: {
-      h6: { fontSize: "1rem" },
+      h1: { fontSize: "2rem", lineHeight: "1.2", fontWeight: "700" },
+      h2: { fontSize: "1.625rem", lineHeight: "1.25", fontWeight: "700" },
+      h3: { fontSize: "1.375rem", lineHeight: "1.3", fontWeight: "600" },
+      h4: { fontSize: "1.125rem", lineHeight: "1.4", fontWeight: "600" },
+      h5: { fontSize: "1rem", lineHeight: "1.5", fontWeight: "600" },
+      h6: { fontSize: "0.875rem", lineHeight: "1.5", fontWeight: "600" },
     },
+  },
+  components: {
+    TextInput: { defaultProps: { size: "md" } },
+    Textarea: { defaultProps: { size: "md" } },
+    Select: { defaultProps: { size: "md" } },
+    PasswordInput: { defaultProps: { size: "md" } },
+    Button: { defaultProps: { size: "md" } },
   },
 });
 
