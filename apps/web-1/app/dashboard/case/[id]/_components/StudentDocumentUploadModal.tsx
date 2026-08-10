@@ -92,9 +92,9 @@ export default function StudentDocumentUploadModal({ isOpen, onClose, caseId }: 
       title={
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-brand-soft/40 text-brand flex items-center justify-center">
-            <UploadCloud className="w-4 h-4" />
+            <UploadCloud className="w-5 h-5" />
           </div>
-          <span className="font-heading font-semibold text-sm text-text-app">Tải tài liệu bản sửa</span>
+          <h3 className="font-heading font-bold text-h3 text-text-app">Tải tài liệu bản sửa</h3>
         </div>
       }
       size="lg"

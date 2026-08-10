@@ -122,10 +122,10 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-text-app">
-              <Settings className="w-5.5 h-5.5 text-brand" />
-              <h3 className="font-heading font-bold text-lg">Cấu hình thông tin hồ sơ</h3>
+              <Settings className="w-6 h-6 text-brand" />
+              <h3 className="font-heading font-bold text-h3">Cấu hình thông tin hồ sơ</h3>
             </div>
-            <p className="text-text-muted text-sm mt-1">
+            <p className="text-text-muted text-base mt-1">
               Cập nhật tên nhóm, trường học và bối cảnh lớp học để báo cáo phản biện hiển thị chính xác.
             </p>
           </div>
@@ -138,7 +138,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
         </div>
 
         {!isEditable && (
-          <div className="p-3.5 rounded-lg bg-info-soft/40 border border-info/20 text-info text-xs leading-relaxed">
+          <div className="p-3.5 rounded-lg bg-info-soft/40 border border-info/20 text-info text-base leading-relaxed">
             Hồ sơ này đã chính thức được phê duyệt vào quy trình phản biện chuyên sâu. Toàn bộ thông tin cấu hình ban đầu đã được khóa cố định để đảm bảo tính minh bạch cho báo cáo.
           </div>
         )}
@@ -156,6 +156,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
               error={errors.teamName}
               disabled={!isEditable}
               radius="md"
+              size="md"
               withAsterisk
             />
 
@@ -170,6 +171,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
               error={errors.groupNo}
               disabled={!isEditable}
               radius="md"
+              size="md"
             />
 
             <TextInput
@@ -183,6 +185,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
               error={errors.school}
               disabled={!isEditable}
               radius="md"
+              size="md"
               withAsterisk
             />
 
@@ -197,6 +200,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
               error={errors.courseContext}
               disabled={!isEditable}
               radius="md"
+              size="md"
               withAsterisk
             />
           </div>
@@ -206,8 +210,9 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
               type="submit"
               disabled={!isEditable || isUpdatingSettings}
               color="brand"
-              leftSection={isUpdatingSettings ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              className="font-semibold text-base h-10 px-6 cursor-pointer disabled:opacity-60"
+              size="md"
+              leftSection={isUpdatingSettings ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+              className="font-semibold text-base h-11 px-6 cursor-pointer disabled:opacity-60"
             >
               <span>{isUpdatingSettings ? "Đang lưu..." : "Lưu thay đổi"}</span>
             </Button>
@@ -217,17 +222,18 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
         {caseData.user_facing_stage === "submitted" && (
           <div className="pt-6 border-t border-red-500/10 mt-6 space-y-4">
             <div>
-              <h4 className="font-heading font-semibold text-sm text-red-500 flex items-center gap-2">
-                <Trash2 className="w-4.5 h-4.5" />
+              <h4 className="font-heading font-bold text-h4 text-red-500 flex items-center gap-2">
+                <Trash2 className="w-5 h-5" />
                 Vùng nguy hiểm
               </h4>
-              <p className="text-text-muted text-xs mt-1">
+              <p className="text-text-muted text-base mt-1">
                 Hồ sơ này chưa được admin duyệt. Bạn có thể xóa vĩnh viễn hồ sơ này. Hành động này không thể hoàn tác.
               </p>
             </div>
             <div>
               <Button
                 color="red"
+                size="md"
                 variant="outline"
                 onClick={() => setIsDeleteModalOpen(true)}
                 className="font-semibold text-base h-10 px-4 cursor-pointer hover:bg-red-50 hover:text-red-600 border-red-200 text-red-500 rounded-lg"

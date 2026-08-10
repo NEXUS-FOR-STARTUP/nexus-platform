@@ -162,18 +162,18 @@ export default function ExternalFeedbackUploadModal({
       title={
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-brand-soft/40 text-brand flex items-center justify-center">
-            <UploadCloud className="w-4 h-4" />
+            <UploadCloud className="w-5 h-5" />
           </div>
-          <span className="font-heading font-semibold text-sm text-text-app">Tải đánh giá bên ngoài</span>
+          <h3 className="font-heading font-bold text-h3 text-text-app">Tải đánh giá bên ngoài</h3>
         </div>
       }
       size="lg"
       radius="md"
       centered
     >
-      <div className="space-y-4 font-body text-xs pt-1">
+      <div className="space-y-4 font-body pt-1">
         {error && (
-          <div className="p-3 bg-danger-soft border border-danger/10 text-danger rounded-xl text-xs font-semibold flex items-center gap-2 animate-fade-in">
+          <div className="p-3 bg-danger-soft border border-danger/10 text-danger rounded-xl text-sm font-semibold flex items-center gap-2 animate-fade-in">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -188,7 +188,7 @@ export default function ExternalFeedbackUploadModal({
             onChange={(value) => setDocumentTypeCode(value || "")}
             required
             radius="md"
-            className="font-body text-xs"
+            size="md"
           />
 
           <Select
@@ -199,7 +199,7 @@ export default function ExternalFeedbackUploadModal({
             onChange={(value) => setSource((value as any) || "")}
             required
             radius="md"
-            className="font-body text-xs"
+            size="md"
           />
         </div>
 
@@ -211,7 +211,7 @@ export default function ExternalFeedbackUploadModal({
             onChange={(e) => setSourceOtherText(e.target.value)}
             required
             radius="md"
-            className="font-body text-xs"
+            size="md"
           />
         )}
 
@@ -224,7 +224,7 @@ export default function ExternalFeedbackUploadModal({
             onChange={(value) => setTiming((value as any) || "")}
             required
             radius="md"
-            className="font-body text-xs"
+            size="md"
           />
 
           <Select
@@ -235,13 +235,13 @@ export default function ExternalFeedbackUploadModal({
             onChange={(value) => setSelectedVersionNo(value || String(latestVersionNo))}
             required
             radius="md"
-            className="font-body text-xs"
+            size="md"
           />
         </div>
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold text-text-app">Tệp đánh giá đính kèm</label>
+            <label className="text-sm font-semibold text-text-app">Tệp đánh giá đính kèm</label>
             <span className="text-xs text-text-subtle font-medium">Tối đa {MAX_FILES} tệp</span>
           </div>
 
@@ -258,14 +258,14 @@ export default function ExternalFeedbackUploadModal({
             <Dropzone.Accept>
               <div className="flex flex-col items-center justify-center gap-2 py-2 text-success">
                 <CheckCircle2 className="w-8 h-8 animate-bounce" />
-                <p className="font-semibold text-xs">Thả tệp vào đây để tải lên</p>
+                <p className="font-semibold text-base">Thả tệp vào đây để tải lên</p>
               </div>
             </Dropzone.Accept>
 
             <Dropzone.Reject>
               <div className="flex flex-col items-center justify-center gap-2 py-2 text-danger">
                 <AlertCircle className="w-8 h-8" />
-                <p className="font-semibold text-xs">Tệp không đúng định dạng hoặc vượt quá {MAX_FILE_SIZE_MB}MB</p>
+                <p className="font-semibold text-base">Tệp không đúng định dạng hoặc vượt quá {MAX_FILE_SIZE_MB}MB</p>
               </div>
             </Dropzone.Reject>
 
@@ -275,10 +275,10 @@ export default function ExternalFeedbackUploadModal({
                   <UploadCloud className="w-5 h-5" />
                 </div>
                 <div className="space-y-1">
-                  <p className="font-semibold text-xs text-text-app">
+                  <p className="font-semibold text-base text-text-app">
                     Kéo thả hoặc <span className="text-brand underline decoration-brand/30">bấm để chọn tệp</span> đánh giá
                   </p>
-                  <p className="text-xs text-text-subtle">
+                  <p className="text-sm text-text-subtle">
                     Hỗ trợ PDF, DOCX, XLSX, PPTX, MD, TXT. Tối đa {MAX_FILE_SIZE_MB}MB mỗi tệp.
                   </p>
                 </div>
@@ -301,9 +301,9 @@ export default function ExternalFeedbackUploadModal({
                     <div className="w-8 h-8 rounded-lg bg-brand-soft/40 text-brand flex items-center justify-center shrink-0">
                       <FileText className="w-4 h-4" />
                     </div>
-                    <div className="min-w-0 font-body text-xs">
-                      <p className="font-semibold text-text-app truncate">{file.name}</p>
-                      <p className="text-text-subtle">{(file.size / 1024).toFixed(1)} KB</p>
+                    <div className="min-w-0 font-body text-base">
+                      <p className="font-semibold text-text-app truncate text-base">{file.name}</p>
+                      <p className="text-xs text-text-subtle">{(file.size / 1024).toFixed(1)} KB</p>
                     </div>
                   </div>
                   {!isSubmitting && (
@@ -331,7 +331,7 @@ export default function ExternalFeedbackUploadModal({
           autosize
           variant="default"
           radius="md"
-          className="font-body text-xs"
+          size="md"
         />
 
         <div className="flex items-center justify-end gap-3 pt-3 border-t border-border-app">

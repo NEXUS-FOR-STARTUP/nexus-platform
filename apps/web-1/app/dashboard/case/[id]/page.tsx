@@ -136,9 +136,9 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               <div className="mb-4 flex justify-end gap-3">
                 {stage === "intake_ready" && (
                   <Button
-                    size="sm"
+                    size="md"
                     color="brand"
-                    className="font-semibold cursor-pointer h-10 text-xs"
+                    className="font-semibold cursor-pointer h-10 px-4 text-base"
                     onClick={() => router.push(`/dashboard/intake?caseId=${id}`)}
                   >
                     Cập nhật thông tin
@@ -146,19 +146,19 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                 )}
                 {canSubmitRevision && (
                   <Button
-                    size="sm"
+                    size="md"
                     color="brand"
-                    className="font-semibold cursor-pointer h-10 text-xs"
+                    className="font-semibold cursor-pointer h-10 px-4 text-base"
                     onClick={() => setIsStudentUploadOpen(true)}
                   >
                     Tải tài liệu
                   </Button>
                 )}
                 <Button
-                  size="sm"
+                  size="md"
                   color="brand"
                   variant="light"
-                  className="font-semibold cursor-pointer h-10 text-xs"
+                  className="font-semibold cursor-pointer h-10 px-4 text-base"
                   onClick={() => setIsFeedbackOpen(true)}
                 >
                   Tải đánh giá bên ngoài

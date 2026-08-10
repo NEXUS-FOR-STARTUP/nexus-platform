@@ -153,11 +153,11 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
         style={{ background: "var(--color-surface-soft)" }}
       >
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-brand" />
-          <span className="text-xs font-semibold text-text-app tracking-wide">Trao đổi</span>
+          <MessageSquare className="w-4.5 h-4.5 text-brand" />
+          <span className="text-sm font-semibold text-text-app tracking-wide">Trao đổi</span>
           {messages.length > 0 && (
             <span
-              className="text-xs font-semibold px-1.5 py-0.5 rounded-full"
+              className="text-xs font-semibold px-2 py-0.5 rounded-full"
               style={{ background: "var(--color-brand-soft)", color: "var(--color-brand)" }}
             >
               {messages.length}
@@ -303,11 +303,11 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
                                     }
                               }
                             >
-                              <p className="text-base" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", fontWeight: 500, lineHeight: "1.4" }}>
+                              <p className="text-base" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", fontWeight: 400, lineHeight: "1.4" }}>
                                 {msg.content}
                               </p>
                               <p
-                                className="mt-1 select-none text-base"
+                                className="mt-1 select-none text-xs"
                                 style={{
                                   textAlign: isMe ? "right" : "left",
                                   opacity: isMe ? 0.75 : 0.6,
@@ -372,6 +372,7 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
                   background: "transparent",
                   border: "none",
                   lineHeight: "1.5",
+                  fontSize: "16px",
                   padding: "6px 0",
                   minHeight: "26px",
                   color: "var(--color-text-app)",

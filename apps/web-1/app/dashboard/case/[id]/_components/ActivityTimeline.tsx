@@ -53,7 +53,7 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
                   <h4 className="font-heading font-bold text-base text-text-app tracking-tight">
                     {label}
                   </h4>
-                  <span className="text-base text-text-subtle font-mono bg-surface-soft px-2 py-0.5 rounded border border-border-app/40 shrink-0">
+                  <span className="text-xs text-text-subtle font-mono bg-surface-soft px-2 py-0.5 rounded border border-border-app/40 shrink-0">
                     {formatDateTime(event.created_at)}
                   </span>
                 </div>
@@ -67,11 +67,11 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
                 </p>
 
                 {event.actor && (
-                  <div className="pt-1 flex items-center gap-1.5 text-base text-text-subtle">
+                  <div className="pt-1 flex items-center gap-1.5 text-sm text-text-subtle">
                     <span>Thực hiện bởi:</span>
-                    <span className="font-semibold text-text-app bg-surface-soft px-2 py-0.5 rounded border border-border-app/60 inline-flex items-center gap-1">
+                    <span className="font-semibold text-text-app bg-surface-soft px-2 py-0.5 rounded border border-border-app/60 inline-flex items-center gap-1 text-sm">
                       {event.actor.name}
-                      <span className="text-text-subtle font-normal">({event.actor.role === "admin" ? "Admin" : event.actor.role === "supporter" ? "Supporter" : "Sinh viên"})</span>
+                      <span className="text-text-subtle font-normal text-xs">({event.actor.role === "admin" ? "Admin" : event.actor.role === "supporter" ? "Supporter" : "Sinh viên"})</span>
                     </span>
                   </div>
                 )}

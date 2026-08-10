@@ -83,8 +83,12 @@ export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps)
       <Card withBorder padding="lg" radius="md">
         <Tabs value={activeTab} onChange={(value) => setActiveTab((value ?? "documents") as WorkspaceTab)}>
           <Tabs.List>
-            <Tabs.Tab value="documents" leftSection={<FileText className="w-4 h-4" />}>Tài liệu ({documentRows.length})</Tabs.Tab>
-            <Tabs.Tab value="external-feedback" leftSection={<CheckCircle className="w-4 h-4" />}>Đánh giá bên ngoài ({feedbackRows.length})</Tabs.Tab>
+            <Tabs.Tab value="documents" leftSection={<FileText className="w-4.5 h-4.5" />}>
+              <span className="text-base font-semibold">Tài liệu ({documentRows.length})</span>
+            </Tabs.Tab>
+            <Tabs.Tab value="external-feedback" leftSection={<CheckCircle className="w-4.5 h-4.5" />}>
+              <span className="text-base font-semibold">Đánh giá bên ngoài ({feedbackRows.length})</span>
+            </Tabs.Tab>
           </Tabs.List>
 
           <Tabs.Panel value="documents" pt="md">
@@ -152,14 +156,14 @@ function DocumentTable({
   }, [rows, filterRole]);
 
   if (rows.length === 0) {
-    return <Text size="sm" c="dimmed">{emptyMessage}</Text>;
+    return <Text size="base" c="dimmed">{emptyMessage}</Text>;
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 font-body">
       {/* Quick Filter Control */}
-      <div className="flex items-center justify-between gap-4 bg-surface-soft/40 p-2 rounded-xl border border-border-app">
-        <div className="flex items-center gap-2 text-xs font-semibold text-text-subtle px-2">
+      <div className="flex items-center justify-between gap-4 bg-surface-soft/40 p-2.5 rounded-xl border border-border-app">
+        <div className="flex items-center gap-2 text-sm font-medium text-text-subtle px-2">
           <span>Lọc người gửi:</span>
         </div>
         <SegmentedControl
@@ -181,19 +185,19 @@ function DocumentTable({
           <Table highlightOnHover verticalSpacing="md" horizontalSpacing="md">
             <Table.Thead className="bg-surface-soft">
               <Table.Tr>
-                <Table.Th style={{ width: "95px" }}>{versionHeader}</Table.Th>
-                <Table.Th style={{ width: "160px" }}>{contextHeader}</Table.Th>
-                <Table.Th style={{ width: "140px" }}>Người tải</Table.Th>
-                <Table.Th>Tài liệu / Đường dẫn</Table.Th>
-                <Table.Th style={{ width: "150px" }}>Ngày tải</Table.Th>
-                <Table.Th style={{ width: "130px" }}>Nguồn</Table.Th>
-                <Table.Th style={{ width: "110px" }}>Định dạng</Table.Th>
+                <Table.Th style={{ width: "105px" }} className="text-sm font-bold text-text-app">{versionHeader}</Table.Th>
+                <Table.Th style={{ width: "165px" }} className="text-sm font-bold text-text-app">{contextHeader}</Table.Th>
+                <Table.Th style={{ width: "145px" }} className="text-sm font-bold text-text-app">Người tải</Table.Th>
+                <Table.Th className="text-sm font-bold text-text-app">Tài liệu / Đường dẫn</Table.Th>
+                <Table.Th style={{ width: "155px" }} className="text-sm font-bold text-text-app">Ngày tải</Table.Th>
+                <Table.Th style={{ width: "135px" }} className="text-sm font-bold text-text-app">Nguồn</Table.Th>
+                <Table.Th style={{ width: "115px" }} className="text-sm font-bold text-text-app">Định dạng</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
               {filteredRows.length === 0 ? (
                 <Table.Tr>
-                  <Table.Td colSpan={7} className="text-center py-6 text-text-muted text-xs">
+                  <Table.Td colSpan={7} className="text-center py-6 text-text-muted text-sm">
                     Không có tài liệu nào thuộc bộ lọc này.
                   </Table.Td>
                 </Table.Tr>
@@ -205,7 +209,7 @@ function DocumentTable({
                   return (
                     <Table.Tr key={row.key} className={isSupporter ? "bg-brand-soft/5 hover:bg-brand-soft/10" : undefined}>
                       <Table.Td>
-                        <Text size="xs" fw={600} className="font-mono">{row.versionLabel}</Text>
+                        <Text size="sm" fw={600} className="font-mono">{row.versionLabel}</Text>
                       </Table.Td>
                       <Table.Td>
                         <Badge
@@ -252,7 +256,7 @@ function DocumentTable({
                             rel="noopener noreferrer"
                             underline="always"
                             color="brand"
-                            className="hover:text-brand-hover transition-colors break-all whitespace-normal block text-xs font-medium"
+                            className="hover:text-brand-hover transition-colors break-all whitespace-normal block text-sm font-medium"
                             style={{ maxWidth: "450px" }}
                           >
                             {row.displayName}
@@ -260,15 +264,15 @@ function DocumentTable({
                         ) : (
                           <Group gap="xs" wrap="nowrap">
                             <Lock className="w-3.5 h-3.5 text-text-muted shrink-0" />
-                            <Text c="dimmed" className="break-all whitespace-normal block text-xs" style={{ maxWidth: "450px" }}>
+                            <Text c="dimmed" className="break-all whitespace-normal block text-sm" style={{ maxWidth: "450px" }}>
                               {row.displayName}
                             </Text>
                           </Group>
                         )}
                       </Table.Td>
-                      <Table.Td><Text size="xs" c="dimmed">{formatDate(row.createdAt)}</Text></Table.Td>
-                      <Table.Td><Text size="xs">{row.sourceLabel}</Text></Table.Td>
-                      <Table.Td><Text size="xs" className="font-mono uppercase">{row.formatLabel}</Text></Table.Td>
+                      <Table.Td><Text size="sm" c="dimmed">{formatDate(row.createdAt)}</Text></Table.Td>
+                      <Table.Td><Text size="sm">{row.sourceLabel}</Text></Table.Td>
+                      <Table.Td><Text size="sm" className="font-mono uppercase">{row.formatLabel}</Text></Table.Td>
                     </Table.Tr>
                   );
                 })
