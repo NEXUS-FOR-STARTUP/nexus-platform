@@ -168,9 +168,9 @@ caseResponse.allowed_transitions = allowed_transitions;
 
 Mỗi use case chuyển qua cổng XONG → code path cũ (symflow) cho transition đó PHẢI bị vô hiệu ngay:
 
-- `update-case-status.usecase.ts` (13 callers, symflow `applyTransition`) — hiện phục vụ T5/T6/T7/T8/T10/T11 path cũ. Khi transition nào chuyển xong → loại transition đó khỏi use case (hoặc feature flag `USE_XSTATE` per transition, mặc định sau khi chuyển = true)
+- `update-case-status.usecase.ts` (13 callers, symflow `applyTransition`) — hiện phục vụ T5/T6/T7/T8/T10/T11 path cũ. Khi transition nào chuyển xong → **hardcode remove** transition đó khỏi use case. KHÔNG env flag — rollback = revert commit (plan.md:184).
 - **KHÔNG để 2 engine cùng active cho cùng 1 transition** — race ghi internal_status
-- Transition CHƯA chuyển (T12/T13/T14/T15 — chuyển ở phase 06) vẫn qua symflow path → flag per-transition
+- Transition CHƯA chuyển (T12/T13/T14/T15 — chuyển ở phase 06) vẫn qua symflow path → giữ nguyên không đụng
 - Grep kiểm tra sau khi chuyển: `applyTransition` chỉ còn được gọi bởi transition chưa chuyển
 
 ### 4c. F11 — Xóa bảng tay `isValidStageTransition`

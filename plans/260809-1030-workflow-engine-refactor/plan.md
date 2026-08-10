@@ -194,13 +194,13 @@ KHÔNG ĐỔI  resubmit-case.usecase.ts (giữ logic cũ — chuyển phase 06, 
 - **Q4 (T14)** hoàn thành: **supporter tự đóng** (guard `isAssignedSupporter`) → notify user + supporter (fix #5)
 - **Q5** credit check: **khi admin duyệt T5** (guard `hasCredit`, bỏ `isPaid` — credit mua bằng ví VND lúc tạo case). Free case (price=0) → hasCredit tự skip. KHÔNG check khi nộp T2 — xóa `requireCredits` khỏi submit-intake
 
-### Action Items
+### Action Items (plan writing — đã ghi vào phase files)
 - [x] Phase-02: khai báo T3/T4/T12-T15 trong machine (hết blocked), `isBlockedTransition` trả false
 - [x] Phase-03: thêm action `refundCredit` (executor) + T5/T3 cần creditBalance trong tx
 - [x] Phase-04: xóa `requireCredits` submit-intake (Q5), accept thêm guard hasCredit
 - [x] Phase-05: thay nhóm test blocked bằng 6 test policy T12-T15
 - [x] Phase-06: unblock — requirements + guards policy thật, effort 4h
 - [x] plan.md: effort 16.5h → 20.5h, phase-06 Pending, branch frontmatter → feat/workflow-engine-refactor
-- [ ] Phase-04: hardcode remove per-transition trong update-case-status (không viết feature flag)
-- [ ] Phase-04 FE: tạo const map `TransitionName → label/nút` dùng chung StatusGuidanceCard + AdminCaseDetailModal
-- [ ] Phase-01: giữ `xstate@latest` (đã chốt) — spike ._action (F9) vẫn bắt buộc đầu phase-02
+- [x] Phase-04: vô hiệu per-transition trong update-case-status (không feature flag — F5, phase-04:20)
+- [x] Phase-04 FE: allowed_transitions từ registry, FE map TransitionName → label/nút (phase-04:39)
+- [x] F9 spike `._action`: **bỏ** — v5 không dùng `transition()` / `._action`. Runtime dùng transition table (phase-02 đã sửa 2026-08-11).
