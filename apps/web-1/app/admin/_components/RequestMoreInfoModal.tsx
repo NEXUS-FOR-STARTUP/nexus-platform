@@ -45,8 +45,8 @@ export default function RequestMoreInfoModal({
       opened={caseId !== null}
       onClose={onClose}
       title={
-        <div className="flex items-center gap-1.5 text-warning font-heading font-semibold text-sm">
-          <Info className="w-4 h-4" />
+        <div className="flex items-center gap-2 text-warning font-heading font-bold text-h3">
+          <Info className="w-6 h-6" />
           <span>Yêu cầu bổ sung thông tin</span>
         </div>
       }

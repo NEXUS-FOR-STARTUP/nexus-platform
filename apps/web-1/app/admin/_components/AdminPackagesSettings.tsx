@@ -94,12 +94,12 @@ export default function AdminPackagesSettings({
         <Table striped highlightOnHover verticalSpacing="sm" horizontalSpacing="md">
           <Table.Thead className="bg-brand-soft">
             <Table.Tr>
-              <Table.Th className="text-left">Tên gói dịch vụ</Table.Th>
-              <Table.Th className="text-left w-36">Trạng thái</Table.Th>
-              <Table.Th className="text-left w-52">Hiển thị với khách mới</Table.Th>
-              <Table.Th className="text-left w-56">Đơn giá hiện tại (VNĐ)</Table.Th>
-              <Table.Th className="text-left w-56">Thiết lập giá mới (VNĐ)</Table.Th>
-              <Table.Th className="text-center w-44" style={{ textAlign: "center" }}>Thao tác</Table.Th>
+              <Table.Th className="text-left text-sm font-bold text-text-app">Tên gói dịch vụ</Table.Th>
+              <Table.Th className="text-left w-36 text-sm font-bold text-text-app">Trạng thái</Table.Th>
+              <Table.Th className="text-left w-52 text-sm font-bold text-text-app">Hiển thị với khách mới</Table.Th>
+              <Table.Th className="text-left w-56 text-sm font-bold text-text-app">Đơn giá hiện tại (VNĐ)</Table.Th>
+              <Table.Th className="text-left w-56 text-sm font-bold text-text-app">Thiết lập giá mới (VNĐ)</Table.Th>
+              <Table.Th className="text-center w-44 text-sm font-bold text-text-app" style={{ textAlign: "center" }}>Thao tác</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -109,9 +109,9 @@ export default function AdminPackagesSettings({
 
               return (
                 <Table.Tr key={pkg.id} className="hover:bg-surface-soft/30 transition-colors">
-                  <Table.Td>
+                  <Table.Td className="text-sm">
                     <Stack gap="xs">
-                      <Text fw={600} className="text-text-app">
+                      <Text fw={600} className="text-text-app text-sm">
                         {pkg.name}
                       </Text>
                       {pkg.features && Array.isArray(pkg.features) && (
@@ -129,24 +129,25 @@ export default function AdminPackagesSettings({
                       )}
                     </Stack>
                   </Table.Td>
-                  <Table.Td>
-                    <Badge color={pkg.is_active ? "green" : "gray"} variant="light" size="lg">
+                  <Table.Td className="text-sm">
+                    <Badge color={pkg.is_active ? "green" : "gray"} variant="light" size="sm">
                       {pkg.is_active ? "Đang bật" : "Đã tắt"}
                     </Badge>
                   </Table.Td>
-                  <Table.Td>
+                  <Table.Td className="text-sm">
                     <Switch
                       checked={pkg.is_active}
                       onChange={() => handleToggleStatus(pkg)}
                       disabled={isUpdatingStatus}
-                      label={pkg.is_active ? "Đang hiển thị" : "Đang ẩn"}
+                      label={<span className="text-sm font-medium">{pkg.is_active ? "Đang hiển thị" : "Đang ẩn"}</span>}
                       color="brand"
+                      size="md"
                     />
                   </Table.Td>
-                  <Table.Td>
-                    <Text fw={600} c="red">{formatPrice(pkg.price)}</Text>
+                  <Table.Td className="text-sm">
+                    <Text fw={600} c="red" size="sm">{formatPrice(pkg.price)}</Text>
                   </Table.Td>
-                  <Table.Td>
+                  <Table.Td className="text-sm">
                     <NumberInput
                       value={currentInputVal}
                       onChange={(val) => handlePriceChange(pkg.id, val)}
@@ -156,9 +157,10 @@ export default function AdminPackagesSettings({
                       suffix=" VNĐ"
                       placeholder="Nhập giá mới..."
                       radius="md"
+                      size="md"
                     />
                   </Table.Td>
-                  <Table.Td className="text-center">
+                  <Table.Td className="text-center text-sm">
                     <div className="flex items-center justify-center w-full">
                       <Button
                         onClick={() => handleUpdatePrice(pkg)}
@@ -166,8 +168,9 @@ export default function AdminPackagesSettings({
                         loading={isUpdatingPrice}
                         variant="filled"
                         color="brand"
-                        size="xs"
+                        size="md"
                         radius="md"
+                        className="font-semibold text-base h-10 px-4"
                       >
                         Cập nhật giá
                       </Button>

@@ -240,19 +240,19 @@ export default function AdminDocumentsTable({
         <Table striped highlightOnHover withTableBorder withColumnBorders verticalSpacing="sm" horizontalSpacing="md">
           <Table.Thead className="bg-brand-soft">
             <Table.Tr>
-              <Table.Th className="text-left min-w-[200px]">Tên tài liệu</Table.Th>
-              <Table.Th className="text-left w-20">Định dạng</Table.Th>
-              <Table.Th className="text-left w-28">Loại</Table.Th>
-              <Table.Th className="text-left min-w-[150px]">Dự án liên quan</Table.Th>
-              <Table.Th className="text-left min-w-[150px]">Người tải lên</Table.Th>
-              <Table.Th className="text-left min-w-[140px]">Ngày tải</Table.Th>
-              <Table.Th className="text-center w-20" style={{ textAlign: "center" }}>Thao tác</Table.Th>
+              <Table.Th className="text-left min-w-[200px] text-sm font-bold text-text-app">Tên tài liệu</Table.Th>
+              <Table.Th className="text-left w-20 text-sm font-bold text-text-app">Định dạng</Table.Th>
+              <Table.Th className="text-left w-28 text-sm font-bold text-text-app">Loại</Table.Th>
+              <Table.Th className="text-left min-w-[150px] text-sm font-bold text-text-app">Dự án liên quan</Table.Th>
+              <Table.Th className="text-left min-w-[150px] text-sm font-bold text-text-app">Người tải lên</Table.Th>
+              <Table.Th className="text-left min-w-[140px] text-sm font-bold text-text-app">Ngày tải</Table.Th>
+              <Table.Th className="text-center w-20 text-sm font-bold text-text-app" style={{ textAlign: "center" }}>Thao tác</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
             {filteredAndSortedDocuments.length === 0 ? (
               <Table.Tr>
-                <Table.Td colSpan={7} className="text-center py-8 text-text-muted font-body text-xs">
+                <Table.Td colSpan={7} className="text-center py-8 text-text-muted font-body text-sm">
                   Không tìm thấy tài liệu phù hợp với bộ lọc hiện tại.
                 </Table.Td>
               </Table.Tr>
@@ -260,7 +260,7 @@ export default function AdminDocumentsTable({
               paginatedDocs.map((doc) => (
                 <Table.Tr key={doc.id} className="hover:bg-surface-soft/30 transition-colors">
                   {/* File name & Download URL */}
-                  <Table.Td>
+                  <Table.Td className="text-sm">
                     <div className="flex items-center gap-2 max-w-[280px]">
                       {getFileIcon(doc.extension)}
                       <div className="truncate">
@@ -269,14 +269,14 @@ export default function AdminDocumentsTable({
                             href={doc.download_url || doc.file_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-semibold text-brand hover:underline flex items-center gap-1 inline-flex"
+                            className="font-medium text-brand hover:underline flex items-center gap-1 inline-flex text-sm"
                             title={doc.original_name}
                           >
                             <span className="truncate max-w-[220px]">{doc.original_name}</span>
                             <ExternalLink className="w-3.5 h-3.5 text-text-subtle shrink-0" />
                           </a>
                         ) : (
-                          <span className="text-text-app font-semibold" title={doc.original_name}>
+                          <span className="text-text-app font-medium text-sm" title={doc.original_name}>
                             {doc.original_name}
                           </span>
                         )}
@@ -285,36 +285,36 @@ export default function AdminDocumentsTable({
                   </Table.Td>
 
                   {/* Extension */}
-                  <Table.Td className="font-mono text-base">
+                  <Table.Td className="font-mono text-sm">
                     <Badge color="gray" variant="light" size="sm">
                       {doc.extension ? `.${doc.extension.toUpperCase()}` : "RAW"}
                     </Badge>
                   </Table.Td>
 
                   {/* Doc type */}
-                  <Table.Td>
+                  <Table.Td className="text-sm">
                     <Badge color="blue" variant="light" size="sm">
                       {doc.doc_type}
                     </Badge>
                   </Table.Td>
 
                   {/* Related Case */}
-                  <Table.Td>
+                  <Table.Td className="text-sm">
                     <div className="flex flex-col gap-0.5">
-                      <span className="font-heading font-semibold text-base text-text-app flex items-center gap-1">
+                      <span className="font-heading font-semibold text-sm text-text-app flex items-center gap-1">
                         <Folder className="w-3.5 h-3.5 text-brand" />
                         {doc.case_code}
                       </span>
-                      <span className="text-base text-text-muted truncate max-w-[180px]">
+                      <span className="text-xs text-text-muted truncate max-w-[180px]">
                         {doc.team_name}
                       </span>
                     </div>
                   </Table.Td>
 
                   {/* Uploaded By */}
-                  <Table.Td>
+                  <Table.Td className="text-sm">
                     <div className="flex flex-col gap-0.5">
-                      <span className="font-semibold text-base text-text-app flex items-center gap-1">
+                      <span className="font-medium text-sm text-text-app flex items-center gap-1">
                         <User className="w-3.5 h-3.5 text-text-muted" />
                         {doc.uploaded_by}
                       </span>

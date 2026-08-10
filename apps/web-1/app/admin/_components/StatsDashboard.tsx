@@ -173,8 +173,8 @@ export default function StatsDashboard({
             className="border-border-app bg-surface-app shadow-xs"
           >
             <Group gap="xs" mb={4}>
-              <card.icon className="w-4 h-4" style={{ color: card.color }} />
-              <Text size="xs" c="dimmed" className="font-body">
+              <card.icon className="w-4.5 h-4.5" style={{ color: card.color }} />
+              <Text size="sm" c="dimmed" className="font-body font-medium">
                 {card.label}
               </Text>
             </Group>
@@ -193,12 +193,12 @@ export default function StatsDashboard({
         <Paper p="md" radius="md" withBorder className="border-border-app bg-surface-app lg:col-span-2 shadow-xs">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-brand" />
-              <Text size="sm" fw={600} className="font-heading text-text-app">
+              <Activity className="w-4.5 h-4.5 text-brand" />
+              <Text size="md" fw={700} className="font-heading text-h4 text-text-app">
                 Xu hướng Doanh thu theo thời gian
               </Text>
             </div>
-            <Text size="xs" c="dimmed">
+            <Text size="sm" c="dimmed">
               (Đơn vị: VNĐ)
             </Text>
           </div>
@@ -225,8 +225,8 @@ export default function StatsDashboard({
 
         <Paper p="md" radius="md" withBorder className="border-border-app bg-surface-app shadow-xs">
           <div className="flex items-center gap-2 mb-4">
-            <Layers className="w-4 h-4 text-brand" />
-            <Text size="sm" fw={600} className="font-heading text-text-app">
+            <Layers className="w-4.5 h-4.5 text-brand" />
+            <Text size="md" fw={700} className="font-heading text-h4 text-text-app">
               Phân bố trạng thái hồ sơ
             </Text>
           </div>
@@ -252,8 +252,8 @@ export default function StatsDashboard({
       <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
         <Paper p="md" radius="md" withBorder className="border-border-app bg-surface-app shadow-xs">
           <div className="flex items-center gap-2 mb-4">
-            <FileText className="w-4 h-4 text-brand" />
-            <Text size="sm" fw={600} className="font-heading text-text-app">
+            <FileText className="w-4.5 h-4.5 text-brand" />
+            <Text size="md" fw={700} className="font-heading text-h4 text-text-app">
               Tốc độ tiếp nhận hồ sơ mới (Miễn phí vs Trả phí)
             </Text>
           </div>
@@ -279,8 +279,8 @@ export default function StatsDashboard({
 
         <Paper p="md" radius="md" withBorder className="border-border-app bg-surface-app shadow-xs">
           <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-4 h-4 text-brand" />
-            <Text size="sm" fw={600} className="font-heading text-text-app">
+            <TrendingUp className="w-4.5 h-4.5 text-brand" />
+            <Text size="md" fw={700} className="font-heading text-h4 text-text-app">
               Khối lượng công việc Supporter chuyên môn
             </Text>
           </div>

@@ -45,8 +45,8 @@ export default function RejectCaseModal({
       opened={caseId !== null}
       onClose={onClose}
       title={
-        <div className="flex items-center gap-1.5 text-danger font-heading font-semibold text-sm">
-          <XCircle className="w-4 h-4" />
+        <div className="flex items-center gap-2 text-danger font-heading font-bold text-h3">
+          <XCircle className="w-6 h-6" />
           <span>Từ chối hồ sơ phản biện</span>
         </div>
       }

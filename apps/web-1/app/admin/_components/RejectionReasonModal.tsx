@@ -33,8 +33,8 @@ export default function RejectionReasonModal({
       opened={isOpen}
       onClose={handleClose}
       title={
-        <div className="flex items-center gap-1.5 text-danger font-heading font-semibold text-sm">
-          <AlertCircle className="w-4 h-4" />
+        <div className="flex items-center gap-2 text-danger font-heading font-bold text-h3">
+          <AlertCircle className="w-6 h-6" />
           <span>Từ chối giao dịch thanh toán</span>
         </div>
       }

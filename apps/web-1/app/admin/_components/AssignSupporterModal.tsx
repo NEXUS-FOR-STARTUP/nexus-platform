@@ -48,8 +48,8 @@ export default function AssignSupporterModal({
       opened={caseId !== null}
       onClose={onClose}
       title={
-        <div className="flex items-center gap-1.5 text-brand font-heading font-semibold text-sm">
-          <UserCheck className="w-4 h-4" />
+        <div className="flex items-center gap-2 text-brand font-heading font-bold text-h3">
+          <UserCheck className="w-6 h-6" />
           <span>Phân công Supporter</span>
         </div>
       }

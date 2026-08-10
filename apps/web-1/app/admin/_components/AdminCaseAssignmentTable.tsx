@@ -180,21 +180,21 @@ export default function AdminCaseAssignmentTable({
 
       <Table.ScrollContainer minWidth={1000}>
         <Table striped highlightOnHover withTableBorder withColumnBorders verticalSpacing="sm" horizontalSpacing="xs">
-          <Table.Thead className="bg-brand-soft">
+          <Table.Thead className="bg-brand-soft/80">
             <Table.Tr>
-              <Table.Th className="text-left whitespace-nowrap min-w-[120px]">Mã hồ sơ</Table.Th>
-              <Table.Th className="text-left">Nhóm / Đề tài</Table.Th>
-              <Table.Th className="text-left">Gói dịch vụ</Table.Th>
-              <Table.Th className="text-left">Trạng thái</Table.Th>
-              <Table.Th className="text-left">Người phụ trách</Table.Th>
-              <Table.Th className="text-center w-20">SLA</Table.Th>
-              <Table.Th className="text-center whitespace-nowrap min-w-[120px]" style={{ textAlign: "center" }}>Thao tác</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap min-w-[120px] text-sm font-bold text-text-app">Mã hồ sơ</Table.Th>
+              <Table.Th className="text-left text-sm font-bold text-text-app">Nhóm / Đề tài</Table.Th>
+              <Table.Th className="text-left text-sm font-bold text-text-app">Gói dịch vụ</Table.Th>
+              <Table.Th className="text-left text-sm font-bold text-text-app">Trạng thái</Table.Th>
+              <Table.Th className="text-left text-sm font-bold text-text-app">Người phụ trách</Table.Th>
+              <Table.Th className="text-center w-20 text-sm font-bold text-text-app">SLA</Table.Th>
+              <Table.Th className="text-center whitespace-nowrap min-w-[120px] text-sm font-bold text-text-app" style={{ textAlign: "center" }}>Thao tác</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
             {filteredAndSortedCases.length === 0 ? (
               <Table.Tr>
-                <Table.Td colSpan={7} className="text-center py-8 text-text-muted">
+                <Table.Td colSpan={7} className="text-center py-8 text-text-muted text-sm">
                   Không tìm thấy kết quả phù hợp với bộ lọc hiện tại.
                 </Table.Td>
               </Table.Tr>
@@ -202,18 +202,18 @@ export default function AdminCaseAssignmentTable({
               paginatedCases.map((item) => {
                 return (
                   <Table.Tr key={item.id} className={`${getSlaRowClass(item.sla_deadline_at)} hover:bg-surface-soft/30 transition-colors`}>
-                    <Table.Td className="font-heading font-semibold text-xs whitespace-nowrap" title={item.case_code}>
+                    <Table.Td className="font-heading font-semibold text-sm whitespace-nowrap" title={item.case_code}>
                       {item.case_code && item.case_code.length > 30 ? `${item.case_code.slice(0, 30)}...` : item.case_code}
                     </Table.Td>
                     <Table.Td>
-                      <div className="font-semibold text-text-app" title={item.team_name || "Chưa đặt tên"}>
+                      <div className="font-semibold text-text-app text-sm" title={item.team_name || "Chưa đặt tên"}>
                         {item.team_name && item.team_name.length > 30 ? `${item.team_name.slice(0, 30)}...` : (item.team_name || "Chưa đặt tên")}
                       </div>
-                      <div className="text-base text-text-muted" title={item.owner_name}>
+                      <div className="text-xs text-text-muted" title={item.owner_name}>
                         Chủ sở hữu: {item.owner_name && item.owner_name.length > 30 ? `${item.owner_name.slice(0, 30)}...` : item.owner_name}
                       </div>
                     </Table.Td>
-                    <Table.Td className="text-text-muted" title={item.package_name}>
+                    <Table.Td className="text-text-app text-sm font-medium" title={item.package_name}>
                       {item.package_name && item.package_name.length > 30 ? `${item.package_name.slice(0, 30)}...` : item.package_name}
                     </Table.Td>
                     <Table.Td>
@@ -227,15 +227,15 @@ export default function AdminCaseAssignmentTable({
                           : "gray"
                         }
                         variant="light"
-                        size="md"
+                        size="sm"
                       >
                         {statusThemeMap[item.internal_status]?.label || item.internal_status}
                       </Badge>
                     </Table.Td>
-                    <Table.Td>
+                    <Table.Td className="text-sm">
                       {item.assigned_supporter?.name ? (
-                        <div className="flex items-center gap-1.5 font-semibold text-text-app">
-                          <UserCheck className="w-3.5 h-3.5 text-brand shrink-0" />
+                        <div className="flex items-center gap-1.5 font-semibold text-text-app text-sm">
+                          <UserCheck className="w-4 h-4 text-brand shrink-0" />
                           <span className="truncate" title={item.assigned_supporter.name}>
                             {item.assigned_supporter.name}
                           </span>

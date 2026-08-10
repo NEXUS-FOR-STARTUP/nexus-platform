@@ -37,8 +37,8 @@ export default function ApprovePaymentModal({
       opened={paymentId !== null}
       onClose={onClose}
       title={
-        <div className="flex items-center gap-2 text-teal-600 font-heading font-semibold text-sm">
-          <CheckCircle2 className="w-5 h-5 text-teal-600 shrink-0" />
+        <div className="flex items-center gap-2 text-teal-600 font-heading font-bold text-h3">
+          <CheckCircle2 className="w-6 h-6 text-teal-600 shrink-0" />
           <span>Xác nhận duyệt thanh toán</span>
         </div>
       }

@@ -143,15 +143,15 @@ export default function AdminPaymentVerificationTable({
         <Table striped highlightOnHover withTableBorder withColumnBorders verticalSpacing="sm" horizontalSpacing="xs">
           <Table.Thead className="bg-brand-soft">
             <Table.Tr>
-              <Table.Th className="text-left whitespace-nowrap min-w-[100px]">Mã hồ sơ</Table.Th>
-              <Table.Th className="text-left whitespace-nowrap min-w-[100px]">Gói dịch vụ</Table.Th>
-              <Table.Th className="text-left whitespace-nowrap min-w-[90px]">Người nộp</Table.Th>
-              <Table.Th className="text-left whitespace-nowrap min-w-[90px]">Số tiền</Table.Th>
-              <Table.Th className="text-left whitespace-nowrap min-w-[150px]">Nội dung chuyển khoản</Table.Th>
-              <Table.Th className="text-left whitespace-nowrap min-w-[120px]">Mã GD ngân hàng</Table.Th>
-              <Table.Th className="text-left whitespace-nowrap min-w-[110px]">Thời gian gửi</Table.Th>
-              <Table.Th className="text-left whitespace-nowrap min-w-[120px]">Biên lai giao dịch</Table.Th>
-              <Table.Th className="text-center whitespace-nowrap min-w-[130px]" style={{ textAlign: "center" }}>Thao tác</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap min-w-[100px] text-sm font-bold text-text-app">Mã hồ sơ</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap min-w-[100px] text-sm font-bold text-text-app">Gói dịch vụ</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap min-w-[90px] text-sm font-bold text-text-app">Người nộp</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap min-w-[90px] text-sm font-bold text-text-app">Số tiền</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap min-w-[150px] text-sm font-bold text-text-app">Nội dung chuyển khoản</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap min-w-[120px] text-sm font-bold text-text-app">Mã GD ngân hàng</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap min-w-[110px] text-sm font-bold text-text-app">Thời gian gửi</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap min-w-[120px] text-sm font-bold text-text-app">Biên lai giao dịch</Table.Th>
+              <Table.Th className="text-center whitespace-nowrap min-w-[130px] text-sm font-bold text-text-app" style={{ textAlign: "center" }}>Thao tác</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -164,28 +164,28 @@ export default function AdminPaymentVerificationTable({
             ) : (
               paginatedPayments.map((payment) => (
                 <Table.Tr key={payment.id} className="hover:bg-surface-soft/30 transition-colors">
-                  <Table.Td className="font-heading font-semibold text-xs whitespace-nowrap" title={payment.case?.case_code || "CASE"}>
+                  <Table.Td className="font-heading font-semibold text-sm whitespace-nowrap" title={payment.case?.case_code || "CASE"}>
                     {payment.case?.case_code && payment.case.case_code.length > 30 ? `${payment.case.case_code.slice(0, 30)}...` : (payment.case?.case_code || "CASE")}
                   </Table.Td>
-                  <Table.Td className="font-semibold text-text-muted whitespace-nowrap" title={payment.package?.name || "Gói dịch vụ"}>
+                  <Table.Td className="font-medium text-text-app whitespace-nowrap text-sm" title={payment.package?.name || "Gói dịch vụ"}>
                     {payment.package?.name && payment.package.name.length > 30 ? `${payment.package.name.slice(0, 30)}...` : (payment.package?.name || "Gói dịch vụ")}
                   </Table.Td>
-                  <Table.Td className="text-text-subtle whitespace-nowrap">
+                  <Table.Td className="text-text-app whitespace-nowrap text-sm">
                     {payment.payer?.display_username || payment.payer?.name || "—"}
                   </Table.Td>
-                  <Table.Td className="font-heading font-semibold text-red-600 text-xs whitespace-nowrap">
+                  <Table.Td className="font-heading font-semibold text-red-600 text-sm whitespace-nowrap">
                     {formatPrice(payment.amount)}
                   </Table.Td>
-                  <Table.Td className="text-text-subtle font-mono text-xs">
+                  <Table.Td className="text-text-subtle font-mono text-sm">
                     {payment.transfer_content || "—"}
                   </Table.Td>
-                  <Table.Td className="text-text-subtle font-mono text-xs">
+                  <Table.Td className="text-text-subtle font-mono text-sm">
                     {payment.bank_transaction_id || "—"}
                   </Table.Td>
-                  <Table.Td className="text-text-subtle">
+                  <Table.Td className="text-text-muted text-sm">
                     {formatDate(payment.created_at)}
                   </Table.Td>
-                  <Table.Td>
+                  <Table.Td className="text-sm">
                     {payment.proof_file_url ? (
                       <a
                         href={payment.proof_file_url.startsWith("http")
@@ -193,24 +193,24 @@ export default function AdminPaymentVerificationTable({
                           : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}${payment.proof_file_url}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-brand hover:underline font-semibold"
+                        className="inline-flex items-center gap-1 text-brand hover:underline font-medium text-sm"
                       >
                         {isPdf(payment.proof_file_url) ? (
-                          <FileText className="w-3.5 h-3.5 shrink-0" />
+                          <FileText className="w-4 h-4 shrink-0" />
                         ) : (
-                          <ImageIcon className="w-3.5 h-3.5 shrink-0" />
+                          <ImageIcon className="w-4 h-4 shrink-0" />
                         )}
                         <span>Xem minh chứng</span>
                         <ExternalLink className="w-3.5 h-3.5 text-text-subtle" />
                       </a>
                     ) : (
-                      <span className="text-text-subtle italic flex items-center gap-1">
+                      <span className="text-text-subtle italic flex items-center gap-1 text-xs">
                         <AlertCircle className="w-3.5 h-3.5" />
                         Không tìm thấy file
                       </span>
                     )}
                   </Table.Td>
-                  <Table.Td className="text-center">
+                  <Table.Td className="text-center text-sm">
                     <div className="flex items-center justify-center w-full">
                       {payment.status === "pending_verification" ? (
                         <Menu shadow="md" width={160} position="bottom-end">
