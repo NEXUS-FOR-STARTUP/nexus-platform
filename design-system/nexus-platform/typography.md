@@ -77,11 +77,12 @@ text-h4 → 18px  |  text-h3 → 22px  |  text-h2 → 26px  |  text-h1 → 32px 
 | Component | Size |
 |-----------|------|
 | Button label | `text-base` (16px) |
-| Badge | `text-sm` (14px) |
+| Badge | `text-xs` (12px) |
 | Table cell | `text-sm` (14px) |
-| Table header | `text-xs` uppercase + tracking + semibold |
+| Table header | `text-sm` (14px) semibold / bold / uppercase + tracking |
 | Form input / Textarea | `text-base` (16px, chống zoom iOS) |
 | Form label | `text-sm` semibold |
+| Page subtitle / description | `text-base` (16px) text-text-muted |
 | Notification title | `text-base` semibold |
 | Notification meta | `text-xs` |
 | Alert banner title | `text-h3` (22px) |

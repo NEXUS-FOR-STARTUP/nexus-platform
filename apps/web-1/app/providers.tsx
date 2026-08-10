@@ -52,6 +52,10 @@ const theme = createTheme({
     Select: { defaultProps: { size: "md" } },
     PasswordInput: { defaultProps: { size: "md" } },
     Button: { defaultProps: { size: "md" } },
+    Badge: {
+      defaultProps: { size: "sm" },
+      styles: { root: { fontSize: "var(--font-size-xs, 0.75rem)" } },
+    },
   },
 });
 
