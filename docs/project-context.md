@@ -181,7 +181,7 @@ User không cần thấy naming kỹ thuật như `v01`, `a01-v01`. Nhưng hệ 
 - Report phase 1 dùng dạng hỗn hợp:
   - phần chính là structured rich text để user đọc trực tiếp trong case workspace;
   - supporter có thể đính kèm file report nếu cần tải xuống hoặc in ra.
-- Giữ tab chat text đơn giản trong case như một coordination surface cốt lõi; không mở rộng thành realtime chat subsystem trước demo.
+- Giữ tab chat text đơn giản trong case như một coordination surface cốt lõi. **Superseded (2026-08-08):** chat realtime đã ship sau phase 1 qua Centrifugo v6 — WebSocket primary + REST polling 60s fallback (xem `docs/realtime-centrifugo-guide.md`); client không publish trực tiếp, tin qua REST để giữ credit check + stage lock + access control.
 - Payment/credit là core economy đã code: hệ thống credit ledger (purchase/consumption/refund với `balance_after`), sepay webhook xác minh bank transfer, admin veto-with-refund (48h), giá 39,000 VND/credit, error `NO_CREDITS` (402). Không còn là thứ "có thể tạm ẩn" — nó là luồng thanh toán chính của MVP hiện tại. Ngoài ra, khả năng cấu hình giá các gói dịch vụ (Packages Pricing Configuration) dành cho Admin đã được tích hợp, đi kèm với cơ chế **Price Locking** (snapshot `locked_price` khi tạo case) và **Pricing Change Audit Trail** (lưu vết `previous_price`, `last_price_changed_at`, `last_price_changed_by` trên `ServicePackage`) để bảo vệ dữ liệu lịch sử. Logic giá và kiểm thử minh chứng thanh toán được tập trung qua các helper như `getCaseEffectivePrice` và `validatePaymentProof` trong `@/lib/pricing.ts`.
 - Admin được phép `Yêu cầu bổ sung` ngay từ bước triage trước khi accept case.
 

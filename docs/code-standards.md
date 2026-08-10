@@ -1,13 +1,12 @@
 # Code standards
 
-_Cập nhật: 2026-08-03_
+_Cập nhật: 2026-08-08_
 
 ## Repo structure
 
 - `apps/api`: Hono backend, Better Auth, Prisma, document/report/payment workflows.
 - `apps/web-1`: Next.js 16 product app (Mantine UI v9).
-- `packages/validation`: shared Zod schemas.
-- `packages/validation`: Zod schemas chia sẻ giữa api và web-1.
+- `packages/validation`: shared Zod schemas (FE↔BE, single source of truth).
 - `prisma/schema.prisma`: single source of truth cho data model.
 - Tài liệu DB tham khảo: [`db-query-guide.md`](./db-query-guide.md), [`db-backup-guide.md`](./db-backup-guide.md).
 
@@ -42,9 +41,9 @@ _Cập nhật: 2026-08-03_
 
 ## API module organization
 
-- Bounded context theo domain: cases, reports, payments, packages, documents, admin, supporter, ai-engine.
+- Bounded context theo domain: cases, reports, payments, packages, documents, admin, supporter, ai-engine, notifications, realtime.
 - Layering theo clean architecture: domain → application → infrastructure → presentation.
-- Modules giao tiếp trực tiếp qua use-case/service, không cần event bus cho MVP.
+- Modules giao tiếp trực tiếp qua use-case/service; event bus (`shared/domain/domain-events.ts` + `shared/infrastructure/event-bus.ts`) dùng cho notifications (9 event types), phần còn lại không cần.
 - Shared infra: `AppError` class, `requireAuth` middleware, `requireCaseAccess` authorization, audit-logger.
 
 ## Error handling
@@ -62,7 +61,7 @@ _Cập nhật: 2026-08-03_
 - Không đưa business logic nặng vào component page — tách hook/module.
 - Với Nexus MVP, ưu tiên shared workspace shell thay vì page flow rời rạc.
 - Phân biệt rõ 2 lớp document flow: intake (hybrid Drive/Docs + checklist) và workspace (checkpoint/version/assessment).
-- Discussion/chat hiện là REST + polling; không viết tài liệu hoặc UI như thể đã có realtime socket.
+- Discussion/chat: realtime Centrifugo (WebSocket primary) + REST polling 60s fallback — không viết tài liệu hoặc UI như thể vẫn còn polling 5s.
 - Credit/ledger economy là core (CreditPanel/CreditQuantityModal/CreditTransactionHistory/CreditBalanceCard + sepay webhook); không để credit lấn narrative chính của audit/review flow.
 - Data fetching: TanStack Query + Axios. Không dùng Redux/Zustand — server state qua query.
 - Forms: TanStack Form everywhere.
@@ -70,7 +69,7 @@ _Cập nhật: 2026-08-03_
 
 ## Testing standards
 
-_Trạng thái hiện tại: 12 test files tại `apps/api/src/shared/infrastructure/tests/` — Node built-in runner (`node:test` + `node:assert`), chạy qua `tsx --test` (chỉ trong apps/api)._
+_Trạng thái hiện tại: 15 test files tại `apps/api/src/shared/infrastructure/tests/` — Node built-in runner (`node:test` + `node:assert`), chạy qua `tsx --test` (chỉ trong apps/api)._
 
 - **Unit test:** Node built-in runner (`node:test`) + `tsx --test` — chuẩn hiện tại của repo, không dùng Vitest.
 - **Test naming:** `{module}.test.ts`, đặt trong `apps/api/src/shared/infrastructure/tests/`.

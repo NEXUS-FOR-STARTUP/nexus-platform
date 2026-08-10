@@ -1,6 +1,6 @@
 # Tóm tắt codebase
 
-_Cập nhật: 2026-08-07. Tổng hợp từ codebase hiện tại và docs canonical trong `docs/`._
+_Cập nhật: 2026-08-08. Tổng hợp từ codebase hiện tại và docs canonical trong `docs/`._
 
 ## Repo này là gì
 
@@ -10,23 +10,23 @@ Công cụ hỗ trợ: **CodeGraph** (`.codegraph/`) — index code symbol, call
 
 ## Khu vực chính
 
-### `apps/api` (126 files, ~9,700 LOC)
+### `apps/api` (146 files src, ~15,200 LOC)
 
 Backend Hono với:
-- modules: cases (22 routes), documents, admin (12 routes), payments (7 routes, gồm sepay webhook), reports (4 routes), supporter (5 routes), ai-engine (2 routes), packages (1 route), notifications (5 routes: list, unread-count, read, read-all, SSE stream), system (4 route: `/`, `/health`, `/stream`, `/session`)
+- modules: cases (22 routes), admin (12 routes), payments (7 routes, gồm sepay webhook), reports (4 routes), supporter (5 routes), notifications (5 routes: list, unread-count, read, read-all, SSE stream), realtime (2 routes: connection-token, cases/:caseId/subscribe-token), ai-engine (2 routes), packages (1 route), documents (1 route), system (4 route: `/`, `/health`, `/stream`, `/session`)
 - shared infra: AppError, requireAuth, requireCaseAccess, audit-logger, **event-bus + domain-events** (9 event types) + **outbox pattern** cho notifications
 - services: Cloudinary (file upload), Google Generative AI
-- ~64 API endpoints (63 route registrations + Better Auth handler), Hono + Better Auth + Prisma 7 + Vercel AI SDK
+- ~65 API endpoints (61 module routes + 4 system), Hono + Better Auth + Prisma 7 + Vercel AI SDK
 - Kiến trúc: modular monolith + Clean Architecture (domain/application/infrastructure/presentation)
 - Auth: Better Auth (email/password, Google OAuth, admin plugin)
 - DB: Prisma + PostgreSQL, PgBouncer adapter
 - Imports: ESM với `.js` suffix
 
-### `apps/web-1` (127 files, ~8,755 LOC)
+### `apps/web-1` (127 files, ~16,800 LOC)
 
 Next.js 16.2.0 product app với:
 - 3 persona surfaces: Student (dashboard + case workspace), Supporter (case workspace + output upload), Admin (triage dashboard + package management)
-- Data fetching: TanStack Query + Axios, polling (10s case details, 5s chat)
+- Data fetching: TanStack Query + Axios; polling (10s case details; chat realtime Centrifugo + REST polling 60s fallback)
 - Forms: TanStack Form everywhere
 - Auth: Better Auth client (`useSession`), role-based layout guards
 - State: server state qua TanStack Query, không Redux/Zustand
@@ -57,6 +57,8 @@ Next.js 16.2.0 product app với:
 - `code-standards.md` — chuẩn code và conventions
 - `codebase-summary.md` — tóm tắt codebase (file này)
 - `db-query-guide.md` — hướng dẫn truy vấn DB an toàn
+- `realtime-centrifugo-guide.md` — vận hành & troubleshooting realtime chat Centrifugo
+- `shared-validation-convention.md` — quy ước zod/entity dùng chung FE↔BE
 - `db-backup-guide.md` — hướng dẫn backup DB
 - `AGENTS.md` — hướng dẫn agent cho `docs/`
 - `README.md` — navigation docs
@@ -70,7 +72,7 @@ Next.js 16.2.0 product app với:
 
 - Student/supporter case workspace cùng bám shared shell (`WorkspaceSidebar`, `WorkspaceTabs`).
 - `DocumentWorkspace` là bề mặt first-class với checkpoint selector và các tab `overview`, `documents`, `external-feedback`.
-- `TabDiscussionChat` fetch + send message qua REST và polling 5 giây; chưa có realtime socket.
+- `TabDiscussionChat` fetch + send message qua REST; realtime qua Centrifugo (WebSocket primary, per-sub token, dedup theo message id), REST polling 60s fallback khi Centrifugo down.
 - `ActivityTimeline` render `caseData.events`.
 - `useCaseDetails` polling 10 giây expose `case`, `intake_snapshot`, `latest_report`, `document_board_sections`, `round_history`, `document_workspace`, v.v.
 - Stage-based case flow: `user_facing_stage` (intake_pending → intake_ready → submitted → need_more_information → under_review → report_ready → waiting_for_revision → revision_submitted → completed/rejected/closed) + `internal_status` (symflow transitions) + `allowed_transitions` + SLA `sla_deadline_at`. UI: `CaseStatusHeader`, `StatusGuidanceCard`, `CaseOverviewPanel`.
@@ -79,7 +81,8 @@ Next.js 16.2.0 product app với:
 - Intake: trang riêng (`apps/web-1/app/dashboard/intake/page.tsx`) với submit/resubmit, hybrid Drive/Docs URL + checklist, template helper. Demo presets + `DemoDataFAB` (components/ui/DemoDataFAB.tsx).
 - Team-fit: `apps/web-1/app/dashboard/team-fit/` (IdeaMadLibsStep, TeamInputStep, TeamFitResultStep) + API `/ai-engine/team-fit` và `/ai-engine/team-fit/save`.
 - Admin: `AdminCaseDetailModal`, Settings/Packages panel với Price Locking và Pricing Change Audit Trail.
-- Notifications (2026-08-07): module notifications 5 endpoints + SSE stream `/api/notifications/stream`; event bus `shared/domain/domain-events.ts` + `shared/infrastructure/event-bus.ts`; outbox pattern (NotificationOutbox); frontend `useNotifications` + `NotificationBell` (SSE + TanStack Query). Env mới: RESEND_*, TELEGRAM_*, NOTIFICATIONS_ENABLED.
+- Notifications (2026-08-07): module notifications 5 endpoints + SSE stream `/api/notifications/stream`; event bus `shared/domain/domain-events.ts` + `shared/infrastructure/event-bus.ts`; outbox pattern (NotificationOutbox); frontend `useNotifications` + `NotificationBell` (SSE + TanStack Query). Env mới: RESEND_*, TELEGRAM_*, NOTIFICATIONS_ENABLED. Types/validation dùng chung FE↔BE qua `@repo/validation` (NOTIFICATION_TYPES, NotificationItemSchema, ListNotificationsResponseSchema); Telegram admin alert trên `payment.verified`.
+- Realtime chat (2026-08-08): module realtime 2 endpoints (`/api/realtime/connection-token`, `/api/realtime/cases/:caseId/subscribe-token`); Centrifugo v6 transport, HS256 JWT 15min, channel `chat:{caseId}`; fire-and-forget publish sau insert message; frontend `useRealtimeChat` + `centrifuge-client` singleton. Env: CENTRIFUGO_URL, CENTRIFUGO_TOKEN_SECRET, CENTRIFUGO_API_KEY, NEXT_PUBLIC_CENTRIFUGO_URL. Ops: `docs/realtime-centrifugo-guide.md`.
 - Pricing logic tập trung: `getCaseEffectivePrice`, `formatPrice`, `caseRequiresPayment`, `validatePaymentProof` trong `@/lib/pricing.ts`.
 
 ## Ràng buộc vận hành

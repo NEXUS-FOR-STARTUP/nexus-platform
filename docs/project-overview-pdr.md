@@ -2,7 +2,7 @@
 
 ## Document Status
 
-- **Cập nhật lần cuối:** 2026-08-03
+- **Cập nhật lần cuối:** 2026-08-08
 - **Phiên bản:** MVP demo realignment (post-rebuild)
 - **Business context canonical:** [`project-context.md`](./project-context.md)
 - **Code references ghi theo đường dẫn thật:** `apps/web-1/` (không phải `apps/web`)
@@ -81,14 +81,18 @@ Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/documents/DocumentWorkspace.tsx`
 - `apps/api/src/modules/documents/domain/document-contract.ts`
 
-### 5.3 Chat text cơ bản đã có
-- `TabDiscussionChat.tsx` đã fetch message list, render thread, gửi message mới.
-- `useCaseChat.ts` dùng GET/POST REST và polling 5 giây.
-- Chat chưa phải realtime socket. Nó là coordination surface, không phải trung tâm duy nhất của product story.
+### 5.3 Chat text đã có (nay realtime)
+- `TabDiscussionChat.tsx` fetch message list, render thread, gửi message mới.
+- `useCaseChat.ts` dùng GET/POST REST; realtime qua Centrifugo (WebSocket primary) từ 2026-08-08 — `useRealtimeChat.ts` lấy per-sub token, publication cập nhật cache + dedupe theo message id.
+- REST polling 60s là fallback khi Centrifugo down; client không publish trực tiếp — tin qua REST để giữ credit check + stage lock + access control.
+- Chat là coordination surface, không phải trung tâm duy nhất của product story.
 
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/TabDiscussionChat.tsx`
 - `apps/web-1/app/dashboard/case/[id]/hooks/useCaseChat.ts`
+- `apps/web-1/app/dashboard/case/[id]/hooks/useRealtimeChat.ts`
+- `apps/web-1/lib/realtime/centrifuge-client.ts`
+- `docs/realtime-centrifugo-guide.md`
 
 ### 5.4 Activity timeline đã có
 - Workspace đã có `ActivityTimeline`.
@@ -182,6 +186,16 @@ Tham chiếu:
 - `apps/api/src/modules/cases/application/upgrade-package.usecase.ts`
 - `prisma/schema.prisma` → model `CreditLedger`
 
+### 5.12 Notifications + realtime chat (đã có, 2026-08)
+- Notifications: module 5 endpoints (list, unread-count, read, read-all, SSE stream `/api/notifications/stream`); event bus + outbox pattern (relay 2s tick); kênh in_app/email/telegram; types/validation shared qua `@repo/validation` (single source of truth FE↔BE); Telegram admin alert trên `payment.verified`.
+- Realtime chat: Centrifugo v6 transport, WS primary + REST polling 60s fallback (xem §5.3); `apps/api/src/modules/realtime/` (2 endpoints token), `apps/web-1/lib/realtime/centrifuge-client.ts`.
+
+Tham chiếu:
+- `apps/api/src/modules/notifications/http/notifications.routes.ts`
+- `apps/api/src/shared/domain/domain-events.ts`
+- `apps/api/src/modules/realtime/http/realtime.routes.ts`
+- `docs/realtime-centrifugo-guide.md`
+
 ## 6. MVP demo core đã chốt
 
 ### 6.1 Student
@@ -245,11 +259,12 @@ Tham chiếu:
 Không làm trước demo:
 - document-first schema rewrite lớn;
 - backend workflow/status refactor (stage flow đã code — giữ nguyên, không đổi semantic);
-- subsystem chat realtime bằng socket;
 - upload manager mới hoàn toàn khác intake hiện có;
 - supporter/admin redesign lớn;
 - AI parsing pipeline mới;
 - credit/payment scope expansion ngoài credit ledger + sepay + veto-refund hiện có nếu không phục vụ trực tiếp demo path.
+
+> Realtime chat subsystem đã **SHIPPED** 2026-08-08 (Centrifugo) — không còn thuộc danh sách hoãn này.
 
 ## 10. Demo path mục tiêu
 

@@ -9,11 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Telegram admin group alert for `payment.verified` events — case thanh toán xong, sẵn sàng triage (admin recipient fan-out trong `recipients.ts` + `adminBody`/`adminLink` template trong `notification-templates.ts`; +4 tests `phase-08-notifications.test.ts`)
-
 ### Changed
 
 ### Fixed
+
+## [1.1.0] - 2026-08-09
+
+### Added
+- Notification system: in-app + email + Telegram delivery, read/badge state, notification bell
+- Telegram admin group alert on `payment.verified` events — case thanh toán xong, sẵn sàng triage (admin recipient fan-out trong `recipients.ts` + `adminBody`/`adminLink` template trong `notification-templates.ts`)
+- Realtime chat powered by Centrifugo v6 (websocket proxy, env-driven `allowed_origins`, dev port 8081)
+- Transfer content column in admin payment verification table
+
+### Changed
+- Notifications types/validation shared via `@repo/validation` (single source of truth FE↔BE)
+- Entity types migrated to `@repo/validation`: ServicePackage, User, TeamFitReport, Cp1Intake (Zod, 100% parity)
+- CI triggers extended to `dev` and `staging` branches
+- Centrifugo config environment-driven instead of hardcoded
+
+### Fixed
+- Notification coverage gaps: read/badge state, links in notifications
+- Raw relative link dropped from Telegram messages
+- Telegram disabled treated as delivery failure (not silent success)
+- Notification bell keyboard accessibility + SSE ping event listener
+- Centrifugo env placeholder missing closing quote
+- Removed 12 unused dependencies; deleted dead tracked files and dead exports
+
+### Removed
+- 12 unused dependencies
+- Dead tracked files, dead exports; `getSession` helper deduplicated
 
 ## [1.0.0] - 2026-08-03
 
@@ -129,6 +153,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Codebase summary with file structure
 - Research logging best practices
 
-[Unreleased]: https://github.com/CHECKPOINT-00/nexus-platform/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/CHECKPOINT-00/nexus-platform/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/CHECKPOINT-00/nexus-platform/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/CHECKPOINT-00/nexus-platform/compare/v0.0.1...v1.0.0
 [0.0.1]: https://github.com/CHECKPOINT-00/nexus-platform/releases/tag/v0.0.1
