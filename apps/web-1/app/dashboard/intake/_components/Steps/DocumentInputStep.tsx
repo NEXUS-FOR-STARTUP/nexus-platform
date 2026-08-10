@@ -192,7 +192,7 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
     <div className="space-y-5 font-body">
       {/* ─── Template Reference Alert ─── */}
       <div className="flex items-center gap-1.5 pb-1">
-        <h3 className="font-heading text-base font-semibold text-text-app">
+        <h3 className="font-heading text-h3 font-bold text-text-app">
           Hồ sơ của nhóm đã có sẵn chưa?
         </h3>
         <Tooltip
@@ -203,7 +203,7 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
           withArrow
         >
           <span className="flex items-center">
-            <HelpCircle className="w-4 h-4 text-text-muted hover:text-text-app cursor-help" />
+            <HelpCircle className="w-5 h-5 text-text-muted hover:text-text-app cursor-help" />
           </span>
         </Tooltip>
       </div>
@@ -212,10 +212,10 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
         variant="light"
         color="blue"
         radius="md"
-        title="Chưa có hồ sơ hoặc ý tưởng còn mơ hồ?"
-        icon={<CheckCircle2 className="w-4 h-4" />}
+        title={<span className="font-heading text-h4 font-bold">Chưa có hồ sơ hoặc ý tưởng còn mơ hồ?</span>}
+        icon={<CheckCircle2 className="w-5 h-5" />}
       >
-        <div className="space-y-3 text-sm leading-relaxed">
+        <div className="space-y-3 text-base font-body text-text-app leading-relaxed">
           <p>
             Nếu nhóm chưa có proposal đủ rõ, hãy dùng template có sẵn để điền nhanh
             các phần cốt lõi. Sau khi hoàn tất, tải file lên ở bên dưới.
@@ -223,19 +223,19 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
           <div className="flex flex-wrap gap-2.5 pt-1">
             <Button
               variant="default"
-              size="xs"
-              leftSection={<Copy className="w-3.5 h-3.5 text-blue-500" />}
+              size="md"
+              leftSection={<Copy className="w-4 h-4 text-blue-500" />}
               onClick={() => handleTemplateAction("copy_markdown")}
-              className="font-body font-semibold cursor-pointer h-9 px-3 rounded-lg text-xs bg-surface-app hover:bg-surface-hover border-border-app text-text-app"
+              className="font-body font-semibold cursor-pointer h-10 px-4 rounded-xl text-base bg-surface-app hover:bg-surface-hover border-border-app text-text-app"
             >
               Copy template Markdown
             </Button>
             <Button
               variant="default"
-              size="xs"
-              leftSection={<Download className="w-3.5 h-3.5 text-blue-500" />}
+              size="md"
+              leftSection={<Download className="w-4 h-4 text-blue-500" />}
               onClick={() => handleTemplateAction("download_docx")}
-              className="font-body font-semibold cursor-pointer h-9 px-3 rounded-lg text-xs bg-surface-app hover:bg-surface-hover border-border-app text-text-app"
+              className="font-body font-semibold cursor-pointer h-10 px-4 rounded-xl text-base bg-surface-app hover:bg-surface-hover border-border-app text-text-app"
             >
               Tải file .docx template
             </Button>
@@ -262,7 +262,7 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
               {/* Upload control */}
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-1.5">
-                  <label className="text-sm font-semibold text-text-app">
+                  <label className="text-base font-semibold text-text-app">
                     Tải lên tài liệu hồ sơ <span className="text-danger">*</span>
                   </label>
                   <Tooltip
@@ -272,7 +272,7 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                     withArrow
                   >
                     <span className="flex items-center">
-                      <HelpCircle className="w-3.5 h-3.5 text-text-muted hover:text-text-app cursor-help" />
+                      <HelpCircle className="w-4 h-4 text-text-muted hover:text-text-app cursor-help" />
                     </span>
                   </Tooltip>
                 </div>
@@ -304,7 +304,7 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
               {/* Uploaded documents list */}
               {hasDocs && (
                 <Stack gap="sm">
-                  <label className="text-sm font-semibold text-text-app">
+                  <label className="text-base font-semibold text-text-app">
                     Tài liệu đã tải lên ({docs.length})
                   </label>
 
@@ -316,12 +316,12 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                       radius="md"
                       className="border-border-strong bg-surface-soft/60"
                     >
-                      <Group justify="space-between" align="flex-start" wrap="nowrap">
+                      <Group justify="space-between" align="center" wrap="nowrap">
                         {/* File info */}
                         <Group gap="sm" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-                          <FileText className="w-5 h-5 text-text-muted shrink-0" />
+                          <FileText className="w-6 h-6 text-text-muted shrink-0" />
                           <div style={{ minWidth: 0 }}>
-                            <Text size="sm" fw={600} truncate>
+                            <Text size="md" fw={600} truncate>
                               {doc.original_name}
                             </Text>
                             <Group gap="xs" mt={2}>
@@ -342,9 +342,9 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                             data={DOCUMENT_TYPE_OPTIONS}
                             value={doc.document_type || null}
                             onChange={(val) => handleTypeChange(index, val, parentField)}
-                            size="xs"
+                            size="md"
                             clearable
-                            className="min-w-[220px]"
+                            className="min-w-[240px]"
                           />
                           <ActionIcon
                             variant="subtle"
@@ -352,7 +352,7 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                             onClick={() => handleRemoveDoc(index, parentField)}
                             aria-label="Xóa tài liệu"
                           >
-                            <X className="w-4 h-4" />
+                            <X className="w-5 h-5" />
                           </ActionIcon>
                         </Group>
                       </Group>
@@ -381,16 +381,16 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                       : "bg-surface-soft/40 hover:bg-surface-soft/80 border-border-strong hover:border-brand/40"
                   }`}
                 >
-                  <Upload className={`w-8 h-8 mx-auto transition-colors duration-200 ${
+                  <Upload className={`w-9 h-9 mx-auto transition-colors duration-200 ${
                     isDragging ? "text-brand animate-pulse" : "text-text-muted group-hover:text-brand"
                   }`} />
                   <div className="space-y-1">
-                    <p className={`text-sm font-semibold transition-colors duration-200 ${
+                    <p className={`text-base font-semibold transition-colors duration-200 ${
                       isDragging ? "text-brand" : "text-text-app group-hover:text-brand"
                     }`}>
                       {isDragging ? "Thả file vào đây để tải lên" : "Kéo thả file vào đây hoặc nhấn để chọn file"}
                     </p>
-                    <p className="text-xs text-text-muted">
+                    <p className="text-sm text-text-muted">
                       .pdf, .docx, .xlsx, .pptx, .md, .txt &bull; tối đa 15MB mỗi file
                     </p>
                   </div>

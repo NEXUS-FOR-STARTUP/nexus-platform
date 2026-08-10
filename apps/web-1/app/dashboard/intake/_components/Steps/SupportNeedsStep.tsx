@@ -21,7 +21,7 @@ export default function SupportNeedsStep({ form, values }: SupportNeedsStepProps
   return (
     <div className="space-y-5 font-body">
       <div className="flex items-center gap-1.5 pb-1">
-        <h3 className="font-heading text-base font-semibold text-text-app">Nhu cầu hỗ trợ</h3>
+        <h3 className="font-heading text-h3 font-bold text-text-app">Nhu cầu hỗ trợ</h3>
         <Tooltip
           label="Chỉ cần chọn hướng hỗ trợ chính. Phần ghi chú thêm và kỳ vọng đầu ra là tùy chọn."
           position="top"
@@ -30,7 +30,7 @@ export default function SupportNeedsStep({ form, values }: SupportNeedsStepProps
           withArrow
         >
           <span className="flex items-center">
-            <HelpCircle className="w-4 h-4 text-text-muted hover:text-text-app cursor-help" />
+            <HelpCircle className="w-5 h-5 text-text-muted hover:text-text-app cursor-help" />
           </span>
         </Tooltip>
       </div>

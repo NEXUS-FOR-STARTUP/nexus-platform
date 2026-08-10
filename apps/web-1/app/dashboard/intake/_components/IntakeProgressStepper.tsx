@@ -60,8 +60,8 @@ export default function IntakeProgressStepper({
                 {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : idx + 1}
               </span>
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-heading font-semibold leading-tight block">{s.label}</span>
-                <span className={`text-base leading-none mt-0.5 ${isActive ? "text-white/80" : "text-text-muted"}`}>
+                <span className="text-sm font-heading font-semibold leading-tight block">{s.label}</span>
+                <span className={`text-xs leading-none mt-1 font-medium ${isActive ? "text-white/80" : "text-text-muted"}`}>
                   {isActive ? "Đang thực hiện" : isCompleted ? "Đã hoàn thành" : isSelectable ? "Sẵn sàng" : "Chưa mở khóa"}
                 </span>
               </div>
@@ -96,7 +96,7 @@ export default function IntakeProgressStepper({
                   {isCompleted ? <Check className="w-2.5 h-2.5 stroke-[3]" /> : idx + 1}
                 </span>
                 <span
-                  className={`text-base font-heading font-semibold whitespace-nowrap ${
+                  className={`text-sm font-heading font-semibold whitespace-nowrap ${
                     isActive ? "text-brand font-semibold" : isCompleted ? "text-text-app font-medium" : "text-text-subtle font-normal"
                   }`}
                 >

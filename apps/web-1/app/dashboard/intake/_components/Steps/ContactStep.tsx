@@ -13,14 +13,14 @@ export default function ContactStep({ form, values }: ContactStepProps) {
   return (
     <div className="space-y-5 font-body">
       <div className="flex items-center gap-1.5 pb-1">
-        <h3 className="font-heading text-base font-semibold text-text-app">Thông tin người liên hệ</h3>
+        <h3 className="font-heading text-h3 font-bold text-text-app">Thông tin người liên hệ</h3>
         <Tooltip
           label="Thông tin của bạn để Supporter tiện liên hệ hỗ trợ khi cần thiết."
           position="top"
           withArrow
         >
           <span className="flex items-center">
-            <HelpCircle className="w-4 h-4 text-text-muted hover:text-text-app cursor-help" />
+            <HelpCircle className="w-5 h-5 text-text-muted hover:text-text-app cursor-help" />
           </span>
         </Tooltip>
       </div>

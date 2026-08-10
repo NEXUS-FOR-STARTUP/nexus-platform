@@ -12,14 +12,14 @@ export default function SituationStep({ form, values }: SituationStepProps) {
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-1.5 pb-1">
-        <h3 className="font-heading text-base font-semibold text-text-app">Nhóm đang kẹt ở đâu?</h3>
+        <h3 className="font-heading text-h3 font-bold text-text-app">Nhóm đang kẹt ở đâu?</h3>
         <Tooltip
           label="Mô tả ngắn gọn nút thắt hiện tại để Supporter tập trung giải quyết."
           position="top"
           withArrow
         >
           <span className="flex items-center">
-            <HelpCircle className="w-4 h-4 text-text-muted hover:text-text-app cursor-help" />
+            <HelpCircle className="w-5 h-5 text-text-muted hover:text-text-app cursor-help" />
           </span>
         </Tooltip>
       </div>
@@ -28,10 +28,12 @@ export default function SituationStep({ form, values }: SituationStepProps) {
         variant="light"
         color="blue"
         radius="md"
-        title="Lưu ý quan trọng"
+        title={<span className="font-heading text-h4 font-bold">Lưu ý quan trọng</span>}
         icon={<Info className="w-4 h-4" />}
       >
-        Không cần viết lại proposal. Chỉ nói ngắn gọn nút thắt hiện tại: giảng viên chê gì, đội đang bí gì, hoặc cần Supporter phản biện phần nào ngay bây giờ.
+        <p className="font-body text-base text-text-app">
+          Không cần viết lại proposal. Chỉ nói ngắn gọn nút thắt hiện tại: giảng viên chê gì, đội đang bí gì, hoặc cần Supporter phản biện phần nào ngay bây giờ.
+        </p>
       </Alert>
 
       <div className="space-y-4">

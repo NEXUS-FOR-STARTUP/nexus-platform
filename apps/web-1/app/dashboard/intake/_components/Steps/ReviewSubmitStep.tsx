@@ -46,8 +46,8 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
   return (
     <div className="font-body text-text-app max-w-3xl mx-auto space-y-10">
       <div className="space-y-1">
-        <h2 className="text-h3 font-semibold text-text-app">Xác nhận thông tin hồ sơ</h2>
-        <p className="text-sm text-text-muted">
+        <h2 className="text-h3 font-bold text-text-app">Xác nhận thông tin hồ sơ</h2>
+        <p className="text-base text-text-muted">
           Đây là gói bàn giao để Supporter bắt đầu xử lý. Kiểm tra lại trước khi xác nhận.
         </p>
       </div>
@@ -60,32 +60,32 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
 
       <div className="space-y-10">
         <div className="space-y-4">
-          <h3 className="text-base font-semibold text-brand uppercase tracking-wider">1. Điểm kẹt hiện tại</h3>
-          <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm pl-4">
-            <div className="font-semibold text-text-app">Nhóm đang cần gỡ gì lúc này:</div>
-            <div className="text-text-app leading-relaxed whitespace-pre-wrap">{getDisplayBlocker(values)}</div>
+          <h3 className="text-h4 font-bold text-brand uppercase tracking-wider">1. Điểm kẹt hiện tại</h3>
+          <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 pl-4">
+            <div className="text-sm font-medium text-text-muted">Nhóm đang cần gỡ gì lúc này:</div>
+            <div className="text-base text-text-app leading-relaxed whitespace-pre-wrap">{getDisplayBlocker(values)}</div>
           </div>
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-base font-semibold text-brand uppercase tracking-wider">2. Nhu cầu hỗ trợ</h3>
-          <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm pl-4">
-            <div className="font-semibold text-text-app">Nhu cầu hỗ trợ chính:</div>
-            <div className="text-text-app">
+          <h3 className="text-h4 font-bold text-brand uppercase tracking-wider">2. Nhu cầu hỗ trợ</h3>
+          <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 pl-4">
+            <div className="text-sm font-medium text-text-muted">Nhu cầu hỗ trợ chính:</div>
+            <div className="text-base text-text-app">
               {PRIMARY_NEEDS_MAP[values.support_needs?.primary_need] || values.support_needs?.primary_need || "N/A"}
             </div>
 
             {values.expected_outputs && (
               <>
-                <div className="font-semibold text-text-app">Kết quả mong đợi:</div>
-                <div className="text-text-app leading-relaxed whitespace-pre-wrap">{values.expected_outputs}</div>
+                <div className="text-sm font-medium text-text-muted">Kết quả mong đợi:</div>
+                <div className="text-base text-text-app leading-relaxed whitespace-pre-wrap">{values.expected_outputs}</div>
               </>
             )}
 
             {values.support_needs?.extra_notes && (
               <>
-                <div className="font-semibold text-text-app">Ghi chú thêm cho Supporter:</div>
-                <div className="text-text-app leading-relaxed whitespace-pre-wrap">
+                <div className="text-sm font-medium text-text-muted">Ghi chú thêm cho Supporter:</div>
+                <div className="text-base text-text-app leading-relaxed whitespace-pre-wrap">
                   {values.support_needs.extra_notes}
                 </div>
               </>
@@ -93,26 +93,26 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
 
             {values.lecturer_feedback && (
               <>
-                <div className="font-semibold text-text-app">Phản hồi của giảng viên hướng dẫn:</div>
-                <div className="text-text-app leading-relaxed whitespace-pre-wrap">{values.lecturer_feedback}</div>
+                <div className="text-sm font-medium text-text-muted">Phản hồi của giảng viên hướng dẫn:</div>
+                <div className="text-base text-text-app leading-relaxed whitespace-pre-wrap">{values.lecturer_feedback}</div>
               </>
             )}
           </div>
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-base font-semibold text-brand uppercase tracking-wider">3. Tài liệu đính kèm</h3>
-          <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-5 gap-x-6 text-sm pl-4">
+          <h3 className="text-h4 font-bold text-brand uppercase tracking-wider">3. Tài liệu đính kèm</h3>
+          <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-5 gap-x-6 pl-4">
             {values.documents && values.documents.length > 0 ? (
               values.documents.map((doc: any, index: number) => (
                 <React.Fragment key={index}>
-                  <div className="font-semibold text-text-app">{doc.document_type}:</div>
+                  <div className="text-sm font-medium text-text-muted">{doc.document_type || "Tài liệu đính kèm"}:</div>
                   <div className="space-y-1">
                     <a
                       href={doc.file_url}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="text-blue-600 hover:underline break-all block"
+                      className="text-base text-blue-600 hover:underline break-all block font-medium"
                     >
                       {doc.original_name || doc.file_url}
                     </a>
@@ -126,70 +126,70 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
               ))
             ) : (
               <>
-                <div className="font-semibold text-text-app">Tài liệu đính kèm:</div>
-                <div className="text-text-muted italic">Không có tài liệu đính kèm</div>
+                <div className="text-sm font-medium text-text-muted">Tài liệu đính kèm:</div>
+                <div className="text-base text-text-muted italic">Không có tài liệu đính kèm</div>
               </>
             )}
           </div>
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-base font-semibold text-brand uppercase tracking-wider">4. Hạn chót & gói dịch vụ</h3>
-          <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm pl-4">
-            <div className="font-semibold text-text-app">Gói phản biện đã chọn:</div>
+          <h3 className="text-h4 font-bold text-brand uppercase tracking-wider">4. Hạn chót & gói dịch vụ</h3>
+          <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 pl-4">
+            <div className="text-sm font-medium text-text-muted">Gói phản biện đã chọn:</div>
             <div className="text-text-app">
               {selectedPackage
                 ? `${selectedPackage.name} (${formatPrice(selectedPackage.price)})`
                 : "Gói đã chọn không còn mở cho hồ sơ mới. Vui lòng quay lại bước chọn gói."}
             </div>
 
-            <div className="font-semibold text-text-app">Hạn nộp bài mong muốn:</div>
-            <div className="text-text-app">{formatDate(values.deadline)}</div>
+            <div className="text-sm font-medium text-text-muted">Hạn nộp bài mong muốn:</div>
+            <div className="text-base text-text-app">{formatDate(values.deadline)}</div>
 
-            <div className="font-semibold text-text-app">Mức độ ưu tiên xử lý:</div>
-            <div className="text-text-app">{values.urgency === "urgent" ? "Gấp (trong 24h)" : "Bình thường"}</div>
+            <div className="text-sm font-medium text-text-muted">Mức độ ưu tiên xử lý:</div>
+            <div className="text-base text-text-app">{values.urgency === "urgent" ? "Gấp (trong 24h)" : "Bình thường"}</div>
           </div>
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-base font-semibold text-brand uppercase tracking-wider">5. Liên hệ</h3>
-          <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm pl-4">
-            <div className="font-semibold text-text-app">Họ tên & vai trò:</div>
-            <div className="text-text-app">
+          <h3 className="text-h4 font-bold text-brand uppercase tracking-wider">5. Liên hệ</h3>
+          <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 pl-4">
+            <div className="text-sm font-medium text-text-muted">Họ tên & vai trò:</div>
+            <div className="text-base text-text-app">
               {values.contact?.full_name || "N/A"}
               {values.contact?.team_role ? ` (${values.contact.team_role})` : ""}
             </div>
 
-            <div className="font-semibold text-text-app">Mã sinh viên:</div>
-            <div className="text-text-app">{values.contact?.student_code || "N/A"}</div>
+            <div className="text-sm font-medium text-text-muted">Mã sinh viên:</div>
+            <div className="text-base text-text-app">{values.contact?.student_code || "N/A"}</div>
 
-            <div className="font-semibold text-text-app">Số điện thoại Zalo:</div>
-            <div className="text-text-app">{values.contact?.zalo || "N/A"}</div>
+            <div className="text-sm font-medium text-text-muted">Số điện thoại Zalo:</div>
+            <div className="text-base text-text-app">{values.contact?.zalo || "N/A"}</div>
 
-            <div className="font-semibold text-text-app">Email liên hệ:</div>
-            <div className="text-text-app break-all">{values.contact?.email || "N/A"}</div>
+            <div className="text-sm font-medium text-text-muted">Email liên hệ:</div>
+            <div className="text-base text-text-app break-all">{values.contact?.email || "N/A"}</div>
           </div>
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-base font-semibold text-brand uppercase tracking-wider">6. Metadata nhóm / môn học</h3>
-          <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm pl-4">
-            <div className="font-semibold text-text-app">Tên đề tài:</div>
-            <div className="text-text-app">{values.team_context?.project_name || "N/A"}</div>
+          <h3 className="text-h4 font-bold text-brand uppercase tracking-wider">6. Metadata nhóm / môn học</h3>
+          <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 pl-4">
+            <div className="text-sm font-medium text-text-muted">Tên đề tài:</div>
+            <div className="text-base text-text-app">{values.team_context?.project_name || "N/A"}</div>
 
-            <div className="font-semibold text-text-app">Trường học:</div>
-            <div className="text-text-app">{values.school || "N/A"}</div>
+            <div className="text-sm font-medium text-text-muted">Trường học:</div>
+            <div className="text-base text-text-app">{values.school || "N/A"}</div>
 
-            <div className="font-semibold text-text-app">Môn học & nhóm lớp:</div>
-            <div className="text-text-app">
+            <div className="text-sm font-medium text-text-muted">Môn học & nhóm lớp:</div>
+            <div className="text-base text-text-app">
               {values.course_context || "N/A"}
               {values.team_context?.group_no ? ` - Nhóm ${values.team_context.group_no}` : ""}
             </div>
 
             {values.team_context?.team_status_summary && (
               <>
-                <div className="font-semibold text-text-app">Hiện trạng hoạt động của nhóm:</div>
-                <div className="text-text-app leading-relaxed whitespace-pre-wrap">
+                <div className="text-sm font-medium text-text-muted">Hiện trạng hoạt động của nhóm:</div>
+                <div className="text-base text-text-app leading-relaxed whitespace-pre-wrap">
                   {values.team_context.team_status_summary}
                 </div>
               </>

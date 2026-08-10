@@ -119,8 +119,8 @@ export default function IntakeChatFlow({
           <Bot className="w-5 h-5" />
         </div>
         <div className="space-y-1">
-          <h4 className="font-heading font-semibold text-brand text-sm">Trợ lý tạo Hồ sơ Phản biện</h4>
-          <p className="font-body text-xs text-text-muted leading-relaxed">
+          <h4 className="font-heading font-bold text-brand text-h4">Trợ lý tạo Hồ sơ Phản biện</h4>
+          <p className="font-body text-base text-text-app leading-relaxed">
             Xin chào! Mình sẽ hướng dẫn bạn hoàn thiện hồ sơ phản biện. Hãy điền thông tin qua từng bước để Supporter có đủ bối cảnh cần thiết.
           </p>
         </div>

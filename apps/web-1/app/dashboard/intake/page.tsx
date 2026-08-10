@@ -222,19 +222,19 @@ function IntakePageContent() {
         <h1 className="font-heading text-h2 sm:text-h1 font-bold text-text-app">
           {isUpdateMode ? "Cập nhật hồ sơ" : "Tạo hồ sơ mới"}
         </h1>
-        <p className="font-body text-sm text-text-muted max-w-lg mx-auto">
+        <p className="font-body text-base text-text-muted max-w-lg mx-auto">
           {isUpdateMode
             ? "Điều chỉnh thông tin hồ sơ hiện tại."
             : "Cấu trúc ý tưởng và thông tin minh chứng để bắt đầu chạy phản biện."}
         </p>
 
         {/* SLA 48h Banner */}
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-xl mx-auto">
           <Alert
             variant="light"
             color="blue"
-            icon={<Clock className="w-4 h-4" />}
-            className="text-left text-xs font-body"
+            icon={<Clock className="w-5 h-5" />}
+            className="text-left text-base font-body font-medium"
           >
             ⏱ Thời gian phản biện: 48h kể từ khi thanh toán và có Supporter phân
             công

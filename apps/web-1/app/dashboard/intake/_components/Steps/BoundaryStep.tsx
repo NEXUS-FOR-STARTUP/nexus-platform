@@ -19,14 +19,14 @@ export default function BoundaryStep({ form, values }: BoundaryStepProps) {
   return (
     <div className="space-y-5 font-body">
       <div className="flex items-center gap-1.5 pb-1">
-        <h3 className="font-heading text-base font-semibold text-text-app">Cam kết ranh giới</h3>
+        <h3 className="font-heading text-h3 font-bold text-text-app">Cam kết ranh giới</h3>
         <Tooltip
           label="Đọc kỹ và tích chọn tất cả các cam kết dưới đây."
           position="top"
           withArrow
         >
           <span className="flex items-center">
-            <HelpCircle className="w-4 h-4 text-text-muted hover:text-text-app cursor-help" />
+            <HelpCircle className="w-5 h-5 text-text-muted hover:text-text-app cursor-help" />
           </span>
         </Tooltip>
       </div>
@@ -35,10 +35,12 @@ export default function BoundaryStep({ form, values }: BoundaryStepProps) {
         variant="light"
         color="red"
         radius="md"
-        title="ĐIỀU KHOẢN QUAN TRỌNG"
-        icon={<AlertTriangle className="w-4 h-4" />}
+        title={<span className="font-heading text-h4 font-bold">ĐIỀU KHOẢN QUAN TRỌNG</span>}
+        icon={<AlertTriangle className="w-5 h-5" />}
       >
-        Bạn cần xác nhận các cam kết bên dưới để gửi hồ sơ. Nexus từ chối hỗ trợ tài liệu sao chép hoặc yêu cầu cam kết điểm số/kết quả đánh giá chính thức.
+        <p className="font-body text-base text-text-app leading-relaxed">
+          Bạn cần xác nhận các cam kết bên dưới để gửi hồ sơ. Nexus từ chối hỗ trợ tài liệu sao chép hoặc yêu cầu cam kết điểm số/kết quả đánh giá chính thức.
+        </p>
       </Alert>
 
       <form.Field
@@ -76,8 +78,8 @@ export default function BoundaryStep({ form, values }: BoundaryStepProps) {
                           : currentConfirmations.filter((id: string) => id !== rule.id);
                         field.handleChange(next);
                       }}
-                      label={rule.label}
-                      size="sm"
+                      label={<span className="text-base text-text-app leading-normal">{rule.label}</span>}
+                      size="md"
                       radius="sm"
                       className="py-1"
                     />
