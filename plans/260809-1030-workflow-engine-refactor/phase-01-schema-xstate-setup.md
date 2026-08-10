@@ -1,6 +1,6 @@
 # Phase 01 — Schema + XState setup
 
-- Priority: P1 | Status: Pending | Effort: 1.5h
+- Priority: P1 | Status: Pending | Effort: 1h (AMENDMENT 2026-08-11: đơn giản hóa merge — dev env, chưa có user thật, dọn qua API)
 - Depends: Không (phase đầu tiên)
 - Blocks: Phase 02
 
@@ -8,7 +8,7 @@
 
 Cài xstate v5, migration schema (3 thay đổi: `@@unique` DocumentRecord, `version_no` trên Case, `actor_role` trên CaseEvent), tạo file types cho transition engine, giữ symflow song song.
 
-> **Red Team áp dụng:** F2 (Case.version_no — optimistic lock chống TOCTOU), F13 (CaseEvent.actor_role — audit), F14 (merge strategy cụ thể + down migration + unique nullable limitation).
+> **Red Team áp dụng:** F2 (Case.version_no — optimistic lock chống TOCTOU), F13 (CaseEvent.actor_role — audit), F14 (unique nullable limitation — ghi chú, không cần merge phức tạp vì dev chưa user thật).
 
 ## Key Insights
 
@@ -84,12 +84,10 @@ WHERE lifecycle_unit_id IS NOT NULL
 GROUP BY lifecycle_unit_id, doc_type, seq
 HAVING COUNT(*) > 1;
 ```
-**F14 — merge strategy (nếu có duplicate, làm TRƯỚC khi migration):**
-- Giữ record `created_at` MỚI NHẤT (có file_url, is_primary mới nhất)
-- Xóa các record cũ trùng (cùng lifecycle_unit_id + doc_type + seq)
-- KHÔNG merge metadata — DocumentRecord không có metadata cần nối
-- Test trên clone prod DB trước khi chạy thật
-- Tạo migration DOWN file: `npx prisma migrate dev --create-only` tạo up; viết down thủ công (DROP constraint, DROP COLUMN version_no/actor_role) trong file migration trước khi `--create-only` apply — rollback thủ công nếu prod fail
+**F14 — xử lý duplicate (AMENDMENT 2026-08-11: đơn giản hóa):**
+- Prod chưa có user thật → dọn dữ liệu qua API (KHÔNG SQL thủ công): gọi API xoá các document record trùng, giữ bản `created_at` mới nhất. API xoá sẽ tự dọn Cloudinary.
+- Sau khi dọn sạch → thêm constraint unique vào DB.
+- Tạo migration DOWN file (DROP constraint + DROP COLUMN) — rollback thủ công nếu cần.
 
 **F14 — giới hạn constraint:** unique chỉ bảo vệ doc CÓ `lifecycle_unit_id`. Doc orphan (`lifecycle_unit_id = NULL`) vẫn có thể trùng → giữ idempotency `canonical_name` như code hiện tại (`buildDocumentRecordId`). Ghi comment trong schema.
 
@@ -166,7 +164,7 @@ npm test                     # API only — test hiện tại vẫn pass (chưa 
 - [ ] Validate schema
 - [ ] Chạy migration `--create-only` local (`add_workflow_engine_schema`)
 - [ ] Review SQL migration file (flag destructive) + viết down migration
-- [ ] Check duplicates local trước constraint (F14) — merge strategy nếu có
+- [ ] Check duplicates local trước constraint (SELECT chỉ đọc). Nếu có → gọi API xoá duplicate giữ newest created_at (AMENDMENT 2026-08-11: dev env, chưa user thật)
 - [ ] Tạo `transition.types.ts`
 - [ ] check-types PASS (root)
 - [ ] npm test PASS (API)
@@ -174,7 +172,7 @@ npm test                     # API only — test hiện tại vẫn pass (chưa 
 ## Success Criteria
 
 - `xstate` trong apps/api/package.json
-- Migration file `add_workflow_engine_schema` tồn tại, SQL không destructive, có down migration (F14)
+- Migration file `add_workflow_engine_schema` tồn tại, SQL không destructive, có down migration
 - Case có `version_no` (F2), CaseEvent có `actor_role` (F13), DocumentRecord có `@@unique` (F14)
 - `transition.types.ts` compile, export đủ types cho phase 02
 - check-types root PASS, test API pass (engine cũ chưa bị đụng)

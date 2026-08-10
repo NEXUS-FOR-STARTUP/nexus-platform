@@ -1,0 +1,233 @@
+# User Wallet & Money Architecture — Brainstorm (2026-08-11)
+
+**Mục đích:** Phân tích vấn đề tiền bạc hiện tại, chọn hướng thiết kế mới, chuẩn bị đầu vào cho plan User Wallet (plan riêng, độc lập với workflow-engine-refactor).
+
+**Nguồn:** Phiên brainstorm 2026-08-11, dựa trên code thật (cavecrew-investigator verify) + `note.txt` (tầm nhìn sản phẩm).
+
+---
+
+## 1. Hiện trạng — Dòng tiền đang chạy thế nào
+
+Hệ thống hiện tại: credit gắn theo **case** (không theo user). Mỗi case có 1 "quỹ" riêng. Dòng tiền:
+
+```
+Học viên tạo payment → admin xác nhận → ghi +credit vào case đó
+     ↓
+Supporter nộp output (T11) → -1 credit khỏi case
+     ↓
+Admin veto (T13) → ghi sổ "refund" về 0 (chỉ ghi sổ, KHÔNG trả tiền thật)
+Admin reject (T12) → credit không đụng tới (case đóng, credit nằm chết)
+User hủy case (T15) → chưa có code xử lý
+```
+
+**Điểm yếu cốt lõi:** credit là "vật phẩm gắn vào case" — không phải "tiền trong ví".
+
+---
+
+## 2. 5 Vấn đề cụ thể
+
+| # | Vấn đề | Hậu quả thực tế |
+|---|---|---|
+| **P1** | Credit chết trong case bị hủy | User nạp 39k, case bị từ chối trước khi dùng → tiền mất, không dùng được cho case khác |
+| **P2** | "Refund" không trả tiền thật | Veto (T13) chỉ reset số về 0 trong DB — không có luồng qua cổng thanh toán SePay |
+| **P3** | Không chuyển credit giữa các case | 1 user có 3 case: case A thừa 5 credit, case B thiếu — không giải quyết được |
+| **P4** | Chỉ có 1 loại service (39k/credit) | Không có chỗ cho AI đánh giá (gói 50-80k), combo AI+supporter (gói VIP 100-200k), team fit tặng thêm... |
+| **P5** | Thanh toán thủ công (admin duyệt) | Không thể scale sang AI tự đánh giá ngay (instant) — AI cần tự động trừ tiền, không chờ admin |
+
+---
+
+## 3. Các hướng đã cân nhắc
+
+### Hướng A: Giữ per-case, thêm chuyển credit (vá tạm)
+
+Giữ credit từng case. Cho phép tái dùng credit case cũ khi resubmit. Thêm cổng hoàn tiền qua SePay.
+
+- **Bỏ vì:** không giải quyết P3 (chuyển credit), P4 (nhiều gói), P5 (tự động). Chỉ trì hoãn vấn đề.
+
+### Hướng B: Bán gói dịch vụ cố định (Option C trước đó)
+
+Không bán credit. Bán gói: "5 lượt AI", "3 lượt supporter", combo "AI + supporter 2 lượt".
+
+- **Bỏ vì:** đã thử trong quá khứ. User bị kẹt trong gói (dùng 3/5 lượt → thừa 2), phân vân giữa các gói (giá chênh cao → không biết chọn gì), không linh hoạt đổi ý giữa chừng.
+
+### Hướng C: Ví user chứa credit (Option A trước đó)
+
+Chuyển credit từ per-case → per-user. Mỗi user có 1 ví credit. Case trừ từ ví user.
+
+- **Bỏ vì:** credit vẫn là khái niệm trung gian trừu tượng ("1 credit = gì?"). User vẫn phải hiểu thêm 1 lớp quy đổi. Không khác Hướng D về mặt kỹ thuật nhưng tệ hơn về UX.
+
+---
+
+## 4. Hướng chọn: User Wallet VND — "Nạp tiền = có điểm"
+
+### Nguyên lý
+
+| Ý | Chi tiết |
+|---|---|
+| **1 đơn vị = 1 VND** | Không có credit, không có quy đổi. Nạp 100,000đ → ví có 100,000đ |
+| **Ví gắn user** | 1 user = 1 ví. Tiền không chết theo case. Case hủy → tiền còn nguyên |
+| **Giá dịch vụ = số VND** | AI đánh giá = 50,000đ. Supporter chấm = 39,000đ. VIP combo = 150,000đ. Cứ đặt giá, hệ thống tự trừ |
+| **Hoàn tiền = cộng ngược ví** | Reject (chưa dùng) → hoàn 100%. Veto (đã dùng) → hoàn theo chính sách. Ghi rõ trong lịch sử ví |
+| **Mở gói mới = thêm dòng giá** | Không cần sửa architecture — mỗi service mới chỉ cần 1 dòng config giá |
+
+### Dòng tiền mới
+
+```
+User nạp 200,000đ qua SePay → webhook xác nhận → ví +200,000đ
+     ↓
+Tạo case & chọn dịch vụ → hệ thống trừ tiền từ ví:
+  • AI đánh giá:        -50,000đ
+  • Supporter chấm:     -39,000đ
+  • VIP AI+Supporter:  -150,000đ
+  • Team fit bonus:     +0đ (platform tặng)
+     ↓
+Admin từ chối case (T12) → +39,000đ về ví (chưa dùng → hoàn toàn bộ)
+Admin veto       (T13) → +39,000đ về ví (đã dùng → hoàn theo chính sách)
+     ↓
+User tạo case mới → dùng tiếp tiền trong ví
+```
+
+### Tại sao dùng VND trực tiếp, không trung gian
+
+- **User KHÔNG phải học** "credit là gì". Họ biết tiền — ai cũng biết tiền.
+- **Không có ma sát quy đổi.** Không cần "1 credit = ? đồng". Không cần "giá credit thay đổi thì sao".
+- **Minh bạch với cơ quan thuế / kế toán.** Mỗi giao dịch là số tiền thật, dễ đối chiếu với tài khoản ngân hàng.
+- **Khuyến mãi rõ ràng.** "Nạp 200k tặng 20k" — ai cũng hiểu. Không cần "tặng 2 credit".
+
+---
+
+## 5. Kiến trúc đề xuất
+
+### Models (DB)
+
+```
+user_wallets
+  - id (uuid)
+  - user_id (unique, 1 user 1 ví)
+  - balance (int, VND — luôn >= 0, constraint CHECK)
+  - version_no (int, optimistic lock — mỗi giao dịch +1)
+  - created_at / updated_at
+
+wallet_transactions
+  - id (uuid)
+  - wallet_id → user_wallets
+  - type: deposit | withdrawal | refund | adjustment
+  - amount (int, VND — dương = vào ví, âm = ra ví)
+  - balance_before (int)
+  - balance_after (int)
+  - source_type: payment | case_service | admin_refund | platform_bonus
+  - source_id: (payment_id | case_id | null — truy xuất ngược)
+  - idempotency_key (unique — chống trùng giao dịch)
+  - metadata (jsonb)
+  - created_at
+```
+
+**Ghi sổ kép:** mỗi giao dịch ghi `balance_before` + `balance_after`. Không bao giờ UPDATE balance trực tiếp — luôn INSERT transaction + UPDATE wallet trong cùng 1 DB transaction.
+
+### Service
+
+```
+WalletService
+  ├─ deposit(userId, amount, idempotencyKey)    → +amount
+  ├─ withdraw(userId, amount, serviceType, caseId, idempotencyKey) → -amount
+  ├─ refund(userId, amount, reason, caseId, idempotencyKey)        → +amount
+  ├─ getBalance(userId) → int
+  └─ getTransactionHistory(userId, limit, offset) → Transaction[]
+
+Dependency: PrismaClient (gọi trong tx), event bus (emit WALLET_CHANGED sau commit)
+```
+
+### Tích hợp với CaseTransitionService (plan workflow-engine)
+
+Thay vì guard `hasCredit` đọc `credit_balance` từ case ledger, guard mới sẽ gọi:
+
+```
+WalletService.getBalance(actorId) → nếu >= servicePrice → pass
+```
+
+Action `subtractCredit` trong executor (phase-03) sẽ gọi:
+
+```
+WalletService.withdraw(actorId, servicePrice, 'supporter_output', caseId, idempotencyKey)
+```
+
+Action `refundCredit` (T13) sẽ gọi:
+
+```
+WalletService.refund(actorId, servicePrice, 'admin_veto', caseId, idempotencyKey)
+```
+
+---
+
+## 6. Kế hoạch chuyển đổi (Migration)
+
+### Dữ liệu cũ → mới
+
+1. Tạo bảng `user_wallets` + `wallet_transactions` (migration mới, `--create-only`)
+2. Chạy script: với mỗi case đang có credit_balance > 0 → cộng `balance * 39,000` vào ví của chủ case, kèm 1 transaction loại `migration`
+3. **Kiểm tra trên clone production DB trước** — sai 1 case là mất tiền user thật
+4. Sau khi xác nhận đúng → chạy production
+5. Giữ bảng `credit_ledgers` cũ (read-only) để audit — không xóa
+
+### Song song cũ & mới
+
+Tương tự workflow-engine (symflow + XState song song): trong giai đoạn chuyển đổi, cả 2 hệ thống credit cùng chạy. Case mới → dùng ví. Case cũ → dùng credit ledger. Khi tất cả case cũ đóng → xóa credit_ledgers.
+
+### Rollback
+
+Nếu migration ví gặp lỗi: revert code, quay lại credit ledger cũ. Ví đã tạo KHÔNG ảnh hưởng (code cũ không đọc ví).
+
+---
+
+## 7. Liên quan đến plan workflow-engine-refactor
+
+Plan workflow-engine-refactor đang implement engine chuyển trạng thái — KHÔNG đụng đến tiền. Tuy nhiên:
+
+- Guard `hasCredit` + action `subtractCredit`/`refundCredit` trong plan HIỆN TẠI đọc/ghi từ `credit_ledgers` (case-level)
+- Khi có User Wallet, 3 chỗ này sẽ chuyển sang gọi `WalletService`
+- **Khuyến nghị:** trong plan workflow-engine, ghi chú "credit logic sẽ migrate sang User Wallet (plan sau)" — tránh code xong rồi sửa lại
+
+### Điều chỉnh trong plan workflow-engine
+
+| Chỗ | Thay đổi (ghi chú, không code) |
+|---|---|
+| Guard `hasCredit` | Ghi chú: hiện đọc `event.data.creditBalance` từ case ledger; sau wallet → gọi `WalletService.getBalance()` |
+| Action `subtractCredit` | Ghi chú: hiện ghi `credit_ledgers`; sau wallet → gọi `WalletService.withdraw()` |
+| Action `refundCredit` | Ghi chú: hiện ghi `credit_ledgers`; sau wallet → gọi `WalletService.refund()` |
+| T5/Accept guard | Ghi chú: hiện check `hasCredit` trên case ledger; sau wallet → check ví user |
+
+Không cần sửa code workflow-engine — chỉ thêm comment `// TODO: migrate to WalletService after user-wallet plan`.
+
+---
+
+## 8. Câu hỏi mở (cần quyết định trước khi viết plan User Wallet)
+
+1. **Giá dịch vụ lưu ở đâu?** Trong DB (bảng `service_pricing`) hay config file? DB linh hoạt hơn (admin đổi giá không cần deploy) nhưng cần migration mỗi lần thêm service.
+2. **Có cần pending balance?** Khi user nạp tiền → admin duyệt mới vào ví, hay tự động? Tự động (webhook SePay) nhanh hơn nhưng rủi ro chargeback. Admin duyệt → an toàn nhưng chậm.
+3. **Hoàn tiền thật qua SePay?** Hiện tại refund chỉ là ghi sổ. Nếu user muốn rút tiền thật về tài khoản ngân hàng → cần tích hợp SePay refund API. Làm ngay hay sau?
+4. **Số dư âm?** Có cho phép user "nợ" không (vd thiếu 5k vẫn cho dùng, trừ vào lần nạp sau)? Hay cứng: balance < price → chặn?
+5. **Audit trail cho admin?** Admin cần xem được lịch sử giao dịch của 1 user, 1 case, tổng doanh thu theo ngày/tháng. Cần thêm dashboard?
+
+---
+
+## 9. Ước lượng
+
+| Hạng mục | Effort |
+|---|---|
+| Plan User Wallet (document) | ~2h |
+| Migration + schema | 2h |
+| WalletService | 3h |
+| Sửa guard/action trong workflow-engine (tích hợp) | 2h |
+| Sửa FE (hiển thị ví, lịch sử giao dịch) | 3h |
+| Script migrate dữ liệu cũ + test clone DB | 2h |
+| Test (unit + integration + concurrent) | 3h |
+| **Tổng** | **~17h** |
+
+---
+
+## 10. Tiếp theo
+
+1. Chốt các câu hỏi mở (mục 8)
+2. Tạo plan `plans/user-wallet/` — triển khai sau khi workflow-engine-refactor hoàn thành
+3. Ghi chú tích hợp vào `phase-03-case-transition-service.md` (guard/action credit → wallet)
+4. Cập nhật `project-context.md` / PRD — thêm mô tả "ví người dùng" vào product scope

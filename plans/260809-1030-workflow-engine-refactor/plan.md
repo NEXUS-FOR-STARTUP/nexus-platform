@@ -3,7 +3,7 @@ title: "Workflow Engine Refactor — symflow → XState v5"
 description: "Thay symflow bằng XState v5: 1 cổng CaseTransitionService 5 lớp cho mọi use case thay đổi state. Fix 14 bugs backlog. ONE-SHOT: T1-T16, policy sản phẩm Q1-Q5 đã chốt 2026-08-09 — không còn blocker."
 status: pending
 priority: P1
-effort: 20.5h
+effort: 21h
 branch: feat/workflow-engine-refactor
 tags: [refactor, workflow, engine, xstate, bug-fix]
 blockedBy: []
@@ -54,15 +54,24 @@ Nguồn: `docs/research/workflow-engine-refactor-brainstorm-2026-08-09.md` + `re
 > - **F13:** metadata caseEvent whitelist + `CaseEvent.actor_role` (schema phase-01)
 > - **F14:** merge strategy cụ thể (keep newest) + down migration + unique nullable limitation
 > - **F15:** script fix data prod tách operational (`scripts/fix-stuck-cases-2026-08-09.sql` — convention scripts/, không tạo folder mới); bỏ wrapper thừa (restoreMachine đơn giản hóa, bỏ initialCaseTransition); resubmit/veto KHÔNG ĐỔI trong file map cho đến phase 06 — sau khi Q chốt (2026-08-09) chuyển T3/T4/T12-T15 qua cổng + fix #12/BP1
+>
+> **AMENDMENT 2026-08-11 (3 bổ sung, effort +1h):**
+> 1. **Self-loop T16/T10 bị chặn oan** (phase-02): `tryTransition` null-check chỉ dựa `value` giữ nguyên → T16 (edit intake) + T10 (start review) luôn trả null. Sửa: phân biệt bằng `actions.length` (guard fail = value giữ nguyên + actions rỗng; self-loop hợp lệ = value giữ nguyên + actions không rỗng). T10 thêm action `notifyUser` (no-op trong tx — L5). Phase-05 test T16 đã có sẵn → sẽ pass sau sửa.
+> 2. **Idempotency key đoán được** (phase-03, red-team-01 S7): thêm `{nonce}` (crypto.randomUUID()) vào key `consume-...` + `veto_...` — chống pre-claim key phiên bản tương lai.
+> 3. **allowed_transitions đổi shape** (phase-04, red-team-02 A5): `{name, froms, tos}[]` → `TransitionName[]` (string) — cập nhật type FE + rà soát mọi consumer (type `case.ts:23` đã lệch reality từ trước).
+>
+> **AMENDMENT 2026-08-11 (bổ sung 2 — chốt T6/T7/T8/T10 + đơn giản hóa phase-01):**
+> 4. **T6/T7/T8/T10 vào phase-04** (trước đó để ngỏ): 4 transition đơn giản — chỉ check quyền + đổi state + ghi log. Gọi `executeTransition` trong `update-case-status.usecase.ts`. Effort ~30ph (đã nằm trong 4h phase-04).
+> 5. **Đơn giản hóa phase-01**: prod chưa có user thật → dọn dữ liệu trùng qua API (xoá Cloudinary + DB), giữ newest created_at. Không cần merge strategy phức tạp. Effort phase-01: 1.5h → 1h.
 
 ## Phases
 
 | Phase | Name | Status | Effort |
 |-------|------|--------|--------|
-| 01 | [Schema + XState setup](./phase-01-schema-xstate-setup.md) | 🔲 Pending | 1.5h |
+| 01 | [Schema + XState setup](./phase-01-schema-xstate-setup.md) | 🔲 Pending | 1h |
 | 02 | [Transition Registry](./phase-02-transition-registry.md) | 🔲 Pending | 3h |
 | 03 | [CaseTransitionService + submit-revision](./phase-03-case-transition-service.md) | 🔲 Pending | **5h** |
-| 04 | [Lan use case qua cổng + FE](./phase-04-spread-use-cases.md) | 🔲 Pending | 3h |
+| 04 | [Lan use case qua cổng + FE](./phase-04-spread-use-cases.md) | 🔲 Pending | **4h** |
 | 05 | [Tests](./phase-05-tests.md) | 🔲 Pending | **4h** |
 | 06 | [Refund/Resubmit Policy T12-T15](./phase-06-refund-resubmit-policy.md) | 🔲 Pending | **4h** |
 

@@ -102,7 +102,8 @@ const caseMachine = setup({
           guard: ['isAdmin', 'isPaid', 'hasCredit'],
           actions: []
         },
-        // T16: edit intake — giữ nguyên stage
+        // T16: edit intake — giữ nguyên stage. AMENDMENT 2026-08-11: self-loop hợp lệ nhờ
+        // actions ['upsertDoc'] — phân biệt với guard-fail (actions rỗng) trong tryTransition
         T16_EDIT_INTAKE: {
           target: 'triage_pending',
           guard: 'isBeforeSubmission',
@@ -157,7 +158,10 @@ const caseMachine = setup({
           target: 'waiting_user', guard: 'isAssignedSupporter', actions: ['notifyUser']
         },
         T10_START_REVIEW_REVISION: {
-          target: 'supporter_working', guard: 'isAssignedSupporter', actions: []
+          target: 'supporter_working', guard: 'isAssignedSupporter',
+          // AMENDMENT 2026-08-11: actions KHÔNG được rỗng — tryTransition phân biệt self-loop
+          // hợp lệ với guard-fail dựa trên actions.length. notifyUser = no-op trong tx (L5).
+          actions: ['notifyUser']
         },
         T11_SUBMIT_OUTPUT: {
           target: 'report_ready_to_publish',
@@ -255,10 +259,13 @@ export function restoreMachine(status: string): { value: InternalStatus } {
   return { value: status as InternalStatus };
 }
 
-/** Thực thi 1 transition. Returns [nextState, actions[]] hoặc null nếu guard fail.
+/** Thực thi 1 transition. Returns [nextState, actions[]] hoặc null nếu guard fail / không match.
  *  F15: bỏ wrapper resolveState/historyValue — snapshot = {value: status} string đơn giản.
  *  F9: SPIKE đầu phase — verify `._action` property tồn tại ở xstate@latest.
- *  Nếu không: đổi actions factory trả plain object `{type, params}` (không dùng `._action`). */
+ *  Nếu không: đổi actions factory trả plain object `{type, params}` (không dùng `._action`).
+ *  AMENDMENT 2026-08-11 (self-loop): guard fail / không match = XState trả state KHÔNG đổi VÀ actions rỗng.
+ *  Self-transition HỢP LỆ (T16 edit intake, T10 start review) = state KHÔNG đổi NHƯNG actions KHÔNG rỗng.
+ *  Phân biệt bằng actions. Lỗi cũ (check value giữ nguyên là đủ): T16/T10 luôn bị chặn oan. */
 export function tryTransition(
   currentStatus: string,
   event: TransitionEvent
@@ -266,8 +273,8 @@ export function tryTransition(
   const restored = restoreMachine(currentStatus);
   const [nextState, pendingActions] = transition(caseMachine, restored, event);
 
-  // Guard fail → XState trả state không đổi (self-transition bị chặn)
-  if (nextState.value === currentStatus) return null;
+  // Guard fail / không match: state không đổi + không action nào thực thi
+  if (nextState.value === currentStatus && pendingActions.length === 0) return null;
 
   return [nextState, pendingActions.map(a => {
     // Extract action type + params từ XState action object — VERIFY `._action` (F9)
@@ -319,14 +326,15 @@ export { caseMachine };
 - [ ] Implement `tryTransition` (bỏ wrapper resolveState/historyValue — F15), `isBlockedTransition`, `getAvailableTransitions` (filter blocked — F12)
 - [ ] Verify: import trong Node không crash
 - [ ] Verify: `tryTransition` trả null khi guard fail
-- [ ] Verify: `getAvailableTransitions('triage_pending')` KHÔNG chứa T12/T13/T15
+- [ ] Verify: `getAvailableTransitions('triage_pending')` chứa T2/T5/T16/T12/T15 (mọi transition active — hết blocked, chốt 2026-08-09)
+- [ ] **AMENDMENT 2026-08-11:** Verify `tryTransition('triage_pending', T16_EDIT_INTAKE)` trả tuple (KHÔNG null) — self-loop hợp lệ; và `tryTransition` trả null khi guard fail (event data thiếu)
 
 ## Success Criteria
 
 - `transition-registry.ts` compile OK
 - `restoreMachine('supporter_working')` + `tryTransition(..., T11_SUBMIT_OUTPUT)` → target `report_ready_to_publish`
 - `restoreMachine('invalid_status')` → throw AppError CORRUPT_STATE (không crash lạ — F4)
-- `isBlockedTransition('T14_COMPLETE')` → true
+- `isBlockedTransition('T14_COMPLETE')` → false (mọi transition active — hết blocked, chốt 2026-08-09)
 - `getAvailableTransitions('triage_pending')` → T2/T5/T16/T12/T15 (mọi transition active)
 - `tryTransition('triage_pending', T5_ACCEPT)` với `paymentStatus='paid'` + `roleVerified='ADMIN'` → `accepted_unassigned`
 - `tryTransition('triage_pending', T5_ACCEPT)` với `paymentStatus='unpaid'` → null (guard fail)

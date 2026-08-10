@@ -103,15 +103,19 @@ async function executeAction(
     }
     case 'subtractCredit': {
       // F2: TRONG tx — SELECT credit ledger row FOR UPDATE (hoặc version_no lock) trước khi trừ
-      // Idempotency key: `consume-{unitCode}-{caseId}-v{versionNo}` — unique constraint chặn double-deduct
-      // Key trùng (replay) → KHÔNG lỗi, trả về success (idempotent)
+      // Idempotency key: `consume-{unitCode}-{caseId}-v{versionNo}-{nonce}` — unique constraint chặn double-deduct
+      // AMENDMENT 2026-08-11 (red-team-01 S7): thêm nonce (crypto.randomUUID()).
+      //   Key cũ đoán được → attacker pre-claim key phiên bản tương lai → deduction thật bị coi là
+      //   replay → bỏ qua trừ tiền (mất tiền platform). Nonce làm key không đoán trước được.
+      // Key trùng (replay chính chủ) → KHÔNG lỗi, trả về success (idempotent)
       break;
     }
     case 'refundCredit': {
       // T13 veto — Q1b: hoàn 100% credit. Pattern vetoCaseUseCase:31-50 (đã verify code thật):
       // getCreditBalanceForTx(tx, caseId) → balance > 0 → creditLedger.create({
       //   case_id, amount: -balance, balance_after: 0, type: 'refund',
-      //   idempotency_key: `veto_{caseId}_{Date.now()}`, metadata_json: { action: 'admin_veto', admin_id, reason } })
+      //   idempotency_key: `veto_{caseId}_{Date.now()}_{nonce}`, metadata_json: { action: 'admin_veto', admin_id, reason } })
+      // AMENDMENT 2026-08-11: + nonce (crypto.randomUUID()) — đồng bộ chống pre-claim key (S7)
       // CHỈ T13 gọi — T12/T15 KHÔNG refund (Q3). Zero-out balance, atomic trong tx (F2)
       break;
     }

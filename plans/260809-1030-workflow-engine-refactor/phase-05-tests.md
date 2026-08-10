@@ -199,7 +199,8 @@ test('executeAction(upsertDoc) — upsert theo composite unique (F7)', async () 
 });
 
 test('executeAction(subtractCredit) — idempotent key version (F2)', async () => {
-  // Assert: ledger.create với key `consume-{unitCode}-{caseId}-v{versionNo}`
+  // Assert: ledger.create với key `consume-{unitCode}-{caseId}-v{versionNo}-{nonce}`
+  //   (AMENDMENT 2026-08-11: + nonce crypto.randomUUID — key không đoán trước được, S7)
   // Assert: key trùng → KHÔNG throw (idempotent)
 });
 
@@ -292,7 +293,7 @@ test('Integration: submit-supporter-output (T11) idempotent (fix #4)', async () 
 
 - [ ] **F10 (ĐẦU PHASE):** verify test infra — có `DATABASE_URL` test env? Có pattern DB local trong repo? → quyết định integration test CÓ/KHÔNG
 - [ ] Migrate phase-07: 4 nhóm test (A-D) sang XState — 16 assertions path hợp lệ
-- [ ] Unit test: blocked transitions (T12-T15) → isBlockedTransition true
+- [ ] Unit test: transitions T12-T15 → isBlockedTransition false (mọi transition active — chốt 2026-08-09; dọn wording cũ "true")
 - [ ] Unit test: getAvailableTransitions cho mỗi state + KHÔNG trả blocked (F12)
 - [ ] Unit test: restoreMachine invalid status → CORRUPT_STATE (F4)
 - [ ] **F10:** tạo phase-08-executor.test.ts — 8 unit test executeAction (mock DB, không DB thật)
