@@ -7,7 +7,7 @@ effort: 21h
 branch: feat/workflow-engine-refactor
 tags: [refactor, workflow, engine, xstate, bug-fix]
 blockedBy: []
-blocks: []
+blocks: [260811-1100-user-wallet-vnd]
 created: 2026-08-09
 ---
 
@@ -63,6 +63,27 @@ Nguồn: `docs/research/workflow-engine-refactor-brainstorm-2026-08-09.md` + `re
 > **AMENDMENT 2026-08-11 (bổ sung 2 — chốt T6/T7/T8/T10 + đơn giản hóa phase-01):**
 > 4. **T6/T7/T8/T10 vào phase-04** (trước đó để ngỏ): 4 transition đơn giản — chỉ check quyền + đổi state + ghi log. Gọi `executeTransition` trong `update-case-status.usecase.ts`. Effort ~30ph (đã nằm trong 4h phase-04).
 > 5. **Đơn giản hóa phase-01**: prod chưa có user thật → dọn dữ liệu trùng qua API (xoá Cloudinary + DB), giữ newest created_at. Không cần merge strategy phức tạp. Effort phase-01: 1.5h → 1h.
+>
+> **AMENDMENT 2026-08-11 (bổ sung 3 — tích hợp User Wallet VND):**
+> 6. **Bỏ guard `isPaid` ở T5** — credit mua từ ví VND lúc tạo case, không còn bước "chờ thanh toán". T5 guard: `['isAdmin', 'hasCredit']`. Free case (team_fit, price=0) → `hasCredit` tự skip.
+> 7. **Action `refundCredit` (phase-03/06)** giữ implementation credit_ledgers zero-out hiện tại. Ghi chú TODO: sau khi User Wallet plan hoàn thành → swap sang `WalletService.refund()` hoàn VND về ví.
+> 8. **Credit = đơn vị tiêu dùng trong engine** — engine chỉ biết credit_ledgers (hasCredit >= 1, subtractCredit -1). Ví VND là tầng riêng, engine không biết VND. Wallet plan xây dựng sau, độc lập.
+
+## Thứ tự implement
+
+```
+Workflow Phase 01 (schema) ──┐
+Workflow Phase 02 (registry)  ├─ Wallet plan CÓ THỂ bắt đầu song song
+Workflow Phase 03 (executor) ─┘  (wallet schema + WalletService + top-up + FE ví)
+    │
+    ├─ Phase 04 (spread use cases)
+    ├─ Phase 05 (tests)
+    └─ Phase 06 (refund/resubmit)
+         │
+         └─ Wallet plan: tích hợp refundCredit (swap credit_ledgers → WalletService)
+```
+
+**Lý do workflow trước wallet:** Executor tx pattern (phase-03) là seam tích hợp. Credit_ledgers hiện tại vẫn hoạt động — engine build xong trên credit cũ, wallet thay thế sau. Wallet schema/service/FE làm song song không conflict, nhưng tích hợp refundCredit phải chờ wallet module live.
 
 ## Phases
 
@@ -167,7 +188,7 @@ KHÔNG ĐỔI  resubmit-case.usecase.ts (giữ logic cũ — chuyển phase 06, 
 - **Q1b (T4)** resubmit sau veto: **hoàn 100% credit + nộp lại miễn phí** (giữ hành vi vetoCaseUseCase:31-50 — action `refundCredit`)
 - **Q3 (T12/T15)** reject thường + user hủy: supporter đã render → giữ credit; chưa render → credit chưa trừ = không mất gì. **Chỉ T13 hoàn 100%**
 - **Q4 (T14)** hoàn thành: **supporter tự đóng** (guard `isAssignedSupporter`) → notify user + supporter (fix #5)
-- **Q5** credit check: **khi admin duyệt T5** (guard `hasCredit`); KHÔNG check khi nộp T2 — xóa `requireCredits` khỏi submit-intake
+- **Q5** credit check: **khi admin duyệt T5** (guard `hasCredit`, bỏ `isPaid` — credit mua bằng ví VND lúc tạo case). Free case (price=0) → hasCredit tự skip. KHÔNG check khi nộp T2 — xóa `requireCredits` khỏi submit-intake
 
 ### Action Items
 - [x] Phase-02: khai báo T3/T4/T12-T15 trong machine (hết blocked), `isBlockedTransition` trả false
