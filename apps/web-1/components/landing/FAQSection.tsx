@@ -30,7 +30,7 @@ export default function FAQSection() {
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-bg-app transition-colors duration-200">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12 space-y-4">
-          <h2 className="font-heading text-3xl font-semibold text-text-app">Câu hỏi thường gặp (FAQ)</h2>
+          <h2 className="font-heading text-h2 font-semibold text-text-app">Câu hỏi thường gặp (FAQ)</h2>
           <p className="font-body text-text-muted">
             Giải đáp các thắc mắc phổ biến về quy trình phản biện ý tưởng trên Nexus.
           </p>
@@ -43,7 +43,7 @@ export default function FAQSection() {
                 <Accordion.Control className="font-heading font-medium text-text-app">
                   {item.question}
                 </Accordion.Control>
-                <Accordion.Panel className="font-body text-sm text-text-muted leading-relaxed">
+                <Accordion.Panel className="font-body text-base text-text-muted leading-relaxed">
                   {item.answer}
                 </Accordion.Panel>
               </Accordion.Item>

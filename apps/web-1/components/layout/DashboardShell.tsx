@@ -125,7 +125,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                     <Menu.Item
                       leftSection={<Shield className="w-4 h-4 text-text-muted" />}
                       onClick={() => router.push("/admin")}
-                      className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-xs font-semibold"
+                      className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-sm font-semibold"
                     >
                       Bàn làm việc Admin
                     </Menu.Item>
@@ -134,7 +134,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                     <Menu.Item
                       leftSection={<LayoutDashboard className="w-4 h-4 text-text-muted" />}
                       onClick={() => router.push("/supporter")}
-                      className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-xs font-semibold"
+                      className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-sm font-semibold"
                     >
                       Bàn làm việc Supporter
                     </Menu.Item>
@@ -143,7 +143,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                     <Menu.Item
                       leftSection={<LayoutDashboard className="w-4 h-4 text-text-muted" />}
                       onClick={() => router.push("/dashboard")}
-                      className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-xs font-semibold"
+                      className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-sm font-semibold"
                     >
                       Hồ sơ của tôi
                     </Menu.Item>
@@ -152,7 +152,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                     <Menu.Item
                       leftSection={<CreditCard className="w-4 h-4 text-text-muted" />}
                       onClick={() => router.push("/dashboard/payments")}
-                      className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-xs font-semibold"
+                      className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-sm font-semibold"
                     >
                       Lịch sử thanh toán
                     </Menu.Item>
@@ -162,7 +162,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                     color="red"
                     leftSection={<LogOut className="w-4 h-4" />}
                     onClick={handleSignOut}
-                    className="cursor-pointer font-body text-xs font-semibold"
+                    className="cursor-pointer font-body text-sm font-semibold"
                   >
                     Đăng xuất
                   </Menu.Item>

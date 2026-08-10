@@ -15,9 +15,9 @@ export default function NotFound() {
 
         {/* 404 Titles */}
         <div className="space-y-2">
-          <h1 className="font-heading text-4xl font-extrabold tracking-tight text-brand">404</h1>
-          <h2 className="font-heading text-xl font-semibold">Không tìm thấy trang</h2>
-          <p className="text-xs text-text-muted leading-relaxed">
+          <h1 className="font-heading text-display font-extrabold tracking-tight text-brand">404</h1>
+          <h2 className="font-heading text-h3 font-semibold">Không tìm thấy trang</h2>
+          <p className="text-sm text-text-muted leading-relaxed">
             Đường dẫn bạn truy cập có thể đã thay đổi hoặc không tồn tại. Vui lòng quay lại trang chủ hoặc liên hệ hỗ trợ kỹ thuật.
           </p>
         </div>
@@ -25,7 +25,7 @@ export default function NotFound() {
         {/* Action Link */}
         <Link
           href="/"
-          className="inline-flex items-center justify-center gap-2 font-body text-xs font-semibold bg-brand hover:bg-brand-hover text-white px-5 py-2.5 rounded-lg shadow-sm shadow-brand/10 transition-colors cursor-pointer"
+          className="inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-brand hover:bg-brand-hover text-white px-5 py-2.5 rounded-lg shadow-sm shadow-brand/10 transition-colors cursor-pointer"
         >
           <span>Quay về trang chủ</span>
           <ArrowRight className="w-3.5 h-3.5" />

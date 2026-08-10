@@ -535,7 +535,7 @@ function AdminHubPageInner() {
             <HeaderIcon className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="font-heading text-xl sm:text-2xl font-bold text-text-app">{currentHeader.title}</h1>
+            <h1 className="font-heading text-h2 sm:text-h1 font-bold text-text-app">{currentHeader.title}</h1>
             <p className="text-text-muted text-xs mt-0.5">{currentHeader.description}</p>
           </div>
         </div>

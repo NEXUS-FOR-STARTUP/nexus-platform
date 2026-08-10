@@ -35,7 +35,7 @@ export default function CreditBalanceCard({
           </div>
           <div className="min-w-0">
             <p className="text-xs font-medium text-text-muted mb-0.5">Số dư credit</p>
-            <p className="text-2xl font-bold text-text-app tracking-tight">
+            <p className="text-h2 font-bold text-text-app tracking-tight">
               {creditBalance}
             </p>
             <p className="text-base text-text-muted mt-0.5">
@@ -57,7 +57,7 @@ export default function CreditBalanceCard({
           </div>
           <div className="min-w-0">
             <p className="text-xs font-medium text-text-muted mb-0.5">Đơn giá</p>
-            <p className="text-2xl font-bold text-text-app tracking-tight">
+            <p className="text-h2 font-bold text-text-app tracking-tight">
               {pricePerCredit
                 ? `${pricePerCredit.toLocaleString("vi-VN")}₫`
                 : "—"}

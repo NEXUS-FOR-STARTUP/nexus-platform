@@ -46,7 +46,7 @@ export default function ReviewSubmitStep({ values, packages, error }: ReviewSubm
   return (
     <div className="font-body text-text-app max-w-3xl mx-auto space-y-10">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold text-text-app">Xác nhận thông tin hồ sơ</h2>
+        <h2 className="text-h3 font-semibold text-text-app">Xác nhận thông tin hồ sơ</h2>
         <p className="text-sm text-text-muted">
           Đây là gói bàn giao để Supporter bắt đầu xử lý. Kiểm tra lại trước khi xác nhận.
         </p>

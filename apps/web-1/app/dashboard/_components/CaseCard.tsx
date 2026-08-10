@@ -44,7 +44,7 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
             {item.case_code}
           </span>
           {/* Row 2: team name */}
-          <h3 className="font-heading text-lg font-semibold text-text-app group-hover:text-brand transition-colors">
+          <h3 className="font-heading text-h4 font-semibold text-text-app group-hover:text-brand transition-colors">
             {item.team_name || "Hồ sơ chưa đặt tên nhóm"}
           </h3>
           {/* Row 3: status badges */}

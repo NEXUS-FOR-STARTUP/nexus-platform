@@ -15,7 +15,7 @@ export default function StudentDashboard() {
       {/* Dashboard Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-text-app">Hồ sơ phản biện</h1>
+          <h1 className="font-heading text-h2 sm:text-h1 font-bold text-text-app">Hồ sơ phản biện</h1>
           <p className="font-body text-sm text-text-muted">
             Quản lý các hồ sơ phản biện ý tưởng khởi nghiệp.
           </p>

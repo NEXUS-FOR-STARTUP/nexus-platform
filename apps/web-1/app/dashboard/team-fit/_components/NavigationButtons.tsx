@@ -31,7 +31,7 @@ export default function NavigationButtons({
         disabled={currentStep === 0}
         variant="default"
         leftSection={<ArrowLeft className="w-4 h-4" />}
-        className="font-body font-semibold cursor-pointer h-10 px-4 rounded-xl text-xs"
+        className="font-body font-semibold cursor-pointer h-10 px-4 rounded-xl text-base"
       >
         Quay lại
       </Button>
@@ -43,7 +43,7 @@ export default function NavigationButtons({
             variant="outline"
             color="red"
             leftSection={<RotateCcw className="w-4 h-4" />}
-            className="font-body font-semibold cursor-pointer h-10 px-4 rounded-xl text-xs border-red-500 text-red-500 hover:bg-red-500/10"
+            className="font-body font-semibold cursor-pointer h-10 px-4 rounded-xl text-base border-red-500 text-red-500 hover:bg-red-500/10"
           >
             Đặt lại
           </Button>
@@ -54,7 +54,7 @@ export default function NavigationButtons({
             disabled={!canProceedToStep1}
             color="brand"
             rightSection={<ArrowRight className="w-4 h-4" />}
-            className="font-body font-semibold cursor-pointer h-10 px-4 rounded-xl text-xs"
+            className="font-body font-semibold cursor-pointer h-10 px-4 rounded-xl text-base"
           >
             Tiếp tục
           </Button>
@@ -64,7 +64,7 @@ export default function NavigationButtons({
             disabled={membersCount === 0}
             color="brand"
             rightSection={<Sparkles className="w-4 h-4" />}
-            className="font-body font-semibold cursor-pointer h-10 px-4 rounded-xl text-xs"
+            className="font-body font-semibold cursor-pointer h-10 px-4 rounded-xl text-base"
           >
             Đánh giá
           </Button>

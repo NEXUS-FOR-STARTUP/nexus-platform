@@ -19,7 +19,7 @@ export default function ContactUs() {
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-surface-soft/10 transition-colors duration-200">
       <Container size="lg" className="space-y-12">
         <div className="text-center max-w-2xl mx-auto space-y-4">
-          <Title order={2} className="font-heading text-3xl font-bold text-text-app">
+          <Title order={2} className="font-heading text-h2 font-bold text-text-app">
             Liên hệ với chúng tôi
           </Title>
           <Text className="font-body text-text-muted">

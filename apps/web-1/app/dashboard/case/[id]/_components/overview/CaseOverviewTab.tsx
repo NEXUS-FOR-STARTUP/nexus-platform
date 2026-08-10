@@ -96,7 +96,7 @@ export default function CaseOverviewTab({ caseData, intakeSnapshot, teamFitRepor
                 {stage?.label || model.summary.stage}
               </Badge>
             </div>
-            <h2 className="font-heading text-2xl font-bold text-text-primary">Tổng quan hồ sơ</h2>
+            <h2 className="font-heading text-h2 font-bold text-text-primary">Tổng quan hồ sơ</h2>
             <p className="mt-2 text-sm text-text-muted leading-relaxed font-body">
               {model.summary.text || "Chưa có tóm tắt hồ sơ. Các phần bên dưới chỉ hiển thị dữ liệu nhóm đã cung cấp."}
             </p>

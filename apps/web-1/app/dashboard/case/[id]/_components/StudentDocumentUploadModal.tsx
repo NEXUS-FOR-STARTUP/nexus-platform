@@ -205,7 +205,7 @@ export default function StudentDocumentUploadModal({ isOpen, onClose, caseId }: 
         />
 
         <div className="flex items-center justify-end gap-3 pt-3 border-t border-border-app">
-          <Button onClick={handleClose} variant="default" className="font-semibold text-xs h-9">
+          <Button onClick={handleClose} variant="default" className="font-semibold text-base h-10">
             Hủy bỏ
           </Button>
           <Button
@@ -213,8 +213,8 @@ export default function StudentDocumentUploadModal({ isOpen, onClose, caseId }: 
             disabled={!isFormValid || isSubmitting}
             loading={isSubmitting}
             color="brand"
-            leftSection={<Send className="w-3.5 h-3.5" />}
-            className="font-semibold cursor-pointer text-xs h-9"
+            leftSection={<Send className="w-4 h-4" />}
+            className="font-semibold cursor-pointer text-base h-10"
           >
             <span>{isSubmitting ? "Đang tải lên..." : "Tải lên bản sửa"}</span>
           </Button>

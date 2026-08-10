@@ -143,7 +143,7 @@ export default function CaseStatusHeader({
             <Tooltip label="Xem tổng quan hồ sơ & ý tưởng khởi nghiệp" withArrow position="top">
               <h2
                 onClick={() => onSelectTab?.("overview")}
-                className="font-heading text-xl sm:text-2xl font-bold text-text-app hover:text-brand transition-colors cursor-pointer"
+                className="font-heading text-h3 sm:text-h2 font-bold text-text-app hover:text-brand transition-colors cursor-pointer"
               >
                 {caseData.case_code}
               </h2>

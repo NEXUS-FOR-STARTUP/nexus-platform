@@ -94,16 +94,16 @@ export default function SupporterOutputUploadModal({ isOpen, onClose, caseId }: 
           <div className="w-8 h-8 rounded-lg bg-brand-soft/40 text-brand flex items-center justify-center">
             <UploadCloud className="w-4 h-4" />
           </div>
-          <span className="font-heading font-semibold text-sm text-text-app">Tải output hỗ trợ</span>
+          <span className="font-heading font-semibold text-base text-text-app">Tải output hỗ trợ</span>
         </div>
       }
       size="lg"
       radius="md"
       centered
     >
-      <div className="space-y-4 font-body text-xs pt-1">
+      <div className="space-y-4 font-body text-base pt-1">
         {error && (
-          <div className="p-3 bg-danger-soft border border-danger/10 text-danger rounded-xl text-xs font-semibold flex items-center gap-2 animate-fade-in">
+          <div className="p-3 bg-danger-soft border border-danger/10 text-danger rounded-xl text-sm font-semibold flex items-center gap-2 animate-fade-in">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -128,14 +128,14 @@ export default function SupporterOutputUploadModal({ isOpen, onClose, caseId }: 
             <Dropzone.Accept>
               <div className="flex flex-col items-center justify-center gap-2 py-2 text-success">
                 <CheckCircle2 className="w-8 h-8 animate-bounce" />
-                <p className="font-semibold text-xs">Thả tệp vào đây để tải lên</p>
+                <p className="font-semibold text-sm">Thả tệp vào đây để tải lên</p>
               </div>
             </Dropzone.Accept>
 
             <Dropzone.Reject>
               <div className="flex flex-col items-center justify-center gap-2 py-2 text-danger">
                 <AlertCircle className="w-8 h-8" />
-                <p className="font-semibold text-xs">Tệp không đúng định dạng hoặc vượt quá {MAX_FILE_SIZE_MB}MB</p>
+                <p className="font-semibold text-sm">Tệp không đúng định dạng hoặc vượt quá {MAX_FILE_SIZE_MB}MB</p>
               </div>
             </Dropzone.Reject>
 
@@ -145,10 +145,10 @@ export default function SupporterOutputUploadModal({ isOpen, onClose, caseId }: 
                   <UploadCloud className="w-5 h-5" />
                 </div>
                 <div className="space-y-1">
-                  <p className="font-semibold text-xs text-text-app">
+                  <p className="font-semibold text-sm text-text-app">
                     Kéo thả hoặc <span className="text-brand underline decoration-brand/30">bấm để chọn tệp</span> output
                   </p>
-                  <p className="text-xs text-text-subtle">
+                  <p className="text-sm text-text-subtle">
                     Hỗ trợ PDF, DOCX, XLSX, PPTX, MD, TXT. Tối đa {MAX_FILE_SIZE_MB}MB mỗi tệp.
                   </p>
                 </div>
@@ -171,7 +171,7 @@ export default function SupporterOutputUploadModal({ isOpen, onClose, caseId }: 
                     <div className="w-8 h-8 rounded-lg bg-brand-soft/40 text-brand flex items-center justify-center shrink-0">
                       <FileText className="w-4 h-4" />
                     </div>
-                    <div className="min-w-0 font-body text-xs">
+                    <div className="min-w-0 font-body text-sm">
                       <p className="font-semibold text-text-app truncate">{file.name}</p>
                       <p className="text-text-subtle">{(file.size / 1024).toFixed(1)} KB</p>
                     </div>
@@ -201,11 +201,11 @@ export default function SupporterOutputUploadModal({ isOpen, onClose, caseId }: 
           autosize
           variant="default"
           radius="md"
-          className="font-body text-xs"
+          className="font-body text-sm"
         />
 
         <div className="flex items-center justify-end gap-3 pt-3 border-t border-border-app">
-          <Button onClick={handleClose} variant="default" className="font-semibold text-xs h-9">
+          <Button onClick={handleClose} variant="default" className="font-semibold text-base h-10">
             Hủy bỏ
           </Button>
           <Button
@@ -213,8 +213,8 @@ export default function SupporterOutputUploadModal({ isOpen, onClose, caseId }: 
             disabled={!isFormValid || isSubmitting}
             loading={isSubmitting}
             color="brand"
-            leftSection={<Send className="w-3.5 h-3.5" />}
-            className="font-semibold cursor-pointer text-xs h-9"
+            leftSection={<Send className="w-4 h-4" />}
+            className="font-semibold cursor-pointer text-base h-10"
           >
             <span>{isSubmitting ? "Đang tải lên..." : "Tải output hỗ trợ"}</span>
           </Button>

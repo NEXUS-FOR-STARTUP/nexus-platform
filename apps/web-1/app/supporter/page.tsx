@@ -35,11 +35,11 @@ export default function SupporterDashboard() {
       : cases || [];
 
   return (
-    <div className="space-y-8 font-body text-xs text-text-app pb-12 animate-fade-in max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+    <div className="space-y-8 font-body text-base text-text-app pb-12 animate-fade-in max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
       {/* Supporter Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-text-app">
+          <h1 className="font-heading text-h2 sm:text-h1 font-bold text-text-app">
             Hồ sơ phụ trách
           </h1>
           <p className="font-body text-sm text-text-muted mt-1">
@@ -51,7 +51,7 @@ export default function SupporterDashboard() {
           onClick={() => refetch()}
           variant="default"
           leftSection={<RefreshCw className="w-3.5 h-3.5" />}
-          className="text-text-muted hover:text-brand text-xs font-semibold font-body h-9 px-3 cursor-pointer"
+          className="text-text-muted hover:text-brand text-sm font-semibold font-body h-9 px-3 cursor-pointer"
         >
           <span>Tải lại</span>
         </Button>
@@ -129,7 +129,7 @@ export default function SupporterDashboard() {
             )}
           </div>
           <div className="space-y-1.5 max-w-sm">
-            <h4 className="font-heading font-semibold text-sm text-text-app">
+            <h4 className="font-heading font-semibold text-h4 text-text-app">
               {activeFilter === "pending" 
                 ? "Không có hồ sơ cần phản biện" 
                 : activeFilter === "submitted"
@@ -138,7 +138,7 @@ export default function SupporterDashboard() {
                 ? "Chưa có hồ sơ nào hoàn thành"
                 : "Không có hồ sơ nào được phân công"}
             </h4>
-            <p className="font-body text-xs text-text-muted leading-relaxed">
+            <p className="font-body text-base text-text-muted leading-relaxed">
               {activeFilter === "pending"
                 ? "Không có hồ sơ cần phản biện — tất cả đã được xử lý hoặc chưa có phân công mới."
                 : activeFilter === "submitted"

@@ -51,12 +51,12 @@ export default function NotificationBell() {
 
       <Menu.Dropdown className="bg-surface-app border border-border-app rounded-lg p-1">
         <div className="px-3 py-2 border-b border-border-app mb-1">
-          <Text className="font-semibold font-body text-sm text-text-app">Thông báo</Text>
+          <Text className="font-semibold font-body text-base text-text-app">Thông báo</Text>
         </div>
 
         {items.length === 0 ? (
           <div className="px-3 py-8 text-center">
-            <Text className="font-body text-sm text-text-muted">Không có thông báo</Text>
+            <Text className="font-body text-base text-text-muted">Không có thông báo</Text>
           </div>
         ) : (
           <ScrollArea h={320}>
@@ -81,18 +81,18 @@ export default function NotificationBell() {
                     <span className="w-2 h-2 rounded-full bg-brand mt-1.5 shrink-0" />
                   )}
                   <div className="min-w-0">
-                    <Text className="font-semibold font-body text-sm text-text-app truncate">
+                    <Text className="font-semibold font-body text-base text-text-app truncate">
                       {n.title}
                     </Text>
                     {n.body && (
                       <Text
-                        className="font-body text-xs text-text-muted mt-0.5"
+                        className="font-body text-sm text-text-muted mt-0.5"
                         lineClamp={2}
                       >
                         {n.body}
                       </Text>
                     )}
-                    <Text className="font-body text-base text-text-muted/70 mt-1">
+                    <Text className="font-body text-xs text-text-muted/70 mt-1">
                       {dayjs(n.created_at).fromNow()}
                     </Text>
                   </div>

@@ -80,7 +80,7 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
         )}
 
         {caseRequiresPayment(caseData) && (
-          <div className="p-4 rounded-xl bg-warning-soft border border-warning/15 text-warning font-body text-xs flex items-center gap-2 shrink-0">
+          <div className="p-4 rounded-xl bg-warning-soft border border-warning/15 text-warning font-body text-sm flex items-center gap-2 shrink-0">
             <span>⚠️ Nhóm sinh viên chưa hoàn tất thanh toán hồ sơ này. Lưu ý trước khi gửi báo cáo phản biện chính thức.</span>
           </div>
         )}
@@ -100,7 +100,7 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
                 <Button
                   size="sm"
                   color="brand"
-                  className="font-semibold cursor-pointer h-8.5 text-xs"
+                  className="font-semibold cursor-pointer h-10 text-sm"
                   onClick={() => setIsOutputUploadOpen(true)}
                 >
                   Tải output hỗ trợ

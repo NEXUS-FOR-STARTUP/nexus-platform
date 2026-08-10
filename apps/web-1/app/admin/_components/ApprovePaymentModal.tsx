@@ -70,7 +70,7 @@ export default function ApprovePaymentModal({
             onClick={onClose}
             disabled={isSubmitting}
             variant="default"
-            className="flex-1 font-body font-semibold text-xs h-9.5 cursor-pointer"
+            className="flex-1 font-body font-semibold text-xs h-10 cursor-pointer"
           >
             Hủy bỏ
           </Button>
@@ -79,7 +79,7 @@ export default function ApprovePaymentModal({
             disabled={isSubmitting}
             color="teal"
             leftSection={isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-            className="flex-1 font-body font-semibold text-xs h-9.5 cursor-pointer"
+            className="flex-1 font-body font-semibold text-xs h-10 cursor-pointer"
           >
             {isSubmitting ? "Đang xử lý..." : "Xác nhận duyệt"}
           </Button>

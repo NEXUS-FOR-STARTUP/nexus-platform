@@ -87,7 +87,7 @@ export default function AdminPaymentVerificationTable({
           <Check className="w-5 h-5 text-success" />
         </div>
         <div className="space-y-0.5">
-          <p className="font-heading font-semibold text-xs text-text-app">Không có giao dịch nào</p>
+          <p className="font-heading font-semibold text-base text-text-app">Không có giao dịch nào</p>
           <p className="font-body text-base text-text-muted">
             Danh sách trống hoặc chưa có dữ liệu giao dịch phù hợp.
           </p>
@@ -157,7 +157,7 @@ export default function AdminPaymentVerificationTable({
           <Table.Tbody>
             {filteredAndSortedPayments.length === 0 ? (
               <Table.Tr>
-                <Table.Td colSpan={9} className="text-center py-8 text-text-muted font-body text-xs">
+                <Table.Td colSpan={9} className="text-center py-8 text-text-muted font-body text-sm">
                   Không tìm thấy kết quả phù hợp với bộ lọc hiện tại.
                 </Table.Td>
               </Table.Tr>

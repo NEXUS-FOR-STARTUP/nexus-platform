@@ -213,7 +213,7 @@ export default function TeamFitPage() {
     <div className="mx-auto w-full max-w-3xl space-y-8 px-4 py-8 sm:px-6">
       {/* Page header */}
       <div className="text-center space-y-2">
-        <h1 className="font-heading text-2xl font-bold text-text-app">
+        <h1 className="font-heading text-h2 sm:text-h1 font-bold text-text-app">
           Đánh giá Team-Idea Fit
         </h1>
         <p className="font-body text-sm text-text-muted">

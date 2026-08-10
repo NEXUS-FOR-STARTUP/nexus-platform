@@ -32,6 +32,7 @@
 - **Body Font:** DM Sans
 - **Mood:** tech, startup, modern, innovative, bold, futuristic
 - **Google Fonts:** [Space Grotesk + DM Sans](https://fonts.google.com/share?selection.family=DM+Sans:wght@400;500;700|Space+Grotesk:wght@400;500;600;700)
+- **⚠️ Font SIZE hierarchy:** xem file riêng `typography.md` (Type Scale v1, 9 nấc) — nguồn duy nhất cho mọi font size.
 
 **CSS Import:**
 ```css

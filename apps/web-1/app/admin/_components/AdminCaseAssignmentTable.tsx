@@ -114,12 +114,12 @@ export default function AdminCaseAssignmentTable({
 
   if (cases.length === 0) {
     return (
-      <div className="p-8 border border-border-app rounded-lg bg-surface-app text-center flex flex-col items-center justify-center gap-3 font-body text-xs text-text-app">
+      <div className="p-8 border border-border-app rounded-lg bg-surface-app text-center flex flex-col items-center justify-center gap-3 font-body text-base text-text-app">
         <div className="w-10 h-10 rounded-full bg-surface-soft border border-border-app text-text-subtle flex items-center justify-center">
           <CheckCircle className="w-5 h-5 text-success" />
         </div>
         <div className="space-y-0.5">
-          <p className="font-heading font-semibold text-xs text-text-app">Không có hồ sơ nào cần xử lý</p>
+          <p className="font-heading font-semibold text-base text-text-app">Không có hồ sơ nào cần xử lý</p>
           <p className="font-body text-base text-text-muted">
             Tất cả các hồ sơ đã được xử lý xong hoặc không tìm thấy hồ sơ phù hợp.
           </p>
@@ -132,7 +132,7 @@ export default function AdminCaseAssignmentTable({
   const paginatedCases = filteredAndSortedCases.slice((activePage - 1) * itemsPerPage, activePage * itemsPerPage);
 
   return (
-    <div className="space-y-4 font-body text-xs text-text-app">
+    <div className="space-y-4 font-body text-base text-text-app">
       {/* Search and Filters */}
       <Group gap="sm" mb="md" style={{ width: "100%" }}>
         <TextInput

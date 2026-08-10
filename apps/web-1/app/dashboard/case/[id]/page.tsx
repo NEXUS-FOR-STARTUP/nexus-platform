@@ -138,7 +138,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                   <Button
                     size="sm"
                     color="brand"
-                    className="font-semibold cursor-pointer h-8.5 text-xs"
+                    className="font-semibold cursor-pointer h-10 text-xs"
                     onClick={() => router.push(`/dashboard/intake?caseId=${id}`)}
                   >
                     Cập nhật thông tin
@@ -148,7 +148,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                   <Button
                     size="sm"
                     color="brand"
-                    className="font-semibold cursor-pointer h-8.5 text-xs"
+                    className="font-semibold cursor-pointer h-10 text-xs"
                     onClick={() => setIsStudentUploadOpen(true)}
                   >
                     Tải tài liệu
@@ -158,7 +158,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                   size="sm"
                   color="brand"
                   variant="light"
-                  className="font-semibold cursor-pointer h-8.5 text-xs"
+                  className="font-semibold cursor-pointer h-10 text-xs"
                   onClick={() => setIsFeedbackOpen(true)}
                 >
                   Tải đánh giá bên ngoài

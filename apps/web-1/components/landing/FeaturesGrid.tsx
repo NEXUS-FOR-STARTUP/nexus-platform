@@ -36,7 +36,7 @@ export default function FeaturesGrid() {
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-surface-soft/20 transition-colors duration-200">
       <Container size="lg" className="space-y-12">
         <div className="text-center max-w-2xl mx-auto space-y-4">
-          <Title order={2} className="font-heading text-3xl font-bold text-text-app">
+          <Title order={2} className="font-heading text-h2 font-bold text-text-app">
             Tính năng cốt lõi của Nexus
           </Title>
           <Text className="font-body text-text-muted">
@@ -60,10 +60,10 @@ export default function FeaturesGrid() {
                     <Icon className="w-5 h-5" />
                   </ThemeIcon>
                   <div className="space-y-1">
-                    <Text className="font-heading font-semibold text-sm text-text-app">
+                    <Text className="font-heading font-semibold text-h4 text-text-app">
                       {item.title}
                     </Text>
-                    <Text className="font-body text-xs text-text-muted leading-relaxed">
+                    <Text className="font-body text-sm text-text-muted leading-relaxed">
                       {item.description}
                     </Text>
                   </div>

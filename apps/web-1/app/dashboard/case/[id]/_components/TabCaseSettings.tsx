@@ -206,8 +206,8 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
               type="submit"
               disabled={!isEditable || isUpdatingSettings}
               color="brand"
-              leftSection={isUpdatingSettings ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-              className="font-semibold text-xs h-9 px-6 cursor-pointer disabled:opacity-60"
+              leftSection={isUpdatingSettings ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              className="font-semibold text-base h-10 px-6 cursor-pointer disabled:opacity-60"
             >
               <span>{isUpdatingSettings ? "Đang lưu..." : "Lưu thay đổi"}</span>
             </Button>
@@ -230,7 +230,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
                 color="red"
                 variant="outline"
                 onClick={() => setIsDeleteModalOpen(true)}
-                className="font-semibold text-xs h-9 px-4 cursor-pointer hover:bg-red-50 hover:text-red-600 border-red-200 text-red-500 rounded-lg"
+                className="font-semibold text-base h-10 px-4 cursor-pointer hover:bg-red-50 hover:text-red-600 border-red-200 text-red-500 rounded-lg"
               >
                 Xóa hồ sơ dự án
               </Button>
@@ -272,21 +272,19 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
           <div className="flex justify-end gap-2.5 pt-4 border-t border-border-app/40">
             <Button
               variant="default"
-              size="xs"
               onClick={() => {
                 setIsDeleteModalOpen(false);
                 setDeleteConfirmText("");
               }}
-              className="font-semibold text-xs h-9 px-4 cursor-pointer"
+              className="font-semibold text-base h-10 px-4 cursor-pointer"
             >
               Hủy
             </Button>
             <Button
               color="red"
-              size="xs"
               disabled={deleteConfirmText !== "DELETE" || isDeletingCase}
               onClick={handleDeleteCase}
-              className="font-semibold text-xs h-9 px-4 cursor-pointer disabled:opacity-50"
+              className="font-semibold text-base h-10 px-4 cursor-pointer disabled:opacity-50"
             >
               {isDeletingCase ? "Đang xóa..." : "Tôi hiểu và muốn xóa"}
             </Button>

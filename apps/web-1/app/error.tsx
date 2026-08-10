@@ -25,8 +25,8 @@ export default function ErrorPage({ error, reset }: ErrorProps) {
 
         {/* Error content */}
         <div className="space-y-2">
-          <h1 className="font-heading text-xl font-semibold">Đã xảy ra lỗi hệ thống</h1>
-          <p className="text-xs text-text-muted leading-relaxed">
+          <h1 className="font-heading text-h3 font-semibold">Đã xảy ra lỗi hệ thống</h1>
+          <p className="text-sm text-text-muted leading-relaxed">
             Hệ thống gặp sự cố ngoài ý muốn khi tải trang này. Bạn có thể thử tải lại hoặc quay về trang chủ.
           </p>
           {error.digest && (
@@ -42,13 +42,13 @@ export default function ErrorPage({ error, reset }: ErrorProps) {
             onClick={() => reset()}
             leftSection={<RefreshCw className="w-3.5 h-3.5" />}
             color="brand"
-            className="font-body font-semibold text-xs h-10 px-5 cursor-pointer shadow-sm shadow-brand/10"
+            className="font-body font-semibold text-sm h-10 px-5 cursor-pointer shadow-sm shadow-brand/10"
           >
             <span>Thử tải lại</span>
           </Button>
           <a
             href="/"
-            className="inline-flex items-center justify-center font-body text-xs font-semibold border border-border-strong text-text-muted hover:text-text-app px-5 h-10 rounded-lg transition-colors cursor-pointer bg-surface-app"
+            className="inline-flex items-center justify-center font-body text-sm font-semibold border border-border-strong text-text-muted hover:text-text-app px-5 h-10 rounded-lg transition-colors cursor-pointer bg-surface-app"
           >
             Về trang chủ
           </a>

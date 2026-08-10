@@ -52,8 +52,8 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthShell>
-      <div className="space-y-4 font-body text-xs text-text-app">
-        <Title ta="center" order={2} className="font-heading font-bold text-text-app text-lg">
+      <div className="space-y-4 font-body text-base text-text-app">
+        <Title ta="center" order={2} className="font-heading font-bold text-text-app text-h2">
           Quên mật khẩu?
         </Title>
         <Text c="dimmed" fz="sm" ta="center" mt={5}>
@@ -61,14 +61,14 @@ export default function ForgotPasswordPage() {
         </Text>
 
         {error && (
-          <div className="flex items-start gap-2 p-3 bg-danger-soft border border-danger/20 text-danger rounded-lg text-xs">
+          <div className="flex items-start gap-2 p-3 bg-danger-soft border border-danger/20 text-danger rounded-lg text-sm">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
 
         {success && (
-          <div className="flex items-start gap-2 p-3 bg-success-soft border border-success/20 text-success rounded-lg text-xs">
+          <div className="flex items-start gap-2 p-3 bg-success-soft border border-success/20 text-success rounded-lg text-sm">
             <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <span>Liên kết khôi phục mật khẩu đã được gửi đến email của bạn.</span>
           </div>

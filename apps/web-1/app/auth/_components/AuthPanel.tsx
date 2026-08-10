@@ -225,7 +225,7 @@ export default function AuthPanel() {
   });
 
   return (
-    <div className="w-full font-body text-xs text-text-app space-y-6">
+    <div className="w-full font-body text-base text-text-app space-y-6">
       {/* Social Provider: Google Only */}
       <Group grow mb="md">
         <GoogleButton onClick={handleGoogleSignIn}>Google</GoogleButton>
@@ -240,7 +240,7 @@ export default function AuthPanel() {
 
       {/* Global Auth Error Alert */}
       {authError && (
-        <div className="flex items-start gap-2 p-3 mb-4 bg-danger-soft border border-danger/20 text-danger rounded-lg text-xs font-body">
+        <div className="flex items-start gap-2 p-3 mb-4 bg-danger-soft border border-danger/20 text-danger rounded-lg text-sm font-body">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{authError}</span>
         </div>
@@ -457,7 +457,7 @@ export default function AuthPanel() {
         <button
           type="button"
           onClick={() => setShowQuickLogin(!showQuickLogin)}
-          className="w-full flex items-center justify-between py-2 text-xs font-semibold font-body text-text-muted hover:text-brand transition-colors cursor-pointer"
+          className="w-full flex items-center justify-between py-2 text-sm font-semibold font-body text-text-muted hover:text-brand transition-colors cursor-pointer"
         >
           <span>Đăng nhập nhanh (Tài khoản Test)</span>
           <span className="text-base leading-none">
@@ -473,7 +473,7 @@ export default function AuthPanel() {
               className="flex flex-col items-center justify-center p-2.5 rounded-lg border border-border-app bg-surface-soft hover:bg-brand-soft/20 hover:border-brand/30 transition-all cursor-pointer text-center group font-body"
               disabled={isLoading}
             >
-              <span className="font-heading font-semibold text-xs text-text-app group-hover:text-brand transition-colors">
+              <span className="font-heading font-semibold text-sm text-text-app group-hover:text-brand transition-colors">
                 Student
               </span>
               <span className="text-base text-text-subtle mt-0.5 break-all">
@@ -486,7 +486,7 @@ export default function AuthPanel() {
               className="flex flex-col items-center justify-center p-2.5 rounded-lg border border-border-app bg-surface-soft hover:bg-brand-soft/20 hover:border-brand/30 transition-all cursor-pointer text-center group font-body"
               disabled={isLoading}
             >
-              <span className="font-heading font-semibold text-xs text-text-app group-hover:text-brand transition-colors">
+              <span className="font-heading font-semibold text-sm text-text-app group-hover:text-brand transition-colors">
                 Supporter
               </span>
               <span className="text-base text-text-subtle mt-0.5 break-all">
@@ -499,7 +499,7 @@ export default function AuthPanel() {
               className="flex flex-col items-center justify-center p-2.5 rounded-lg border border-border-app bg-surface-soft hover:bg-brand-soft/20 hover:border-brand/30 transition-all cursor-pointer text-center group font-body"
               disabled={isLoading}
             >
-              <span className="font-heading font-semibold text-xs text-text-app group-hover:text-brand transition-colors">
+              <span className="font-heading font-semibold text-sm text-text-app group-hover:text-brand transition-colors">
                 Admin
               </span>
               <span className="text-base text-text-subtle mt-0.5 break-all">
