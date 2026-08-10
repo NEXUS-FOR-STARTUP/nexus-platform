@@ -42,7 +42,7 @@ export default function SupporterDashboard() {
           <h1 className="font-heading text-h2 sm:text-h1 font-bold text-text-app">
             Hồ sơ phụ trách
           </h1>
-          <p className="font-body text-sm text-text-muted mt-1">
+          <p className="font-body text-base text-text-muted mt-1">
             Đánh giá, phản biện logic ý tưởng khởi nghiệp và hỗ trợ chuyên môn cho sinh viên.
           </p>
         </div>
