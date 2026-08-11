@@ -70,7 +70,7 @@ Nguồn: `docs/research/workflow-engine-refactor-brainstorm-2026-08-09.md` + `re
 >
 > **AMENDMENT 2026-08-11 (bổ sung 3 — tích hợp User Wallet VND):**
 > 6. **Bỏ guard `isPaid` ở T5** — credit mua từ ví VND lúc tạo case, không còn bước "chờ thanh toán". T5 guard: `['isAdmin', 'hasCredit']`. Free case (team_fit, price=0) → `hasCredit` tự skip.
-> 7. **Action `refundCredit` (phase-03/06)** giữ implementation credit_ledgers zero-out hiện tại. Ghi chú TODO: sau khi User Wallet plan hoàn thành → swap sang `WalletService.refund()` hoàn VND về ví.
+> 7. **Action `refundCredit` (phase-03/06)** chốt dùng `WalletService.refund(tx, ownerId, lockedPrice, caseId, key)` — hoàn VND về ví. KHÔNG dùng credit_ledgers zero-out. (Đã đồng bộ với wallet plan phase-05.)
 > 8. **Credit = đơn vị tiêu dùng trong engine** — engine chỉ biết credit_ledgers (hasCredit >= 1, subtractCredit -1). Ví VND là tầng riêng, engine không biết VND. Wallet plan xây dựng sau, độc lập.
 
 ## Thứ tự implement

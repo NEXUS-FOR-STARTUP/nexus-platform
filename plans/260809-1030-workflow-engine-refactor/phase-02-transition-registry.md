@@ -133,8 +133,12 @@ export const caseMachine = setup({
     isSupporter: ({ event }) =>
       event.data?.roleVerified === 'SUPPORTER',
 
+    // Kiến trúc 3 tầng: Wallet VND → mua credit → credit tiêu trong workflow.
+    // Guard này check credit_ledgers (đơn vị dịch vụ), KHÔNG check wallet VND.
+    // Wallet balance nằm ở tầng riêng — được check khi MUA credit, không phải khi DÙNG.
+    // Free case (team_fit, price=0) → credit không cần → auto pass.
     hasCredit: ({ event }) => {
-      if ((event.data?.packagePrice as number) === 0) return true
+      if ((event.data?.lockedPrice as number) === 0) return true
       return (event.data?.creditBalance as number) >= 1
     },
 

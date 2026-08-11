@@ -174,7 +174,7 @@ walletRoutes.post('/topups', async (c) => {
 | Gotcha | Fix |
 |---|---|
 | G1: SePay dedup in-memory Set | `wallet_transactions.idempotency_key` UNIQUE |
-| G2: requireCredits silent skip | Không liên quan (credit check chuyển sang WalletService.getBalance sau phase 05) |
+| G2: requireCredits silent skip | Không liên quan (credit check VẪN ở credit_ledgers. Wallet không thay đổi hasCredit guard — guard sync, check credit_ledgers. Xem Phase 05 để rõ) |
 | G3: payment_status "not_required" | Giữ nguyên (team_fit flow), không sửa trong phase này |
 
 ## Deliverables

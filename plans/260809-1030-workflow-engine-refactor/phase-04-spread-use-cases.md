@@ -154,7 +154,7 @@ export async function updateCaseStatusUseCase(prisma, params) {
 // const allowed_transitions = caseWorkflow.transitions;
 
 // SAU: filter theo stage hiện tại
-import { getAvailableTransitions } from '../domain/transition-registry.js';
+import { getAvailableTransitions } from '../domain/case-machine.js';
 
 const allowed_transitions = getAvailableTransitions(case_.internal_status);
 // Trả về TransitionName[] mà case HIỆN TẠI có thể thực hiện
@@ -177,7 +177,7 @@ Mỗi use case chuyển qua cổng XONG → code path cũ (symflow) cho transiti
 
 - Khi `getAvailableTransitions` thay thế hết callers → XÓA `isValidStageTransition` (case.types.ts:54)
 - Verify: `grep isValidStageTransition` toàn codebase → 0 caller
-- Còn lại 1 nguồn truth duy nhất: transition-registry (XState)
+- Còn lại 1 nguồn truth duy nhất: case-machine (XState)
 
 ### 5. FE render nút (pseudocode)
 ```typescript
@@ -215,7 +215,7 @@ const allowedTransitions = case_.allowed_transitions ?? [];
 | `apps/api/src/modules/cases/application/accept-case.usecase.ts` | **SỬA** | Gọi executeTransition (T5) + guard isAdmin + hasCredit (bỏ isPaid — Amendment #3) |
 | `apps/api/src/modules/cases/application/get-case-detail.usecase.ts` | **SỬA** | Filter allowed_transitions (getAvailableTransitions) |
 | `apps/api/src/modules/cases/application/update-case-status.usecase.ts` | **SỬA** | F5: gọi executeTransition cho T6/T7/T8/T10 (AMENDMENT 2026-08-11); giữ symflow cho T12/T13/T14/T15 (chuyển phase 06) |
-| `apps/api/src/modules/cases/domain/transition-registry.ts` | **SỬA** | `getAvailableTransitions()` (đã thêm phase-02) |
+| `apps/api/src/modules/cases/domain/case-machine.ts` | Tham chiếu | `getAvailableTransitions()` (đã thêm phase-02) |
 | `apps/api/src/modules/cases/domain/case.types.ts` | **SỬA** | F11: XÓA `isValidStageTransition` (bảng tay) khi hết caller |
 | `apps/api/src/modules/cases/infrastructure/persistence/case.repository.ts` | **SỬA** | Giảm logic trong repo (logic chuyển lên service) |
 | `apps/web-1/app/dashboard/case/[id]/_components/StatusGuidanceCard.tsx` | **SỬA** | Render nút từ allowed_transitions |

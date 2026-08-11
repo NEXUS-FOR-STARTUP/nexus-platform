@@ -224,10 +224,8 @@ export class WalletService {
     userId: string,
     amountVnd: number,
     caseId: string,
-    idempotencyKey?: string
+    idempotencyKey: string    // required (red-team A5: chống double-withdraw nếu retry)
   ) {
-    const key = idempotencyKey ?? `withdraw-${caseId}-${randomUUID()}`;
-
     return prisma.$transaction(async (tx) => {
       const wallet = await getWalletForUpdate(tx, userId);
       if (!wallet) {
@@ -247,7 +245,7 @@ export class WalletService {
         amount: -amountVnd,
         balanceBefore,
         balanceAfter,
-        sourceType: 'case_consume',
+        sourceType: 'credit_purchase', // Mua credit bằng ví VND. Case consume là credit_ledgers, không phải wallet
         sourceId: caseId,
         idempotencyKey: key,
       });
@@ -261,13 +259,27 @@ export class WalletService {
   async refund(
     userId: string,
     amountVnd: number,
-    reason: string,
+    sourceType: string,      // 'admin_veto' từ workflow engine
     caseId: string,
-    idempotencyKey?: string
+    idempotencyKey: string,  // required
+    tx?: Prisma.TransactionClient  // optional — dùng chung tx với CaseTransitionService
   ) {
-    const key = idempotencyKey ?? `refund-${caseId}-${randomUUID()}`;
-
-    return this.deposit(userId, amountVnd, 'admin_refund', caseId, key);
+    // Nếu có tx param → manual implement để tránh nested transaction
+    if (tx) {
+      const wallet = await getWalletForUpdate(tx, userId);
+      if (!wallet) throw new WalletNotFoundError(userId);
+      const balanceBefore = wallet.balance;
+      const balanceAfter = balanceBefore + amountVnd;
+      await createTransaction(tx, {
+        walletId: wallet.id, type: 'refund', amount: amountVnd,
+        balanceBefore, balanceAfter, sourceType, sourceId: caseId,
+        idempotencyKey,
+      });
+      await updateWalletBalance(tx, wallet.id, balanceAfter);
+      return;
+    }
+    // Không có tx → tạo tx riêng, delegate cho deposit
+    return this.deposit(userId, amountVnd, sourceType, caseId, idempotencyKey);
   }
 
   async getHistory(

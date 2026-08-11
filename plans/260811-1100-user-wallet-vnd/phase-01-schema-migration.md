@@ -126,7 +126,7 @@ model ServicePackage {
 }
 ```
 
-**Migration note:** `service_packages` hiện tại có `name`, `price_amount`, `price_currency`, `description`, `features`, `is_active`. Thêm `service_type_id` (nullable ban đầu → backfill → NOT NULL sau). Giữ `price_amount` làm fallback nếu chưa có `service_pricing`.
+**Migration note:** `service_packages` hiện tại có `name`, `price` (Int), `previous_price`, `features`, `is_active`. Thêm `service_type_id` (nullable ban đầu → backfill → NOT NULL sau). Giữ `price` làm fallback nếu chưa có `service_pricing`.
 
 ### 6. `service_pricing` (NEW)
 

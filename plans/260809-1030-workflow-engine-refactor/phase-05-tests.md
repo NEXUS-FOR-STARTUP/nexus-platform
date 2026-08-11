@@ -41,9 +41,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { transition } from 'xstate';
 import {
-  caseMachine, restoreMachine, tryTransition,
+  caseMachine, tryTransition,
   isBlockedTransition, getAvailableTransitions
-} from '../../../modules/cases/domain/transition-registry.js';
+} from '../../../modules/cases/domain/case-machine.js';
 
 // ============================================================
 // Nhóm A: transitions path hợp lệ (F10: 16 assertions — KHÔNG pass/fail ×2)
@@ -57,7 +57,7 @@ test('T5_ACCEPT — pass when hasCredit=true + roleVerified=ADMIN', () => {
   // currentStatus: triage_pending → machines state node
   const result = tryTransition('triage_pending', event);
   assert.ok(result, 'transition should be allowed');
-  assert.equal(result![0].value, 'accepted_unassigned');
+  assert.equal(result!.to, 'accepted_unassigned');
 });
 
 test('T11_SUBMIT_OUTPUT — từ supporter_working → report_ready_to_publish (guard hasCredit)', () => {
@@ -68,7 +68,7 @@ test('T11_SUBMIT_OUTPUT — từ supporter_working → report_ready_to_publish (
   };
   const result = tryTransition('supporter_working', event);
   assert.ok(result);
-  assert.equal(result![0].value, 'report_ready_to_publish');
+  assert.equal(result!.to, 'report_ready_to_publish');
 });
 
 test('T11_SUBMIT_OUTPUT — guard fail khi creditBalance=0 (fix #2)', () => {
@@ -89,9 +89,9 @@ test('T9_SUBMIT_REVISION — waiting_user → supporter_working (fix #18)', () =
   };
   const result = tryTransition('waiting_user', event);
   assert.ok(result);
-  assert.equal(result![0].value, 'supporter_working');
+  assert.equal(result!.to, 'supporter_working');
   // Verify actions chứa 'upsertDoc' (doc version mới)
-  const actionTypes = result![1].map(a => a.type);
+  const actionTypes = result!.actions.map(a => a.type);
   assert.ok(actionTypes.includes('upsertDoc'), 'should upsert revision docs');
 });
 
@@ -103,7 +103,7 @@ test('T16_EDIT_INTAKE — từ triage_pending → triage_pending (giữ nguyên,
   };
   const result = tryTransition('triage_pending', event);
   assert.ok(result);
-  assert.equal(result![0].value, 'triage_pending'); // same state
+  assert.equal(result!.to, 'triage_pending'); // same state
 });
 
 // ============================================================
@@ -162,11 +162,12 @@ test('getAvailableTransitions — triage_pending có T2, T5, T16, T12, T15', () 
 });
 
 // ============================================================
-// Nhóm D: restoreMachine validate (F4)
+// Nhóm D: validate state (F4)
 // ============================================================
-test('restoreMachine — status không hợp lệ → throw CORRUPT_STATE (F4)', () => {
-  assert.throws(() => restoreMachine('invalid_status'), /CORRUPT_STATE/);
-  assert.throws(() => restoreMachine('null'), /CORRUPT_STATE/);
+test('tryTransition — status không hợp lệ → throw CORRUPT_STATE (F4)', () => {
+  const event = { type: 'T15_CANCEL' as const, actor: { id: 'u1', role: 'user' }, data: {} };
+  assert.throws(() => tryTransition('invalid_status', event), /CORRUPT_STATE/);
+  assert.throws(() => tryTransition('null' as any, event), /CORRUPT_STATE/);
 });
 ```
 
@@ -295,7 +296,7 @@ test('Integration: submit-supporter-output (T11) idempotent (fix #4)', async () 
 - [ ] Migrate phase-07: 4 nhóm test (A-D) sang XState — 16 assertions path hợp lệ
 - [ ] Unit test: transitions T12-T15 → isBlockedTransition false (mọi transition active — chốt 2026-08-09; dọn wording cũ "true")
 - [ ] Unit test: getAvailableTransitions cho mỗi state + KHÔNG trả blocked (F12)
-- [ ] Unit test: restoreMachine invalid status → CORRUPT_STATE (F4)
+- [ ] Unit test: tryTransition invalid status → CORRUPT_STATE (F4)
 - [ ] **F10:** tạo phase-08-executor.test.ts — 8 unit test executeAction (mock DB, không DB thật)
 - [ ] NẾU có DB local: tạo phase-08-workflow-service.test.ts — integration 4 use case qua service
 - [ ] Regression checklist: map 14 bugs → test

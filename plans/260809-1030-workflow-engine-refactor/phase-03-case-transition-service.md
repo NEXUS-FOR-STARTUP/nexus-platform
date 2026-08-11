@@ -141,7 +141,10 @@ async function executeAction(
     }
 
     case 'subtractCredit': {
-      // F2: TRONG tx — SELECT credit ledger FOR UPDATE trước khi trừ
+      // Kiến trúc 3 tầng: credit là đơn vị tiêu dùng dịch vụ, KHÔNG phải VND.
+      // Trừ 1 credit từ credit_ledgers (đã được mua trước đó bằng ví VND).
+      // KHÔNG gọi walletService.withdraw() — ví chỉ bị trừ khi MUA credit, không phải khi DÙNG.
+      // F2: TRONG tx — SELECT credit_ledgers FOR UPDATE trước khi trừ
       // Idempotency key: `consume-{unitCode}-{caseId}-v{versionNo}-{nonce}`
       //   nonce = crypto.randomUUID() — chống pre-claim key (S7)
       // Key trùng → replay → KHÔNG lỗi, return success (idempotent)
@@ -149,12 +152,12 @@ async function executeAction(
     }
 
     case 'refundCredit': {
-      // T13 veto — hoàn 100% credit. Pattern từ vetoCaseUseCase:31-50
-      // creditLedger.create({ amount: -balance, type: 'refund',
-      //   idempotency_key: `veto_{caseId}_{Date.now()}_{nonce}` })
-      // nonce = crypto.randomUUID() — chống pre-claim key (S7)
-      // CHỈ T13 gọi — T12/T15 KHÔNG refund (Q3)
-      // TODO WALLET: sau User Wallet → swap sang WalletService.refund()
+      // T13 veto — hoàn giá trị credit về VÍ VND.
+      // Kiến trúc 3 tầng: credit → VND về wallet (WalletService.refund).
+      // Dùng servicePrice (VND) từ case record, KHÔNG phải 1 credit cố định.
+      // Pattern: walletService.refund(tx, ownerId, servicePrice, caseId, idempotencyKey)
+      // CHỈ T13 gọi — T12/T15 KHÔNG refund (Q3 — credit chưa bị trừ, không có gì để hoàn).
+      // WalletService.refund() nhận tx param để dùng chung transaction với CaseTransitionService.
       break
     }
 
@@ -246,6 +249,7 @@ export async function executeTransition(
         caseVersionNo: caseRecord.version_no,
         actorId,
         // F2: dữ liệu pre-fetched trong tx → guard check sync
+        lockedPrice: caseRecord.locked_price ?? 0,
         creditBalance,
         paymentStatus,
         roleVerified,     // F6: guard isAdmin/isSupporter đọc cái này
@@ -293,7 +297,7 @@ export async function executeTransition(
     await tx.caseEvent.create({
       data: {
         case_id: caseId,
-        type: transitionName,
+        event_type: transitionName,
         actor_id: actorId,
         actor_role: roleVerified,                 // F13: audit theo role
         metadata: pickAllowedMetadata(data ?? {}), // F13: whitelist field

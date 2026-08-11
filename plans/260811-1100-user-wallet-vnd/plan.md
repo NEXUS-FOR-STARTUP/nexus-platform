@@ -1,9 +1,9 @@
 ---
 title: "User Wallet VND — Ví người dùng"
-description: "Thay credit per-case bằng ví VND per-user. Nạp tiền qua SePay, dùng trực tiếp. Tích hợp service catalog + workflow engine."
+description: "Bổ sung ví VND per-user bên cạnh credit. Kiến trúc 3 tầng: Wallet VND → mua credit → credit tiêu trong workflow. Nạp tiền qua SePay, mua credit bằng ví. Tích hợp service catalog + workflow engine (refundCredit)."
 status: pending
 priority: P1
-effort: 17h
+effort: 18.5h
 branch: feat/user-wallet-vnd
 tags: [wallet, payment, credit, vnd, sepay, service-catalog]
 blockedBy: [260809-1030-workflow-engine-refactor]
@@ -15,7 +15,7 @@ created: 2026-08-11
 
 ## Overview
 
-Thay hệ thống credit per-case (per-case, credit đơn vị trừu tượng) bằng ví VND per-user (1đ = 1đ, tiền thật, không quy đổi). Gắn service catalog (3 bảng: service_types → service_packages → service_pricing) để giá dịch vụ linh hoạt. Tích hợp với workflow engine (Amendment #3 — guard hasCredit / action subtractCredit / refundCredit gọi WalletService).
+Bổ sung ví VND per-user bên cạnh hệ thống credit hiện tại. **Kiến trúc 3 tầng:** Wallet VND (tiền thật, nạp/rút) → mua credit (đơn vị tiêu dùng dịch vụ) → credit tiêu trong workflow engine (subtractCredit khi supporter làm việc). Khi refund (T13 veto): credit → VND hoàn về ví (refundCredit gọi WalletService). Service catalog (3 bảng: service_types → service_packages → service_pricing) để giá dịch vụ linh hoạt.
 
 **Nguồn:** `docs/research/user-wallet-brainstorm-2026-08-11.md` (brainstorm, quyết định) + `docs/research/wallet-schema-research-2026-08-11.md` (schema research, concurrency pattern).
 
@@ -23,15 +23,15 @@ Thay hệ thống credit per-case (per-case, credit đơn vị trừu tượng) 
 
 | # | Vấn đề | Impact |
 |---|---|---|
-| P1 | Credit chết trong case bị hủy (reject trước khi dùng) | User mất tiền, không dùng cho case khác |
-| P2 | Refund không trả tiền thật (veto chỉ reset số về 0) | Không có luồng qua cổng thanh toán |
-| P3 | Không chuyển credit giữa case | Case thừa không giúp case thiếu |
+| P1 | Credit chết trong case bị hủy (reject trước khi dùng) | Credit đã mua không dùng được cho case khác |
+| P2 | Refund không trả tiền thật (veto chỉ zero-out credit_ledgers) | Không có luồng hoàn VND về ví |
+| P3 | Không chuyển credit giữa case | Case thừa credit không giúp case thiếu |
 | P4 | Chỉ 1 loại service (39k/credit) | Không mở rộng được gói mới |
 | P5 | Payment phụ thuộc người (proof upload cần admin duyệt) | Chưa tự động hoàn toàn |
 
 ## Giải pháp
 
-**Ví VND gắn user** — 1 user = 1 ví. Nạp tiền qua SePay → ví +số VND. Case trừ từ ví. Reject/veto → hoàn về ví.
+**Ví VND gắn user + credit vẫn là đơn vị tiêu dùng dịch vụ.** 1 user = 1 ví. Nạp tiền qua SePay → ví +số VND. Mua credit bằng ví. Case trừ credit khi supporter làm việc. Reject/veto → hoàn VND về ví.
 
 **Service catalog 3 bảng** — service_types (phân loại) → service_packages (gói) → service_pricing (lịch sử giá). Thêm service mới = 1 INSERT, không migration.
 
@@ -60,6 +60,7 @@ MỚI  apps/api/src/modules/wallet/application/wallet-topup.usecase.ts
 MỚI  apps/api/src/modules/wallet/infrastructure/persistence/wallet.repository.ts
 MỚI  apps/api/src/modules/wallet/infrastructure/http/wallet.routes.ts
 MỚI  apps/api/src/modules/wallet/application/sepay-topup-webhook.usecase.ts
+MỚI  apps/api/src/modules/wallet/application/purchase-credits.usecase.ts
 
 MỚI  apps/api/src/modules/packages/application/service-type.usecase.ts
 MỚI  apps/api/src/modules/packages/application/service-pricing.usecase.ts
@@ -88,17 +89,19 @@ GIỮ  credit_ledgers table (read-only cho audit, xóa sau khi tất cả case c
 | 05 | [Workflow Integration](./phase-05-workflow-integration.md) | 🔲 Pending | 2h | Phase 02 + WF Phase 03 |
 | 06 | [Frontend UI](./phase-06-frontend-ui.md) | 🔲 Pending | 3h | Phase 02, 03, 04 |
 | 07 | [Legacy Migration](./phase-07-legacy-migration.md) | 🔲 Pending | 2h | Phase 02, 05 |
+| 08 | [Purchase Credit Flow](./phase-05-workflow-integration.md#phase-08-bổ-sung--purchase-credit-flow) | 🔲 Pending | 1.5h | Phase 02, 04 |
 
 **Thứ tự implement khuyến nghị:**
 ```
 Phase 01 (schema) ──▶ Phase 02 (service) ──▶ Phase 03 (top-up) ──┐
-                        │                                         │
-                        └─▶ Phase 04 (catalog) ──────────────────┤
-                                                                  │
-                    (chờ WF Phase 03) ──▶ Phase 05 (integration) ─┤
-                                                                  │
-                    Phase 06 (FE) ◀───────────────────────────────┘
-                    Phase 07 (migration) ◀── chạy sau khi test pass
+                         │                                         │
+                         └─▶ Phase 04 (catalog) ──────────────────┤
+                                                                   │
+                     (chờ WF Phase 03) ──▶ Phase 05 (integration) ─┤
+                                                                   │
+                     Phase 08 (purchase credits) ◀─────────────────┘
+                     Phase 06 (FE) ◀───────────────────────────────┘
+                     Phase 07 (migration) ◀── chạy sau khi test pass
 ```
 
 ## Rủi ro
@@ -109,19 +112,20 @@ Phase 01 (schema) ──▶ Phase 02 (service) ──▶ Phase 03 (top-up) ─�
 | Concurrent trừ tiền 2 case cùng lúc → vượt số dư | Cao | `SELECT FOR UPDATE` lock wallet row. Unit test concurrent |
 | SePay webhook trùng → deposit 2 lần | Cao | `wallet_transactions.idempotency_key` UNIQUE (fix G1) |
 | Balance cache drift vs ledger | Trung bình | Reconciliation query `SUM(ledger) === cache` định kỳ |
-| Song song wallet mới + credit ledger cũ → split-brain credit | Trung bình | Feature flag `USE_WALLET` per case. Case mới → ví, case cũ → ledger |
+| Song song wallet mới + credit ledger cũ | Thấp | Ví và credit CÙNG tồn tại (kiến trúc 3 tầng). Case mới mua credit qua ví, case cũ credit mua ngoài hệ thống |
 | Admin dashboard mất audit trail | Thấp | wallet_transactions view đầy đủ balance_before/after |
 
 ## Success Criteria
 
-- [ ] 5 problems (P1-P5) solved: credit không chết, refund thật qua ví, chuyển credit giữa case = không cần (ví chung), nhiều gói dịch vụ, auto-verify toàn bộ
+- [ ] 5 problems (P1-P5) solved: credit không chết, refund thật qua ví, nhiều gói dịch vụ, auto-verify toàn bộ
 - [ ] 5 gotchas (G1-G5) fixed: dedup DB-level, no silent skip, topup status clear, UUID idempotency key, price từ DB
 - [ ] WalletService: deposit/withdraw/refund/getBalance/getHistory — tất cả trong DB transaction
 - [ ] Top-up flow: user tạo topup → nhận QR → chuyển khoản → SePay webhook auto-verify → ví +VND
 - [ ] Service catalog: admin CRUD service_types/packages/pricing hoạt động
-- [ ] Workflow integration: hasCredit guard gọi WalletService.getBalance, subtractCredit/refundCredit gọi WalletService.withdraw/refund
-- [ ] FE: trang ví hiển thị balance + lịch sử giao dịch + nút nạp tiền
-- [ ] Script migrate: credit_ledgers → wallet_transactions chạy đúng trên clone DB
+- [ ] Workflow integration: **hasCredit guard → check credit_ledgers (sync). subtractCredit → credit_ledgers -1. refundCredit → WalletService.refund() hoàn VND về ví**
+- [ ] Purchase credit flow: user mua credit từ ví VND → ví -VND, credit_ledgers +1 (cùng transaction)
+- [ ] FE: trang ví hiển thị balance + lịch sử giao dịch + nút nạp tiền + nút mua credit
+- [ ] Script migrate: credit tồn cũ → VND về ví (tỉ giá 39k/credit). Giữ credit_ledgers read-only
 - [ ] check-types root 3/3 PASS, eslint web 0 warning
 - [ ] Concurrent test: 2 request trừ tiền cùng lúc → 1 thành công 1 InsufficientBalance
 
@@ -143,13 +147,13 @@ Phase 01 (schema) ──▶ Phase 02 (service) ──▶ Phase 03 (top-up) ─�
 
 ## Red Team Review (2026-08-11)
 
-12 findings — full report: `reports/red-team-findings.md`. Critical amendments applied to phase files:
+12 findings — full report: `reports/red-team-findings.md`. Amendments status (updated 2026-08-11):
 
-| # | Sev | Finding | Fix |
-|---|---|---|---|
-| A1 | CRIT | Nested Prisma tx: WalletService + CaseTransitionService dùng tx riêng | WalletService methods accept optional `tx` param |
-| A2 | CRIT | Migration dùng `balance * 39000` flat ratio — sai nếu từng có giá khác | Sum actual `payment.amount` per case |
-| A3 | HIGH | Lazy-create wallet race (findUnique then create) | Tạo wallet row trong auth hook + backfill phase-01 |
-| A4 | HIGH | SePay webhook không validate amount mismatch | So sánh sepayAmount với topup.amount → flag manual review |
-| A5 | HIGH | withdraw() idempotencyKey optional + randomUUID | Bắt buộc idempotencyKey, caller generate deterministic key |
-| A6 | MED | Feature flag `createdAt >= date` fragile | Thêm `Case.use_wallet BOOLEAN DEFAULT false` |
+| # | Sev | Finding | Fix | Applied? |
+|---|---|---|---|---|
+| A1 | CRIT | Nested Prisma tx | WalletService.refund() accept optional `tx` param | ✓ phase-02, phase-05 |
+| A2 | CRIT | Migration flat 39000 ratio | SUM actual `payment.amount` per case, fallback locked_price | ✓ phase-07 |
+| A3 | HIGH | Lazy-create wallet race | Tạo wallet row trong auth hook + backfill phase-01 (Ghi chú: current implementation still lazy-create — acceptable for MVP with idempotency key guard) | ⚠ Partial |
+| A4 | HIGH | SePay webhook no amount validation | So sánh sepayAmount với topup.amount → flag manual review | ⚠ Pending |
+| A5 | HIGH | withdraw() idempotencyKey optional | Required (non-optional), caller generates deterministic key | ✓ phase-02 |
+| A6 | MED | Feature flag `createdAt >= date` fragile | Dùng credit_ledgers cho mọi case. Wallet là tầng mua credit. Không cần Case.use_wallet flag | ✓ (removed — 3-tier model) |

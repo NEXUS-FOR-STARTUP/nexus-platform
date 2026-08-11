@@ -29,7 +29,7 @@ Implement T12-T15 (reject/veto/complete/cancel) + T3/T4 resubmit + refund policy
 ### T13 — Veto 48h (Admin)
 - Từ `submitted|under_review / bất kỳ` → `rejected / cancelled`
 - Guard: `isAdmin` + `isWithin48h` (case.created_at < 48h)
-- **Q1b**: hoàn toàn bộ credit — action `refundCredit` → zero-out balance (pattern vetoCaseUseCase:31-50 — creditLedger `type: 'refund'`, idempotency_key `veto_{caseId}_{ts}`). **TODO Wallet (Amendment #3):** sau User Wallet plan → swap sang `WalletService.refund(tx, ownerId, locked_price, caseId, key)` hoàn VND về ví.
+- **Q1b**: hoàn toàn bộ credit — action `refundCredit`. Kiến trúc 3 tầng: credit → VND về ví qua `WalletService.refund(tx, ownerId, servicePrice, caseId, key)`. `servicePrice` là giá VND lúc case được tạo (lưu trong cột `price_amount` của bảng `cases`).
 - Emit `CASE_REJECTED` (L5)
 
 ### T14 — Hoàn thành (Supporter tự đóng — Q4)
@@ -55,7 +55,7 @@ Implement T12-T15 (reject/veto/complete/cancel) + T3/T4 resubmit + refund policy
 ## Architecture (pseudocode — policy thật, không placeholder)
 
 ```typescript
-// transition-registry.ts — unblock T12-T15, guards policy thật
+// case-machine.ts — unblock T12-T15, guards policy thật
 
 const guards = {
   // ... (giữ guards cũ)
@@ -140,7 +140,7 @@ Sửa imports:
 
 | File | Action |
 |---|---|
-| `apps/api/src/modules/cases/domain/transition-registry.ts` | **SỬA** — Unblock T12-T15 (khai báo lại trong machine + guard thật) |
+| `apps/api/src/modules/cases/domain/case-machine.ts` | **SỬA** — Unblock T12-T15 (khai báo lại trong machine + guard thật) |
 | `apps/api/src/modules/cases/application/case-transition.service.ts` | **SỬA** — Thêm refund action |
 | `apps/api/src/modules/cases/application/veto-case.usecase.ts` | **SỬA** — Chuyển qua service |
 | `apps/api/src/modules/cases/application/resubmit-case.usecase.ts` | **SỬA** — Chuyển qua service + fix #12 (upsert content) |
@@ -154,13 +154,13 @@ Sửa imports:
 
 - [ ] **ĐÃ CHỐT 2026-08-09**: Q1a/Q1b/Q3/Q4/Q5 (không cần hỏi PO)
 - [ ] Tạo `scripts/fix-stuck-cases-2026-08-09.sql` (F15) — READ-ONLY, theo db-query-guide
-- [ ] Unblock T12-T15 + T3/T4 trong transition-registry (phase-02 machine) + guards policy thật
+- [ ] Unblock T12-T15 + T3/T4 trong case-machine (phase-02 machine) + guards policy thật
 - [ ] Implement T12 (reject thường: isAdmin + reasonMinLength, KHÔNG refund — Q3)
 - [ ] Implement T13 (veto 48h: isWithin48h + action `refundCredit` — Q1b)
 - [ ] Implement T14 (complete: isAssignedSupporter — Q4 + notify 2 phía — fix #5)
 - [ ] Implement T15 (cancel: isOwner, KHÔNG refund — Q3)
 - [ ] Implement T3, T4 (resubmit: hasCredit T3 / free T4 + upsert content — fix #12 + BP1)
-- [ ] Thêm action `refundCredit` vào executor phase-03 (pattern vetoCaseUseCase:31-50)
+- [ ] Thêm action `refundCredit` vào executor phase-03 — gọi `WalletService.refund(tx, ownerId, servicePrice, caseId, key)`
 - [ ] Chạy script SELECT fix data kẹt → báo cáo (KHÔNG tự UPDATE/DELETE — F15)
 - [ ] Cleanup symflow: xóa package + 2 files + sửa imports
 - [ ] Unit test: T12-T15 guard pass/fail
@@ -183,7 +183,7 @@ Sửa imports:
 | Refund policy sai → mất tiền user | Cao | Rất cao | Test kỹ refund action (T13 hoàn 100%, T12/T15 không hoàn). Manual verify trước prod. Rollback script sẵn |
 | Cleanup symflow quên import → build fail | Trung bình | Trung bình | Search toàn bộ codebase `symflow`, `case-workflow`, `caseWorkflow` trước khi xóa |
 | Script SELECT chạm data nhạy cảm | Thấp | Thấp | Dùng READONLY_DATABASE_URL (guest). Script chỉ SELECT, không UPDATE |
-| T15/T12 nhầm thành refund (Q3) → mất tiền | Trung bình | Cao | Policy ghi rõ ở requirements: chỉ T13 refund. Integration test assert T12/T15 KHÔNG tạo creditLedger entry |
+| T15/T12 nhầm thành refund (Q3) → mất tiền | Trung bình | Cao | Policy ghi rõ: chỉ T13 refund (qua WalletService.refund). Integration test assert T12/T15 KHÔNG gọi WalletService.refund |
 
 ## Security Considerations
 

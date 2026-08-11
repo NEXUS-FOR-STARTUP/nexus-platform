@@ -6,7 +6,7 @@
 
 ## Overview
 
-Script chuyển đổi dữ liệu credit_ledgers cũ → ví VND mới. Clone production DB test trước, verify từng case trước khi chạy production.
+Script quy đổi credit_ledgers cũ → VND vào ví cho user đã mua credit trước khi có wallet. **Không xóa credit_ledgers** — credit vẫn là đơn vị tiêu dùng dịch vụ. Giữ credit_ledgers read-only cho audit.
 
 ## Quy tắc chuyển đổi
 
@@ -24,38 +24,45 @@ Script chuyển đổi dữ liệu credit_ledgers cũ → ví VND mới. Clone p
 import { prisma } from '../apps/api/src/db';
 import { walletService } from '../apps/api/src/modules/wallet/application/wallet.service';
 
-const CREDIT_PRICE_VND = 39000; // Giá 1 credit (cũ) — dùng làm tỉ lệ quy đổi
+const CREDIT_PRICE_VND = 39000; // Giá 1 credit (cũ) — fallback khi không có payment record
 
 async function migrateCreditToWallet() {
-  // Lấy tất cả case có credit_balance > 0
+  // Lấy case có credit_balance cuối cùng > 0
   const cases = await prisma.case.findMany({
     where: {
-      credit_ledgers: {
-        some: {}, // Có ít nhất 1 credit transaction
+      creditLedgers: {
+        some: { balanceAfter: { gt: 0 } },
       },
     },
     select: {
       id: true,
-      owner_id: true,
-      credit_ledgers: {
-        orderBy: { created_at: 'desc' },
+      ownerAuthUserId: true,
+      lockedPrice: true,
+      payments: {
+        where: { status: 'completed' },
+        select: { amount: true },
+      },
+      creditLedgers: {
+        orderBy: { createdAt: 'desc' },
         take: 1,
-        select: { balance_after: true },
+        select: { balanceAfter: true },
       },
     },
   });
 
-  const results: Array<{ caseId: string; userId: string; creditBalance: number; vndAmount: number; status: string }> = [];
-
   for (const c of cases) {
-    const latestBalance = c.credit_ledgers[0]?.balance_after ?? 0;
+    const latestBalance = c.creditLedgers[0]?.balanceAfter ?? 0;
     if (latestBalance <= 0) continue;
 
-    const vndAmount = latestBalance * CREDIT_PRICE_VND;
+    // Dùng actual payment amount nếu có, fallback locked_price × balance
+    const totalPaid = c.payments.reduce((sum, p) => sum + p.amount, 0);
+    const vndAmount = totalPaid > 0
+      ? totalPaid
+      : (c.lockedPrice ?? CREDIT_PRICE_VND) * latestBalance;
 
     try {
       await walletService.deposit(
-        c.owner_id,
+        c.ownerAuthUserId,
         vndAmount,
         'migration',
         c.id,
@@ -64,7 +71,7 @@ async function migrateCreditToWallet() {
 
       results.push({
         caseId: c.id,
-        userId: c.owner_id,
+        userId: c.ownerAuthUserId,
         creditBalance: latestBalance,
         vndAmount,
         status: 'SUCCESS',
