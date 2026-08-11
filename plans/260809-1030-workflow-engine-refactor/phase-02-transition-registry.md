@@ -1,375 +1,481 @@
-# Phase 02 — Transition Registry
+# Phase 02 — Machine Definition (XState là Single Source of Truth)
 
-- Priority: P1 | Status: Pending | Effort: 3h
+- Priority: P1 | Status: Pending | Effort: **2h** (giảm từ 3h — bỏ transition table tay)
 - Depends: Phase 01 (xstate + types)
 - Blocks: Phase 03
 
 ## Overview
 
-B1: Viết `transition-registry.ts` — **XState v5-correct:** runtime dùng transition table (plain data, không `machine.transition()` — API v4 đã bỏ). XState machine `setup({types, guards}).createMachine({...})` giữ lại cho type-check + documentation. Guards/actions khai báo trong `setup()` trước, dùng string reference trong machine.
+Định nghĩa XState machine `caseMachine` — **single source of truth** cho toàn bộ workflow. Mọi thứ: state, transition, guard, action — đều khai báo trong machine. Runtime dùng `transition()` + `resolveState()` (XState v5 native, KHÔNG actor). Không có transition table tay, không duplicate code.
 
-> **Red Team áp dụng:** F4 (validate state), F9 (spike `._action`), F15 (bỏ wrapper thừa). F12 đã thay đổi: T12-T15 ban đầu bị block chờ Q — giờ Q đã chốt (validation session 2) → **khai báo đầy đủ**, `isBlockedTransition` không còn cần.
+> **CORRECTION 2026-08-11:** `transition(machine, state, event)` standalone VẪN TỒN TẠI trong XState v5.20.1 (verified từ source repo). Chỉ `machine.transition(state, event)` instance method bị bỏ. Plan trước nhầm — giờ điều chỉnh về đúng thiết kế của researcher-02.
+
+> **Red Team áp dụng:** F4 (validate state), F12 (T12-T15 đầy đủ — policy chốt), F15 (bỏ wrapper thừa).
 
 ## Key Insights
 
-- **V5 API:** `transition()` standalone + `machine.transition(state, event)` → **bị bỏ trong v5**. Runtime dùng transition table (plain data). XState machine giữ lại cho type-check + documentation.
-- Dùng `setup({ types, guards, actions }).createMachine(...)` — guard/action theo tên string, khai báo trong setup() trước.
-- Pattern stateless: `tryTransition(status, event)` → lookup transition table → run guards sync → return `{to, actions[]}`. Không cần actor, không restore snapshot.
-- Actions là **plain object** `{type: ActionName, params?: unknown}` — executor loop tự await (phase 03).
-- Internal status = state node name (mapping 1-1 từ internal_status cột DB).
-- **KHÔNG có map stage 1:1 ở đây** — `targetStage` của từng transition nằm ở phase-03 `TARGET_STAGE` (F1).
-- Context rỗng `{}` — dữ liệu từ DB qua executor closure.
-- **Guard KHÔNG nhận `event.actor.role`** làm nguồn tin cậy — role phải được service inject từ session (F6).
+- **Machine là source of truth.** Chỉ 1 nơi định nghĩa: state nào → transition nào → guard nào → action nào. Không có bảng TRANSITIONS tay để drift.
+- **Stateless pattern canonical của XState:** `resolveState(value)` restore từ DB → `transition(machine, snapshot, event)` → được `[nextSnapshot, actionDescriptors]` → ghi DB + executor loop.
+- **`transition()` trả về tuple `[MachineSnapshot, ActionSnapshot[]]`.** Actions là object mô tả `{ type, ... }` — KHÔNG tự chạy. Executor loop (Phase 03) chịu trách nhiệm await từng action.
+- **Guard được XState kiểm tra.** `transition()` chạy tất cả guard của transition đó. Nếu guard fail → trả về snapshot KHÔNG ĐỔI (cùng value, 0 action). Nếu guard pass → snapshot mới + action list.
+- **Self-transition detection:** self-loop (vd T2 triage_pending → triage_pending) có `value` không đổi NHƯNG `actions.length > 0`. Guard fail có `value` không đổi VÀ `actions.length === 0`. Phân biệt được.
+- **Context rỗng `{}`** — dữ liệu case nằm trong event (pre-fetched từ DB trong transaction — Phase 03). Machine không giữ data.
+- **KHÔNG map stage ở đây** — `TARGET_STAGE` từng transition nằm ở Phase 03 (F1).
+- **Guard KHÔNG nhận `event.actor.role`** làm nguồn tin cậy — role được service inject từ session (F6). Guard đọc `event.data.roleVerified`.
 
 ## Requirements
 
-1. 8 state nodes (internal_status làm key): triage_pending, accepted_unassigned, assigned, supporter_working, waiting_user, report_ready_to_publish, done, cancelled
-2. Transition table: mọi transition T2-T16 khai báo trong TRANSITIONS object (plain data)
-3. Guards: 9 pure functions sync — isOwnerOrMember, isOwner, isAssignedSupporter, isAdmin, isSupporter, hasCredit, isWithin48h, isBeforeSubmission, reasonMinLength
-4. Actions: 9 factory functions trả `ActionDescriptor` — upsertDoc, subtractCredit, refundCredit, setSlaDeadline, autoResumeWork, resetStatus, notifyUser, emitStageChanged, lockPrice
-5. `tryTransition(status, event)` → lookup table → run guards → return `{to, actions[]}` hoặc null
-6. `getAvailableTransitions(status)` → trả TransitionName[] từ TRANSITIONS table
-7. XState machine `caseMachine` (documentation only): `setup({ types, guards }).createMachine({...})` — dùng để type-check + visual doc
-8. T1 (createCase): initial state = 'triage_pending' trong machine. Bỏ `initialCaseTransition` helper (F15) — không bao giờ dùng
+1. XState machine `caseMachine` — 8 state nodes, 16 transitions, 9 guards, 9 actions
+2. Machine compile với `setup({ types, guards, actions }).createMachine({...})`
+3. `tryTransition(currentStatus, event)` — wrap XState `resolveState()` + `transition()` → return `{ to, actions[] }` hoặc null
+4. `getAvailableTransitions(status)` — derive từ `caseMachine.states[status].on` keys
+5. `isValidState(status)` — validate status string trước khi restore
+6. `isBlockedTransition(name)` — luôn false (policy đã chốt, giữ compatibility)
+7. Tất cả guard/action khai báo trong `setup()` — 1 nơi duy nhất
+8. **KHÔNG** có bảng TRANSITIONS tay. **KHÔNG** có `tryTransition` table lookup. **KHÔNG** có `ACTION_FACTORIES` object riêng.
 
-## Architecture (pseudocode) — XState v5
+## Architecture
 
-> **V5 changes from v4 (đã verify với docs 2026-08-11):**
-> - `transition()` standalone import → **không tồn tại trong v5**. Thay bằng `fromTransition()` + reducer table.
-> - `machine.transition(state, event)` → **bị bỏ**. V5 dùng `actor.getSnapshot().can(event)` hoặc transition table.
-> - `._action` internal property → **không dùng**. Dùng plain data object `{type, params}` từ đầu.
-> - `setup({ types, guards, actions }).createMachine({...})` → guards/actions bắt buộc khai báo trong `setup()` trước, machine dùng string reference.
+```
+apps/api/src/modules/cases/domain/case-machine.ts (MỚI ~180 dòng)
 
-### Pattern: Transition Table + XState Machine (song song)
+  ┌─ setup({ types, guards, actions }) ─┐
+  │                                       │
+  │  9 guards (pure, sync):               │
+  │    isOwnerOrMember, isOwner,          │
+  │    isAssignedSupporter, isAdmin,      │
+  │    isSupporter, hasCredit,            │
+  │    isWithin48h, isBeforeSubmission,   │
+  │    reasonMinLength                    │
+  │                                       │
+  │  9 actions (descriptor, no-op):       │
+  │    upsertDoc, subtractCredit,         │
+  │    refundCredit, setSlaDeadline,      │
+  │    autoResumeWork, resetStatus,       │
+  │    notifyUser, emitStageChanged,      │
+  │    lockPrice                          │
+  │                                       │
+  └───────────────────────────────────────┘
+                    │
+                    ▼
+  ┌─ createMachine({...}) ───────────────┐
+  │                                       │
+  │  states: {                            │
+  │    triage_pending:    5 transitions   │
+  │    accepted_unassigned: 2 transitions │
+  │    assigned:          3 transitions   │
+  │    supporter_working: 5 transitions   │
+  │    waiting_user:      2 transitions   │
+  │    report_ready_to_publish: 2 trans.  │
+  │    done (final):      2 transitions   │
+  │    cancelled (final): 2 transitions   │
+  │  }                                    │
+  │                                       │
+  └───────────────────────────────────────┘
+                    │
+                    ▼
+  ┌─ Runtime helpers ────────────────────┐
+  │                                       │
+  │  tryTransition(status, event)         │
+  │    → resolveState() + transition()    │
+  │    → { to, actions[] } | null         │
+  │                                       │
+  │  getAvailableTransitions(status)      │
+  │    → TransitionName[]                 │
+  │                                       │
+  │  isValidState(status) → bool          │
+  │  isBlockedTransition(name) → bool     │
+  │                                       │
+  └───────────────────────────────────────┘
+```
 
-XState machine dùng cho **documentation, type-checking, và visual diagram**. Runtime `tryTransition` dùng **plain transition table** — không cần actor, không có `.can()` overhead, không restore snapshot. Lý do: stateless workflow (16 transitions, không actor nền chạy dài) → transition table đơn giản hơn, nhanh hơn, và không phụ thuộc XState internal API.
+## Implementation
+
+### case-machine.ts
 
 ```typescript
-// apps/api/src/modules/cases/domain/transition-registry.ts (MỚI ~200 dòng)
+// apps/api/src/modules/cases/domain/case-machine.ts (MỚI)
 
+import { setup, transition } from 'xstate'
 import type {
-  TransitionName, TransitionEvent, TransitionContext,
-  InternalStatus, GuardName, ActionName, TransitionDef
-} from './transition.types.js';
-import { AppError } from '../../../shared/domain/app-error.js';
+  TransitionName, TransitionEvent, InternalStatus,
+  CaseStage, ActionDescriptor,
+} from './transition.types.js'
+import { AppError } from '../../../shared/domain/app-error.js'
 
-// ── Transition Table (plain data — runtime engine) ────────────────────────
+// ── XState Machine (SINGLE SOURCE OF TRUTH) ────────────────────────────────
 
-/**
- * Mỗi transition: { name, guard[], from, to, actions[] }
- * Guards check event.data (pre-fetched trong tx bởi CaseTransitionService — F2).
- * Actions trả plain object {type, params} — executor loop tự await (phase 03).
- * T1 (createCase) KHÔNG phải transition → initial state = 'triage_pending'.
- */
-const TRANSITIONS: Record<string, TransitionDef[]> = {
-  triage_pending: [
-    T2('T2_SUBMIT_INTAKE',    ['isOwnerOrMember'],                         'triage_pending',             ['upsertDoc']),
-    T5('T5_ACCEPT',           ['isAdmin', 'hasCredit'],                    'accepted_unassigned',        []),
-    T16('T16_EDIT_INTAKE',    ['isBeforeSubmission'],                      'triage_pending',             ['upsertDoc']),
-    T12('T12_REJECT',         ['isAdmin', 'reasonMinLength'],              'cancelled',                  []),
-    T15('T15_CANCEL',         ['isOwner'],                                 'cancelled',                  []),
-  ],
-  accepted_unassigned: [
-    T6('T6_ASSIGN_SUPPORTER', ['isAdmin'],                                 'assigned',                   []),
-    T15('T15_CANCEL',         ['isOwner'],                                 'cancelled',                  []),
-  ],
-  assigned: [
-    T7('T7_START_WORK',       ['isAssignedSupporter'],                     'supporter_working',          ['setSlaDeadline']),
-    T13('T13_VETO',           ['isAdmin', 'isWithin48h'],                  'cancelled',                  ['refundCredit']),
-    T15('T15_CANCEL',         ['isOwner'],                                 'cancelled',                  []),
-  ],
-  supporter_working: [
-    T8('T8_REQUEST_INFO',     ['isAssignedSupporter'],                     'waiting_user',               ['notifyUser']),
-    T10('T10_START_REVIEW_REVISION', ['isAssignedSupporter'],              'supporter_working',          ['notifyUser']),
-    T11('T11_SUBMIT_OUTPUT',  ['isAssignedSupporter', 'hasCredit'],        'report_ready_to_publish',    ['subtractCredit']),
-    T13('T13_VETO',           ['isAdmin', 'isWithin48h'],                  'cancelled',                  ['refundCredit']),
-    T15('T15_CANCEL',         ['isOwner'],                                 'cancelled',                  []),
-  ],
-  waiting_user: [
-    T9('T9_SUBMIT_REVISION',  ['isOwnerOrMember'],                         'supporter_working',          ['upsertDoc', 'autoResumeWork']),
-    T15('T15_CANCEL',         ['isOwner'],                                 'cancelled',                  []),
-  ],
-  report_ready_to_publish: [
-    T14('T14_COMPLETE',       ['isAssignedSupporter'],                     'done',                       ['notifyUser']),
-    T15('T15_CANCEL',         ['isOwner'],                                 'cancelled',                  []),
-  ],
-  done: [
-    T3('T3_RESUBMIT_AFTER_REJECT', ['isOwner', 'hasCredit'],                 'triage_pending',             ['upsertDoc', 'resetStatus']),
-    T4('T4_RESUBMIT_AFTER_VETO',   ['isOwner'],                                 'triage_pending',             ['upsertDoc', 'resetStatus']),
-  ],
-  cancelled: [
-    T3('T3_RESUBMIT_AFTER_REJECT', ['isOwner', 'hasCredit'],                 'triage_pending',             ['upsertDoc', 'resetStatus']),
-    T4('T4_RESUBMIT_AFTER_VETO',   ['isOwner'],                                 'triage_pending',             ['upsertDoc', 'resetStatus']),
-  ],
-};
-
-/** Builder helper — tránh lặp type object literal */
-function T(
-  name: TransitionName, guard: GuardName[], to: InternalStatus,
-  actions: ActionName[],
-): TransitionDef {
-  return { name, guard, to, actions };
-}
-
-// ── Guards (pure functions, sync, no DB) ─────────────────────────────────
-
-/**
- * Mỗi guard nhận ({event}) → boolean.
- * Guard CHỈ check data có sẵn trong event (pre-fetched TRONG tx — F2).
- * KHÔNG gọi DB, KHÔNG side effect, KHÔNG async.
- * F6: role lấy từ event.data.roleVerified (session), không tin event.actor.role.
- */
-const GUARDS: Record<GuardName, (ctx: { event: TransitionEvent }) => boolean> = {
-  isOwnerOrMember: ({ event }) => event.data.actorId === event.data.caseOwnerId,
-  isOwner:          ({ event }) => event.data.actorId === event.data.caseOwnerId,
-  isAssignedSupporter: ({ event }) => event.data.actorId === event.data.assignedSupporterId,
-  isAdmin:          ({ event }) => event.data.roleVerified === 'ADMIN',
-  isSupporter:      ({ event }) => event.data.roleVerified === 'SUPPORTER',
-  hasCredit:        ({ event }) => {
-    if (event.data.packagePrice === 0) return true;
-    return event.data.creditBalance >= 1;
+export const caseMachine = setup({
+  types: {
+    context: {} as Record<string, never>,
+    events: {} as TransitionEvent,
   },
-  isWithin48h:      ({ event }) => {
-    return (Date.now() - new Date(event.data.caseCreatedAt).getTime()) < 48 * 3600_000;
+
+  // ── Guards (pure functions, sync — checked by XState) ──────────────────
+  //
+  // Guard CHỈ check data có sẵn trong event (pre-fetched trong tx — Phase 03).
+  // KHÔNG gọi DB, KHÔNG side effect, KHÔNG async.
+  // F6: roleVerified từ session (service inject), KHÔNG tin event.actor.role.
+
+  guards: {
+    isOwnerOrMember: ({ event }) =>
+      event.data?.actorId === event.data?.caseOwnerId,
+
+    isOwner: ({ event }) =>
+      event.data?.actorId === event.data?.caseOwnerId,
+
+    isAssignedSupporter: ({ event }) =>
+      event.data?.actorId === event.data?.caseAssignedSupporterId,
+
+    isAdmin: ({ event }) =>
+      event.data?.roleVerified === 'ADMIN',
+
+    isSupporter: ({ event }) =>
+      event.data?.roleVerified === 'SUPPORTER',
+
+    hasCredit: ({ event }) => {
+      if ((event.data?.packagePrice as number) === 0) return true
+      return (event.data?.creditBalance as number) >= 1
+    },
+
+    isWithin48h: ({ event }) =>
+      (Date.now() - new Date(event.data?.caseCreatedAt as string).getTime()) < 48 * 3600_000,
+
+    isBeforeSubmission: ({ event }) =>
+      event.data?.currentStage === 'intake_pending' || event.data?.currentStage === 'intake_ready',
+
+    reasonMinLength: ({ event }) =>
+      ((event.data?.reason as string)?.length ?? 0) >= 10,
   },
-  isBeforeSubmission: ({ event }) => {
-    return event.data.currentStage === 'intake_pending' || event.data.currentStage === 'intake_ready';
+
+  // ── Actions (descriptors — KHÔNG thực thi ở đây) ───────────────────────
+  //
+  // XState gọi sync các hàm này trong transition(), nhưng chúng là no-op.
+  // Action thật được Phase 03 executor loop xử lý (await DB trong tx).
+  // Đây là thiết kế chuẩn XState: action = mô tả, thực thi = application code.
+
+  actions: {
+    upsertDoc:         () => {},
+    subtractCredit:    () => {},
+    refundCredit:      () => {},
+    setSlaDeadline:    () => {},
+    autoResumeWork:    () => {},
+    resetStatus:       () => {},
+    notifyUser:        () => {},
+    emitStageChanged:  () => {},
+    lockPrice:         () => {},
   },
-  reasonMinLength:  ({ event }) => (event.data.reason?.length ?? 0) >= 10,
-};
 
-// ── Action factories (trả plain object — executor loop tự await) ─────────
+}).createMachine({
 
-const ACTION_FACTORIES: Record<ActionName, (event: TransitionEvent) => ActionDescriptor> = {
-  upsertDoc:         (e) => ({ type: 'upsertDoc' as const,         params: e.data }),
-  subtractCredit:    (e) => ({ type: 'subtractCredit' as const,    params: e.data }),
-  refundCredit:      (e) => ({ type: 'refundCredit' as const,      params: e.data }),
-  setSlaDeadline:    ()  => ({ type: 'setSlaDeadline' as const }),
-  autoResumeWork:    ()  => ({ type: 'autoResumeWork' as const }),
-  resetStatus:       ()  => ({ type: 'resetStatus' as const }),
-  notifyUser:        ()  => ({ type: 'notifyUser' as const }),
-  emitStageChanged:  ()  => ({ type: 'emitStageChanged' as const }),
-  lockPrice:         ()  => ({ type: 'lockPrice' as const }),
-};
+  id: 'caseWorkflow',
+  context: {},
+  initial: 'triage_pending',
 
-// ── Helper functions ──────────────────────────────────────────────────────
+  states: {
+
+    // ── triage_pending ───────────────────────────────────────────────────
+    triage_pending: {
+      on: {
+        T2_SUBMIT_INTAKE: {
+          target: 'triage_pending',        // self-loop — upsert doc, giữ stage
+          guard: 'isOwnerOrMember',
+          actions: 'upsertDoc',
+        },
+        T5_ACCEPT: {
+          target: 'accepted_unassigned',   // admin duyệt → gán supporter
+          guard: ['isAdmin', 'hasCredit'],
+        },
+        T16_EDIT_INTAKE: {
+          target: 'triage_pending',        // self-loop — chỉnh sửa intake
+          guard: 'isBeforeSubmission',
+          actions: 'upsertDoc',
+        },
+        T12_REJECT: {
+          target: 'cancelled',             // admin từ chối → case đóng
+          guard: ['isAdmin', 'reasonMinLength'],
+        },
+        T15_CANCEL: {
+          target: 'cancelled',             // chủ case tự hủy
+          guard: 'isOwner',
+        },
+      },
+    },
+
+    // ── accepted_unassigned ──────────────────────────────────────────────
+    accepted_unassigned: {
+      on: {
+        T6_ASSIGN_SUPPORTER: {
+          target: 'assigned',              // admin gán supporter
+          guard: 'isAdmin',
+        },
+        T15_CANCEL: {
+          target: 'cancelled',
+          guard: 'isOwner',
+        },
+      },
+    },
+
+    // ── assigned ─────────────────────────────────────────────────────────
+    assigned: {
+      on: {
+        T7_START_WORK: {
+          target: 'supporter_working',     // supporter bắt đầu làm
+          guard: 'isAssignedSupporter',
+          actions: 'setSlaDeadline',
+        },
+        T13_VETO: {
+          target: 'cancelled',             // admin phủ quyết trong 48h
+          guard: ['isAdmin', 'isWithin48h'],
+          actions: 'refundCredit',
+        },
+        T15_CANCEL: {
+          target: 'cancelled',
+          guard: 'isOwner',
+        },
+      },
+    },
+
+    // ── supporter_working ────────────────────────────────────────────────
+    supporter_working: {
+      on: {
+        T8_REQUEST_INFO: {
+          target: 'waiting_user',          // supporter yêu cầu thêm thông tin
+          guard: 'isAssignedSupporter',
+          actions: 'notifyUser',
+        },
+        T10_START_REVIEW_REVISION: {
+          target: 'supporter_working',     // self-loop — bắt đầu chấm bản sửa
+          guard: 'isAssignedSupporter',
+          actions: 'notifyUser',
+        },
+        T11_SUBMIT_OUTPUT: {
+          target: 'report_ready_to_publish', // supporter nộp kết quả
+          guard: ['isAssignedSupporter', 'hasCredit'],
+          actions: ['subtractCredit', 'lockPrice'],
+        },
+        T13_VETO: {
+          target: 'cancelled',             // admin phủ quyết
+          guard: ['isAdmin', 'isWithin48h'],
+          actions: 'refundCredit',
+        },
+        T15_CANCEL: {
+          target: 'cancelled',
+          guard: 'isOwner',
+        },
+      },
+    },
+
+    // ── waiting_user ─────────────────────────────────────────────────────
+    waiting_user: {
+      on: {
+        T9_SUBMIT_REVISION: {
+          target: 'supporter_working',     // user nộp bản sửa → tự resume
+          guard: 'isOwnerOrMember',
+          actions: 'upsertDoc',
+        },
+        T15_CANCEL: {
+          target: 'cancelled',
+          guard: 'isOwner',
+        },
+      },
+    },
+
+    // ── report_ready_to_publish ──────────────────────────────────────────
+    report_ready_to_publish: {
+      on: {
+        T14_COMPLETE: {
+          target: 'done',                  // supporter hoàn thành
+          guard: 'isAssignedSupporter',
+          actions: 'notifyUser',
+        },
+        T15_CANCEL: {
+          target: 'cancelled',
+          guard: 'isOwner',
+        },
+      },
+    },
+
+    // ── done (final) ─────────────────────────────────────────────────────
+    done: {
+      type: 'final' as const,
+      on: {
+        T3_RESUBMIT_AFTER_REJECT: {
+          target: 'triage_pending',        // làm lại case bị reject
+          guard: ['isOwner', 'hasCredit'],
+          actions: ['upsertDoc', 'resetStatus'],
+        },
+        T4_RESUBMIT_AFTER_VETO: {
+          target: 'triage_pending',        // làm lại case bị veto
+          guard: 'isOwner',
+          actions: ['upsertDoc', 'resetStatus'],
+        },
+      },
+    },
+
+    // ── cancelled (final) ────────────────────────────────────────────────
+    cancelled: {
+      type: 'final' as const,
+      on: {
+        T3_RESUBMIT_AFTER_REJECT: {
+          target: 'triage_pending',
+          guard: ['isOwner', 'hasCredit'],
+          actions: ['upsertDoc', 'resetStatus'],
+        },
+        T4_RESUBMIT_AFTER_VETO: {
+          target: 'triage_pending',
+          guard: 'isOwner',
+          actions: ['upsertDoc', 'resetStatus'],
+        },
+      },
+    },
+
+  },
+})
+
+// ── Runtime Helpers ────────────────────────────────────────────────────────
 
 export const VALID_STATES: readonly InternalStatus[] = [
   'triage_pending', 'accepted_unassigned', 'assigned', 'supporter_working',
   'waiting_user', 'report_ready_to_publish', 'done', 'cancelled',
-];
+]
 
-/** F4: validate status TRƯỚC khi dùng */
+/** F4: validate status trước khi restore vào machine */
 export function isValidState(status: string): status is InternalStatus {
-  return VALID_STATES.includes(status as InternalStatus);
+  return VALID_STATES.includes(status as InternalStatus)
 }
 
 /**
- * Stateless transition check — v5 không có machine.transition().
- * Dùng transition table thay vì actor snapshot (không cần restore, không overhead).
+ * tryTransition — stateless transition dùng XState native API.
  *
- * Returns { to, actions[] } nếu guard pass → null nếu không match hoặc guard fail.
- * Self-transition (to === from) hợp lệ khi actions.length > 0 — phân biệt với guard-fail.
+ * Pattern:
+ *   1. resolveState(value) → khôi phục snapshot từ DB string
+ *   2. transition(machine, snapshot, event) → XState chạy guard + trả [nextSnapshot, actions]
+ *   3. Phân biệt guard-fail vs self-transition:
+ *      - Guard fail:   value không đổi + actions.length === 0
+ *      - Self-loop OK:  value không đổi + actions.length > 0
+ *      - Transition OK: value thay đổi (actions có thể có hoặc không)
+ *
+ * Returns { to, actions[] } nếu transition hợp lệ, null nếu guard fail.
  */
 export function tryTransition(
   currentStatus: string,
   event: TransitionEvent,
 ): { to: InternalStatus; actions: ActionDescriptor[] } | null {
   if (!isValidState(currentStatus)) {
-    throw new AppError(500, 'CORRUPT_STATE', `internal_status không hợp lệ: ${currentStatus}`);
+    throw new AppError(500, 'CORRUPT_STATE', `internal_status không hợp lệ: ${currentStatus}`)
   }
 
-  const transitions = TRANSITIONS[currentStatus];
-  if (!transitions) return null;
+  // Khôi phục snapshot từ DB string — XState native
+  const resolved = caseMachine.resolveState({ value: currentStatus })
 
-  const def = transitions.find(t => t.name === event.type);
-  if (!def) return null;
+  // Chạy transition — XState native (chạy guard bên trong)
+  const [nextSnapshot, actionSnapshots] = transition(caseMachine, resolved, event)
 
-  // Run all guards
-  const allPassed = def.guard.every(gName => {
-    const guardFn = GUARDS[gName];
-    return guardFn({ event });
-  });
+  const stateChanged = nextSnapshot.value !== currentStatus
+  const hasActions = actionSnapshots.length > 0
 
-  if (!allPassed) return null;
+  // Guard fail: không đổi state, không có action
+  if (!stateChanged && !hasActions) return null
 
-  // Build action descriptors
-  const actions = def.actions.map(aName => ACTION_FACTORIES[aName](event));
+  // Trích xuất action descriptors từ XState action snapshots
+  const actions: ActionDescriptor[] = actionSnapshots.map(a => ({
+    type: (a as any).type as ActionDescriptor['type'],
+    params: (a as any).params,
+  }))
 
-  return { to: def.to, actions };
+  return {
+    to: nextSnapshot.value as InternalStatus,
+    actions,
+  }
 }
 
-/** Mọi transition đã active (policy chốt). Giữ signature cho compatibility. */
+/** Mọi transition đã active (policy chốt 2026-08-09) */
 export function isBlockedTransition(_name: TransitionName): boolean {
-  return false;
+  return false
 }
 
-/** Danh sách transition khả dụng từ 1 state (cho FE render nút) */
+/**
+ * Danh sách transition khả dụng từ 1 state.
+ * Derive từ XState machine config — KHÔNG viết tay.
+ */
 export function getAvailableTransitions(status: string): TransitionName[] {
-  const transitions = TRANSITIONS[status];
-  if (!transitions) return [];
-  return transitions.map(t => t.name);
+  if (!isValidState(status)) return []
+  const stateNode = (caseMachine.config as any).states?.[status]
+  if (!stateNode?.on) return []
+  return Object.keys(stateNode.on) as TransitionName[]
 }
-
-// ── XState machine (documentation + types, NOT runtime engine) ────────────
-//
-// Machine này tồn tại để:
-// 1. Type-check transition names (setup types → TS error nếu sai tên)
-// 2. Visual document statechart (export ra Stately Studio nếu cần)
-// 3. Unit test snapshot (verify machine structure khớp transition table)
-// KHÔNG dùng cho runtime tryTransition — dùng transition table ở trên.
-
-import { setup } from 'xstate';
-
-const caseMachine = setup({
-  types: {
-    context: {} as TransitionContext,
-    events: {} as TransitionEvent,
-  },
-  guards: {
-    isOwnerOrMember:     GUARDS.isOwnerOrMember as any,
-    isOwner:             GUARDS.isOwner as any,
-    isAssignedSupporter: GUARDS.isAssignedSupporter as any,
-    isAdmin:             GUARDS.isAdmin as any,
-    isSupporter:         GUARDS.isSupporter as any,
-    hasCredit:           GUARDS.hasCredit as any,
-    isWithin48h:         GUARDS.isWithin48h as any,
-    isBeforeSubmission:  GUARDS.isBeforeSubmission as any,
-    reasonMinLength:     GUARDS.reasonMinLength as any,
-  },
-  actions: {},
-}).createMachine({
-  id: 'caseWorkflow',
-  context: {},
-  initial: 'triage_pending',
-  states: {
-    triage_pending: {
-      on: {
-        T2_SUBMIT_INTAKE:   { target: 'triage_pending',           guard: ['isOwnerOrMember'] },
-        T5_ACCEPT:          { target: 'accepted_unassigned',      guard: ['isAdmin', 'hasCredit'] },
-        T16_EDIT_INTAKE:    { target: 'triage_pending',           guard: 'isBeforeSubmission' },
-        T12_REJECT:         { target: 'cancelled',                guard: ['isAdmin', 'reasonMinLength'] },
-        T15_CANCEL:         { target: 'cancelled',                guard: 'isOwner' },
-      }
-    },
-    accepted_unassigned: {
-      on: {
-        T6_ASSIGN_SUPPORTER:{ target: 'assigned',                 guard: 'isAdmin' },
-        T15_CANCEL:         { target: 'cancelled',                guard: 'isOwner' },
-      }
-    },
-    assigned: {
-      on: {
-        T7_START_WORK:      { target: 'supporter_working',        guard: 'isAssignedSupporter' },
-        T13_VETO:           { target: 'cancelled',                guard: ['isAdmin', 'isWithin48h'] },
-        T15_CANCEL:         { target: 'cancelled',                guard: 'isOwner' },
-      }
-    },
-    supporter_working: {
-      on: {
-        T8_REQUEST_INFO:    { target: 'waiting_user',             guard: 'isAssignedSupporter' },
-        T10_START_REVIEW_REVISION: { target: 'supporter_working',        guard: 'isAssignedSupporter' },
-        T11_SUBMIT_OUTPUT:  { target: 'report_ready_to_publish',  guard: ['isAssignedSupporter', 'hasCredit'] },
-        T13_VETO:           { target: 'cancelled',                guard: ['isAdmin', 'isWithin48h'] },
-        T15_CANCEL:         { target: 'cancelled',                guard: 'isOwner' },
-      }
-    },
-    waiting_user: {
-      on: {
-        T9_SUBMIT_REVISION: { target: 'supporter_working',        guard: 'isOwnerOrMember' },
-        T15_CANCEL:         { target: 'cancelled',                guard: 'isOwner' },
-      }
-    },
-    report_ready_to_publish: {
-      on: {
-        T14_COMPLETE:       { target: 'done',                     guard: 'isAssignedSupporter' },
-        T15_CANCEL:         { target: 'cancelled',                guard: 'isOwner' },
-      }
-    },
-    done: {
-      type: 'final' as const,
-      on: {
-        T3_RESUBMIT_AFTER_REJECT: { target: 'triage_pending',           guard: ['isOwner', 'hasCredit'] },
-        T4_RESUBMIT_AFTER_VETO:   { target: 'triage_pending',           guard: 'isOwner' },
-      }
-    },
-    cancelled: {
-      type: 'final' as const,
-      on: {
-        T3_RESUBMIT_AFTER_REJECT: { target: 'triage_pending',           guard: ['isOwner', 'hasCredit'] },
-        T4_RESUBMIT_AFTER_VETO:   { target: 'triage_pending',           guard: 'isOwner' },
-      }
-    },
-  }
-});
-
-export { caseMachine };
 ```
 
-**LƯU Ý quan trọng về guard implementation (v5):**
-- Guard trong XState v5 chạy **sync** — không await DB. Pattern: service (phase-03) fetch data TRONG transaction rồi nạp vào `event.data` → guard chỉ check data đã có
-- `isOwnerOrMember`, `isAssignedSupporter`, `hasCredit`, `isWithin48h`: service fetch case record/payment trong tx, nạp vào `event.data` → guard check data
-- `hasCredit` (T11): service fetch credit balance TRONG tx, nạp `event.data.creditBalance` → guard check (F2 — chống TOCTOU)
-- **F6:** `isAdmin`/`isSupporter` check `event.data.roleVerified` — service inject từ session, KHÔNG tin `event.actor.role`
-- Đây là thiết kế chuẩn XState: guard = pure function, không side effect
-- **Không dùng `transition()`, `machine.transition()`, `snapshot.can()`** cho runtime — đây là API v4 đã bỏ hoặc không phù hợp stateless pattern. Dùng transition table lookup.
+## Design Decisions
+
+| Quyết định | Lý do |
+|---|---|
+| Machine là single source of truth | Tránh drift giữa TRANSITIONS table tay và machine — nguyên nhân #1 bug workflow |
+| `transition()` + `resolveState()` | XState native API cho stateless pattern. Verified tồn tại trong v5.20.1 |
+| Actions trong setup() là no-op | XState action = sync, không await DB. No-op trong machine, thực thi ở Phase 03 executor |
+| Guard check `event.data.roleVerified` | F6: role từ session, không tin `event.actor.role` từ caller |
+| Self-transition detect bằng `actions.length > 0` | Self-loop (T2, T10, T16) có action (upsertDoc/notifyUser). Guard fail có 0 action. Phân biệt được |
+| Context rỗng `{}` | Dữ liệu case qua event.data (pre-fetched trong tx). Machine giữ thuần logic, không giữ data |
+| BỎ `TransitionDef`, bỎ `ACTION_FACTORIES` | Không còn transition table tay. Machine `states.on` thay thế hoàn toàn |
+| BỎ `case-machine` (doc only) như cũ | Machine giờ LÀ runtime — không còn "machine doc song song table" |
+| `getAvailableTransitions` derive từ machine config | Không có bảng thứ 2 để drift. Mọi thứ từ machine |
 
 ## Related Code Files
 
 | File | Action |
 |---|---|
-| `apps/api/src/modules/cases/domain/transition.types.ts` | Tham chiếu (từ phase 01) |
-| `apps/api/src/modules/cases/domain/transition-registry.ts` | **MỚI** |
-| `apps/api/src/modules/cases/domain/case.types.ts` | Tham chiếu (stage constants) |
+| `apps/api/src/modules/cases/domain/case-machine.ts` | **MỚI** — machine + helpers |
+| `apps/api/src/modules/cases/domain/transition.types.ts` | Tham chiếu (types từ Phase 01) |
 | `apps/api/src/modules/cases/domain/case-workflow.ts` | KHÔNG đụng (symflow, giữ song song) |
 
 ## Todo List
 
-- [ ] Tạo `transition-registry.ts`
-- [ ] Implement TRANSITIONS table (plain data — 8 state keys, 15 transition entries)
-- [ ] Implement 9 GUARDS (pure functions, sync, check event.data)
-- [ ] Implement 9 ACTION_FACTORIES (trả plain object `{type, params}`)
-- [ ] Implement `tryTransition` (table lookup → guards → return `{to, actions}` hoặc null)
-- [ ] Implement `getAvailableTransitions` (trả TransitionName[] từ table)
-- [ ] Implement `isValidState` + `isBlockedTransition` (compatibility)
-- [ ] Build XState machine `caseMachine` với `setup({types, guards}).createMachine({...})` cho doc
-- [ ] Verify: `tryTransition('triage_pending', T5_ACCEPT)` với roleVerified='ADMIN' + creditBalance=1 → `{to:'accepted_unassigned', actions:[]}`
-- [ ] Verify: `tryTransition('triage_pending', T5_ACCEPT)` với creditBalance=0 → null (guard fail)
-- [ ] Verify: self-loop `tryTransition('triage_pending', T16_EDIT_INTAKE)` → `{to:'triage_pending', actions:[{type:'upsertDoc'}]}` — KHÔNG null
-- [ ] Verify: `getAvailableTransitions('triage_pending')` → ['T2_SUBMIT_INTAKE','T5_ACCEPT','T16_EDIT_INTAKE','T12_REJECT','T15_CANCEL']
-- [ ] Verify: `tryTransition('invalid_status', ...)` → throw AppError CORRUPT_STATE (F4)
-- [ ] Verify: import trong Node không crash (XState ESM resolve OK)
-- [ ] Verify: XState machine compile OK với `setup({types, guards})` — type-check guard names
+- [ ] Tạo `case-machine.ts` — XState machine với `setup({ types, guards, actions })`
+- [ ] Định nghĩa 9 guards trong setup() — pure functions, sync
+- [ ] Định nghĩa 9 actions trong setup() — no-op descriptors
+- [ ] Định nghĩa 8 state nodes + 16 transitions trong createMachine()
+- [ ] Implement `tryTransition` — resolveState + transition + self-loop detection
+- [ ] Implement `getAvailableTransitions` — derive từ machine config
+- [ ] Implement `isValidState` + `isBlockedTransition`
+- [ ] Verify: `tryTransition('triage_pending', { type:'T5_ACCEPT', data:{ roleVerified:'ADMIN', creditBalance:1 } })` → `{ to:'accepted_unassigned', actions:[] }`
+- [ ] Verify: `tryTransition('triage_pending', { type:'T5_ACCEPT', data:{ roleVerified:'ADMIN', creditBalance:0 } })` → null (guard hasCredit fail)
+- [ ] Verify: self-loop `tryTransition('triage_pending', { type:'T2_SUBMIT_INTAKE', data:{ actorId:'u1', caseOwnerId:'u1' } })` → `{ to:'triage_pending', actions:[{ type:'upsertDoc' }] }` — **KHÔNG null**
+- [ ] Verify: `tryTransition('supporter_working', { type:'T11_SUBMIT_OUTPUT', data:{...} })` → `{ to:'report_ready_to_publish', actions:[{ type:'subtractCredit' }, { type:'lockPrice' }] }`
+- [ ] Verify: `tryTransition('invalid_status', ...)` → throw AppError CORRUPT_STATE
+- [ ] Verify: `getAvailableTransitions('triage_pending')` → [T2, T5, T16, T12, T15]
+- [ ] Verify: XState import trong Node không crash (ESM resolve OK)
+- [ ] Verify: `npm run check-types` PASS
 
 ## Success Criteria
 
-- `transition-registry.ts` compile OK
-- `tryTransition('supporter_working', T11_SUBMIT_OUTPUT)` → `{to:'report_ready_to_publish', actions:[{type:'subtractCredit',...}]}`
-- `tryTransition('invalid_status', ...)` → throw AppError CORRUPT_STATE (F4)
-- `tryTransition('triage_pending', T5_ACCEPT)` creditBalance=0 → null (guard fail)
-- `tryTransition('triage_pending', T16_EDIT_INTAKE)` → `{to:'triage_pending', actions:...}` — self-loop hợp lệ
-- `getAvailableTransitions('triage_pending')` → T2/T5/T16/T12/T15
-- Không có `transition()` import, không có `._action`, không có `restoreMachine`, không có `machine.transition()`
-- XState `caseMachine` compile với `setup({types, guards})` — guard names type-checked
-- `initialTransition`/`initialCaseTransition` không còn trong code (F15)
+- `caseMachine` compile với `setup({ types, guards, actions }).createMachine({...})`
+- `transition()` + `resolveState()` import được từ 'xstate' (v5.20.1)
+- `tryTransition('triage_pending', T5 valid)` → `{ to: 'accepted_unassigned', actions: [] }`
+- `tryTransition('triage_pending', T5 no-credit)` → null (guard fail — XState chặn)
+- `tryTransition('triage_pending', T2 valid)` → `{ to: 'triage_pending', actions: [{ type: 'upsertDoc' }] }` (self-loop hợp lệ)
+- `getAvailableTransitions` derive từ machine, không viết tay
+- **KHÔNG** có TRANSITIONS table tay. **KHÔNG** có ACTION_FACTORIES object riêng
+- **KHÔNG** có tryTransition table lookup. **KHÔNG** có `fromTransition()` hay `reducer table`
+- Machine là nơi DUY NHẤT định nghĩa: state, transition, guard, action
+- check-types root PASS
 
 ## Risk Assessment
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| Guard sync pattern sai — cố await DB trong guard | Cao (junior trap) | Trung bình | Pseudocode + comment rõ: guard chỉ check data có sẵn trong event. Service fetch TRONG tx (F2) |
-| Transition table + XState machine diverge (manual edit quên sync) | Trung bình | Cao | Unit test: build map từ XState machine states.on keys → assert = TRANSITIONS keys. Chạy CI mỗi PR |
-| data prod có internal_status hỏng → isValidState fail | Thấp | Cao | VALID_STATES check + AppError CORRUPT_STATE (F4). Script validate data trước deploy (phase-06) |
-| Quên import AppError path | Thấp | Trung bình | Verify `shared/domain/app-error.ts` (3-arg code) — F3 |
-| XState ESM import fail trong Node (bundler issue) | Thấp | Thấp | Machine bị comment-out fallback vẫn hoạt động (runtime dùng table). Verify import đầu phase |
+| `transition()` bị crash với event có data lớn/nested | Thấp | Thấp | event.data là flat object — không nested sâu. Verified pattern từ XState test suite |
+| Self-transition detection sai (nhầm guard-fail với self-loop) | Thấp | Cao | Unit test verify: T2 → self-loop có action. T5 fail-credit → null. Action count là signal đáng tin |
+| Machine config internal shape thay đổi trong XState minor version → getAvailableTransitions break | Thấp | Trung bình | Access `.config.states` là public API. Nếu đổi → unit test catch ngay. Fallback: map tay (10 dòng) |
+| `actionSnapshots` type cast `as any` → type safety yếu | Trung bình | Thấp | XState ActionSnapshot type chưa public rõ params field. Cast an toàn vì chỉ extract type + params. Unit test verify đúng action names |
 
 ## Security Considerations
 
 - Guard không gọi DB — không SQL injection vector
 - Machine không export ra ngoài module (internal domain)
-- Transition name được type-check (không string magic)
-- Guard role check dùng `roleVerified` từ session (F6) — không tin event.actor.role
+- Transition name được type-check qua `setup({ types: { events: {} as TransitionEvent } })`
+- Guard role check dùng `roleVerified` từ session (F6)
 
 ## Next Steps
 
-→ Phase 03: Viết CaseTransitionService (executor 5 lớp) + chuyển submitRevisionUseCase qua cổng.
+→ Phase 03: Viết CaseTransitionService dùng `tryTransition()` từ machine này. Executor loop xử lý actions.

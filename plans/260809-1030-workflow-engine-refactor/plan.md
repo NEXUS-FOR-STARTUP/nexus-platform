@@ -3,7 +3,7 @@ title: "Workflow Engine Refactor — symflow → XState v5"
 description: "Thay symflow bằng XState v5: 1 cổng CaseTransitionService 5 lớp cho mọi use case thay đổi state. Fix 14 bugs backlog. ONE-SHOT: T1-T16, policy sản phẩm Q1-Q5 đã chốt 2026-08-09 — không còn blocker."
 status: pending
 priority: P1
-effort: 21h
+effort: 19h
 branch: feat/workflow-engine-refactor
 tags: [refactor, workflow, engine, xstate, bug-fix]
 blockedBy: []
@@ -13,7 +13,7 @@ created: 2026-08-09
 
 > **Docs tham khảo XState v5:** `docs/tech-doc-urls.txt` lines 59-61:  
 > https://stately.ai/docs/cheatsheet &nbsp;|&nbsp; https://stately.ai/docs/quick-start &nbsp;|&nbsp; https://stately.ai/docs/examples  
-> **V5 changes verified 2026-08-11:** `transition()` standalone + `machine.transition(state, event)` đã bỏ. Dùng transition table + `setup({types, guards}).createMachine({...})`. Chi tiết: `phase-02`.
+> **V5 changes verified 2026-08-11 — CORRECTED 2026-08-11:** `machine.transition(state, event)` bị bỏ. Nhưng `transition(machine, state, event)` standalone **VẪN TỒN TẠI** (verified từ XState v5.20.1 source test file). Dùng `transition()` + `resolveState()` cho stateless workflow pattern — machine là single source of truth. KHÔNG cần transition table tay. Chi tiết: `phase-02`.
 
 # Workflow Engine Refactor — symflow → XState v5
 
@@ -27,7 +27,7 @@ Nguồn: `docs/research/workflow-engine-refactor-brainstorm-2026-08-09.md` + `re
 
 | Chủ đề | Quyết định |
 |---|---|
-| Engine | ĐỔI symflow → XState v5 (pattern `transition()` thuần, không actor nền) |
+| Engine | ĐỔI symflow → XState v5. Dùng `transition()` + `resolveState()` stateless pattern (không actor). Machine là single source of truth cho guard, action, transition |
 | Typegen | BỎ (KISS — máy nhỏ 16 transitions, `setup({types})` thủ công đủ) |
 | Stately Studio | BỎ |
 | Async | entry action = mô tả tên, executor loop tự `await`. KHÔNG async trong machine |
@@ -60,7 +60,7 @@ Nguồn: `docs/research/workflow-engine-refactor-brainstorm-2026-08-09.md` + `re
 > - **F15:** script fix data prod tách operational (`scripts/fix-stuck-cases-2026-08-09.sql` — convention scripts/, không tạo folder mới); bỏ wrapper thừa (restoreMachine đơn giản hóa, bỏ initialCaseTransition); resubmit/veto KHÔNG ĐỔI trong file map cho đến phase 06 — sau khi Q chốt (2026-08-09) chuyển T3/T4/T12-T15 qua cổng + fix #12/BP1
 >
 > **AMENDMENT 2026-08-11 (3 bổ sung, effort +1h):**
-> 1. **Self-loop T16/T10 bị chặn oan** (phase-02): `tryTransition` null-check chỉ dựa `value` giữ nguyên → T16 (edit intake) + T10 (start review) luôn trả null. Sửa: phân biệt bằng `actions.length` (guard fail = value giữ nguyên + actions rỗng; self-loop hợp lệ = value giữ nguyên + actions không rỗng). T10 thêm action `notifyUser` (no-op trong tx — L5). Phase-05 test T16 đã có sẵn → sẽ pass sau sửa.
+> 1. **Self-loop T16/T10 bị chặn oan** (phase-02): `tryTransition` dùng XState `transition()`. Guard fail → value không đổi + 0 action. Self-loop hợp lệ (T2/T10/T16) → value không đổi + actions.length > 0 (upsertDoc/notifyUser). Phân biệt được qua action count. Phase-05 test sẽ pass.
 > 2. **Idempotency key đoán được** (phase-03, red-team-01 S7): thêm `{nonce}` (crypto.randomUUID()) vào key `consume-...` + `veto_...` — chống pre-claim key phiên bản tương lai.
 > 3. **allowed_transitions đổi shape** (phase-04, red-team-02 A5): `{name, froms, tos}[]` → `TransitionName[]` (string) — cập nhật type FE + rà soát mọi consumer (type `case.ts:23` đã lệch reality từ trước).
 >
@@ -94,8 +94,8 @@ Workflow Phase 03 (executor) ─┘  (wallet schema + WalletService + top-up + F
 | Phase | Name | Status | Effort |
 |-------|------|--------|--------|
 | 01 | [Schema + XState setup](./phase-01-schema-xstate-setup.md) | 🔲 Pending | 1h |
-| 02 | [Transition Registry](./phase-02-transition-registry.md) | 🔲 Pending | 3h |
-| 03 | [CaseTransitionService + submit-revision](./phase-03-case-transition-service.md) | 🔲 Pending | **5h** |
+| 02 | [Machine Definition](./phase-02-transition-registry.md) | 🔲 Pending | **2h** |
+| 03 | [CaseTransitionService + submit-revision](./phase-03-case-transition-service.md) | 🔲 Pending | **4h** |
 | 04 | [Lan use case qua cổng + FE](./phase-04-spread-use-cases.md) | 🔲 Pending | **4h** |
 | 05 | [Tests](./phase-05-tests.md) | 🔲 Pending | **4h** |
 | 06 | [Refund/Resubmit Policy T12-T15](./phase-06-refund-resubmit-policy.md) | 🔲 Pending | **4h** |
@@ -104,8 +104,8 @@ Workflow Phase 03 (executor) ─┘  (wallet schema + WalletService + top-up + F
 
 ```
 Phase 01 (schema migration + xstate install + types)
-  └─ Phase 02 (transition-registry.ts — cần types từ phase 01)
-       └─ Phase 03 (CaseTransitionService + submit-revision — cần registry)
+  └─ Phase 02 (case-machine.ts — XState machine single source of truth)
+       └─ Phase 03 (CaseTransitionService + submit-revision — dùng máy từ phase 02)
             ├─ Phase 04 (lan use case qua cổng — cần service hoạt động)
             │    └─ Phase 05 (tests — cần mọi use case chuyển xong)
             └─ Phase 06 (T12-T15 refund/resubmit — cần service + registry; cleanup symflow cuối)
@@ -119,7 +119,7 @@ Phase 01 (schema migration + xstate install + types)
 | TOCTOU race (guard đọc ngoài tx) | Rất cao | F2: L2-L4 trong 1 tx + optimistic lock version_no. Review gate bắt buộc |
 | Song song 2 engine gây split-brain | Cao | F5: vô hiệu update-case-status per-transition khi chuyển xong. Grep applyTransition cuối phase |
 | STAGE_STATUS_MAP sai (1 status → nhiều stage) | Cao | F1: TARGET_STAGE per transition (phase-03) |
-| XState v5 restore state sai field | Trung bình | F4: VALID_STATES check + AppError CORRUPT_STATE. F9: spike `._action` đầu phase-02 |
+| XState v5 — `transition()` standalone works, restore state via `resolveState()` | Thấp (đã verify) | F4: VALID_STATES check + AppError CORRUPT_STATE. Machine là single source of truth |
 | upsertDocumentRecordsForUnit 0 caller/0 test | Cao | F7: integration test TRƯỚC khi wire + upsert composite unique |
 | case.repository.ts 573+ dòng → chạm limit | Trung bình | Service mới giảm logic trong repo. KHÔNG refactor toàn bộ repo trong plan này |
 | DB safety — destructive migration | Cao | Migration chỉ `--create-only`. Tuân `prisma-migration-safety.md` tuyệt đối |
@@ -131,7 +131,7 @@ Phase 01 (schema migration + xstate install + types)
 ## Files map tổng
 
 ```
-MỚI  apps/api/src/modules/cases/domain/transition-registry.ts
+MỚI  apps/api/src/modules/cases/domain/case-machine.ts
 MỚI  apps/api/src/modules/cases/domain/transition.types.ts
 MỚI  apps/api/src/modules/cases/application/case-transition.service.ts
 MỚI  apps/api/src/shared/infrastructure/tests/phase-08-executor.test.ts        (phase 05 — F10)
@@ -203,4 +203,4 @@ KHÔNG ĐỔI  resubmit-case.usecase.ts (giữ logic cũ — chuyển phase 06, 
 - [x] plan.md: effort 16.5h → 20.5h, phase-06 Pending, branch frontmatter → feat/workflow-engine-refactor
 - [x] Phase-04: vô hiệu per-transition trong update-case-status (không feature flag — F5, phase-04:20)
 - [x] Phase-04 FE: allowed_transitions từ registry, FE map TransitionName → label/nút (phase-04:39)
-- [x] F9 spike `._action`: **bỏ** — v5 không dùng `transition()` / `._action`. Runtime dùng transition table (phase-02 đã sửa 2026-08-11).
+- [x] F9 spike `._action`: **bỏ** — XState v5 `transition()` trả về `ActionSnapshot[]` với `.type` property. Dùng XState native, không cần `._action` internal. (ĐÃ CORRECTED 2026-08-11: `transition()` VẪN TỒN TẠI trong v5 — phase-02 đã sửa.)
