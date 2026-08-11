@@ -1,6 +1,6 @@
 # Phase 02 — Machine Definition (XState là Single Source of Truth)
 
-- Priority: P1 | Status: Pending | Effort: **2h** (giảm từ 3h — bỏ transition table tay)
+- Priority: P1 | Status: Done | Effort: **2h** (giảm từ 3h — bỏ transition table tay)
 - Depends: Phase 01 (xstate + types)
 - Blocks: Phase 03
 

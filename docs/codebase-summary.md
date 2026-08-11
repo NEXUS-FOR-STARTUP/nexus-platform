@@ -1,6 +1,6 @@
 # Tóm tắt codebase
 
-_Cập nhật: 2026-08-08. Tổng hợp từ codebase hiện tại và docs canonical trong `docs/`._
+_Cập nhật: 2026-08-11. Tổng hợp từ codebase hiện tại và docs canonical trong `docs/`._
 
 ## Repo này là gì
 
@@ -13,10 +13,10 @@ Công cụ hỗ trợ: **CodeGraph** (`.codegraph/`) — index code symbol, call
 ### `apps/api` (146 files src, ~15,200 LOC)
 
 Backend Hono với:
-- modules: cases (22 routes), admin (12 routes), payments (7 routes, gồm sepay webhook), reports (4 routes), supporter (5 routes), notifications (5 routes: list, unread-count, read, read-all, SSE stream), realtime (2 routes: connection-token, cases/:caseId/subscribe-token), ai-engine (2 routes), packages (1 route), documents (1 route), system (4 route: `/`, `/health`, `/stream`, `/session`)
+- modules: cases (22 routes), admin (12 routes), payments (7 routes, gồm sepay webhook), reports (4 routes), supporter (5 routes), notifications (5 routes: list, unread-count, read, read-all, SSE stream), realtime (2 routes: connection-token, cases/:caseId/subscribe-token), ai-engine (2 routes), packages (1 route), documents (1 route), wallet (4 routes: balance, history, topups, purchase-credits), system (4 route: `/`, `/health`, `/stream`, `/session`)
 - shared infra: AppError, requireAuth, requireCaseAccess, audit-logger, **event-bus + domain-events** (9 event types) + **outbox pattern** cho notifications
 - services: Cloudinary (file upload), Google Generative AI
-- ~65 API endpoints (61 module routes + 4 system), Hono + Better Auth + Prisma 7 + Vercel AI SDK
+- ~69 API endpoints (65 module routes + 4 system), Hono + Better Auth + Prisma 7 + Vercel AI SDK
 - Kiến trúc: modular monolith + Clean Architecture (domain/application/infrastructure/presentation)
 - Auth: Better Auth (email/password, Google OAuth, admin plugin)
 - DB: Prisma + PostgreSQL, PgBouncer adapter
@@ -30,7 +30,7 @@ Next.js 16.2.0 product app với:
 - Forms: TanStack Form everywhere
 - Auth: Better Auth client (`useSession`), role-based layout guards
 - State: server state qua TanStack Query, không Redux/Zustand
-- Pages: landing (`/`), auth (`/auth`), dashboard (`/dashboard`), intake (`/dashboard/intake` — trang riêng, submit/resubmit), team-fit (`/dashboard/team-fit`), case workspace (`/dashboard/case/[id]`), payment (`/dashboard/payment`), admin (`/admin`), supporter (`/supporter`)
+- Pages: landing (`/`), auth (`/auth`), dashboard (`/dashboard`), intake (`/dashboard/intake` — trang riêng, submit/resubmit), team-fit (`/dashboard/team-fit`), case workspace (`/dashboard/case/[id]`), payment (`/dashboard/payment`), wallet (`/dashboard/wallet` — số dư VND, lịch sử giao dịch, nạp tiền SePay), admin (`/admin`), supporter (`/supporter`)
 - UI: Mantine UI v9, Lucide React, Recharts, TipTap, Tailwind CSS v4
 - Port: 3001
 
@@ -45,7 +45,7 @@ Next.js 16.2.0 product app với:
 
 ### `prisma/schema.prisma`
 
-21 models (495 lines): 5 auth (User, Session, Account, Verification, TwoFactor) + 16 business (ServicePackage, Case, CaseMember, Checkpoint, LifecycleUnit, DocumentRecord, DocumentType, Report, Payment, CaseMessage, CaseEvent, AiJob, TeamFitReport, CreditLedger, Notification, NotificationOutbox). 15 migrations (latest: `20260807040000_add_notifications` — thêm Notification + NotificationOutbox cho hệ thống notifications).
+26 models: 5 auth (User, Session, Account, Verification, TwoFactor) + 21 business (ServicePackage, ServiceType, ServicePricing, UserWallet, WalletTransaction, WalletTopup, Case, CaseMember, Checkpoint, LifecycleUnit, DocumentRecord, DocumentType, Report, Payment, CaseMessage, CaseEvent, AiJob, TeamFitReport, CreditLedger, Notification, NotificationOutbox). 18 migrations (mới nhất: `20260811202613_add_workflow_engine_schema`; wallet + service catalog: `20260811135015_add_wallet_and_service_catalog`).
 
 > Ghi chú: migration `20260722000000_add_audit_rounds` vẫn còn trong lịch sử migrations (tạo bảng `audit_rounds`), nhưng model `AuditRound` không còn trong schema hiện tại — luồng vòng sửa đã chuyển sang stage-based + credit ledger. Mọi tham chiếu tài liệu tới model `AuditRound` là stale.
 
@@ -84,6 +84,7 @@ Next.js 16.2.0 product app với:
 - Notifications (2026-08-07): module notifications 5 endpoints + SSE stream `/api/notifications/stream`; event bus `shared/domain/domain-events.ts` + `shared/infrastructure/event-bus.ts`; outbox pattern (NotificationOutbox); frontend `useNotifications` + `NotificationBell` (SSE + TanStack Query). Env mới: RESEND_*, TELEGRAM_*, NOTIFICATIONS_ENABLED. Types/validation dùng chung FE↔BE qua `@repo/validation` (NOTIFICATION_TYPES, NotificationItemSchema, ListNotificationsResponseSchema); Telegram admin alert trên `payment.verified`.
 - Realtime chat (2026-08-08): module realtime 2 endpoints (`/api/realtime/connection-token`, `/api/realtime/cases/:caseId/subscribe-token`); Centrifugo v6 transport, HS256 JWT 15min, channel `chat:{caseId}`; fire-and-forget publish sau insert message; frontend `useRealtimeChat` + `centrifuge-client` singleton. Env: CENTRIFUGO_URL, CENTRIFUGO_TOKEN_SECRET, CENTRIFUGO_API_KEY, NEXT_PUBLIC_CENTRIFUGO_URL. Ops: `docs/realtime-centrifugo-guide.md`.
 - Pricing logic tập trung: `getCaseEffectivePrice`, `formatPrice`, `caseRequiresPayment`, `validatePaymentProof` trong `@/lib/pricing.ts`.
+- Wallet VND (2026-08-11): backend `apps/api/src/modules/wallet/` 4 routes — `GET /api/wallet/balance`, `GET /api/wallet/history`, `POST /api/wallet/topups` (SePay QR + transfer content, min 10,000 VND), `POST /api/wallet/purchase-credits`; Prisma `UserWallet` (cached `balance`, currency VND) + `WalletTransaction` (immutable ledger, `balance_before`/`balance_after`) + `WalletTopup`. Frontend: trang `/dashboard/wallet` (`WalletBalanceCard`, `WalletTransactionList`, `WalletTransactionItem`, `WalletTopupModal`); nav item "Ví của tôi" (icon Wallet) trong `DashboardShell` cho student; hooks `useWalletBalance`/`useWalletHistory`/`useCreateTopup` (`app/dashboard/wallet/hooks/useWallet.ts`, query key `["wallet", ...]`).
 
 ## Ràng buộc vận hành
 

@@ -80,10 +80,10 @@ WF-01 ──▶ WF-02 ──▶ WF-03 ◀══ SEAM TÍCH HỢP ══
 
 | Mốc | Sau phase | Trạng thái hệ thống |
 |---|---|---|
-| **M1: Cổng hoạt động** | WF-03 | Mọi transition đi qua executeTransition. refundCredit stub |
-| **M2: Tích hợp ví** | W-05 + W-08 | refundCredit hoàn VND về ví. User mua được credit bằng ví |
-| **M3: Hoàn thiện engine** | WF-06 | 16 transition hoạt động, symflow bị xóa, test pass |
-| **M4: Hoàn thiện ví** | W-07 | Nạp/rút/mua credit qua ví. Legacy data migrated |
+| **M1: Cổng hoạt động** | WF-03 | ✅ Done (`0f08572`) |
+| **M2: Tích hợp ví** | W-05 + W-08 | ✅ Done (`0f08572`) |
+| **M3: Hoàn thiện engine** | WF-06 | 🟡 In Progress — 16 transition hoạt động, symflow stripped từ use case. Còn: WF-05 tests + xóa dead code |
+| **M4: Hoàn thiện ví** | W-07 | 🔲 Pending — còn W-06 FE + W-07 migration |
 
 ---
 

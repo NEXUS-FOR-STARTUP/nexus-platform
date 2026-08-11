@@ -1,6 +1,6 @@
 # Credit dự trữ account-level
 
-_Trạng thái: Draft_
+_Trạng thái: Rejected — thay bằng ví VND account-level (đã triển khai 2026-08-11)_
 _Ngày tạo: 2026-08-06_
 _Ưu tiên: Medium_
 
@@ -43,6 +43,8 @@ Hiện tại thanh toán gắn trực tiếp vào từng case (payment per case)
 
 | #   | Quyết định | Lý do | Ngày |
 | --- | ---------- | ----- | ---- |
+| D1  | Bỏ hướng "credit account-level" — chuyển sang ví VND account-level (`UserWallet` + `WalletTransaction` + `WalletTopup`, module `/api/wallet`) | Không credit trung gian ("1 credit = ?"): nạp 100,000đ → ví 100,000đ. Xem `docs/research/user-wallet-brainstorm-2026-08-11.md` §4. | 2026-08-11 |
+| D2  | Phần lõi ví đã triển khai: nạp tiền SePay (`POST /api/wallet/topups`), số dư (`/balance`), lịch sử (`/history`), purchase-credits (`/purchase-credits`); UI trang `/dashboard/wallet` + nav "Ví của tôi" | Backend + frontend wallet ship 2026-08-11. Phần hoàn tiền khi case hủy / migrate `credit_ledgers` cũ vẫn là future work. | 2026-08-11 |
 
 ## 7. Câu hỏi mở (Open Questions)
 

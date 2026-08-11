@@ -1,6 +1,6 @@
 # Phase 04 — Lan use case qua cổng + FE allowed_transitions
 
-- Priority: P1 | Status: Pending | Effort: 4h (AMENDMENT 2026-08-11: +1h rà soát consumer FE + type allowed_transitions shape change)
+- Priority: P1 | Status: Done | Effort: 4h (AMENDMENT 2026-08-11: +1h rà soát consumer FE + type allowed_transitions shape change)
 - Depends: Phase 03 (CaseTransitionService hoạt động, submit-revision đã chuyển)
 - Blocks: Phase 05
 

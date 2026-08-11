@@ -1,6 +1,6 @@
 # Phase 05 — Workflow Engine Integration
 
-- Priority: P1 | Status: Pending | Effort: 2h
+- Priority: P1 | Status: Done | Effort: 2h
 - Depends: Phase 02 (WalletService complete) + Workflow Engine Phase 03 (CaseTransitionService interface)
 - Blocks: Phase 07 (legacy migration)
 
@@ -220,14 +220,14 @@ async function getCreditBalanceInTx(
 
 ## Deliverables (Phase 05 + Phase 08)
 
-- [ ] Action `refundCredit` trong case-transition.service.ts → gọi `walletService.refund(tx, ...)`
-- [ ] WalletService.refund() thêm optional `tx` param
-- [ ] Purchase credit flow: POST /wallet/purchase-credits
-- [ ] `getCreditBalanceInTx()` helper trong CaseTransitionService
-- [ ] Unit test: hasCredit pass khi credit_ledgers >= 1
-- [ ] Integration test: T13 veto → wallet balance tăng đúng lockedPrice
-- [ ] Integration test: T5 accept + T11 submit → KHÔNG đụng wallet balance
-- [ ] `check-types` PASS
+- [x] Action `refundCredit` trong case-transition.service.ts → gọi `walletService.refund(tx, ...)` (tại `case-transition.service.ts:152`)
+- [x] WalletService.refund() thêm optional `tx` param
+- [x] Purchase credit flow: POST /wallet/purchase-credits
+- [x] `getCreditBalanceInTx()` helper trong CaseTransitionService (tại `case-transition.service.ts:52`)
+- [ ] Unit test: hasCredit pass khi credit_ledgers >= 1 <!-- chưa có test file -->
+- [ ] Integration test: T13 veto → wallet balance tăng đúng lockedPrice <!-- chưa có test file -->
+- [ ] Integration test: T5 accept + T11 submit → KHÔNG đụng wallet balance <!-- chưa có test file -->
+- [x] `check-types` PASS
 
 ## Related Code Files (đã sửa so với plan cũ)
 

@@ -1,6 +1,6 @@
 # Phase 06 — Refund/Resubmit Policy (T12-T15)
 
-- Priority: P1 | Status: Pending | Effort: 4h
+- Priority: P1 | Status: Done | Effort: 4h
 - Depends: Phase 03 (CaseTransitionService + refundCredit action)
 - Blocks: Cleanup symflow
 

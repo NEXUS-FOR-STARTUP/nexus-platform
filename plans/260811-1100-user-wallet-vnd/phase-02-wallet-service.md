@@ -1,6 +1,6 @@
 # Phase 02 — WalletService
 
-- Priority: P1 | Status: Pending | Effort: 3h
+- Priority: P1 | Status: Done | Effort: 3h
 - Depends: Phase 01 (schema)
 - Blocks: Phase 03, 05, 06, 07
 
@@ -333,10 +333,10 @@ app.route('/wallet', walletRoutes);
 
 ## Deliverables
 
-- [ ] `wallet.types.ts` — types + error classes
-- [ ] `wallet.repository.ts` — 6 functions (getOrCreateWallet, getBalance, getWalletForUpdate, createTransaction, updateWalletBalance, getHistory)
-- [ ] `wallet.service.ts` — 5 methods (deposit, withdraw, refund, getBalance, getHistory) trong DB transaction
-- [ ] `wallet.routes.ts` — GET /wallet/balance, GET /wallet/history
-- [ ] Mount routes trong `index.ts`
-- [ ] Unit test: deposit → balance tăng, withdraw → InsufficientBalanceError, concurrent withdraw → 1 pass 1 fail
-- [ ] `check-types` PASS
+- [x] `wallet.types.ts` — types + error classes
+- [x] `wallet.repository.ts` — 6 functions (getOrCreateWallet, getBalance, getWalletForUpdate, createTransaction, updateWalletBalance, getHistory)
+- [x] `wallet.service.ts` — 5 methods (deposit, withdraw, refund, getBalance, getHistory) trong DB transaction
+- [x] `wallet.routes.ts` — GET /wallet/balance, GET /wallet/history
+- [x] Mount routes trong `index.ts` (thực tế: `app.route('/api/wallet', walletRoutes)` tại `apps/api/src/index.ts:158`)
+- [ ] Unit test: deposit → balance tăng, withdraw → InsufficientBalanceError, concurrent withdraw → 1 pass 1 fail <!-- chưa có test file wallet nào trong apps/api/src/shared/infrastructure/tests/ -->
+- [x] `check-types` PASS

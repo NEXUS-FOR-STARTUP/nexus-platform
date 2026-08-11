@@ -1,6 +1,6 @@
 # Phase 01 — Schema & Migration
 
-- Priority: P1 | Status: Pending | Effort: 2h
+- Priority: P1 | Status: Done | Effort: 2h
 - Depends: Không
 - Blocks: Phase 02, 03, 04
 
@@ -204,8 +204,8 @@ SELECT gen_random_uuid(), id, 0, true FROM service_packages WHERE service_type_i
 
 ## Deliverables
 
-- [ ] Migration file `add-wallet-and-service-catalog`
-- [ ] Schema `schema.prisma` updated (6 models/enums mới)
-- [ ] Prisma client regenerated
-- [ ] Seed data applied
-- [ ] `check-types` PASS
+- [x] Migration file `add-wallet-and-service-catalog` (thực tế: `20260811135015_add_wallet_and_service_catalog`)
+- [x] Schema `schema.prisma` updated (6 models/enums mới)
+- [x] Prisma client regenerated
+- [ ] Seed data applied <!-- chưa verify: không có seed script trong repo, cần DB access để xác nhận rows -->
+- [x] `check-types` PASS

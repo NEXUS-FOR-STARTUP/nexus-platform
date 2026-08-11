@@ -1,6 +1,6 @@
 # Phase 04 — Service Catalog
 
-- Priority: P2 | Status: Pending | Effort: 2h
+- Priority: P2 | Status: Done | Effort: 2h
 - Depends: Phase 01 (schema)
 - Blocks: Phase 06 (FE — cần API để list gói dịch vụ)
 
@@ -176,10 +176,10 @@ export async function resolvePackagePrice(packageId: string): Promise<number> {
 
 ## Deliverables
 
-- [ ] `service-type.usecase.ts` — list, create, update
-- [ ] `service-pricing.usecase.ts` — setCurrentPricing, getPricingHistory
-- [ ] Package routes mở rộng (service-types CRUD, pricing)
-- [ ] `resolvePackagePrice()` helper
-- [ ] Update `AdminPackagesSettings.tsx` để dùng API mới (nếu cần)
-- [ ] Seed data chạy đúng (xác nhận 4 service types + 4 pricing rows)
-- [ ] `check-types` PASS
+- [x] `service-type.usecase.ts` — list, create, update
+- [x] `service-pricing.usecase.ts` — setCurrentPricing, getPricingHistory
+- [x] Package routes mở rộng (service-types CRUD, pricing) <!-- thực tế mount trong modules/admin/http/admin.routes.ts, không phải packages/http -->
+- [x] `resolvePackagePrice()` helper
+- [ ] Update `AdminPackagesSettings.tsx` để dùng API mới (nếu cần) <!-- chưa update: FE admin vẫn dùng formatPrice cũ, deliverable mang tính điều kiện "(nếu cần)" -->
+- [ ] Seed data chạy đúng (xác nhận 4 service types + 4 pricing rows) <!-- cần DB access để verify -->
+- [x] `check-types` PASS

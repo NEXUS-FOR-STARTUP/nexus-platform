@@ -1,6 +1,6 @@
 # System Architecture
 
-_Cập nhật: 2026-08-08. Bám codebase hiện tại._
+_Cập nhật: 2026-08-11. Bám codebase hiện tại._
 
 ## 1. Mục tiêu tài liệu
 
@@ -14,7 +14,7 @@ Nexus hiện là monorepo Turborepo với 3 vùng chính:
 - `packages/validation`: Zod schemas dùng chung (FE↔BE)
 - Mantine UI v9: design system chính cho web-1
 
-Data model trung tâm nằm ở `prisma/schema.prisma` (21 models), với auth, case, checkpoint, lifecycle unit, document record, report, payment, event, AI job, team-fit report, credit ledger, và notification (Notification + NotificationOutbox).
+Data model trung tâm nằm ở `prisma/schema.prisma` (26 models), với auth, case, checkpoint, lifecycle unit, document record, report, payment, event, AI job, team-fit report, credit ledger, notification (Notification + NotificationOutbox), service catalog (ServiceType + ServicePricing), và wallet (UserWallet + WalletTransaction + WalletTopup).
 
 ## 2.1 Sơ đồ kiến trúc (text-based)
 
@@ -51,7 +51,7 @@ Data model trung tâm nằm ở `prisma/schema.prisma` (21 models), với auth, 
                   └───────────────┘
 ```
 
-> Sơ đồ trên là snapshot trước phase notifications + realtime. Module mới `notifications` (5 routes: list, unread-count, `:id/read` PATCH, read-all PATCH, `stream` SSE) + `realtime` (2 routes: connection-token, `cases/:caseId/subscribe-token`) + event bus `shared/` (xem §4.5, §4.6) chưa vẽ vào. API hiện: 10 modules, 65 routes (61 module + 4 system: `/`, `/health`, `/stream`, `/session`).
+> Sơ đồ trên là snapshot trước phase notifications + realtime + wallet. Module mới `notifications` (5 routes: list, unread-count, `:id/read` PATCH, read-all PATCH, `stream` SSE) + `realtime` (2 routes: connection-token, `cases/:caseId/subscribe-token`) + `wallet` (4 routes: balance, history, topups, purchase-credits) + event bus `shared/` (xem §4.5, §4.6) chưa vẽ vào. API hiện: 11 modules, 69 routes (65 module + 4 system: `/`, `/health`, `/stream`, `/session`).
 
 ## 3. Frontend surfaces chính
 
@@ -72,6 +72,7 @@ Tham chiếu:
 - stage-based case flow: `CaseStatusHeader` (hiển thị `user_facing_stage` + next action), `StatusGuidanceCard`, `CaseOverviewPanel`
 - credit/ledger economy: `CreditPanel`, `CreditQuantityModal`, `CreditActions`, `CreditTransactionHistory`, `CreditBalanceCard` — mua credit, xem lịch sử giao dịch, số dư hiện tại
 - payment/credit là core economy (không còn là surface phụ): mua credit qua sepay webhook, admin veto-with-refund (48h)
+- ví VND (2026-08-11): trang `/dashboard/wallet` hiển thị số dư VND (`WalletBalanceCard`), lịch sử giao dịch (`WalletTransactionList`/`WalletTransactionItem`), và modal nạp tiền SePay (`WalletTopupModal` — trả QR + transfer content); nav item "Ví của tôi" (icon Wallet) trong `DashboardShell` cho student; hooks `useWalletBalance`/`useWalletHistory`/`useCreateTopup` (`app/dashboard/wallet/hooks/useWallet.ts`, polling 30s)
 
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/page.tsx`
@@ -81,6 +82,7 @@ Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/CaseStatusHeader.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/StatusGuidanceCard.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/CaseOverviewPanel.tsx`
+- `apps/web-1/app/dashboard/wallet/page.tsx` (xem §4.7)
 
 ### 3.3 Supporter workspace
 - supporter mở case bằng shell rất giống student workspace
@@ -147,6 +149,13 @@ Tham chiếu:
 - Fallback: `useCaseChat` polling `refetchInterval: 60_000` khi Centrifugo down
 - Test: `apps/api/src/shared/infrastructure/tests/phase-09-realtime-chat.test.ts`
 - Ops chi tiết: [`realtime-centrifugo-guide.md`](./realtime-centrifugo-guide.md)
+
+### 4.7 Wallet workflow (ví VND + SePay top-up) — ship 2026-08-11
+- Module `apps/api/src/modules/wallet/` (clean architecture: domain `wallet.types`, application `wallet.service` + `wallet-topup.usecase` + `purchase-credits.usecase`, infrastructure/http `wallet.routes`) mount tại `/api/wallet`, toàn bộ qua `requireAuth`
+- Endpoints (4): `GET /api/wallet/balance` (số dư từ `user_wallets.balance`), `GET /api/wallet/history?limit&offset` (danh sách `wallet_transactions`), `POST /api/wallet/topups` (tạo `WalletTopup` pending, trả QR + `transferContent` prefix `CR`, min 10,000 VND), `POST /api/wallet/purchase-credits` (`packageId`, `caseId`, `quantity`)
+- **DB = source of truth cho ví**: `UserWallet` (cached `balance`, `currency` = "VND") + `WalletTransaction` (append-only ledger, `balance_before`/`balance_after`) + `WalletTopup` (status `pending` → verified qua SePay webhook). Khác `credit_ledgers` cũ (case-level) — ví là account-level VND
+- Frontend: trang `apps/web-1/app/dashboard/wallet/page.tsx` (header "Ví của tôi", `WalletBalanceCard`, `WalletTransactionList`, `WalletTopupModal`); hooks trong `app/dashboard/wallet/hooks/useWallet.ts` (`useWalletBalance`, `useWalletHistory`, `useCreateTopup` — polling 30s, mutation invalidates `["wallet"]`)
+- Nav: `DashboardShell` thêm menu item "Ví của tôi" (icon `Wallet` từ lucide-react) cho student → `router.push("/dashboard/wallet")`
 
 ## 5. Case workspace data flow
 

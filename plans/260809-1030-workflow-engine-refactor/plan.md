@@ -1,7 +1,7 @@
 ---
 title: "Workflow Engine Refactor — symflow → XState v5"
 description: "Thay symflow bằng XState v5: 1 cổng CaseTransitionService 5 lớp cho mọi use case thay đổi state. Fix 14 bugs backlog. ONE-SHOT: T1-T16, policy sản phẩm Q1-Q5 đã chốt 2026-08-09 — không còn blocker."
-status: pending
+status: in_progress
 priority: P1
 effort: 19h
 branch: feat/workflow-engine-refactor
@@ -93,12 +93,12 @@ Workflow Phase 03 (executor) ─┘  (wallet schema + WalletService + top-up + F
 
 | Phase | Name | Status | Effort |
 |-------|------|--------|--------|
-| 01 | [Schema + XState setup](./phase-01-schema-xstate-setup.md) | 🔲 Pending | 1h |
-| 02 | [Machine Definition](./phase-02-transition-registry.md) | 🔲 Pending | **2h** |
-| 03 | [CaseTransitionService + submit-revision](./phase-03-case-transition-service.md) | 🔲 Pending | **4h** |
-| 04 | [Lan use case qua cổng + FE](./phase-04-spread-use-cases.md) | 🔲 Pending | **4h** |
+| 01 | [Schema + XState setup](./phase-01-schema-xstate-setup.md) | ✅ Done | 1h |
+| 02 | [Machine Definition](./phase-02-transition-registry.md) | ✅ Done | **2h** |
+| 03 | [CaseTransitionService + submit-revision](./phase-03-case-transition-service.md) | ✅ Done | **4h** |
+| 04 | [Lan use case qua cổng + FE](./phase-04-spread-use-cases.md) | ✅ Done | **4h** |
 | 05 | [Tests](./phase-05-tests.md) | 🔲 Pending | **4h** |
-| 06 | [Refund/Resubmit Policy T12-T15](./phase-06-refund-resubmit-policy.md) | 🔲 Pending | **4h** |
+| 06 | [Refund/Resubmit Policy T12-T15](./phase-06-refund-resubmit-policy.md) | ✅ Done | **4h** |
 
 ## Dependencies
 

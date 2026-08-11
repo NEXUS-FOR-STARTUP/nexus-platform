@@ -1,6 +1,6 @@
 # Phase 01 — Schema + XState setup
 
-- Priority: P1 | Status: Pending | Effort: 1h (AMENDMENT 2026-08-11: đơn giản hóa merge — dev env, chưa có user thật, dọn qua API)
+- Priority: P1 | Status: Done | Effort: 1h (AMENDMENT 2026-08-11: đơn giản hóa merge — dev env, chưa có user thật, dọn qua API)
 - Depends: Không (phase đầu tiên)
 - Blocks: Phase 02
 

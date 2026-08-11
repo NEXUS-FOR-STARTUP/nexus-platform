@@ -28,10 +28,13 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 - `/dashboard/intake`
 - `/dashboard/case/[id]`
 - `/dashboard/case/[id]/payment`
+- `/dashboard/wallet`
 - `/admin`
 - `/supporter`
 - `/supporter/case/[id]`
 - `/supporter/case/[id]/review`
+
+> Ghi chú (cập nhật 2026-08-11): route `/dashboard/wallet` đã triển khai — ví VND student (số dư, lịch sử giao dịch, nạp tiền SePay). Nav item "Ví của tôi" (icon Wallet) được thêm vào `DashboardShell` cho student. Backend module `wallet` (4 routes: `/api/wallet/balance`, `/history`, `/topups`, `/purchase-credits`) đã có.
 
 ### Shell hiện có
 
@@ -79,6 +82,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | `/dashboard/intake` | User | Create case wizard | Reuse + rebuild content | Giữ route, thay flow chat cũ bằng guided wizard |
 | `/dashboard/case/[id]` | User | User case workspace | Reuse + refocus | Màn quan trọng nhất; chuyển sang report-centric |
 | `/dashboard/case/[id]/payment` | User | Payment legacy | Deferred / legacy | Không nằm trong golden flow hiện tại |
+| `/dashboard/wallet` | User | Student wallet — số dư VND, lịch sử giao dịch, nạp tiền SePay | New (2026-08-11) | Nav item "Ví của tôi" trong DashboardShell |
 | `/admin` | Admin | Admin triage queue | Adapt mạnh | Trang queue chính |
 | `/admin/case/[id]` | Admin | Admin case detail | New | Canonical route cho detail view; không gộp tạm trong `/admin` |
 | `/supporter` | Supporter, Admin | Supporter queue | Reuse + adapt | Giữ route; đổi filter và copy theo queue thật |
@@ -150,6 +154,9 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | `IntakeChatFlow` | Existing | `/dashboard/intake` | Replace hoặc refactor mạnh |
 | `DriveValidatorInput` | Existing | intake | Reuse nếu vẫn phù hợp |
 | `useIntakeForm` | Existing | intake | Adapt để bám field set mới |
+| `WalletBalanceCard` / `WalletTransactionList` / `WalletTransactionItem` | New (2026-08-11) | `/dashboard/wallet` | Số dư VND + lịch sử giao dịch (`wallet_transactions`) |
+| `WalletTopupModal` | New (2026-08-11) | `/dashboard/wallet` | Nạp tiền SePay — trả QR + transfer content |
+| `useWallet` (useWalletBalance / useWalletHistory / useCreateTopup) | New (2026-08-11) | `/dashboard/wallet` | Query balance/history (polling 30s), topup mutation |
 
 ## 8.4 User case workspace
 
@@ -262,6 +269,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | `usePaymentUpload` | deferred |
 | `useAdminCases` | refactor theo triage flow |
 | `useAdminPayments` | deferred |
+| `useWallet` | mới — ví VND: `useWalletBalance` (polling 30s), `useWalletHistory`, `useCreateTopup` |
 
 ## 9. Reuse / adapt / new summary
 

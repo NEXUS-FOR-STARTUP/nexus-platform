@@ -1,6 +1,6 @@
 # Phase 03 — Top-up Flow (SePay)
 
-- Priority: P1 | Status: Pending | Effort: 3h
+- Priority: P1 | Status: Done | Effort: 3h
 - Depends: Phase 01 (schema), Phase 02 (WalletService)
 - Blocks: Phase 06 (FE)
 
@@ -179,8 +179,8 @@ walletRoutes.post('/topups', async (c) => {
 
 ## Deliverables
 
-- [ ] `wallet-topup.usecase.ts` — createTopupUseCase với random `transferContent`
-- [ ] POST `/wallet/topups` route
-- [ ] `sepay-webhook.usecase.ts` — thêm topup matching TRƯỚC payment matching
-- [ ] SePay webhook idempotency test (2 webhook cùng txId → 1 deposit)
-- [ ] `check-types` PASS
+- [x] `wallet-topup.usecase.ts` — createTopupUseCase với random `transferContent`
+- [x] POST `/wallet/topups` route
+- [x] `sepay-webhook.usecase.ts` — thêm topup matching TRƯỚC payment matching (kèm amount-mismatch flag → A4 red-team partial)
+- [ ] SePay webhook idempotency test (2 webhook cùng txId → 1 deposit) <!-- chưa có test file -->
+- [x] `check-types` PASS

@@ -14,7 +14,7 @@ import {
   Menu,
   Badge,
 } from "@mantine/core";
-import { CreditCard, LogOut, LayoutDashboard, Shield } from "lucide-react";
+import { CreditCard, LogOut, LayoutDashboard, Shield, Wallet } from "lucide-react";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -155,6 +155,15 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                       className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-xs font-semibold"
                     >
                       Lịch sử thanh toán
+                    </Menu.Item>
+                  )}
+                  {isStudent && (
+                    <Menu.Item
+                      leftSection={<Wallet className="w-4 h-4 text-text-muted" />}
+                      onClick={() => router.push("/dashboard/wallet")}
+                      className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-xs font-semibold"
+                    >
+                      Ví của tôi
                     </Menu.Item>
                   )}
                   <Menu.Divider />

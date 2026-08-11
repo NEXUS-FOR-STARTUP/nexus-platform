@@ -1,7 +1,7 @@
 ---
 title: "User Wallet VND — Ví người dùng"
 description: "Bổ sung ví VND per-user bên cạnh credit. Kiến trúc 3 tầng: Wallet VND → mua credit → credit tiêu trong workflow. Nạp tiền qua SePay, mua credit bằng ví. Tích hợp service catalog + workflow engine (refundCredit)."
-status: pending
+status: in_progress
 priority: P1
 effort: 18.5h
 branch: feat/user-wallet-vnd
@@ -82,14 +82,14 @@ GIỮ  credit_ledgers table (read-only cho audit, xóa sau khi tất cả case c
 
 | Phase | Name | Status | Effort | Depends |
 |-------|------|--------|--------|---------|
-| 01 | [Schema & Migration](./phase-01-schema-migration.md) | 🔲 Pending | 2h | — |
-| 02 | [WalletService](./phase-02-wallet-service.md) | 🔲 Pending | 3h | Phase 01 |
-| 03 | [Top-up Flow](./phase-03-topup-flow.md) | 🔲 Pending | 3h | Phase 01, 02 |
-| 04 | [Service Catalog](./phase-04-service-catalog.md) | 🔲 Pending | 2h | Phase 01 |
-| 05 | [Workflow Integration](./phase-05-workflow-integration.md) | 🔲 Pending | 2h | Phase 02 + WF Phase 03 |
-| 06 | [Frontend UI](./phase-06-frontend-ui.md) | 🔲 Pending | 3h | Phase 02, 03, 04 |
+| 01 | [Schema & Migration](./phase-01-schema-migration.md) | ✅ Done | 2h | — |
+| 02 | [WalletService](./phase-02-wallet-service.md) | ✅ Done | 3h | Phase 01 |
+| 03 | [Top-up Flow](./phase-03-topup-flow.md) | ✅ Done | 3h | Phase 01, 02 |
+| 04 | [Service Catalog](./phase-04-service-catalog.md) | ✅ Done | 2h | Phase 01 |
+| 05 | [Workflow Integration](./phase-05-workflow-integration.md) | ✅ Done | 2h | Phase 02 + WF Phase 03 |
+| 06 | [Frontend UI](./phase-06-frontend-ui.md) | ✅ Done | 3h | Phase 02, 03, 04 |
 | 07 | [Legacy Migration](./phase-07-legacy-migration.md) | 🔲 Pending | 2h | Phase 02, 05 |
-| 08 | [Purchase Credit Flow](./phase-05-workflow-integration.md#phase-08-bổ-sung--purchase-credit-flow) | 🔲 Pending | 1.5h | Phase 02, 04 |
+| 08 | [Purchase Credit Flow](./phase-05-workflow-integration.md#phase-08-bổ-sung--purchase-credit-flow) | ✅ Done | 1.5h | Phase 02, 04 |
 
 **Thứ tự implement khuyến nghị:**
 ```

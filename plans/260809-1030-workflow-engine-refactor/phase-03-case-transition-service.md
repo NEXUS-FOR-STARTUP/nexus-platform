@@ -1,6 +1,6 @@
 # Phase 03 — CaseTransitionService + submit-revision
 
-- Priority: P1 | Status: Pending | Effort: **4h** (giảm từ 5h — bỏ table lookup tay, XState lo transition)
+- Priority: P1 | Status: Done | Effort: **4h** (giảm từ 5h — bỏ table lookup tay, XState lo transition)
 - Depends: Phase 02 (case-machine.ts hoạt động)
 - Blocks: Phase 04
 

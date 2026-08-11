@@ -1,6 +1,6 @@
 # Phase 06 — Frontend UI
 
-- Priority: P2 | Status: Pending | Effort: 3h
+- Priority: P2 | Status: Done | Effort: 3h
 - Depends: Phase 02 (WalletService API), Phase 03 (top-up flow), Phase 04 (service catalog)
 - Blocks: —
 
@@ -286,12 +286,12 @@ import { Wallet } from 'lucide-react';
 
 ## Deliverables
 
-- [ ] `useWalletBalance` hook — TanStack Query, poll 30s
-- [ ] `useWalletHistory` hook — pagination
-- [ ] `useCreateTopup` mutation
-- [ ] `WalletBalanceCard.tsx` — số dư VND
-- [ ] `WalletTopupModal.tsx` — nạp tiền flow
-- [ ] `WalletTransactionList.tsx` + `WalletTransactionItem.tsx` — lịch sử giao dịch
-- [ ] `page.tsx` — trang chính wallet
-- [ ] Nav link "Ví" trong dashboard layout
-- [ ] eslint web 0 warning
+- [x] `useWalletBalance` hook — TanStack Query, poll 30s
+- [x] `useWalletHistory` hook — pagination
+- [x] `useCreateTopup` mutation
+- [x] `WalletBalanceCard.tsx` — số dư VND
+- [x] `WalletTopupModal.tsx` — nạp tiền flow
+- [x] `WalletTransactionList.tsx` + `WalletTransactionItem.tsx` — lịch sử giao dịch
+- [x] `page.tsx` — trang chính wallet
+- [x] Nav link "Ví" trong dashboard layout
+- [ ] eslint web 0 warning <!-- chưa đạt toàn cục: web lint còn 197 problems (137 errors / 60 warnings) pre-existing ngoài scope wallet. File wallet + DashboardShell lint sạch 0 warning. -->

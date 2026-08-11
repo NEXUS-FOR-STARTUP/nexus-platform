@@ -180,6 +180,7 @@ Tham chiếu:
 - `credit_ledger` model lưu từng entry purchase/consumption/refund với `balance_after`.
 - SePay webhook xác minh bank transfer; admin veto-with-refund trong 48h.
 - Giá 39,000 VND/credit (xem `payment.repository.ts`, `upgrade-package.usecase.ts`).
+- Ví VND account-level (2026-08-11): module `wallet` (`/api/wallet/balance`, `/history`, `/topups`, `/purchase-credits`) + trang `/dashboard/wallet` (số dư, lịch sử giao dịch, nạp tiền SePay); nav "Ví của tôi" trong `DashboardShell`. Bổ trợ credit per-case — hướng tới "1 đơn vị = 1 VND" (xem `docs/research/user-wallet-brainstorm-2026-08-11.md`).
 
 Tham chiếu:
 - `apps/api/src/modules/payments/infrastructure/persistence/payment.repository.ts`
@@ -204,7 +205,8 @@ Tham chiếu:
 - điền bối cảnh, nhu cầu hỗ trợ, thông tin liên hệ, xác nhận cần thiết;
 - nộp tài liệu minh chứng qua Drive/Docs link chính + checklist loại tài liệu;
 - vào case workspace để theo dõi tài liệu, trạng thái (stage-based), timeline, trao đổi, báo cáo, và vòng sửa;
-- nộp revision khi ở stage `waiting_for_revision` (revision upload được gate theo stage).
+- nộp revision khi ở stage `waiting_for_revision` (revision upload được gate theo stage);
+- xem ví VND (`/dashboard/wallet`): số dư, lịch sử giao dịch, nạp tiền qua SePay (QR + transfer content).
 
 ### 6.2 Admin
 - xem case mới;

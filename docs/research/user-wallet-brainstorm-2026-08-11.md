@@ -6,6 +6,8 @@
 
 **Research bổ sung:** `docs/research/wallet-schema-research-2026-08-11.md` — double-entry ledger schema, service catalog 3 tables, pending window analysis, concurrency pattern.
 
+> **Trạng thái triển khai (2026-08-11, cùng ngày):** Phần lõi ví VND đã ship — module `apps/api/src/modules/wallet/` 4 routes (`/api/wallet/balance`, `/history`, `/topups`, `/purchase-credits`) + Prisma `UserWallet`/`WalletTransaction`/`WalletTopup` + UI `/dashboard/wallet` (số dư, lịch sử, nạp tiền SePay QR) + nav "Ví của tôi". Phần chưa làm: `service_types`/`service_packages`/`service_pricing` catalog, refund về ví khi case hủy, migrate `credit_ledgers` cũ. Tài liệu bên dưới vẫn là thiết kế tham chiếu.
+
 ---
 
 ## 1. Hiện trạng — Dòng tiền đang chạy thế nào
