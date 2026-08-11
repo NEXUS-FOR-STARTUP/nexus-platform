@@ -3,6 +3,7 @@ import { verifyPayment as defaultVerifyPayment, SYSTEM_USER_ID } from "../infras
 import logger from "../../../shared/infrastructure/logger.js";
 import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
+import { walletService } from "../../wallet/application/wallet.service.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -62,10 +63,48 @@ export async function sepayWebhookUseCase(
     return { matched: false, action: "no_match" };
   }
 
-  // 4. Find payment with matching transfer_content in metadata_json
+  // 4a. NEW: Check wallet topup first
+  const topup = await prisma.walletTopup.findFirst({
+    where: { transfer_content: paymentCode, status: 'pending' },
+    orderBy: { created_at: 'desc' },
+  })
+
+  if (topup) {
+    if (topup.amount !== transferAmount) {
+      logger.warn({ txnId, topupId: topup.id, expected: topup.amount, got: transferAmount }, 'sepay: topup amount mismatch')
+      return { matched: false, action: 'no_match' }
+    }
+
+    try {
+      dedupSet.add(txnId)
+      setTimeout(() => dedupSet.delete(txnId), DEDUP_TTL_MS)
+
+      const depositKey = `sepay-deposit-${topup.transfer_content}-${txnId}`
+      await walletService.deposit(topup.user_id, topup.amount, 'topup', topup.id, depositKey)
+
+      await prisma.walletTopup.update({
+        where: { id: topup.id },
+        data: {
+          status: 'completed',
+          verified_by: 'auto',
+          verification_source: 'auto',
+          metadata_json: { txId: txnId, amount: transferAmount } as any,
+        },
+      })
+
+      logger.info({ txnId, topupId: topup.id, userId: topup.user_id, amount: transferAmount }, 'sepay: topup auto-verified')
+      return { matched: true, action: 'verified' }
+    } catch (error) {
+      dedupSet.delete(txnId)
+      logger.error({ err: error, txnId, topupId: topup.id }, 'sepay: topup deposit failed')
+      throw error
+    }
+  }
+
+  // 4b. OLD: Find payment with matching transfer_content
   const payment = await findPaymentByTransferContent(paymentCode);
   if (!payment) {
-    logger.warn({ txnId, paymentCode, content }, "sepay: no matching payment found");
+    logger.warn({ txnId, paymentCode, content }, "sepay: no matching payment or topup found");
     return { matched: false, action: "no_match" };
   }
 
