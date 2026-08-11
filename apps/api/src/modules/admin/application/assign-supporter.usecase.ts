@@ -4,12 +4,9 @@ import {
   findCaseById,
   findSupporterById,
 } from "../../cases/infrastructure/persistence/case.repository.js";
-import {
-  applyTransition,
-  canTransition,
-} from "../../cases/infrastructure/persistence/case-workflow-engine.js";
 import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
+import { executeTransition } from "../../cases/application/case-transition.service.js";
 
 export async function adminAssignSupporterUseCase(
   adminId: string,
@@ -38,39 +35,24 @@ export async function adminAssignSupporterUseCase(
     return caseItem;
   }
 
-  // Validate symflow transition
-  if (!canTransition(caseItem, "assign_supporter")) {
-    throw new AppError(
-      409,
-      "INVALID_TRANSITION",
-      `Không thể phân công từ trạng thái '${caseItem.internal_status}'`,
-    );
-  }
-
-  // Apply symflow transition (mutates caseItem)
-  applyTransition(caseItem, "assign_supporter");
+  const { status } = await executeTransition({
+    transition: 'T6_ASSIGN_SUPPORTER',
+    caseId,
+    actorId: adminId,
+    roleVerified: 'ADMIN',
+  });
 
   const result = await assignCaseSupporter(
-    caseId,
-    adminId,
-    supporterId,
-    caseItem.internal_status, // "assigned" from symflow
-    supporterUser.name,
-    "under_review", // nextStage — nâng stage student thấy từ submitted → under_review
+    caseId, adminId, supporterId,
+    status, supporterUser.name, "under_review",
   );
 
-  // Emit sau commit — supporter + student nhận notification (case.assigned)
   emitEvent({
     eventId: crypto.randomUUID(),
     type: DOMAIN_EVENTS.CASE_ASSIGNED,
     actorId: adminId,
     occurredAt: new Date(),
-    payload: {
-      caseId,
-      caseCode: caseItem.case_code,
-      supporterId,
-      supporterName: supporterUser.name,
-    },
+    payload: { caseId, caseCode: caseItem.case_code, supporterId, supporterName: supporterUser.name },
   });
 
   return result;

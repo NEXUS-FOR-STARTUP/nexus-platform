@@ -17,7 +17,7 @@ test("Phase 02 - Case lifecycle & admin triage", async (t) => {
     const result = await acceptCaseUseCase("admin-1", "case-1", {
       findCaseById: async () => ({ id: "case-1", user_facing_stage: "under_review", internal_status: "accepted_unassigned" } as any),
     });
-    assert.strictEqual(result.user_facing_stage, "under_review");
+    assert.strictEqual(result.stage, "under_review");
   });
 
   await t.test("admin reject - validation", async () => {

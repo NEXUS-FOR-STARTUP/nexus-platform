@@ -6,15 +6,10 @@ import {
   isValidInternalStatus,
   isValidStageTransition,
 } from "../domain/case.types.js";
-import { statusToPlace } from "../domain/case-workflow.js";
 import {
   findCaseById,
   createCaseEvent,
 } from "../infrastructure/persistence/case.repository.js";
-import {
-  applyTransition,
-  canTransition,
-} from "../infrastructure/persistence/case-workflow-engine.js";
 import logger from "../../../shared/infrastructure/logger.js";
 import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
@@ -38,16 +33,6 @@ const XSTATE_TRANSITIONS: Record<string, TransitionName> = {
 function getXStateTransition(fromStatus: string, toStatus: string): TransitionName | null {
   return XSTATE_TRANSITIONS[`${fromStatus}:${toStatus}`] ?? null
 }
-
-const SYMFLOW_TRANSITION_MAP: Record<string, string> = {
-  accepted_unassigned: "accept_case",
-  assigned: "assign_supporter",
-  supporter_working: "start_work",
-  waiting_user: "request_info",
-  report_ready_to_publish: "publish_report",
-  done: "complete_case",
-  cancelled: "cancel",
-};
 
 export async function updateCaseStatusUseCase(
   userId: string,
@@ -126,44 +111,11 @@ export async function updateCaseStatusUseCase(
     return caseObj;
   }
 
-  // ── Symflow transition validation + SLA trigger ───────────────────────────
-  const isInSymflowState =
-    typeof caseObj.internal_status === "string" &&
-    caseObj.internal_status in statusToPlace;
-
-  let transitionName: string | undefined;
-  if (
-    isInSymflowState &&
-    typeof nextStatus === "string" &&
-    nextStatus in SYMFLOW_TRANSITION_MAP
-  ) {
-    transitionName = SYMFLOW_TRANSITION_MAP[nextStatus];
-    if (!canTransition(caseObj, transitionName)) {
-      throw new AppError(
-        409,
-        "INVALID_TRANSITION",
-        `Không thể chuyển từ '${caseObj.internal_status}' sang '${nextStatus}'`,
-      );
-    }
-    applyTransition(caseObj, transitionName);
-  }
-
-  if (
-    !isInSymflowState &&
-    nextStatus === "supporter_working" &&
-    !caseObj.sla_deadline_at
-  ) {
-    caseObj.sla_deadline_at = new Date(Date.now() + 48 * 60 * 60 * 1000);
-  }
-
   // ── Persist ───────────────────────────────────────────────────────────────
   try {
     const updateData: Record<string, unknown> = {};
     if (nextStage !== undefined) updateData.user_facing_stage = nextStage;
     if (nextStatus !== undefined) updateData.internal_status = nextStatus;
-    if (caseObj.sla_deadline_at) {
-      updateData.sla_deadline_at = caseObj.sla_deadline_at;
-    }
 
     const updatedCase = await prisma.case.update({
       where: { id: caseId },
@@ -175,11 +127,7 @@ export async function updateCaseStatusUseCase(
       internal_status: nextStatus,
     });
 
-    if (transitionName && nextStatus) {
-      logger.info({ caseId, transition: transitionName, fromState: fromStatus, toState: nextStatus, actorId: userId, actorRole: userRole, duration_ms: Date.now() - startTime }, `case transition: ${transitionName}`);
-    } else {
-      logger.info({ caseId, fromState: fromStatus, toState: nextStatus ?? nextStage, actorId: userId, actorRole: userRole, duration_ms: Date.now() - startTime }, 'case status updated');
-    }
+    logger.info({ caseId, fromState: fromStatus, toState: nextStatus ?? nextStage, actorId: userId, actorRole: userRole, duration_ms: Date.now() - startTime }, 'case status updated');
 
     if (nextStage !== undefined && nextStage !== caseObj.user_facing_stage) {
       emitEvent({
@@ -198,7 +146,7 @@ export async function updateCaseStatusUseCase(
 
     return updatedCase;
   } catch (error) {
-    logger.error({ err: error, caseId, transition: transitionName ?? 'status_update', fromState: fromStatus, toState: nextStatus ?? nextStage, actorId: userId, actorRole: userRole, duration_ms: Date.now() - startTime }, 'case transition failed: status_update');
+    logger.error({ err: error, caseId, fromState: fromStatus, toState: nextStatus ?? nextStage, actorId: userId, actorRole: userRole, duration_ms: Date.now() - startTime }, 'case status update failed');
     throw error;
   }
 }
