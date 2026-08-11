@@ -6,7 +6,7 @@ import {
 } from "../../cases/infrastructure/persistence/case.repository.js";
 import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
-import { executeTransition } from "../../cases/application/case-transition.service.js";
+import { executeTransition } from "../../../services/case-transition.service.js";
 
 export async function adminAssignSupporterUseCase(
   adminId: string,

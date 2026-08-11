@@ -20,7 +20,7 @@ export interface Case {
   credit_balance?: number;              // NEW — derived from CreditLedger
   credit_ledger?: CreditLedger[];
   sla_deadline_at?: string | null;      // NEW — from case.sla_deadline_at
-  allowed_transitions?: string[];       // NEW — valid symflow transitions
+  allowed_transitions?: string[];       // NEW — valid XState transitions
   deadline?: string | null;
   created_at: string;
   updated_at: string;

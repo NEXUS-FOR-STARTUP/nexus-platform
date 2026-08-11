@@ -5,7 +5,7 @@
  * getAvailableTransitions, CORRUPT_STATE handling.
  *
  * Không cần DB — pure unit tests cho XState machine.
- * Run: node --import tsx --test apps/api/src/shared/infrastructure/tests/phase-07-symflow-transitions.test.ts
+ * Run: node --import tsx --test apps/api/src/shared/infrastructure/tests/phase-07-xstate-case-machine.test.ts
  */
 
 import { test } from 'node:test'

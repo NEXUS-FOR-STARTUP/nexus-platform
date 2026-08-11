@@ -1,16 +1,16 @@
 import type { PrismaClient, Prisma } from '@prisma/client'
-import { prisma } from '../../../db.js'
-import { tryTransition } from '../domain/case-machine.js'
+import { prisma } from '../db.js'
+import { tryTransition } from '../modules/cases/domain/case-machine.js'
 import type {
   TransitionName, TransitionEvent, CaseStage, InternalStatus,
   ActionDescriptor,
-} from '../domain/transition.types.js'
-import { upsertDocumentRecordsForUnit } from '../../documents/infrastructure/persistence/document.repository.js'
-import { AppError } from '../../../shared/domain/app-error.js'
-import { emitEvent } from '../../../shared/infrastructure/event-bus.js'
-import { DOMAIN_EVENTS } from '../../../shared/domain/domain-events.js'
-import logger from '../../../shared/infrastructure/logger.js'
-import { walletService } from '../../wallet/application/wallet.service.js'
+} from '../modules/cases/domain/transition.types.js'
+import { upsertDocumentRecordsForUnit } from '../modules/documents/infrastructure/persistence/document.repository.js'
+import { AppError } from '../shared/domain/app-error.js'
+import { emitEvent } from '../shared/infrastructure/event-bus.js'
+import { DOMAIN_EVENTS } from '../shared/domain/domain-events.js'
+import logger from '../shared/infrastructure/logger.js'
+import { walletService } from '../modules/wallet/application/wallet.service.js'
 
 const TARGET_STAGE: Partial<Record<TransitionName, CaseStage>> = {
   T1_CREATE_CASE:              'intake_pending',

@@ -24,7 +24,7 @@ import type {
   SupporterOutputUploadRequest,
   ExternalFeedbackUploadRequest,
 } from "./cases.dto.js";
-import { executeTransition } from "./case-transition.service.js";
+import { executeTransition } from "../../../services/case-transition.service.js";
 
 type SubmitRevisionDeps = {
   findCaseByIdWithMembersAndCheckpoints?: typeof defaultFindCaseByIdWithMembersAndCheckpoints;

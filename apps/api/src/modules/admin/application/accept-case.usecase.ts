@@ -1,5 +1,5 @@
 import { AppError } from "../../../shared/domain/app-error.js";
-import { executeTransition } from "../../cases/application/case-transition.service.js";
+import { executeTransition } from "../../../services/case-transition.service.js";
 import { findCaseById as defaultFindCaseById } from "../../cases/infrastructure/persistence/case.repository.js";
 import { auditLogger } from "../../../shared/infrastructure/audit-logger.js";
 import { emitEvent } from "../../../shared/infrastructure/event-bus.js";

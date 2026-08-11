@@ -1,5 +1,5 @@
 import { AppError } from "../../../shared/domain/app-error.js";
-import { executeTransition } from "./case-transition.service.js";
+import { executeTransition } from "../../../services/case-transition.service.js";
 import type { TransitionName } from "../domain/transition.types.js";
 import logger from "../../../shared/infrastructure/logger.js";
 
