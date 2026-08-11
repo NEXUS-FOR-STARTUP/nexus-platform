@@ -14,6 +14,8 @@ import { listAdminPackagesUseCase } from "../application/list-admin-packages.use
 import { updatePackagePriceUseCase } from "../application/update-package-price.usecase.js";
 import { updatePackageStatusUseCase } from "../application/update-package-status.usecase.js";
 import { getAdminStatsUseCase } from "../application/get-admin-stats.usecase.js";
+import { listServiceTypesUseCase, createServiceTypeUseCase, updateServiceTypeUseCase } from "../../packages/application/service-type.usecase.js";
+import { setCurrentPricingUseCase, getPricingHistoryUseCase } from "../../packages/application/service-pricing.usecase.js";
 
 // ---------------------------------------------------------------------------
 // Auth helper — admin-specific
@@ -278,6 +280,75 @@ export async function getAdminStatsHandler(c: Context) {
     const period = c.req.query("period") || "30d";
     const stats = await getAdminStatsUseCase(period);
     return c.json(stats);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+export async function listServiceTypesHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+  try {
+    const types = await listServiceTypesUseCase();
+    return c.json({ types });
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+export async function createServiceTypeHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+  try {
+    const data = await c.req.json();
+    const type = await createServiceTypeUseCase(data);
+    return c.json(type, 201);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+export async function updateServiceTypeHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+  try {
+    const id = c.req.param('id');
+    const data = await c.req.json();
+    const type = await updateServiceTypeUseCase(id!, data);
+    return c.json(type);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+export async function getPricingHistoryHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+  try {
+    const history = await getPricingHistoryUseCase(c.req.param('id')!);
+    return c.json({ history });
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+export async function setPricingHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+  try {
+    const { price } = await c.req.json();
+    const pricing = await setCurrentPricingUseCase(c.req.param('id')!, price, authResult.session.user.id);
+    return c.json(pricing, 201);
   } catch (error: any) {
     return handleError(c, error);
   }

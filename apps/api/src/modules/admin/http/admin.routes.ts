@@ -12,6 +12,11 @@ import {
   updatePackagePriceHandler,
   updatePackageStatusHandler,
   getAdminStatsHandler,
+  listServiceTypesHandler,
+  createServiceTypeHandler,
+  updateServiceTypeHandler,
+  getPricingHistoryHandler,
+  setPricingHandler,
 } from "./admin.controller.js";
 
 export const adminRouter = new Hono();
@@ -31,3 +36,10 @@ adminRouter.get("/stats", getAdminStatsHandler);
 adminRouter.get("/packages", listAdminPackagesHandler);
 adminRouter.put("/packages/:id/price", updatePackagePriceHandler);
 adminRouter.put("/packages/:id/status", updatePackageStatusHandler);
+
+adminRouter.get("/service-types", listServiceTypesHandler);
+adminRouter.post("/service-types", createServiceTypeHandler);
+adminRouter.patch("/service-types/:id", updateServiceTypeHandler);
+
+adminRouter.get("/packages/:id/pricing", getPricingHistoryHandler);
+adminRouter.post("/packages/:id/pricing", setPricingHandler);
