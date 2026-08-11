@@ -18,6 +18,7 @@ import { supporterRouter } from './modules/supporter/http/supporter.routes.js'
 import { documentsRouter } from './modules/documents/http/documents.routes.js'
 import { notificationsRouter } from './modules/notifications/http/notifications.routes.js'
 import { realtimeRouter } from './modules/realtime/http/realtime.routes.js'
+import { walletRoutes } from './modules/wallet/infrastructure/http/wallet.routes.js'
 import { registerNotificationListener } from './modules/notifications/application/notification-listener.js'
 import { startRelay } from './modules/notifications/application/notification-relay.js'
 import { prisma } from './db.js'
@@ -154,6 +155,7 @@ app.route('/api/supporter', supporterRouter)
 app.route('/api/documents', documentsRouter)
 app.route('/api/notifications', notificationsRouter)
 app.route('/api/realtime', realtimeRouter)
+app.route('/api/wallet', walletRoutes)
 
 // Global error handler — catches unhandled errors, no stack trace leak
 app.onError((err, c) => {

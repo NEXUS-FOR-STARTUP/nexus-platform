@@ -43,6 +43,8 @@ model User {
 
   document_records       DocumentRecord[]
   notifications          Notification[]
+  wallet                 UserWallet?
+  wallet_topups          WalletTopup[]
 
   @@unique([email])
   @@unique([username])
@@ -130,9 +132,99 @@ model ServicePackage {
   last_price_changed_by_user User?    @relation("PackagePriceChanger", fields: [last_price_changed_by], references: [id])
   cases                     Case[]
   payments                  Payment[]
+  pricing_tiers             ServicePricing[]
+
+  service_type_id        String?
+  service_type            ServiceType?     @relation(fields: [service_type_id], references: [id])
 
   @@index([last_price_changed_by])
+  @@index([service_type_id])
   @@map("service_packages")
+}
+
+enum WalletTxType {
+  deposit
+  withdrawal
+  refund
+  adjustment
+  migration
+}
+
+model ServiceType {
+  id          String           @id @default(uuid())
+  code        String           @unique
+  name        String
+  description String?
+  is_active   Boolean          @default(true)
+  created_at  DateTime         @default(now())
+
+  packages    ServicePackage[]
+
+  @@map("service_types")
+}
+
+model ServicePricing {
+  id             String          @id @default(uuid())
+  package_id     String
+  package        ServicePackage  @relation(fields: [package_id], references: [id])
+  price          Int
+  is_current     Boolean         @default(true)
+  previous_price Int?
+  changed_by     String?
+  changed_at     DateTime?
+
+  @@index([package_id, is_current])
+  @@map("service_pricing")
+}
+
+model UserWallet {
+  id           String              @id @default(uuid())
+  user_id      String              @unique
+  user         User                @relation(fields: [user_id], references: [id])
+  balance      Int                 @default(0)
+  currency     String              @default("VND")
+  created_at   DateTime            @default(now())
+  updated_at   DateTime            @updatedAt
+
+  transactions WalletTransaction[]
+
+  @@map("user_wallets")
+}
+
+model WalletTransaction {
+  id               String         @id @default(uuid())
+  wallet_id        String
+  wallet           UserWallet     @relation(fields: [wallet_id], references: [id])
+  type             WalletTxType
+  amount           Int
+  currency         String         @default("VND")
+  balance_before   Int
+  balance_after    Int
+  source_type      String
+  source_id        String?
+  idempotency_key  String         @unique
+  metadata_json    Json?
+  created_at       DateTime       @default(now())
+
+  @@index([wallet_id, created_at])
+  @@map("wallet_transactions")
+}
+
+model WalletTopup {
+  id                    String    @id @default(uuid())
+  user_id               String
+  user                  User      @relation(fields: [user_id], references: [id])
+  amount                Int
+  currency              String    @default("VND")
+  transfer_content      String
+  status                String    @default("pending")
+  verified_by           String?
+  verification_source   String?
+  metadata_json         Json?
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  @@map("wallet_topups")
 }
 
 model Case {
@@ -152,6 +244,7 @@ model Case {
   payment_status                  String   @default("unpaid")
   deadline                        DateTime?
   sla_deadline_at                 DateTime?
+  version_no                      Int      @default(0)
   created_at                      DateTime @default(now())
   updated_at                      DateTime @updatedAt
 
@@ -271,6 +364,7 @@ model DocumentRecord {
   @@index([uploaded_by_auth_user_id])
   @@index([case_id, checkpoint_id])
   @@index([case_id, source_kind])
+  @@unique([lifecycle_unit_id, doc_type, seq])
   @@map("document_records")
 }
 
@@ -379,6 +473,7 @@ model CaseEvent {
   payment_id         String?
   meeting_id         String?
   metadata_json      Json?
+  actor_role         String?
   created_at         DateTime @default(now())
 
   case                 Case     @relation(fields: [case_id], references: [id], onDelete: Cascade)

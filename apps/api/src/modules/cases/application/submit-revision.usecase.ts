@@ -24,6 +24,7 @@ import type {
   SupporterOutputUploadRequest,
   ExternalFeedbackUploadRequest,
 } from "./cases.dto.js";
+import { executeTransition } from "./case-transition.service.js";
 
 type SubmitRevisionDeps = {
   findCaseByIdWithMembersAndCheckpoints?: typeof defaultFindCaseByIdWithMembersAndCheckpoints;
@@ -105,105 +106,24 @@ export async function submitRevisionUseCase(
   userId: string,
   caseId: string,
   body: SubmitRevisionRequest,
-  deps: SubmitRevisionDeps = {},
+  _deps?: SubmitRevisionDeps,
 ) {
-  const startTime = Date.now();
-  const {
-    findCaseByIdWithMembersAndCheckpoints,
-    submitCaseRevision,
-  } = {
-    ...defaultDeps,
-    ...deps,
-  };
-
-  const caseDetails = await findCaseByIdWithMembersAndCheckpoints(caseId);
-
-  if (!caseDetails) {
-    throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
+  if (typeof body.change_summary !== "string" || body.change_summary.trim().length < 10) {
+    throw new AppError(400, "VALIDATION_ERROR", "Tóm tắt thay đổi tối thiểu phải 10 ký tự")
   }
 
-  await requireCredits(caseId);
-
-  const isOwner = caseDetails.owner_auth_user_id === userId;
-  const isMember = caseDetails.members.some(
-    (member: CaseMemberLike) => member.auth_user_id === userId,
-  );
-  if (!isOwner && !isMember) {
-    throw new AppError(403, "FORBIDDEN", "Không có quyền nộp sửa đổi cho dự án này");
-  }
-
-  if (isFinalCaseStage(caseDetails.user_facing_stage)) {
-    throw new AppError(
-      400,
-      "INVALID_CASE_STAGE",
-      "Dự án đã ở trạng thái cuối, không thể nộp bản sửa đổi",
-    );
-  }
-
-  const validStages = [
-    "report_ready",
-    "waiting_for_revision",
-    "need_more_information",
-  ];
-  if (!validStages.includes(caseDetails.user_facing_stage)) {
-    throw new AppError(
-      400,
-      "INVALID_CASE_STAGE",
-      "Trạng thái hiện tại của dự án không cho phép nộp bản sửa đổi",
-    );
-  }
-
-  const { change_summary, documents, remaining_blockers } = body;
-
-  if (typeof change_summary !== "string" || change_summary.trim().length < 10) {
-    throw new AppError(
-      400,
-      "VALIDATION_ERROR",
-      "Tóm tắt thay đổi tối thiểu phải 10 ký tự",
-    );
-  }
-
-  const documentValidation = validateDocumentWriteInputs(documents || []);
+  const documentValidation = validateDocumentWriteInputs(body.documents || [])
   if (!documentValidation.ok) {
-    throw new AppError(400, "VALIDATION_ERROR", documentValidation.error);
+    throw new AppError(400, "VALIDATION_ERROR", documentValidation.error)
   }
 
-  const checkpoint = selectCheckpoint(caseDetails);
-  if (!checkpoint) {
-    throw new AppError(404, "NOT_FOUND", "Không tìm thấy thông tin checkpoint");
-  }
-
-  const nextVersion = checkpoint.latest_version_no + 1;
-
-  try {
-    const result = await submitCaseRevision({
-      caseId,
-      checkpointId: checkpoint.id,
-      nextVersion,
-      userId,
-      changeSummary: change_summary,
-      documents: documentValidation.inputs,
-      remainingBlockers: remaining_blockers,
-    });
-    // Emit sau commit — supporter nhận noti đã nộp bản sửa (case.stage_changed)
-    emitEvent({
-      eventId: crypto.randomUUID(),
-      type: DOMAIN_EVENTS.CASE_STAGE_CHANGED,
-      actorId: userId,
-      occurredAt: new Date(),
-      payload: {
-        caseId,
-        caseCode: caseDetails.case_code,
-        fromStage: caseDetails.user_facing_stage,
-        toStage: "revision_submitted",
-      },
-    });
-    logger.info({ caseId, transition: 'submit_revision', actorId: userId, duration_ms: Date.now() - startTime }, 'case transition: submit_revision');
-    return result;
-  } catch (error) {
-    logger.error({ err: error, caseId, transition: 'submit_revision', actorId: userId, duration_ms: Date.now() - startTime }, 'case transition failed: submit_revision');
-    throw error;
-  }
+  return executeTransition({
+    transition: 'T9_SUBMIT_REVISION',
+    caseId,
+    actorId: userId,
+    roleVerified: 'CUSTOMER',
+    data: { files: documentValidation.inputs.map(d => ({ ...d, doc_type: 'revision_document' })), reason: body.change_summary },
+  })
 }
 
 export async function submitRevisionUploadUseCase(
