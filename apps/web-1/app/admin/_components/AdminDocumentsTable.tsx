@@ -240,12 +240,12 @@ export default function AdminDocumentsTable({
         <Table striped highlightOnHover withTableBorder withColumnBorders verticalSpacing="sm" horizontalSpacing="md">
           <Table.Thead className="bg-brand-soft">
             <Table.Tr>
-              <Table.Th className="text-left min-w-[200px] text-sm font-bold text-text-app">Tên tài liệu</Table.Th>
+              <Table.Th className="text-left text-sm font-bold text-text-app">Tên tài liệu</Table.Th>
               <Table.Th className="text-left w-20 text-sm font-bold text-text-app">Định dạng</Table.Th>
               <Table.Th className="text-left w-28 text-sm font-bold text-text-app">Loại</Table.Th>
-              <Table.Th className="text-left min-w-[150px] text-sm font-bold text-text-app">Dự án liên quan</Table.Th>
-              <Table.Th className="text-left min-w-[150px] text-sm font-bold text-text-app">Người tải lên</Table.Th>
-              <Table.Th className="text-left min-w-[140px] text-sm font-bold text-text-app">Ngày tải</Table.Th>
+              <Table.Th className="text-left text-sm font-bold text-text-app">Dự án liên quan</Table.Th>
+              <Table.Th className="text-left text-sm font-bold text-text-app">Người tải lên</Table.Th>
+              <Table.Th className="text-left text-sm font-bold text-text-app">Ngày tải</Table.Th>
               <Table.Th className="text-center w-20 text-sm font-bold text-text-app" style={{ textAlign: "center" }}>Thao tác</Table.Th>
             </Table.Tr>
           </Table.Thead>

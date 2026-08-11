@@ -344,7 +344,7 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                             onChange={(val) => handleTypeChange(index, val, parentField)}
                             size="md"
                             clearable
-                            className="min-w-[240px]"
+                            className="w-full sm:w-60"
                           />
                           <ActionIcon
                             variant="subtle"

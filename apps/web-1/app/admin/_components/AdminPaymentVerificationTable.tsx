@@ -143,15 +143,15 @@ export default function AdminPaymentVerificationTable({
         <Table striped highlightOnHover withTableBorder withColumnBorders verticalSpacing="sm" horizontalSpacing="xs">
           <Table.Thead className="bg-brand-soft">
             <Table.Tr>
-              <Table.Th className="text-left whitespace-nowrap min-w-[100px] text-sm font-bold text-text-app">Mã hồ sơ</Table.Th>
-              <Table.Th className="text-left whitespace-nowrap min-w-[100px] text-sm font-bold text-text-app">Gói dịch vụ</Table.Th>
-              <Table.Th className="text-left whitespace-nowrap min-w-[90px] text-sm font-bold text-text-app">Người nộp</Table.Th>
-              <Table.Th className="text-left whitespace-nowrap min-w-[90px] text-sm font-bold text-text-app">Số tiền</Table.Th>
-              <Table.Th className="text-left whitespace-nowrap min-w-[150px] text-sm font-bold text-text-app">Nội dung chuyển khoản</Table.Th>
-              <Table.Th className="text-left whitespace-nowrap min-w-[120px] text-sm font-bold text-text-app">Mã GD ngân hàng</Table.Th>
-              <Table.Th className="text-left whitespace-nowrap min-w-[110px] text-sm font-bold text-text-app">Thời gian gửi</Table.Th>
-              <Table.Th className="text-left whitespace-nowrap min-w-[120px] text-sm font-bold text-text-app">Biên lai giao dịch</Table.Th>
-              <Table.Th className="text-center whitespace-nowrap min-w-[130px] text-sm font-bold text-text-app" style={{ textAlign: "center" }}>Thao tác</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap text-sm font-bold text-text-app">Mã hồ sơ</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap text-sm font-bold text-text-app">Gói dịch vụ</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap text-sm font-bold text-text-app">Người nộp</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap text-sm font-bold text-text-app">Số tiền</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap text-sm font-bold text-text-app">Nội dung chuyển khoản</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap text-sm font-bold text-text-app">Mã GD ngân hàng</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap text-sm font-bold text-text-app">Thời gian gửi</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap text-sm font-bold text-text-app">Biên lai giao dịch</Table.Th>
+              <Table.Th className="text-center whitespace-nowrap text-sm font-bold text-text-app" style={{ textAlign: "center" }}>Thao tác</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>

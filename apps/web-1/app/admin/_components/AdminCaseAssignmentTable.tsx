@@ -182,13 +182,13 @@ export default function AdminCaseAssignmentTable({
         <Table striped highlightOnHover withTableBorder withColumnBorders verticalSpacing="sm" horizontalSpacing="xs">
           <Table.Thead className="bg-brand-soft/80">
             <Table.Tr>
-              <Table.Th className="text-left whitespace-nowrap min-w-[120px] text-sm font-bold text-text-app">Mã hồ sơ</Table.Th>
+              <Table.Th className="text-left whitespace-nowrap text-sm font-bold text-text-app">Mã hồ sơ</Table.Th>
               <Table.Th className="text-left text-sm font-bold text-text-app">Nhóm / Đề tài</Table.Th>
               <Table.Th className="text-left text-sm font-bold text-text-app">Gói dịch vụ</Table.Th>
               <Table.Th className="text-left text-sm font-bold text-text-app">Trạng thái</Table.Th>
               <Table.Th className="text-left text-sm font-bold text-text-app">Người phụ trách</Table.Th>
               <Table.Th className="text-center w-20 text-sm font-bold text-text-app">SLA</Table.Th>
-              <Table.Th className="text-center whitespace-nowrap min-w-[120px] text-sm font-bold text-text-app" style={{ textAlign: "center" }}>Thao tác</Table.Th>
+              <Table.Th className="text-center whitespace-nowrap text-sm font-bold text-text-app" style={{ textAlign: "center" }}>Thao tác</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
