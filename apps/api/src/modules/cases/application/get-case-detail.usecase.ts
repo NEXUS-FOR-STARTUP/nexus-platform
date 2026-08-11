@@ -13,8 +13,7 @@ import {
   findApprovedReports,
 } from "../../reports/infrastructure/persistence/report.repository.js";
 import { getCreditBalance, getCreditLedgerByCaseId } from "../infrastructure/persistence/credit-ledger.repository.js";
-import { canTransition } from "../infrastructure/persistence/case-workflow-engine.js";
-import { caseWorkflow } from "../domain/case-workflow.js";
+import { getAvailableTransitions } from "../domain/case-machine.js";
 import { prisma } from "../../../db.js";
 
 function normalizeIntakeSnapshot(rawContent: string | null) {
@@ -150,9 +149,7 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
     getCreditBalance(caseId),
     getCreditLedgerByCaseId(caseId),
   ]);
-  const allowed_transitions = caseWorkflow.transitions
-    .filter(t => canTransition(caseDetails, t.name))
-    .map(t => t.name);
+  const allowed_transitions = getAvailableTransitions(caseDetails.internal_status);
 
   (caseResponse as Record<string, unknown>).credit_balance = credit_balance;
   (caseResponse as Record<string, unknown>).credit_ledger = credit_ledger;

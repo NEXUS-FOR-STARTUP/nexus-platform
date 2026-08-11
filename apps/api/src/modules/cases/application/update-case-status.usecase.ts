@@ -18,8 +18,27 @@ import {
 import logger from "../../../shared/infrastructure/logger.js";
 import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
+import { executeTransition } from "./case-transition.service.js";
+import type { TransitionName } from "../domain/transition.types.js";
 
-/** Maps internal_status targets to symflow transition names */
+const XSTATE_TRANSITIONS: Record<string, TransitionName> = {
+  'accepted_unassigned:assigned': 'T6_ASSIGN_SUPPORTER',
+  'assigned:supporter_working': 'T7_START_WORK',
+  'supporter_working:waiting_user': 'T8_REQUEST_INFO',
+  'supporter_working:supporter_working': 'T10_START_REVIEW_REVISION',
+  'report_ready_to_publish:done': 'T14_COMPLETE',
+  'triage_pending:cancelled': 'T15_CANCEL',
+  'accepted_unassigned:cancelled': 'T15_CANCEL',
+  'assigned:cancelled': 'T15_CANCEL',
+  'supporter_working:cancelled': 'T15_CANCEL',
+  'waiting_user:cancelled': 'T15_CANCEL',
+  'report_ready_to_publish:cancelled': 'T15_CANCEL',
+}
+
+function getXStateTransition(fromStatus: string, toStatus: string): TransitionName | null {
+  return XSTATE_TRANSITIONS[`${fromStatus}:${toStatus}`] ?? null
+}
+
 const SYMFLOW_TRANSITION_MAP: Record<string, string> = {
   accepted_unassigned: "accept_case",
   assigned: "assign_supporter",
@@ -51,6 +70,19 @@ export async function updateCaseStatusUseCase(
     caseObj.assigned_supporter_auth_user_id !== userId
   ) {
     throw new AppError(403, "FORBIDDEN", "Không được phân công quản lý dự án này");
+  }
+
+  // ── Route T6/T7/T8/T10 through XState gateway (F5: anti split-brain) ────
+  if (typeof fromStatus === 'string' && typeof nextStatus === 'string') {
+    const xt = getXStateTransition(fromStatus, nextStatus)
+    if (xt) {
+      return executeTransition({
+        transition: xt,
+        caseId,
+        actorId: userId,
+        roleVerified: userRole === 'admin' ? 'ADMIN' : userRole === 'supporter' ? 'SUPPORTER' : 'CUSTOMER',
+      }).then(r => ({ stage: r.stage, status: r.status } as any))
+    }
   }
 
   // ── user_facing_stage validation ──────────────────────────────────────────
@@ -95,8 +127,6 @@ export async function updateCaseStatusUseCase(
   }
 
   // ── Symflow transition validation + SLA trigger ───────────────────────────
-  // Use symflow when current internal_status maps to a known place AND the
-  // target has a mapped transition. Falls back to direct update otherwise.
   const isInSymflowState =
     typeof caseObj.internal_status === "string" &&
     caseObj.internal_status in statusToPlace;
@@ -115,11 +145,9 @@ export async function updateCaseStatusUseCase(
         `Không thể chuyển từ '${caseObj.internal_status}' sang '${nextStatus}'`,
       );
     }
-    // applyTransition mutates caseObj: sets internal_status + sla_deadline_at (middleware)
     applyTransition(caseObj, transitionName);
   }
 
-  // SLA fallback: when entering supporter_working outside symflow states
   if (
     !isInSymflowState &&
     nextStatus === "supporter_working" &&
@@ -153,7 +181,6 @@ export async function updateCaseStatusUseCase(
       logger.info({ caseId, fromState: fromStatus, toState: nextStatus ?? nextStage, actorId: userId, actorRole: userRole, duration_ms: Date.now() - startTime }, 'case status updated');
     }
 
-    // Chỉ emit khi user_facing_stage thực sự đổi — đổi internal_status không phải stage transition
     if (nextStage !== undefined && nextStage !== caseObj.user_facing_stage) {
       emitEvent({
         eventId: crypto.randomUUID(),
