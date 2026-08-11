@@ -1,4 +1,7 @@
+"use client";
+
 import React from "react";
+import Logo from "./Logo";
 
 interface LoadingScreenProps {
   message?: string;
@@ -6,16 +9,21 @@ interface LoadingScreenProps {
 
 export default function LoadingScreen({ message = "Đang xác thực tài khoản..." }: LoadingScreenProps) {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-bg-app transition-colors duration-300">
-      <div className="flex flex-col items-center gap-5 p-8 rounded-2xl bg-surface-app/40 border border-border-app/60 backdrop-blur-md shadow-lg max-w-xs w-full text-center animate-fade-in">
-        {/* Modern Spinner */}
-        <div className="relative flex items-center justify-center w-14 h-14">
+    <div className="flex items-center justify-center min-h-screen bg-bg-app transition-colors duration-300 p-4">
+      <div className="flex flex-col items-center gap-8 p-10 sm:p-14 rounded-3xl bg-surface-app/70 border border-border-app/80 backdrop-blur-lg shadow-2xl max-w-xl w-full text-center animate-fade-in">
+        {/* Brand Logo - Super Enlarged */}
+        <div className="flex justify-center items-center py-2">
+          <Logo height={120} className="h-28 sm:h-36 w-auto object-contain drop-shadow-md" />
+        </div>
+
+        {/* Modern Spinner - Scaled up */}
+        <div className="relative flex items-center justify-center w-16 h-16">
           {/* Inner pulsing glow */}
-          <div className="absolute inset-0 rounded-full bg-brand/10 animate-ping opacity-75"></div>
+          <div className="absolute inset-0 rounded-full bg-brand/15 animate-ping opacity-75"></div>
           
           {/* SVG Spinner */}
           <svg
-            className="animate-spin h-10 w-10 text-brand relative z-10"
+            className="animate-spin h-12 w-12 text-brand relative z-10"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -36,12 +44,9 @@ export default function LoadingScreen({ message = "Đang xác thực tài khoả
           </svg>
         </div>
 
-        {/* Text info */}
-        <div className="space-y-1">
-          <p className="font-heading font-semibold text-xs text-text-app tracking-wide uppercase">
-            Nexus Platform
-          </p>
-          <p className="font-body text-text-muted animate-pulse">
+        {/* Text info - Larger font */}
+        <div>
+          <p className="font-body text-lg sm:text-xl font-semibold text-text-muted animate-pulse tracking-wide">
             {message}
           </p>
         </div>
