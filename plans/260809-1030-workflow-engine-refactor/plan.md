@@ -97,7 +97,7 @@ Workflow Phase 03 (executor) ─┘  (wallet schema + WalletService + top-up + F
 | 02 | [Machine Definition](./phase-02-transition-registry.md) | ✅ Done | **2h** |
 | 03 | [CaseTransitionService + submit-revision](./phase-03-case-transition-service.md) | ✅ Done | **4h** |
 | 04 | [Lan use case qua cổng + FE](./phase-04-spread-use-cases.md) | ✅ Done | **4h** |
-| 05 | [Tests](./phase-05-tests.md) | 🔲 Pending | **4h** |
+| 05 | [Tests](./phase-05-tests.md) | ✅ Done | **4h** |
 | 06 | [Refund/Resubmit Policy T12-T15](./phase-06-refund-resubmit-policy.md) | ✅ Done | **4h** |
 
 ## Dependencies

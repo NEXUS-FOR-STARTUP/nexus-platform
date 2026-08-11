@@ -88,7 +88,7 @@ GIỮ  credit_ledgers table (read-only cho audit, xóa sau khi tất cả case c
 | 04 | [Service Catalog](./phase-04-service-catalog.md) | ✅ Done | 2h | Phase 01 |
 | 05 | [Workflow Integration](./phase-05-workflow-integration.md) | ✅ Done | 2h | Phase 02 + WF Phase 03 |
 | 06 | [Frontend UI](./phase-06-frontend-ui.md) | ✅ Done | 3h | Phase 02, 03, 04 |
-| 07 | [Legacy Migration](./phase-07-legacy-migration.md) | 🔲 Pending | 2h | Phase 02, 05 |
+| 07 | [Legacy Migration](./phase-07-legacy-migration.md) | ✅ Done | 2h | Phase 02, 05 |
 | 08 | [Purchase Credit Flow](./phase-05-workflow-integration.md#phase-08-bổ-sung--purchase-credit-flow) | ✅ Done | 1.5h | Phase 02, 04 |
 
 **Thứ tự implement khuyến nghị:**

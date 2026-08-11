@@ -17,6 +17,7 @@ test("Phase 08 - Notifications", async (t) => {
     await prisma.notification.deleteMany({ where: { id: { in: createdNotificationIds } } });
     await prisma.notificationOutbox.deleteMany({ where: { id: { in: createdOutboxIds } } });
     await prisma.user.deleteMany({ where: { id: { in: createdUserIds } } });
+    await prisma.$disconnect();
   });
 
   // ------------------------------------------------------------------

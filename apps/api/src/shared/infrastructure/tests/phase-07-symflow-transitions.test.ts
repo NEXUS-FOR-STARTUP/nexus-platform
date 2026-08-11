@@ -1,101 +1,365 @@
-import { test } from "node:test";
-import assert from "node:assert";
+/**
+ * Phase 07 — XState Machine Tests
+ *
+ * Test case-machine.ts: 16 transitions, guards, actions, self-loops,
+ * getAvailableTransitions, CORRUPT_STATE handling.
+ *
+ * Không cần DB — pure unit tests cho XState machine.
+ * Run: node --import tsx --test apps/api/src/shared/infrastructure/tests/phase-07-symflow-transitions.test.ts
+ */
 
-process.env.NODE_ENV = "test";
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import {
+  caseMachine,
+  tryTransition,
+  getAvailableTransitions,
+  isBlockedTransition,
+  VALID_STATES,
+  isValidState,
+} from '../../../modules/cases/domain/case-machine.js'
+import type { TransitionEvent, TransitionName } from '../../../modules/cases/domain/transition.types.js'
+import { ALL_TRANSITIONS } from '../../../modules/cases/domain/transition.types.js'
 
-test("Phase 07 - Symflow transitions", async (t) => {
-  const { applyTransition, canTransition } = await import(
-    "../../../modules/cases/infrastructure/persistence/case-workflow-engine.js"
-  );
+function event(t: TransitionName, overrides: Record<string, unknown> = {}): TransitionEvent {
+  return {
+    type: t,
+    actor: { id: 'user-1', role: 'USER' },
+    data: {
+      actorId: 'user-1',
+      roleVerified: 'USER',
+      caseOwnerId: 'user-1',
+      creditBalance: 1,
+      lockedPrice: 39000,
+      ...overrides,
+    },
+  }
+}
 
-  // ── canTransition tests ─────────────────────────────────────────────
-  await t.test("canTransition — accept_case", () => {
-    assert.strictEqual(canTransition({ internal_status: "triage_pending" }, "accept_case"), true);
-    assert.strictEqual(canTransition({ internal_status: "done" }, "accept_case"), false);
-    assert.strictEqual(canTransition({ internal_status: "assigned" }, "accept_case"), false);
-  });
+function adminEvent(t: TransitionName, overrides: Record<string, unknown> = {}): TransitionEvent {
+  return event(t, { actorId: 'admin-1', roleVerified: 'ADMIN', ...overrides })
+}
 
-  await t.test("canTransition — assign_supporter", () => {
-    assert.strictEqual(canTransition({ internal_status: "accepted_unassigned" }, "assign_supporter"), true);
-    assert.strictEqual(canTransition({ internal_status: "triage_pending" }, "assign_supporter"), false);
-    assert.strictEqual(canTransition({ internal_status: "supporter_working" }, "assign_supporter"), false);
-  });
+function supporterEvent(t: TransitionName, overrides: Record<string, unknown> = {}): TransitionEvent {
+  return event(t, {
+    actorId: 'supporter-1',
+    roleVerified: 'SUPPORTER',
+    caseAssignedSupporterId: 'supporter-1',
+    ...overrides,
+  })
+}
 
-  await t.test("canTransition — start_work", () => {
-    assert.strictEqual(canTransition({ internal_status: "assigned" }, "start_work"), true);
-    assert.strictEqual(canTransition({ internal_status: "triage_pending" }, "start_work"), false);
-  });
+// ============================================================
+// Nhóm A: Transitions path hợp lệ (guard pass)
+// ============================================================
 
-  await t.test("canTransition — request_info", () => {
-    assert.strictEqual(canTransition({ internal_status: "supporter_working" }, "request_info"), true);
-    assert.strictEqual(canTransition({ internal_status: "waiting_user" }, "request_info"), false);
-  });
+test('T2_SUBMIT_INTAKE — isOwner → self-loop, upsertDoc action', () => {
+  const r = tryTransition('triage_pending', event('T2_SUBMIT_INTAKE'))
+  assert.ok(r)
+  assert.equal(r!.to, 'triage_pending')
+  assert.ok(r!.actions.some(a => a.type === 'upsertDoc'))
+})
 
-  await t.test("canTransition — resume_work", () => {
-    assert.strictEqual(canTransition({ internal_status: "waiting_user" }, "resume_work"), true);
-    assert.strictEqual(canTransition({ internal_status: "supporter_working" }, "resume_work"), false);
-  });
+test('T5_ACCEPT — isAdmin + hasCredit → accepted_unassigned', () => {
+  const r = tryTransition('triage_pending', adminEvent('T5_ACCEPT'))
+  assert.ok(r)
+  assert.equal(r!.to, 'accepted_unassigned')
+})
 
-  await t.test("canTransition — publish_report", () => {
-    assert.strictEqual(canTransition({ internal_status: "supporter_working" }, "publish_report"), true);
-    assert.strictEqual(canTransition({ internal_status: "waiting_user" }, "publish_report"), false);
-  });
+test('T16_EDIT_INTAKE — isBeforeSubmission → self-loop, upsertDoc', () => {
+  const r = tryTransition('triage_pending', event('T16_EDIT_INTAKE', {
+    currentStage: 'intake_pending',
+  }))
+  assert.ok(r)
+  assert.equal(r!.to, 'triage_pending')
+  assert.ok(r!.actions.some(a => a.type === 'upsertDoc'))
+})
 
-  await t.test("canTransition — complete_case", () => {
-    assert.strictEqual(canTransition({ internal_status: "report_ready_to_publish" }, "complete_case"), true);
-    assert.strictEqual(canTransition({ internal_status: "supporter_working" }, "complete_case"), false);
-  });
+test('T12_REJECT — isAdmin + reason ≥ 10 chars → cancelled', () => {
+  const r = tryTransition('triage_pending', adminEvent('T12_REJECT', {
+    reason: 'Hồ sơ không đạt yêu cầu đầu vào tối thiểu',
+  }))
+  assert.ok(r)
+  assert.equal(r!.to, 'cancelled')
+})
 
-  await t.test("canTransition — cancel", () => {
-    // valid from early states
-    assert.strictEqual(canTransition({ internal_status: "triage_pending" }, "cancel"), true);
-    assert.strictEqual(canTransition({ internal_status: "accepted_unassigned" }, "cancel"), true);
-    // invalid from assigned or later
-    assert.strictEqual(canTransition({ internal_status: "assigned" }, "cancel"), false);
-    assert.strictEqual(canTransition({ internal_status: "done" }, "cancel"), false);
-  });
+test('T15_CANCEL — isOwner → cancelled (from triage_pending)', () => {
+  const r = tryTransition('triage_pending', event('T15_CANCEL'))
+  assert.ok(r)
+  assert.equal(r!.to, 'cancelled')
+})
 
-  await t.test("canTransition — unknown transition", () => {
-    assert.strictEqual(canTransition({ internal_status: "triage_pending" }, "nonexistent"), false);
-  });
+test('T6_ASSIGN_SUPPORTER — isAdmin → assigned', () => {
+  const r = tryTransition('accepted_unassigned', adminEvent('T6_ASSIGN_SUPPORTER'))
+  assert.ok(r)
+  assert.equal(r!.to, 'assigned')
+})
 
-  // ── applyTransition tests ──────────────────────────────────────────
-  await t.test("applyTransition — mutates internal_status", () => {
-    const caseObj = { internal_status: "triage_pending" };
-    applyTransition(caseObj, "accept_case");
-    assert.strictEqual(caseObj.internal_status, "accepted_unassigned");
-  });
+test('T7_START_WORK — isAssignedSupporter → supporter_working, setSlaDeadline', () => {
+  const r = tryTransition('assigned', supporterEvent('T7_START_WORK'))
+  assert.ok(r)
+  assert.equal(r!.to, 'supporter_working')
+  assert.ok(r!.actions.some(a => a.type === 'setSlaDeadline'))
+})
 
-  await t.test("applyTransition — triage_pending → accepted_unassigned → assigned → supporter_working", () => {
-    const caseObj = { internal_status: "triage_pending" };
+test('T13_VETO — isAdmin + within 48h → cancelled, refundCredit', () => {
+  const r = tryTransition('assigned', adminEvent('T13_VETO', {
+    caseCreatedAt: new Date(Date.now() - 1 * 3600_000).toISOString(),
+  }))
+  assert.ok(r)
+  assert.equal(r!.to, 'cancelled')
+  assert.ok(r!.actions.some(a => a.type === 'refundCredit'))
+})
 
-    applyTransition(caseObj, "accept_case");
-    assert.strictEqual(caseObj.internal_status, "accepted_unassigned");
+test('T8_REQUEST_INFO — isAssignedSupporter → waiting_user, notifyUser', () => {
+  const r = tryTransition('supporter_working', supporterEvent('T8_REQUEST_INFO'))
+  assert.ok(r)
+  assert.equal(r!.to, 'waiting_user')
+  assert.ok(r!.actions.some(a => a.type === 'notifyUser'))
+})
 
-    applyTransition(caseObj, "assign_supporter");
-    assert.strictEqual(caseObj.internal_status, "assigned");
+test('T10_START_REVIEW_REVISION — isAssignedSupporter → self-loop', () => {
+  const r = tryTransition('supporter_working', supporterEvent('T10_START_REVIEW_REVISION'))
+  assert.ok(r)
+  assert.equal(r!.to, 'supporter_working')
+})
 
-    applyTransition(caseObj, "start_work");
-    assert.strictEqual(caseObj.internal_status, "supporter_working");
-  });
+test('T11_SUBMIT_OUTPUT — isAssignedSupporter + hasCredit → report_ready_to_publish', () => {
+  const r = tryTransition('supporter_working', supporterEvent('T11_SUBMIT_OUTPUT', {
+    creditBalance: 1,
+  }))
+  assert.ok(r)
+  assert.equal(r!.to, 'report_ready_to_publish')
+  assert.ok(r!.actions.some(a => a.type === 'subtractCredit'))
+  assert.ok(r!.actions.some(a => a.type === 'lockPrice'))
+})
 
-  // ── SLA trigger tests ──────────────────────────────────────────────
-  await t.test("SLA trigger — sla_deadline_at set on start_work", () => {
-    const caseObj: Record<string, any> = { internal_status: "assigned", sla_deadline_at: null };
-    applyTransition(caseObj, "start_work");
-    assert.strictEqual(caseObj.internal_status, "supporter_working");
-    assert.ok(caseObj.sla_deadline_at !== null);
-    // SLA should be now + 48h (within 5s tolerance)
-    const expectedSla = Date.now() + 48 * 60 * 60 * 1000;
-    const actualSla = (caseObj.sla_deadline_at as Date).getTime();
-    const diff = Math.abs(actualSla - expectedSla);
-    assert.ok(diff < 5000, `SLA deadline diff ${diff}ms should be < 5000ms`);
-  });
+test('T9_SUBMIT_REVISION — isOwnerOrMember → supporter_working, upsertDoc', () => {
+  const r = tryTransition('waiting_user', event('T9_SUBMIT_REVISION'))
+  assert.ok(r)
+  assert.equal(r!.to, 'supporter_working')
+  assert.ok(r!.actions.some(a => a.type === 'upsertDoc'))
+})
 
-  await t.test("SLA trigger — sla_deadline_at NOT set on non-start_work transitions", () => {
-    const caseObj = { internal_status: "accepted_unassigned", sla_deadline_at: null };
-    applyTransition(caseObj, "assign_supporter");
-    assert.strictEqual(caseObj.internal_status, "assigned");
-    assert.strictEqual(caseObj.sla_deadline_at, null);
-  });
-});
+test('T14_COMPLETE — isAssignedSupporter → done', () => {
+  const r = tryTransition('report_ready_to_publish', supporterEvent('T14_COMPLETE'))
+  assert.ok(r)
+  assert.equal(r!.to, 'done')
+})
+
+test('T3_RESUBMIT_AFTER_REJECT — isOwner + hasCredit → triage_pending (from done)', () => {
+  const r = tryTransition('done', event('T3_RESUBMIT_AFTER_REJECT'))
+  assert.ok(r)
+  assert.equal(r!.to, 'triage_pending')
+  assert.ok(r!.actions.some(a => a.type === 'upsertDoc'))
+  assert.ok(r!.actions.some(a => a.type === 'resetStatus'))
+})
+
+test('T4_RESUBMIT_AFTER_VETO — isOwner (free) → triage_pending (from cancelled)', () => {
+  const r = tryTransition('cancelled', event('T4_RESUBMIT_AFTER_VETO', {
+    creditBalance: 0,
+  }))
+  assert.ok(r)
+  assert.equal(r!.to, 'triage_pending')
+})
+
+test('T3_RESUBMIT_AFTER_REJECT — isOwner + hasCredit → triage_pending (from cancelled)', () => {
+  const r = tryTransition('cancelled', event('T3_RESUBMIT_AFTER_REJECT', {
+    creditBalance: 1,
+  }))
+  assert.ok(r)
+  assert.equal(r!.to, 'triage_pending')
+})
+
+// ============================================================
+// Nhóm B: Guard fail — transition bị chặn
+// ============================================================
+
+test('T5_ACCEPT — guard fail khi hasCredit=0 (fix #9)', () => {
+  const r = tryTransition('triage_pending', adminEvent('T5_ACCEPT', {
+    creditBalance: 0,
+    lockedPrice: 39000,
+  }))
+  assert.equal(r, null, 'should be blocked — no credit')
+})
+
+test('T5_ACCEPT — guard fail khi không phải admin', () => {
+  const r = tryTransition('triage_pending', event('T5_ACCEPT'))
+  assert.equal(r, null)
+})
+
+test('T12_REJECT — guard fail khi reason < 10 chars', () => {
+  const r = tryTransition('triage_pending', adminEvent('T12_REJECT', {
+    reason: 'ngắn',
+  }))
+  assert.equal(r, null)
+})
+
+test('T13_VETO — guard fail khi quá 48h', () => {
+  const r = tryTransition('assigned', adminEvent('T13_VETO', {
+    caseCreatedAt: new Date(Date.now() - 72 * 3600_000).toISOString(),
+  }))
+  assert.equal(r, null)
+})
+
+test('T14_COMPLETE — guard fail khi không phải assigned supporter (Q4)', () => {
+  const r = tryTransition('report_ready_to_publish', event('T14_COMPLETE'))
+  assert.equal(r, null)
+})
+
+test('T11_SUBMIT_OUTPUT — guard fail khi creditBalance=0 (fix #2)', () => {
+  const r = tryTransition('supporter_working', supporterEvent('T11_SUBMIT_OUTPUT', {
+    creditBalance: 0,
+  }))
+  assert.equal(r, null)
+})
+
+test('T3_RESUBMIT_AFTER_REJECT — guard fail khi creditBalance=0', () => {
+  const r = tryTransition('cancelled', event('T3_RESUBMIT_AFTER_REJECT', {
+    creditBalance: 0,
+  }))
+  assert.equal(r, null)
+})
+
+test('T15_CANCEL — guard fail khi không phải owner', () => {
+  const r = tryTransition('triage_pending', event('T15_CANCEL', {
+    actorId: 'other-user',
+  }))
+  assert.equal(r, null)
+})
+
+test('T16_EDIT_INTAKE — guard fail khi đã submitted (isBeforeSubmission=false)', () => {
+  const r = tryTransition('triage_pending', event('T16_EDIT_INTAKE', {
+    currentStage: 'submitted',
+  }))
+  assert.equal(r, null)
+})
+
+// ============================================================
+// Nhóm C: getAvailableTransitions
+// ============================================================
+
+test('getAvailableTransitions — triage_pending có 5 transition', () => {
+  const ts = getAvailableTransitions('triage_pending')
+  assert.ok(ts.includes('T2_SUBMIT_INTAKE'))
+  assert.ok(ts.includes('T5_ACCEPT'))
+  assert.ok(ts.includes('T16_EDIT_INTAKE'))
+  assert.ok(ts.includes('T12_REJECT'))
+  assert.ok(ts.includes('T15_CANCEL'))
+  assert.equal(ts.length, 5)
+})
+
+test('getAvailableTransitions — supporter_working có 5 transition', () => {
+  const ts = getAvailableTransitions('supporter_working')
+  assert.ok(ts.includes('T8_REQUEST_INFO'))
+  assert.ok(ts.includes('T10_START_REVIEW_REVISION'))
+  assert.ok(ts.includes('T11_SUBMIT_OUTPUT'))
+  assert.ok(ts.includes('T13_VETO'))
+  assert.ok(ts.includes('T15_CANCEL'))
+})
+
+test('getAvailableTransitions — done có T3+T4 (resubmit)', () => {
+  const ts = getAvailableTransitions('done')
+  assert.ok(ts.includes('T3_RESUBMIT_AFTER_REJECT'))
+  assert.ok(ts.includes('T4_RESUBMIT_AFTER_VETO'))
+})
+
+test('getAvailableTransitions — status không hợp lệ → []', () => {
+  assert.deepEqual(getAvailableTransitions('invalid'), [])
+  assert.deepEqual(getAvailableTransitions(''), [])
+})
+
+// ============================================================
+// Nhóm D: CORRUPT_STATE handling (F4)
+// ============================================================
+
+test('tryTransition — status không hợp lệ → throw CORRUPT_STATE', () => {
+  const ev = event('T15_CANCEL')
+  assert.throws(() => tryTransition('invalid_status', ev), /internal_status không hợp lệ/)
+  assert.throws(() => tryTransition('draft', ev), /internal_status không hợp lệ/)
+})
+
+test('isValidState — chỉ chấp nhận 8 states hợp lệ', () => {
+  assert.equal(isValidState('triage_pending'), true)
+  assert.equal(isValidState('done'), true)
+  assert.equal(isValidState('invalid'), false)
+  assert.equal(isValidState('draft'), false)
+})
+
+// ============================================================
+// Nhóm E: Properties
+// ============================================================
+
+test('isBlockedTransition — mọi transition active (chốt 2026-08-09)', () => {
+  for (const t of ALL_TRANSITIONS) {
+    assert.equal(isBlockedTransition(t), false, `${t} should not be blocked`)
+  }
+})
+
+test('VALID_STATES — 8 states', () => {
+  assert.equal(VALID_STATES.length, 8)
+  for (const s of VALID_STATES) {
+    assert.ok(isValidState(s))
+  }
+})
+
+test('Machine — 8 state nodes, 16 transitions total', () => {
+  const snapshots: TransitionName[] = []
+  for (const state of VALID_STATES) {
+    const ts = getAvailableTransitions(state)
+    ts.forEach(t => snapshots.push(t))
+  }
+  assert.equal(snapshots.length, 23, '23 transition edges across 8 states')
+})
+
+test('Free case (lockedPrice=0) — hasCredit guard tự skip (Amendment #6)', () => {
+  const r = tryTransition('triage_pending', adminEvent('T5_ACCEPT', {
+    creditBalance: 0,
+    lockedPrice: 0,
+  }))
+  assert.ok(r, 'free case should pass hasCredit guard')
+  assert.equal(r!.to, 'accepted_unassigned')
+})
+
+// ============================================================
+// Nhóm F: Self-loop transitions (Amendment #1)
+// ============================================================
+
+test('T2_SUBMIT_INTAKE — self-loop: state unchanged, has actions', () => {
+  const r = tryTransition('triage_pending', event('T2_SUBMIT_INTAKE'))
+  assert.equal(r!.to, 'triage_pending')
+  assert.ok(r!.actions.length > 0, 'self-loop should have actions')
+})
+
+test('T10_START_REVIEW_REVISION — self-loop: state unchanged, has notifyUser', () => {
+  const r = tryTransition('supporter_working', supporterEvent('T10_START_REVIEW_REVISION'))
+  assert.equal(r!.to, 'supporter_working')
+  assert.ok(r!.actions.length > 0)
+})
+
+test('T16_EDIT_INTAKE — self-loop: state unchanged, has upsertDoc', () => {
+  const r = tryTransition('triage_pending', event('T16_EDIT_INTAKE', {
+    currentStage: 'intake_pending',
+  }))
+  assert.equal(r!.to, 'triage_pending')
+  assert.ok(r!.actions.some(a => a.type === 'upsertDoc'))
+})
+
+// ============================================================
+// Nhóm G: Invalid transition from a state (not defined in machine)
+// ============================================================
+
+test('T7_START_WORK — from triage_pending → null (not defined)', () => {
+  const r = tryTransition('triage_pending', supporterEvent('T7_START_WORK'))
+  assert.equal(r, null)
+})
+
+test('T9_SUBMIT_REVISION — from triage_pending → null (not defined)', () => {
+  const r = tryTransition('triage_pending', event('T9_SUBMIT_REVISION'))
+  assert.equal(r, null)
+})
+
+test('T1_CREATE_CASE — from done → null (not defined)', () => {
+  const r = tryTransition('done', event('T1_CREATE_CASE'))
+  assert.equal(r, null)
+})

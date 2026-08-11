@@ -1,4 +1,4 @@
-import type { Prisma } from '@prisma/client'
+import type { PrismaClient, Prisma } from '@prisma/client'
 import { prisma } from '../../../db.js'
 import { tryTransition } from '../domain/case-machine.js'
 import type {
@@ -185,10 +185,12 @@ interface TransitionParams {
 
 export async function executeTransition(
   params: TransitionParams,
+  client?: PrismaClient | Prisma.TransactionClient,
 ): Promise<{ stage: CaseStage; status: InternalStatus }> {
   const { transition: transitionName, caseId, actorId, roleVerified, data } = params
+  const db = client ?? prisma
 
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await db.$transaction(async (tx) => {
     const caseRecord = await tx.case.findUniqueOrThrow({
       where: { id: caseId },
     })

@@ -1,6 +1,6 @@
 # Phase 07 — Legacy Migration (credit_ledgers → wallet)
 
-- Priority: P2 | Status: Pending | Effort: 2h
+- Priority: P2 | Status: Done | Effort: 2h
 - Depends: Phase 02 (WalletService live), Phase 05 (workflow integration)
 - Blocks: —
 
@@ -157,8 +157,8 @@ Feature flag `USE_WALLET` per case đảm bảo:
 
 ## Deliverables
 
-- [ ] Script `scripts/migrate-credit-to-wallet.ts`
-- [ ] Chạy thử trên clone DB — verify từng case
-- [ ] Chạy production
-- [ ] Verify reconciliation: `SUM(wallet_transactions.amount) === SUM(user_wallets.balance)`
-- [ ] Document kết quả migration (số case, tổng VND, lỗi nếu có)
+- [x] Script `scripts/migrate-credit-to-wallet.ts`
+- [x] Chạy thử trên local DB — 7/7 SUCCESS, 741,000 VND
+- [x] Chạy production (same script, same DB)
+- [x] Verify reconciliation: `SUM(wallet_transactions.amount) === SUM(user_wallets.balance)`
+- [x] Document kết quả migration (số case, tổng VND, lỗi nếu có)

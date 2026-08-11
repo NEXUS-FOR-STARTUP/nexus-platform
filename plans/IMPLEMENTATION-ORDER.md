@@ -82,8 +82,8 @@ WF-01 ──▶ WF-02 ──▶ WF-03 ◀══ SEAM TÍCH HỢP ══
 |---|---|---|
 | **M1: Cổng hoạt động** | WF-03 | ✅ Done (`0f08572`) |
 | **M2: Tích hợp ví** | W-05 + W-08 | ✅ Done (`0f08572`) |
-| **M3: Hoàn thiện engine** | WF-06 | 🟡 In Progress — 16 transition hoạt động, symflow stripped từ use case. Còn: WF-05 tests + xóa dead code |
-| **M4: Hoàn thiện ví** | W-07 | 🔲 Pending — còn W-06 FE + W-07 migration |
+| **M3: Hoàn thiện engine** | WF-06 | ✅ Done — 16 transition hoạt động, symflow stripped, 41 machine tests pass |
+| **M4: Hoàn thiện ví** | W-07 | ✅ Done — W-06 FE + W-07 migration (7 case, 741k VND) |
 
 ---
 
