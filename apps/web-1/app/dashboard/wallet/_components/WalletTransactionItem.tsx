@@ -22,7 +22,7 @@ interface TransactionItem {
   id: string;
   type: string;
   amount: number;
-  balanceAfter: number;
+  balanceAfter?: number;
   createdAt: string;
 }
 
@@ -44,7 +44,7 @@ export function WalletTransactionItem({ transaction }: { transaction: Transactio
             </Text>
           </Group>
           <Text size="xs" c="dimmed">
-            Số dư: {transaction.balanceAfter.toLocaleString("vi-VN")} VND
+            Số dư: {transaction.balanceAfter != null ? `${transaction.balanceAfter.toLocaleString("vi-VN")} VND` : "—"}
           </Text>
         </Stack>
         <Text size="sm" fw={600} c={isPositive ? "green" : "red"} className="shrink-0">
