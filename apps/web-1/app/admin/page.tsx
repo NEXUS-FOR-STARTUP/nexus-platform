@@ -2,11 +2,11 @@
 
 import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useAdminPayments } from "./hooks/useAdminPayments";
+import { useAdminDeposits } from "./hooks/useAdminDeposits";
 import { useAdminCases } from "./hooks/useAdminCases";
 import { useAdminDocuments } from "./hooks/useAdminDocuments";
 import { useAdminPackages } from "./hooks/useAdminPackages";
-import AdminPaymentVerificationTable from "./_components/AdminPaymentVerificationTable";
+import AdminDepositVerificationTable from "./_components/AdminDepositVerificationTable";
 import AdminCaseAssignmentTable from "./_components/AdminCaseAssignmentTable";
 import AdminDocumentsTable from "./_components/AdminDocumentsTable";
 import AdminPackagesSettings from "./_components/AdminPackagesSettings";
@@ -31,11 +31,11 @@ export default function AdminHubPage() {
 function AdminHubPageInner() {
   const searchParams = useSearchParams();
   const {
-    payments,
+    deposits,
     isLoading: isPaymentsLoading,
-    verifyPayment,
+    verifyDeposit,
     isVerifying,
-  } = useAdminPayments();
+  } = useAdminDeposits();
 
   const {
     cases,
@@ -71,8 +71,8 @@ function AdminHubPageInner() {
   const statsQuery = useAdminStats(statsPeriod);
 
   // Modal control states
-  const [rejectingPaymentId, setRejectingPaymentId] = useState<string | null>(null);
-  const [approvingPaymentId, setApprovingPaymentId] = useState<string | null>(null);
+  const [rejectingDepositId, setRejectingDepositId] = useState<string | null>(null);
+  const [approvingDepositId, setApprovingDepositId] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages" | "stats">("stats");
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
   const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "unassigned" | "assigned" | "crud">("all");
@@ -84,50 +84,50 @@ function AdminHubPageInner() {
     }
   }, [searchParams]);
 
-  const handleApproveClick = (paymentId: string) => {
-    setApprovingPaymentId(paymentId);
+  const handleApproveClick = (depositId: string) => {
+    setApprovingDepositId(depositId);
   };
 
-  const handleConfirmApprove = async (paymentId: string) => {
+  const handleConfirmApprove = async (depositId: string) => {
     try {
-      await verifyPayment({ paymentId, status: "paid" });
+      await verifyDeposit({ depositId, status: "verified" });
       notifications.show({
-        title: "Duyệt thanh toán thành công",
-        message: "Đã duyệt thanh toán thành công!",
+        title: "Duyệt nạp tiền thành công",
+        message: "Đã duyệt nạp tiền thành công!",
         color: "green",
       });
     } catch (e: any) {
       notifications.show({
         title: "Lỗi",
-        message: e?.response?.data?.message || "Gặp lỗi khi duyệt thanh toán.",
+        message: e?.response?.data?.message || "Gặp lỗi khi duyệt nạp tiền.",
         color: "red",
       });
       throw e;
     }
   };
 
-  const handleRejectClick = (paymentId: string) => {
-    setRejectingPaymentId(paymentId);
+  const handleRejectClick = (depositId: string) => {
+    setRejectingDepositId(depositId);
   };
 
   const handleConfirmReject = async (reason: string) => {
-    if (!rejectingPaymentId) return;
+    if (!rejectingDepositId) return;
     try {
-      await verifyPayment({
-        paymentId: rejectingPaymentId,
+      await verifyDeposit({
+        depositId: rejectingDepositId,
         status: "rejected",
         rejectionReason: reason,
       });
-      setRejectingPaymentId(null);
+      setRejectingDepositId(null);
       notifications.show({
-        title: "Đã từ chối thanh toán",
-        message: "Đã từ chối minh chứng thanh toán và gửi lý do cho sinh viên.",
+        title: "Đã từ chối nạp tiền",
+        message: "Đã từ chối minh chứng nạp tiền và gửi lý do cho sinh viên.",
         color: "green",
       });
     } catch (e) {
       notifications.show({
         title: "Lỗi",
-        message: "Gặp lỗi khi thực hiện từ chối thanh toán.",
+        message: "Gặp lỗi khi thực hiện từ chối nạp tiền.",
         color: "red",
       });
     }
@@ -239,15 +239,15 @@ function AdminHubPageInner() {
 
   const isLoading = isPaymentsLoading || isCasesLoading || isSupportersLoading || isDocsLoading || isPackagesLoading;
 
-  const pendingPaymentsCount = payments.filter((p) => p.status === "pending_verification").length;
+  const pendingPaymentsCount = deposits.filter((d) => d.status === "pending").length;
   const unassignedCasesCount = cases.filter((c) => c.internal_status === "triage_pending" || c.internal_status === "accepted_unassigned").length;
 
-  const filteredPayments = React.useMemo(() => {
+  const filteredDeposits = React.useMemo(() => {
     if (paymentFilter === "pending") {
-      return payments.filter((p) => p.status === "pending_verification");
+      return deposits.filter((d) => d.status === "pending");
     }
-    return payments.filter((p) => p.status !== "pending_verification");
-  }, [payments, paymentFilter]);
+    return deposits.filter((d) => d.status !== "pending");
+  }, [deposits, paymentFilter]);
 
   const filteredCases = React.useMemo(() => {
     if (caseFilter === "crud") {
@@ -577,8 +577,8 @@ function AdminHubPageInner() {
               </div>
             ) : activeSection === "payments" ? (
               <div>
-                <AdminPaymentVerificationTable
-                  payments={filteredPayments}
+                <AdminDepositVerificationTable
+                  deposits={filteredDeposits}
                   onApprove={handleApproveClick}
                   onReject={handleRejectClick}
                 />
@@ -624,16 +624,16 @@ function AdminHubPageInner() {
 
       {/* 4. Rejection Reason Modal */}
       <RejectionReasonModal
-        isOpen={rejectingPaymentId !== null}
-        onClose={() => setRejectingPaymentId(null)}
+        isOpen={rejectingDepositId !== null}
+        onClose={() => setRejectingDepositId(null)}
         onConfirm={handleConfirmReject}
         isSubmitting={isVerifying}
       />
 
-      {/* 5. Approve Payment Modal */}
+      {/* 5. Approve Deposit Modal */}
       <ApprovePaymentModal
-        paymentId={approvingPaymentId}
-        onClose={() => setApprovingPaymentId(null)}
+        paymentId={approvingDepositId}
+        onClose={() => setApprovingDepositId(null)}
         onConfirm={handleConfirmApprove}
       />
     </div>

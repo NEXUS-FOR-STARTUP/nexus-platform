@@ -2,14 +2,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { notifications } from "@mantine/notifications";
 
-export interface TopupResult {
-  id: string;
+export interface DepositResult {
+  depositId: string;
   amount: number;
   transferContent: string;
   bankInfo: {
     bankName: string;
     accountNumber: string;
     accountName: string;
+    bankShortCode?: string;
+    qrUrl?: string;
   };
 }
 
@@ -45,16 +47,17 @@ export function useWalletHistory(limit = 20, offset = 0) {
   });
 }
 
-export function useCreateTopup() {
+export function useCreateDeposit() {
   const queryClient = useQueryClient();
 
-  return useMutation<TopupResult, { response?: { data?: { message?: string } } }, number>({
+  return useMutation<DepositResult, { response?: { data?: { message?: string } } }, number>({
     mutationFn: async (amount: number) => {
-      const response = await apiClient.post("/wallet/topups", { amount });
+      const response = await apiClient.post("/deposits", { amount });
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallet"] });
+      queryClient.invalidateQueries({ queryKey: ["deposits"] });
     },
     onError: (error) => {
       notifications.show({

@@ -8,6 +8,7 @@ const TYPE_LABELS: Record<string, string> = {
   refund: "Hoàn tiền",
   adjustment: "Điều chỉnh",
   migration: "Chuyển đổi",
+  service_payment: "Mua dịch vụ",
 };
 
 const TYPE_COLORS: Record<string, string> = {
@@ -16,6 +17,7 @@ const TYPE_COLORS: Record<string, string> = {
   refund: "blue",
   adjustment: "orange",
   migration: "orange",
+  service_payment: "orange",
 };
 
 interface TransactionItem {

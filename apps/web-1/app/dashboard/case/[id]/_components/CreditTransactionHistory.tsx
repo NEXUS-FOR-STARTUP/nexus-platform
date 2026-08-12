@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Clock, ArrowUpRight, ArrowDownRight, RotateCcw, Receipt, Loader2, XCircle, Calendar, CheckCircle2 } from "lucide-react";
-import { SegmentedControl } from "@mantine/core";
-import type { Payment } from "@/types/payment";
+import { Clock, ArrowUpRight, ArrowDownRight, RotateCcw, Loader2, Calendar, Receipt } from "lucide-react";
+import { SegmentedControl, Badge } from "@mantine/core";
+import type { Order } from "@/types/payment";
 
 interface CreditEntry {
   id: string;
@@ -16,7 +16,7 @@ interface CreditEntry {
 
 interface CreditTransactionHistoryProps {
   entries?: CreditEntry[];
-  payments?: Payment[];
+  orders?: Order[];
   pricePerCredit?: number;
   isLoading?: boolean;
 }
@@ -24,7 +24,7 @@ interface CreditTransactionHistoryProps {
 type DateFilter = "all" | "today" | "7days" | "30days";
 
 type UnifiedItem =
-  | { kind: "payment"; id: string; timestamp: number; created_at: string; data: Payment }
+  | { kind: "order"; id: string; timestamp: number; created_at: string; data: Order }
   | { kind: "ledger"; id: string; timestamp: number; created_at: string; data: CreditEntry };
 
 function formatDateHeader(dateStr: string) {
@@ -58,38 +58,28 @@ function formatVND(amount: number) {
   return amount.toLocaleString("vi-VN") + "đ";
 }
 
-function formatRefCode(ref?: string | null, payments?: Payment[]) {
-  if (!ref) return null;
-  const matched = payments?.find((p) => p.id === ref || p.bank_transaction_id === ref);
-  if (matched?.transfer_content) {
-    return matched.transfer_content;
-  }
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (uuidRegex.test(ref)) {
-    return `CR-${ref.substring(0, 8).toUpperCase()}`;
-  }
-  return ref;
+function getOrderItemSummary(order: Order): string {
+  if (!order.items || order.items.length === 0) return "Mua credit";
+  return order.items
+    .map((item) => `${item.service_type === "credit_audit" ? "Credit" : item.service_type} x${item.quantity}`)
+    .join(", ");
 }
 
-export default function CreditTransactionHistory({ entries, payments, pricePerCredit = 39000, isLoading }: CreditTransactionHistoryProps) {
+export default function CreditTransactionHistory({ entries, orders, pricePerCredit = 39000, isLoading }: CreditTransactionHistoryProps) {
   const [filter, setFilter] = useState<DateFilter>("all");
 
-  // Combine and sort all items
   const unifiedItems = useMemo(() => {
     const items: UnifiedItem[] = [];
 
-    // Filter pending or rejected payments that haven't produced credit entries yet
-    (payments || []).forEach((p) => {
-      if (p.status === "pending_verification" || p.status === "rejected") {
-        const d = new Date(p.created_at);
-        items.push({
-          kind: "payment",
-          id: `payment-${p.id}`,
-          timestamp: d.getTime(),
-          created_at: p.created_at,
-          data: p,
-        });
-      }
+    (orders || []).forEach((o) => {
+      const d = new Date(o.created_at);
+      items.push({
+        kind: "order",
+        id: `order-${o.id}`,
+        timestamp: d.getTime(),
+        created_at: o.created_at,
+        data: o,
+      });
     });
 
     (entries || []).forEach((e) => {
@@ -103,11 +93,9 @@ export default function CreditTransactionHistory({ entries, payments, pricePerCr
       });
     });
 
-    // Sort newest first
     return items.sort((a, b) => b.timestamp - a.timestamp);
-  }, [entries, payments]);
+  }, [entries, orders]);
 
-  // Apply Date Filter
   const filteredItems = useMemo(() => {
     if (filter === "all") return unifiedItems;
 
@@ -124,7 +112,6 @@ export default function CreditTransactionHistory({ entries, payments, pricePerCr
     });
   }, [unifiedItems, filter]);
 
-  // Group by Date
   const groupedItems = useMemo(() => {
     const groups: Array<{ dateHeader: string; items: UnifiedItem[] }> = [];
 
@@ -169,18 +156,16 @@ export default function CreditTransactionHistory({ entries, payments, pricePerCr
     );
   }
 
-  const effectiveUnitPrice = pricePerCredit > 0 ? pricePerCredit : 39000;
+  const effectiveUnitPrice = pricePerCredit && pricePerCredit > 0 ? pricePerCredit : 39000;
 
   return (
     <div className="bg-surface-app border border-border-app rounded-xl overflow-hidden shadow-xs">
-      {/* ── Header with Date Filter Bar ── */}
       <div className="px-5 py-3.5 border-b border-border-app flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-brand" />
           <h3 className="text-sm font-semibold text-text-app">Lịch sử giao dịch & Credit</h3>
         </div>
 
-        {/* Quick Date Filters */}
         <div className="flex items-center gap-2 self-stretch sm:self-auto">
           <SegmentedControl
             value={filter}
@@ -198,7 +183,6 @@ export default function CreditTransactionHistory({ entries, payments, pricePerCr
         </div>
       </div>
 
-      {/* ── Empty Filter State ── */}
       {filteredItems.length === 0 ? (
         <div className="p-8 text-center">
           <Calendar className="w-8 h-8 text-text-muted mx-auto mb-2 opacity-50" />
@@ -208,19 +192,17 @@ export default function CreditTransactionHistory({ entries, payments, pricePerCr
         <div className="divide-y divide-border-app">
           {groupedItems.map((group) => (
             <div key={group.dateHeader} className="space-y-0">
-              {/* Date Section Header */}
               <div className="bg-surface-soft/60 px-5 py-2 text-base font-semibold text-text-muted uppercase tracking-wider flex items-center gap-1.5 border-b border-border-app/50">
                 <Calendar className="w-3 h-3 text-text-muted shrink-0" />
                 <span>{group.dateHeader}</span>
               </div>
 
-              {/* Grouped Items */}
               <div className="divide-y divide-border-app/40">
                 {group.items.map((item) => {
-                  if (item.kind === "payment") {
-                    const payment = item.data;
-                    const isPending = payment.status === "pending_verification";
-                    const estCredits = Math.max(1, Math.round(payment.amount / effectiveUnitPrice));
+                  if (item.kind === "order") {
+                    const order = item.data;
+                    const isPending = order.status === "pending";
+                    const isPaid = order.status === "paid";
 
                     return (
                       <div
@@ -229,52 +211,47 @@ export default function CreditTransactionHistory({ entries, payments, pricePerCr
                       >
                         <div
                           className={`w-9 h-9 rounded-lg ${
-                            isPending ? "bg-warning-soft text-warning" : "bg-danger-soft text-danger"
+                            isPaid ? "bg-success-soft text-success" : "bg-warning-soft text-warning"
                           } flex items-center justify-center shrink-0`}
                         >
-                          {isPending ? (
-                            <Clock className="w-4 h-4 animate-pulse" />
+                          {isPaid ? (
+                            <Receipt className="w-4 h-4" />
                           ) : (
-                            <XCircle className="w-4 h-4" />
+                            <Clock className="w-4 h-4 animate-pulse" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-semibold text-text-app">Mua credit</p>
-                            <span
-                              className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
-                                isPending ? "bg-warning-soft text-warning border-warning/20" : "bg-danger-soft text-danger border-danger/20"
-                              }`}
+                            <Badge
+                              color={isPaid ? "green" : "yellow"}
+                              variant="light"
+                              size="sm"
+                              className="font-semibold"
                             >
-                              {isPending ? "Đang chờ Admin duyệt" : "Bị từ chối"}
-                            </span>
+                              {isPaid ? "Đã thanh toán" : "Đang xử lý"}
+                            </Badge>
                           </div>
                           <p className="text-base text-text-muted mt-0.5">
-                            {formatTimeOnly(payment.created_at)}
-                            {payment.transfer_content && ` • Nội dung: ${payment.transfer_content}`}
+                            {formatTimeOnly(order.created_at)}
+                            {" • "}
+                            {getOrderItemSummary(order)}
                           </p>
-                          {payment.rejection_reason && (
-                            <p className="text-base text-danger mt-1">Lý do từ chối: {payment.rejection_reason}</p>
-                          )}
                         </div>
                         <div className="text-right shrink-0">
                           <div className="flex items-center justify-end gap-1.5">
-                            <span className={`text-sm font-semibold ${isPending ? "text-warning" : "text-danger"}`}>
-                              +{estCredits} credit
-                            </span>
-                            <span className="text-xs font-semibold text-text-muted">
-                              ({formatVND(payment.amount)})
+                            <span className={`text-sm font-semibold ${isPaid ? "text-success" : "text-warning"}`}>
+                              {formatVND(order.total_amount)}
                             </span>
                           </div>
                           <p className="text-base text-text-muted mt-0.5">
-                            {isPending ? "Chờ xác nhận" : "Chưa hoàn tất"}
+                            {isPaid ? "Đã hoàn tất" : "Chờ xác nhận"}
                           </p>
                         </div>
                       </div>
                     );
                   }
 
-                  // Ledger Item (Success / Consumption / Refund)
                   const entry = item.data;
                   const isPositive = entry.amount > 0;
                   const absCredits = Math.abs(entry.amount);
@@ -320,7 +297,6 @@ export default function CreditTransactionHistory({ entries, payments, pricePerCr
                         </div>
                         <p className="text-base text-text-muted mt-0.5">
                           {formatTimeOnly(entry.created_at)}
-                          {entry.reference_id && ` • Nội dung: ${formatRefCode(entry.reference_id, payments)}`}
                         </p>
                       </div>
                       <div className="text-right shrink-0">

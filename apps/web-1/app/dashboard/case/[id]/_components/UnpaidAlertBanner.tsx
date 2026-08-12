@@ -5,22 +5,26 @@ import { Case } from "@/types";
 import { AlertCircle, CreditCard, Clock, XCircle } from "lucide-react";
 import { Button } from "@mantine/core";
 import { getCaseEffectivePrice } from "@/lib/pricing";
+import type { Order } from "@/types/payment";
 
 interface UnpaidAlertBannerProps {
   caseData: Case;
   onOpenPayment: () => void;
+  orders?: Order[];
 }
 
-export default function UnpaidAlertBanner({ caseData, onOpenPayment }: UnpaidAlertBannerProps) {
+export default function UnpaidAlertBanner({ caseData, onOpenPayment, orders }: UnpaidAlertBannerProps) {
   const effectivePrice = getCaseEffectivePrice(caseData);
   if (effectivePrice === 0) {
     return null;
   }
 
+  const shouldShowBanner = caseData.payment_status !== "paid" && (!orders || orders.length === 0);
+  if (!shouldShowBanner) return null;
+
   const { payment_status, payments } = caseData;
 
-  // Find the latest payment to get the rejection reason if applicable
-  const latestPayment = payments && payments.length > 0 
+  const latestPayment = payments && payments.length > 0
     ? [...payments].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
     : null;
 

@@ -1,6 +1,6 @@
 import { User } from "./user";
 import { ServicePackage } from "./package";
-import { Payment } from "./payment";
+import { Payment, Order } from "./payment";
 
 export interface Case {
   id: string;
@@ -33,6 +33,7 @@ export interface Case {
   lifecycle_units?: LifecycleUnit[];
   reports?: Report[];
   payments?: Payment[];
+  orders?: Order[];
   messages?: CaseMessage[];
   events?: CaseEvent[];
   team_fit_report?: TeamFitReport | null;

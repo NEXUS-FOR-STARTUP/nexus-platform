@@ -109,6 +109,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           <UnpaidAlertBanner
             caseData={caseData}
             onOpenPayment={() => router.push(`/dashboard/case/${id}/payment`)}
+            orders={caseData.orders}
           />
         )}
 
@@ -174,10 +175,9 @@ export default function CaseWorkspacePage({ params }: PageProps) {
             <CreditPanel
               creditBalance={creditBalance}
               creditLedger={creditLedger}
-              payments={caseData.payments}
+              orders={caseData.orders}
               packageName={packageName}
               pricePerCredit={pricePerCredit && pricePerCredit > 0 ? pricePerCredit : undefined}
-              paymentStatus={caseData.payment_status}
               onBuyCredits={() => setCreditBuyOpened(true)}
             />
           )}

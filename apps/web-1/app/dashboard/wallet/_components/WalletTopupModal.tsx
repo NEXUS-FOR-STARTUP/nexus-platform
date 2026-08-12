@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Modal, Button, NumberInput, Stack, Text, Group, CopyButton, ActionIcon } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { Copy, Check } from "lucide-react";
-import { useCreateTopup, type TopupResult } from "../hooks/useWallet";
+import { useCreateDeposit, type DepositResult } from "../hooks/useWallet";
 
 interface Props {
   opened: boolean;
@@ -13,14 +13,14 @@ interface Props {
 
 export function WalletTopupModal({ opened, onClose }: Props) {
   const [amount, setAmount] = useState<number>(50000);
-  const [topupResult, setTopupResult] = useState<TopupResult | null>(null);
-  const createTopup = useCreateTopup();
+  const [depositResult, setDepositResult] = useState<DepositResult | null>(null);
+  const createDeposit = useCreateDeposit();
 
   const handleCreate = () => {
     if (amount < 10000) return;
-    createTopup.mutate(amount, {
+    createDeposit.mutate(amount, {
       onSuccess: (result) => {
-        setTopupResult(result);
+        setDepositResult(result);
         notifications.show({
           title: "Tạo mã nạp tiền thành công",
           message: "Vui lòng chuyển khoản với nội dung bên dưới",
@@ -31,8 +31,8 @@ export function WalletTopupModal({ opened, onClose }: Props) {
   };
 
   const handleCloseAndReset = () => {
-    createTopup.reset();
-    setTopupResult(null);
+    createDeposit.reset();
+    setDepositResult(null);
     setAmount(50000);
     onClose();
   };
@@ -46,7 +46,7 @@ export function WalletTopupModal({ opened, onClose }: Props) {
       radius="md"
       centered
     >
-      {!topupResult ? (
+      {!depositResult ? (
         <Stack gap="md">
           <NumberInput
             label="Số tiền (VND)"
@@ -65,16 +65,16 @@ export function WalletTopupModal({ opened, onClose }: Props) {
             </Button>
             <Button
               onClick={handleCreate}
-              loading={createTopup.isPending}
-              disabled={amount < 10000 || createTopup.isPending}
+              loading={createDeposit.isPending}
+              disabled={amount < 10000 || createDeposit.isPending}
             >
               Tạo mã nạp tiền
             </Button>
           </Group>
 
-          {createTopup.isError && (
+          {createDeposit.isError && (
             <Text c="red" size="xs">
-              {(createTopup.error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Đã xảy ra lỗi."}
+              {(createDeposit.error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Đã xảy ra lỗi."}
             </Text>
           )}
         </Stack>
@@ -84,20 +84,20 @@ export function WalletTopupModal({ opened, onClose }: Props) {
             <div className="flex justify-between text-sm">
               <span className="text-text-muted">Số tiền</span>
               <span className="font-semibold">
-                {topupResult.amount.toLocaleString("vi-VN")} VND
+                {depositResult.amount.toLocaleString("vi-VN")} VND
               </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-text-muted">Ngân hàng</span>
-              <span className="font-semibold">{topupResult.bankInfo.bankName}</span>
+              <span className="font-semibold">{depositResult.bankInfo.bankName}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-text-muted">Số tài khoản</span>
-              <span className="font-semibold">{topupResult.bankInfo.accountNumber}</span>
+              <span className="font-semibold">{depositResult.bankInfo.accountNumber}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-text-muted">Chủ tài khoản</span>
-              <span className="font-semibold">{topupResult.bankInfo.accountName}</span>
+              <span className="font-semibold">{depositResult.bankInfo.accountName}</span>
             </div>
             <div className="border-t border-border-app pt-2">
               <Text size="xs" c="dimmed" mb={4}>
@@ -105,9 +105,9 @@ export function WalletTopupModal({ opened, onClose }: Props) {
               </Text>
               <Group gap="xs">
                 <Text size="sm" fw={700} ff="monospace">
-                  {topupResult.transferContent}
+                  {depositResult.transferContent}
                 </Text>
-                <CopyButton value={topupResult.transferContent}>
+                <CopyButton value={depositResult.transferContent}>
                   {({ copied, copy }) => (
                     <ActionIcon
                       color={copied ? "teal" : "gray"}

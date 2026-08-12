@@ -3,11 +3,9 @@
 import React, { useState } from "react";
 import { Modal, Button, NumberInput, Stack, Text, Group } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
-
-const CREDIT_PRICE = 39000;
 
 interface CreditQuantityModalProps {
   caseId: string;
@@ -20,6 +18,16 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
   const router = useRouter();
   const [quantity, setQuantity] = useState<number>(1);
 
+  const effectivePackageId = packageId || "pkg_tf_audit";
+
+  const { data: pkg } = useQuery({
+    queryKey: ["package", "price", effectivePackageId],
+    queryFn: () => apiClient.get(`/packages/${effectivePackageId}`).then((r) => r.data),
+    enabled: opened && !!effectivePackageId,
+  });
+
+  const unitPrice = pkg?.price ?? 0;
+
   const mutation = useMutation({
     mutationFn: async () => {
       if (packageId === "pkg_tf_free") {
@@ -27,20 +35,25 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
           packageId: "pkg_tf_audit",
         });
       }
-      const res = await apiClient.post("/payments", {
-        caseId,
-        amount: quantity * CREDIT_PRICE,
-        metadata_json: { quantity },
+      const res = await apiClient.post("/orders", {
+        items: [
+          {
+            service_type: "credit_audit",
+            quantity,
+            metadata_json: { case_id: caseId },
+          },
+        ],
       });
       return res.data;
     },
     onSuccess: (data) => {
       notifications.show({
         title: "Tạo đơn hàng thành công",
-        message: "Đang chuyển đến trang thanh toán...",
+        message: `Đơn hàng #${data.orderId} đã được tạo.`,
         color: "teal",
       });
-      router.push(`/dashboard/payment?pid=${data.paymentId}`);
+      router.refresh();
+      handleClose();
     },
     onError: (error: any) => {
       notifications.show({
@@ -84,7 +97,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
         <div className="bg-surface-soft rounded-lg p-4 space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-text-muted">Đơn giá</span>
-            <span className="font-semibold">{CREDIT_PRICE.toLocaleString("vi-VN")}₫</span>
+            <span className="font-semibold">{unitPrice.toLocaleString("vi-VN")}₫</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-text-muted">Số lượng</span>
@@ -93,7 +106,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
           <div className="border-t border-border-app pt-2 flex justify-between">
             <span className="font-semibold">Tổng cộng</span>
             <span className="font-semibold text-brand">
-              {(quantity * CREDIT_PRICE).toLocaleString("vi-VN")}₫
+              {(quantity * unitPrice).toLocaleString("vi-VN")}₫
             </span>
           </div>
         </div>
