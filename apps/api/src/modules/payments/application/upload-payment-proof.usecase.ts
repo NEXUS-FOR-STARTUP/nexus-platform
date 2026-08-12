@@ -1,3 +1,8 @@
+/**
+ * @deprecated Replaced by deposits/orders modules (2026-08-12).
+ * Kept for reference. Routes return 410 Gone.
+ */
+
 import { AppError } from "../../../shared/domain/app-error.js";
 import { fileStorageService } from "../infrastructure/file-storage.service.js";
 import { submitPaymentProof } from "../infrastructure/persistence/payment.repository.js";

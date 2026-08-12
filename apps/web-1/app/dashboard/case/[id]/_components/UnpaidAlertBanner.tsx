@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * @deprecated Replaced by orders module (2026-08-12).
+ * Kept for reference. Will be removed in next release.
+ * Currently conditionally shown via the gate added in T07.4.
+ */
+
 import React from "react";
 import { Case } from "@/types";
 import { AlertCircle, CreditCard, Clock, XCircle } from "lucide-react";

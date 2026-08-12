@@ -3,6 +3,7 @@ import { AppError } from "../../../shared/domain/app-error.js";
 import { createDeposit } from "../infrastructure/persistence/deposit.repository.js";
 import { getDepositBankInfo } from "../../payments/domain/bank-info.js";
 import logger from "../../../shared/infrastructure/logger.js";
+import { prisma } from "../../../db.js";
 import type { CreateDepositResponse } from "./deposits.dto.js";
 
 const DEPOSIT_PREFIX = "CRTOPUP";
@@ -29,6 +30,18 @@ export async function createDepositUseCase(
     idempotencyKey,
     metadataJson: { prefix: DEPOSIT_PREFIX },
   });
+
+  if (process.env["DUAL_WRITE_WALLET_TOPUP"] === "true") {
+    await prisma.walletTopup.create({
+      data: {
+        user_id: userId,
+        amount,
+        transfer_content: transferContent,
+        status: "pending",
+        currency: "VND",
+      },
+    });
+  }
 
   const bankInfo = getDepositBankInfo(transferContent, amount);
 

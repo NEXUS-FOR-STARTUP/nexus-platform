@@ -215,6 +215,7 @@ model WalletTransaction {
   @@map("wallet_transactions")
 }
 
+/// @deprecated Replaced by deposits table. Read-only, will be archived.
 model WalletTopup {
   id                    String    @id @default(uuid())
   user_id               String
@@ -490,6 +491,7 @@ model Report {
   @@map("reports")
 }
 
+/// @deprecated Replaced by deposits (wallet top-up) and orders (purchase). Read-only, will be archived.
 model Payment {
   id                       String    @id @default(uuid())
   case_id                  String

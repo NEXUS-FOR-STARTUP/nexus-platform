@@ -1,3 +1,8 @@
+/**
+ * @deprecated Replaced by deposits/orders modules (2026-08-12).
+ * Kept for reference. Routes return 410 Gone.
+ */
+
 import crypto from "node:crypto";
 import { AppError } from "../../../shared/domain/app-error.js";
 import { findPaymentById as defaultFindPaymentById } from "../infrastructure/persistence/payment.repository.js";

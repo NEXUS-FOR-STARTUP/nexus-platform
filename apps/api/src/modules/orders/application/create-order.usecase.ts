@@ -101,6 +101,25 @@ export async function createOrderUseCase(
         include: { items: true },
       });
 
+      if (process.env["DUAL_WRITE_PAYMENT"] === "true") {
+        const creditItem = request.items.find((i) => i.service_type === "credit_audit");
+        if (creditItem?.metadata_json?.["case_id"]) {
+          await tx.payment.create({
+            data: {
+              case_id: creditItem.metadata_json["case_id"] as string,
+              amount: totalAmount,
+              status: "paid",
+              verified_by_auth_user_id: "system",
+              verification_source: "auto",
+              verified_at: new Date(),
+              type: "deposit",
+              transfer_content: idempotencyKey,
+              currency: "VND",
+            },
+          });
+        }
+      }
+
       await walletService.withdraw(userId, totalAmount, idempotencyKey, {
         referenceType: "order",
         referenceId: order.id,

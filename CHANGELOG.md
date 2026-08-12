@@ -8,10 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Financial domain refactor: deposits module (POST /api/deposits, POST /api/deposits/:id/verify)
+- Financial domain refactor: orders module (POST /api/orders)
+- Legacy dual-write feature flags: DUAL_WRITE_WALLET_TOPUP, DUAL_WRITE_PAYMENT
+- docs/financial-domain-migration-sql.md — migration SQL for production deployment
 
 ### Changed
+- POST /api/wallet/topups → 410 Gone (use POST /api/deposits)
+- POST /api/payments → 410 Gone (use POST /api/deposits or POST /api/orders)
+- GET /api/payments, GET /api/payments/my, GET /api/payments/:id → 410 Gone (use /api/deposits)
+- POST /api/payments/proof, POST /api/payments/:id/verify → 410 Gone
+- WalletTopup, Payment models marked @deprecated in schema
+- Payment, WalletTopup use cases marked @deprecated
 
-### Fixed
+### Removed
+- Legacy payment routes (6 endpoints) returning 410 Gone
 
 ## [1.1.0] - 2026-08-09
 

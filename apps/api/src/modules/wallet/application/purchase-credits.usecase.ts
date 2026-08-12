@@ -1,3 +1,8 @@
+/**
+ * @deprecated Replaced by deposits/orders modules (2026-08-12).
+ * Kept for reference. Routes return 410 Gone.
+ */
+
 import { prisma } from '../../../db.js'
 import { walletService } from './wallet.service.js'
 import { AppError } from '../../../shared/domain/app-error.js'

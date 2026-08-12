@@ -59,6 +59,13 @@ export async function verifyDepositUseCase(
     });
   });
 
+  if (process.env["DUAL_WRITE_WALLET_TOPUP"] === "true") {
+    await prisma.walletTopup.updateMany({
+      where: { transfer_content: deposit.transfer_content, status: "pending" },
+      data: { status: "completed", verified_by: "auto", verification_source: "auto" },
+    });
+  }
+
   logger.info({ depositId, userId: deposit.user_id, status, verifier: adminId }, "deposit verified");
 
   return { success: true, status };
