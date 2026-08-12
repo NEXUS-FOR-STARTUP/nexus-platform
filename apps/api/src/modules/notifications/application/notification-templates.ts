@@ -95,6 +95,31 @@ const TEMPLATES: Record<string, Template> = {
     studentBody: (p) => `Case ${p.caseCode} cần bổ sung: ${p.query}`,
     studentLink: (p) => `/dashboard/case/${p.caseId}`,
   },
+  "deposit.verified": {
+    title: "Nạp tiền thành công",
+    studentBody: (p: any) => `+${p.amount.toLocaleString("vi-VN")}₫ đã vào ví của bạn`,
+    studentLink: (p: any) => `/dashboard/wallet`,
+  },
+  "deposit.rejected": {
+    title: "Nạp tiền bị từ chối",
+    studentBody: (p: any) => `Giao dịch ${p.amount.toLocaleString("vi-VN")}₫ không được duyệt`,
+    studentLink: (p: any) => `/dashboard/wallet`,
+  },
+  "order.paid": {
+    title: "Mua credit thành công",
+    studentBody: (p: any) => `Đã mua ${p.totalCredits || 0} credit. Tổng: ${(p.totalAmount || 0).toLocaleString("vi-VN")}₫`,
+    studentLink: (p: any) => `/dashboard/wallet`,
+  },
+  "order.refunded": {
+    title: "Hoàn tiền credit",
+    studentBody: (p: any) => `Đã hoàn ${p.amount.toLocaleString("vi-VN")}₫ vào ví`,
+    studentLink: (p: any) => `/dashboard/wallet`,
+  },
+  "wallet.balance_changed": {
+    title: "",
+    studentBody: null as any,
+    studentLink: null as any,
+  },
 };
 
 export function renderTemplate(

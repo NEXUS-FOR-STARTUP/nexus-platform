@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { AppError } from "../../../shared/domain/app-error.js";
 import { findCaseByIdWithMembers as defaultFindCaseByIdWithMembers } from "../../cases/infrastructure/persistence/case.repository.js";
 import { createUnpaidPayment as defaultCreateUnpaidPayment } from "../infrastructure/persistence/payment.repository.js";
+import { getBankInfo } from "../domain/bank-info.js";
 import logger from "../../../shared/infrastructure/logger.js";
 import type { CreatePaymentRequest, CreatePaymentResponse } from "./payments.dto.js";
 
@@ -23,22 +24,6 @@ function generateTransferContent(caseCode: string): string {
   const suffix = crypto.randomBytes(2).toString("hex").toUpperCase(); // 4 uppercase hex chars
   const clean = caseCode.replace(/[^a-zA-Z0-9]/g, "");
   return `${SERVICE_PREFIX}${clean.toUpperCase()}${suffix}`;
-}
-
-function getBankInfo(transferContent: string, amount: number) {
-  const bankShortCode = process.env["BANK_SHORT_CODE"] || "MB";
-  const accountNumber = process.env["BANK_ACCOUNT_NUMBER"] || "0909090909";
-  const accountName = process.env["BANK_ACCOUNT_NAME"] || "NEXUS PLATFORM";
-  const bankName = process.env["BANK_NAME"] || "MB Bank (Ngân hàng Quân Đội)";
-  const qrUrl = `https://vietqr.app/img?acc=${accountNumber}&bank=${bankShortCode}&amount=${amount}&des=${encodeURIComponent(transferContent)}&template=compact`;
-  return {
-    bankName,
-    bankShortCode,
-    accountNumber,
-    accountName,
-    transferContent,
-    qrUrl,
-  };
 }
 
 export async function createPaymentUseCase(

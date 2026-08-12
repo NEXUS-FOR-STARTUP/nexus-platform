@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { AppError } from "../../../shared/domain/app-error.js";
 import { findPaymentById as defaultFindPaymentById } from "../infrastructure/persistence/payment.repository.js";
+import { getBankInfo } from "../domain/bank-info.js";
 import type { GetPaymentResponse } from "./payments.dto.js";
 
 type GetPaymentDeps = {
@@ -10,22 +11,6 @@ type GetPaymentDeps = {
 const defaultDeps = {
   findPaymentById: defaultFindPaymentById,
 };
-
-function getBankInfo(transferContent: string, amount: number) {
-  const bankShortCode = process.env["BANK_SHORT_CODE"] || "MB";
-  const accountNumber = process.env["BANK_ACCOUNT_NUMBER"] || "0909090909";
-  const accountName = process.env["BANK_ACCOUNT_NAME"] || "NEXUS PLATFORM";
-  const bankName = process.env["BANK_NAME"] || "MB Bank (Ngân hàng Quân Đội)";
-  const qrUrl = `https://vietqr.app/img?acc=${accountNumber}&bank=${bankShortCode}&amount=${amount}&des=${encodeURIComponent(transferContent)}&template=compact`;
-  return {
-    bankName,
-    bankShortCode,
-    accountNumber,
-    accountName,
-    transferContent,
-    qrUrl,
-  };
-}
 
 export async function getPaymentUseCase(
   userId: string,

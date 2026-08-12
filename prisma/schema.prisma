@@ -45,6 +45,8 @@ model User {
   notifications          Notification[]
   wallet                 UserWallet?
   wallet_topups          WalletTopup[]
+  deposits               Deposit[]
+  orders                 Order[]
 
   @@unique([email])
   @@unique([username])
@@ -148,6 +150,7 @@ enum WalletTxType {
   refund
   adjustment
   migration
+  service_payment
 }
 
 model ServiceType {
@@ -202,6 +205,8 @@ model WalletTransaction {
   balance_after    Int
   source_type      String
   source_id        String?
+  reference_type   String?
+  reference_id     String?
   idempotency_key  String         @unique
   metadata_json    Json?
   created_at       DateTime       @default(now())
@@ -225,6 +230,81 @@ model WalletTopup {
   updated_at            DateTime  @updatedAt
 
   @@map("wallet_topups")
+}
+
+model Deposit {
+  id                    String              @id @default(uuid())
+  user_id               String
+  user                  User                @relation(fields: [user_id], references: [id])
+  amount                Int
+  currency              String              @default("VND")
+  transfer_content      String              @unique
+  idempotency_key       String              @unique
+  status                String              @default("pending")
+  proof_file_url        String?
+  rejection_reason      String?
+  bank_transaction_id   String?
+  bank_credited_at      DateTime?
+  verified_by           String?
+  verification_source   VerificationSource  @default(manual)
+  metadata_json         Json?
+  created_at            DateTime            @default(now())
+  updated_at            DateTime            @updatedAt
+
+  @@index([user_id, created_at])
+  @@index([status, created_at])
+  @@map("deposits")
+}
+
+model Order {
+  id                     String    @id @default(uuid())
+  user_id                String
+  user                   User      @relation(fields: [user_id], references: [id])
+  total_amount           Int
+  currency               String    @default("VND")
+  status                 String    @default("pending")
+  idempotency_key        String    @unique
+  wallet_transaction_id  String?
+  metadata_json          Json?
+  created_at             DateTime  @default(now())
+  updated_at             DateTime  @updatedAt
+
+  items OrderItem[]
+
+  @@index([user_id, created_at])
+  @@map("orders")
+}
+
+model OrderItem {
+  id            String   @id @default(uuid())
+  order_id      String
+  order         Order    @relation(fields: [order_id], references: [id])
+  service_type  String
+  quantity      Int
+  unit_price    Int
+  amount        Int
+  metadata_json Json?
+  created_at    DateTime @default(now())
+
+  @@map("order_items")
+}
+
+model DomainEventOutbox {
+  id             Int       @id @default(autoincrement())
+  event_type     String
+  payload_json   Json
+  status         String    @default("pending")
+  attempts       Int       @default(0)
+  processing_at  DateTime?
+  next_retry_at  DateTime?
+  sent_at        DateTime?
+  last_error     String?
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+
+  @@index([status, next_retry_at])
+  @@index([status, created_at])
+  @@map("domain_event_outbox")
 }
 
 model Case {
@@ -430,6 +510,7 @@ model Payment {
   payer_auth_user_id        String?
   currency                  String     @default("VND")
   payment_method            String     @default("bank_transfer")
+  type                      String?    @default("purchase")
 
   case        Case           @relation(fields: [case_id], references: [id], onDelete: Cascade)
   package     ServicePackage? @relation(fields: [package_id], references: [id])
@@ -526,6 +607,7 @@ model CreditLedger {
   amount          Int
   balance_after   Int
   type            String
+  reference_type   String?
   reference_id    String?
   idempotency_key String   @unique
   metadata_json   Json?

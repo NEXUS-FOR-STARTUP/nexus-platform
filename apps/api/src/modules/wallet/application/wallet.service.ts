@@ -1,5 +1,7 @@
 import { prisma } from '../../../db.js'
 import type { Prisma } from '@prisma/client'
+import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
+import { insertOutboxEvent } from "../../../shared/infrastructure/persistence/outbox.repository.js";
 import {
   getWalletForUpdate,
   createTransaction,
@@ -43,12 +45,24 @@ export class WalletService {
         amount: amountVnd,
         balanceBefore,
         balanceAfter,
-        sourceType,
-        sourceId,
+        referenceType: sourceType,
+        referenceId: sourceId,
         idempotencyKey,
       })
 
       await updateWalletBalance(tx, wallet!.id, balanceAfter)
+
+      await insertOutboxEvent(tx, {
+        event_type: DOMAIN_EVENTS.WALLET_BALANCE_CHANGED,
+        payload_json: {
+          userId,
+          amount: amountVnd,
+          balanceBefore,
+          balanceAfter,
+          referenceType: sourceType,
+          referenceId: sourceId,
+        },
+      })
 
       return txn
     })
@@ -57,8 +71,8 @@ export class WalletService {
   async withdraw(
     userId: string,
     amountVnd: number,
-    caseId: string,
     idempotencyKey: string,
+    opts?: { referenceType?: string; referenceId?: string },
   ) {
     return prisma.$transaction(async (tx) => {
       const wallet = await getWalletForUpdate(tx, userId)
@@ -79,8 +93,8 @@ export class WalletService {
         amount: -amountVnd,
         balanceBefore,
         balanceAfter,
-        sourceType: 'credit_purchase',
-        sourceId: caseId,
+        referenceType: opts?.referenceType ?? 'adjustment',
+        referenceId: opts?.referenceId ?? idempotencyKey,
         idempotencyKey,
       })
 
@@ -109,11 +123,22 @@ export class WalletService {
         amount: amountVnd,
         balanceBefore,
         balanceAfter,
-        sourceType,
-        sourceId: caseId,
+        referenceType: sourceType,
+        referenceId: caseId,
         idempotencyKey,
       })
       await updateWalletBalance(tx, wallet.id, balanceAfter)
+
+      await insertOutboxEvent(tx, {
+        event_type: DOMAIN_EVENTS.WALLET_BALANCE_CHANGED,
+        payload_json: {
+          userId,
+          amount: amountVnd,
+          sourceType: "refund",
+          referenceType: sourceType,
+          referenceId: caseId,
+        },
+      })
       return
     }
     await this.deposit(userId, amountVnd, sourceType, caseId, idempotencyKey)

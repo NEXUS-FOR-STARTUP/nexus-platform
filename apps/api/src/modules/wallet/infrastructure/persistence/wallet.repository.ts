@@ -31,29 +31,31 @@ export async function getWalletForUpdate(
 
 export async function createTransaction(
   tx: Prisma.TransactionClient,
-  data: {
+  params: {
     walletId: string
     type: string
     amount: number
     balanceBefore: number
     balanceAfter: number
-    sourceType: string
-    sourceId?: string
+    referenceType: string
+    referenceId: string | null
     idempotencyKey: string
-    metadata?: Record<string, unknown>
+    metadataJson?: Record<string, unknown>
   },
 ) {
   return tx.walletTransaction.create({
     data: {
-      wallet_id: data.walletId,
-      type: data.type as any,
-      amount: data.amount,
-      balance_before: data.balanceBefore,
-      balance_after: data.balanceAfter,
-      source_type: data.sourceType,
-      source_id: data.sourceId ?? null,
-      idempotency_key: data.idempotencyKey,
-      metadata_json: (data.metadata ?? undefined) as any,
+      wallet_id: params.walletId,
+      type: params.type as any,
+      amount: params.amount,
+      balance_before: params.balanceBefore,
+      balance_after: params.balanceAfter,
+      reference_type: params.referenceType,
+      reference_id: params.referenceId,
+      source_type: params.referenceType,
+      source_id: params.referenceId,
+      idempotency_key: params.idempotencyKey,
+      metadata_json: (params.metadataJson ?? undefined) as any,
     },
   })
 }

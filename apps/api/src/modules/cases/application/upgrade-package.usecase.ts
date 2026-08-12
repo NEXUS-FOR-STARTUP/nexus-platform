@@ -5,9 +5,9 @@ import {
   upgradeCasePackage,
   createCaseEvent,
 } from "../infrastructure/persistence/case.repository.js";
+import { getPackageUseCase } from "../../packages/application/get-package.usecase.js";
 
 const ALLOWED_UPGRADE_TARGET = "pkg_tf_audit";
-const UPGRADE_LOCKED_PRICE = 39000;
 
 export async function upgradePackageUseCase(
   userId: string,
@@ -35,19 +35,20 @@ export async function upgradePackageUseCase(
     throw new AppError(400, "INVALID_CASE_STAGE", "Hồ sơ đã ở trạng thái cuối, không thể nâng cấp");
   }
 
-  // Idempotent: đã là gói đích rồi thì bỏ qua
   if (existing.package_id === targetPackageId) {
     return { caseId, packageId: targetPackageId, upgraded: false };
   }
 
   const fromPackageId = existing.package_id;
+  const targetPkg = await getPackageUseCase(targetPackageId);
+  const lockedPrice = targetPkg.price;
 
-  await upgradeCasePackage(caseId, targetPackageId, UPGRADE_LOCKED_PRICE);
+  await upgradeCasePackage(caseId, targetPackageId, lockedPrice);
 
   await createCaseEvent(caseId, userId, "package_upgraded", {
     from: fromPackageId,
     to: targetPackageId,
-    locked_price: UPGRADE_LOCKED_PRICE,
+    locked_price: lockedPrice,
   });
 
   return { caseId, packageId: targetPackageId, upgraded: true };

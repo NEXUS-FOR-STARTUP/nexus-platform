@@ -35,7 +35,7 @@ export async function purchaseCreditsUseCase(
     const currentBalance = latest?.balance_after ?? 0
     const newBalance = currentBalance + quantity
 
-    await walletService.withdraw(userId, totalPrice, caseId, idempotencyKey)
+    await walletService.withdraw(userId, totalPrice, idempotencyKey, { referenceType: 'credit_purchase', referenceId: caseId })
 
     await tx.creditLedger.create({
       data: {
@@ -43,6 +43,7 @@ export async function purchaseCreditsUseCase(
         amount: quantity,
         balance_after: newBalance,
         type: 'purchase',
+        reference_type: 'credit_purchase',
         reference_id: packageId,
         idempotency_key: idempotencyKey,
         metadata_json: { packageId, pricePerCredit: price } as any,
