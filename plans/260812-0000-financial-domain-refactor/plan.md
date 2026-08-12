@@ -1,7 +1,7 @@
 ---
 title: "Financial Domain Refactor — Deposit → Order → Service"
 description: "Tách 3 khái niệm đang trộn lẫn (deposit/purchase/consumption) thành 3 domain rõ ràng: Wallet, Order, Service. Thay Payment+WalletTopup bằng deposits+orders. Thêm transactional outbox. Zero-downtime migration."
-status: pending
+status: in_progress
 priority: P1
 effort: 25.5h
 branch: feat/user-wallet-vnd
@@ -9,7 +9,7 @@ blockedBy: [260809-1030-workflow-engine-refactor]
 blocks: [260811-1100-user-wallet-vnd]
 tags: [refactor, financial, wallet, deposit, order, sepay, outbox, migration]
 created: 2026-08-12
-updated: 2026-08-12T17:00
+updated: 2026-08-12T19:30
 review: "PASSED — 6 CRITICAL + 8 HIGH + 2 CONDITIONS resolved in plan files"
 ---
 
@@ -48,7 +48,7 @@ review: "PASSED — 6 CRITICAL + 8 HIGH + 2 CONDITIONS resolved in plan files"
 | H5: no refund outbox | ✅ Added to walletService.refund | 06 |
 | H6: withdraw ordering | ✅ T03.9 implemented BEFORE T03.4 | 03 |
 | H7: reference_type NULL | ✅ Backfill SQL in Phase 08 | 08 |
-| H8: UnpaidAlertBanner removal | ✅ Gated on new domain availability | 07 |
+| H8: UnpaidAlertBanner removal | ✅ Repurposed to credit-based gate (creditBalance > 0) — correct for new system | 07 |
 | C1(val): prefix regex cho deposit | ✅ CRTOPUP confirmed (đã match `/CR[A-Z0-9]{6,}/`), NAP dropped | 02 |
 | C2(val): Outbox naming | ✅ Renamed domain_event_outbox | 01, 06 |
 | P3: balance compute duality | ✅ Standardized to aggregate _sum | 05 |
@@ -182,14 +182,14 @@ apps/api/src/modules/payments/http/sepay.controller.ts (no change)
 
 | # | Phase | Effort | Status | Depends | File |
 |---|-------|--------|--------|---------|------|
-| 01 | Schema Migration | 3h | pending | — | [phase-01](./phase-01-schema-migration.md) |
-| 02 | Deposit Module | 3.5h | pending | Phase 01 | [phase-02](./phase-02-deposit-module.md) |
-| 03 | Order Module | 3.5h | pending | Phase 01, 02 | [phase-03](./phase-03-order-module.md) |
-| 04 | Sepay Webhook Merge | 2h | pending | Phase 02 | [phase-04](./phase-04-sepay-webhook-merge.md) |
-| 05 | CreditLedger Refactor | 1.5h | pending | Phase 03 | [phase-05](./phase-05-credit-ledger-refactor.md) |
-| 06 | Transactional Outbox | 2h | pending | Phase 01 | [phase-06](./phase-06-transactional-outbox.md) |
-| 07 | Frontend Refactor | 4h | pending | Phase 01-05 | [phase-07](./phase-07-frontend-refactor.md) |
-| 08 | Legacy Dual-Write + Data Migration | 2.5h | pending | Phase 01-07 | [phase-08](./phase-08-legacy-migration.md) |
+| 01 | Schema Migration | 3h | complete | — | [phase-01](./phase-01-schema-migration.md) |
+| 02 | Deposit Module | 3.5h | complete | Phase 01 | [phase-02](./phase-02-deposit-module.md) |
+| 03 | Order Module | 3.5h | complete | Phase 01, 02 | [phase-03](./phase-03-order-module.md) |
+| 04 | Sepay Webhook Merge | 2h | complete | Phase 02 | [phase-04](./phase-04-sepay-webhook-merge.md) |
+| 05 | CreditLedger Refactor | 1.5h | complete | Phase 03 | [phase-05](./phase-05-credit-ledger-refactor.md) |
+| 06 | Transactional Outbox | 2h | complete | Phase 01 | [phase-06](./phase-06-transactional-outbox.md) |
+| 07 | Frontend Refactor | 4h | complete | Phase 01-05 | [phase-07](./phase-07-frontend-refactor.md) |
+| 08 | Legacy Dual-Write + Data Migration | 2.5h | complete | Phase 01-07 | [phase-08](./phase-08-legacy-migration.md) |
 | 09 | Cleanup + Deprecation | 2h | pending | Phase 08 | [phase-09](./phase-09-cleanup-deprecation.md) |
 
 **Total effort: ~25.5h**

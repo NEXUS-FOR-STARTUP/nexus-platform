@@ -1,6 +1,6 @@
 # Phase 04: Sepay Webhook Merge + Wallet Refactor
 
-**Status:** pending | **Effort:** 1.5h | **Depends:** Phase 01, Phase 02 | **Blocked by:** T08.0 migration SQL (chạy trước deploy, không cần full Phase 08)
+**Status:** complete | **Effort:** 1.5h | **Depends:** Phase 01, Phase 02 | **Blocked by:** T08.0 migration SQL (chạy trước deploy, không cần full Phase 08)
 
 ## Overview
 

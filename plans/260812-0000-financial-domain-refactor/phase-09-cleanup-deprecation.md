@@ -1,6 +1,6 @@
 # Phase 09: Cleanup + Deprecation
 
-**Status:** pending | **Effort:** 2h | **Depends:** Phase 08 | **Blocked by:** —
+**Status:** in_progress | **Effort:** 2h | **Depends:** Phase 08 | **Blocked by:** —
 
 ## Overview
 

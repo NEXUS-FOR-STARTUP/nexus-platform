@@ -1,6 +1,6 @@
 # Phase 05: CreditLedger Refactor
 
-**Status:** pending | **Effort:** 2.5h | **Depends:** Phase 03 | **Blocked by:** —
+**Status:** complete | **Effort:** 2.5h | **Depends:** Phase 03 | **Blocked by:** —
 
 ## Overview
 

@@ -1,6 +1,6 @@
 # Phase 08: Legacy Dual-Write + Data Migration
 
-**Status:** pending | **Effort:** 2.5h | **Depends:** Phase 01-07 | **Blocked by:** —
+**Status:** complete | **Effort:** 2.5h | **Depends:** Phase 01-07 | **Blocked by:** —
 
 ## Overview
 

@@ -1,6 +1,6 @@
 # Phase 06: Transactional Outbox
 
-**Status:** pending | **Effort:** 2h | **Depends:** Phase 01 | **Blocked by:** —
+**Status:** complete | **Effort:** 2h | **Depends:** Phase 01 | **Blocked by:** —
 
 ## Overview
 

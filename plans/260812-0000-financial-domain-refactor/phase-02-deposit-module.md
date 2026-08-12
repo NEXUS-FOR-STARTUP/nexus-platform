@@ -1,6 +1,6 @@
 # Phase 02: Deposit Module (New)
 
-**Status:** pending | **Effort:** 3h | **Depends:** Phase 01 | **Blocked by:** —
+**Status:** complete | **Effort:** 3h | **Depends:** Phase 01 | **Blocked by:** —
 
 ## Overview
 
