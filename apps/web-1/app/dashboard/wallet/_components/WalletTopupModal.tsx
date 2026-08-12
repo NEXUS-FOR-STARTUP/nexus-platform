@@ -8,11 +8,12 @@ import { useCreateDeposit } from "../hooks/useWallet";
 interface Props {
   opened: boolean;
   onClose: () => void;
+  initialAmount?: number;
 }
 
-export function WalletTopupModal({ opened, onClose }: Props) {
+export function WalletTopupModal({ opened, onClose, initialAmount }: Props) {
   const router = useRouter();
-  const [amount, setAmount] = useState<number>(50000);
+  const [amount, setAmount] = useState<number>(initialAmount ?? 50000);
   const createDeposit = useCreateDeposit();
 
   const handleCreate = () => {

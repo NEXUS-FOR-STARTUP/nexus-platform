@@ -15,6 +15,7 @@ import {
   Badge,
 } from "@mantine/core";
 import { CreditCard, LogOut, LayoutDashboard, Shield, Wallet } from "lucide-react";
+import { useWalletBalance } from "@/app/dashboard/wallet/hooks/useWallet";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -48,6 +49,8 @@ export default function DashboardShell({ children }: DashboardShellProps) {
   };
 
   const user = sessionData?.user ? (sessionData.user as typeof sessionData.user & { role?: string }) : undefined;
+  const { data: walletData } = useWalletBalance();
+  const walletBalance = walletData?.balance ?? 0;
 
   // Role display details
   const getRoleBadge = (role?: string) => {
@@ -120,6 +123,14 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                     <div className="flex mt-0.5">
                       {getRoleBadge(user.role)}
                     </div>
+                    {isStudent && walletData && (
+                      <div className="flex items-center gap-1.5 mt-1 pt-1 border-t border-border-app">
+                        <span className="text-xs text-text-muted">Số dư:</span>
+                        <span className="text-xs font-semibold text-text-app tabular-nums">
+                          {walletBalance.toLocaleString("vi-VN")} VND
+                        </span>
+                      </div>
+                    )}
                   </div>
                   {user.role === "admin" && (
                     <Menu.Item

@@ -1,5 +1,12 @@
 import { notifications } from "@mantine/notifications";
 
+export const PACKAGE_KEYS = {
+  FREE: "pkg_tf_free",
+  AUDIT: "pkg_tf_audit",
+} as const;
+
+export type PackageKey = (typeof PACKAGE_KEYS)[keyof typeof PACKAGE_KEYS];
+
 /**
  * Resolves the effective pricing for a case, falling back to the package price
  * or 0 if neither are set.

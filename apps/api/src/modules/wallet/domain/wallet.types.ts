@@ -1,3 +1,5 @@
+import { AppError } from '../../../shared/domain/app-error.js'
+
 export const WALLET_TX_TYPES = ['deposit', 'withdrawal', 'refund', 'adjustment', 'migration', 'service_payment'] as const
 export type WalletTxType = (typeof WALLET_TX_TYPES)[number]
 
@@ -26,19 +28,18 @@ export interface WalletTransactionDTO {
   createdAt: Date
 }
 
-export class InsufficientBalanceError extends Error {
-  constructor(
-    public readonly current: number,
-    public readonly required: number,
-  ) {
-    super(`Số dư không đủ: ${current} VND, cần ${required} VND`)
-    this.name = 'InsufficientBalanceError'
+export class InsufficientBalanceError extends AppError {
+  constructor(current: number, required: number) {
+    super(
+      400,
+      'INSUFFICIENT_BALANCE',
+      `Số dư không đủ: ${current.toLocaleString('vi-VN')} VND, cần ${required.toLocaleString('vi-VN')} VND`,
+    )
   }
 }
 
-export class WalletNotFoundError extends Error {
-  constructor(public readonly userId: string) {
-    super(`Wallet not found for user ${userId}`)
-    this.name = 'WalletNotFoundError'
+export class WalletNotFoundError extends AppError {
+  constructor(userId: string) {
+    super(404, 'WALLET_NOT_FOUND', 'Không tìm thấy ví')
   }
 }

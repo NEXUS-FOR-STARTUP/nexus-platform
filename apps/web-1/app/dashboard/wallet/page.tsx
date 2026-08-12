@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, use } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@mantine/core";
 import { Plus } from "lucide-react";
 import { WalletBalanceCard } from "./_components/WalletBalanceCard";
@@ -8,7 +9,11 @@ import { WalletTransactionList } from "./_components/WalletTransactionList";
 import { WalletTopupModal } from "./_components/WalletTopupModal";
 
 export default function WalletPage() {
-  const [topupOpened, setTopupOpened] = useState(false);
+  const searchParams = useSearchParams();
+  const amountParam = searchParams.get("amount");
+  const initialTopupAmount = amountParam ? Number(amountParam) : undefined;
+
+  const [topupOpened, setTopupOpened] = useState(!!initialTopupAmount);
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
@@ -36,6 +41,7 @@ export default function WalletPage() {
       <WalletTopupModal
         opened={topupOpened}
         onClose={() => setTopupOpened(false)}
+        initialAmount={initialTopupAmount}
       />
     </main>
   );

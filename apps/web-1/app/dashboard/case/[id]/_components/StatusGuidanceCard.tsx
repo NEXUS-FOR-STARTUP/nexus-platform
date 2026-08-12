@@ -14,6 +14,7 @@ import { Alert, Button } from "@mantine/core";
 
 interface StatusGuidanceCardProps {
   caseData: Case;
+  creditBalance?: number | null;
   openRequestsForMoreInfo?: any[] | null;
   onSelectTab: (tab: "documents" | "discussion" | "timeline" | "settings") => void;
   onOpenPayment?: () => void;
@@ -22,6 +23,7 @@ interface StatusGuidanceCardProps {
 
 export default function StatusGuidanceCard({
   caseData,
+  creditBalance,
   openRequestsForMoreInfo,
   onOpenPayment,
   onOpenIntake,
@@ -221,6 +223,9 @@ export default function StatusGuidanceCard({
       );
 
     case "intake_pending": {
+      const hasCredits = (creditBalance ?? 0) > 0;
+      if (hasCredits) return null;
+
       const isFree = caseData.package_id === "pkg_tf_free";
       return (
         <Alert

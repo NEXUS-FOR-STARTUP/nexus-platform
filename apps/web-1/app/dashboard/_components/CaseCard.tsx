@@ -26,6 +26,7 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
 
   const paymentBadge = getBadgeProps(item.payment_status);
   const userFacingStatusBadge = getBadgeProps(item.user_facing_stage);
+  const hasCredits = (item.credit_balance ?? 0) > 0;
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("vi-VN", {
@@ -52,9 +53,16 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
             <Badge size="md" variant="light" color={userFacingStatusBadge.color} className="font-body text-sm whitespace-nowrap">
               {userFacingStatusBadge.label}
             </Badge>
-            <Badge size="md" variant="light" color={paymentBadge.color} className="font-body text-sm whitespace-nowrap">
-              {paymentBadge.label}
-            </Badge>
+            {!hasCredits && (
+              <Badge size="md" variant="light" color={paymentBadge.color} className="font-body text-sm whitespace-nowrap">
+                {paymentBadge.label}
+              </Badge>
+            )}
+            {hasCredits && (
+              <Badge size="md" variant="light" color="teal" className="font-body text-sm whitespace-nowrap">
+                Có {item.credit_balance} credit
+              </Badge>
+            )}
           </div>
         </div>
 

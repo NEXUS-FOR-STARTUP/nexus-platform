@@ -59,7 +59,7 @@ export default function CreditBalanceCard({
             <p className="text-xs font-medium text-text-muted mb-0.5">Đơn giá</p>
             <p className="text-2xl font-bold text-text-app tracking-tight">
               {pricePerCredit
-                ? `${pricePerCredit.toLocaleString("vi-VN")}₫`
+                ? `${pricePerCredit.toLocaleString("vi-VN")} VND`
                 : "—"}
             </p>
             <p className="text-base text-text-muted mt-0.5">mỗi lượt đánh giá</p>
@@ -79,7 +79,7 @@ export default function CreditBalanceCard({
               {packageName ?? "Chưa có gói"}
             </p>
             <p className="text-base text-text-muted mt-0.5">
-              {pricePerCredit ? `${pricePerCredit.toLocaleString("vi-VN")}₫ / credit` : ""}
+              {pricePerCredit ? `${pricePerCredit.toLocaleString("vi-VN")} VND / credit` : ""}
             </p>
           </div>
         </div>

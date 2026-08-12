@@ -2,6 +2,7 @@
 
 import { useState, use } from "react";
 import { useRouter } from "next/navigation";
+import { PACKAGE_KEYS } from "@/lib/pricing";
 import { useCaseDetails } from "./hooks/useCaseDetails";
 import CaseStatusHeader from "./_components/CaseStatusHeader";
 import UnpaidAlertBanner from "./_components/UnpaidAlertBanner";
@@ -107,9 +108,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
 
         {(activeTab === "timeline" || activeTab === "settings") && (
           <UnpaidAlertBanner
-            caseData={caseData}
-            onOpenPayment={() => router.push(`/dashboard/case/${id}/payment`)}
-            orders={caseData.orders}
+            creditBalance={creditBalance}
+            onBuyCredits={() => setCreditBuyOpened(true)}
           />
         )}
 
@@ -123,6 +123,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               guidanceCard={
                 <StatusGuidanceCard
                   caseData={caseData}
+                  creditBalance={creditBalance}
                   openRequestsForMoreInfo={null}
                   onSelectTab={(tab) => setActiveTab(tab)}
                   onOpenPayment={isIntakePending ? () => setCreditBuyOpened(true) : undefined}
@@ -200,7 +201,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         caseId={id}
         opened={creditBuyOpened}
         onClose={() => setCreditBuyOpened(false)}
-        packageId={caseData?.package_id ?? undefined}
+        packageId={PACKAGE_KEYS.AUDIT}
+        currentPackageId={caseData?.package_id ?? undefined}
       />
     </div>
   );

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { Button, Alert } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
@@ -15,11 +15,11 @@ export default function PaymentPage() {
   const searchParams = useSearchParams();
   const paymentId = searchParams.get("pid");
   const [uploadOpen, setUploadOpen] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (selectedFile) {
@@ -98,26 +98,25 @@ export default function PaymentPage() {
   const statusInfo = statusConfig[payment.status] || { label: payment.status, color: "gray", icon: AlertCircle };
   const StatusIcon = statusInfo.icon;
 
-  async function handleUploadProof() {
-    if (!selectedFile) return;
-    setUploading(true);
-    setUploadError("");
-    try {
+  const uploadProofMutation = useMutation({
+    mutationFn: async (file: File) => {
       const form = new FormData();
-      form.append("file", selectedFile);
+      form.append("file", file);
       form.append("deposit_id", payment.id);
       await apiClient.post("/payments/proof", form);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deposit", paymentId] });
       setUploadOpen(false);
       setSelectedFile(null);
       notifications.show({ title: "Thành công", message: "Minh chứng đã được gửi. Quản trị viên sẽ kiểm tra.", color: "green" });
-    } catch (err: any) {
+    },
+    onError: (err: any) => {
       const msg = err?.response?.data?.message || "Tải lên thất bại.";
       setUploadError(msg);
       notifications.show({ title: "Lỗi", message: msg, color: "red" });
-    } finally {
-      setUploading(false);
-    }
-  }
+    },
+  });
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6 animate-fade-in">
@@ -277,9 +276,9 @@ export default function PaymentPage() {
                 )}
 
                 {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
+                <Button onClick={() => selectedFile && uploadProofMutation.mutate(selectedFile)} fullWidth color={selectedFile ? "brand" : "gray"} loading={uploadProofMutation.isPending} disabled={!selectedFile || uploadProofMutation.isPending}>
 
-                <Button onClick={handleUploadProof} fullWidth color={selectedFile ? "brand" : "gray"} loading={uploading} disabled={!selectedFile || uploading}>
-                  {uploading ? "Đang tải lên..." : "Gửi minh chứng"}
+                  {uploadProofMutation.isPending ? "Đang tải lên..." : "Gửi minh chứng"}
                 </Button>
               </div>
             )}
