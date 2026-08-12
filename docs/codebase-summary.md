@@ -1,6 +1,6 @@
 # Tóm tắt codebase
 
-_Cập nhật: 2026-08-11. Tổng hợp từ codebase hiện tại và docs canonical trong `docs/`._
+_Cập nhật: 2026-08-13. Tổng hợp từ codebase hiện tại và docs canonical trong `docs/`._
 
 ## Repo này là gì
 
@@ -10,13 +10,13 @@ Công cụ hỗ trợ: **CodeGraph** (`.codegraph/`) — index code symbol, call
 
 ## Khu vực chính
 
-### `apps/api` (146 files src, ~15,200 LOC)
+### `apps/api` (148 files src, ~15,300 LOC)
 
 Backend Hono với:
-- modules: cases (22 routes), admin (12 routes), payments (7 routes, gồm sepay webhook), reports (4 routes), supporter (5 routes), notifications (5 routes: list, unread-count, read, read-all, SSE stream), realtime (2 routes: connection-token, cases/:caseId/subscribe-token), ai-engine (2 routes), packages (1 route), documents (1 route), wallet (4 routes: balance, history, topups, purchase-credits), system (4 route: `/`, `/health`, `/stream`, `/session`)
+- modules: cases (22 routes), admin (20 routes: case triage, documents, stats, packages, service-types, users), payments (7 routes, gồm sepay webhook), reports (4 routes), supporter (5 routes), notifications (5 routes: list, unread-count, read, read-all, SSE stream), realtime (2 routes: connection-token, cases/:caseId/subscribe-token), ai-engine (2 routes), packages (1 route), documents (1 route), wallet (4 routes: balance, history, topups, purchase-credits), system (4 route: `/`, `/health`, `/stream`, `/session`)
 - shared infra: AppError, requireAuth, requireCaseAccess, audit-logger, **event-bus + domain-events** (9 event types) + **outbox pattern** cho notifications
 - services: Cloudinary (file upload), Google Generative AI
-- ~69 API endpoints (65 module routes + 4 system), Hono + Better Auth + Prisma 7 + Vercel AI SDK
+- ~77 API endpoints (73 module routes + 4 system), Hono + Better Auth + Prisma 7 + Vercel AI SDK
 - Kiến trúc: modular monolith + Clean Architecture (domain/application/infrastructure/presentation)
 - Auth: Better Auth (email/password, Google OAuth, admin plugin)
 - DB: Prisma + PostgreSQL, PgBouncer adapter
