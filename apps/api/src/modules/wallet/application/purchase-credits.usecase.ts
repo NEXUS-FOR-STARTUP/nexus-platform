@@ -24,15 +24,14 @@ export async function purchaseCreditsUseCase(
 
   const price = pkg.pricing_tiers[0]?.price ?? pkg.price
   const totalPrice = price * quantity
-  const idempotencyKey = `purchase-${userId}-${packageId}-${quantity}-${Date.now()}`
+  const idempotencyKey = `purchase-${userId}-${packageId}-${caseId}-${quantity}`
 
   return prisma.$transaction(async (tx) => {
-    const latest = await tx.creditLedger.findFirst({
+    const balResult = await tx.creditLedger.aggregate({
       where: { case_id: caseId },
-      orderBy: { id: 'desc' },
-      select: { balance_after: true },
+      _sum: { amount: true },
     })
-    const currentBalance = latest?.balance_after ?? 0
+    const currentBalance = balResult._sum.amount ?? 0
     const newBalance = currentBalance + quantity
 
     await walletService.withdraw(userId, totalPrice, idempotencyKey, { referenceType: 'credit_purchase', referenceId: caseId })

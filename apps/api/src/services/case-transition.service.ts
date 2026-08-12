@@ -118,15 +118,13 @@ async function executeAction(
     }
 
     case 'subtractCredit': {
-      const nonce = crypto.randomUUID()
       const unitCode = context.unitCode ?? `case-${caseId}`
-      const key = `consume-${unitCode}-${caseId}-${nonce}`
-      const latest = await tx.creditLedger.findFirst({
+      const key = `consume-${unitCode}-${caseId}`
+      const balResult = await tx.creditLedger.aggregate({
         where: { case_id: caseId },
-        orderBy: { id: 'desc' },
-        select: { balance_after: true },
+        _sum: { amount: true },
       })
-      const currentBalance = latest?.balance_after ?? 0
+      const currentBalance = balResult._sum.amount ?? 0
       if (currentBalance < 1) {
         throw new AppError(402, 'NO_CREDITS', 'Hết credit. Vui lòng mua thêm.')
       }
@@ -137,6 +135,7 @@ async function executeAction(
           amount: -1,
           balance_after: newBalance,
           type: 'consumption',
+          reference_type: 'audit_round',
           reference_id: unitCode,
           idempotency_key: key,
         },
@@ -148,7 +147,7 @@ async function executeAction(
       const ownerId = context.data?.caseOwnerId as string
       const lockedPrice = context.data?.lockedPrice as number
       if (!ownerId || !lockedPrice || lockedPrice === 0) break
-      const key = `refund-${caseId}-${crypto.randomUUID()}`
+      const key = `refund-${caseId}`
       await walletService.refund(ownerId, lockedPrice, 'admin_veto', caseId, key, tx)
       break
     }
@@ -231,7 +230,11 @@ export async function executeTransition(
         versionNo: (data as any)?.versionNo,
         actorId,
         nextStage,
-        data: data as Record<string, unknown>,
+        data: {
+          ...(data as Record<string, unknown>),
+          caseOwnerId: caseRecord.owner_auth_user_id,
+          lockedPrice: caseRecord.locked_price ?? 0,
+        },
       })
     }
 

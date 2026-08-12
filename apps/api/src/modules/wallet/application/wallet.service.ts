@@ -144,6 +144,37 @@ export class WalletService {
     await this.deposit(userId, amountVnd, sourceType, caseId, idempotencyKey)
   }
 
+  async payForOrder(
+    userId: string,
+    amountVnd: number,
+    orderId: string,
+    idempotencyKey: string,
+    tx?: Prisma.TransactionClient,
+  ): Promise<void> {
+    const client = tx ?? prisma;
+    return client.$transaction(async (innerTx) => {
+      const wallet = await getWalletForUpdate(innerTx, userId);
+      if (!wallet) throw new WalletNotFoundError(userId);
+      if (wallet.balance < amountVnd) throw new InsufficientBalanceError(wallet.balance, amountVnd);
+
+      const balanceBefore = wallet.balance;
+      const balanceAfter = balanceBefore - amountVnd;
+
+      await createTransaction(innerTx, {
+        walletId: wallet.id,
+        type: "service_payment",
+        amount: -amountVnd,
+        balanceBefore,
+        balanceAfter,
+        referenceType: "order",
+        referenceId: orderId,
+        idempotencyKey,
+      });
+
+      await updateWalletBalance(innerTx, wallet.id, balanceAfter);
+    });
+  }
+
   async getHistory(
     userId: string,
     limit = 20,

@@ -186,44 +186,46 @@ export async function verifyPayment(data: {
       }
 
       // --- Credit purchase on successful verification ---
-      const paymentRecord = await tx.payment.findUnique({ where: { id: paymentId } });
-      // Read actual credit quantity from metadata_json first (set by CreditQuantityModal)
-      // Fallback: derive from payment.amount / CREDIT_PRICE (handles old data where metadata was lost)
-      const metaQuantity = (paymentRecord?.metadata_json as Record<string, unknown> | null)?.quantity;
-      const quantity = typeof metaQuantity === 'number'
-        ? metaQuantity
-        : Math.round((paymentRecord?.amount ?? 0) / 39000) || 1;
+      if (process.env["USE_ORDER_DOMAIN"] !== "true") {
+        const paymentRecord = await tx.payment.findUnique({ where: { id: paymentId } });
+        // Read actual credit quantity from metadata_json first (set by CreditQuantityModal)
+        // Fallback: derive from payment.amount / CREDIT_PRICE (handles old data where metadata was lost)
+        const metaQuantity = (paymentRecord?.metadata_json as Record<string, unknown> | null)?.quantity;
+        const quantity = typeof metaQuantity === 'number'
+          ? metaQuantity
+          : Math.round((paymentRecord?.amount ?? 0) / 39000) || 1;
 
-      // Get current credit balance
-      const latestLedger = await tx.creditLedger.findFirst({
-        where: { case_id: caseId },
-        orderBy: { id: "desc" },
-      });
-      const currentBalance = latestLedger?.balance_after ?? 0;
-      const newBalance = currentBalance + quantity;
+        // Get current credit balance
+        const balResult = await tx.creditLedger.aggregate({
+          where: { case_id: caseId },
+          _sum: { amount: true },
+        });
+        const currentBalance = balResult._sum.amount ?? 0;
+        const newBalance = currentBalance + quantity;
 
-      // Create credit ledger purchase entry
-      await tx.creditLedger.create({
-        data: {
-          case_id: caseId,
-          amount: quantity,
-          balance_after: newBalance,
-          type: "purchase",
-          reference_id: paymentId,
-          idempotency_key: `purchase-${paymentId}`,
-        },
-      });
+        // Create credit ledger purchase entry
+        await tx.creditLedger.create({
+          data: {
+            case_id: caseId,
+            amount: quantity,
+            balance_after: newBalance,
+            type: "purchase",
+            reference_id: paymentId,
+            idempotency_key: `purchase-${paymentId}`,
+          },
+        });
 
-      // Create case event for credit purchase
-      await tx.caseEvent.create({
-        data: {
-          case: { connect: { id: caseId } },
-          event_type: "credits_purchased",
-          actor: { connect: { id: adminId } },
-          payment: { connect: { id: paymentId } },
-          metadata_json: { quantity, new_balance: newBalance, payment_id: paymentId },
-        },
-      });
+        // Create case event for credit purchase
+        await tx.caseEvent.create({
+          data: {
+            case: { connect: { id: caseId } },
+            event_type: "credits_purchased",
+            actor: { connect: { id: adminId } },
+            payment: { connect: { id: paymentId } },
+            metadata_json: { quantity, new_balance: newBalance, payment_id: paymentId },
+          },
+        });
+      }
     }
 
     return updatedPayment;

@@ -1,4 +1,4 @@
-export const WALLET_TX_TYPES = ['deposit', 'withdrawal', 'refund', 'adjustment', 'migration'] as const
+export const WALLET_TX_TYPES = ['deposit', 'withdrawal', 'refund', 'adjustment', 'migration', 'service_payment'] as const
 export type WalletTxType = (typeof WALLET_TX_TYPES)[number]
 
 export const WALLET_SOURCE_TYPES = [
@@ -8,6 +8,7 @@ export const WALLET_SOURCE_TYPES = [
   'admin_refund',
   'platform_bonus',
   'migration',
+  'service_payment',
 ] as const
 export type WalletTxSourceType = (typeof WALLET_SOURCE_TYPES)[number]
 

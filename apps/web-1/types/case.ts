@@ -52,6 +52,7 @@ export interface CreditLedger {
   amount: number;
   balance_after: number;
   type: "purchase" | "consumption" | "refund";
+  reference_type: string | null;
   reference_id: string | null;
   created_at: string;
 }

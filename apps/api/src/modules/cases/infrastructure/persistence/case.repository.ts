@@ -518,11 +518,11 @@ export async function createSupporterOutput(data: {
       throw new AppError(404, "VERSION_UNIT_NOT_FOUND", "Không tìm thấy phiên bản");
     }
 
-    const latestLedger = await tx.creditLedger.findFirst({
+    const balResult = await tx.creditLedger.aggregate({
       where: { case_id: caseId },
-      orderBy: { id: 'desc' },
+      _sum: { amount: true },
     });
-    const currentBalance = latestLedger?.balance_after ?? 0;
+    const currentBalance = balResult._sum.amount ?? 0;
     if (currentBalance < 1) {
       throw new AppError(402, 'NO_CREDITS', 'Hết credit. Vui lòng mua thêm.');
     }
