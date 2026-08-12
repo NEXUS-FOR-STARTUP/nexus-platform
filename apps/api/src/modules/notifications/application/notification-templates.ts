@@ -116,9 +116,9 @@ const TEMPLATES: Record<string, Template> = {
     studentLink: (p: any) => `/dashboard/wallet`,
   },
   "wallet.balance_changed": {
-    title: "",
-    studentBody: null as any,
-    studentLink: null as any,
+    title: "Số dư ví thay đổi",
+    studentBody: (p) => `Số dư ví của bạn hiện tại: ${fmtAmount(p.balanceAfter)} VND${p.referenceType ? ` (${p.referenceType})` : ""}.`,
+    studentLink: (p) => `/dashboard/wallet`,
   },
 };
 

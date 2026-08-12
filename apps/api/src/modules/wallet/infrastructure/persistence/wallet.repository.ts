@@ -80,12 +80,18 @@ export async function getTransactionHistory(
     where: { user_id: userId },
     select: { id: true },
   })
-  if (!wallet) return []
+  if (!wallet) return { transactions: [], total: 0 }
 
-  return prisma.walletTransaction.findMany({
-    where: { wallet_id: wallet.id },
-    orderBy: { created_at: 'desc' },
-    take: limit,
-    skip: offset,
-  })
+  const [transactions, total] = await Promise.all([
+    prisma.walletTransaction.findMany({
+      where: { wallet_id: wallet.id },
+      orderBy: { created_at: 'desc' },
+      take: limit,
+      skip: offset,
+    }),
+    prisma.walletTransaction.count({
+      where: { wallet_id: wallet.id },
+    }),
+  ])
+  return { transactions, total }
 }

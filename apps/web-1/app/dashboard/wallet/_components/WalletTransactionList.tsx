@@ -1,6 +1,7 @@
 "use client";
 
-import { Paper, Center, Loader, Text, Table, Badge } from "@mantine/core";
+import { useState } from "react";
+import { Paper, Center, Loader, Text, Table, Badge, Pagination } from "@mantine/core";
 import { useWalletHistory } from "../hooks/useWallet";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -22,7 +23,9 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export function WalletTransactionList() {
-  const { data, isLoading, isError } = useWalletHistory();
+  const [page, setPage] = useState(1);
+  const limit = 20;
+  const { data, isLoading, isError } = useWalletHistory(page, limit);
 
   if (isLoading) {
     return (
@@ -45,8 +48,10 @@ export function WalletTransactionList() {
   }
 
   const transactions = data?.transactions ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.ceil(total / limit);
 
-  if (transactions.length === 0) {
+  if (total === 0) {
     return (
       <Paper withBorder radius="md" p="xl" className="bg-surface-app">
         <Center>
@@ -61,8 +66,9 @@ export function WalletTransactionList() {
       <Table striped highlightOnHover verticalSpacing="sm" className="table-fixed">
         <Table.Thead>
           <Table.Tr>
-            <Table.Th className="text-xs font-semibold text-text-muted w-[30%]">Số tiền</Table.Th>
-            <Table.Th className="text-xs font-semibold text-text-muted w-[20%]">Loại</Table.Th>
+            <Table.Th className="text-xs font-semibold text-text-muted w-[20%]">Mô tả</Table.Th>
+            <Table.Th className="text-xs font-semibold text-text-muted w-[18%]">Số tiền</Table.Th>
+            <Table.Th className="text-xs font-semibold text-text-muted w-[12%]">Loại</Table.Th>
             <Table.Th className="text-xs font-semibold text-text-muted w-[25%]">Thời gian</Table.Th>
             <Table.Th className="text-xs font-semibold text-text-muted w-[25%]">Số dư</Table.Th>
           </Table.Tr>
@@ -75,6 +81,9 @@ export function WalletTransactionList() {
 
             return (
               <Table.Tr key={tx.id}>
+                <Table.Td>
+                  <Text size="xs" className="text-text-app leading-snug">{tx.source_description ?? (tx.type ? TYPE_LABELS[tx.type] : "—")}</Text>
+                </Table.Td>
                 <Table.Td>
                   <span className={`text-sm font-bold tabular-nums ${isPositive ? "text-green-600" : "text-red-600"}`}>
                     {isPositive ? "+" : ""}
@@ -98,6 +107,11 @@ export function WalletTransactionList() {
           })}
         </Table.Tbody>
       </Table>
+      {totalPages > 1 && (
+        <Center py="sm">
+          <Pagination total={totalPages} value={page} onChange={setPage} size="sm" radius="md" />
+        </Center>
+      )}
     </Paper>
   );
 }

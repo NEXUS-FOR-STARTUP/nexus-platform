@@ -26,7 +26,7 @@ export function useWalletBalance() {
   });
 }
 
-export function useWalletHistory(limit = 20, offset = 0) {
+export function useWalletHistory(page = 1, limit = 20) {
   return useQuery<{ transactions: Array<{
     id: string;
     wallet_id: string;
@@ -36,11 +36,12 @@ export function useWalletHistory(limit = 20, offset = 0) {
     balance_after: number;
     source_type: string;
     source_id: string | null;
+    source_description?: string;
     created_at: string;
-  }> }>({
-    queryKey: ["wallet", "history", limit, offset],
+  }>; total: number; page: number; limit: number }>({
+    queryKey: ["wallet", "history", page, limit],
     queryFn: async () => {
-      const response = await apiClient.get("/wallet/history", { params: { limit, offset } });
+      const response = await apiClient.get("/wallet/history", { params: { page, limit } });
       return response.data;
     },
     refetchInterval: 30_000,

@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { requireAuth, type AuthEnv } from '../../../../shared/infrastructure/middlewares/auth.js'
 import { walletService } from '../../application/wallet.service.js'
 import { purchaseCreditsUseCase } from '../../application/purchase-credits.usecase.js'
-// import { createTopupUseCase } from '../../application/wallet-topup.usecase.js'
+import { describeTransaction } from '../../domain/wallet-display.constants.js'
 
 const walletRoutes = new Hono<AuthEnv>()
 
@@ -16,10 +16,15 @@ walletRoutes.get('/balance', async (c) => {
 
 walletRoutes.get('/history', async (c) => {
   const user = c.get('user')
-  const limit = Number(c.req.query('limit') ?? 20)
-  const offset = Number(c.req.query('offset') ?? 0)
-  const transactions = await walletService.getHistory(user.id, limit, offset)
-  return c.json({ transactions })
+  const page = Math.max(1, Number(c.req.query('page') ?? 1))
+  const limit = Math.min(50, Math.max(1, Number(c.req.query('limit') ?? 20)))
+  const offset = (page - 1) * limit
+  const { transactions, total } = await walletService.getHistory(user.id, limit, offset)
+  const enriched = transactions.map((tx) => ({
+    ...tx,
+    source_description: describeTransaction(tx.source_type, tx.amount),
+  }))
+  return c.json({ transactions: enriched, total, page, limit })
 })
 
 walletRoutes.post('/purchase-credits', async (c) => {
