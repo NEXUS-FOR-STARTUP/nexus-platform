@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { Button, Alert } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
@@ -13,7 +13,6 @@ import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 export default function PaymentPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const queryClient = useQueryClient();
   const paymentId = searchParams.get("pid");
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -22,7 +21,6 @@ export default function PaymentPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Create preview URL when file changes; cleanup on unmount/change
   useEffect(() => {
     if (selectedFile) {
       const url = URL.createObjectURL(selectedFile);
@@ -35,35 +33,31 @@ export default function PaymentPage() {
   const [redirectCountdown, setRedirectCountdown] = useState(5);
 
   const { data: payment, isLoading, error } = useQuery({
-    queryKey: ["payment", paymentId],
+    queryKey: ["deposit", paymentId],
     queryFn: async () => {
-      const res = await apiClient.get(`/payments/${paymentId}`);
+      const res = await apiClient.get(`/deposits/${paymentId}`);
       return res.data;
     },
     enabled: !!paymentId,
     refetchInterval: 5000,
   });
 
-  // Auto-redirect to case page after 5s when payment succeeds
   useEffect(() => {
-    if (payment?.status !== "paid") return;
-
-    // Invalidate case detail query so redirected page fetches fresh data
-    queryClient.invalidateQueries({ queryKey: ["case", payment.case_id] });
+    if (payment?.status !== "verified") return;
 
     setRedirectCountdown(5);
     const interval = setInterval(() => {
       setRedirectCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-          router.push(`/dashboard/case/${payment.case_id}`);
+          router.push("/dashboard/wallet");
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [payment?.status, payment?.case_id, router, queryClient]);
+  }, [payment?.status, router]);
 
   if (!paymentId) {
     return (
@@ -95,6 +89,15 @@ export default function PaymentPage() {
     );
   }
 
+  const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
+    pending: { label: "Chờ thanh toán", color: "orange", icon: Clock },
+    verified: { label: "Đã thanh toán", color: "green", icon: CheckCircle2 },
+    rejected: { label: "Bị từ chối", color: "red", icon: XCircle },
+  };
+
+  const statusInfo = statusConfig[payment.status] || { label: payment.status, color: "gray", icon: AlertCircle };
+  const StatusIcon = statusInfo.icon;
+
   async function handleUploadProof() {
     if (!selectedFile) return;
     setUploading(true);
@@ -102,7 +105,7 @@ export default function PaymentPage() {
     try {
       const form = new FormData();
       form.append("file", selectedFile);
-      form.append("case_id", payment.case_id);
+      form.append("deposit_id", payment.id);
       await apiClient.post("/payments/proof", form);
       setUploadOpen(false);
       setSelectedFile(null);
@@ -115,16 +118,6 @@ export default function PaymentPage() {
       setUploading(false);
     }
   }
-
-  const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
-    unpaid: { label: "Chờ thanh toán", color: "orange", icon: Clock },
-    pending_verification: { label: "Đang chờ xác nhận", color: "blue", icon: Clock },
-    paid: { label: "Đã thanh toán", color: "green", icon: CheckCircle2 },
-    rejected: { label: "Bị từ chối", color: "red", icon: XCircle },
-  };
-
-  const statusInfo = statusConfig[payment.status] || { label: payment.status, color: "gray", icon: AlertCircle };
-  const StatusIcon = statusInfo.icon;
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6 animate-fade-in">
@@ -197,8 +190,8 @@ export default function PaymentPage() {
 	          )}
 	        </div>
 
-        {/* Upload proof (unpaid only) */}
-        {payment.status === "unpaid" && (
+
+        {payment.status === "pending" && (
           <div className="space-y-3">
             <div className="flex items-start justify-between gap-3">
               <p className="text-sm text-text-muted">
@@ -231,7 +224,6 @@ export default function PaymentPage() {
                   }
                 }}
               >
-                {/* Hidden native input */}
                 <input
                   ref={fileRef}
                   type="file"
@@ -245,7 +237,6 @@ export default function PaymentPage() {
                 />
 
                 {!selectedFile ? (
-                  // Upload zone — click to select or Ctrl+V to paste
                   <button
                     type="button"
                     onClick={() => fileRef.current?.click()}
@@ -257,15 +248,10 @@ export default function PaymentPage() {
                     <span className="text-xs text-text-muted">Ảnh chụp màn hình chuyển khoản</span>
                   </button>
                 ) : (
-                  // File selected — show preview + name + change button
                   <div className="space-y-3">
                     {previewUrl && (
                       <div className="rounded-lg overflow-hidden border border-border-app bg-surface-app/40">
-                        <img
-                          src={previewUrl}
-                          alt="Xem trước ảnh chụp chuyển khoản"
-                          className="w-full max-h-[300px] object-contain"
-                        />
+                        <img src={previewUrl} alt="Xem trước ảnh chụp chuyển khoản" className="w-full max-h-[300px] object-contain" />
                       </div>
                     )}
                     <div className="flex items-center justify-between gap-3 px-4 py-3 bg-surface-app/60 border border-border-app rounded-lg">
@@ -290,17 +276,9 @@ export default function PaymentPage() {
                   </div>
                 )}
 
-                {uploadError && (
-                  <p className="text-xs text-red-500">{uploadError}</p>
-                )}
+                {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
 
-                <Button
-                  onClick={handleUploadProof}
-                  fullWidth
-                  color={selectedFile ? "brand" : "gray"}
-                  loading={uploading}
-                  disabled={!selectedFile || uploading}
-                >
+                <Button onClick={handleUploadProof} fullWidth color={selectedFile ? "brand" : "gray"} loading={uploading} disabled={!selectedFile || uploading}>
                   {uploading ? "Đang tải lên..." : "Gửi minh chứng"}
                 </Button>
               </div>
@@ -308,19 +286,18 @@ export default function PaymentPage() {
           </div>
         )}
 
-        {payment.status === "paid" && (
+        {payment.status === "verified" && (
           <div className="text-center space-y-3">
             <CheckCircle2 className="w-12 h-12 text-success mx-auto" />
-            <p className="text-sm font-semibold text-text-app">Thanh toán thành công</p>
+            <p className="text-sm font-semibold text-text-app">Nạp tiền thành công</p>
             <p className="text-xs text-text-muted">
               Tự động chuyển hướng sau {redirectCountdown} giây...
             </p>
             <Button
-              component="a"
-              href={`/dashboard/case/${payment.case_id}`}
+              onClick={() => router.push("/dashboard/wallet")}
               color="brand"
             >
-              Về trang hồ sơ
+              Về trang ví
             </Button>
             {payment.bank_transaction_id && (
               <div className="text-center">
