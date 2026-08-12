@@ -16,6 +16,9 @@ import { updatePackageStatusUseCase } from "../application/update-package-status
 import { getAdminStatsUseCase } from "../application/get-admin-stats.usecase.js";
 import { listServiceTypesUseCase, createServiceTypeUseCase, updateServiceTypeUseCase } from "../../packages/application/service-type.usecase.js";
 import { setCurrentPricingUseCase, getPricingHistoryUseCase } from "../../packages/application/service-pricing.usecase.js";
+import { createAdminUserUseCase } from "../application/create-admin-user.usecase.js";
+import { banUserUseCase } from "../application/ban-user.usecase.js";
+import { unbanUserUseCase } from "../application/unban-user.usecase.js";
 
 // ---------------------------------------------------------------------------
 // Auth helper — admin-specific
@@ -349,6 +352,74 @@ export async function setPricingHandler(c: Context) {
     const { price } = await c.req.json();
     const pricing = await setCurrentPricingUseCase(c.req.param('id')!, price, authResult.session.user.id);
     return c.json(pricing, 201);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/admin/users — Create user account + send welcome email
+// ---------------------------------------------------------------------------
+
+export async function createAdminUserHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  try {
+    const { email, name, role } = await c.req.json();
+
+    if (!email || !name) {
+      return c.json({ code: "MISSING_FIELDS", message: "Email và họ tên là bắt buộc" }, 400);
+    }
+
+    const result = await createAdminUserUseCase(email, name, role, c.req.raw.headers);
+    return c.json(result, 201);
+  } catch (error: any) {
+    if (error?.status === 400 || error?.status === 409) {
+      return c.json({ code: "CREATE_USER_FAILED", message: error?.message || "Không thể tạo tài khoản" }, error.status);
+    }
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/admin/users/:id/ban — Ban user + revoke sessions + send email
+// ---------------------------------------------------------------------------
+
+export async function banUserHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  const userId = c.req.param("id")!;
+
+  try {
+    const { ban_reason } = await c.req.json();
+    const result = await banUserUseCase(userId, ban_reason);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/admin/users/:id/unban — Unban user + send email notification
+// ---------------------------------------------------------------------------
+
+export async function unbanUserHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  const userId = c.req.param("id")!;
+
+  try {
+    const result = await unbanUserUseCase(userId);
+    return c.json(result);
   } catch (error: any) {
     return handleError(c, error);
   }
