@@ -59,6 +59,26 @@ export default function PaymentPage() {
     return () => clearInterval(interval);
   }, [payment?.status, router]);
 
+  const uploadProofMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("deposit_id", payment?.id ?? "");
+      await apiClient.post("/payments/proof", form);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deposit", paymentId] });
+      setUploadOpen(false);
+      setSelectedFile(null);
+      notifications.show({ title: "Thành công", message: "Minh chứng đã được gửi. Quản trị viên sẽ kiểm tra.", color: "green" });
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || "Tải lên thất bại.";
+      setUploadError(msg);
+      notifications.show({ title: "Lỗi", message: msg, color: "red" });
+    },
+  });
+
   if (!paymentId) {
     return (
       <div className="max-w-2xl mx-auto p-6 space-y-4">
@@ -97,26 +117,6 @@ export default function PaymentPage() {
 
   const statusInfo = statusConfig[payment.status] || { label: payment.status, color: "gray", icon: AlertCircle };
   const StatusIcon = statusInfo.icon;
-
-  const uploadProofMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const form = new FormData();
-      form.append("file", file);
-      form.append("deposit_id", payment.id);
-      await apiClient.post("/payments/proof", form);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["deposit", paymentId] });
-      setUploadOpen(false);
-      setSelectedFile(null);
-      notifications.show({ title: "Thành công", message: "Minh chứng đã được gửi. Quản trị viên sẽ kiểm tra.", color: "green" });
-    },
-    onError: (err: any) => {
-      const msg = err?.response?.data?.message || "Tải lên thất bại.";
-      setUploadError(msg);
-      notifications.show({ title: "Lỗi", message: msg, color: "red" });
-    },
-  });
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6 animate-fade-in">
