@@ -153,7 +153,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                   {isStudent && (
                     <Menu.Item
                       leftSection={<LayoutDashboard className="w-4 h-4 text-text-muted" />}
-                      onClick={() => router.push("/dashboard")}
+                      onClick={() => router.push("/dashboard/profile")}
                       className="text-text-app hover:bg-surface-soft cursor-pointer font-body text-xs font-semibold"
                     >
                       Hồ sơ của tôi
