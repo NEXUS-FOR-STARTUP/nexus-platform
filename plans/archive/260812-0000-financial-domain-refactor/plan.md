@@ -1,7 +1,7 @@
 ---
 title: "Financial Domain Refactor — Deposit → Order → Service"
 description: "Tách 3 khái niệm đang trộn lẫn (deposit/purchase/consumption) thành 3 domain rõ ràng: Wallet, Order, Service. Thay Payment+WalletTopup bằng deposits+orders. Thêm transactional outbox. Zero-downtime migration."
-status: in_progress
+status: complete
 priority: P1
 effort: 25.5h
 branch: feat/user-wallet-vnd

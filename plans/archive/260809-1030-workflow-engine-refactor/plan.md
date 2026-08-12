@@ -1,7 +1,7 @@
 ---
 title: "Workflow Engine Refactor — symflow → XState v5"
 description: "Thay symflow bằng XState v5: 1 cổng CaseTransitionService 5 lớp cho mọi use case thay đổi state. Fix 14 bugs backlog. ONE-SHOT: T1-T16, policy sản phẩm Q1-Q5 đã chốt 2026-08-09 — không còn blocker."
-status: in_progress
+status: complete
 priority: P1
 effort: 19h
 branch: feat/workflow-engine-refactor

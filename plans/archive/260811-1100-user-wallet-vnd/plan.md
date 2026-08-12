@@ -1,7 +1,7 @@
 ---
 title: "User Wallet VND — Ví người dùng"
 description: "Bổ sung ví VND per-user bên cạnh credit. Kiến trúc 3 tầng: Wallet VND → mua credit → credit tiêu trong workflow. Nạp tiền qua SePay, mua credit bằng ví. Tích hợp service catalog + workflow engine (refundCredit)."
-status: in_progress
+status: complete
 priority: P1
 effort: 18.5h
 branch: feat/user-wallet-vnd
