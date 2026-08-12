@@ -1,7 +1,7 @@
 "use client";
 
 import { Wallet } from "lucide-react";
-import { Loader } from "@mantine/core";
+import { Skeleton } from "@mantine/core";
 import { useWalletBalance } from "../hooks/useWallet";
 
 export function WalletBalanceCard() {
@@ -9,28 +9,31 @@ export function WalletBalanceCard() {
 
   if (isError) {
     return (
-      <div className="bg-danger-soft border border-danger/10 text-danger rounded-xl p-5">
+      <div className="bg-danger-soft border border-danger/10 text-danger rounded-2xl p-6">
         <p className="text-sm font-medium">Không thể tải số dư ví. Vui lòng thử lại sau.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-surface-app border border-border-app rounded-xl p-5">
-      <div className="flex items-start gap-3">
-        <div className="w-11 h-11 rounded-xl bg-brand-soft/30 text-brand flex items-center justify-center shrink-0">
-          <Wallet className="w-5.5 h-5.5" />
+    <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-brand/90 to-brand p-6 text-white">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-1/2 w-48 h-48 bg-white/5 rounded-full translate-y-1/2" />
+
+      <div className="relative space-y-3">
+        <div className="flex items-center gap-2 opacity-80">
+          <Wallet className="w-4 h-4" />
+          <span className="text-sm font-medium">Số dư ví</span>
         </div>
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-text-muted mb-0.5">Số dư ví</p>
-          {isLoading ? (
-            <Loader size="sm" className="mt-2" />
-          ) : (
-            <p className="text-2xl font-bold text-text-app tracking-tight">
-              {(data?.balance ?? 0).toLocaleString("vi-VN")} VND
-            </p>
-          )}
-        </div>
+
+        {isLoading ? (
+          <Skeleton height={48} radius="sm" className="opacity-30" />
+        ) : (
+          <p className="text-4xl font-extrabold tracking-tight tabular-nums">
+            {(data?.balance ?? 0).toLocaleString("vi-VN")}
+            <span className="text-xl font-semibold opacity-70 ml-2">VND</span>
+          </p>
+        )}
       </div>
     </div>
   );

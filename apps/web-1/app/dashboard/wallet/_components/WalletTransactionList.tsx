@@ -1,8 +1,25 @@
 "use client";
 
-import { Stack, Paper, Center, Loader, Text } from "@mantine/core";
+import { Paper, Center, Loader, Text, Table, Badge } from "@mantine/core";
 import { useWalletHistory } from "../hooks/useWallet";
-import { WalletTransactionItem } from "./WalletTransactionItem";
+
+const TYPE_LABELS: Record<string, string> = {
+  deposit: "Nạp tiền",
+  withdrawal: "Sử dụng",
+  refund: "Hoàn tiền",
+  adjustment: "Điều chỉnh",
+  migration: "Chuyển đổi",
+  service_payment: "Mua dịch vụ",
+};
+
+const TYPE_COLORS: Record<string, string> = {
+  deposit: "green",
+  withdrawal: "red",
+  refund: "blue",
+  adjustment: "orange",
+  migration: "orange",
+  service_payment: "orange",
+};
 
 export function WalletTransactionList() {
   const { data, isLoading, isError } = useWalletHistory();
@@ -11,10 +28,7 @@ export function WalletTransactionList() {
     return (
       <Paper withBorder radius="md" p="xl" className="bg-surface-app">
         <Center>
-          <Stack gap="sm" align="center">
-            <Loader color="blue" size="md" />
-            <Text size="sm" c="dimmed">Đang tải lịch sử giao dịch...</Text>
-          </Stack>
+          <Loader color="blue" size="md" />
         </Center>
       </Paper>
     );
@@ -24,9 +38,7 @@ export function WalletTransactionList() {
     return (
       <Paper withBorder radius="md" p="xl" className="bg-surface-app">
         <Center>
-          <Text size="sm" c="red">
-            Không thể tải lịch sử giao dịch. Vui lòng thử lại sau.
-          </Text>
+          <Text size="sm" c="red">Không thể tải lịch sử giao dịch.</Text>
         </Center>
       </Paper>
     );
@@ -45,10 +57,47 @@ export function WalletTransactionList() {
   }
 
   return (
-    <Stack gap="xs">
-      {transactions.map((tx) => (
-        <WalletTransactionItem key={tx.id} transaction={tx} />
-      ))}
-    </Stack>
+    <Paper withBorder radius="md" className="bg-surface-app overflow-hidden">
+      <Table striped highlightOnHover verticalSpacing="sm" className="table-fixed">
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th className="text-xs font-semibold text-text-muted w-[30%]">Số tiền</Table.Th>
+            <Table.Th className="text-xs font-semibold text-text-muted w-[20%]">Loại</Table.Th>
+            <Table.Th className="text-xs font-semibold text-text-muted w-[25%]">Thời gian</Table.Th>
+            <Table.Th className="text-xs font-semibold text-text-muted w-[25%]">Số dư</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {transactions.map((tx) => {
+            const isPositive = tx.amount > 0;
+            const label = TYPE_LABELS[tx.type] ?? tx.type;
+            const color = TYPE_COLORS[tx.type] ?? "gray";
+
+            return (
+              <Table.Tr key={tx.id}>
+                <Table.Td>
+                  <span className={`text-sm font-bold tabular-nums ${isPositive ? "text-green-600" : "text-red-600"}`}>
+                    {isPositive ? "+" : ""}
+                    {tx.amount.toLocaleString("vi-VN")}
+                    <span className="text-xs font-medium ml-1">VND</span>
+                  </span>
+                </Table.Td>
+                <Table.Td>
+                  <Badge color={color} variant="light" size="md" className="font-semibold">{label}</Badge>
+                </Table.Td>
+                <Table.Td>
+                  <Text size="xs" c="dimmed">{new Date(tx.created_at).toLocaleString("vi-VN")}</Text>
+                </Table.Td>
+                <Table.Td>
+                  <Text size="xs" c="dimmed" className="tabular-nums">
+                    {tx.balance_after != null ? `${tx.balance_after.toLocaleString("vi-VN")} VND` : "—"}
+                  </Text>
+                </Table.Td>
+              </Table.Tr>
+            );
+          })}
+        </Table.Tbody>
+      </Table>
+    </Paper>
   );
 }

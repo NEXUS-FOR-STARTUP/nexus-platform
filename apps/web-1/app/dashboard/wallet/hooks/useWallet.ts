@@ -29,14 +29,14 @@ export function useWalletBalance() {
 export function useWalletHistory(limit = 20, offset = 0) {
   return useQuery<{ transactions: Array<{
     id: string;
-    walletId: string;
+    wallet_id: string;
     type: string;
     amount: number;
-    balanceBefore: number;
-    balanceAfter: number;
-    sourceType: string;
-    sourceId: string | null;
-    createdAt: string;
+    balance_before: number;
+    balance_after: number;
+    source_type: string;
+    source_id: string | null;
+    created_at: string;
   }> }>({
     queryKey: ["wallet", "history", limit, offset],
     queryFn: async () => {
