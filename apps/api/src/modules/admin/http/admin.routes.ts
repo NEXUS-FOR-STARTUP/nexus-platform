@@ -17,6 +17,9 @@ import {
   updateServiceTypeHandler,
   getPricingHistoryHandler,
   setPricingHandler,
+  createAdminUserHandler,
+  banUserHandler,
+  unbanUserHandler,
 } from "./admin.controller.js";
 
 export const adminRouter = new Hono();
@@ -43,3 +46,7 @@ adminRouter.patch("/service-types/:id", updateServiceTypeHandler);
 
 adminRouter.get("/packages/:id/pricing", getPricingHistoryHandler);
 adminRouter.post("/packages/:id/pricing", setPricingHandler);
+
+adminRouter.post("/users", createAdminUserHandler);
+adminRouter.post("/users/:id/ban", banUserHandler);
+adminRouter.post("/users/:id/unban", unbanUserHandler);

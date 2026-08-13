@@ -46,7 +46,7 @@ RootLayout → Providers
 - Mutations invalidate related queries on success
 - No Redux/Zustand
 
-## CUSTOM HOOKS (15 total)
+## CUSTOM HOOKS (16 total)
 
 | Hook | File | Purpose |
 |------|------|---------|
@@ -65,6 +65,7 @@ RootLayout → Providers
 | useAdminPayments | admin/hooks/ | Payment verification |
 | useAdminPackages | admin/hooks/ | Package management |
 | useNotifications | lib/hooks/ | Notification list + unread count |
+| useProfileMutations | dashboard/settings/hooks/ | Cập nhật tên + đổi mật khẩu (Better Auth, revokeOtherSessions) |
 
 ## MANTINE UI STYLING RULE
 

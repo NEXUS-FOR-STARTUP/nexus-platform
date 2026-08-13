@@ -10,12 +10,13 @@ import AdminDepositVerificationTable from "./_components/AdminDepositVerificatio
 import AdminCaseAssignmentTable from "./_components/AdminCaseAssignmentTable";
 import AdminDocumentsTable from "./_components/AdminDocumentsTable";
 import AdminPackagesSettings from "./_components/AdminPackagesSettings";
+import AdminUsersTable from "./_components/AdminUsersTable";
 import StatsDashboard from "./_components/StatsDashboard";
 import RejectionReasonModal from "./_components/RejectionReasonModal";
 import ApprovePaymentModal from "./_components/ApprovePaymentModal";
 import { useAdminStats } from "./hooks/useAdminStats";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, AlertTriangle, FolderKanban, Activity } from "lucide-react";
+import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, AlertTriangle, FolderKanban, Activity, Users } from "lucide-react";
 import { Tooltip, UnstyledButton, Title, Text, Badge, Divider } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import classes from "../../components/layout/DoubleNavbar.module.css";
@@ -73,13 +74,13 @@ function AdminHubPageInner() {
   // Modal control states
   const [rejectingDepositId, setRejectingDepositId] = useState<string | null>(null);
   const [approvingDepositId, setApprovingDepositId] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages" | "stats">("stats");
+  const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages" | "stats" | "users">("stats");
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
   const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "unassigned" | "assigned" | "crud">("all");
 
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab === "payments" || tab === "cases" || tab === "documents" || tab === "packages" || tab === "stats") {
+    if (tab === "payments" || tab === "cases" || tab === "documents" || tab === "packages" || tab === "stats" || tab === "users") {
       setActiveSection(tab);
     }
   }, [searchParams]);
@@ -328,6 +329,13 @@ function AdminHubPageInner() {
         icon: FileText,
       };
     }
+    if (activeSection === "users") {
+      return {
+        title: "Quản lý người dùng",
+        description: "Tạo tài khoản mới, xem danh sách và quản lý trạng thái khóa/mở khóa người dùng.",
+        icon: Users,
+      };
+    }
     return {
       title: "Thiết lập gói dịch vụ",
       description: "Bật/tắt hiển thị với khách hàng mới và cập nhật đơn giá các gói trên hệ thống.",
@@ -404,15 +412,25 @@ function AdminHubPageInner() {
                   <Settings className="w-6 h-6" />
                 </UnstyledButton>
               </Tooltip>
+
+              <Tooltip label="Quản lý người dùng" position="right" withArrow>
+                <UnstyledButton
+                  onClick={() => setActiveSection("users")}
+                  className={classes.mainLink}
+                  data-active={activeSection === "users" || undefined}
+                >
+                  <Users className="w-6 h-6" />
+                </UnstyledButton>
+              </Tooltip>
             </aside>
 
           {/* Secondary Panel (Details / Submenu) */}
           <div className={classes.main}>
             <div className="mb-4">
-              <Title order={6} className={classes.title}>
-                {activeSection === "stats" ? "Thống kê" : activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : activeSection === "documents" ? "Quản lý tài liệu" : "Cấu hình gói"}
+              <Title order={4} className="font-heading font-semibold text-text-app">
+                {activeSection === "stats" ? "Thống kê" : activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : activeSection === "documents" ? "Quản lý tài liệu" : activeSection === "users" ? "Người dùng" : "Cấu hình gói"}
               </Title>
-              <Text size="sm" c="dimmed" className="font-body">
+              <Text size="xs" className="text-text-muted font-body mt-0.5">
                 {activeSection === "stats"
                   ? "Tổng quan dữ liệu vận hành."
                   : activeSection === "payments"
@@ -421,6 +439,8 @@ function AdminHubPageInner() {
                   ? "Phân loại ý tưởng & phân công."
                   : activeSection === "documents"
                   ? "Danh mục tài liệu trên hệ thống."
+                  : activeSection === "users"
+                  ? "Quản lý tài khoản & phân quyền."
                   : "Cấu hình đơn giá gói dịch vụ."}
               </Text>
             </div>
@@ -515,6 +535,15 @@ function AdminHubPageInner() {
                   <span>Tất cả tài liệu</span>
                 </UnstyledButton>
               </div>
+            ) : activeSection === "users" ? (
+              <div className="flex flex-col gap-1">
+                <UnstyledButton
+                  className={classes.link}
+                  data-active={true}
+                >
+                  <span>Quản lý người dùng</span>
+                </UnstyledButton>
+              </div>
             ) : (
               <div className="flex flex-col gap-1">
                 <UnstyledButton
@@ -606,6 +635,10 @@ function AdminHubPageInner() {
                   onDelete={handleDeleteDocument}
                   isDeleting={isDeletingDoc}
                 />
+              </div>
+            ) : activeSection === "users" ? (
+              <div>
+                <AdminUsersTable />
               </div>
             ) : (
               <div>

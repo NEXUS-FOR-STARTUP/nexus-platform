@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { User, statusThemeMap } from "@/types";
-import { CheckCircle, Search, MoreVertical, Trash2, Eye, Shield, RefreshCw, UserCheck } from "lucide-react";
-import { Button, Select, Badge, Table, Pagination, TextInput, Group, Menu, ActionIcon, Tooltip } from "@mantine/core";
+import { CheckCircle, Search, MoreVertical, Trash2, Eye, RefreshCw, UserCheck, X, MessageSquare } from "lucide-react";
+import { Select, Badge, Table, Pagination, TextInput, Group, Menu, ActionIcon, Tooltip } from "@mantine/core";
 
 // Import extracted modals
 import AdminCaseDetailModal from "./AdminCaseDetailModal";
@@ -273,15 +273,57 @@ export default function AdminCaseAssignmentTable({
                           </Menu.Dropdown>
                         </Menu>
                       ) : (
-                        <Button
-                          variant="subtle"
-                          size="xs"
-                          color="brand"
-                          onClick={() => setDetailCaseId(item.id)}
-                          className="font-semibold cursor-pointer mx-auto"
-                        >
-                          Xem chi tiết
-                        </Button>
+                        <Menu shadow="md" width={200} position="bottom-end">
+                          <Menu.Target>
+                            <ActionIcon variant="subtle" color="gray" className="cursor-pointer mx-auto">
+                              <MoreVertical className="w-4 h-4" />
+                            </ActionIcon>
+                          </Menu.Target>
+
+                          <Menu.Dropdown className="bg-surface-app border border-border-app p-1 rounded-lg">
+                            <Menu.Item
+                              leftSection={<Eye className="w-3.5 h-3.5 text-brand" />}
+                              onClick={() => setDetailCaseId(item.id)}
+                              className="text-text-app hover:bg-surface-soft cursor-pointer text-xs font-semibold"
+                            >
+                              Xem chi tiết
+                            </Menu.Item>
+                            {item.internal_status === "triage_pending" && (
+                              <>
+                                <Menu.Item
+                                  leftSection={<MessageSquare className="w-3.5 h-3.5 text-warning" />}
+                                  onClick={() => setInfoRequestCaseId(item.id)}
+                                  className="text-text-app hover:bg-surface-soft cursor-pointer text-xs font-semibold"
+                                >
+                                  Yêu cầu làm rõ
+                                </Menu.Item>
+                                <Menu.Item
+                                  leftSection={<X className="w-3.5 h-3.5 text-danger" />}
+                                  onClick={() => setRejectingCaseId(item.id)}
+                                  className="text-danger hover:bg-danger-soft cursor-pointer text-xs font-semibold"
+                                >
+                                  Từ chối
+                                </Menu.Item>
+                                <Menu.Item
+                                  leftSection={<CheckCircle className="w-3.5 h-3.5 text-success" />}
+                                  onClick={() => setAcceptingCaseId(item.id)}
+                                  className="text-text-app hover:bg-surface-soft cursor-pointer text-xs font-semibold"
+                                >
+                                  Duyệt hồ sơ
+                                </Menu.Item>
+                              </>
+                            )}
+                            {(item.internal_status === "accepted_unassigned" || item.internal_status === "assigned") && (
+                              <Menu.Item
+                                leftSection={<UserCheck className="w-3.5 h-3.5 text-brand" />}
+                                onClick={() => setAssignCaseId(item.id)}
+                                className="text-text-app hover:bg-surface-soft cursor-pointer text-xs font-semibold"
+                              >
+                                {item.internal_status === "assigned" ? "Phân công lại" : "Phân công Supporter"}
+                              </Menu.Item>
+                            )}
+                          </Menu.Dropdown>
+                        </Menu>
                       )}
                     </Table.Td>
                   </Table.Tr>

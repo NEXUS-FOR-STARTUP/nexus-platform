@@ -171,7 +171,7 @@ export default function PaymentPage() {
 	                  <span className="font-semibold text-red-600 text-right">{payment.amount?.toLocaleString("vi-VN")} VND</span>
 	                </div>
 	                <div className="flex justify-between py-1.5 border-b border-border-app/40 last:border-b-0">
-	                  <span className="text-text-muted">Nội dung CK</span>
+	                  <span className="text-text-muted">Nội dung chuyển khoản</span>
 	                  <span className="font-semibold text-right break-all max-w-[260px]">
 	                    {payment.bankInfo.transferContent}
 	                  </span>
