@@ -249,7 +249,9 @@ export default function AdminUsersTable({ roleFilter }: AdminUsersTableProps) {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {users.map((user: any) => (
+            {users
+              .filter((user: any) => user.role?.toLowerCase() !== "system" && user.email !== "system@nexus.internal")
+              .map((user: any) => (
               <Table.Tr
                 key={user.id}
                 className={`hover:bg-surface-soft/30 transition-colors ${user.banned ? "bg-red-50/30 dark:bg-red-950/20" : ""}`}
