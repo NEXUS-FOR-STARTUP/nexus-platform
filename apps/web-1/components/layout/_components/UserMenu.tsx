@@ -7,11 +7,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Avatar, Popover } from "@mantine/core";
 import {
   CreditCard,
+  Home,
   LayoutDashboard,
   LogOut,
   Settings,
   Shield,
-  User,
   type LucideIcon,
 } from "lucide-react";
 import { useWalletBalance } from "@/app/dashboard/wallet/hooks/useWallet";
@@ -36,6 +36,12 @@ export default function UserMenu() {
   const walletBalance = walletData?.balance ?? 0;
   const isStudent = !(user?.role === "admin" || user?.role === "supporter");
 
+  const getHomeLink = (role?: string) => {
+    if (role === "admin") return "/admin";
+    if (role === "supporter") return "/supporter";
+    return "/dashboard";
+  };
+
   const handleSignOut = async () => {
     await signOut({
       fetchOptions: {
@@ -56,6 +62,7 @@ export default function UserMenu() {
   if (isPending || !user) return null;
 
   const options: UserMenuOption[] = [
+    { href: getHomeLink(user.role), label: "Trang chủ", icon: Home },
     ...(user.role === "admin"
       ? [{ href: "/admin", label: "Bàn làm việc Admin", icon: Shield }]
       : []),
@@ -70,7 +77,6 @@ export default function UserMenu() {
       : []),
     ...(isStudent
       ? [
-          { href: "/dashboard/settings/profile", label: "Hồ sơ", icon: User },
           { href: "/dashboard/wallet", label: "Thanh toán", icon: CreditCard },
           { href: "/dashboard/settings", label: "Cài đặt", icon: Settings },
         ]
