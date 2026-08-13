@@ -183,7 +183,7 @@ export default function AdminPaymentVerificationTable({
                     {payment.bank_transaction_id || "—"}
                   </Table.Td>
                   <Table.Td className="text-text-subtle">
-                    {formatDate(payment.created_at)}
+                    {formatDate(payment.created_at || (payment as any).createdAt)}
                   </Table.Td>
                   <Table.Td>
                     {payment.proof_file_url ? (

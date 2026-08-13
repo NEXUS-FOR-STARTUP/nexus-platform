@@ -18,7 +18,9 @@ const ROLE_FILTER_OPTIONS: { value: string; label: string }[] = [
 
 function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return "N/A";
-  return new Date(dateStr).toLocaleString("vi-VN", {
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return "N/A";
+  return date.toLocaleString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -268,7 +270,9 @@ export default function AdminUsersTable() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {users.map((user: any) => (
+            {users
+              .filter((user: any) => user.role?.toLowerCase() !== "system" && user.email !== "system@nexus.internal")
+              .map((user: any) => (
               <Table.Tr
                 key={user.id}
                 className={`hover:bg-surface-soft/30 transition-colors ${user.banned ? "bg-red-50/30 dark:bg-red-950/20" : ""}`}
@@ -293,9 +297,9 @@ export default function AdminUsersTable() {
                     </Badge>
                   )}
                 </Table.Td>
-                <Table.Td className="text-text-subtle">{formatDate(user.createdAt)}</Table.Td>
+                <Table.Td className="text-text-subtle">{formatDate(user.created_at || user.createdAt)}</Table.Td>
                 <Table.Td className="text-center">
-                  <Menu shadow="md" width={200} position="bottom-end">
+                  <Menu shadow="md" width={180} position="bottom-end">
                     <Menu.Target>
                       <ActionIcon variant="subtle" color="gray" className="cursor-pointer mx-auto">
                         <MoreVertical className="w-4 h-4" />

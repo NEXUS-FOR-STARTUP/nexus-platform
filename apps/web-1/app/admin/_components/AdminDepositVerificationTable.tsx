@@ -171,7 +171,7 @@ export default function AdminDepositVerificationTable({
                     {deposit.bank_transaction_id || "—"}
                   </Table.Td>
                   <Table.Td className="text-text-subtle">
-                    {formatDate(deposit.created_at)}
+                    {formatDate(deposit.created_at || (deposit as any).createdAt)}
                   </Table.Td>
                   <Table.Td>
                     {deposit.proof_file_url ? (
