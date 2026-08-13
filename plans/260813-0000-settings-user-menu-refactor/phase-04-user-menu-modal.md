@@ -72,8 +72,12 @@ State: `const [opened, setOpened] = useState(false)`.
 
 ## Trạng thái
 
-`Status: done` — `UserMenu.tsx` mới = **187 dòng** (self-contained: tự gọi `useSession`, `useWalletBalance`, `signOut`; `handleSignOut` chuyển hẳn vào — đúng như chốt ownership). `DashboardShell.tsx` 200 → **60 dòng** (bỏ dropdown, mount `UserMenu`, giữ disconnect Centrifugo).
+`Status: done` — `UserMenu.tsx` mới = **187 → 193 dòng** (self-contained: tự gọi `useSession`, `useWalletBalance`, `signOut`; `handleSignOut` chuyển hẳn vào — đúng như chốt ownership). `DashboardShell.tsx` 200 → **60 dòng** (bỏ dropdown, mount `UserMenu`, giữ disconnect Centrifugo).
 
-Lệch thực tế so với snippet: không lệch cấu trúc; thêm fix sau review — focus-visible ring (avatar trigger + option buttons + signout button), `aria-current` không áp dụng (chỉ sidebar). Modal đúng spec: student 3 options + số dư; admin/supporter chỉ workspace link + Đăng xuất.
+Lệch thực tế so với snippet: không lệch cấu trúc; thêm fix sau review — focus-visible ring (avatar trigger + option buttons + signout button), `aria-current` không áp dụng (chỉ sidebar). Nội dung đúng spec: student 3 options + số dư; admin/supporter chỉ workspace link + Đăng xuất.
 
-Verify: `check-types` PASS, lint targeted sạch. QA thủ công còn lại: modal với 3 role (student/admin/supporter).
+**Đổi sau QA người dùng (2026-08-13):** `Modal centered` → Mantine `Popover` `position="bottom-end"` (`offset={8}`, `width={280}`, `radius="md"`, `shadow="md"`, `trapFocus`, `closeOnEscape`, `closeOnClickOutside`) — menu gọn neo ngay dưới avatar, không mở giữa màn hình desktop.
+
+**Cắt info block (2026-08-13, feedback "menu còn thừa"):** bỏ avatar lớn 56, tên, role badge (block centered to); **giữ email xem nhanh** (mọi role, `truncate` 1 dòng — phân biệt tài khoản) + **dòng số dư ví** (student, số đỏ `text-danger` `font-semibold` ngay sau label — đọc lướt thấy). 1 khối `border-b` ngăn cách với options. `getRoleBadge` + import `Badge` xóa. 193 → **154 dòng**. check-types PASS, eslint targeted sạch.
+
+Verify: `check-types` PASS, lint targeted sạch. QA thủ công còn lại: popover với 3 role (student/admin/supporter), 375px không tràn.

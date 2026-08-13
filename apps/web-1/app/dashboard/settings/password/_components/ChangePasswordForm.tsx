@@ -1,7 +1,8 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { Button, Paper, PasswordInput, Stack, Text } from "@mantine/core";
+import { Button, Group, Paper, PasswordInput, Stack, Tooltip } from "@mantine/core";
+import { Info } from "lucide-react";
 import { useProfileMutations } from "../../hooks/useProfileMutations";
 
 interface ChangePasswordFormValues {
@@ -36,7 +37,7 @@ export default function ChangePasswordForm() {
           form.handleSubmit();
         }}
       >
-        <Stack gap="md">
+        <Stack gap="lg">
           <form.Field
             name="currentPassword"
             validators={{
@@ -75,20 +76,29 @@ export default function ChangePasswordForm() {
               const hasError =
                 field.state.meta.isTouched && field.state.meta.errors.length > 0;
               return (
-                <>
-                  <PasswordInput
-                    label="Mật khẩu mới"
-                    placeholder="Ít nhất 8 ký tự"
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.currentTarget.value)}
-                    error={hasError ? field.state.meta.errors[0] : undefined}
-                    size="md"
-                  />
-                  <Text size="xs" className="text-text-muted">
-                    Tối thiểu 8 ký tự. Không nên trùng mật khẩu đã dùng ở nơi khác.
-                  </Text>
-                </>
+                <PasswordInput
+                  label={
+                    <Group gap={6} align="center">
+                      <span>Mật khẩu mới</span>
+                      <Tooltip
+                        label="Tối thiểu 8 ký tự. Không nên trùng mật khẩu đã dùng ở nơi khác."
+                        withArrow
+                        openDelay={200}
+                        classNames={{ tooltip: "font-body text-xs" }}
+                      >
+                        <span className="cursor-help">
+                          <Info className="w-3.5 h-3.5 text-text-muted" />
+                        </span>
+                      </Tooltip>
+                    </Group>
+                  }
+                  placeholder="Ít nhất 8 ký tự"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.currentTarget.value)}
+                  error={hasError ? field.state.meta.errors[0] : undefined}
+                  size="md"
+                />
               );
             }}
           </form.Field>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "@/lib/auth-client";
 import { useQueryClient } from "@tanstack/react-query";
-import { Avatar, Badge, Modal } from "@mantine/core";
+import { Avatar, Popover } from "@mantine/core";
 import {
   CreditCard,
   LayoutDashboard,
@@ -35,31 +35,6 @@ export default function UserMenu() {
 
   const walletBalance = walletData?.balance ?? 0;
   const isStudent = !(user?.role === "admin" || user?.role === "supporter");
-
-  const getRoleBadge = (role?: string) => {
-    if (role === "admin") {
-      return (
-        <Badge color="red" variant="light" className="font-body text-sm py-1">
-          <span className="flex items-center gap-1">
-            <Shield className="w-3.5 h-3.5" />
-            <span>Admin</span>
-          </span>
-        </Badge>
-      );
-    }
-    if (role === "supporter") {
-      return (
-        <Badge color="brand" variant="light" className="font-body text-sm py-1">
-          Supporter
-        </Badge>
-      );
-    }
-    return (
-      <Badge color="gray" variant="light" className="font-body text-sm py-1">
-        Student
-      </Badge>
-    );
-  };
 
   const handleSignOut = async () => {
     await signOut({
@@ -103,85 +78,82 @@ export default function UserMenu() {
   ];
 
   return (
-    <>
-      <button
-        type="button"
-        aria-label="Tài khoản"
-        onClick={() => setOpened(true)}
-        className="cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-      >
-        <Avatar
-          src={user.image || undefined}
-          alt={user.name || "User"}
-          radius="xl"
-          className="transition-transform ring-2 ring-transparent hover:ring-brand"
+    <Popover
+      opened={opened}
+      onChange={setOpened}
+      position="bottom-end"
+      offset={8}
+      width={280}
+      radius="md"
+      shadow="md"
+      trapFocus
+      closeOnEscape
+      closeOnClickOutside
+    >
+      <Popover.Target>
+        <button
+          type="button"
+          aria-label="Tài khoản"
+          onClick={() => setOpened((prev) => !prev)}
+          className="cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
-          {user.name?.substring(0, 2).toUpperCase() || "US"}
-        </Avatar>
-      </button>
+          <Avatar
+            src={user.image || undefined}
+            alt={user.name || "User"}
+            radius="xl"
+            className="transition-transform ring-2 ring-transparent hover:ring-brand"
+          >
+            {user.name?.substring(0, 2).toUpperCase() || "US"}
+          </Avatar>
+        </button>
+      </Popover.Target>
 
-      <Modal
-        opened={opened}
-        onClose={() => setOpened(false)}
-        size="sm"
-        radius="md"
-        centered
-        withCloseButton={false}
-      >
-        <div className="flex flex-col gap-4 font-body">
-          {/* Info block */}
-          <div className="flex flex-col items-center gap-1.5 pb-4 border-b border-border-app">
-            <Avatar
-              src={user.image || undefined}
-              alt={user.name || "User"}
-              size={56}
-              radius="xl"
+      <Popover.Dropdown className="font-body">
+        <div className="flex flex-col gap-1">
+          <div className="flex flex-col border-b border-border-app mb-1">
+            <p
+              className="px-3 py-2.5 text-xs text-text-muted truncate"
+              title={user.email}
             >
-              {user.name?.substring(0, 2).toUpperCase() || "US"}
-            </Avatar>
-            <p className="font-heading font-semibold text-sm text-text-app">
-              {user.name || "User"}
+              {user.email || "—"}
             </p>
-            <p className="text-xs text-text-muted break-all">{user.email || "—"}</p>
-            {getRoleBadge(user.role)}
             {isStudent && walletData && (
-              <div className="flex items-center gap-1.5 mt-1 pt-1 border-t border-border-app">
-                <span className="text-xs text-text-muted">Số dư:</span>
-                <span className="text-xs font-semibold text-text-app tabular-nums">
+              <div className="flex items-center gap-2 px-3 py-2.5">
+                <span className="text-xs text-text-muted shrink-0">
+                  Số dư ví:
+                </span>
+                <span className="text-sm font-semibold text-danger tabular-nums">
                   {walletBalance.toLocaleString("vi-VN")} VND
                 </span>
               </div>
             )}
           </div>
 
-          {/* Options */}
-          <div className="flex flex-col gap-1">
-            {options.map(({ href, label, icon: Icon }) => (
-              <button
-                key={href}
-                type="button"
-                onClick={() => handleNavigate(href)}
-                className="w-full flex items-center gap-2.5 text-sm rounded-md px-3 py-2.5 text-left hover:bg-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand transition-colors cursor-pointer text-text-app"
-              >
-                <Icon className="w-4 h-4 text-text-muted" />
-                <span>{label}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Sign out */}
-          <div className="pt-1 border-t border-border-app">
+          {options.map(({ href, label, icon: Icon }) => (
             <button
+              key={href}
               type="button"
-              onClick={handleSignOut}
-              className="w-full flex items-center gap-2.5 text-sm rounded-md px-3 py-2.5 text-left hover:bg-danger/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger transition-colors cursor-pointer text-danger"
+              onClick={() => handleNavigate(href)}
+              className="w-full flex items-center gap-2.5 text-sm rounded-md px-3 py-2.5 text-left hover:bg-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand transition-colors cursor-pointer text-text-app"
             >
-              <LogOut className="w-4 h-4" />
-              <span>Đăng xuất</span>
+              <Icon className="w-4 h-4 text-text-muted" />
+              <span>{label}</span>
             </button>
-          </div>
+          ))}
         </div>
-      </Modal>
-    </>
+
+        {/* Sign out */}
+        <div className="pt-1 mt-1 border-t border-border-app">
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-2.5 text-sm rounded-md px-3 py-2.5 text-left hover:bg-danger/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger transition-colors cursor-pointer text-danger"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Đăng xuất</span>
+          </button>
+        </div>
+      </Popover.Dropdown>
+    </Popover>
   );
 }

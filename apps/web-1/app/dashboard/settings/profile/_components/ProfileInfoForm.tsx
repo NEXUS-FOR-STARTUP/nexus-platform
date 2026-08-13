@@ -2,9 +2,9 @@
 
 import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
-import { Avatar, Button, Group, Paper, Stack, Text, TextInput } from "@mantine/core";
+import { Avatar, Button, Group, Paper, Stack, TextInput, Tooltip } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { ImagePlus } from "lucide-react";
+import { ImagePlus, Info } from "lucide-react";
 import { useProfileMutations } from "../../hooks/useProfileMutations";
 
 interface ProfileFormValues {
@@ -58,7 +58,7 @@ export default function ProfileInfoForm({ user, refetch }: ProfileInfoFormProps)
           form.handleSubmit();
         }}
       >
-        <Stack gap="md">
+        <Stack gap="lg">
           <Group align="center">
             <Avatar size={96} radius="100%" src={user.image ?? undefined} color="brand">
               {(user.name || "U").substring(0, 2).toUpperCase()}
@@ -96,17 +96,26 @@ export default function ProfileInfoForm({ user, refetch }: ProfileInfoFormProps)
             }}
           </form.Field>
 
-          <div>
-            <Text size="sm" className="text-text-muted font-medium">
-              Email đăng nhập
-            </Text>
-            <Text size="sm" className="text-text-app font-medium break-all">
-              {user.email || "—"}
-            </Text>
-            <Text size="xs" className="text-text-muted">
-              Email dùng để đăng nhập, không thể thay đổi.
-            </Text>
-          </div>
+          <TextInput
+            label={
+              <Group gap={6} align="center">
+                <span>Email đăng nhập</span>
+                <Tooltip
+                  label="Email dùng để đăng nhập, không thể thay đổi."
+                  withArrow
+                  openDelay={200}
+                  classNames={{ tooltip: "font-body text-xs" }}
+                >
+                  <span className="cursor-help">
+                    <Info className="w-3.5 h-3.5 text-text-muted" />
+                  </span>
+                </Tooltip>
+              </Group>
+            }
+            value={user.email ?? ""}
+            disabled
+            size="md"
+          />
 
           <Button type="submit" color="brand" loading={updateName.isPending}>
             Lưu thay đổi

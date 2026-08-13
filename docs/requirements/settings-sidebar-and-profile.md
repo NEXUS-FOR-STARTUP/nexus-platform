@@ -85,7 +85,7 @@ Tách user menu ra khỏi `DashboardShell`:
   4. Divider → **Đăng xuất** (đỏ, tách biệt).
 - Giữ nguyên: disconnect Centrifugo khi đổi tài khoản, handleSignOut, wallet balance hook.
 
-**Lưu ý Mantine rule**: không thêm Tailwind positioning (`fixed`, `inset-0`, `flex`...) vào `Modal` — dùng layout mặc định.
+**Lưu ý Mantine rule**: không thêm Tailwind positioning (`fixed`, `inset-0`, `flex`...) vào `Modal`/`Popover` — dùng layout mặc định của Mantine (`Popover position="bottom-end"`).
 
 ### Sidebar (chỉ chứa mục cài đặt)
 
@@ -169,10 +169,10 @@ Không còn — đã chốt:
 
 - Route mới:
   - `/dashboard/settings` → redirect `/dashboard/settings/profile` (`settings/page.tsx`, 5 dòng)
-  - `/dashboard/settings/profile` — Thông tin cơ bản (`ProfileInfoForm`): tên hiển thị (TanStack Form), email read-only hiển thị full, avatar + "Đổi ảnh" → notification "Chức năng đang được phát triển"
-  - `/dashboard/settings/password` — Đổi mật khẩu (`ChangePasswordForm`): 3 field, inline validation ≥8 ký tự, `revokeOtherSessions: true`
+  - `/dashboard/settings/profile` — Thông tin cơ bản (`ProfileInfoForm`): tên hiển thị (TanStack Form), **email là `TextInput disabled`** (helper "không thể thay đổi" → Tooltip trên label, 2026-08-13), avatar + "Đổi ảnh" → notification "Chức năng đang được phát triển"; form `gap="lg"` cho thoáng
+  - `/dashboard/settings/password` — Đổi mật khẩu (`ChangePasswordForm`): 3 field, inline validation ≥8 ký tự, `revokeOtherSessions: true`; ghi chú dài trên field "Mật khẩu mới" → Tooltip trên label (2026-08-13)
   - Route cũ `/dashboard/profile` → redirect stub 5 dòng sang `/dashboard/settings/profile`
-- `DashboardShell` 200 → **60 dòng**; user menu tách thành `components/layout/_components/UserMenu.tsx` (187 dòng): Mantine `Modal` — student: **Hồ sơ** `/dashboard/settings/profile`, **Thanh toán** `/dashboard/wallet`, **Cài đặt** `/dashboard/settings` + dòng số dư ví; admin: **Bàn làm việc Admin** `/admin`; supporter: **Bàn làm việc Supporter** `/supporter`; **Đăng xuất** tách biệt. Giữ nguyên disconnect Centrifugo khi đổi tài khoản, `signOut` + `queryClient.clear()`.
+- `DashboardShell` 200 → **60 dòng**; user menu tách thành `components/layout/_components/UserMenu.tsx` (193 → **162 dòng**): Mantine `Popover` `position="bottom-end"` neo ngay dưới avatar (đổi từ `Modal centered` theo feedback người dùng 2026-08-13 — không mở giữa màn hình desktop); popover gọn lại (feedback 2026-08-13): bỏ info block to centered (avatar 56, tên, role badge) nhưng **giữ email xem nhanh** (mọi role, `truncate` 1 dòng — phân biệt tài khoản) + **dòng số dư ví compact** (student, số tiền tô đỏ `text-danger` ngay sau label để đọc lướt thấy) + options + **Đăng xuất** tách biệt — student: **Hồ sơ** `/dashboard/settings/profile`, **Thanh toán** `/dashboard/wallet`, **Cài đặt** `/dashboard/settings`; admin: **Bàn làm việc Admin** `/admin`; supporter: **Bàn làm việc Supporter** `/supporter`. Giữ nguyên disconnect Centrifugo khi đổi tài khoản, `signOut` + `queryClient.clear()`.
 - `lib/auth-errors.ts` — `translateAuthError` (Better Auth EN→VI) dùng chung cho settings + auth pages.
 - `useProfileMutations` (`app/dashboard/settings/hooks/`) — `updateUser` + `changePassword` (`revokeOtherSessions: true`), try/catch nằm trong hook, component sạch.
 - Cấu trúc file khớp mục 6, gồm thêm `_components/settings-nav.ts` (config nav) + `_components/SettingsSidebar.tsx`.
