@@ -100,7 +100,7 @@ export default function AdminDepositVerificationTable({
     <div className="space-y-4">
       <Group gap="sm" mb="md" style={{ width: "100%" }}>
         <TextInput
-          placeholder="Tìm theo nội dung CK, tên người nạp..."
+          placeholder="Tìm theo nội dung chuyển khoản, tên người nạp..."
           leftSection={<Search className="w-4 h-4 text-text-muted" />}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.currentTarget.value)}
@@ -140,7 +140,7 @@ export default function AdminDepositVerificationTable({
           <Table.Thead className="bg-brand-soft">
             <Table.Tr>
               <Table.Th className="text-left">Người nạp</Table.Th>
-              <Table.Th className="text-left">Nội dung CK</Table.Th>
+              <Table.Th className="text-left">Nội dung chuyển khoản</Table.Th>
               <Table.Th className="text-left">Số tiền</Table.Th>
               <Table.Th className="text-left">Mã GD ngân hàng</Table.Th>
               <Table.Th className="text-left">Thời gian</Table.Th>

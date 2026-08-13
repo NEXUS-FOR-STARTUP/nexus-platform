@@ -77,7 +77,6 @@ function AdminHubPageInner() {
   const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages" | "stats" | "users">("stats");
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
   const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "unassigned" | "assigned" | "crud">("all");
-  const [userFilter, setUserFilter] = useState<"all" | "admin" | "supporter" | "user" | "banned">("all");
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -538,20 +537,11 @@ function AdminHubPageInner() {
               </div>
             ) : activeSection === "users" ? (
               <div className="flex flex-col gap-1">
-                <UnstyledButton onClick={() => setUserFilter("all")} className={classes.link} data-active={userFilter === "all" || undefined}>
-                  <span>Tất cả người dùng</span>
-                </UnstyledButton>
-                <UnstyledButton onClick={() => setUserFilter("admin")} className={classes.link} data-active={userFilter === "admin" || undefined}>
-                  <span>Admin</span>
-                </UnstyledButton>
-                <UnstyledButton onClick={() => setUserFilter("supporter")} className={classes.link} data-active={userFilter === "supporter" || undefined}>
-                  <span>Supporter</span>
-                </UnstyledButton>
-                <UnstyledButton onClick={() => setUserFilter("user")} className={classes.link} data-active={userFilter === "user" || undefined}>
-                  <span>Student</span>
-                </UnstyledButton>
-                <UnstyledButton onClick={() => setUserFilter("banned")} className={classes.link} data-active={userFilter === "banned" || undefined}>
-                  <span>Bị khóa</span>
+                <UnstyledButton
+                  className={classes.link}
+                  data-active={true}
+                >
+                  <span>Quản lý người dùng</span>
                 </UnstyledButton>
               </div>
             ) : (
@@ -648,7 +638,7 @@ function AdminHubPageInner() {
               </div>
             ) : activeSection === "users" ? (
               <div>
-                <AdminUsersTable roleFilter={userFilter} />
+                <AdminUsersTable />
               </div>
             ) : (
               <div>

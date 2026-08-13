@@ -1,16 +1,20 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Search, Ban, CheckCircle, UserPlus, Users } from "lucide-react";
-import { Table, Pagination, Badge, TextInput, Select, Group, Button, ActionIcon, Tooltip } from "@mantine/core";
+import { Search, Ban, CheckCircle, UserPlus, Users, MoreVertical } from "lucide-react";
+import { Table, Pagination, Badge, TextInput, Select, Group, Button, ActionIcon, Tooltip, Menu } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useAdminUsers } from "../hooks/useAdminUsers";
 import CreateUserModal from "./CreateUserModal";
 import BanUserModal from "./BanUserModal";
 
-interface AdminUsersTableProps {
-  roleFilter: string;
-}
+const ROLE_FILTER_OPTIONS: { value: string; label: string }[] = [
+  { value: "all", label: "Tất cả vai trò" },
+  { value: "admin", label: "Admin" },
+  { value: "supporter", label: "Supporter" },
+  { value: "user", label: "Student" },
+  { value: "banned", label: "Bị khóa" },
+];
 
 function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return "N/A";
@@ -33,10 +37,11 @@ const roleLabelMap: Record<string, string> = {
   user: "Student",
 };
 
-export default function AdminUsersTable({ roleFilter }: AdminUsersTableProps) {
+export default function AdminUsersTable() {
   const [activePage, setActivePage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("created_at_desc");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
   const itemsPerPage = 10;
 
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -58,10 +63,10 @@ export default function AdminUsersTable({ roleFilter }: AdminUsersTableProps) {
       p.filterValue = roleFilter;
     }
     if (sortBy === "created_at_desc") {
-      p.sortBy = "created_at";
+      p.sortBy = "createdAt";
       p.sortDirection = "desc";
     } else if (sortBy === "created_at_asc") {
-      p.sortBy = "created_at";
+      p.sortBy = "createdAt";
       p.sortDirection = "asc";
     } else if (sortBy === "name_asc") {
       p.sortBy = "name";
@@ -161,6 +166,14 @@ export default function AdminUsersTable({ roleFilter }: AdminUsersTableProps) {
             radius="md"
             style={{ flexGrow: 1 }}
           />
+          <Select
+            placeholder="Vai trò"
+            data={ROLE_FILTER_OPTIONS}
+            value={roleFilter}
+            onChange={(val) => setRoleFilter(val || "all")}
+            radius="md"
+            style={{ width: 150 }}
+          />
           <Button
             leftSection={<UserPlus className="w-4 h-4" />}
             onClick={() => setShowCreateModal(true)}
@@ -223,6 +236,14 @@ export default function AdminUsersTable({ roleFilter }: AdminUsersTableProps) {
           radius="md"
           style={{ width: 160 }}
         />
+        <Select
+          placeholder="Vai trò"
+          data={ROLE_FILTER_OPTIONS}
+          value={roleFilter}
+          onChange={(val) => setRoleFilter(val || "all")}
+          radius="md"
+          style={{ width: 150 }}
+        />
         <Button
           leftSection={<UserPlus className="w-4 h-4" />}
           onClick={() => setShowCreateModal(true)}
@@ -261,7 +282,7 @@ export default function AdminUsersTable({ roleFilter }: AdminUsersTableProps) {
                 </Table.Td>
                 <Table.Td>
                   {user.banned ? (
-                    <Tooltip label={user.ban_reason || "Không có lý do"} withArrow>
+                    <Tooltip label={user.banReason || "Không có lý do"} withArrow>
                       <Badge color="red" variant="light" size="sm">
                         Bị khóa
                       </Badge>
@@ -272,32 +293,36 @@ export default function AdminUsersTable({ roleFilter }: AdminUsersTableProps) {
                     </Badge>
                   )}
                 </Table.Td>
-                <Table.Td className="text-text-subtle">{formatDate(user.created_at)}</Table.Td>
+                <Table.Td className="text-text-subtle">{formatDate(user.createdAt)}</Table.Td>
                 <Table.Td className="text-center">
-                  {user.banned ? (
-                    <Tooltip label="Mở khóa" withArrow>
-                      <ActionIcon
-                        variant="light"
-                        color="green"
-                        size="sm"
-                        onClick={() => handleUnbanUser(user.id, user.name)}
-                        loading={isUnbanning}
-                      >
-                        <CheckCircle className="w-4 h-4" />
+                  <Menu shadow="md" width={200} position="bottom-end">
+                    <Menu.Target>
+                      <ActionIcon variant="subtle" color="gray" className="cursor-pointer mx-auto">
+                        <MoreVertical className="w-4 h-4" />
                       </ActionIcon>
-                    </Tooltip>
-                  ) : (
-                    <Tooltip label="Khóa" withArrow>
-                      <ActionIcon
-                        variant="light"
-                        color="red"
-                        size="sm"
-                        onClick={() => setBanTarget({ userId: user.id, userName: user.name })}
-                      >
-                        <Ban className="w-4 h-4" />
-                      </ActionIcon>
-                    </Tooltip>
-                  )}
+                    </Menu.Target>
+
+                    <Menu.Dropdown className="bg-surface-app border border-border-app p-1 rounded-lg">
+                      {user.banned ? (
+                        <Menu.Item
+                          leftSection={<CheckCircle className="w-3.5 h-3.5 text-success" />}
+                          onClick={() => handleUnbanUser(user.id, user.name)}
+                          disabled={isUnbanning}
+                          className="text-text-app hover:bg-surface-soft cursor-pointer text-xs font-semibold"
+                        >
+                          Mở khóa tài khoản
+                        </Menu.Item>
+                      ) : (
+                        <Menu.Item
+                          leftSection={<Ban className="w-3.5 h-3.5 text-danger" />}
+                          onClick={() => setBanTarget({ userId: user.id, userName: user.name })}
+                          className="text-danger hover:bg-danger-soft cursor-pointer text-xs font-semibold"
+                        >
+                          Khóa tài khoản
+                        </Menu.Item>
+                      )}
+                    </Menu.Dropdown>
+                  </Menu>
                 </Table.Td>
               </Table.Tr>
             ))}
