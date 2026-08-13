@@ -1,0 +1,118 @@
+"use client";
+
+import { useEffect } from "react";
+import { useForm } from "@tanstack/react-form";
+import { Avatar, Button, Group, Paper, Stack, Text, TextInput } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
+import { ImagePlus } from "lucide-react";
+import { useProfileMutations } from "../../hooks/useProfileMutations";
+
+interface ProfileFormValues {
+  name: string;
+}
+
+interface ProfileInfoFormProps {
+  user: {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  };
+  refetch: () => Promise<void>;
+}
+
+export default function ProfileInfoForm({ user, refetch }: ProfileInfoFormProps) {
+  const { updateName } = useProfileMutations();
+
+  const form = useForm({
+    defaultValues: { name: user.name ?? "" } as ProfileFormValues,
+    // Dùng `mutate` (fire-and-forget) + per-call onSuccess thay vì `mutateAsync`:
+    // TanStack Form v1 re-throw lỗi từ onSubmit, `mutate` tránh unhandled rejection
+    // (toast lỗi đã do hook onError lo).
+    onSubmit: ({ value }) => {
+      updateName.mutate(value.name.trim(), {
+        onSuccess: () => {
+          void refetch();
+        },
+      });
+    },
+  });
+
+  // Đồng bộ defaultValues từ session khi session được refetch (pattern useIntakeForm).
+  useEffect(() => {
+    form.reset({ name: user.name ?? "" });
+  }, [user.name, form]);
+
+  const handleChangeAvatar = () => {
+    notifications.show({
+      title: "Đang phát triển",
+      message: "Chức năng này đang được phát triển.",
+      color: "blue",
+    });
+  };
+
+  return (
+    <Paper p="xl" radius="md" className="bg-surface-app border border-border-app max-w-md">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
+      >
+        <Stack gap="md">
+          <Group align="center">
+            <Avatar size={96} radius="100%" src={user.image ?? undefined} color="brand">
+              {(user.name || "U").substring(0, 2).toUpperCase()}
+            </Avatar>
+            <Button
+              variant="default"
+              leftSection={<ImagePlus className="w-4 h-4" />}
+              onClick={handleChangeAvatar}
+            >
+              Đổi ảnh
+            </Button>
+          </Group>
+
+          <form.Field
+            name="name"
+            validators={{
+              onChange: ({ value }: { value: string }) =>
+                !value.trim() ? "Tên hiển thị không được để trống." : undefined,
+            }}
+          >
+            {(field) => {
+              const hasError =
+                field.state.meta.isTouched && field.state.meta.errors.length > 0;
+              return (
+                <TextInput
+                  label="Tên hiển thị"
+                  placeholder="Nhập tên hiển thị"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.currentTarget.value)}
+                  error={hasError ? field.state.meta.errors[0] : undefined}
+                  size="md"
+                />
+              );
+            }}
+          </form.Field>
+
+          <div>
+            <Text size="sm" className="text-text-muted font-medium">
+              Email đăng nhập
+            </Text>
+            <Text size="sm" className="text-text-app font-medium break-all">
+              {user.email || "—"}
+            </Text>
+            <Text size="xs" className="text-text-muted">
+              Email dùng để đăng nhập, không thể thay đổi.
+            </Text>
+          </div>
+
+          <Button type="submit" color="brand" loading={updateName.isPending}>
+            Lưu thay đổi
+          </Button>
+        </Stack>
+      </form>
+    </Paper>
+  );
+}
