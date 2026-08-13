@@ -8,10 +8,8 @@ import { Avatar, Popover } from "@mantine/core";
 import {
   CreditCard,
   Home,
-  LayoutDashboard,
   LogOut,
   Settings,
-  Shield,
   type LucideIcon,
 } from "lucide-react";
 import { useWalletBalance } from "@/app/dashboard/wallet/hooks/useWallet";
@@ -63,18 +61,6 @@ export default function UserMenu() {
 
   const options: UserMenuOption[] = [
     { href: getHomeLink(user.role), label: "Trang chủ", icon: Home },
-    ...(user.role === "admin"
-      ? [{ href: "/admin", label: "Bàn làm việc Admin", icon: Shield }]
-      : []),
-    ...(user.role === "supporter"
-      ? [
-          {
-            href: "/supporter",
-            label: "Bàn làm việc Supporter",
-            icon: LayoutDashboard,
-          },
-        ]
-      : []),
     ...(isStudent
       ? [
           { href: "/dashboard/wallet", label: "Thanh toán", icon: CreditCard },
