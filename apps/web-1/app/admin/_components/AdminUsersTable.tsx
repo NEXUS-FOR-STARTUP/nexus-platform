@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Search, Ban, CheckCircle, UserPlus, Users } from "lucide-react";
-import { Table, Pagination, Badge, TextInput, Select, Group, Button, ActionIcon, Tooltip } from "@mantine/core";
+import { Search, Ban, CheckCircle, UserPlus, Users, MoreVertical } from "lucide-react";
+import { Table, Pagination, Badge, TextInput, Select, Group, Button, ActionIcon, Tooltip, Menu } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useAdminUsers } from "../hooks/useAdminUsers";
 import CreateUserModal from "./CreateUserModal";
@@ -14,7 +14,9 @@ interface AdminUsersTableProps {
 
 function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return "N/A";
-  return new Date(dateStr).toLocaleString("vi-VN", {
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return "N/A";
+  return date.toLocaleString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -272,32 +274,35 @@ export default function AdminUsersTable({ roleFilter }: AdminUsersTableProps) {
                     </Badge>
                   )}
                 </Table.Td>
-                <Table.Td className="text-text-subtle">{formatDate(user.created_at)}</Table.Td>
+                <Table.Td className="text-text-subtle">{formatDate(user.created_at || user.createdAt)}</Table.Td>
                 <Table.Td className="text-center">
-                  {user.banned ? (
-                    <Tooltip label="Mở khóa" withArrow>
-                      <ActionIcon
-                        variant="light"
-                        color="green"
-                        size="sm"
-                        onClick={() => handleUnbanUser(user.id, user.name)}
-                        loading={isUnbanning}
-                      >
-                        <CheckCircle className="w-4 h-4" />
+                  <Menu shadow="md" width={160} position="bottom-end">
+                    <Menu.Target>
+                      <ActionIcon variant="subtle" color="gray" className="cursor-pointer mx-auto">
+                        <MoreVertical className="w-4 h-4" />
                       </ActionIcon>
-                    </Tooltip>
-                  ) : (
-                    <Tooltip label="Khóa" withArrow>
-                      <ActionIcon
-                        variant="light"
-                        color="red"
-                        size="sm"
-                        onClick={() => setBanTarget({ userId: user.id, userName: user.name })}
-                      >
-                        <Ban className="w-4 h-4" />
-                      </ActionIcon>
-                    </Tooltip>
-                  )}
+                    </Menu.Target>
+
+                    <Menu.Dropdown className="bg-surface-app border border-border-app p-1 rounded-lg">
+                      {user.banned ? (
+                        <Menu.Item
+                          leftSection={<CheckCircle className="w-3.5 h-3.5 text-success" />}
+                          onClick={() => handleUnbanUser(user.id, user.name)}
+                          className="text-text-app hover:bg-surface-soft cursor-pointer text-xs font-semibold"
+                        >
+                          Mở khóa
+                        </Menu.Item>
+                      ) : (
+                        <Menu.Item
+                          leftSection={<Ban className="w-3.5 h-3.5 text-danger" />}
+                          onClick={() => setBanTarget({ userId: user.id, userName: user.name })}
+                          className="text-danger hover:bg-danger-soft cursor-pointer text-xs font-semibold"
+                        >
+                          Khóa tài khoản
+                        </Menu.Item>
+                      )}
+                    </Menu.Dropdown>
+                  </Menu>
                 </Table.Td>
               </Table.Tr>
             ))}
