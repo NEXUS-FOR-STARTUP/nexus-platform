@@ -7,7 +7,6 @@ import {
   WalletTransactionItem,
   SortField,
   SortState,
-  QuickFilterTab,
 } from "./wallet-transaction.types";
 import { WalletTransactionFilters } from "./WalletTransactionFilters";
 import { WalletTransactionTable } from "./WalletTransactionTable";
@@ -15,11 +14,10 @@ import { WalletTransactionCardList } from "./WalletTransactionCardList";
 
 export function WalletTransactionList() {
   const [page, setPage] = useState(1);
-  const [activeTab, setActiveTab] = useState<QuickFilterTab>("all");
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [sort, setSort] = useState<SortState>({ field: "created_at", order: "desc" });
 
-  const effectiveType = selectedType || (activeTab === "all" ? null : activeTab);
+  const effectiveType = selectedType;
   const limit = 10;
   const { data, isLoading, isFetching, isError, refetch } = useWalletHistory(
     page,
@@ -28,12 +26,6 @@ export function WalletTransactionList() {
     sort.field,
     sort.order,
   );
-
-  const handleTabChange = (tab: QuickFilterTab) => {
-    setActiveTab(tab);
-    setSelectedType(null);
-    setPage(1);
-  };
 
   const handleTypeChange = (value: string | null) => {
     setSelectedType(value);
@@ -56,8 +48,6 @@ export function WalletTransactionList() {
   return (
     <Paper withBorder radius="md" className="bg-surface-app overflow-hidden">
       <WalletTransactionFilters
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
         selectedType={selectedType}
         onTypeChange={handleTypeChange}
         isFetching={isFetching}
@@ -93,7 +83,7 @@ export function WalletTransactionList() {
                 : "Các biến động số dư ví sẽ được ghi nhận tại đây."}
             </Text>
             {effectiveType && (
-              <Button size="sm" variant="subtle" color="gray" onClick={() => handleTabChange("all")} className="text-base">
+              <Button size="sm" variant="subtle" color="gray" onClick={() => handleTypeChange(null)} className="text-base">
                 Xem tất cả giao dịch
               </Button>
             )}
