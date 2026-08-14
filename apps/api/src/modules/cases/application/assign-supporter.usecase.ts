@@ -2,6 +2,7 @@ import { AppError } from "../../../shared/domain/app-error.js";
 import { isFinalCaseStage } from "../domain/case.types.js";
 import {
   assignCaseSupporter as defaultAssignCaseSupporter,
+  assignCaseSupporterInTx as defaultAssignCaseSupporterInTx,
   findCaseById as defaultFindCaseById,
   findSupporterById as defaultFindSupporterById,
 } from "../infrastructure/persistence/case.repository.js";
@@ -9,18 +10,21 @@ import { auditLogger } from "../../../shared/infrastructure/audit-logger.js";
 import logger from "../../../shared/infrastructure/logger.js";
 import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
-import { executeTransition } from "../../../services/case-transition.service.js";
+import { prisma } from "../../../db.js";
+import { transitionInTx } from "../../../services/case-transition.service.js";
 
 type AssignSupporterDeps = {
   findCaseById?: typeof defaultFindCaseById;
   findSupporterById?: typeof defaultFindSupporterById;
   assignCaseSupporter?: typeof defaultAssignCaseSupporter;
+  assignCaseSupporterInTx?: typeof defaultAssignCaseSupporterInTx;
 };
 
 const defaultDeps = {
   findCaseById: defaultFindCaseById,
   findSupporterById: defaultFindSupporterById,
   assignCaseSupporter: defaultAssignCaseSupporter,
+  assignCaseSupporterInTx: defaultAssignCaseSupporterInTx,
 };
 
 export async function assignSupporterUseCase(
@@ -29,7 +33,7 @@ export async function assignSupporterUseCase(
   supporterId: string,
   deps: AssignSupporterDeps = {}
 ) {
-  const { findCaseById, findSupporterById, assignCaseSupporter } = { ...defaultDeps, ...deps };
+  const { findCaseById, findSupporterById, assignCaseSupporter, assignCaseSupporterInTx } = { ...defaultDeps, ...deps };
   const startTime = Date.now();
   const timer = auditLogger.startTimer();
   const existingCase = await findCaseById(caseId);
@@ -67,24 +71,26 @@ export async function assignSupporterUseCase(
   }
 
   try {
-    let nextStatus: string;
-    let nextStage: string;
+    let result: any;
 
     if (nextSupporterId) {
-      const result = await executeTransition({
-        transition: 'T6_ASSIGN_SUPPORTER',
-        caseId,
-        actorId: adminId,
-        roleVerified: 'ADMIN',
+      // D12: T6 + gán supporter cùng 1 tx
+      const transition = await prisma.$transaction(async (tx) => {
+        const t = await transitionInTx(tx, {
+          transition: 'T6_ASSIGN_SUPPORTER',
+          caseId,
+          actorId: adminId,
+          roleVerified: 'ADMIN',
+        });
+        const assigned = await assignCaseSupporterInTx(tx, caseId, adminId, nextSupporterId, supporterName);
+        return { stage: t.stage, status: t.status, case: assigned };
       });
-      nextStatus = result.status;
-      nextStage = result.stage;
+      result = { ...transition.case, user_facing_stage: transition.stage, internal_status: transition.status };
     } else {
-      nextStatus = "accepted_unassigned";
-      nextStage = "under_review";
+      // Unassign: giữ write trực tiếp (documented exception)
+      result = await assignCaseSupporter(caseId, adminId, null, "accepted_unassigned", undefined, "under_review");
     }
 
-    const result = await assignCaseSupporter(caseId, adminId, nextSupporterId, nextStatus, unassign ? undefined : supporterName, nextStage);
     const durationMs = timer();
     auditLogger.log({
       operation: "case.assign_supporter", actor_id: adminId, actor_role: "admin",

@@ -1,12 +1,13 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import {
-  assignCaseSupporter,
+  assignCaseSupporterInTx,
   findCaseById,
   findSupporterById,
 } from "../../cases/infrastructure/persistence/case.repository.js";
 import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
-import { executeTransition } from "../../../services/case-transition.service.js";
+import { prisma } from "../../../db.js";
+import { transitionInTx } from "../../../services/case-transition.service.js";
 
 export async function adminAssignSupporterUseCase(
   adminId: string,
@@ -35,17 +36,23 @@ export async function adminAssignSupporterUseCase(
     return caseItem;
   }
 
-  const { status } = await executeTransition({
-    transition: 'T6_ASSIGN_SUPPORTER',
-    caseId,
-    actorId: adminId,
-    roleVerified: 'ADMIN',
+  // D12: T6 + gán supporter cùng 1 tx
+  const transition = await prisma.$transaction(async (tx) => {
+    const t = await transitionInTx(tx, {
+      transition: 'T6_ASSIGN_SUPPORTER',
+      caseId,
+      actorId: adminId,
+      roleVerified: 'ADMIN',
+    });
+    const assigned = await assignCaseSupporterInTx(tx, caseId, adminId, supporterId, supporterUser.name);
+    return { stage: t.stage, status: t.status, case: assigned };
   });
 
-  const result = await assignCaseSupporter(
-    caseId, adminId, supporterId,
-    status, supporterUser.name, "under_review",
-  );
+  const result = {
+    ...transition.case,
+    user_facing_stage: transition.stage,
+    internal_status: transition.status,
+  };
 
   emitEvent({
     eventId: crypto.randomUUID(),

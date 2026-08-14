@@ -2,6 +2,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import type { Case, DocumentWorkspace } from "@/types";
 
+/** Open request-more-info / close-case event surfaced for the student workspace. */
+export interface OpenInfoRequest {
+  metadata_json?: { query?: string; reason?: string } | null;
+}
+
 interface CaseDetailsResponse {
   case: Case;
   intake_snapshot?: unknown;
@@ -9,7 +14,7 @@ interface CaseDetailsResponse {
   latest_user_action?: unknown;
   document_board_sections?: unknown;
   round_history?: unknown;
-  open_requests_for_more_info?: unknown;
+  open_requests_for_more_info?: OpenInfoRequest[] | null;
   document_workspace?: DocumentWorkspace | null;
 }
 
@@ -24,16 +29,6 @@ export function useCaseDetails(id: string) {
     },
     enabled: !!id,
     refetchInterval: 10000,
-  });
-
-  const updateStageMutation = useMutation({
-    mutationFn: async ({ stage, status }: { stage?: string; status?: string }) => {
-      const response = await apiClient.post(`/cases/${id}/status`, { stage, status });
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["case", id] });
-    },
   });
 
   const updateSettingsMutation = useMutation({
@@ -69,17 +64,6 @@ export function useCaseDetails(id: string) {
     },
   });
 
-  const resubmitMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiClient.post(`/cases/${id}/resubmit`);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["case", id] });
-      queryClient.invalidateQueries({ queryKey: ["cases"] });
-    },
-  });
-
   return {
     caseData: caseQuery.data?.case || null,
     creditBalance: caseQuery.data?.case?.credit_balance ?? 0,
@@ -96,13 +80,9 @@ export function useCaseDetails(id: string) {
     isLoading: caseQuery.isLoading,
     error: caseQuery.error,
     refetch: caseQuery.refetch,
-    updateStage: updateStageMutation.mutateAsync,
-    isUpdatingStage: updateStageMutation.isPending,
     updateSettings: updateSettingsMutation.mutateAsync,
     isUpdatingSettings: updateSettingsMutation.isPending,
     deleteCase: deleteCaseMutation.mutateAsync,
     isDeletingCase: deleteCaseMutation.isPending,
-    resubmitCase: resubmitMutation.mutateAsync,
-    isResubmitting: resubmitMutation.isPending,
   };
 }

@@ -56,7 +56,7 @@ test("submitRevisionUseCase - pkg_tf_audit throws FEATURE_DEPRECATED", async () 
     await submitRevisionUseCase("user-1", "case-1", validRevisionBody() as any, {
       findCaseByIdWithMembersAndCheckpoints: async () =>
         mockCase({ package_id: "pkg_tf_audit" }),
-      submitCaseRevision: STALE_MOCK,
+      submitCaseRevisionInTx: STALE_MOCK,
     });
     assert.fail("Should throw FEATURE_DEPRECATED");
   } catch (err: any) {
@@ -81,7 +81,7 @@ test("submitRevisionUseCase - old package passes guard (triggers next check)", a
           owner_auth_user_id: "other-user",
           members: [],
         }),
-      submitCaseRevision: STALE_MOCK,
+      submitCaseRevisionInTx: STALE_MOCK,
     });
     assert.fail("Should throw FORBIDDEN (not FEATURE_DEPRECATED)");
   } catch (err: any) {
@@ -105,7 +105,7 @@ test("submitRevisionUseCase - empty string package_id passes guard", async () =>
           owner_auth_user_id: "other-user",
           members: [],
         }),
-      submitCaseRevision: STALE_MOCK,
+      submitCaseRevisionInTx: STALE_MOCK,
     });
     assert.fail("Should throw FORBIDDEN (not FEATURE_DEPRECATED)");
   } catch (err: any) {
@@ -129,7 +129,7 @@ test("submitRevisionUploadUseCase - pkg_tf_audit throws FEATURE_DEPRECATED", asy
     await submitRevisionUploadUseCase("user-1", "case-1", validUploadBody() as any, {
       findCaseByIdWithMembersAndCheckpoints: async () =>
         mockCase({ package_id: "pkg_tf_audit" }),
-      submitCaseRevision: STALE_MOCK,
+      submitCaseRevisionInTx: STALE_MOCK,
     });
     assert.fail("Should throw FEATURE_DEPRECATED");
   } catch (err: any) {
@@ -154,7 +154,7 @@ test("submitRevisionUploadUseCase - old package passes guard (triggers next chec
           owner_auth_user_id: "other-user",
           members: [],
         }),
-      submitCaseRevision: STALE_MOCK,
+      submitCaseRevisionInTx: STALE_MOCK,
     });
     assert.fail("Should throw FORBIDDEN (not FEATURE_DEPRECATED)");
   } catch (err: any) {
@@ -178,7 +178,7 @@ test("submitRevisionUploadUseCase - null package_id passes guard", async () => {
           owner_auth_user_id: "other-user",
           members: [],
         }),
-      submitCaseRevision: STALE_MOCK,
+      submitCaseRevisionInTx: STALE_MOCK,
     });
     assert.fail("Should throw FORBIDDEN (not FEATURE_DEPRECATED)");
   } catch (err: any) {
@@ -202,7 +202,7 @@ test("submitRevisionUploadUseCase - pkg_tf_free passes guard", async () => {
           owner_auth_user_id: "other-user",
           members: [],
         }),
-      submitCaseRevision: STALE_MOCK,
+      submitCaseRevisionInTx: STALE_MOCK,
     });
     assert.fail("Should throw FORBIDDEN (not FEATURE_DEPRECATED)");
   } catch (err: any) {

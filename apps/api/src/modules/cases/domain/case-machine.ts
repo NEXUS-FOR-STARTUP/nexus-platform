@@ -12,9 +12,6 @@ export const caseMachine = setup({
   },
 
   guards: {
-    isOwnerOrMember: ({ event }) =>
-      event.data?.actorId === event.data?.caseOwnerId,
-
     isOwner: ({ event }) =>
       event.data?.actorId === event.data?.caseOwnerId,
 
@@ -66,7 +63,7 @@ export const caseMachine = setup({
       on: {
         T2_SUBMIT_INTAKE: {
           target: 'triage_pending',
-          guard: 'isOwnerOrMember',
+          guard: 'isOwner',
           actions: 'upsertDoc',
         },
         T5_ACCEPT: {
@@ -75,7 +72,7 @@ export const caseMachine = setup({
         },
         T16_EDIT_INTAKE: {
           target: 'triage_pending',
-          guard: 'isBeforeSubmission',
+          guard: and(['isBeforeSubmission', 'isOwner']),
           actions: 'upsertDoc',
         },
         T12_REJECT: {
@@ -104,6 +101,11 @@ export const caseMachine = setup({
 
     assigned: {
       on: {
+        T6_ASSIGN_SUPPORTER: {
+          target: 'assigned',
+          guard: 'isAdmin',
+          actions: 'emitStageChanged',
+        },
         T7_START_WORK: {
           target: 'supporter_working',
           guard: 'isAssignedSupporter',
@@ -154,7 +156,7 @@ export const caseMachine = setup({
       on: {
         T9_SUBMIT_REVISION: {
           target: 'supporter_working',
-          guard: 'isOwnerOrMember',
+          guard: 'isOwner',
           actions: 'upsertDoc',
         },
         T15_CANCEL: {
@@ -180,18 +182,6 @@ export const caseMachine = setup({
 
     done: {
       type: 'final' as const,
-      on: {
-        T3_RESUBMIT_AFTER_REJECT: {
-          target: 'triage_pending',
-          guard: and(['isOwner', 'hasCredit']),
-          actions: ['upsertDoc', 'resetStatus'],
-        },
-        T4_RESUBMIT_AFTER_VETO: {
-          target: 'triage_pending',
-          guard: 'isOwner',
-          actions: ['upsertDoc', 'resetStatus'],
-        },
-      },
     },
 
     cancelled: {

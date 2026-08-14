@@ -312,14 +312,13 @@ test("Phase 06 - Core usecases", async (t) => {
   });
 
   await t.test("updateCaseStatusUseCase - stage transition rules", async () => {
-    const { isValidStageTransition, isFinalCaseStage } = await import(
+    const { isFinalCaseStage, isPreSubmissionStage } = await import(
       "../../../modules/cases/domain/case.types.js"
     );
-    assert.ok(isValidStageTransition("submitted", "under_review"));
-    assert.ok(!isValidStageTransition("submitted", "completed"));
-    assert.ok(!isValidStageTransition("completed", "under_review"));
     assert.ok(isFinalCaseStage("completed"));
     assert.ok(!isFinalCaseStage("submitted"));
+    assert.ok(isPreSubmissionStage("intake_pending"));
+    assert.ok(!isPreSubmissionStage("submitted"));
   });
 
   // -----------------------------------------------------------------------

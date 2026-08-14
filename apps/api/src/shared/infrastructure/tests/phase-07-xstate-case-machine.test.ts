@@ -19,7 +19,7 @@ import {
   isValidState,
 } from '../../../modules/cases/domain/case-machine.js'
 import type { TransitionEvent, TransitionName } from '../../../modules/cases/domain/transition.types.js'
-import { ALL_TRANSITIONS } from '../../../modules/cases/domain/transition.types.js'
+import { ALL_TRANSITIONS, TARGET_STAGE } from '../../../modules/cases/domain/transition.types.js'
 
 function event(t: TransitionName, overrides: Record<string, unknown> = {}): TransitionEvent {
   return {
@@ -134,7 +134,7 @@ test('T11_SUBMIT_OUTPUT — isAssignedSupporter + hasCredit → report_ready_to_
   assert.ok(r!.actions.some(a => a.type === 'lockPrice'))
 })
 
-test('T9_SUBMIT_REVISION — isOwnerOrMember → supporter_working, upsertDoc', () => {
+test('T9_SUBMIT_REVISION — isOwner → supporter_working, upsertDoc', () => {
   const r = tryTransition('waiting_user', event('T9_SUBMIT_REVISION'))
   assert.ok(r)
   assert.equal(r!.to, 'supporter_working')
@@ -147,12 +147,9 @@ test('T14_COMPLETE — isAssignedSupporter → done', () => {
   assert.equal(r!.to, 'done')
 })
 
-test('T3_RESUBMIT_AFTER_REJECT — isOwner + hasCredit → triage_pending (from done)', () => {
+test('T3_RESUBMIT_AFTER_REJECT — from done → null (done là final thật)', () => {
   const r = tryTransition('done', event('T3_RESUBMIT_AFTER_REJECT'))
-  assert.ok(r)
-  assert.equal(r!.to, 'triage_pending')
-  assert.ok(r!.actions.some(a => a.type === 'upsertDoc'))
-  assert.ok(r!.actions.some(a => a.type === 'resetStatus'))
+  assert.equal(r, null)
 })
 
 test('T4_RESUBMIT_AFTER_VETO — isOwner (free) → triage_pending (from cancelled)', () => {
@@ -258,10 +255,8 @@ test('getAvailableTransitions — supporter_working có 5 transition', () => {
   assert.ok(ts.includes('T15_CANCEL'))
 })
 
-test('getAvailableTransitions — done có T3+T4 (resubmit)', () => {
-  const ts = getAvailableTransitions('done')
-  assert.ok(ts.includes('T3_RESUBMIT_AFTER_REJECT'))
-  assert.ok(ts.includes('T4_RESUBMIT_AFTER_VETO'))
+test('getAvailableTransitions — done là terminal → []', () => {
+  assert.deepEqual(getAvailableTransitions('done'), [])
 })
 
 test('getAvailableTransitions — status không hợp lệ → []', () => {
@@ -303,13 +298,13 @@ test('VALID_STATES — 8 states', () => {
   }
 })
 
-test('Machine — 8 state nodes, 16 transitions total', () => {
+test('Machine — 8 state nodes, 22 transition edges', () => {
   const snapshots: TransitionName[] = []
   for (const state of VALID_STATES) {
     const ts = getAvailableTransitions(state)
     ts.forEach(t => snapshots.push(t))
   }
-  assert.equal(snapshots.length, 23, '23 transition edges across 8 states')
+  assert.equal(snapshots.length, 22, '22 transition edges across 8 states')
 })
 
 test('Free case (lockedPrice=0) — hasCredit guard tự skip (Amendment #6)', () => {
@@ -362,4 +357,24 @@ test('T9_SUBMIT_REVISION — from triage_pending → null (not defined)', () => 
 test('T1_CREATE_CASE — from done → null (not defined)', () => {
   const r = tryTransition('done', event('T1_CREATE_CASE'))
   assert.equal(r, null)
+})
+
+// ============================================================
+// Nhóm H: Phase-01 amendments (T6 reassign, done terminal, T16 stage)
+// ============================================================
+
+test('T6_ASSIGN_SUPPORTER — reassign từ assigned (admin) → self-loop, emitStageChanged', () => {
+  const r = tryTransition('assigned', adminEvent('T6_ASSIGN_SUPPORTER'))
+  assert.ok(r)
+  assert.equal(r!.to, 'assigned')
+  assert.ok(r!.actions.some(a => a.type === 'emitStageChanged'), 'self-loop phải mang action')
+})
+
+test('T6_ASSIGN_SUPPORTER — reassign guard fail khi không phải admin', () => {
+  const r = tryTransition('assigned', supporterEvent('T6_ASSIGN_SUPPORTER'))
+  assert.equal(r, null)
+})
+
+test('TARGET_STAGE — T16_EDIT_INTAKE → intake_ready (D8)', () => {
+  assert.equal(TARGET_STAGE.T16_EDIT_INTAKE, 'intake_ready')
 })

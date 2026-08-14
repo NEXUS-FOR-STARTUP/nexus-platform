@@ -1,9 +1,10 @@
-import type { PrismaClient, Prisma } from '@prisma/client'
+import { Prisma, type PrismaClient } from '@prisma/client'
 import { prisma } from '../db.js'
 import { tryTransition } from '../modules/cases/domain/case-machine.js'
-import type {
-  TransitionName, TransitionEvent, CaseStage, InternalStatus,
-  ActionDescriptor,
+import {
+  TARGET_STAGE,
+  type TransitionName, type TransitionEvent, type CaseStage, type InternalStatus,
+  type ActionDescriptor,
 } from '../modules/cases/domain/transition.types.js'
 import { upsertDocumentRecordsForUnit } from '../modules/documents/infrastructure/persistence/document.repository.js'
 import { AppError } from '../shared/domain/app-error.js'
@@ -11,25 +12,6 @@ import { emitEvent } from '../shared/infrastructure/event-bus.js'
 import { DOMAIN_EVENTS } from '../shared/domain/domain-events.js'
 import logger from '../shared/infrastructure/logger.js'
 import { walletService } from '../modules/wallet/application/wallet.service.js'
-
-const TARGET_STAGE: Partial<Record<TransitionName, CaseStage>> = {
-  T1_CREATE_CASE:              'intake_pending',
-  T2_SUBMIT_INTAKE:            'submitted',
-  T3_RESUBMIT_AFTER_REJECT:    'submitted',
-  T4_RESUBMIT_AFTER_VETO:      'submitted',
-  T5_ACCEPT:                   'under_review',
-  T6_ASSIGN_SUPPORTER:         'under_review',
-  T7_START_WORK:               'under_review',
-  T8_REQUEST_INFO:             'need_more_information',
-  T9_SUBMIT_REVISION:          'revision_submitted',
-  T10_START_REVIEW_REVISION:   'under_review',
-  T11_SUBMIT_OUTPUT:           'report_ready',
-  T12_REJECT:                  'rejected',
-  T13_VETO:                    'rejected',
-  T14_COMPLETE:                'completed',
-  T15_CANCEL:                  'closed',
-  T16_EDIT_INTAKE:             'intake_pending',
-}
 
 function targetStageFor(transition: TransitionName): CaseStage {
   const stage = TARGET_STAGE[transition]
@@ -182,48 +164,55 @@ interface TransitionParams {
   data?: Record<string, unknown>
 }
 
-export async function executeTransition(
+interface TransitionResult {
+  stage: CaseStage
+  status: InternalStatus
+  caseCode: string
+  fromStage: CaseStage
+  fromStatus: InternalStatus
+}
+
+export async function transitionInTx(
+  tx: Prisma.TransactionClient,
   params: TransitionParams,
-  client?: PrismaClient | Prisma.TransactionClient,
-): Promise<{ stage: CaseStage; status: InternalStatus }> {
+): Promise<TransitionResult> {
   const { transition: transitionName, caseId, actorId, roleVerified, data } = params
-  const db = client ?? prisma
 
-  const result = await db.$transaction(async (tx) => {
-    const caseRecord = await tx.case.findUniqueOrThrow({
-      where: { id: caseId },
-    })
-    const currentStatus = caseRecord.internal_status as InternalStatus
+  const caseRecord = await tx.case.findUniqueOrThrow({
+    where: { id: caseId },
+  })
+  const currentStatus = caseRecord.internal_status as InternalStatus
 
-    const creditBalance = ['T11_SUBMIT_OUTPUT', 'T5_ACCEPT', 'T3_RESUBMIT_AFTER_REJECT'].includes(transitionName)
-      ? await getCreditBalanceInTx(tx, caseId)
-      : 0
+  const creditBalance = ['T11_SUBMIT_OUTPUT', 'T5_ACCEPT', 'T3_RESUBMIT_AFTER_REJECT'].includes(transitionName)
+    ? await getCreditBalanceInTx(tx, caseId)
+    : 0
 
-    const event: TransitionEvent = {
-      type: transitionName,
-      actor: { id: actorId, role: roleVerified },
-      data: {
-        ...data,
-        caseOwnerId: caseRecord.owner_auth_user_id,
-        caseAssignedSupporterId: caseRecord.assigned_supporter_auth_user_id,
-        currentStage: caseRecord.user_facing_stage,
-        caseCreatedAt: caseRecord.created_at.toISOString(),
-        lockedPrice: caseRecord.locked_price ?? 0,
-        creditBalance,
-        roleVerified,
-        actorId,
-      },
-    }
+  const event: TransitionEvent = {
+    type: transitionName,
+    actor: { id: actorId, role: roleVerified },
+    data: {
+      ...data,
+      caseOwnerId: caseRecord.owner_auth_user_id,
+      caseAssignedSupporterId: caseRecord.assigned_supporter_auth_user_id,
+      currentStage: caseRecord.user_facing_stage,
+      caseCreatedAt: caseRecord.created_at.toISOString(),
+      lockedPrice: caseRecord.locked_price ?? 0,
+      creditBalance,
+      roleVerified,
+      actorId,
+    },
+  }
 
-    const transitionResult = tryTransition(currentStatus, event)
-    if (!transitionResult) {
-      throw new AppError(400, 'INVALID_TRANSITION',
-        `Cannot execute ${transitionName} from status ${currentStatus}`)
-    }
+  const transitionResult = tryTransition(currentStatus, event)
+  if (!transitionResult) {
+    throw new AppError(400, 'INVALID_TRANSITION',
+      `Cannot execute ${transitionName} from status ${currentStatus}`)
+  }
 
-    const { to: nextStatus, actions } = transitionResult
-    const nextStage = targetStageFor(transitionName)
+  const { to: nextStatus, actions } = transitionResult
+  const nextStage = targetStageFor(transitionName)
 
+  try {
     for (const action of actions) {
       await executeAction(action, tx, caseId, {
         unitCode: (data as any)?.unitCode,
@@ -237,38 +226,54 @@ export async function executeTransition(
         },
       })
     }
-
-    const updated = await tx.case.updateMany({
-      where: { id: caseId, version_no: caseRecord.version_no },
-      data: {
-        user_facing_stage: nextStage,
-        internal_status: nextStatus,
-        version_no: { increment: 1 },
-      },
-    })
-    if (updated.count === 0) {
-      throw new AppError(409, 'TRANSITION_CONFLICT',
-        'Case was modified by another request — retry')
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      throw new AppError(409, 'DUPLICATE_CREDIT_CONSUMPTION', 'Lượt đánh giá này đã được xử lý')
     }
+    throw error
+  }
 
-    await tx.caseEvent.create({
-      data: {
-        case_id: caseId,
-        event_type: transitionName,
-        actor_auth_user_id: actorId,
-        actor_role: roleVerified,
-        metadata_json: pickAllowedMetadata(data ?? {}) as any,
-      },
-    })
-
-    return {
-      stage: nextStage,
-      status: nextStatus,
-      caseCode: caseRecord.case_code,
-      fromStage: caseRecord.user_facing_stage,
-      fromStatus: currentStatus,
-    }
+  const updated = await tx.case.updateMany({
+    where: { id: caseId, version_no: caseRecord.version_no },
+    data: {
+      user_facing_stage: nextStage,
+      internal_status: nextStatus,
+      version_no: { increment: 1 },
+    },
   })
+  if (updated.count === 0) {
+    throw new AppError(409, 'TRANSITION_CONFLICT',
+      'Case was modified by another request — retry')
+  }
+
+  await tx.caseEvent.create({
+    data: {
+      case_id: caseId,
+      event_type: transitionName,
+      actor_auth_user_id: actorId,
+      actor_role: roleVerified,
+      metadata_json: pickAllowedMetadata(data ?? {}) as any,
+    },
+  })
+
+  return {
+    stage: nextStage,
+    status: nextStatus,
+    caseCode: caseRecord.case_code,
+    fromStage: caseRecord.user_facing_stage as CaseStage,
+    fromStatus: currentStatus,
+  }
+}
+
+export async function executeTransition(
+  params: TransitionParams,
+  client?: Prisma.TransactionClient | PrismaClient,
+): Promise<{ stage: CaseStage; status: InternalStatus }> {
+  const { transition: transitionName, caseId, actorId } = params
+
+  const result = client
+    ? await transitionInTx(client as Prisma.TransactionClient, params)
+    : await prisma.$transaction((tx) => transitionInTx(tx, params))
 
   try {
     emitEvent({

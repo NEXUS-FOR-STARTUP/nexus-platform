@@ -47,7 +47,6 @@ function AdminHubPageInner() {
     isAssigning,
     acceptCase,
     rejectCase,
-    requestMoreInfo,
     deleteCase,
     refetchCases,
   } = useAdminCases();
@@ -180,23 +179,6 @@ function AdminHubPageInner() {
       notifications.show({
         title: "Lỗi",
         message: "Gặp lỗi khi từ chối hồ sơ.",
-        color: "red",
-      });
-    }
-  };
-
-  const handleRequestMoreInfo = async (caseId: string, query: string) => {
-    try {
-      await requestMoreInfo({ caseId, query });
-      notifications.show({
-        title: "Gửi yêu cầu thành công",
-        message: "Đã gửi yêu cầu làm rõ cho học viên.",
-        color: "green",
-      });
-    } catch (e) {
-      notifications.show({
-        title: "Lỗi",
-        message: "Gặp lỗi khi gửi yêu cầu.",
         color: "red",
       });
     }
@@ -622,7 +604,6 @@ function AdminHubPageInner() {
                   isAssigning={isAssigning}
                   onAccept={handleAcceptCase}
                   onReject={handleRejectCase}
-                  onRequestMoreInfo={handleRequestMoreInfo}
                   isCrudMode={caseFilter === "crud"}
                   onDelete={handleDeleteCase}
                   onRefresh={refetchCases}

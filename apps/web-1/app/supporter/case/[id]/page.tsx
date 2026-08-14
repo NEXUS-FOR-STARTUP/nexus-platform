@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { useCaseDetails } from "../../../dashboard/case/[id]/hooks/useCaseDetails";
 import { caseRequiresPayment } from "@/lib/pricing";
+import { filterTransitions } from "@/_types/transitions";
 import CaseStatusHeader from "../../../dashboard/case/[id]/_components/CaseStatusHeader";
 import WorkspaceSidebar from "../../../dashboard/case/[id]/_components/WorkspaceSidebar";
 import type { WorkspaceTab } from "../../../dashboard/case/[id]/_components/WorkspaceSidebar";
@@ -14,7 +15,11 @@ import ActivityTimeline from "../../../dashboard/case/[id]/_components/ActivityT
 import CaseOverviewPanel from "../../../dashboard/case/[id]/_components/CaseOverviewPanel";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import SupporterOutputUploadModal from "./_components/SupporterOutputUploadModal";
+import SupporterRequestInfoModal from "./_components/SupporterRequestInfoModal";
+import { useSupporterActions } from "../../hooks/useSupporterActions";
 import { Button } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
+import { Play, HelpCircle, RefreshCw, CheckCircle2, Clock } from "lucide-react";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -25,9 +30,21 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
   const router = useRouter();
 
   const { data: session, isPending: isAuthPending } = useSession();
-  const { caseData, intakeSnapshot, documentWorkspace, isLoading, error } = useCaseDetails(id);
+  const { caseData, intakeSnapshot, documentWorkspace, isLoading, error, allowedTransitions } =
+    useCaseDetails(id);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("overview");
   const [isOutputUploadOpen, setIsOutputUploadOpen] = useState(false);
+  const [isRequestInfoOpen, setIsRequestInfoOpen] = useState(false);
+
+  const {
+    startWork,
+    isStartingWork,
+    requestMoreInfo,
+    startReviewRevision,
+    isStartingReviewRevision,
+    completeCase,
+    isCompletingCase,
+  } = useSupporterActions(id);
 
   React.useEffect(() => {
     if (!isAuthPending && !session) {
@@ -53,6 +70,50 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
       </div>
     );
   }
+
+  const isAssignedSupporter =
+    !!session?.user?.id && caseData.assigned_supporter_auth_user_id === session.user.id;
+  const filteredTransitions = filterTransitions(allowedTransitions, {
+    role: "supporter",
+    isOwner: false,
+    isAssignedSupporter,
+  });
+
+  const canStartWork = filteredTransitions.includes("T7_START_WORK");
+  const canRequestInfo = filteredTransitions.includes("T8_REQUEST_INFO");
+  const canStartReviewRevision = filteredTransitions.includes("T10_START_REVIEW_REVISION");
+  const canUploadOutput = filteredTransitions.includes("T11_SUBMIT_OUTPUT");
+  const canComplete = filteredTransitions.includes("T14_COMPLETE");
+  const isWaitingUser = caseData.internal_status === "waiting_user";
+
+  const hasActionBar = canStartWork || canRequestInfo || canStartReviewRevision || canComplete;
+
+  const handleStartWork = async () => {
+    try {
+      await startWork();
+      notifications.show({ title: "Đã bắt đầu xử lý", message: "Hồ sơ đã chuyển sang trạng thái phản biện.", color: "green" });
+    } catch {
+      notifications.show({ title: "Lỗi", message: "Không thể bắt đầu xử lý. Vui lòng thử lại.", color: "red" });
+    }
+  };
+
+  const handleStartReviewRevision = async () => {
+    try {
+      await startReviewRevision();
+      notifications.show({ title: "Đã tiếp nhận", message: "Đã tiếp nhận bản sửa đổi và tiếp tục thẩm định.", color: "green" });
+    } catch {
+      notifications.show({ title: "Lỗi", message: "Không thể tiếp nhận bản sửa đổi. Vui lòng thử lại.", color: "red" });
+    }
+  };
+
+  const handleCompleteCase = async () => {
+    try {
+      await completeCase();
+      notifications.show({ title: "Đã hoàn tất", message: "Hồ sơ đã được hoàn tất và đóng quy trình.", color: "green" });
+    } catch {
+      notifications.show({ title: "Lỗi", message: "Không thể hoàn tất hồ sơ. Vui lòng thử lại.", color: "red" });
+    }
+  };
 
   return (
     <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden animate-fade-in">
@@ -85,6 +146,67 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
           </div>
         )}
 
+        {isWaitingUser && (
+          <div className="p-4 rounded-xl bg-warning-soft border border-warning/15 text-warning font-body text-xs flex items-center gap-2 shrink-0">
+            <Clock className="w-4 h-4 shrink-0" />
+            <span>Đang chờ sinh viên nộp bản bổ sung theo yêu cầu.</span>
+          </div>
+        )}
+
+        {hasActionBar && (
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {canStartWork && (
+              <Button
+                size="sm"
+                color="brand"
+                className="font-semibold cursor-pointer h-8.5 text-xs"
+                leftSection={<Play className="w-3.5 h-3.5" />}
+                loading={isStartingWork}
+                onClick={handleStartWork}
+              >
+                Bắt đầu xử lý
+              </Button>
+            )}
+            {canRequestInfo && (
+              <Button
+                size="sm"
+                variant="light"
+                color="orange"
+                className="font-semibold cursor-pointer h-8.5 text-xs"
+                leftSection={<HelpCircle className="w-3.5 h-3.5" />}
+                onClick={() => setIsRequestInfoOpen(true)}
+              >
+                Yêu cầu bổ sung
+              </Button>
+            )}
+            {canStartReviewRevision && (
+              <Button
+                size="sm"
+                variant="light"
+                color="brand"
+                className="font-semibold cursor-pointer h-8.5 text-xs"
+                leftSection={<RefreshCw className="w-3.5 h-3.5" />}
+                loading={isStartingReviewRevision}
+                onClick={handleStartReviewRevision}
+              >
+                Tiếp nhận bản sửa đổi
+              </Button>
+            )}
+            {canComplete && (
+              <Button
+                size="sm"
+                color="green"
+                className="font-semibold cursor-pointer h-8.5 text-xs"
+                leftSection={<CheckCircle2 className="w-3.5 h-3.5" />}
+                loading={isCompletingCase}
+                onClick={handleCompleteCase}
+              >
+                Hoàn tất hồ sơ
+              </Button>
+            )}
+          </div>
+        )}
+
         <div className="flex-grow min-h-0 flex flex-col">
           {activeTab === "overview" && (
             <CaseOverviewPanel
@@ -97,14 +219,16 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
           {activeTab === "documents" && (
             <>
               <div className="mb-4 flex justify-end">
-                <Button
-                  size="sm"
-                  color="brand"
-                  className="font-semibold cursor-pointer h-8.5 text-xs"
-                  onClick={() => setIsOutputUploadOpen(true)}
-                >
-                  Tải output hỗ trợ
-                </Button>
+                {canUploadOutput && (
+                  <Button
+                    size="sm"
+                    color="brand"
+                    className="font-semibold cursor-pointer h-8.5 text-xs"
+                    onClick={() => setIsOutputUploadOpen(true)}
+                  >
+                    Tải output hỗ trợ
+                  </Button>
+                )}
               </div>
               <DocumentWorkspace workspace={documentWorkspace} />
             </>
@@ -120,6 +244,12 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
         isOpen={isOutputUploadOpen}
         onClose={() => setIsOutputUploadOpen(false)}
         caseId={id}
+      />
+
+      <SupporterRequestInfoModal
+        isOpen={isRequestInfoOpen}
+        onClose={() => setIsRequestInfoOpen(false)}
+        onRequestMoreInfo={requestMoreInfo}
       />
     </div>
   );

@@ -2,6 +2,7 @@ import { AppError } from "../../../shared/domain/app-error.js";
 import {
   findCaseByIdWithLifecycleUnitsAndEvents,
 } from "../../cases/infrastructure/persistence/case.repository.js";
+import { getAvailableTransitions } from "../../cases/domain/case-machine.js";
 
 function normalizeIntakeSnapshot(rawContent: string | null) {
   if (!rawContent) return null;
@@ -40,5 +41,7 @@ export async function getAdminCaseDetailUseCase(caseId: string) {
   const intakeUnit = item.lifecycle_units.find((u: any) => u.unit_type === "version" && u.unit_code === "v00");
   const intake_snapshot = normalizeIntakeSnapshot(intakeUnit?.content || null);
 
-  return { case: item, intake_snapshot };
+  const allowed_transitions = getAvailableTransitions(item.internal_status);
+
+  return { case: item, intake_snapshot, allowed_transitions };
 }

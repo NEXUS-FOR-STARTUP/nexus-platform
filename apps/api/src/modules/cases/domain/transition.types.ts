@@ -28,6 +28,25 @@ export const ALL_TRANSITIONS: readonly TransitionName[] = [
   'T12_REJECT', 'T13_VETO', 'T14_COMPLETE', 'T15_CANCEL', 'T16_EDIT_INTAKE',
 ]
 
+export const TARGET_STAGE: Partial<Record<TransitionName, CaseStage>> = {
+  T1_CREATE_CASE:              'intake_pending',
+  T2_SUBMIT_INTAKE:            'submitted',
+  T3_RESUBMIT_AFTER_REJECT:    'submitted',
+  T4_RESUBMIT_AFTER_VETO:      'submitted',
+  T5_ACCEPT:                   'under_review',
+  T6_ASSIGN_SUPPORTER:         'under_review',
+  T7_START_WORK:               'under_review',
+  T8_REQUEST_INFO:             'need_more_information',
+  T9_SUBMIT_REVISION:          'revision_submitted',
+  T10_START_REVIEW_REVISION:   'under_review',
+  T11_SUBMIT_OUTPUT:           'report_ready',
+  T12_REJECT:                  'rejected',
+  T13_VETO:                    'rejected',
+  T14_COMPLETE:                'completed',
+  T15_CANCEL:                  'closed',
+  T16_EDIT_INTAKE:             'intake_ready',
+}
+
 export interface TransitionEvent {
   type: TransitionName
   actor: { id: string; role: string }
@@ -42,7 +61,7 @@ export interface StageStatus {
 }
 
 export type GuardName =
-  | 'isOwnerOrMember' | 'isOwner' | 'isAssignedSupporter'
+  | 'isOwner' | 'isAssignedSupporter'
   | 'isAdmin' | 'isSupporter' | 'hasCredit'
   | 'isWithin48h' | 'isBeforeSubmission'
   | 'reasonMinLength'

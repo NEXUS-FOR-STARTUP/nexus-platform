@@ -2,14 +2,13 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { User, statusThemeMap } from "@/types";
-import { CheckCircle, Search, MoreVertical, Trash2, Eye, RefreshCw, UserCheck, X, MessageSquare } from "lucide-react";
+import { CheckCircle, Search, MoreVertical, Trash2, Eye, RefreshCw, UserCheck, X } from "lucide-react";
 import { Select, Badge, Table, Pagination, TextInput, Group, Menu, ActionIcon, Tooltip } from "@mantine/core";
 
 // Import extracted modals
 import AdminCaseDetailModal from "./AdminCaseDetailModal";
 import AssignSupporterModal from "./AssignSupporterModal";
 import RejectCaseModal from "./RejectCaseModal";
-import RequestMoreInfoModal from "./RequestMoreInfoModal";
 import ApproveCaseModal from "./ApproveCaseModal";
 
 interface AdminCaseAssignmentTableProps {
@@ -19,7 +18,6 @@ interface AdminCaseAssignmentTableProps {
   isAssigning?: boolean;
   onAccept: (caseId: string) => Promise<void>;
   onReject: (caseId: string, reason: string) => Promise<void>;
-  onRequestMoreInfo: (caseId: string, query: string) => Promise<void>;
   isCrudMode?: boolean;
   onDelete?: (caseId: string) => Promise<void>;
   onRefresh?: () => void;
@@ -40,7 +38,6 @@ export default function AdminCaseAssignmentTable({
   onAssign,
   onAccept,
   onReject,
-  onRequestMoreInfo,
   isCrudMode = false,
   onDelete,
   onRefresh,
@@ -52,7 +49,6 @@ export default function AdminCaseAssignmentTable({
   const [detailCaseId, setDetailCaseId] = useState<string | null>(null);
   const [assignCaseId, setAssignCaseId] = useState<string | null>(null);
   const [rejectingCaseId, setRejectingCaseId] = useState<string | null>(null);
-  const [infoRequestCaseId, setInfoRequestCaseId] = useState<string | null>(null);
   const [acceptingCaseId, setAcceptingCaseId] = useState<string | null>(null);
 
   // Search, filter, and sort state
@@ -291,13 +287,6 @@ export default function AdminCaseAssignmentTable({
                             {item.internal_status === "triage_pending" && (
                               <>
                                 <Menu.Item
-                                  leftSection={<MessageSquare className="w-3.5 h-3.5 text-warning" />}
-                                  onClick={() => setInfoRequestCaseId(item.id)}
-                                  className="text-text-app hover:bg-surface-soft cursor-pointer text-xs font-semibold"
-                                >
-                                  Yêu cầu làm rõ
-                                </Menu.Item>
-                                <Menu.Item
                                   leftSection={<X className="w-3.5 h-3.5 text-danger" />}
                                   onClick={() => setRejectingCaseId(item.id)}
                                   className="text-danger hover:bg-danger-soft cursor-pointer text-xs font-semibold"
@@ -352,7 +341,6 @@ export default function AdminCaseAssignmentTable({
         caseId={detailCaseId}
         onClose={() => setDetailCaseId(null)}
         onReject={(id) => { setRejectingCaseId(id); setDetailCaseId(null); }}
-        onRequestMoreInfo={(id) => { setInfoRequestCaseId(id); setDetailCaseId(null); }}
         onApprove={(id) => { setAcceptingCaseId(id); setDetailCaseId(null); }}
         onAssign={(id) => { setAssignCaseId(id); setDetailCaseId(null); }}
       />
@@ -368,12 +356,6 @@ export default function AdminCaseAssignmentTable({
         caseId={rejectingCaseId}
         onClose={() => setRejectingCaseId(null)}
         onReject={onReject}
-      />
-
-      <RequestMoreInfoModal
-        caseId={infoRequestCaseId}
-        onClose={() => setInfoRequestCaseId(null)}
-        onRequestMoreInfo={onRequestMoreInfo}
       />
 
       <ApproveCaseModal

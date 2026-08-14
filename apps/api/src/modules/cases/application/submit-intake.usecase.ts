@@ -1,10 +1,118 @@
 import { AppError } from "../../../shared/domain/app-error.js";
-import { requireCredits } from "../domain/case.types.js";
-import { findCaseByIdWithMembersAndCheckpoints } from "../infrastructure/persistence/case.repository.js";
-import { createDocumentRecordsForUnit } from "../../documents/infrastructure/persistence/document.repository.js";
+import type { Prisma } from "@prisma/client";
+import { findCaseByIdWithMembersAndCheckpoints, findLatestCaseEventByType } from "../infrastructure/persistence/case.repository.js";
+import { upsertDocumentRecordsForUnit } from "../../documents/infrastructure/persistence/document.repository.js";
 import { prisma } from "../../../db.js";
 import logger from "../../../shared/infrastructure/logger.js";
 import type { IntakeRequest } from "./cases.dto.js";
+import { transitionInTx } from "../../../services/case-transition.service.js";
+import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
+import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
+
+type DbClient = Prisma.TransactionClient | typeof prisma
+
+async function updateIntakeDataOnly(
+  client: DbClient,
+  caseId: string,
+  caseRecord: any,
+  body: IntakeRequest,
+) {
+  let checkpointId = "";
+
+  if (caseRecord.current_checkpoint) {
+    const cp = caseRecord.checkpoints?.find(
+      (c: any) => c.checkpoint_code === caseRecord.current_checkpoint,
+    );
+    if (cp) checkpointId = cp.id;
+  }
+
+  if (!checkpointId) {
+    const cp = await client.checkpoint.create({
+      data: {
+        case_id: caseId,
+        checkpoint_code: "CP1",
+        checkpoint_status: "submitted",
+        latest_version_no: 1,
+      },
+    });
+    checkpointId = cp.id;
+    await client.case.update({
+      where: { id: caseId },
+      data: { current_checkpoint: "CP1" },
+    });
+  }
+
+  // D13: upsert v00 — không tạo unit trùng khi nộp lại
+  const existingUnit = await client.lifecycleUnit.findFirst({
+    where: {
+      case_id: caseId,
+      checkpoint_id: checkpointId,
+      unit_code: "v00",
+      unit_type: "version",
+    },
+    orderBy: { created_at: "asc" },
+  });
+
+  const unitContent = JSON.stringify(body);
+  const unitFileUrl = body.documents?.[0]?.file_url || body.documents?.[0]?.drive_url || null;
+
+  const intakeUnit = existingUnit
+    ? await client.lifecycleUnit.update({
+      where: { id: existingUnit.id },
+      data: { content: unitContent, file_url: unitFileUrl },
+    })
+    : await client.lifecycleUnit.create({
+      data: {
+        case_id: caseId,
+        checkpoint_id: checkpointId,
+        unit_code: "v00",
+        unit_type: "version",
+        version_no: 1,
+        content: unitContent,
+        file_url: unitFileUrl,
+      },
+    });
+
+  // D13 + immutability: upsert theo ID deterministic (file cùng identity → replace, khác → thêm)
+  await upsertDocumentRecordsForUnit(
+    caseId,
+    checkpointId,
+    intakeUnit.id,
+    "intake",
+    body.documents || [],
+    caseRecord.owner_auth_user_id,
+    "intake_document",
+    "inbound",
+    client as any,
+  );
+
+  await client.case.update({
+    where: { id: caseId },
+    data: {
+      payment_status: caseRecord.payment_status === 'paid' ? 'paid' : 'unpaid',
+      school: body.school || undefined,
+      course_context: body.course_context || undefined,
+      group_no: body.team_context?.group_no || undefined,
+      team_name: body.team_context?.project_name || undefined,
+    },
+  });
+
+  await client.caseEvent.create({
+    data: {
+      case: { connect: { id: caseId } },
+      actor: { connect: { id: caseRecord.owner_auth_user_id } },
+      event_type: "intake_submitted",
+      metadata_json: {},
+    },
+  });
+
+  return intakeUnit;
+}
+
+async function isVetoedCase(caseId: string): Promise<boolean> {
+  const event = await findLatestCaseEventByType(caseId, "T13_VETO");
+  return event !== null;
+}
 
 export async function submitIntakeUseCase(userId: string, caseId: string, body: IntakeRequest) {
   const startTime = Date.now();
@@ -13,116 +121,94 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
   }
 
+  // D18: owner-only
   const isOwner = caseRecord.owner_auth_user_id === userId;
-  const isMember = caseRecord.members?.some((m: any) => m.auth_user_id === userId);
-  if (!isOwner && !isMember) {
+  if (!isOwner) {
     throw new AppError(403, "FORBIDDEN", "Không có quyền nộp intake cho dự án này");
   }
 
-  await requireCredits(caseId);
+  const status = caseRecord.internal_status;
+
+  if (status === "waiting_user") {
+    throw new AppError(
+      409,
+      "REVISION_REQUIRED",
+      "Bạn cần nộp bản bổ sung qua luồng yêu cầu thông tin, không phải chỉnh hồ sơ",
+    );
+  }
+
+  if (!["triage_pending", "cancelled"].includes(status)) {
+    throw new AppError(400, "INVALID_CASE_STAGE", "Hồ sơ đang được xử lý, không thể chỉnh sửa");
+  }
 
   try {
-    return await prisma.$transaction(async (tx: any) => {
-      let checkpointId: string = "";
+    if (status === "cancelled") {
+      // D3: 1 action atomic — content + transition cùng 1 tx
+      const transition = (await isVetoedCase(caseId))
+        ? "T4_RESUBMIT_AFTER_VETO"
+        : "T3_RESUBMIT_AFTER_REJECT";
 
-      // Find/create CP1 checkpoint
-      if (caseRecord.current_checkpoint) {
-        const cp = caseRecord.checkpoints?.find((c: any) => c.checkpoint_code === caseRecord.current_checkpoint);
-        if (cp) checkpointId = cp.id;
-      }
-
-      if (!checkpointId) {
-        const cp = await tx.checkpoint.create({
-          data: {
-            case_id: caseId,
-            checkpoint_code: "CP1",
-            checkpoint_status: "submitted",
-            latest_version_no: 1,
-          },
+      const result = await prisma.$transaction(async (tx) => {
+        await updateIntakeDataOnly(tx, caseId, caseRecord, body);
+        return transitionInTx(tx, {
+          transition,
+          caseId,
+          actorId: userId,
+          roleVerified: "CUSTOMER",
+          data: {},
         });
-        checkpointId = cp.id;
-        await tx.case.update({
-          where: { id: caseId },
-          data: { current_checkpoint: "CP1" },
-        });
-      }
+      });
 
-      // Create intake lifecycle unit
-      const intakeUnit = await tx.lifecycleUnit.create({
-        data: {
-          case_id: caseId,
-          checkpoint_id: checkpointId,
-          unit_code: "v00",
-          unit_type: "version",
-          version_no: 1,
-          content: JSON.stringify(body),
-          file_url: body.documents?.[0]?.file_url || body.documents?.[0]?.drive_url || null,
+      emitEvent({
+        eventId: crypto.randomUUID(),
+        type: DOMAIN_EVENTS.CASE_STAGE_CHANGED,
+        actorId: userId,
+        occurredAt: new Date(),
+        payload: {
+          caseId,
+          caseCode: caseRecord.case_code,
+          fromStage: caseRecord.user_facing_stage,
+          toStage: result.stage,
+          transition,
         },
       });
 
-      // Create document records
-      await createDocumentRecordsForUnit(
+      logger.info({ caseId, transition, actorId: userId, duration_ms: Date.now() - startTime }, 'case resubmitted');
+      return { success: true, case_id: caseId, stage: result.stage, status: result.status };
+    }
+
+    // triage_pending: content + transition cùng 1 tx (M1 — tránh partial write)
+    const transition = caseRecord.user_facing_stage === "intake_ready"
+      ? "T16_EDIT_INTAKE"
+      : "T2_SUBMIT_INTAKE";
+
+    const result = await prisma.$transaction(async (tx) => {
+      await updateIntakeDataOnly(tx, caseId, caseRecord, body);
+      return transitionInTx(tx, {
+        transition,
         caseId,
-        checkpointId,
-        intakeUnit.id,
-        "intake",
-        body.documents || [],
-        userId,
-        "intake_document",
-        "inbound",
-        tx,
-      );
-
-      // Update case record with intake data
-      await tx.case.update({
-        where: { id: caseId },
-        data: {
-          payment_status: caseRecord.payment_status === 'paid' ? 'paid' : 'unpaid',
-          school: body.school || undefined,
-          course_context: body.course_context || undefined,
-          group_no: body.team_context?.group_no || undefined,
-          team_name: body.team_context?.project_name || undefined,
-        },
+        actorId: userId,
+        roleVerified: "CUSTOMER",
+        data: {},
       });
-
-      // Transition user_facing_stage to submitted for first-time intake
-      // or re-submit after rejection. internal_status stays as-is (should already
-      // be triage_pending from creation/rejection path).
-      const isPreSubmitStage = ["intake_ready", "intake_pending", "rejected"].includes(
-        caseRecord.user_facing_stage,
-      );
-      if (isPreSubmitStage) {
-        await tx.case.update({
-          where: { id: caseId },
-          data: { user_facing_stage: "submitted" },
-        });
-
-        const eventType =
-          caseRecord.user_facing_stage === "rejected" ? "case_resubmitted" : "case_submitted";
-        await tx.caseEvent.create({
-          data: {
-            case: { connect: { id: caseId } },
-            actor: { connect: { id: userId } },
-            event_type: eventType,
-          },
-        });
-
-        logger.info({ caseId, transition: 'submit', fromStage: caseRecord.user_facing_stage, toStage: 'submitted', actorId: userId, eventType }, 'case intake submitted');
-      }
-
-      await tx.caseEvent.create({
-        data: {
-          case: { connect: { id: caseId } },
-          actor: { connect: { id: userId } },
-          event_type: "intake_submitted",
-          metadata_json: {},
-        },
-      });
-
-      logger.info({ caseId, actorId: userId, duration_ms: Date.now() - startTime }, 'intake submitted');
-
-      return { success: true, case_id: caseId, intake_unit_id: intakeUnit.id };
     });
+
+    emitEvent({
+      eventId: crypto.randomUUID(),
+      type: DOMAIN_EVENTS.CASE_STAGE_CHANGED,
+      actorId: userId,
+      occurredAt: new Date(),
+      payload: {
+        caseId,
+        caseCode: caseRecord.case_code,
+        fromStage: caseRecord.user_facing_stage,
+        toStage: result.stage,
+        transition,
+      },
+    });
+
+    logger.info({ caseId, transition, actorId: userId, duration_ms: Date.now() - startTime }, 'intake submitted');
+    return { success: true, case_id: caseId, stage: result.stage, status: result.status };
   } catch (error) {
     logger.error({ err: error, caseId, duration_ms: Date.now() - startTime }, 'intake submission failed');
     throw error;

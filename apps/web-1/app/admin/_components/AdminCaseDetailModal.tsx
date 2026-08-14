@@ -4,12 +4,12 @@ import React from "react";
 import { Modal, Button, Badge, Loader } from "@mantine/core";
 import { useAdminCaseDetail } from "../hooks/useAdminCases";
 import { statusThemeMap } from "@/types";
+import { filterTransitions } from "@/_types/transitions";
 
 interface AdminCaseDetailModalProps {
   caseId: string | null;
   onClose: () => void;
   onReject: (caseId: string) => void;
-  onRequestMoreInfo: (caseId: string) => void;
   onApprove: (caseId: string) => void;
   onAssign: (caseId: string) => void;
 }
@@ -30,7 +30,6 @@ export default function AdminCaseDetailModal({
   caseId,
   onClose,
   onReject,
-  onRequestMoreInfo,
   onApprove,
   onAssign,
 }: AdminCaseDetailModalProps) {
@@ -39,6 +38,15 @@ export default function AdminCaseDetailModal({
   const error = queryError
     ? (queryError as any)?.response?.data?.error || (queryError as any)?.message || "Không thể tải chi tiết hồ sơ."
     : null;
+
+  const filteredTransitions = filterTransitions(detailData?.allowed_transitions ?? [], {
+    role: "admin",
+    isOwner: false,
+    isAssignedSupporter: false,
+  });
+  const canAccept = filteredTransitions.includes("T5_ACCEPT");
+  const canReject = filteredTransitions.includes("T12_REJECT");
+  const canAssign = filteredTransitions.includes("T6_ASSIGN_SUPPORTER");
 
   return (
     <Modal
@@ -234,55 +242,28 @@ export default function AdminCaseDetailModal({
           </Button>
 
           <div className="flex gap-2">
-            {detailData?.case?.internal_status === "triage_pending" && (
-              <>
-                <Button
-                  onClick={() => {
-                    if (detailData) {
-                      onRequestMoreInfo(detailData.case.id);
-                    }
-                  }}
-                  variant="outline"
-                  color="yellow"
-                  className="font-semibold cursor-pointer"
-                >
-                  Yêu cầu làm rõ
-                </Button>
-                <Button
-                  onClick={() => {
-                    if (detailData) {
-                      onReject(detailData.case.id);
-                    }
-                  }}
-                  variant="outline"
-                  color="red"
-                  className="font-semibold cursor-pointer"
-                >
-                  Từ chối
-                </Button>
-                <Button
-                  onClick={() => {
-                    if (detailData) {
-                      onApprove(detailData.case.id);
-                    }
-                  }}
-                  color="green"
-                  className="font-semibold cursor-pointer"
-                >
-                  Duyệt hồ sơ
-                </Button>
-              </>
-            )}
-
-
-
-            {detailData?.case && (detailData.case.internal_status === "accepted_unassigned" || detailData.case.internal_status === "assigned") && (
+            {detailData && canReject && (
               <Button
-                onClick={() => {
-                  if (detailData) {
-                    onAssign(detailData.case.id);
-                  }
-                }}
+                onClick={() => onReject(detailData.case.id)}
+                variant="outline"
+                color="red"
+                className="font-semibold cursor-pointer"
+              >
+                Từ chối
+              </Button>
+            )}
+            {detailData && canAccept && (
+              <Button
+                onClick={() => onApprove(detailData.case.id)}
+                color="green"
+                className="font-semibold cursor-pointer"
+              >
+                Duyệt hồ sơ
+              </Button>
+            )}
+            {detailData && canAssign && (
+              <Button
+                onClick={() => onAssign(detailData.case.id)}
                 color="brand"
                 className="font-semibold cursor-pointer"
               >

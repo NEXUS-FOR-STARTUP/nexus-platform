@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
-import { Case, User } from "@/types";
+import { User } from "@/types";
 
 export function useAdminCases() {
   const queryClient = useQueryClient();
@@ -50,18 +50,6 @@ export function useAdminCases() {
     },
   });
 
-  const requestMoreInfoMutation = useMutation({
-    mutationFn: async ({ caseId, query }: { caseId: string; query: string }) => {
-      const response = await apiClient.post(`/admin/cases/${caseId}/request-more-info`, { query });
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-cases"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-case-detail"] });
-      queryClient.invalidateQueries({ queryKey: ["case"] });
-    },
-  });
-
   const assignSupporterMutation = useMutation({
     mutationFn: async ({ caseId, supporterId }: { caseId: string; supporterId: string }) => {
       const response = await apiClient.post(`/admin/cases/${caseId}/assign`, {
@@ -99,8 +87,6 @@ export function useAdminCases() {
     isAccepting: acceptCaseMutation.isPending,
     rejectCase: rejectCaseMutation.mutateAsync,
     isRejecting: rejectCaseMutation.isPending,
-    requestMoreInfo: requestMoreInfoMutation.mutateAsync,
-    isRequestingMoreInfo: requestMoreInfoMutation.isPending,
     assignSupporter: assignSupporterMutation.mutateAsync,
     isAssigning: assignSupporterMutation.isPending,
     deleteCase: deleteCaseMutation.mutateAsync,
@@ -109,7 +95,11 @@ export function useAdminCases() {
 }
 
 export function useAdminCaseDetail(caseId: string | null) {
-  return useQuery<any>({
+  return useQuery<{
+    case: any;
+    intake_snapshot: any;
+    allowed_transitions: string[];
+  }>({
     queryKey: ["admin-case-detail", caseId],
     queryFn: async () => {
       const response = await apiClient.get(`/admin/cases/${caseId}`);

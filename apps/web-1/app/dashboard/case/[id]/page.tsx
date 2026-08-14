@@ -3,6 +3,8 @@
 import { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { PACKAGE_KEYS } from "@/lib/pricing";
+import { useSession } from "@/lib/auth-client";
+import { filterTransitions } from "@/_types/transitions";
 import { useCaseDetails } from "./hooks/useCaseDetails";
 import CaseStatusHeader from "./_components/CaseStatusHeader";
 import UnpaidAlertBanner from "./_components/UnpaidAlertBanner";
@@ -30,6 +32,7 @@ interface PageProps {
 export default function CaseWorkspacePage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
+  const { data: session } = useSession();
 
   const {
     caseData,
@@ -37,6 +40,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     documentWorkspace,
     isLoading,
     error,
+    allowedTransitions,
+    openRequestsForMoreInfo,
   } = useCaseDetails(id);
 
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("overview");
@@ -70,9 +75,22 @@ export default function CaseWorkspacePage({ params }: PageProps) {
 
   const stage = caseData.user_facing_stage;
   const isPreSubmission = stage === "intake_pending" || stage === "intake_ready";
-  const isIntakeReady = stage === "intake_ready";
   const isIntakePending = stage === "intake_pending";
-  const canSubmitRevision = ["report_ready", "waiting_for_revision", "need_more_information"].includes(stage);
+
+  const isOwner = !!session?.user?.id && session.user.id === caseData.owner_auth_user_id;
+  const filteredTransitions = filterTransitions(allowedTransitions, {
+    role: "user",
+    isOwner,
+    isAssignedSupporter: false,
+  });
+  const canSubmitRevision = filteredTransitions.includes("T9_SUBMIT_REVISION");
+  const canEditIntake = filteredTransitions.includes("T16_EDIT_INTAKE");
+  const canOpenIntake = [
+    "T2_SUBMIT_INTAKE",
+    "T16_EDIT_INTAKE",
+    "T3_RESUBMIT_AFTER_REJECT",
+    "T4_RESUBMIT_AFTER_VETO",
+  ].some((t) => filteredTransitions.includes(t));
 
   const isTabAvailable = (tab: WorkspaceTab): boolean => {
     if (!isPreSubmission) return true;
@@ -119,15 +137,17 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               caseData={caseData}
               intakeSnapshot={intakeSnapshot}
               onSelectTab={(tab) => setActiveTab(tab)}
-              onEditIntake={isIntakeReady ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
+              onEditIntake={canEditIntake ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
               guidanceCard={
                 <StatusGuidanceCard
                   caseData={caseData}
                   creditBalance={creditBalance}
-                  openRequestsForMoreInfo={null}
+                  openRequestsForMoreInfo={openRequestsForMoreInfo}
+                  allowedTransitions={filteredTransitions}
                   onSelectTab={(tab) => setActiveTab(tab)}
                   onOpenPayment={isIntakePending ? () => setCreditBuyOpened(true) : undefined}
-                  onOpenIntake={(isIntakeReady || stage === "rejected") ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
+                  onOpenIntake={canOpenIntake ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
+                  onSubmitRevision={() => setIsStudentUploadOpen(true)}
                 />
               }
             />
@@ -136,7 +156,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           {activeTab === "documents" && (
             <>
               <div className="mb-4 flex justify-end gap-3">
-                {stage === "intake_ready" && (
+                {canEditIntake && (
                   <Button
                     size="sm"
                     color="brand"
@@ -170,7 +190,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
             </>
           )}
 
-          {activeTab === "discussion" && <TabDiscussionChat caseId={caseData.id} creditBalance={creditBalance ?? undefined} />}
+          {activeTab === "discussion" && <TabDiscussionChat caseId={caseData.id} />}
 
           {activeTab === "credits" && (
             <CreditPanel

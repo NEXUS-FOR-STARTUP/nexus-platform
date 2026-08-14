@@ -5,7 +5,6 @@ import { listAdminCasesUseCase } from "../application/list-admin-cases.usecase.j
 import { getAdminCaseDetailUseCase } from "../application/get-admin-case-detail.usecase.js";
 import { acceptCaseUseCase } from "../application/accept-case.usecase.js";
 import { rejectCaseUseCase } from "../application/reject-case.usecase.js";
-import { adminRequestMoreInfoUseCase } from "../application/request-more-info.usecase.js";
 import { adminAssignSupporterUseCase } from "../application/assign-supporter.usecase.js";
 import { listAdminDocumentsUseCase } from "../application/list-admin-documents.usecase.js";
 import { deleteAdminDocumentUseCase } from "../application/delete-admin-document.usecase.js";
@@ -110,28 +109,6 @@ export async function rejectCaseHandler(c: Context) {
     const body = await readJsonBody(c) as { reason?: string };
     const reason = body?.reason || "";
     const result = await rejectCaseUseCase(session.user.id, caseId, reason);
-    return c.json(result);
-  } catch (error: any) {
-    return handleError(c, error);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// POST /api/admin/cases/:id/request-more-info — Request more details
-// ---------------------------------------------------------------------------
-
-export async function adminRequestMoreInfoHandler(c: Context) {
-  const authResult = await getAdminSession(c);
-  if (!authResult.ok) {
-    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
-  }
-  const session = authResult.session;
-  const caseId = c.req.param("id") || "";
-
-  try {
-    const body = await readJsonBody(c) as { query?: string };
-    const query = body?.query || "";
-    const result = await adminRequestMoreInfoUseCase(session.user.id, caseId, query);
     return c.json(result);
   } catch (error: any) {
     return handleError(c, error);

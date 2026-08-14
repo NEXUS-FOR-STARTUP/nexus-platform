@@ -4,12 +4,23 @@ import assert from "node:assert";
 process.env.NODE_ENV = "test";
 
 test("Phase 02 - Case lifecycle & admin triage", async (t) => {
-  await t.test("case transitions - valid paths", async () => {
-    const { isValidStageTransition } = await import("../../../modules/cases/domain/case.types.js");
-    assert.ok(isValidStageTransition("submitted", "under_review"));
-    assert.ok(isValidStageTransition("under_review", "report_ready"));
-    assert.ok(!isValidStageTransition("submitted", "completed"));
-    assert.ok(!isValidStageTransition("completed", "under_review"));
+  await t.test("case transitions - machine tryTransition gates", async () => {
+    const { tryTransition } = await import("../../../modules/cases/domain/case-machine.js");
+    const baseEvent = {
+      type: "T5_ACCEPT",
+      actor: { id: "admin-1", role: "ADMIN" },
+      data: {
+        actorId: "admin-1",
+        roleVerified: "ADMIN",
+        caseOwnerId: "user-1",
+        creditBalance: 1,
+        lockedPrice: 39000,
+      },
+    };
+    assert.ok(tryTransition("triage_pending", baseEvent as any), "admin accept valid");
+    const badEvent = { ...baseEvent, data: { ...baseEvent.data, roleVerified: "USER", actorId: "user-1" } };
+    assert.equal(tryTransition("triage_pending", badEvent as any), null, "non-admin accept blocked");
+    assert.equal(tryTransition("done", baseEvent as any), null, "done is terminal");
   });
 
   await t.test("admin accept - idempotent no-op", async () => {
