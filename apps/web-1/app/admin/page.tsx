@@ -275,8 +275,8 @@ function AdminHubPageInner() {
   const getHeaderInfo = () => {
     if (activeSection === "stats") {
       return {
-        title: "Thống kê hệ thống",
-        description: "Tổng quan dữ liệu case, doanh thu và hiệu suất vận hành theo mốc thời gian.",
+        title: "Thống kê",
+        description: "Tổng quan dữ liệu hồ sơ, doanh thu và hiệu suất vận hành.",
         icon: BarChart3,
       };
     }
