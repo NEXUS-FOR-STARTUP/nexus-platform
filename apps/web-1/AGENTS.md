@@ -82,6 +82,7 @@ Client-side only (no middleware guard):
 ## UI CONVENTIONS
 
 - Vietnamese-first (all labels, messages, notifications)
+- Currency: **VND only**, phân cách phần ngàn dùng dấu phẩy `,` (e.g. `100,000 VND`, tuyệt đối không dùng `₫`, `đ`, hoặc dấu chấm `.`)
 - Lucide React (icons), Mantine Charts (Recharts), @mantine/tiptap (TipTap editor)
 - TanStack Form for forms
 - Tailwind CSS v4 + Mantine theme

@@ -245,3 +245,11 @@ Solid color, no gradient.
 ```
 
 Define in `globals.css`, use via `style={{ background: "var(--cta-bg)" }}`.
+
+### 6.6 Currency Formatting Rule (VND Only & Comma Thousands Separator)
+
+- **Tuyệt đối KHÔNG dùng ký hiệu `₫` hoặc `đ`**.
+- Luôn hiển thị đơn vị tiền tệ là **`VND`** (ví dụ: `100,000 VND`, `897,000 VND`).
+- **Phân cách hàng ngàn bắt buộc dùng dấu phẩy `,` (không dùng dấu chấm `.`)**:
+  - Dùng `amount.toLocaleString("en-US") + " VND"` hoặc dùng hàm `formatPrice()` từ `@/lib/pricing`.
+  - Trong Mantine `NumberInput`: `thousandSeparator=","` và `decimalSeparator="."`.
