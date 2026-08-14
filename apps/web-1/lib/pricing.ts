@@ -27,11 +27,11 @@ export function caseRequiresPayment(caseData: { payment_status?: string }): bool
 }
 
 /**
- * Formats a number as VND (e.g. 100.000 VND).
+ * Formats a number as VND with comma thousands separator (e.g. 100,000 VND).
  */
 export function formatPrice(price: number): string {
   if (price === 0) return "Miễn phí";
-  const num = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 }).format(price);
+  const num = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(price);
   return `${num} VND`;
 }
 

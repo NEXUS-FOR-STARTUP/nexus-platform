@@ -98,8 +98,8 @@ export default function AdminPackagesSettings({
               <Table.Th className="text-left">Tên gói dịch vụ</Table.Th>
               <Table.Th className="text-left w-36">Trạng thái</Table.Th>
               <Table.Th className="text-left w-52">Hiển thị với khách mới</Table.Th>
-              <Table.Th className="text-left w-56">Đơn giá hiện tại (VNĐ)</Table.Th>
-              <Table.Th className="text-left w-56">Thiết lập giá mới (VNĐ)</Table.Th>
+              <Table.Th className="text-left w-56">Đơn giá hiện tại (VND)</Table.Th>
+              <Table.Th className="text-left w-56">Thiết lập giá mới (VND)</Table.Th>
               <Table.Th className="text-center w-20">Thao tác</Table.Th>
             </Table.Tr>
           </Table.Thead>
@@ -152,9 +152,9 @@ export default function AdminPackagesSettings({
                       value={currentInputVal}
                       onChange={(val) => handlePriceChange(pkg.id, val)}
                       min={0}
-                      thousandSeparator="."
-                      decimalSeparator=","
-                      suffix=" VNĐ"
+                      thousandSeparator=","
+                      decimalSeparator="."
+                      suffix=" VND"
                       placeholder="Nhập giá mới..."
                       radius="md"
                     />
