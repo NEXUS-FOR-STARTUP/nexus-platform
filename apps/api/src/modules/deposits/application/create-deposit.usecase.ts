@@ -7,6 +7,7 @@ import { prisma } from "../../../db.js";
 import type { CreateDepositResponse } from "./deposits.dto.js";
 
 const DEPOSIT_PREFIX = "CRTOPUP";
+const MIN_DEPOSIT_AMOUNT = 2000;
 
 function generateTransferContent(): string {
   const suffix = crypto.randomBytes(3).toString("hex").toUpperCase();
@@ -17,8 +18,8 @@ export async function createDepositUseCase(
   userId: string,
   amount: number,
 ): Promise<CreateDepositResponse> {
-  if (amount < 10000) {
-    throw new AppError(400, "INVALID_AMOUNT", "Số tiền tối thiểu là 10,000 VND");
+  if (amount < MIN_DEPOSIT_AMOUNT) {
+    throw new AppError(400, "INVALID_AMOUNT", "Số tiền tối thiểu là 2,000 VND");
   }
 
   const transferContent = generateTransferContent();

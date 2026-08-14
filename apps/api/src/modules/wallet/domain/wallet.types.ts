@@ -34,6 +34,7 @@ export class InsufficientBalanceError extends AppError {
       400,
       'INSUFFICIENT_BALANCE',
       `Số dư không đủ: ${current.toLocaleString('vi-VN')} VND, cần ${required.toLocaleString('vi-VN')} VND`,
+      { current, required },
     )
   }
 }

@@ -11,13 +11,16 @@ interface Props {
   initialAmount?: number;
 }
 
+const MIN_TOPUP_AMOUNT = 2000;
+const DEFAULT_TOPUP_AMOUNT = 50000;
+
 export function WalletTopupModal({ opened, onClose, initialAmount }: Props) {
   const router = useRouter();
-  const [amount, setAmount] = useState<number>(initialAmount ?? 50000);
+  const [amount, setAmount] = useState<number>(initialAmount ?? DEFAULT_TOPUP_AMOUNT);
   const createDeposit = useCreateDeposit();
 
   const handleCreate = () => {
-    if (amount < 10000) return;
+    if (amount < MIN_TOPUP_AMOUNT) return;
     createDeposit.mutate(amount, {
       onSuccess: (result) => {
         onClose();
@@ -28,7 +31,7 @@ export function WalletTopupModal({ opened, onClose, initialAmount }: Props) {
 
   const handleCloseAndReset = () => {
     createDeposit.reset();
-    setAmount(50000);
+    setAmount(DEFAULT_TOPUP_AMOUNT);
     onClose();
   };
 
@@ -44,11 +47,12 @@ export function WalletTopupModal({ opened, onClose, initialAmount }: Props) {
       <Stack gap="md">
         <NumberInput
           label="Số tiền (VND)"
-          description="Tối thiểu 10,000 VND"
+          description="Tối thiểu 2,000 VND"
           value={amount}
           onChange={(val) => setAmount(Number(val) || 0)}
-          min={10000}
-          step={10000}
+          min={MIN_TOPUP_AMOUNT}
+          step={1000}
+          thousandSeparator=","
           allowDecimal={false}
           allowNegative={false}
         />
@@ -60,7 +64,7 @@ export function WalletTopupModal({ opened, onClose, initialAmount }: Props) {
           <Button
             onClick={handleCreate}
             loading={createDeposit.isPending}
-            disabled={amount < 10000 || createDeposit.isPending}
+            disabled={amount < MIN_TOPUP_AMOUNT || createDeposit.isPending}
           >
             Tạo mã nạp tiền
           </Button>

@@ -16,6 +16,8 @@ interface CreditQuantityModalProps {
   currentPackageId?: string;
 }
 
+const MIN_TOPUP_AMOUNT = 2000;
+
 export default function CreditQuantityModal({ caseId, opened, onClose, packageId, currentPackageId }: CreditQuantityModalProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -59,22 +61,41 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
       router.refresh();
       handleClose();
     },
-    onError: (error: any) => {
-      const code = error?.response?.data?.code;
-      const message = error?.response?.data?.message;
+    onError: (error: Error) => {
+      const responseData = (
+        error as {
+          response?: {
+            data?: {
+              code?: string;
+              message?: string;
+              details?: { current?: number; required?: number };
+            };
+          };
+        }
+      ).response?.data;
+      const code = responseData?.code;
+      const message = responseData?.message;
 
       if (code === "INSUFFICIENT_BALANCE") {
-        const needed = quantity * unitPrice;
+        const details = responseData?.details;
+        const shortage = details
+          ? Math.max(Number(details.required) - Number(details.current), 0)
+          : quantity * unitPrice;
+        const suggestedTopup = Math.max(shortage, MIN_TOPUP_AMOUNT);
         notifications.show({
           title: "Số dư không đủ",
           message: (
             <Stack gap="xs">
               <Text size="sm">{message}</Text>
+              <Text size="sm" c="dimmed">
+                Bạn chỉ cần nạp thêm tối thiểu{" "}
+                {suggestedTopup.toLocaleString("vi-VN")} VND để tiếp tục.
+              </Text>
               <Button
                 size="xs"
                 variant="light"
                 onClick={() => {
-                  router.push(`/dashboard/wallet?amount=${needed}`);
+                  router.push(`/dashboard/wallet?amount=${suggestedTopup}`);
                 }}
               >
                 Nạp tiền ngay
@@ -157,7 +178,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
 
         {mutation.isError && (
           <Text c="red" size="xs">
-            {(mutation.error as any)?.response?.data?.message || "Đã xảy ra lỗi."}
+            {(mutation.error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Đã xảy ra lỗi."}
           </Text>
         )}
       </Stack>
