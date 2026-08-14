@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { Button, Alert } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { CheckCircle2, Clock, XCircle, AlertCircle, ArrowLeft, Upload, ChevronDown } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { validatePaymentProof } from "@/lib/pricing";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 
@@ -17,19 +18,22 @@ export default function PaymentPage() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (selectedFile) {
-      const url = URL.createObjectURL(selectedFile);
-      setPreviewUrl(url);
-      return () => URL.revokeObjectURL(url);
-    } else {
-      setPreviewUrl(null);
-    }
+  const previewUrl = useMemo(() => {
+    if (!selectedFile) return null;
+    return URL.createObjectURL(selectedFile);
   }, [selectedFile]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
   const [redirectCountdown, setRedirectCountdown] = useState(5);
 
   const { data: payment, isLoading, error } = useQuery({
@@ -45,7 +49,6 @@ export default function PaymentPage() {
   useEffect(() => {
     if (payment?.status !== "verified") return;
 
-    setRedirectCountdown(5);
     const interval = setInterval(() => {
       setRedirectCountdown((prev) => {
         if (prev <= 1) {
@@ -72,7 +75,7 @@ export default function PaymentPage() {
       setSelectedFile(null);
       notifications.show({ title: "Thành công", message: "Minh chứng đã được gửi. Quản trị viên sẽ kiểm tra.", color: "green" });
     },
-    onError: (err: any) => {
+    onError: (err: { response?: { data?: { message?: string } } }) => {
       const msg = err?.response?.data?.message || "Tải lên thất bại.";
       setUploadError(msg);
       notifications.show({ title: "Lỗi", message: msg, color: "red" });
@@ -81,7 +84,7 @@ export default function PaymentPage() {
 
   if (!paymentId) {
     return (
-      <div className="max-w-2xl mx-auto p-6 space-y-4">
+      <div className="max-w-3xl mx-auto p-6 space-y-4">
         <Alert color="red" title="Thiếu thông tin">
           Không tìm thấy mã giao dịch. Vui lòng thử lại.
         </Alert>
@@ -92,7 +95,7 @@ export default function PaymentPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-2xl mx-auto p-6 space-y-6">
+      <div className="max-w-3xl mx-auto p-6 space-y-6">
         <LoadingSkeleton variant="card" count={2} />
       </div>
     );
@@ -100,7 +103,7 @@ export default function PaymentPage() {
 
   if (error || !payment) {
     return (
-      <div className="max-w-2xl mx-auto p-6 space-y-4">
+      <div className="max-w-3xl mx-auto p-6 space-y-4">
         <Alert color="red" title="Lỗi">
           Không thể tải thông tin thanh toán.
         </Alert>
@@ -109,7 +112,7 @@ export default function PaymentPage() {
     );
   }
 
-  const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
+  const statusConfig: Record<string, { label: string; color: string; icon: LucideIcon }> = {
     pending: { label: "Chờ thanh toán", color: "orange", icon: Clock },
     verified: { label: "Đã thanh toán", color: "green", icon: CheckCircle2 },
     rejected: { label: "Bị từ chối", color: "red", icon: XCircle },
@@ -119,75 +122,75 @@ export default function PaymentPage() {
   const StatusIcon = statusInfo.icon;
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6 animate-fade-in">
-      <button onClick={() => router.back()} className="flex items-center gap-2 text-text-muted hover:text-text-app text-sm">
+    <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6 animate-fade-in">
+      <button onClick={() => router.back()} className="flex items-center gap-2 text-text-muted hover:text-text-app text-sm cursor-pointer">
         <ArrowLeft className="w-4 h-4" />
         Quay lại
       </button>
 
-      <div className="bg-surface-app border border-border-app rounded-lg p-6 space-y-6">
+      <div className="bg-surface-app border border-border-app rounded-2xl p-5 sm:p-8 space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="font-heading font-semibold text-lg text-text-app">Thanh toán</h2>
-          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold border ${
+          <h2 className="font-heading font-semibold text-xl text-text-app">Thanh toán</h2>
+          <span className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-sm font-semibold border ${
             statusInfo.color === "green" ? "bg-success-soft text-success border-success/20" :
             statusInfo.color === "red" ? "bg-danger-soft text-danger border-danger/20" :
             statusInfo.color === "orange" ? "bg-warning-soft text-warning border-warning/20" :
             "bg-info-soft text-info border-info/20"
           }`}>
-            <StatusIcon className="w-3.5 h-3.5" />
+            <StatusIcon className="w-4 h-4" />
             {statusInfo.label}
           </span>
         </div>
 
-	        {/* Bank info + QR */}
-	        <div className="bg-brand-subtle/20 rounded-xl p-4">
-	          {payment.bankInfo?.accountNumber ? (
-	            <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start">
-	              {/* QR Code */}
-	              <div className="shrink-0">
-	                <img
-	                  src={payment.bankInfo.qrUrl}
-	                  alt="QR thanh toán"
-	                  className="w-56 h-56 rounded-xl bg-white"
-	                />
-	              </div>
+        {/* Bank info + QR */}
+        <div className="bg-brand-subtle/20 rounded-xl p-4">
+          {payment.bankInfo?.accountNumber ? (
+            <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start">
+              {/* QR Code */}
+              <div className="shrink-0">
+                <img
+                  src={payment.bankInfo.qrUrl}
+                  alt="QR thanh toán"
+                  className="w-56 h-56 rounded-xl bg-white"
+                />
+              </div>
 
-	              {/* Bank details */}
-	              <div className="flex-1 w-full min-w-0 space-y-3 text-sm">
-	                <div className="flex justify-between py-1.5 border-b border-border-app/40 last:border-b-0">
-	                  <span className="text-text-muted">Ngân hàng</span>
-	                  <span className="font-semibold text-right">{payment.bankInfo.bankName}</span>
-	                </div>
-	                <div className="flex justify-between py-1.5 border-b border-border-app/40 last:border-b-0">
-	                  <span className="text-text-muted">Số tài khoản</span>
-	                  <span className="font-semibold text-right">{payment.bankInfo.accountNumber}</span>
-	                </div>
-	                <div className="flex justify-between py-1.5 border-b border-border-app/40 last:border-b-0">
-	                  <span className="text-text-muted">Chủ tài khoản</span>
-	                  <span className="font-semibold text-right">{payment.bankInfo.accountName}</span>
-	                </div>
-	                <div className="flex justify-between py-1.5 border-b border-border-app/40 last:border-b-0">
-	                  <span className="text-text-muted">Số tiền</span>
-	                  <span className="font-semibold text-red-600 text-right">{payment.amount?.toLocaleString("vi-VN")} VND</span>
-	                </div>
-	                <div className="flex justify-between py-1.5 border-b border-border-app/40 last:border-b-0">
-	                  <span className="text-text-muted">Nội dung chuyển khoản</span>
-	                  <span className="font-semibold text-right break-all max-w-[260px]">
-	                    {payment.bankInfo.transferContent}
-	                  </span>
-	                </div>
-	              </div>
-	            </div>
-	          ) : (
-	            <div className="space-y-3 text-sm">
-	              <div className="flex justify-between py-1">
-	                <span className="text-text-muted">Số tiền</span>
-	                <span className="font-semibold text-red-600">{payment.amount?.toLocaleString("vi-VN")} VND</span>
-	              </div>
-	              <p className="text-sm text-text-muted italic">Thông tin ngân hàng sẽ được cập nhật sau.</p>
-	            </div>
-	          )}
-	        </div>
+              {/* Bank details */}
+              <div className="flex-1 w-full min-w-0 space-y-3 text-sm">
+                <div className="flex justify-between py-1.5 border-b border-border-app/40 last:border-b-0">
+                  <span className="text-text-muted shrink-0">Ngân hàng</span>
+                  <span className="font-semibold text-right">{payment.bankInfo.bankName}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-border-app/40 last:border-b-0">
+                  <span className="text-text-muted shrink-0">Số tài khoản</span>
+                  <span className="font-semibold text-right">{payment.bankInfo.accountNumber}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-border-app/40 last:border-b-0">
+                  <span className="text-text-muted shrink-0">Chủ tài khoản</span>
+                  <span className="font-semibold text-right">{payment.bankInfo.accountName}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-border-app/40 last:border-b-0">
+                  <span className="text-text-muted shrink-0">Số tiền</span>
+                  <span className="font-semibold text-red-600 text-right">{payment.amount?.toLocaleString("vi-VN")} VND</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-border-app/40 last:border-b-0">
+                  <span className="text-text-muted shrink-0">Nội dung chuyển khoản</span>
+                  <span className="font-semibold text-right font-mono text-text-app whitespace-nowrap">
+                    {payment.bankInfo.transferContent}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between py-1">
+                <span className="text-text-muted">Số tiền</span>
+                <span className="font-semibold text-red-600">{payment.amount?.toLocaleString("vi-VN")} VND</span>
+              </div>
+              <p className="text-sm text-text-muted italic">Thông tin ngân hàng sẽ được cập nhật sau.</p>
+            </div>
+          )}
+        </div>
 
 
         {payment.status === "pending" && (
