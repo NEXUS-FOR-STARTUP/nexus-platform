@@ -2,13 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SETTINGS_NAV } from "./settings-nav";
+import { getSettingsNav } from "./settings-nav";
 
-export default function SettingsSidebar() {
+export default function SettingsSidebar({
+  basePath = "/dashboard/settings",
+}: {
+  basePath?: string;
+}) {
   const pathname = usePathname();
+  const items = getSettingsNav(basePath);
   return (
     <nav className="flex md:flex-col gap-1.5 overflow-x-auto md:overflow-visible pb-1 md:pb-0">
-      {SETTINGS_NAV.map((item) => {
+      {items.map((item) => {
         const active = pathname === item.href;
         const Icon = item.icon;
         return (

@@ -33,6 +33,12 @@ export default function UserMenu() {
 
   const walletBalance = walletData?.balance ?? 0;
   const isStudent = !(user?.role === "admin" || user?.role === "supporter");
+  const isSupporter = user?.role === "supporter";
+  const settingsHref = isStudent
+    ? "/dashboard/settings"
+    : isSupporter
+      ? "/supporter/settings"
+      : null;
 
   const getHomeLink = (role?: string) => {
     if (role === "admin") return "/admin";
@@ -62,10 +68,10 @@ export default function UserMenu() {
   const options: UserMenuOption[] = [
     { href: getHomeLink(user.role), label: "Trang chủ", icon: Home },
     ...(isStudent
-      ? [
-          { href: "/dashboard/wallet", label: "Thanh toán", icon: CreditCard },
-          { href: "/dashboard/settings", label: "Cài đặt", icon: Settings },
-        ]
+      ? [{ href: "/dashboard/wallet", label: "Thanh toán", icon: CreditCard }]
+      : []),
+    ...(settingsHref
+      ? [{ href: settingsHref, label: "Cài đặt", icon: Settings }]
       : []),
   ];
 

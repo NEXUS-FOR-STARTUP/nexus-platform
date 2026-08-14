@@ -18,7 +18,7 @@ app/
 ├── dashboard/ → Student (role=user)
 │   └── case/[id]/ → Workspace (4 tabs, 16 components, 6 hooks)
 ├── admin/ → Admin panel (5 sections, 5 hooks, 11 components)
-└── supporter/ → Supporter workspace (case view + output upload)
+└── supporter/ → Supporter workspace (case view + output upload; settings mirrors student via shared dashboard SettingsLayout)
 
 components/ → Shared: 3 shells (App/Auth/Dashboard), 4 landing, 4 UI primitives
 lib/ → api-client (Axios), auth-client (Better Auth), pricing (VND)
