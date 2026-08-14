@@ -22,7 +22,7 @@ Cho user, admin, và supporter một mô hình nhất quán để biết case đ
 2. Admin triage case.
 3. Case được accept và assign supporter.
 4. Supporter đọc tài liệu.
-5. Nếu thiếu, supporter hoặc admin yêu cầu bổ sung.
+5. Nếu thiếu, supporter yêu cầu bổ sung (admin reject với lý do rõ — kênh trao đổi triage).
 6. Nếu đủ, supporter audit và publish report.
 7. User xem report trong case workspace.
 8. Nếu cần vòng tiếp theo, user gửi bản sửa mới.

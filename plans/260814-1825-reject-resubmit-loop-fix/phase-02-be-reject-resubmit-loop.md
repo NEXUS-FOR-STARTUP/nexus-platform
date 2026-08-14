@@ -1,6 +1,6 @@
 # Phase 02 — BE Reject-Resubmit Loop + Wiring
 
-- Priority: P0 | Status: Pending | Effort: 8h
+- Priority: P0 | Status: Done | Effort: 8h
 - Depends: Phase 01 | Blocks: Phase 03, 04, 05
 
 ## Overview
@@ -200,17 +200,17 @@ async function canSendMessage(caseRecord, creditBalance) {
 
 ## Todo List
 
-- [ ] transitionInTx refactor + P2002→409
-- [ ] submit-intake: atomic resubmit T3/T4 + T2/T16 dispatch + upsert v00/docs + bỏ requireCredits
-- [ ] T11 qua transitionInTx + repo bỏ credit/stage
-- [ ] T9 qua transitionInTx + repo bỏ stage write + bỏ validStages
-- [ ] Xóa admin request-more-info (route + handler + use case)
-- [ ] Supporter request-more-info wire T8 + fix findOpenRequestsForMoreInfo match
-- [ ] refundCredit: creditLedger -= 1
-- [ ] Assign gộp 1 tx (2 use case)
-- [ ] F11: xóa fallback + isValidStageTransition + 3 test file
-- [ ] `grep isValidStageTransition` → 0; `grep executeTransition|transitionInTx` → đủ use case
-- [ ] `npm run check-types` root PASS
+- [x] transitionInTx refactor + P2002→409
+- [x] submit-intake: atomic resubmit T3/T4 + T2/T16 dispatch + upsert v00/docs + bỏ requireCredits
+- [x] T11 qua transitionInTx + repo bỏ credit/stage
+- [x] T9 qua transitionInTx + repo bỏ stage write + bỏ validStages
+- [x] Xóa admin request-more-info (route + handler + use case)
+- [x] Supporter request-more-info wire T8 + fix findOpenRequestsForMoreInfo match
+- [x] refundCredit giữ VND-only (D5 — KHÔNG đụng creditLedger, todo cũ "creditLedger -= 1" đã bỏ)
+- [x] Assign gộp 1 tx (2 use case)
+- [x] F11: xóa fallback + isValidStageTransition + 3 test file
+- [x] `grep isValidStageTransition` → 0; `grep executeTransition|transitionInTx` → đủ use case
+- [x] `npm run check-types` root PASS
 
 ## Verify
 
@@ -229,7 +229,7 @@ async function canSendMessage(caseRecord, creditBalance) {
 - #4: T11 credit check trong tx — không double-spend
 - #2: P2002 → 409, không 500
 - F11: 1 nguồn truth; không duplicate v00/DocumentRecord (hỗ trợ #12)
-- Veto: credit về 0 (đúng quy tắc)
+- Veto: refund VND vào ví, KHÔNG đụng creditLedger (D5)
 
 ## Security Considerations
 

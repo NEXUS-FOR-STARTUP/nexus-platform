@@ -14,10 +14,9 @@
 2. Case vào `Admin triage queue`.
 3. Admin mở case detail.
 4. Admin xem summary, tài liệu, feedback, deadline, urgency.
-5. Admin quyết định một trong bốn action:
+5. Admin quyết định một trong ba action:
    - `Accept case`
    - `Reject case`
-   - `Yêu cầu bổ sung`
    - `Assign supporter`
 6. Nếu admin accept nhưng chưa assign ngay, case ở trạng thái `accepted_unassigned`.
 7. Khi assign supporter, case chuyển sang `assigned` và xuất hiện trong queue của supporter.
@@ -31,7 +30,7 @@
 
 ## Luồng ngoại lệ
 
-- Nếu thiếu dữ liệu quan trọng: admin chọn `Yêu cầu bổ sung`.
+- Nếu thiếu dữ liệu quan trọng: admin duyệt rồi để supporter yêu cầu bổ sung (T8), hoặc reject với lý do rõ.
 - Nếu case ngoài phạm vi hoặc không nên nhận: admin chọn `Reject case` với lý do rõ.
 - Nếu chưa có supporter phù hợp: case ở `accepted_unassigned` cho đến khi được giao.
 
@@ -39,7 +38,7 @@
 
 - Queue phải scan nhanh được mức độ gấp và độ đủ của case.
 - Admin không phải mở quá nhiều màn chỉ để quyết định accept/reject/assign.
-- Lý do reject hoặc yêu cầu bổ sung phải lưu trong timeline.
+- Lý do reject (≥ 10 ký tự) phải lưu trong timeline.
 
 ## Thiếu / chưa rõ
 

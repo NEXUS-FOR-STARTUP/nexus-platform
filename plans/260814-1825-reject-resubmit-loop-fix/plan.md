@@ -1,7 +1,7 @@
 ---
 title: "Reject → Resubmit Loop Fix — sửa vòng từ chối → nộp lại + hoàn thiện wiring machine"
 description: "Primary: vòng 'admin từ chối → sinh viên sửa → nộp lại' đang kẹt end-to-end (3 bề mặt rời, machine không được gọi). Secondary: wire nốt T2/T16/T11/T9 qua machine, xóa isValidStageTransition (F11), FE render nút từ allowed_transitions. Đóng bug #2 #4 #7 #15 #17 #18, hỗ trợ #12."
-status: pending
+status: done
 priority: P0
 effort: 22h
 branch: feat/reject-resubmit-loop-fix
@@ -73,6 +73,20 @@ Thiết kế (machine + document-contract) ĐÃ đúng: reject/resubmit/veto lif
 
 Không còn gì. Mọi quyết định đã khóa (D1-D17). Có thể bắt đầu implement.
 
+## Amendments (sau explore verify — 2026-08-14)
+
+| # | Nội dung | Lý do |
+|---|---|---|
+| D18 | Nộp intake/revision: **owner-only** (user chốt). `isOwnerOrMember` thực tế === `isOwner` → đổi tên guard thành `isOwner`, KHÔNG extend memberIds. Usecase membership check đổi thành owner check cho consistency | Machine guard không check member; event data không có memberIds |
+| D19 | Bare `POST /cases/:id/revisions` (`submitRevisionUseCase`): **giữ nguyên behavior** (vẫn T9 + data.files), chỉ comment deprecated. Không đụng code | User chốt; tránh đổi behavior endpoint cũ |
+| D20 | `updateStageMutation` (useCaseDetails.ts:31): **xóa** — payload `{stage,status}` sai key BE (`user_facing_stage`/`internal_status`) → luôn 400, zero caller. Phase-05 dùng `useSupporterActions` mới | Dead code hỏng |
+| FIX-1 | Mọi chỗ plan ghi event `'vetoed'` → **`'T13_VETO'`** (và `'case_rejected'` → `'T12_REJECT'`). `executeTransition` ghi `event_type = transitionName` | grep `vetoed` trong apps/api = 0 hits; StatusGuidanceCard.tsx:36-42 phải match T12_REJECT/T13_VETO |
+| FIX-2 | Phase-02 todo "refundCredit: creditLedger -= 1" mâu thuẫn D5 → **xóa todo, giữ VND-only** (D5 thắng) | Mâu thuẫn nội bộ trong phase file |
+| FIX-3 | `findOpenRequestsForMoreInfo` match thêm `request_more_info` **và** `case_closed` (để student thấy event đóng case) | Repo fn hiện chỉ match `more_info_requested` |
+| FIX-4 | `requestCaseMoreInfo` repo fn: **GIỮ** (supporter request-info + close-case vẫn dùng). Chỉ xóa usecase+handler+route admin | Explore verify: 2 caller còn lại |
+| FIX-5 | Free case: v00 + intake docs **được tạo lúc create** (case.repository.ts:179-218) → upsert (không create-if-missing) là đúng primitive cho resubmit, mọi case đều có sẵn v00 | Tránh tạo v00 thứ 2 |
+| FIX-6 | `executeTransition` có param `client?` nhưng L190-192 gọi `db.$transaction` → truyền TransactionClient sẽ crash. Phase-02 split `transitionInTx` là **bắt buộc** (fix latent bug), không optional | Explore verify L187-192 |
+
 ## Đã loại khỏi scope
 
 - **SLA / "chat ưu đãi thêm thời gian"**: feature tương lai riêng. Không đụng trong plan này.
@@ -82,12 +96,12 @@ Không còn gì. Mọi quyết định đã khóa (D1-D17). Có thể bắt đ�
 
 | Phase | Name | Status | Effort |
 |-------|------|--------|--------|
-| 1 | [Machine Amendments](./phase-01-machine-amendments.md) | Pending | 2h |
-| 2 | [BE Reject-Resubmit Loop + Wiring](./phase-02-be-reject-resubmit-loop.md) | Pending | 8h |
-| 3 | [BE Admin allowed_transitions](./phase-03-be-admin-allowed-transitions.md) | Pending | 1h |
-| 4 | [FE Student Workspace](./phase-04-fe-student-workspace.md) | Pending | 4h |
-| 5 | [FE Supporter Action Bar](./phase-05-fe-supporter-action-bar.md) | Pending | 4h |
-| 6 | [FE Admin Modal + Regression](./phase-06-fe-admin-regression.md) | Pending | 3h |
+| 1 | [Machine Amendments](./phase-01-machine-amendments.md) | Done | 2h |
+| 2 | [BE Reject-Resubmit Loop + Wiring](./phase-02-be-reject-resubmit-loop.md) | Done | 8h |
+| 3 | [BE Admin allowed_transitions](./phase-03-be-admin-allowed-transitions.md) | Done | 1h |
+| 4 | [FE Student Workspace](./phase-04-fe-student-workspace.md) | Done | 4h |
+| 5 | [FE Supporter Action Bar](./phase-05-fe-supporter-action-bar.md) | Done | 4h |
+| 6 | [FE Admin Modal + Regression](./phase-06-fe-admin-regression.md) | Done | 3h |
 
 ## Dependencies
 

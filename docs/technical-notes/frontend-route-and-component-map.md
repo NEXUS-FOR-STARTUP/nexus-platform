@@ -211,7 +211,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | Component | Lý do |
 | --- | --- |
 | `AdminPaymentVerificationTable` | payment không còn thuộc golden flow |
-| `RejectionReasonModal` | Có thể giữ pattern modal, nhưng nội dung phải đổi sang reject case / request more info |
+| `RejectionReasonModal` | Có thể giữ pattern modal, nhưng nội dung phải đổi sang reject case (lý do ≥ 10 ký tự) — admin không còn action request more info |
 | `useAdminPayments` | deferred theo payment |
 
 ### New admin components cần thêm
@@ -222,9 +222,8 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | `AdminCaseRow` | item/card cho queue |
 | `AdminCaseSummaryPanel` | summary của case trong detail view |
 | `AdminDocumentPreviewPanel` | preview tài liệu để triage |
-| `AdminTriageActionPanel` | accept / reject / request more info / assign |
-| `RequestMoreInfoModal` | nhập phần cần bổ sung |
-| `RejectCaseModal` | nhập lý do reject |
+| `AdminTriageActionPanel` | accept / reject / assign |
+| `RejectCaseModal` | nhập lý do reject (bắt buộc ≥ 10 ký tự) |
 | `AssignSupporterPanel` | chọn supporter phù hợp |
 
 ## 8.6 Supporter components

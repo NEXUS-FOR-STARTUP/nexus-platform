@@ -1,6 +1,6 @@
 # Phase 06 — FE Admin Modal + Regression
 
-- Priority: P0 | Status: Pending | Effort: 3h
+- Priority: P0 | Status: Done | Effort: 3h
 - Depends: Phase 03, 05 | Blocks: —
 
 ## Overview
@@ -52,8 +52,8 @@ Admin modal render từ `allowed_transitions` (T5/T12/T6), **xóa nút "Yêu c�
 
 ## Todo List
 
-- [ ] AdminCaseDetailModal transitions-driven (fallback giữ)
-- [ ] Xóa nút "Yêu cầu làm rõ" FE
+- [x] AdminCaseDetailModal transitions-driven (fallback giữ)
+- [x] Xóa nút "Yêu cầu làm rõ" FE
 - [ ] check-types + lint PASS
 - [ ] Test suite API PASS (trừ env-dependent)
 - [ ] Cập nhật bug tracker + AGENTS.md

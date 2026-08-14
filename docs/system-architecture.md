@@ -99,7 +99,7 @@ Tham chiếu:
 
 ### 3.4 Admin triage
 - admin có modal chi tiết case để đọc intake snapshot, documents, support needs
-- admin có action yêu cầu làm rõ, từ chối, duyệt, phân công supporter
+- admin có action từ chối, duyệt, phân công supporter (action request-more-info đã xóa — reject reason ≥ 10 ký tự là kênh trao đổi triage)
 
 Tham chiếu:
 - `apps/web-1/app/admin/_components/AdminCaseDetailModal.tsx`
@@ -237,7 +237,7 @@ Workspace điều hướng theo stage (`user_facing_stage`) và revision rounds 
 - `StatusGuidanceCard`: hướng dẫn trạng thái hiện tại và next action
 - `CaseOverviewPanel`: tóm tắt case
 - Revision upload được gate theo stage (chỉ ở stage `waiting_for_revision`)
-- Backend: `internal_status` chạy symflow transitions, `allowed_transitions` trả về trong case detail, SLA `sla_deadline_at`
+- Backend: `internal_status` chạy qua `case-machine.ts` (XState v5 — `transition.types.ts` giữ `TARGET_STAGE`), `allowed_transitions` trả về trong case detail, SLA `sla_deadline_at`
 
 > Ghi chú: `RevisionSubmitModal`, `BuyRoundModal`, `AuditRoundTimeline` không còn tồn tại trong codebase — luồng vòng sửa được xử lý qua stage-based flow + revision upload gating, không phải modal mua vòng riêng.
 
@@ -245,7 +245,7 @@ Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/CaseStatusHeader.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/StatusGuidanceCard.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/CaseOverviewPanel.tsx`
-- `apps/api/src/modules/cases/domain/case-workflow.ts`
+- `apps/api/src/modules/cases/domain/case-machine.ts`
 
 ### 5.7 Credit / payment surface
 Credit/ledger economy là core của hệ thống (không còn là surface phụ):
@@ -381,7 +381,7 @@ Tham chiếu:
 - upload external feedback qua `ExternalFeedbackUploadModal`
 
 ### Admin
-- triage, reject, request more info, approve
+- triage, reject (lý do ≥ 10 ký tự), approve
 - assign hoặc reassign supporter
 
 ## 9. Architectural constraints cho MVP demo

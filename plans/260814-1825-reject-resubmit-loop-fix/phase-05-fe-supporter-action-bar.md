@@ -1,6 +1,6 @@
 # Phase 05 — FE Supporter Action Bar
 
-- Priority: P0 | Status: Pending | Effort: 4h
+- Priority: P0 | Status: Done | Effort: 4h
 - Depends: Phase 02 | Blocks: Phase 06
 
 ## Overview
@@ -43,10 +43,10 @@ Render từ `filterTransitions(allowed_transitions, { role: "SUPPORTER", isOwner
 
 ## Todo List
 
-- [ ] useSupporterActions hook
-- [ ] Action bar render từ filterTransitions (SUPPORTER + isAssignedSupporter)
-- [ ] Gate SupporterOutputUploadModal theo T11
-- [ ] Wire T7/T8/T10/T14/T11 → endpoints
+- [x] useSupporterActions hook
+- [x] Action bar render từ filterTransitions (SUPPORTER + isAssignedSupporter)
+- [x] Gate SupporterOutputUploadModal theo T11
+- [x] Wire T7/T8/T10/T14/T11 → endpoints
 - [ ] eslint web 0 warning
 - [ ] Manual: supporter nhận case → start work → request info → nhận revision → chấm lại → upload output → complete
 

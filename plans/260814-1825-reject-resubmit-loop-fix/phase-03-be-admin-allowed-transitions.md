@@ -1,6 +1,6 @@
 # Phase 03 — BE Admin allowed_transitions
 
-- Priority: P0 | Status: Pending | Effort: 1h
+- Priority: P0 | Status: Done | Effort: 1h
 - Depends: Phase 02 | Blocks: Phase 06
 
 ## Overview

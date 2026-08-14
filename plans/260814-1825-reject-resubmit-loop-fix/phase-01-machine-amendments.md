@@ -1,6 +1,6 @@
 # Phase 01 — Machine Amendments
 
-- Priority: P0 | Status: Pending | Effort: 2h
+- Priority: P0 | Status: Done | Effort: 2h
 - Depends: — | Blocks: Phase 02
 
 ## Overview
@@ -47,12 +47,12 @@ assigned ──T6_ASSIGN_SUPPORTER (guard isAdmin, actions emitStageChanged)─�
 
 ## Todo List
 
-- [ ] T6 self-loop + action emitStageChanged trong `assigned`
-- [ ] Bỏ khối `on` T3/T4 khỏi `done`
-- [ ] TARGET_STAGE[T16] = `intake_ready`
-- [ ] `update-case-status.usecase.ts` XSTATE_TRANSITIONS: thêm `'assigned:assigned': 'T6_ASSIGN_SUPPORTER'`
-- [ ] Test phase-07: T6 admin → non-null; non-admin → null; `getAvailableTransitions('done')` → `[]`; `getAvailableTransitions('cancelled')` → chứa T3/T4; T16 stage map
-- [ ] `npx tsx --test src/shared/infrastructure/tests/phase-07-xstate-case-machine.test.ts` → pass toàn bộ
+- [x] T6 self-loop + action emitStageChanged trong `assigned`
+- [x] Bỏ khối `on` T3/T4 khỏi `done`
+- [x] TARGET_STAGE[T16] = `intake_ready`
+- [x] `update-case-status.usecase.ts` XSTATE_TRANSITIONS: thêm `'assigned:assigned': 'T6_ASSIGN_SUPPORTER'`
+- [x] Test phase-07: T6 admin → non-null; non-admin → null; `getAvailableTransitions('done')` → `[]`; `getAvailableTransitions('cancelled')` → chứa T3/T4; T16 stage map
+- [x] `npx tsx --test src/shared/infrastructure/tests/phase-07-xstate-case-machine.test.ts` → pass toàn bộ
 
 ## Success Criteria
 

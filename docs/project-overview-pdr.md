@@ -115,7 +115,7 @@ Tham chiếu:
 - `apps/api/src/modules/supporter/application/publish-report.usecase.ts`
 
 ### 5.6 Stage-based case flow & revision rounds (đã có)
-- Stage flow: `user_facing_stage` (intake_pending → intake_ready → submitted → need_more_information → under_review → report_ready → waiting_for_revision → revision_submitted → completed/rejected/closed), `internal_status` chạy symflow transitions.
+- Stage flow: `user_facing_stage` (intake_pending → intake_ready → submitted → need_more_information → under_review → report_ready → waiting_for_revision → revision_submitted → completed/rejected/closed), `internal_status` chạy qua `case-machine.ts` (XState v5).
 - `CaseStatusHeader`: hiển thị stage + next action.
 - `StatusGuidanceCard`: hướng dẫn trạng thái hiện tại và next action.
 - `CaseOverviewPanel`: tóm tắt case.
@@ -127,7 +127,7 @@ Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/CaseStatusHeader.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/StatusGuidanceCard.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/CaseOverviewPanel.tsx`
-- `apps/api/src/modules/cases/domain/case-workflow.ts`
+- `apps/api/src/modules/cases/domain/case-machine.ts`
 
 ### 5.7 Credit / payment core economy (đã có)
 - `CreditPanel` + `CreditQuantityModal` + `CreditActions`: mua credit.
@@ -211,7 +211,7 @@ Tham chiếu:
 ### 6.2 Admin
 - xem case mới;
 - đọc nhanh summary, needs, documents;
-- yêu cầu làm rõ / từ chối / duyệt;
+- từ chối / duyệt;
 - phân công supporter;
 - quản lý gói dịch vụ và giá qua Settings/Packages.
 
@@ -273,7 +273,7 @@ Không làm trước demo:
 1. Sinh viên tạo `Hồ sơ phản biện`.
 2. Sinh viên mô tả rõ đang mắc ở đâu và cần hỗ trợ gì.
 3. Sinh viên nộp Drive folder / main doc cùng checklist tài liệu minh chứng.
-4. Admin vào triage, hiểu case rất nhanh, duyệt hoặc yêu cầu làm rõ, phân công supporter.
+4. Admin vào triage, hiểu case rất nhanh, duyệt hoặc từ chối, phân công supporter.
 5. Supporter mở cùng workspace, đọc tài liệu theo checkpoint, trao đổi khi cần, biên tập báo cáo phản biện (draft report flow).
 6. Sinh viên nhận báo cáo, theo dõi timeline, stage-based status, và nộp revision khi ở stage `waiting_for_revision`.
 

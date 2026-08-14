@@ -1,6 +1,6 @@
 # Phase 04 — FE Student Workspace
 
-- Priority: P0 | Status: Pending | Effort: 4h
+- Priority: P0 | Status: Done | Effort: 4h
 - Depends: Phase 02 | Blocks: —
 
 ## Overview
@@ -80,11 +80,11 @@ export const TRANSITION_ACTOR_RULES: Record<string, { roles: string[]; actor: "o
 
 ## Todo List
 
-- [ ] Tạo `_types/transitions.ts` (D14)
-- [ ] page.tsx: canSubmitRevision theo T9, onOpenIntake theo transitions, truyền openRequestsForMoreInfo + identity
-- [ ] StatusGuidanceCard: nút từ transitions + fix lý do từ chối
-- [ ] TabReportFindings clean
-- [ ] `grep resubmitMutation` → 0 caller (xóa)
+- [x] Tạo `_types/transitions.ts` (D14)
+- [x] page.tsx: canSubmitRevision theo T9, onOpenIntake theo transitions, truyền openRequestsForMoreInfo + identity
+- [x] StatusGuidanceCard: nút từ transitions + fix lý do từ chối
+- [x] TabReportFindings clean
+- [x] `grep resubmitMutation` → 0 caller (xóa)
 - [ ] eslint web 0 warning
 - [ ] Manual: rejected case → thấy lý do + nút sửa → sửa → lưu → về chờ duyệt (không kẹt)
 - [ ] Manual: waiting_user → thấy text yêu cầu supporter + nút T9
