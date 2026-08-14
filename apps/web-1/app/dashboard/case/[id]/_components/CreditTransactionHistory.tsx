@@ -100,7 +100,7 @@ export default function CreditTransactionHistory({
   if (isLoading) {
     return (
       <div className="bg-surface-app border border-border-app rounded-xl p-10 flex items-center justify-center">
-        <Loader size="sm" color="teal" />
+        <Loader size="md" color="teal" />
       </div>
     );
   }
@@ -108,8 +108,8 @@ export default function CreditTransactionHistory({
   if (unifiedItems.length === 0) {
     return (
       <div className="bg-surface-app border border-border-app rounded-xl p-8 text-center">
-        <p className="text-sm font-medium text-text-app">Chưa có giao dịch</p>
-        <p className="text-xs text-text-muted mt-1">
+        <p className="text-base font-medium text-text-app">Chưa có giao dịch</p>
+        <p className="text-base text-text-muted mt-1">
           Lịch sử mua và sử dụng credit sẽ xuất hiện tại đây
         </p>
       </div>
@@ -119,14 +119,13 @@ export default function CreditTransactionHistory({
   return (
     <div className="bg-surface-app border border-border-app rounded-xl overflow-hidden">
       {/* Modern Filter Toolbar */}
-      <div className="px-4 py-3 border-b border-border-app flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-surface-app">
+      <div className="px-4 py-3.5 border-b border-border-app flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-surface-app">
         {/* Quick Filter Pill Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
           {QUICK_FILTER_TABS.map((tab) => {
             const isActive = typeFilter === tab.id;
             const count = tabCounts[tab.id];
 
-            // Don't render empty specific tabs if there's no data for it
             if (tab.id !== "all" && count === 0) return null;
 
             return (
@@ -134,17 +133,17 @@ export default function CreditTransactionHistory({
                 key={tab.id}
                 type="button"
                 onClick={() => setTypeFilter(tab.id)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                className={`px-3.5 py-1.5 text-base font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
                   isActive
-                    ? "bg-text-app text-surface-app"
+                    ? "bg-brand text-white font-semibold"
                     : "text-text-muted hover:text-text-app hover:bg-surface-soft"
                 }`}
               >
                 <span>{tab.label}</span>
                 <span
-                  className={`text-[11px] px-1.5 py-0.2 rounded-full font-semibold ${
+                  className={`text-[11px] font-semibold px-1.5 py-0.2 rounded-full leading-tight ${
                     isActive
-                      ? "bg-surface-app/20 text-surface-app"
+                      ? "bg-white/20 text-white"
                       : "bg-surface-soft text-text-muted"
                   }`}
                 >
@@ -160,9 +159,9 @@ export default function CreditTransactionHistory({
           <Select
             value={dateFilter}
             onChange={(val) => setDateFilter((val as DateFilter) || "all")}
-            size="xs"
+            size="sm"
             radius="md"
-            w={150}
+            w={180}
             data={[
               { label: "Tất cả thời gian", value: "all" },
               { label: "Hôm nay", value: "today" },
@@ -176,12 +175,12 @@ export default function CreditTransactionHistory({
       {/* Table Body */}
       {filteredAndSortedItems.length === 0 ? (
         <div className="p-8 text-center">
-          <p className="text-sm font-medium text-text-muted">
+          <p className="text-base font-medium text-text-muted">
             Không có giao dịch nào phù hợp với bộ lọc đã chọn
           </p>
         </div>
       ) : (
-        <Table.ScrollContainer minWidth={720}>
+        <Table.ScrollContainer minWidth={740}>
           <Table
             highlightOnHover
             verticalSpacing="sm"
@@ -192,18 +191,18 @@ export default function CreditTransactionHistory({
               <Table.Tr>
                 <Table.Th
                   onClick={() => handleSort("created_at")}
-                  className="text-xs font-semibold text-text-muted py-3 w-[140px] cursor-pointer select-none"
+                  className="text-base font-medium text-text-muted py-3.5 w-[160px] cursor-pointer select-none"
                 >
                   <span className="inline-flex items-center gap-1">
                     Thời gian {renderSortIndicator("created_at")}
                   </span>
                 </Table.Th>
 
-                <Table.Th className="text-xs font-semibold text-text-muted py-3 w-[115px]">
+                <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[130px]">
                   Loại giao dịch
                 </Table.Th>
 
-                <Table.Th className="text-xs font-semibold text-text-muted py-3">
+                <Table.Th className="text-base font-medium text-text-muted py-3.5">
                   Nội dung giao dịch
                 </Table.Th>
 
@@ -211,7 +210,7 @@ export default function CreditTransactionHistory({
                   ta="right"
                   style={{ textAlign: "right" }}
                   onClick={() => handleSort("amount")}
-                  className="text-xs font-semibold text-text-muted py-3 w-[130px] cursor-pointer select-none"
+                  className="text-base font-medium text-text-muted py-3.5 w-[150px] cursor-pointer select-none"
                 >
                   <span className="inline-flex items-center justify-end gap-1">
                     Biến động {renderSortIndicator("amount")}
@@ -221,7 +220,7 @@ export default function CreditTransactionHistory({
                 <Table.Th
                   ta="right"
                   style={{ textAlign: "right" }}
-                  className="text-xs font-semibold text-text-muted py-3 w-[135px]"
+                  className="text-base font-medium text-text-muted py-3.5 w-[150px]"
                 >
                   Số dư sau giao dịch
                 </Table.Th>
@@ -229,7 +228,7 @@ export default function CreditTransactionHistory({
                 <Table.Th
                   ta="center"
                   style={{ textAlign: "center" }}
-                  className="text-xs font-semibold text-text-muted py-3 w-[140px]"
+                  className="text-base font-medium text-text-muted py-3.5 w-[150px]"
                 >
                   Trạng thái
                 </Table.Th>
@@ -240,38 +239,38 @@ export default function CreditTransactionHistory({
               {filteredAndSortedItems.map((item) => (
                 <Table.Tr
                   key={item.id}
-                  className="transition-colors hover:bg-surface-soft/50"
+                  className="transition-colors hover:bg-surface-soft/60"
                 >
                   {/* Thời gian */}
-                  <Table.Td className="py-3">
-                    <Text className="font-medium text-text-app text-xs leading-tight">
+                  <Table.Td className="py-3.5">
+                    <Text className="font-medium text-text-app text-base leading-tight">
                       {item.date}
                     </Text>
-                    <Text c="dimmed" className="text-xs mt-0.5">
+                    <Text c="dimmed" className="text-base mt-0.5">
                       {item.time}
                     </Text>
                   </Table.Td>
 
                   {/* Loại giao dịch */}
-                  <Table.Td className="py-3">
+                  <Table.Td className="py-3.5">
                     <Badge
                       variant="light"
                       color={item.badgeColor}
-                      size="sm"
-                      radius="md"
-                      className="font-medium text-xs whitespace-nowrap"
+                      size="md"
+                      radius="xl"
+                      className="font-medium text-base whitespace-nowrap"
                     >
                       {item.typeLabel}
                     </Badge>
                   </Table.Td>
 
                   {/* Nội dung giao dịch */}
-                  <Table.Td className="py-3">
-                    <Text className="text-text-app text-xs font-medium line-clamp-1">
+                  <Table.Td className="py-3.5">
+                    <Text className="text-text-app text-base font-medium line-clamp-1">
                       {item.description}
                     </Text>
                     {item.subDescription && (
-                      <Text c="dimmed" className="text-xs font-mono mt-0.5">
+                      <Text c="dimmed" className="text-base font-mono mt-0.5">
                         {item.subDescription}
                       </Text>
                     )}
@@ -281,22 +280,22 @@ export default function CreditTransactionHistory({
                   <Table.Td
                     ta="right"
                     style={{ textAlign: "right" }}
-                    className="py-3"
+                    className="py-3.5"
                   >
                     <span
-                      className={`text-xs font-semibold tabular-nums ${item.amountDisplay.colorClass}`}
+                      className={`text-base font-semibold tabular-nums ${item.amountDisplay.colorClass}`}
                     >
                       {item.amountDisplay.text}
                     </span>
                   </Table.Td>
 
-                  {/* Số dư sau giao dịch (thu hẹp) */}
+                  {/* Số dư sau giao dịch */}
                   <Table.Td
                     ta="right"
                     style={{ textAlign: "right" }}
-                    className="py-3"
+                    className="py-3.5"
                   >
-                    <Text c="dimmed" className="text-xs tabular-nums font-normal">
+                    <Text c="dimmed" className="text-base tabular-nums font-normal">
                       {item.balanceAfterDisplay}
                     </Text>
                   </Table.Td>
@@ -305,14 +304,14 @@ export default function CreditTransactionHistory({
                   <Table.Td
                     ta="center"
                     style={{ textAlign: "center" }}
-                    className="py-3"
+                    className="py-3.5"
                   >
                     <Badge
                       variant="light"
                       color={item.statusColor}
-                      size="sm"
-                      radius="md"
-                      className="font-medium text-xs whitespace-nowrap"
+                      size="md"
+                      radius="xl"
+                      className="font-medium text-base whitespace-nowrap"
                     >
                       {item.statusLabel}
                     </Badge>

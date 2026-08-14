@@ -40,7 +40,7 @@ export function WalletTransactionFilters({
               onClick={() => onTabChange(tab.id)}
               className={`px-3.5 py-1.5 text-base font-medium rounded-md transition-colors cursor-pointer whitespace-nowrap ${
                 isActive
-                  ? "bg-text-app text-surface-app"
+                  ? "bg-brand text-white font-semibold"
                   : "text-text-muted hover:text-text-app hover:bg-surface-soft"
               }`}
             >

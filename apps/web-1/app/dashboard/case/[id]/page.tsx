@@ -113,7 +113,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           />
         )}
 
-        <div className="flex-grow min-h-0 flex flex-col">
+        <div className="w-full flex flex-col pb-8">
           {activeTab === "overview" && (
             <CaseOverviewPanel
               caseData={caseData}
