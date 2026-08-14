@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Case } from "@/types";
 import { statusThemeMap } from "@/types";
 import { Card, Badge } from "@mantine/core";
-import { Calendar, User, BookOpen } from "lucide-react";
 
 interface CaseCardProps {
   item: Case;
@@ -49,7 +48,7 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
             {item.team_name || "Hồ sơ chưa đặt tên nhóm"}
           </h3>
           {/* Row 3: status badges */}
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-col gap-2 items-start">
             <Badge size="md" variant="light" color={userFacingStatusBadge.color} className="font-body text-sm whitespace-nowrap">
               {userFacingStatusBadge.label}
             </Badge>
@@ -67,18 +66,15 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
         </div>
 
         <div className="flex flex-col gap-2.5 pt-4 border-t border-border-app text-xs font-body text-text-muted">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-3.5 h-3.5 text-text-subtle shrink-0" />
+          <div>
             <span>{item.package?.name || "Gói dịch vụ"}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Calendar className="w-3.5 h-3.5 text-text-subtle shrink-0" />
+          <div>
             <span>Ngày nộp hồ sơ: {formatDate(item.created_at)}</span>
           </div>
-          <div className="flex items-center gap-2 min-h-[20px]">
+          <div className="min-h-[20px]">
             {item.school ? (
               <>
-                <User className="w-3.5 h-3.5 text-text-subtle shrink-0" />
                 <span className="truncate">{item.school} {item.course_context ? `(${item.course_context})` : ""}</span>
               </>
             ) : (

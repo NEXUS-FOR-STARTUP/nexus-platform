@@ -212,7 +212,7 @@ function DocumentTable({
                           size="sm"
                           variant="light"
                           color={isSupporter ? "violet" : row.contextLabel.includes("chính") ? "cyan" : "blue"}
-                          radius="sm"
+                          radius="xl"
                         >
                           {row.contextLabel}
                         </Badge>
@@ -223,7 +223,7 @@ function DocumentTable({
                             size="sm"
                             variant="filled"
                             color="violet"
-                            radius="sm"
+                            radius="xl"
                             className="font-body text-xs"
                           >
                             Supporter
@@ -233,13 +233,13 @@ function DocumentTable({
                             size="sm"
                             variant="light"
                             color="teal"
-                            radius="sm"
+                            radius="xl"
                             className="font-body text-xs"
                           >
                             Sinh viên
                           </Badge>
                         ) : (
-                          <Badge size="sm" variant="light" color="gray" radius="sm">
+                          <Badge size="sm" variant="light" color="gray" radius="xl">
                             {row.uploaderLabel}
                           </Badge>
                         )}

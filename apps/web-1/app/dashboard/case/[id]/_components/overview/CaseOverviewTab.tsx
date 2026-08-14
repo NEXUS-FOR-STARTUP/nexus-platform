@@ -91,8 +91,8 @@ export default function CaseOverviewTab({ caseData, intakeSnapshot, teamFitRepor
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-3xl">
             <div className="flex flex-wrap items-center gap-2 mb-3">
-              <Badge color="brand" variant="light" radius="md">{model.summary.caseCode}</Badge>
-              <Badge color={stage?.color === "warning" ? "yellow" : stage?.color === "success" ? "green" : "gray"} variant="light" radius="md">
+              <Badge color="brand" variant="light" radius="xl">{model.summary.caseCode}</Badge>
+              <Badge color={stage?.color === "warning" ? "yellow" : stage?.color === "success" ? "green" : "gray"} variant="light" radius="xl">
                 {stage?.label || model.summary.stage}
               </Badge>
             </div>

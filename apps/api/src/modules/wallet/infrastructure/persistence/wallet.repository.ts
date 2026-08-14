@@ -75,6 +75,7 @@ export async function getTransactionHistory(
   userId: string,
   limit = 20,
   offset = 0,
+  opts: { type?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' } = {},
 ) {
   const wallet = await prisma.userWallet.findUnique({
     where: { user_id: userId },
@@ -82,16 +83,23 @@ export async function getTransactionHistory(
   })
   if (!wallet) return { transactions: [], total: 0 }
 
+  const where: Prisma.WalletTransactionWhereInput = { wallet_id: wallet.id }
+  if (opts.type) {
+    where.type = opts.type as any
+  }
+
+  const orderField = opts.sortBy === 'amount' ? 'amount' : 'created_at'
+  const orderDir = opts.sortOrder === 'asc' ? 'asc' : 'desc'
+  const orderBy = { [orderField]: orderDir }
+
   const [transactions, total] = await Promise.all([
     prisma.walletTransaction.findMany({
-      where: { wallet_id: wallet.id },
-      orderBy: { created_at: 'desc' },
+      where,
+      orderBy,
       take: limit,
       skip: offset,
     }),
-    prisma.walletTransaction.count({
-      where: { wallet_id: wallet.id },
-    }),
+    prisma.walletTransaction.count({ where }),
   ])
   return { transactions, total }
 }

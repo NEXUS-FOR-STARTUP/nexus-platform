@@ -26,7 +26,13 @@ export function useWalletBalance() {
   });
 }
 
-export function useWalletHistory(page = 1, limit = 20) {
+export function useWalletHistory(
+  page = 1,
+  limit = 10,
+  type?: string | null,
+  sortBy: "created_at" | "amount" = "created_at",
+  sortOrder: "asc" | "desc" = "desc",
+) {
   return useQuery<{ transactions: Array<{
     id: string;
     wallet_id: string;
@@ -39,9 +45,11 @@ export function useWalletHistory(page = 1, limit = 20) {
     source_description?: string;
     created_at: string;
   }>; total: number; page: number; limit: number }>({
-    queryKey: ["wallet", "history", page, limit],
+    queryKey: ["wallet", "history", page, limit, type ?? "all", sortBy, sortOrder],
     queryFn: async () => {
-      const response = await apiClient.get("/wallet/history", { params: { page, limit } });
+      const params: Record<string, unknown> = { page, limit, sortBy, sortOrder };
+      if (type) params.type = type;
+      const response = await apiClient.get("/wallet/history", { params });
       return response.data;
     },
     refetchInterval: 30_000,

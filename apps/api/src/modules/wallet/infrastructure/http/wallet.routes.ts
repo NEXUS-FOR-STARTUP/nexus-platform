@@ -14,12 +14,24 @@ walletRoutes.get('/balance', async (c) => {
   return c.json({ balance })
 })
 
+const VALID_TYPES = ['deposit', 'withdrawal', 'refund', 'adjustment', 'migration', 'service_payment']
+const VALID_SORT_FIELDS = ['created_at', 'amount']
+
 walletRoutes.get('/history', async (c) => {
   const user = c.get('user')
   const page = Math.max(1, Number(c.req.query('page') ?? 1))
   const limit = Math.min(50, Math.max(1, Number(c.req.query('limit') ?? 20)))
   const offset = (page - 1) * limit
-  const { transactions, total } = await walletService.getHistory(user.id, limit, offset)
+
+  const typeParam = c.req.query('type')
+  const type = typeParam && VALID_TYPES.includes(typeParam) ? typeParam : undefined
+
+  const sortByParam = c.req.query('sortBy')
+  const sortBy = sortByParam && VALID_SORT_FIELDS.includes(sortByParam) ? sortByParam : 'created_at'
+
+  const sortOrder = c.req.query('sortOrder') === 'asc' ? 'asc' : 'desc'
+
+  const { transactions, total } = await walletService.getHistory(user.id, limit, offset, { type, sortBy, sortOrder })
   const enriched = transactions.map((tx) => ({
     ...tx,
     source_description: describeTransaction(tx.source_type, tx.amount),

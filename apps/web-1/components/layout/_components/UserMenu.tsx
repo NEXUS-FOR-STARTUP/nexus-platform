@@ -74,11 +74,10 @@ export default function UserMenu() {
       opened={opened}
       onChange={setOpened}
       position="bottom-end"
-      offset={8}
-      width={280}
+      offset={6}
+      width={260}
       radius="md"
       shadow="md"
-      trapFocus
       closeOnEscape
       closeOnClickOutside
     >
@@ -93,6 +92,7 @@ export default function UserMenu() {
             src={user.image || undefined}
             alt={user.name || "User"}
             radius="xl"
+            size="md"
             className="transition-transform ring-2 ring-transparent hover:ring-brand"
           >
             {user.name?.substring(0, 2).toUpperCase() || "US"}
@@ -100,48 +100,44 @@ export default function UserMenu() {
         </button>
       </Popover.Target>
 
-      <Popover.Dropdown className="font-body">
-        <div className="flex flex-col gap-1">
-          <div className="flex flex-col border-b border-border-app mb-1">
-            <p
-              className="px-3 py-2.5 text-xs text-text-muted truncate"
-              title={user.email}
-            >
-              {user.email || "—"}
-            </p>
-            {isStudent && walletData && (
-              <div className="flex items-center gap-2 px-3 py-2.5">
-                <span className="text-xs text-text-muted shrink-0">
-                  Số dư ví:
-                </span>
-                <span className="text-sm font-semibold text-danger tabular-nums">
-                  {walletBalance.toLocaleString("vi-VN")} VND
-                </span>
-              </div>
-            )}
-          </div>
+      <Popover.Dropdown className="font-body p-2">
+        {/* User email */}
+        <div className="px-2.5 pt-1.5 pb-2">
+          <p className="text-base text-text-muted truncate" title={user.email}>
+            {user.email || "—"}
+          </p>
+        </div>
 
+        {/* Wallet balance block: Clear, high contrast, instantly readable */}
+        {isStudent && walletData && (
+          <div className="mx-1 mb-2 px-3 py-2.5 rounded-lg bg-surface-soft flex items-center justify-between">
+            <span className="text-base text-text-muted">Số dư</span>
+            <span className="text-base font-bold text-danger tabular-nums">
+              {walletBalance.toLocaleString("vi-VN")} VND
+            </span>
+          </div>
+        )}
+
+        {/* Navigation Links & Sign out */}
+        <div className="flex flex-col gap-0.5">
           {options.map(({ href, label, icon: Icon }) => (
             <button
               key={href}
               type="button"
               onClick={() => handleNavigate(href)}
-              className="w-full flex items-center gap-2.5 text-sm rounded-md px-3 py-2.5 text-left hover:bg-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand transition-colors cursor-pointer text-text-app"
+              className="w-full flex items-center gap-3 text-base font-medium rounded-md px-3 py-2 text-left hover:bg-surface-soft transition-colors cursor-pointer text-text-app outline-none"
             >
-              <Icon className="w-4 h-4 text-text-muted" />
+              <Icon className="w-4 h-4 text-text-muted shrink-0" />
               <span>{label}</span>
             </button>
           ))}
-        </div>
 
-        {/* Sign out */}
-        <div className="pt-1 mt-1 border-t border-border-app">
           <button
             type="button"
             onClick={handleSignOut}
-            className="w-full flex items-center gap-2.5 text-sm rounded-md px-3 py-2.5 text-left hover:bg-danger/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger transition-colors cursor-pointer text-danger"
+            className="w-full flex items-center gap-3 text-base font-medium rounded-md px-3 py-2 text-left hover:bg-danger-soft transition-colors cursor-pointer text-danger outline-none"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-4 h-4 shrink-0" />
             <span>Đăng xuất</span>
           </button>
         </div>

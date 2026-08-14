@@ -179,8 +179,9 @@ export class WalletService {
     userId: string,
     limit = 20,
     offset = 0,
+    opts?: { type?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' },
   ) {
-    return getTransactionHistory(userId, limit, offset)
+    return getTransactionHistory(userId, limit, offset, opts)
   }
 }
 

@@ -1,116 +1,139 @@
 "use client";
 
 import { useState } from "react";
-import { Paper, Center, Loader, Text, Table, Badge, Pagination } from "@mantine/core";
+import { Paper, Center, Text, Pagination, Skeleton, Button, Stack, Divider } from "@mantine/core";
 import { useWalletHistory } from "../hooks/useWallet";
-
-const TYPE_LABELS: Record<string, string> = {
-  deposit: "Nạp tiền",
-  withdrawal: "Sử dụng",
-  refund: "Hoàn tiền",
-  adjustment: "Điều chỉnh",
-  migration: "Chuyển đổi",
-  service_payment: "Mua dịch vụ",
-};
-
-const TYPE_COLORS: Record<string, string> = {
-  deposit: "green",
-  withdrawal: "red",
-  refund: "blue",
-  adjustment: "orange",
-  migration: "orange",
-  service_payment: "orange",
-};
+import {
+  WalletTransactionItem,
+  SortField,
+  SortState,
+  QuickFilterTab,
+} from "./wallet-transaction.types";
+import { WalletTransactionFilters } from "./WalletTransactionFilters";
+import { WalletTransactionTable } from "./WalletTransactionTable";
+import { WalletTransactionCardList } from "./WalletTransactionCardList";
 
 export function WalletTransactionList() {
   const [page, setPage] = useState(1);
-  const limit = 20;
-  const { data, isLoading, isError } = useWalletHistory(page, limit);
+  const [activeTab, setActiveTab] = useState<QuickFilterTab>("all");
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [sort, setSort] = useState<SortState>({ field: "created_at", order: "desc" });
 
-  if (isLoading) {
-    return (
-      <Paper withBorder radius="md" p="xl" className="bg-surface-app">
-        <Center>
-          <Loader color="blue" size="md" />
-        </Center>
-      </Paper>
+  const effectiveType = selectedType || (activeTab === "all" ? null : activeTab);
+  const limit = 10;
+  const { data, isLoading, isFetching, isError, refetch } = useWalletHistory(
+    page,
+    limit,
+    effectiveType,
+    sort.field,
+    sort.order,
+  );
+
+  const handleTabChange = (tab: QuickFilterTab) => {
+    setActiveTab(tab);
+    setSelectedType(null);
+    setPage(1);
+  };
+
+  const handleTypeChange = (value: string | null) => {
+    setSelectedType(value);
+    setPage(1);
+  };
+
+  const handleSort = (field: SortField) => {
+    setSort((prev) =>
+      prev.field === field
+        ? { field, order: prev.order === "asc" ? "desc" : "asc" }
+        : { field, order: "desc" },
     );
-  }
+    setPage(1);
+  };
 
-  if (isError) {
-    return (
-      <Paper withBorder radius="md" p="xl" className="bg-surface-app">
-        <Center>
-          <Text size="sm" c="red">Không thể tải lịch sử giao dịch.</Text>
-        </Center>
-      </Paper>
-    );
-  }
-
-  const transactions = data?.transactions ?? [];
+  const transactions = (data?.transactions ?? []) as WalletTransactionItem[];
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / limit);
 
-  if (total === 0) {
-    return (
-      <Paper withBorder radius="md" p="xl" className="bg-surface-app">
-        <Center>
-          <Text size="sm" c="dimmed">Chưa có giao dịch nào</Text>
-        </Center>
-      </Paper>
-    );
-  }
-
   return (
     <Paper withBorder radius="md" className="bg-surface-app overflow-hidden">
-      <Table striped highlightOnHover verticalSpacing="sm" className="table-fixed">
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th className="text-xs font-semibold text-text-muted w-[20%]">Mô tả</Table.Th>
-            <Table.Th className="text-xs font-semibold text-text-muted w-[18%]">Số tiền</Table.Th>
-            <Table.Th className="text-xs font-semibold text-text-muted w-[12%]">Loại</Table.Th>
-            <Table.Th className="text-xs font-semibold text-text-muted w-[25%]">Thời gian</Table.Th>
-            <Table.Th className="text-xs font-semibold text-text-muted w-[25%]">Số dư</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {transactions.map((tx) => {
-            const isPositive = tx.amount > 0;
-            const label = TYPE_LABELS[tx.type] ?? tx.type;
-            const color = TYPE_COLORS[tx.type] ?? "gray";
+      <WalletTransactionFilters
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        selectedType={selectedType}
+        onTypeChange={handleTypeChange}
+        isFetching={isFetching}
+        onRefresh={() => refetch()}
+      />
 
-            return (
-              <Table.Tr key={tx.id}>
-                <Table.Td>
-                  <Text size="xs" className="text-text-app leading-snug">{tx.source_description ?? (tx.type ? TYPE_LABELS[tx.type] : "—")}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <span className={`text-sm font-bold tabular-nums ${isPositive ? "text-green-600" : "text-red-600"}`}>
-                    {isPositive ? "+" : ""}
-                    {tx.amount.toLocaleString("vi-VN")}
-                    <span className="text-xs font-medium ml-1">VND</span>
-                  </span>
-                </Table.Td>
-                <Table.Td>
-                  <Badge color={color} variant="light" size="md" className="font-semibold">{label}</Badge>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="xs" c="dimmed">{new Date(tx.created_at).toLocaleString("vi-VN")}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="xs" c="dimmed" className="tabular-nums">
-                    {tx.balance_after != null ? `${tx.balance_after.toLocaleString("vi-VN")} VND` : "—"}
-                  </Text>
-                </Table.Td>
-              </Table.Tr>
-            );
-          })}
-        </Table.Tbody>
-      </Table>
-      {totalPages > 1 && (
-        <Center py="sm">
-          <Pagination total={totalPages} value={page} onChange={setPage} size="sm" radius="md" />
+      {isLoading ? (
+        <div className="p-4 space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} height={38} radius="sm" />
+          ))}
+        </div>
+      ) : isError ? (
+        <Center p="xl">
+          <Stack align="center" gap="sm">
+            <Text className="text-text-app text-base">
+              Không thể tải lịch sử giao dịch.
+            </Text>
+            <Button size="sm" variant="default" onClick={() => refetch()} className="text-base">
+              Thử lại
+            </Button>
+          </Stack>
         </Center>
+      ) : total === 0 ? (
+        <Center p="xl">
+          <Stack align="center" gap="sm" ta="center">
+            <Text fw={500} className="text-text-app text-base">
+              {effectiveType ? "Không có giao dịch phù hợp" : "Chưa có giao dịch nào"}
+            </Text>
+            <Text c="dimmed" className="text-base">
+              {effectiveType
+                ? "Thử chuyển bộ lọc để tìm kiếm các giao dịch khác."
+                : "Các biến động số dư ví sẽ được ghi nhận tại đây."}
+            </Text>
+            {effectiveType && (
+              <Button size="sm" variant="subtle" color="gray" onClick={() => handleTabChange("all")} className="text-base">
+                Xem tất cả giao dịch
+              </Button>
+            )}
+          </Stack>
+        </Center>
+      ) : (
+        <>
+          {/* Desktop Table */}
+          <div className="hidden md:block">
+            <WalletTransactionTable
+              transactions={transactions}
+              sort={sort}
+              onSort={handleSort}
+            />
+          </div>
+
+          {/* Mobile Card List */}
+          <div className="md:hidden">
+            <WalletTransactionCardList
+              transactions={transactions}
+            />
+          </div>
+
+          {/* Footer Pagination & Count */}
+          <Divider />
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-surface-app">
+            <Text c="dimmed" className="text-base">
+              Hiển thị {transactions.length} trên tổng số {total.toLocaleString("vi-VN")} giao dịch
+            </Text>
+            {totalPages > 1 && (
+              <Pagination
+                total={totalPages}
+                value={page}
+                onChange={setPage}
+                size="md"
+                radius="sm"
+              />
+            )}
+          </div>
+        </>
       )}
     </Paper>
   );
