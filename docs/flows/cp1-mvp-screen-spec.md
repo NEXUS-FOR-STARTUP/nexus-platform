@@ -59,7 +59,7 @@ Biến business flow đã chốt thành một bộ màn hình đủ rõ để im
 
 ## 4. Quyết định khóa cho spec này
 
-- Admin được yêu cầu bổ sung trước khi accept.
+- Admin reject với lý do rõ (≥ 10 ký tự — reject reason là kênh trao đổi triage); yêu cầu bổ sung do supporter thực hiện sau khi được assign (machine T8).
 - Report phase 1 là rich text trong hệ thống, có thể kèm file tải xuống.
 - Không có tab chat tự do.
 - Payment không nằm trong luồng chính.

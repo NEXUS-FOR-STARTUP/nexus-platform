@@ -79,7 +79,7 @@ npx tsx scripts/temp-query.ts
 
 ## 3. Các bảng dữ liệu chính trong Schema `public`
 
-Toàn bộ 19 bảng được cấu hình trong [schema.prisma](../prisma/schema.prisma), chia theo nhóm:
+Toàn bộ 24 bảng được cấu hình trong [schema.prisma](../prisma/schema.prisma), chia theo nhóm:
 
 ### Auth (Better Auth quản lý)
 * `users` - Người dùng hệ thống.
@@ -101,9 +101,20 @@ Toàn bộ 19 bảng được cấu hình trong [schema.prisma](../prisma/schema
 * `team_fit_reports` - Báo cáo phân tích đội ngũ (AI).
 
 ### Payments & Credits
-* `payments` - Thanh toán (bank transfer, SePay webhook).
+* `deposits` - Nạp tiền vào ví (thay thế Payment + WalletTopup).
+* `orders` - Đơn hàng mua credit/dịch vụ.
+* `order_items` - Chi tiết dòng trong đơn hàng.
+* `payments` - Thanh toán (legacy, @deprecated — thay bởi deposits).
 * `service_packages` - Gói dịch vụ.
 * `credit_ledgers` - Sổ cái credit (purchase/consumption/refund).
+
+### Wallet
+* `user_wallets` - Ví của người dùng (1 user = 1 wallet).
+* `wallet_transactions` - Biến động số dư ví (append-only).
+* `wallet_topups` - Nạp tiền cũ (legacy, @deprecated — thay bởi deposits).
+
+### Infrastructure
+* `domain_event_outbox` - Outbox pattern cho financial events (atomic DB write + event publish).
 
 ### AI
 * `ai_jobs` - Job xử lý AI (team-fit analysis, etc).

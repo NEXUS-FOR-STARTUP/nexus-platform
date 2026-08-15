@@ -1,5 +1,19 @@
 import { notifications } from "@mantine/notifications";
 
+export const PACKAGE_KEYS = {
+  FREE: "pkg_tf_free",
+  AUDIT: "pkg_tf_audit",
+} as const;
+
+export type PackageKey = (typeof PACKAGE_KEYS)[keyof typeof PACKAGE_KEYS];
+
+export function isCaseFree(caseData?: {
+  package_id?: string | null;
+  locked_price?: number | null;
+} | null): boolean {
+  return caseData?.locked_price === 0 || caseData?.package_id === PACKAGE_KEYS.FREE;
+}
+
 /**
  * Resolves the effective pricing for a case, falling back to the package price
  * or 0 if neither are set.
@@ -20,11 +34,11 @@ export function caseRequiresPayment(caseData: { payment_status?: string }): bool
 }
 
 /**
- * Formats a number as VND (e.g. 100.000 VND).
+ * Formats a number as VND with comma thousands separator (e.g. 100,000 VND).
  */
 export function formatPrice(price: number): string {
   if (price === 0) return "Miễn phí";
-  const num = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 }).format(price);
+  const num = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(price);
   return `${num} VND`;
 }
 

@@ -1,5 +1,4 @@
 import { AppError } from "../../../shared/domain/app-error.js";
-import { isFinalCaseStage, requireCredits } from "../domain/case.types.js";
 import {
   findActiveDocumentTypeByCode,
 } from "../../documents/infrastructure/persistence/document-type.repository.js";
@@ -11,24 +10,26 @@ import {
 import { toExternalFeedbackMetadataJson } from "../../documents/infrastructure/persistence/document.repository.js";
 import {
   findCaseByIdWithMembersAndCheckpoints as defaultFindCaseByIdWithMembersAndCheckpoints,
-  submitCaseRevision as defaultSubmitCaseRevision,
-  createSupporterOutput as defaultCreateSupporterOutput,
+  submitCaseRevisionInTx as defaultSubmitCaseRevisionInTx,
+  createSupporterOutputDocs as defaultCreateSupporterOutputDocs,
   createExternalFeedback as defaultCreateExternalFeedback,
 } from "../infrastructure/persistence/case.repository.js";
 import logger from "../../../shared/infrastructure/logger.js";
 import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
+import { prisma } from "../../../db.js";
 import type {
   SubmitRevisionRequest,
   SubmitRevisionUploadRequest,
   SupporterOutputUploadRequest,
   ExternalFeedbackUploadRequest,
 } from "./cases.dto.js";
+import { executeTransition, transitionInTx } from "../../../services/case-transition.service.js";
 
 type SubmitRevisionDeps = {
   findCaseByIdWithMembersAndCheckpoints?: typeof defaultFindCaseByIdWithMembersAndCheckpoints;
-  submitCaseRevision?: typeof defaultSubmitCaseRevision;
-  createSupporterOutput?: typeof defaultCreateSupporterOutput;
+  submitCaseRevisionInTx?: typeof defaultSubmitCaseRevisionInTx;
+  createSupporterOutputDocs?: typeof defaultCreateSupporterOutputDocs;
   createExternalFeedback?: typeof defaultCreateExternalFeedback;
   findActiveDocumentTypeByCode?: typeof findActiveDocumentTypeByCode;
 };
@@ -40,10 +41,6 @@ type CheckpointLike = {
   latest_assessment_no?: number;
 };
 
-type CaseMemberLike = {
-  auth_user_id: string;
-};
-
 type CaseWithCheckpointsLike = {
   current_checkpoint?: string | null;
   checkpoints?: CheckpointLike[];
@@ -51,8 +48,8 @@ type CaseWithCheckpointsLike = {
 
 const defaultDeps = {
   findCaseByIdWithMembersAndCheckpoints: defaultFindCaseByIdWithMembersAndCheckpoints,
-  submitCaseRevision: defaultSubmitCaseRevision,
-  createSupporterOutput: defaultCreateSupporterOutput,
+  submitCaseRevisionInTx: defaultSubmitCaseRevisionInTx,
+  createSupporterOutputDocs: defaultCreateSupporterOutputDocs,
   createExternalFeedback: defaultCreateExternalFeedback,
   findActiveDocumentTypeByCode,
 };
@@ -101,109 +98,30 @@ async function validateDocumentsByFlow(
   }
 }
 
+// @deprecated — bare endpoint /revisions, không còn FE gọi. Giữ nguyên behavior (T9 + data.files)
+// để không đổi endpoint cũ. Upload mới đi qua submitRevisionUploadUseCase (/revisions/upload).
 export async function submitRevisionUseCase(
   userId: string,
   caseId: string,
   body: SubmitRevisionRequest,
-  deps: SubmitRevisionDeps = {},
+  _deps?: SubmitRevisionDeps,
 ) {
-  const startTime = Date.now();
-  const {
-    findCaseByIdWithMembersAndCheckpoints,
-    submitCaseRevision,
-  } = {
-    ...defaultDeps,
-    ...deps,
-  };
-
-  const caseDetails = await findCaseByIdWithMembersAndCheckpoints(caseId);
-
-  if (!caseDetails) {
-    throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
+  if (typeof body.change_summary !== "string" || body.change_summary.trim().length < 10) {
+    throw new AppError(400, "VALIDATION_ERROR", "Tóm tắt thay đổi tối thiểu phải 10 ký tự")
   }
 
-  await requireCredits(caseId);
-
-  const isOwner = caseDetails.owner_auth_user_id === userId;
-  const isMember = caseDetails.members.some(
-    (member: CaseMemberLike) => member.auth_user_id === userId,
-  );
-  if (!isOwner && !isMember) {
-    throw new AppError(403, "FORBIDDEN", "Không có quyền nộp sửa đổi cho dự án này");
-  }
-
-  if (isFinalCaseStage(caseDetails.user_facing_stage)) {
-    throw new AppError(
-      400,
-      "INVALID_CASE_STAGE",
-      "Dự án đã ở trạng thái cuối, không thể nộp bản sửa đổi",
-    );
-  }
-
-  const validStages = [
-    "report_ready",
-    "waiting_for_revision",
-    "need_more_information",
-  ];
-  if (!validStages.includes(caseDetails.user_facing_stage)) {
-    throw new AppError(
-      400,
-      "INVALID_CASE_STAGE",
-      "Trạng thái hiện tại của dự án không cho phép nộp bản sửa đổi",
-    );
-  }
-
-  const { change_summary, documents, remaining_blockers } = body;
-
-  if (typeof change_summary !== "string" || change_summary.trim().length < 10) {
-    throw new AppError(
-      400,
-      "VALIDATION_ERROR",
-      "Tóm tắt thay đổi tối thiểu phải 10 ký tự",
-    );
-  }
-
-  const documentValidation = validateDocumentWriteInputs(documents || []);
+  const documentValidation = validateDocumentWriteInputs(body.documents || [])
   if (!documentValidation.ok) {
-    throw new AppError(400, "VALIDATION_ERROR", documentValidation.error);
+    throw new AppError(400, "VALIDATION_ERROR", documentValidation.error)
   }
 
-  const checkpoint = selectCheckpoint(caseDetails);
-  if (!checkpoint) {
-    throw new AppError(404, "NOT_FOUND", "Không tìm thấy thông tin checkpoint");
-  }
-
-  const nextVersion = checkpoint.latest_version_no + 1;
-
-  try {
-    const result = await submitCaseRevision({
-      caseId,
-      checkpointId: checkpoint.id,
-      nextVersion,
-      userId,
-      changeSummary: change_summary,
-      documents: documentValidation.inputs,
-      remainingBlockers: remaining_blockers,
-    });
-    // Emit sau commit — supporter nhận noti đã nộp bản sửa (case.stage_changed)
-    emitEvent({
-      eventId: crypto.randomUUID(),
-      type: DOMAIN_EVENTS.CASE_STAGE_CHANGED,
-      actorId: userId,
-      occurredAt: new Date(),
-      payload: {
-        caseId,
-        caseCode: caseDetails.case_code,
-        fromStage: caseDetails.user_facing_stage,
-        toStage: "revision_submitted",
-      },
-    });
-    logger.info({ caseId, transition: 'submit_revision', actorId: userId, duration_ms: Date.now() - startTime }, 'case transition: submit_revision');
-    return result;
-  } catch (error) {
-    logger.error({ err: error, caseId, transition: 'submit_revision', actorId: userId, duration_ms: Date.now() - startTime }, 'case transition failed: submit_revision');
-    throw error;
-  }
+  return executeTransition({
+    transition: 'T9_SUBMIT_REVISION',
+    caseId,
+    actorId: userId,
+    roleVerified: 'CUSTOMER',
+    data: { files: documentValidation.inputs.map(d => ({ ...d, doc_type: 'revision_document' })), reason: body.change_summary },
+  })
 }
 
 export async function submitRevisionUploadUseCase(
@@ -215,7 +133,7 @@ export async function submitRevisionUploadUseCase(
   const startTime = Date.now();
   const {
     findCaseByIdWithMembersAndCheckpoints,
-    submitCaseRevision,
+    submitCaseRevisionInTx,
     findActiveDocumentTypeByCode,
   } = {
     ...defaultDeps,
@@ -228,23 +146,10 @@ export async function submitRevisionUploadUseCase(
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
   }
 
-  await requireCredits(caseId);
-
+  // D18: owner-only
   const isOwner = caseDetails.owner_auth_user_id === userId;
-  const isMember = caseDetails.members.some(
-    (member: CaseMemberLike) => member.auth_user_id === userId,
-  );
-  if (!isOwner && !isMember) {
+  if (!isOwner) {
     throw new AppError(403, "FORBIDDEN", "Không có quyền nộp sửa đổi cho dự án này");
-  }
-
-  if (isFinalCaseStage(caseDetails.user_facing_stage)) {
-    throw new AppError(400, "INVALID_CASE_STAGE", "Dự án đã ở trạng thái cuối, không thể nộp bản sửa đổi");
-  }
-
-  const validStages = ["report_ready", "waiting_for_revision", "need_more_information"];
-  if (!validStages.includes(caseDetails.user_facing_stage)) {
-    throw new AppError(400, "INVALID_CASE_STAGE", "Trạng thái hiện tại của dự án không cho phép nộp bản sửa đổi");
   }
 
   if (typeof body.change_summary !== "string" || body.change_summary.trim().length < 10) {
@@ -262,14 +167,23 @@ export async function submitRevisionUploadUseCase(
   const nextVersion = checkpoint.latest_version_no + 1;
 
   try {
-    const result = await submitCaseRevision({
-      caseId,
-      checkpointId: checkpoint.id,
-      nextVersion,
-      userId,
-      changeSummary: body.change_summary,
-      documents: uploadedDocuments,
-      remainingBlockers: body.remaining_blockers,
+    const result = await prisma.$transaction(async (tx) => {
+      await submitCaseRevisionInTx(tx, {
+        caseId,
+        checkpointId: checkpoint.id,
+        nextVersion,
+        userId,
+        changeSummary: body.change_summary,
+        documents: uploadedDocuments,
+        remainingBlockers: body.remaining_blockers,
+      });
+      return transitionInTx(tx, {
+        transition: "T9_SUBMIT_REVISION",
+        caseId,
+        actorId: userId,
+        roleVerified: "CUSTOMER",
+        data: { reason: body.change_summary },
+      });
     });
     // Emit sau commit — supporter nhận noti đã nộp bản sửa (case.stage_changed)
     emitEvent({
@@ -281,7 +195,7 @@ export async function submitRevisionUploadUseCase(
         caseId,
         caseCode: caseDetails.case_code,
         fromStage: caseDetails.user_facing_stage,
-        toStage: "revision_submitted",
+        toStage: result.stage,
       },
     });
     logger.info({ caseId, transition: 'submit_revision', actorId: userId, duration_ms: Date.now() - startTime }, 'case transition: submit_revision');
@@ -302,7 +216,7 @@ export async function submitSupporterOutputUploadUseCase(
   const startTime = Date.now();
   const {
     findCaseByIdWithMembersAndCheckpoints,
-    createSupporterOutput,
+    createSupporterOutputDocs,
     findActiveDocumentTypeByCode,
   } = {
     ...defaultDeps,
@@ -335,12 +249,23 @@ export async function submitSupporterOutputUploadUseCase(
   }
 
   try {
-    const result = await createSupporterOutput({
-      caseId,
-      checkpointId: checkpoint.id,
-      userId,
-      note: body.note,
-      documents: normalizedDocuments,
+    const result = await prisma.$transaction(async (tx) => {
+      const docs = await createSupporterOutputDocs(tx, {
+        caseId,
+        checkpointId: checkpoint.id,
+        userId,
+        note: body.note,
+        documents: normalizedDocuments,
+      });
+      // D11: T11 trong cùng 1 tx — credit check + consume do machine lo (subtractCredit, idempotent)
+      const transition = await transitionInTx(tx, {
+        transition: "T11_SUBMIT_OUTPUT",
+        caseId,
+        actorId: userId,
+        roleVerified: userRole === "admin" ? "ADMIN" : "SUPPORTER",
+        data: { unitCode: docs.unit_code },
+      });
+      return { ...docs, stage: transition.stage, status: transition.status };
     });
     // Emit sau commit — báo cáo phản biện sẵn sàng → student nhận noti (report.published)
     emitEvent({
@@ -383,13 +308,9 @@ export async function submitExternalFeedbackUploadUseCase(
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
   }
 
-  await requireCredits(caseId);
-
+  // D18: owner-only
   const isOwner = caseDetails.owner_auth_user_id === userId;
-  const isMember = caseDetails.members.some(
-    (member: CaseMemberLike) => member.auth_user_id === userId,
-  );
-  if (!isOwner && !isMember) {
+  if (!isOwner) {
     throw new AppError(403, "FORBIDDEN", "Không có quyền tải đánh giá bên ngoài cho dự án này");
   }
 

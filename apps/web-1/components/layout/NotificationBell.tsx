@@ -101,12 +101,12 @@ export default function NotificationBell() {
             ))}
           </ScrollArea>
         )}
-        <div className="px-3 pt-1 pb-1.5">
+        <div className="px-3 pt-1.5 pb-1.5 flex justify-end">
           <button
             type="button"
             onClick={() => markAllRead.mutate()}
             disabled={unreadCount === 0}
-            className="text-[11px] font-body text-text-muted hover:text-brand disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+            className="text-[11px] font-body text-brand hover:text-brand-hover underline underline-offset-2 disabled:opacity-40 disabled:no-underline disabled:cursor-not-allowed cursor-pointer transition-colors"
           >
             Đánh dấu tất cả đã đọc
           </button>

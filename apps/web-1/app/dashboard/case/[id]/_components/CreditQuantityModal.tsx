@@ -3,49 +3,114 @@
 import React, { useState } from "react";
 import { Modal, Button, NumberInput, Stack, Text, Group } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
-
-const CREDIT_PRICE = 39000;
+import { PACKAGE_KEYS } from "@/lib/pricing";
 
 interface CreditQuantityModalProps {
   caseId: string;
   opened: boolean;
   onClose: () => void;
-  packageId?: string;
+  packageId: string;
+  currentPackageId?: string;
 }
 
-export default function CreditQuantityModal({ caseId, opened, onClose, packageId }: CreditQuantityModalProps) {
+const MIN_TOPUP_AMOUNT = 2000;
+
+export default function CreditQuantityModal({ caseId, opened, onClose, packageId, currentPackageId }: CreditQuantityModalProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState<number>(1);
 
-  const mutation = useMutation({
+  const { data: pkg } = useQuery({
+    queryKey: ["package", "price", packageId],
+    queryFn: () => apiClient.get(`/packages/${packageId}`).then((r) => r.data),
+    enabled: opened && !!packageId,
+  });
+
+  const unitPrice = pkg?.price ?? 0;
+
+    const mutation = useMutation({
     mutationFn: async () => {
-      if (packageId === "pkg_tf_free") {
+      if (currentPackageId === PACKAGE_KEYS.FREE) {
         await apiClient.post(`/cases/${caseId}/upgrade-package`, {
-          packageId: "pkg_tf_audit",
+          packageId: PACKAGE_KEYS.AUDIT,
         });
       }
-      const res = await apiClient.post("/payments", {
-        caseId,
-        amount: quantity * CREDIT_PRICE,
-        metadata_json: { quantity },
+      const res = await apiClient.post("/orders", {
+        idempotency_key: crypto.randomUUID(),
+        items: [
+          {
+            service_type: "credit_audit",
+            quantity,
+            metadata_json: { case_id: caseId },
+          },
+        ],
       });
       return res.data;
     },
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["case", caseId] });
+      queryClient.invalidateQueries({ queryKey: ["wallet"] });
       notifications.show({
         title: "Tạo đơn hàng thành công",
-        message: "Đang chuyển đến trang thanh toán...",
+        message: `Đơn hàng #${data.orderId} đã được tạo.`,
         color: "teal",
       });
-      router.push(`/dashboard/payment?pid=${data.paymentId}`);
+      router.refresh();
+      handleClose();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
+      const responseData = (
+        error as {
+          response?: {
+            data?: {
+              code?: string;
+              message?: string;
+              details?: { current?: number; required?: number };
+            };
+          };
+        }
+      ).response?.data;
+      const code = responseData?.code;
+      const message = responseData?.message;
+
+      if (code === "INSUFFICIENT_BALANCE") {
+        const details = responseData?.details;
+        const shortage = details
+          ? Math.max(Number(details.required) - Number(details.current), 0)
+          : quantity * unitPrice;
+        const suggestedTopup = Math.max(shortage, MIN_TOPUP_AMOUNT);
+        notifications.show({
+          title: "Số dư không đủ",
+          message: (
+            <Stack gap="xs">
+              <Text size="sm">{message}</Text>
+              <Text size="sm" c="dimmed">
+                Bạn chỉ cần nạp thêm tối thiểu{" "}
+                {suggestedTopup.toLocaleString("vi-VN")} VND để tiếp tục.
+              </Text>
+              <Button
+                size="xs"
+                variant="light"
+                onClick={() => {
+                  router.push(`/dashboard/wallet?amount=${suggestedTopup}`);
+                }}
+              >
+                Nạp tiền ngay
+              </Button>
+            </Stack>
+          ),
+          color: "red",
+          autoClose: false,
+        });
+        return;
+      }
+
       notifications.show({
         title: "Tạo đơn hàng thất bại",
-        message: error?.response?.data?.message || "Vui lòng thử lại sau.",
+        message: message || "Vui lòng thử lại sau.",
         color: "red",
       });
     },
@@ -84,7 +149,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
         <div className="bg-surface-soft rounded-lg p-4 space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-text-muted">Đơn giá</span>
-            <span className="font-semibold">{CREDIT_PRICE.toLocaleString("vi-VN")}₫</span>
+            <span className="font-semibold">{unitPrice.toLocaleString("vi-VN")} VND</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-text-muted">Số lượng</span>
@@ -93,7 +158,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
           <div className="border-t border-border-app pt-2 flex justify-between">
             <span className="font-semibold">Tổng cộng</span>
             <span className="font-semibold text-brand">
-              {(quantity * CREDIT_PRICE).toLocaleString("vi-VN")}₫
+              {(quantity * unitPrice).toLocaleString("vi-VN")} VND
             </span>
           </div>
         </div>
@@ -113,7 +178,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
 
         {mutation.isError && (
           <Text c="red" size="xs">
-            {(mutation.error as any)?.response?.data?.message || "Đã xảy ra lỗi."}
+            {(mutation.error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Đã xảy ra lỗi."}
           </Text>
         )}
       </Stack>

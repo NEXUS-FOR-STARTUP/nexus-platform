@@ -1,10 +1,9 @@
 import { AppError } from "../../../shared/domain/app-error.js";
-import { applyTransition, canTransition } from "../infrastructure/persistence/case-workflow-engine.js";
-import { findCaseById } from "../infrastructure/persistence/case.repository.js";
-import { prisma } from "../../../db.js";
+import { executeTransition } from "../../../services/case-transition.service.js";
 import logger from "../../../shared/infrastructure/logger.js";
 import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
+import { findCaseById } from "../infrastructure/persistence/case.repository.js";
 
 export async function completeCaseUseCase(userId: string, role: string, caseId: string) {
   const startTime = Date.now();
@@ -13,46 +12,28 @@ export async function completeCaseUseCase(userId: string, role: string, caseId: 
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
   }
 
-  // Check user is the assigned supporter (admins can also complete)
-  if (role === "supporter" && caseRecord.assigned_supporter_auth_user_id !== userId) {
-    throw new AppError(403, "FORBIDDEN", "Bạn không phải là supporter được phân công cho dự án này");
+  if (role === "supporter") {
+    throw new AppError(403, "FORBIDDEN", "Supporter không có quyền đóng quy trình — chỉ chủ sở hữu hoặc Admin");
   }
 
-  // Check symflow transition is valid
-  if (!canTransition(caseRecord, 'complete_case')) {
-    throw new AppError(400, "INVALID_STAGE", "Dự án không ở trạng thái có thể hoàn thành");
+  const isAdmin = role === "admin";
+  const isOwner = caseRecord.owner_auth_user_id === userId;
+
+  if (!isAdmin && !isOwner) {
+    throw new AppError(403, "FORBIDDEN", "Bạn không có quyền hoàn thành dự án này");
   }
+
+  const transition = isAdmin ? "T14_COMPLETE" : "T17_USER_CONFIRM_COMPLETE";
+  const roleVerified = isAdmin ? "ADMIN" : "CUSTOMER";
 
   try {
-    const result = await prisma.$transaction(async (tx: any) => {
-      // Apply symflow complete transition
-      applyTransition(caseRecord, 'complete_case');
-
-      // Update case to completed
-      await tx.case.update({
-        where: { id: caseId },
-        data: {
-          internal_status: caseRecord.internal_status, // "done" from symflow
-          user_facing_stage: 'completed',
-        },
-      });
-
-      // Create case event
-      await tx.caseEvent.create({
-        data: {
-          case: { connect: { id: caseId } },
-          actor: { connect: { id: userId } },
-          event_type: "case_completed",
-          metadata_json: {},
-        },
-      });
-
-      logger.info({ caseId, transition: 'complete_case', fromState: caseRecord.internal_status, toState: 'done', actorId: userId, actorRole: role, duration_ms: Date.now() - startTime }, 'case transition: complete_case');
-
-      return { success: true, case_id: caseId };
+    const result = await executeTransition({
+      transition,
+      caseId,
+      actorId: userId,
+      roleVerified,
     });
 
-    // Emit sau commit — student nhận noti case hoàn thành (case.stage_changed)
     emitEvent({
       eventId: crypto.randomUUID(),
       type: DOMAIN_EVENTS.CASE_STAGE_CHANGED,
@@ -62,13 +43,15 @@ export async function completeCaseUseCase(userId: string, role: string, caseId: 
         caseId,
         caseCode: caseRecord.case_code,
         fromStage: caseRecord.user_facing_stage,
-        toStage: "completed",
+        toStage: 'completed',
       },
     });
 
-    return result;
+    logger.info({ caseId, transition, actorId: userId, actorRole: role, duration_ms: Date.now() - startTime }, 'case transition: complete');
+
+    return { stage: result.stage, status: result.status };
   } catch (error) {
-    logger.error({ err: error, caseId, transition: 'complete_case', actorId: userId, actorRole: role, duration_ms: Date.now() - startTime }, 'case transition failed: complete_case');
+    logger.error({ err: error, caseId, transition, actorId: userId, actorRole: role, duration_ms: Date.now() - startTime }, 'case transition failed: complete');
     throw error;
   }
 }

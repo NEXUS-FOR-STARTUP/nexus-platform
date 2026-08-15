@@ -18,7 +18,7 @@ app/
 ├── dashboard/ → Student (role=user)
 │   └── case/[id]/ → Workspace (4 tabs, 16 components, 6 hooks)
 ├── admin/ → Admin panel (5 sections, 5 hooks, 11 components)
-└── supporter/ → Supporter workspace (case view + output upload)
+└── supporter/ → Supporter workspace (case view + output upload; settings mirrors student via shared dashboard SettingsLayout)
 
 components/ → Shared: 3 shells (App/Auth/Dashboard), 4 landing, 4 UI primitives
 lib/ → api-client (Axios), auth-client (Better Auth), pricing (VND)
@@ -46,7 +46,7 @@ RootLayout → Providers
 - Mutations invalidate related queries on success
 - No Redux/Zustand
 
-## CUSTOM HOOKS (15 total)
+## CUSTOM HOOKS (16 total)
 
 | Hook | File | Purpose |
 |------|------|---------|
@@ -65,6 +65,7 @@ RootLayout → Providers
 | useAdminPayments | admin/hooks/ | Payment verification |
 | useAdminPackages | admin/hooks/ | Package management |
 | useNotifications | lib/hooks/ | Notification list + unread count |
+| useProfileMutations | dashboard/settings/hooks/ | Cập nhật tên + đổi mật khẩu (Better Auth, revokeOtherSessions) |
 
 ## MANTINE UI STYLING RULE
 
@@ -81,6 +82,7 @@ Client-side only (no middleware guard):
 ## UI CONVENTIONS
 
 - Vietnamese-first (all labels, messages, notifications)
+- Currency: **VND only**, phân cách phần ngàn dùng dấu phẩy `,` (e.g. `100,000 VND`, tuyệt đối không dùng `₫`, `đ`, hoặc dấu chấm `.`)
 - Lucide React (icons), Mantine Charts (Recharts), @mantine/tiptap (TipTap editor)
 - TanStack Form for forms
 - Tailwind CSS v4 + Mantine theme

@@ -25,13 +25,15 @@ User upload tài liệu -> supporter upload báo cáo -> kết thúc lần 1
 
 | Field | Value |
 |-------|-------|
-| Status | Backlog |
+| Status | Done (2026-08-14 plan `260814-1825` + 2026-08-16 plan `260815-2154`) |
 | Assignee | — |
 | Priority | Medium |
 | Target | — |
 | Ghi chú | Khắc phục: sau upload report xong phải đánh dấu xong mới kết thúc quy trình |
 
 ## Acceptance Criteria (draft)
-- [ ] Supporter upload report lần 1 xong → quy trình kết thúc hẳn
-- [ ] Gửi report lần 2 → bị chặn với message rõ ràng (hết credit / chưa đủ điều kiện)
-- [ ] Có bước "đánh dấu xong" tường minh
+- [x] Supporter upload report lần 1 xong → quy trình kết thúc hẳn
+- [x] Gửi report lần 2 → bị chặn với message rõ ràng (hết credit / chưa đủ điều kiện)
+- [x] Có bước "đánh dấu xong" tường minh
+
+> **Done note:** T11 credit check trong tx qua machine `hasCredit` → 402 `NO_CREDITS` (không còn lỗi hệ thống); bước "đánh dấu xong" = **T17_USER_CONFIRM_COMPLETE** (user xác nhận từ `report_ready_to_publish`, plan 260815).

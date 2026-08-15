@@ -8,6 +8,11 @@ export const DOMAIN_EVENTS = {
   CASE_STAGE_CHANGED: "case.stage_changed",
   REPORT_PUBLISHED: "report.published",
   REQUEST_MORE_INFO: "request_more_info",
+  DEPOSIT_VERIFIED: "deposit.verified",
+  DEPOSIT_REJECTED: "deposit.rejected",
+  ORDER_PAID: "order.paid",
+  ORDER_REFUNDED: "order.refunded",
+  WALLET_BALANCE_CHANGED: "wallet.balance_changed",
 } as const;
 
 export type DomainEventType = (typeof DOMAIN_EVENTS)[keyof typeof DOMAIN_EVENTS];

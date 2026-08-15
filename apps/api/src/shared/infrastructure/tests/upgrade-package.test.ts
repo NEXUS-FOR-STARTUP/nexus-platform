@@ -39,23 +39,38 @@ await test("upgrade-package - isFinalCaseStage blocks finalized stages", async (
 });
 
 // ---------------------------------------------------------------------------
-// Domain: isValidStageTransition — sanity check
+// Domain: machine transition gates — sanity check (F11: isValidStageTransition removed)
 // ---------------------------------------------------------------------------
 
-await test("upgrade-package - isValidStageTransition rules", async (t) => {
-  const { isValidStageTransition } = await import(
-    "../../../modules/cases/domain/case.types.js"
+await test("upgrade-package - machine transition gates", async (t) => {
+  const { tryTransition, getAvailableTransitions } = await import(
+    "../../../modules/cases/domain/case-machine.js"
   );
 
-  await t.test("cannot transition from final stage", () => {
-    assert.strictEqual(isValidStageTransition("completed", "under_review"), false);
-    assert.strictEqual(isValidStageTransition("closed", "submitted"), false);
-    assert.strictEqual(isValidStageTransition("rejected", "submitted"), false);
+  const adminEvent = {
+    type: "T5_ACCEPT",
+    actor: { id: "admin-1", role: "ADMIN" },
+    data: {
+      actorId: "admin-1",
+      roleVerified: "ADMIN",
+      caseOwnerId: "user-1",
+      creditBalance: 1,
+      lockedPrice: 39000,
+    },
+  };
+
+  await t.test("done cho phép reopen T19 (không còn final)", () => {
+    assert.deepStrictEqual(getAvailableTransitions("done"), ["T19_REOPEN"]);
   });
 
-  await t.test("valid transition from submitted", () => {
-    assert.strictEqual(isValidStageTransition("submitted", "under_review"), true);
-    assert.strictEqual(isValidStageTransition("submitted", "need_more_information"), true);
+  await t.test("cancelled allows resubmit T3/T4", () => {
+    const ts = getAvailableTransitions("cancelled");
+    assert.ok(ts.includes("T3_RESUBMIT_AFTER_REJECT"));
+    assert.ok(ts.includes("T4_RESUBMIT_AFTER_VETO"));
+  });
+
+  await t.test("accept valid from triage_pending", () => {
+    assert.ok(tryTransition("triage_pending", adminEvent as any));
   });
 });
 

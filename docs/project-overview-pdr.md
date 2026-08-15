@@ -115,7 +115,7 @@ Tham chiếu:
 - `apps/api/src/modules/supporter/application/publish-report.usecase.ts`
 
 ### 5.6 Stage-based case flow & revision rounds (đã có)
-- Stage flow: `user_facing_stage` (intake_pending → intake_ready → submitted → need_more_information → under_review → report_ready → waiting_for_revision → revision_submitted → completed/rejected/closed), `internal_status` chạy symflow transitions.
+- Stage flow: `user_facing_stage` (intake_pending → intake_ready → submitted → need_more_information → under_review → report_ready → waiting_for_revision → revision_submitted → completed/rejected/closed), `internal_status` chạy qua `case-machine.ts` (XState v5).
 - `CaseStatusHeader`: hiển thị stage + next action.
 - `StatusGuidanceCard`: hướng dẫn trạng thái hiện tại và next action.
 - `CaseOverviewPanel`: tóm tắt case.
@@ -127,7 +127,7 @@ Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/CaseStatusHeader.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/StatusGuidanceCard.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/CaseOverviewPanel.tsx`
-- `apps/api/src/modules/cases/domain/case-workflow.ts`
+- `apps/api/src/modules/cases/domain/case-machine.ts`
 
 ### 5.7 Credit / payment core economy (đã có)
 - `CreditPanel` + `CreditQuantityModal` + `CreditActions`: mua credit.
@@ -180,6 +180,7 @@ Tham chiếu:
 - `credit_ledger` model lưu từng entry purchase/consumption/refund với `balance_after`.
 - SePay webhook xác minh bank transfer; admin veto-with-refund trong 48h.
 - Giá 39,000 VND/credit (xem `payment.repository.ts`, `upgrade-package.usecase.ts`).
+- Ví VND account-level (2026-08-11): module `wallet` (`/api/wallet/balance`, `/history`, `/topups`, `/purchase-credits`) + trang `/dashboard/wallet` (số dư, lịch sử giao dịch, nạp tiền SePay); nav "Ví của tôi" trong `DashboardShell`. Bổ trợ credit per-case — hướng tới "1 đơn vị = 1 VND" (xem `docs/research/user-wallet-brainstorm-2026-08-11.md`).
 
 Tham chiếu:
 - `apps/api/src/modules/payments/infrastructure/persistence/payment.repository.ts`
@@ -204,12 +205,13 @@ Tham chiếu:
 - điền bối cảnh, nhu cầu hỗ trợ, thông tin liên hệ, xác nhận cần thiết;
 - nộp tài liệu minh chứng qua Drive/Docs link chính + checklist loại tài liệu;
 - vào case workspace để theo dõi tài liệu, trạng thái (stage-based), timeline, trao đổi, báo cáo, và vòng sửa;
-- nộp revision khi ở stage `waiting_for_revision` (revision upload được gate theo stage).
+- nộp revision khi ở stage `waiting_for_revision` (revision upload được gate theo stage);
+- xem ví VND (`/dashboard/wallet`): số dư, lịch sử giao dịch, nạp tiền qua SePay (QR + transfer content).
 
 ### 6.2 Admin
 - xem case mới;
 - đọc nhanh summary, needs, documents;
-- yêu cầu làm rõ / từ chối / duyệt;
+- từ chối / duyệt;
 - phân công supporter;
 - quản lý gói dịch vụ và giá qua Settings/Packages.
 
@@ -271,7 +273,7 @@ Không làm trước demo:
 1. Sinh viên tạo `Hồ sơ phản biện`.
 2. Sinh viên mô tả rõ đang mắc ở đâu và cần hỗ trợ gì.
 3. Sinh viên nộp Drive folder / main doc cùng checklist tài liệu minh chứng.
-4. Admin vào triage, hiểu case rất nhanh, duyệt hoặc yêu cầu làm rõ, phân công supporter.
+4. Admin vào triage, hiểu case rất nhanh, duyệt hoặc từ chối, phân công supporter.
 5. Supporter mở cùng workspace, đọc tài liệu theo checkpoint, trao đổi khi cần, biên tập báo cáo phản biện (draft report flow).
 6. Sinh viên nhận báo cáo, theo dõi timeline, stage-based status, và nộp revision khi ở stage `waiting_for_revision`.
 

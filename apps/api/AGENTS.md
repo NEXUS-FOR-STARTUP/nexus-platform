@@ -62,7 +62,7 @@ npm run check-types --workspace=apps/api
 | Module | Mount Path | Routes | Auth | domain/ | application/ | infrastructure/ | http/ |
 |--------|-----------|--------|------|---------|-------------|----------------|-------|
 | **Cases** | `/api/cases` | 22 | Mixed | ✅ CaseStage, InternalStatus | ✅ use cases | ✅ case.repository | ✅ routes |
-| **Admin** | `/api/admin` | 12 | Admin only | ✅ admin.types | ✅ use cases | ❌ uses shared DB directly | ✅ routes |
+| **Admin** | `/api/admin` | 20 | Admin only | ✅ admin.types | ✅ use cases | ❌ uses shared DB directly | ✅ routes |
 | **Supporter** | `/api/supporter` | 5 | Supporter/Admin | ❌ (.gitkeep) | ✅ 5 use cases | ❌ uses shared DB directly | ✅ routes |
 | **Reports** | `/api/reports` | 4 | Supporter/Admin | ✅ AiCritiqueReport | ✅ 4 use cases | ✅ report.repository | ✅ routes |
 | **Payments** | `/api/payments` | 7 | Mixed | ✅ PaymentDecision | ✅ use cases | ✅ payment.repository | ✅ routes |
@@ -114,7 +114,7 @@ Uncaught  → global app.onError → { code: "INTERNAL_ERROR", message: "Lỗi h
 System (4): GET /, /health, /stream, /session
 Auth: POST|GET /api/auth/* (Better Auth handler)
 Cases (22): CRUD, intake, revisions, messaging, assign, veto, complete, upgrade-package, resubmit, supporter-outputs upload, external-feedback upload
-Admin (12): Case triage, documents, stats, packages
+Admin (20): Case triage, documents, stats, packages, service-types, users (create/ban/unban)
 Supporter (5): Draft report get/edit, publish, request info, close
 Reports (4): Draft, edit, approve, latest
 Payments (7): List, create, my, detail, proof upload, verify, sepay webhook
@@ -124,7 +124,7 @@ Packages (1): List active
 Notifications (5): List, unread count, mark read, mark all read, SSE stream
 Realtime (2): Connection token, case subscribe token (JWT HS256, TTL 15m, channel `chat:{caseId}`)
 
-Total: ~66 endpoints (65 route registrations + Better Auth handler) across 10 module mount paths (11 `app.route()` calls — payments mounts 2 routers: `payments.routes.ts` + `sepay.routes.ts`).
+Total: ~74 endpoints (73 route registrations + Better Auth handler) across 10 module mount paths (10 `app.route()` calls — payments mounts 2 routers: `payments.routes.ts` + `sepay.routes.ts`).
 
 ## 7. KNOWN DEVIATIONS
 

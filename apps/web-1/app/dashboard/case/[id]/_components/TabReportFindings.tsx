@@ -1,9 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Case } from "@/types";
 import { AlertCircle, HelpCircle, FileText, ChevronDown, ChevronUp, CheckCircle, Lightbulb, Play } from "lucide-react";
-import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 
 interface Finding {
   field: string;
@@ -15,12 +13,10 @@ interface Finding {
 }
 
 interface TabReportFindingsProps {
-  caseData: Case;
-  selectedVersion: number;
-  report: any | null;
+  report: { content_md: string } | null;
 }
 
-export default function TabReportFindings({ caseData, selectedVersion, report }: TabReportFindingsProps) {
+export default function TabReportFindings({ report }: TabReportFindingsProps) {
   const [expandedIndices, setExpandedIndices] = useState<Record<number, boolean>>({});
 
   const toggleExpand = (index: number) => {
@@ -48,19 +44,9 @@ export default function TabReportFindings({ caseData, selectedVersion, report }:
   };
 
   if (!report) {
-    let title = "Chưa có báo cáo phản biện";
-    let desc = "Báo cáo phản biện chính thức sẽ hiển thị ở đây sau khi được Supporter kiểm duyệt và phê duyệt.";
-
-    if (caseData.internal_status === "triage_pending") {
-      title = "Hồ sơ đang chờ duyệt";
-      desc = "Ban quản trị đang tiến hành thẩm định tính hợp lệ của hồ sơ bài nộp trước khi phân công.";
-    } else if (caseData.internal_status === "accepted_unassigned") {
-      title = "Đang chờ phân công Supporter";
-      desc = "Hệ thống đang chỉ định một Supporter chuyên môn hỗ trợ phản biện hồ sơ của nhóm.";
-    } else if (caseData.internal_status === "assigned" || caseData.internal_status === "supporter_working") {
-      title = "Supporter đang tiến hành phản biện";
-      desc = "Ý tưởng của bạn đang được phân tích và đánh giá logic bởi Supporter chuyên môn của Nexus.";
-    }
+    // Student payload lacks internal_status (VERIFY-001) — keep a single neutral copy.
+    const title = "Chưa có báo cáo phản biện";
+    const desc = "Báo cáo phản biện chính thức sẽ hiển thị ở đây sau khi được Supporter kiểm duyệt và phê duyệt.";
 
     return (
       <div className="bg-surface-app border border-border-app rounded-lg p-8 md:p-12 text-center flex flex-col items-center justify-center gap-4 animate-fade-in font-body">
@@ -79,7 +65,7 @@ export default function TabReportFindings({ caseData, selectedVersion, report }:
   try {
     const parsed = JSON.parse(report.content_md);
     findings = parsed.findings || [];
-  } catch (e) {
+  } catch {
     // Fallback if content_md is plain markdown
   }
 

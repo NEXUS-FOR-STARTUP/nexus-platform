@@ -19,12 +19,12 @@
 
 | Field | Value |
 |-------|-------|
-| Status | Backlog |
+| Status | Done |
 | Assignee | — |
 | Priority | Medium |
-| Target | — |
-| Ghi chú | UX gợi ý: banner/block khi user muốn làm tiếp lần 2 |
+| Target | 2026-08-16 |
+| Ghi chú | Đã fix trong plan `260815-2154-backlog-bugs-fix` (2026-08-16): banner credit guidance ở `report_ready` (có credit → guidance, hết credit → đỏ + nút "Mua credit"), BE throw 402 NO_CREDITS rõ khi T11/T3 hết credit, fix free-case `subtractCredit` no-op khi `lockedPrice===0` |
 
 ## Acceptance Criteria (draft)
-- [ ] User thấy hướng dẫn rõ ràng: làm lần 2 = mua credit → chat → upload file
-- [ ] Thông báo xuất hiện đúng thời điểm (sau lần 1 kết thúc / khi user tương tác tiếp)
+- [x] User thấy hướng dẫn rõ ràng: làm lần 2 = mua credit → chat → upload file
+- [x] Thông báo xuất hiện đúng thời điểm (sau lần 1 kết thúc / khi user tương tác tiếp)

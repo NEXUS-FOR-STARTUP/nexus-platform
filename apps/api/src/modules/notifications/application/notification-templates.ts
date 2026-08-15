@@ -30,7 +30,7 @@ const STAGE_LABELS: Record<string, string> = {
 
 const fmtAmount = (n: unknown) => {
   const num = typeof n === "number" ? n : Number(n ?? 0);
-  return num.toLocaleString("vi-VN");
+  return num.toLocaleString("en-US");
 };
 
 const TEMPLATES: Record<string, Template> = {
@@ -94,6 +94,31 @@ const TEMPLATES: Record<string, Template> = {
     title: "Cần bổ sung thông tin",
     studentBody: (p) => `Case ${p.caseCode} cần bổ sung: ${p.query}`,
     studentLink: (p) => `/dashboard/case/${p.caseId}`,
+  },
+  "deposit.verified": {
+    title: "Nạp tiền thành công",
+    studentBody: (p: any) => `+${p.amount.toLocaleString("en-US")} VND đã vào ví của bạn`,
+    studentLink: (p: any) => `/dashboard/wallet`,
+  },
+  "deposit.rejected": {
+    title: "Nạp tiền bị từ chối",
+    studentBody: (p: any) => `Giao dịch ${p.amount.toLocaleString("en-US")} VND không được duyệt`,
+    studentLink: (p: any) => `/dashboard/wallet`,
+  },
+  "order.paid": {
+    title: "Mua credit thành công",
+    studentBody: (p: any) => `Đã mua ${p.totalCredits || 0} credit. Tổng: ${(p.totalAmount || 0).toLocaleString("en-US")} VND`,
+    studentLink: (p: any) => `/dashboard/wallet`,
+  },
+  "order.refunded": {
+    title: "Hoàn tiền credit",
+    studentBody: (p: any) => `Đã hoàn ${p.amount.toLocaleString("en-US")} VND vào ví`,
+    studentLink: (p: any) => `/dashboard/wallet`,
+  },
+  "wallet.balance_changed": {
+    title: "Số dư ví thay đổi",
+    studentBody: (p) => `Số dư ví của bạn hiện tại: ${fmtAmount(p.balanceAfter)} VND${p.referenceType ? ` (${p.referenceType})` : ""}.`,
+    studentLink: (p) => `/dashboard/wallet`,
   },
 };
 

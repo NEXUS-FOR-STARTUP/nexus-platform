@@ -1,7 +1,7 @@
 import { EventEmitter } from "node:events";
 import type { DomainEvent } from "../domain/domain-events.js";
 
-const emitter = new EventEmitter();
+export const emitter = new EventEmitter();
 emitter.setMaxListeners(20);
 
 export function emitEvent(event: DomainEvent): void {

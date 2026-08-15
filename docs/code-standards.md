@@ -1,6 +1,6 @@
 # Code standards
 
-_Cập nhật: 2026-08-08_
+_Cập nhật: 2026-08-12_
 
 ## Repo structure
 
@@ -93,6 +93,37 @@ _Trạng thái hiện tại: 15 test files tại `apps/api/src/shared/infrastruc
 - Migration: tạo qua `prisma migrate dev --create-only` (tuyệt đối không chạy full `migrate dev` trên production — xem [.agents/rules/prisma-migration-safety.md](../.agents/rules/prisma-migration-safety.md)); deploy lên production qua `prisma migrate deploy`.
 - Read-only queries: dùng `READONLY_DATABASE_URL` (xem [`db-query-guide.md`](./db-query-guide.md)).
 - Backup: tham khảo [`db-backup-guide.md`](./db-backup-guide.md).
+
+### Prisma field naming: LUÔN snake_case
+
+Khi gọi Prisma trực tiếp (`prisma.user.findMany`, `prisma.session.deleteMany`, v.v.), **tất cả field trong `where`, `data`, `orderBy`, `select` phải dùng snake_case** — đúng với tên cột trong schema.
+
+```ts
+// ✅ ĐÚNG — snake_case theo schema
+await prisma.session.deleteMany({ where: { user_id: userId } });
+await prisma.user.update({
+  where: { id: userId },
+  data: { banned: true, ban_reason: reason, updated_at: new Date() },
+});
+
+// ❌ SAI — camelCase sẽ throw PrismaClientValidationError lúc runtime
+await prisma.session.deleteMany({ where: { userId } });
+// → Unknown argument `userId`. Did you mean `user_id`?
+```
+
+**Ngoại lệ duy nhất:** File `apps/api/src/auth.ts` dùng camelCase key trong `fields` config của Better Auth — đây là format bắt buộc của Better Auth adapter để map API field → DB column:
+
+```ts
+// Better Auth config — key bên trái = tên Better Auth API, value bên phải = tên cột DB
+user: {
+  fields: {
+    emailVerified: 'email_verified',   // camelCase → snake_case
+    banReason: 'ban_reason',
+  }
+}
+```
+
+**Quy tắc nhớ:** Trực tiếp gọi `prisma.*` → snake_case. Better Auth config → camelCase key + snake_case value. Lẫn lộn 2 cái này sẽ crash runtime.
 
 ## Conventions chung
 

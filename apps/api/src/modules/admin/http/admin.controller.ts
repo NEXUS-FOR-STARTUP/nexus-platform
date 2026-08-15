@@ -5,7 +5,6 @@ import { listAdminCasesUseCase } from "../application/list-admin-cases.usecase.j
 import { getAdminCaseDetailUseCase } from "../application/get-admin-case-detail.usecase.js";
 import { acceptCaseUseCase } from "../application/accept-case.usecase.js";
 import { rejectCaseUseCase } from "../application/reject-case.usecase.js";
-import { adminRequestMoreInfoUseCase } from "../application/request-more-info.usecase.js";
 import { adminAssignSupporterUseCase } from "../application/assign-supporter.usecase.js";
 import { listAdminDocumentsUseCase } from "../application/list-admin-documents.usecase.js";
 import { deleteAdminDocumentUseCase } from "../application/delete-admin-document.usecase.js";
@@ -14,6 +13,11 @@ import { listAdminPackagesUseCase } from "../application/list-admin-packages.use
 import { updatePackagePriceUseCase } from "../application/update-package-price.usecase.js";
 import { updatePackageStatusUseCase } from "../application/update-package-status.usecase.js";
 import { getAdminStatsUseCase } from "../application/get-admin-stats.usecase.js";
+import { listServiceTypesUseCase, createServiceTypeUseCase, updateServiceTypeUseCase } from "../../packages/application/service-type.usecase.js";
+import { setCurrentPricingUseCase, getPricingHistoryUseCase } from "../../packages/application/service-pricing.usecase.js";
+import { createAdminUserUseCase } from "../application/create-admin-user.usecase.js";
+import { banUserUseCase } from "../application/ban-user.usecase.js";
+import { unbanUserUseCase } from "../application/unban-user.usecase.js";
 
 // ---------------------------------------------------------------------------
 // Auth helper — admin-specific
@@ -105,28 +109,6 @@ export async function rejectCaseHandler(c: Context) {
     const body = await readJsonBody(c) as { reason?: string };
     const reason = body?.reason || "";
     const result = await rejectCaseUseCase(session.user.id, caseId, reason);
-    return c.json(result);
-  } catch (error: any) {
-    return handleError(c, error);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// POST /api/admin/cases/:id/request-more-info — Request more details
-// ---------------------------------------------------------------------------
-
-export async function adminRequestMoreInfoHandler(c: Context) {
-  const authResult = await getAdminSession(c);
-  if (!authResult.ok) {
-    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
-  }
-  const session = authResult.session;
-  const caseId = c.req.param("id") || "";
-
-  try {
-    const body = await readJsonBody(c) as { query?: string };
-    const query = body?.query || "";
-    const result = await adminRequestMoreInfoUseCase(session.user.id, caseId, query);
     return c.json(result);
   } catch (error: any) {
     return handleError(c, error);
@@ -278,6 +260,143 @@ export async function getAdminStatsHandler(c: Context) {
     const period = c.req.query("period") || "30d";
     const stats = await getAdminStatsUseCase(period);
     return c.json(stats);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+export async function listServiceTypesHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+  try {
+    const types = await listServiceTypesUseCase();
+    return c.json({ types });
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+export async function createServiceTypeHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+  try {
+    const data = await c.req.json();
+    const type = await createServiceTypeUseCase(data);
+    return c.json(type, 201);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+export async function updateServiceTypeHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+  try {
+    const id = c.req.param('id');
+    const data = await c.req.json();
+    const type = await updateServiceTypeUseCase(id!, data);
+    return c.json(type);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+export async function getPricingHistoryHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+  try {
+    const history = await getPricingHistoryUseCase(c.req.param('id')!);
+    return c.json({ history });
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+export async function setPricingHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+  try {
+    const { price } = await c.req.json();
+    const pricing = await setCurrentPricingUseCase(c.req.param('id')!, price, authResult.session.user.id);
+    return c.json(pricing, 201);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/admin/users — Create user account + send welcome email
+// ---------------------------------------------------------------------------
+
+export async function createAdminUserHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  try {
+    const { email, name, role } = await c.req.json();
+
+    if (!email || !name) {
+      return c.json({ code: "MISSING_FIELDS", message: "Email và họ tên là bắt buộc" }, 400);
+    }
+
+    const result = await createAdminUserUseCase(email, name, role, c.req.raw.headers);
+    return c.json(result, 201);
+  } catch (error: any) {
+    if (error?.status === 400 || error?.status === 409) {
+      return c.json({ code: "CREATE_USER_FAILED", message: error?.message || "Không thể tạo tài khoản" }, error.status);
+    }
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/admin/users/:id/ban — Ban user + revoke sessions + send email
+// ---------------------------------------------------------------------------
+
+export async function banUserHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  const userId = c.req.param("id")!;
+
+  try {
+    const { ban_reason } = await c.req.json();
+    const result = await banUserUseCase(userId, ban_reason);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/admin/users/:id/unban — Unban user + send email notification
+// ---------------------------------------------------------------------------
+
+export async function unbanUserHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  const userId = c.req.param("id")!;
+
+  try {
+    const result = await unbanUserUseCase(userId);
+    return c.json(result);
   } catch (error: any) {
     return handleError(c, error);
   }

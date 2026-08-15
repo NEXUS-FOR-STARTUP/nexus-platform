@@ -92,7 +92,8 @@ test("backend demo regression coverage", async (t) => {
         mime_type: undefined,
       },
     ]);
-    assert.strictEqual(result.id, "rev-1");
+    assert.strictEqual(result.stage, "revision_submitted");
+    assert.strictEqual(result.status, "supporter_working");
   });
 
   await t.test("payment proof upload cleans up on db failure", async () => {

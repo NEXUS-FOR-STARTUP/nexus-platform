@@ -1,5 +1,6 @@
 import {
   useMutation,
+  useQueryClient,
   type UseMutationOptions,
   type UseMutationResult,
 } from "@tanstack/react-query";
@@ -75,6 +76,8 @@ export function useTeamFitSaveMutation(
   Error,
   SaveInput
 > {
+  const queryClient = useQueryClient();
+
   return useMutation<{ caseId: string; caseCode: string }, Error, SaveInput>({
     mutationFn: async (input: SaveInput) => {
       const res = await apiClient.post<{ caseId: string; caseCode: string }>(
@@ -84,10 +87,14 @@ export function useTeamFitSaveMutation(
       return res.data;
     },
     ...options,
-    onError: (error, variables, onMutateResult, context) => {
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ["cases"] });
+      (options as any)?.onSuccess?.(data, variables, context);
+    },
+    onError: (error, variables, context) => {
       const message = extractErrorMessage(error);
       console.error("[useTeamFitSaveMutation]", message);
-      options?.onError?.(error, variables, onMutateResult, context);
+      (options as any)?.onError?.(error, variables, context);
     },
   });
 }

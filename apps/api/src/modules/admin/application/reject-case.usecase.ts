@@ -1,5 +1,5 @@
 import { AppError } from "../../../shared/domain/app-error.js";
-import { findCaseById, rejectCase } from "../../cases/infrastructure/persistence/case.repository.js";
+import { executeTransition } from "../../../services/case-transition.service.js";
 import logger from "../../../shared/infrastructure/logger.js";
 import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
@@ -19,32 +19,28 @@ export async function rejectCaseUseCase(
     throw new AppError(400, "VALIDATION_ERROR", "Lý do từ chối tối thiểu phải 10 ký tự");
   }
 
-  const caseItem = await findCaseById(caseId);
-  if (!caseItem) {
-    throw new AppError(404, "NOT_FOUND", "Không tìm thấy case");
-  }
-
-  if (
-    caseItem.user_facing_stage === "rejected" &&
-    caseItem.internal_status === "cancelled"
-  ) {
-    logger.info({ caseId, transition: 'reject', actorId: adminId, actorRole: 'admin', action: 'no_op', duration_ms: Date.now() - startTime }, 'case transition: reject (no_op)');
-    return caseItem;
-  }
-
   try {
-    const result = await rejectCase(caseId, adminId, reason);
-    logger.info({ caseId, transition: 'reject', fromState: caseItem.internal_status, toState: 'cancelled', actorId: adminId, actorRole: 'admin', duration_ms: Date.now() - startTime }, 'case transition: reject');
+    const result = await executeTransition({
+      transition: 'T12_REJECT',
+      caseId,
+      actorId: adminId,
+      roleVerified: 'ADMIN',
+      data: { reason },
+    });
+
     emitEvent({
       eventId: crypto.randomUUID(),
       type: DOMAIN_EVENTS.CASE_REJECTED,
       actorId: adminId,
       occurredAt: new Date(),
-      payload: { caseId, caseCode: caseItem.case_code, reason },
+      payload: { caseId, reason },
     });
+
+    logger.info({ caseId, transition: 'T12_REJECT', actorId: adminId, actorRole: 'admin', duration_ms: Date.now() - startTime }, 'case transition: reject');
+
     return result;
   } catch (error) {
-    logger.error({ err: error, caseId, transition: 'reject', actorId: adminId, actorRole: 'admin', duration_ms: Date.now() - startTime }, 'case transition failed: reject');
+    logger.error({ err: error, caseId, transition: 'T12_REJECT', actorId: adminId, actorRole: 'admin', duration_ms: Date.now() - startTime }, 'case transition failed: reject');
     throw error;
   }
 }

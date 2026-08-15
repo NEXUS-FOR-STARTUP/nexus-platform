@@ -18,8 +18,13 @@ import { supporterRouter } from './modules/supporter/http/supporter.routes.js'
 import { documentsRouter } from './modules/documents/http/documents.routes.js'
 import { notificationsRouter } from './modules/notifications/http/notifications.routes.js'
 import { realtimeRouter } from './modules/realtime/http/realtime.routes.js'
+import { walletRoutes } from './modules/wallet/infrastructure/http/wallet.routes.js'
+import { orderRouter } from './modules/orders/infrastructure/http/order.routes.js'
+import { depositRouter } from './modules/deposits/infrastructure/http/deposit.routes.js'
 import { registerNotificationListener } from './modules/notifications/application/notification-listener.js'
 import { startRelay } from './modules/notifications/application/notification-relay.js'
+import { startOutboxRelay, stopOutboxRelay } from "./shared/infrastructure/outbox-relay.js";
+import { startAutoDoneSweep, stopAutoDoneSweep } from "./modules/cases/application/auto-done-sweep.js";
 import { prisma } from './db.js'
 import { AppError } from './shared/domain/app-error.js'
 import logger from './shared/infrastructure/logger.js'
@@ -154,6 +159,9 @@ app.route('/api/supporter', supporterRouter)
 app.route('/api/documents', documentsRouter)
 app.route('/api/notifications', notificationsRouter)
 app.route('/api/realtime', realtimeRouter)
+app.route('/api/wallet', walletRoutes)
+app.route('/api/orders', orderRouter)
+app.route('/api/deposits', depositRouter)
 
 // Global error handler — catches unhandled errors, no stack trace leak
 app.onError((err, c) => {
@@ -167,11 +175,23 @@ app.onError((err, c) => {
   return c.json({ code: 'INTERNAL_ERROR', message: 'Lỗi hệ thống' }, 500 as 200)
 })
 
+process.on("SIGTERM", () => {
+  stopOutboxRelay();
+  stopAutoDoneSweep();
+});
+
+process.on("SIGINT", () => {
+  stopOutboxRelay();
+  stopAutoDoneSweep();
+});
+
 export { app }
 
 if (process.env.NODE_ENV !== 'test') {
   registerNotificationListener();
   startRelay();
+  startOutboxRelay();
+  startAutoDoneSweep();
 
   serve({
     fetch: app.fetch,

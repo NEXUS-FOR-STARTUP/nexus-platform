@@ -33,5 +33,7 @@ export function useCaseChat(caseId: string) {
     refetch: messagesQuery.refetch,
     sendMessage: sendMessageMutation.mutateAsync,
     isSending: sendMessageMutation.isPending,
+    sendError: sendMessageMutation.error,
+    resetSendError: sendMessageMutation.reset,
   };
 }

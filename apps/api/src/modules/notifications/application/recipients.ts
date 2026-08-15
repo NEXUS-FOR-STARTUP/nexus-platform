@@ -22,11 +22,17 @@ const STUDENT_EVENTS: Set<string> = new Set([
   DOMAIN_EVENTS.CASE_STAGE_CHANGED,
   DOMAIN_EVENTS.REPORT_PUBLISHED,
   DOMAIN_EVENTS.REQUEST_MORE_INFO,
+  DOMAIN_EVENTS.DEPOSIT_VERIFIED,
+  DOMAIN_EVENTS.DEPOSIT_REJECTED,
+  DOMAIN_EVENTS.ORDER_PAID,
+  DOMAIN_EVENTS.ORDER_REFUNDED,
+  DOMAIN_EVENTS.WALLET_BALANCE_CHANGED,
 ]);
 
 const ADMIN_EVENTS: Set<string> = new Set([
   DOMAIN_EVENTS.PAYMENT_PROOF_UPLOADED,
   DOMAIN_EVENTS.PAYMENT_VERIFIED,
+  DOMAIN_EVENTS.DEPOSIT_REJECTED,
 ]);
 
 const STUDENT_EMAIL_EVENTS: Set<string> = new Set([
@@ -99,7 +105,19 @@ export async function resolveRecipients(event: DomainEvent): Promise<Recipient[]
       }
     }
   } else {
-    return [];
+    // Events without caseId — resolve by userId
+    const userId = typeof payload.userId === "string" ? payload.userId : null;
+    if (recipients.length === 0 && STUDENT_EVENTS.has(event.type) && userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, email: true },
+      });
+      if (user) {
+        recipients.push({ userId: user.id, email: user.email, role: "student" });
+      }
+    } else {
+      return [];
+    }
   }
 
   // Skip actor — người thực hiện không nhận của chính mình (trừ system actor null)

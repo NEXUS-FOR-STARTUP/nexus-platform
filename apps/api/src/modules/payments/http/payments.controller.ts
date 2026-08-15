@@ -12,6 +12,10 @@ import { verifyPaymentUseCase } from "../application/verify-payment.usecase.js";
 import { createPaymentUseCase } from "../application/create-payment.usecase.js";
 import { getPaymentUseCase } from "../application/get-payment.usecase.js";
 import type { VerifyPaymentRequest, CreatePaymentRequest } from "../application/payments.dto.js";
+import { fileStorageService } from "../infrastructure/file-storage.service.js";
+import { findDepositById } from "../../deposits/infrastructure/persistence/deposit.repository.js";
+import { prisma } from "../../../db.js";
+import logger from "../../../shared/infrastructure/logger.js";
 
 // ---------------------------------------------------------------------------
 // GET /api/payments — Get all payments (Admin only)
@@ -116,23 +120,43 @@ export async function uploadPaymentProofHandler(c: Context) {
   try {
     const body = await c.req.parseBody();
     const file = body["file"] as any;
-    const caseId = ((body["case_id"] || body["caseId"]) as string) || "";
+    const caseId = ((body["case_id"] || body["caseId"]) as string) || null;
+    const depositId = (body["deposit_id"] as string) || null;
 
-    if (!file || !caseId) {
-      return c.json({ code: "VALIDATION_ERROR", message: "Thiếu tệp minh chứng hoặc ID dự án" }, 400);
+    if (!file) {
+      return c.json({ code: "VALIDATION_ERROR", message: "Thiếu tệp minh chứng" }, 400);
     }
 
-    const access = await requireCaseAccess(c, caseId, {
-      allowStudent: true,
-      allowSupporter: false,
-      allowAdmin: true,
+    if (caseId) {
+      const access = await requireCaseAccess(c, caseId, {
+        allowStudent: true,
+        allowSupporter: false,
+        allowAdmin: true,
+      });
+      if (!access.ok) return access.response;
+
+      const result = await uploadPaymentProofUseCase(session.user.id, caseId, file);
+      return c.json(result, 201);
+    }
+
+    if (!depositId) {
+      return c.json({ code: "VALIDATION_ERROR", message: "Thiếu mã giao dịch nạp tiền" }, 400);
+    }
+
+    const proofFile = await fileStorageService.saveProofFile(file);
+
+    const deposit = await findDepositById(depositId);
+    if (!deposit || deposit.user_id !== session.user.id) {
+      await fileStorageService.deleteFile(proofFile.publicId);
+      return c.json({ code: "DEPOSIT_NOT_FOUND", message: "Không tìm thấy giao dịch nạp tiền" }, 404);
+    }
+
+    await prisma.deposit.update({
+      where: { id: depositId },
+      data: { proof_file_url: proofFile.fileUrl },
     });
-    if (!access.ok) {
-      return access.response;
-    }
-
-    const result = await uploadPaymentProofUseCase(session.user.id, caseId, file);
-    return c.json(result, 201);
+    logger.info({ depositId, userId: session.user.id, fileUrl: proofFile.fileUrl }, "deposit proof uploaded");
+    return c.json({ success: true, fileUrl: proofFile.fileUrl }, 201);
   } catch (error: any) {
     return handleError(c, error);
   }

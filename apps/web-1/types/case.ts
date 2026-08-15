@@ -1,6 +1,6 @@
 import { User } from "./user";
 import { ServicePackage } from "./package";
-import { Payment } from "./payment";
+import { Payment, Order } from "./payment";
 
 export interface Case {
   id: string;
@@ -20,7 +20,7 @@ export interface Case {
   credit_balance?: number;              // NEW — derived from CreditLedger
   credit_ledger?: CreditLedger[];
   sla_deadline_at?: string | null;      // NEW — from case.sla_deadline_at
-  allowed_transitions?: string[];       // NEW — valid symflow transitions
+  allowed_transitions?: string[];       // NEW — valid XState transitions
   deadline?: string | null;
   created_at: string;
   updated_at: string;
@@ -33,6 +33,7 @@ export interface Case {
   lifecycle_units?: LifecycleUnit[];
   reports?: Report[];
   payments?: Payment[];
+  orders?: Order[];
   messages?: CaseMessage[];
   events?: CaseEvent[];
   team_fit_report?: TeamFitReport | null;
@@ -52,6 +53,7 @@ export interface CreditLedger {
   amount: number;
   balance_after: number;
   type: "purchase" | "consumption" | "refund";
+  reference_type: string | null;
   reference_id: string | null;
   created_at: string;
 }
@@ -193,6 +195,7 @@ export interface DocumentFile {
   is_primary: boolean;
   doc_type?: string | null;
   doc_type_label?: string | null;
+  category?: string | null;
   source_kind: "drive" | "cloudinary" | "generated";
   canonical_name: string | null;
   original_name: string | null;
@@ -213,7 +216,7 @@ export interface StatusThemeDetails {
 }
 
 export const statusThemeMap: Record<string, StatusThemeDetails> = {
-  intake_pending: { label: "Chờ thanh toán — Kích hoạt kiểm tra chuyên sâu", color: "primary" },
+  intake_pending: { label: "Chờ kích hoạt — Mua credit đánh giá chuyên sâu", color: "primary" },
   intake_ready: { label: "Sẵn sàng — Cập nhật thông tin hồ sơ", color: "primary" },
   submitted: {
     label: "Hồ sơ đã gửi — chờ xét duyệt",

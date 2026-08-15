@@ -1,9 +1,10 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import { isFinalCaseStage } from "../../cases/domain/case.types.js";
-import { findCaseById, requestCaseMoreInfo } from "../../cases/infrastructure/persistence/case.repository.js";
+import { findCaseById } from "../../cases/infrastructure/persistence/case.repository.js";
 import logger from "../../../shared/infrastructure/logger.js";
 import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
+import { executeTransition } from "../../../services/case-transition.service.js";
 
 export async function supporterRequestMoreInfoUseCase(
   userId: string,
@@ -39,14 +40,14 @@ export async function supporterRequestMoreInfoUseCase(
       return currentCase;
     }
 
-    const result = await requestCaseMoreInfo(
+    // D10: wire T8 qua machine — guard isAssignedSupporter, target need_more_information/waiting_user
+    const result = await executeTransition({
+      transition: "T8_REQUEST_INFO",
       caseId,
-      userId,
-      "request_more_info",
-      trimmedQuery,
-      "need_more_information",
-      "waiting_user",
-    );
+      actorId: userId,
+      roleVerified: "SUPPORTER",
+      data: { reason: trimmedQuery },
+    });
     logger.info({ caseId, actorId: userId, queryLength: query?.length, duration_ms: Math.round(performance.now() - start) }, 'more info requested');
     emitEvent({
       eventId: crypto.randomUUID(),

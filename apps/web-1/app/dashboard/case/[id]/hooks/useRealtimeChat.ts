@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { notifications } from "@mantine/notifications";
 import type { Centrifuge } from "centrifuge";
 import { UnauthorizedError } from "centrifuge";
 import { getCentrifugeClient } from "@/lib/realtime/centrifuge-client";
@@ -9,6 +11,7 @@ const TOKEN_API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export function useRealtimeChat(caseId: string) {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const subRef = useRef<ReturnType<Centrifuge["newSubscription"]> | null>(null);
 
   useEffect(() => {
@@ -39,6 +42,16 @@ export function useRealtimeChat(caseId: string) {
 
     sub.on("publication", (ctx) => {
       const data = ctx.data as { type?: string; message?: CaseMessage };
+      if (data?.type === "case_deleted") {
+        notifications.show({
+          title: "Hồ sơ đã bị xóa",
+          message: "Hồ sơ này không còn tồn tại. Bạn sẽ được chuyển về trang tổng quan.",
+          color: "red",
+        });
+        queryClient.invalidateQueries();
+        router.replace("/dashboard");
+        return;
+      }
       if (data?.type !== "message" || !data.message?.id) return;
       queryClient.setQueryData<CaseMessage[]>(["case-messages", caseId], (old = []) => {
         if (old.some((m) => m.id === data.message!.id)) return old;
@@ -57,5 +70,5 @@ export function useRealtimeChat(caseId: string) {
       client.removeSubscription(sub);
       subRef.current = null;
     };
-  }, [caseId, queryClient]);
+  }, [caseId, queryClient, router]);
 }

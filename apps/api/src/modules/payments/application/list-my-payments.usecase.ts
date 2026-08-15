@@ -1,3 +1,8 @@
+/**
+ * @deprecated Replaced by deposits/orders modules (2026-08-12).
+ * Kept for reference. Routes return 410 Gone.
+ */
+
 import { findManyMyPayments as defaultFindManyMyPayments } from "../infrastructure/persistence/payment.repository.js";
 import type {
   ListMyPaymentsResponse,

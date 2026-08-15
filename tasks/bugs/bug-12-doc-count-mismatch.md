@@ -19,12 +19,12 @@
 
 | Field | Value |
 |-------|-------|
-| Status | Backlog |
+| Status | Done |
 | Assignee | — |
 | Priority | High |
-| Target | — |
-| Ghi chú | Admin thấy nhiều doc, user thấy 1 — cần truy vết data layer trước |
+| Target | 2026-08-16 |
+| Ghi chú | Đã fix trong plan `260815-2154-backlog-bugs-fix` (2026-08-16): bỏ "tài liệu chính", category codes lưu `metadata_json.category`, soft-supersede (`superseded_at` + index) — nộp lại mark record cũ ngoài bộ mới, user read filter `superseded_at null`, fix `unit_code "intake"→"v00"` |
 
 ## Acceptance Criteria (draft)
-- [ ] Số lượng tài liệu hiển thị nhất quán giữa admin và user
-- [ ] Xác định rõ document nào là chuẩn (versioning/visibility)
+- [x] Số lượng tài liệu hiển thị nhất quán giữa admin và user
+- [x] Xác định rõ document nào là chuẩn (versioning/visibility)

@@ -19,12 +19,12 @@
 
 | Field | Value |
 |-------|-------|
-| Status | Backlog |
+| Status | Done |
 | Assignee | — |
 | Priority | Medium |
-| Target | — |
-| Ghi chú | Không có giới hạn ký tự ở cả 2 tầng — đơn giản, làm nhanh |
+| Target | 2026-08-16 |
+| Ghi chú | Đã fix trong plan `260815-2154-backlog-bugs-fix` (2026-08-16): `contact.full_name/student_code/team_role`, `support_needs.primary_need` ≤100; `email` ≤254; `current_blocker/case_summary/current_situations[]` ≤20000 trong `Cp1IntakeSchema` + FE; URL/zalo/boundary miễn cap |
 
 ## Acceptance Criteria (draft)
-- [ ] Giới hạn ký tự các field text trong intake (FE + BE)
-- [ ] Báo lỗi/thông báo rõ khi vượt giới hạn
+- [x] Giới hạn ký tự các field text trong intake (FE + BE)
+- [x] Báo lỗi/thông báo rõ khi vượt giới hạn

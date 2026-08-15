@@ -43,3 +43,36 @@ export interface PaymentHistoryItem {
   bank_transaction_id?: string | null;
   created_at: string;
 }
+
+export interface Deposit {
+  id: string;
+  amount: number;
+  currency: string;
+  transfer_content: string;
+  status: "pending" | "verified" | "rejected";
+  proof_file_url: string | null;
+  bank_transaction_id: string | null;
+  bank_credited_at: string | null;
+  verified_by: string | null;
+  verification_source: string | null;
+  created_at: string;
+  user?: { id: string; name: string; display_username?: string | null };
+}
+
+export interface Order {
+  id: string;
+  user_id: string;
+  total_amount: number;
+  status: "pending" | "paid" | "refunded" | "cancelled";
+  items: OrderItem[];
+  created_at: string;
+}
+
+export interface OrderItem {
+  id: string;
+  service_type: string;
+  quantity: number;
+  unit_price: number;
+  amount: number;
+  metadata_json?: Record<string, unknown> | null;
+}

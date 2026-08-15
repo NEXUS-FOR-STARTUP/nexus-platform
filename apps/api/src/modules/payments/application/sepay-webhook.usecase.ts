@@ -1,8 +1,8 @@
 import { prisma } from "../../../db.js";
-import { verifyPayment as defaultVerifyPayment, SYSTEM_USER_ID } from "../infrastructure/persistence/payment.repository.js";
 import logger from "../../../shared/infrastructure/logger.js";
-import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
+import { walletService } from "../../wallet/application/wallet.service.js";
+import { insertOutboxEvent } from "../../../shared/infrastructure/persistence/outbox.repository.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -24,16 +24,9 @@ export interface SePayWebhookPayload {
 
 export interface SePayWebhookResult {
   matched: boolean;
-  action: "verified" | "duplicate" | "ignored" | "no_match";
+  action: "verified" | "duplicate" | "ignored" | "no_match" | "amount_mismatch";
   paymentId?: string;
 }
-
-// ---------------------------------------------------------------------------
-// Dedup store — in-memory for dev, replace with Redis for production
-// ---------------------------------------------------------------------------
-
-const dedupSet = new Set<number>();
-const DEDUP_TTL_MS = 3_600_000; // 1 hour
 
 // ---------------------------------------------------------------------------
 // Use case
@@ -44,101 +37,68 @@ export async function sepayWebhookUseCase(
 ): Promise<SePayWebhookResult> {
   const { id: txnId, code, content, transferAmount, transferType } = payload;
 
-  // 1. Ignore outgoing transactions
-  if (transferType !== "in") {
-    return { matched: false, action: "ignored" };
-  }
+  if (transferType !== "in") return { matched: false, action: "ignored" };
 
-  // 2. Dedup by SePay transaction ID
-  if (dedupSet.has(txnId)) {
-    return { matched: true, action: "duplicate" };
-  }
-
-  // 3. Extract payment code from content
-  //    SePay sends `code` (extracted via prefix template CR)
-  //    If null, try parsing from raw content
   const paymentCode = code || extractCodeFromContent(content);
-  if (!paymentCode) {
+  if (!paymentCode) return { matched: false, action: "no_match" };
+
+  const deposit = await prisma.deposit.findFirst({
+    where: { transfer_content: paymentCode, status: { in: ["pending", "amount_mismatch"] } },
+    orderBy: { created_at: "desc" },
+  });
+
+  if (!deposit) {
+    logger.warn({ txnId, paymentCode }, "sepay: no matching deposit found");
     return { matched: false, action: "no_match" };
   }
 
-  // 4. Find payment with matching transfer_content in metadata_json
-  const payment = await findPaymentByTransferContent(paymentCode);
-  if (!payment) {
-    logger.warn({ txnId, paymentCode, content }, "sepay: no matching payment found");
-    return { matched: false, action: "no_match" };
-  }
-
-  // 5. Verify amount matches (allow small tolerance?)
-  if (payment.amount !== transferAmount) {
-    logger.warn(
-      { txnId, paymentId: payment.id, expected: payment.amount, got: transferAmount },
-      "sepay: amount mismatch",
-    );
-    return { matched: false, action: "no_match" };
-  }
-
-  // 6. Check not already final
-  if (payment.status === "paid" || payment.status === "rejected") {
-    return { matched: true, action: "duplicate" };
-  }
-
-  // 7. Auto-verify payment
-  try {
-    dedupSet.add(txnId);
-    setTimeout(() => dedupSet.delete(txnId), DEDUP_TTL_MS);
-
-    await defaultVerifyPayment({
-      paymentId: payment.id,
-      caseId: payment.case_id,
-      status: "paid",
-      rejectionReason: null,
-      adminId: SYSTEM_USER_ID,
-      verificationSource: "auto",
-    });
-
-    // Payment đã commit verified → emit ngay (không chờ metadata update — update fail không mất notification)
-    emitEvent({
-      eventId: crypto.randomUUID(),
-      type: DOMAIN_EVENTS.PAYMENT_VERIFIED,
-      actorId: null,
-      occurredAt: new Date(),
-      payload: {
-        caseId: payment.case_id,
-        caseCode: payment.case?.case_code ?? "",
-        paymentId: payment.id,
-        amount: payment.amount,
-        source: "auto",
-      },
-    });
-
-    // Store SePay transaction info — columns + metadata (expand-contract)
-    const existingMeta = (payment as any).metadata_json as Record<string, unknown> | null ?? {};
-    await prisma.payment.update({
-      where: { id: payment.id },
+  if (deposit.amount !== transferAmount) {
+    await prisma.deposit.update({
+      where: { id: deposit.id },
       data: {
-        // NEW — write to dedicated columns
-        bank_transaction_id: String(txnId),
-        bank_credited_at: new Date(payload.transactionDate),
-        // Keep metadata for backward compat (expand-contract)
+        status: "amount_mismatch",
         metadata_json: {
-          ...existingMeta,
-          sepay_transaction_id: txnId,
-          sepay_gateway: payload.gateway,
-          sepay_verified_at: new Date().toISOString(),
+          ...(deposit.metadata_json as any ?? {}),
+          mismatch_txn_id: String(txnId),
+          mismatch_received: transferAmount,
+          mismatch_at: new Date(payload.transactionDate).toISOString(),
         },
       },
     });
+    logger.warn({ txnId, depositId: deposit.id, expected: deposit.amount, got: transferAmount }, "sepay: deposit amount mismatch — marked for manual review");
+    return { matched: true, action: "amount_mismatch" };
+  }
 
-    logger.info(
-      { txnId, paymentId: payment.id, caseId: payment.case_id, amount: transferAmount },
-      "sepay: payment auto-verified",
-    );
+  try {
+    const idempotencyKey = `sepay-deposit-${deposit.transfer_content}-${txnId}`;
 
-    return { matched: true, action: "verified", paymentId: payment.id };
+    await prisma.$transaction(async (tx) => {
+      await walletService.deposit(deposit.user_id, deposit.amount, "deposit", deposit.id, idempotencyKey);
+
+      await tx.deposit.update({
+        where: { id: deposit.id },
+        data: {
+          status: "verified",
+          verification_source: "auto",
+          bank_transaction_id: String(txnId),
+          bank_credited_at: new Date(payload.transactionDate),
+        },
+      });
+
+      await insertOutboxEvent(tx, {
+        event_type: DOMAIN_EVENTS.DEPOSIT_VERIFIED,
+        payload_json: { depositId: deposit.id, userId: deposit.user_id, amount: deposit.amount, source: "auto" },
+      });
+    });
+
+    logger.info({ txnId, depositId: deposit.id, amount: transferAmount }, "sepay: deposit auto-verified");
+    return { matched: true, action: "verified" };
   } catch (error) {
-    dedupSet.delete(txnId);
-    logger.error({ err: error, txnId, paymentId: payment.id }, "sepay: auto-verify failed");
+    if ((error as any)?.code === "P2002") {
+      logger.info({ txnId, depositId: deposit.id }, "sepay: duplicate deposit tx — already processed");
+      return { matched: true, action: "verified" };
+    }
+    logger.error({ err: error, txnId, depositId: deposit.id }, "sepay: deposit verification failed");
     throw error;
   }
 }
@@ -151,16 +111,4 @@ export async function sepayWebhookUseCase(
 function extractCodeFromContent(content: string): string | null {
   const match = content.match(/CR[A-Z0-9]{6,}/);
   return match ? match[0] : null;
-}
-
-/** Find unpaid payment where transfer_content column matches the code */
-async function findPaymentByTransferContent(code: string) {
-  return await prisma.payment.findFirst({
-    where: { transfer_content: code, status: { notIn: ["paid", "rejected"] } },
-    include: {
-      case: {
-        select: { case_code: true },
-      },
-    },
-  });
 }

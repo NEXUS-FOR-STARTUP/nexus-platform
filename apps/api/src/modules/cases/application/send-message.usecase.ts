@@ -1,7 +1,8 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import logger from "../../../shared/infrastructure/logger.js";
-import { createCaseMessage, findCaseById } from "../infrastructure/persistence/case.repository.js";
-import { isFinalCaseStage, requireCredits } from "../domain/case.types.js";
+import { createCaseMessage, findCaseById, findLatestCaseEventByType } from "../infrastructure/persistence/case.repository.js";
+import { getCreditBalance, getCreditLedgerByCaseId } from "../infrastructure/persistence/credit-ledger.repository.js";
+import { evaluateChatAccess } from "./chat-access.js";
 import { publishToChannel } from "../../realtime/infrastructure/centrifugo.service.js";
 import { chatChannel } from "../../realtime/domain/realtime.types.js";
 
@@ -30,11 +31,36 @@ export async function sendMessageUseCase(
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy hồ sơ");
   }
 
-  if (isFinalCaseStage(caseItem.user_facing_stage)) {
-    throw new AppError(409, "INVALID_CASE_STAGE", "Không thể gửi tin nhắn khi hồ sơ đã đóng hoặc hoàn tất");
-  }
+  const creditBalance = await getCreditBalance(caseId);
+  const completedEvent =
+    caseItem.user_facing_stage === "completed"
+      ? await findLatestCaseEventByType(caseId, "T14_COMPLETE")
+      : null;
+  const ledgerEntries = creditBalance > 0 ? [] : await getCreditLedgerByCaseId(caseId);
+  const exhaustedEntry = ledgerEntries.find((entry) => entry.balance_after === 0);
 
-  await requireCredits(caseId);
+  const access = evaluateChatAccess({
+    lockedPrice: caseItem.locked_price ?? 0,
+    stage: caseItem.user_facing_stage,
+    creditBalance,
+    completedAt: completedEvent?.created_at ?? null,
+    creditExhaustedAt: exhaustedEntry?.created_at ?? null,
+  });
+
+  if (!access.ok) {
+    const messageByCode: Record<string, string> = {
+      CHAT_FREE_TIER: "Chat là đặc quyền cho dự án trả phí. Vui lòng liên hệ admin qua email hoặc điện thoại.",
+      CHAT_REJECTED: "Dự án đang ở trạng thái từ chối. Vui lòng chỉnh sửa hồ sơ và nộp lại, hoặc liên hệ admin.",
+      CHAT_CLOSED: "Hồ sơ đã đóng, không thể gửi tin nhắn. Vui lòng liên hệ admin qua email hoặc điện thoại.",
+      CHAT_LOCKED: "Hết lượt kiểm tra. Chat sẽ mở lại sau khi hết thời gian khóa.",
+    };
+    throw new AppError(
+      409,
+      access.code,
+      messageByCode[access.code],
+      access.unlockInMs !== undefined ? { unlockInMs: access.unlockInMs } : undefined,
+    );
+  }
 
   const result = await createCaseMessage({
     caseId,

@@ -10,7 +10,6 @@ import { ActionIcon, Textarea, Tooltip, Alert } from "@mantine/core";
 
 interface TabDiscussionChatProps {
   caseId: string;
-  creditBalance?: number;
 }
 
 /* ─── Helpers ─────────────────────────────────────────────── */
@@ -58,22 +57,84 @@ function getRoleBadge(role?: string) {
   return { label: "Sinh viên", cls: "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400" };
 }
 
+/* ─── Chat gate error (D16) ───────────────────────────────── */
+interface ChatGateError {
+  code: "CHAT_FREE_TIER" | "CHAT_REJECTED" | "CHAT_CLOSED" | "CHAT_LOCKED";
+  unlockInMs?: number;
+}
+
+function extractChatGateError(error: unknown): ChatGateError | null {
+  if (!error || typeof error !== "object") return null;
+  const err = error as {
+    response?: { data?: { code?: string; details?: { unlockInMs?: number } } };
+  };
+  const code = err.response?.data?.code;
+  if (
+    code === "CHAT_FREE_TIER" ||
+    code === "CHAT_REJECTED" ||
+    code === "CHAT_CLOSED" ||
+    code === "CHAT_LOCKED"
+  ) {
+    return { code, unlockInMs: err.response?.data?.details?.unlockInMs };
+  }
+  return null;
+}
+
+function formatDuration(ms: number) {
+  const totalSeconds = Math.ceil(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (minutes > 0) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
+}
+
 /* ─── Virtualizer row types ────────────────────────────────── */
 type Row =
   | { kind: "divider"; label: string }
   | { kind: "message"; msg: any };
 
 /* ─── Component ─────────────────────────────────────────────── */
-export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussionChatProps) {
+export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
   const { data: session } = useSession();
-  const { messages, isLoading, isFetching, error, refetch, sendMessage, isSending } =
+  const { messages, isLoading, isFetching, error, refetch, sendMessage, isSending, sendError, resetSendError } =
     useCaseChat(caseId);
   useRealtimeChat(caseId);
 
-  const isLocked = (creditBalance ?? 1) <= 0;
+  const chatGate = useMemo(() => extractChatGateError(sendError), [sendError]);
+  const isChatClosed =
+    chatGate?.code === "CHAT_FREE_TIER" ||
+    chatGate?.code === "CHAT_REJECTED" ||
+    chatGate?.code === "CHAT_CLOSED";
+  const isChatLocked = chatGate?.code === "CHAT_LOCKED";
+  const isChatBlocked = isChatClosed || isChatLocked;
+
   const [inputText, setInputText] = useState("");
   const [isMultiLine, setIsMultiLine] = useState(false);
+  const [lockRemainingMs, setLockRemainingMs] = useState<number | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  /* countdown until the chat lock window expires */
+  useEffect(() => {
+    if (isChatLocked && chatGate?.unlockInMs != null) {
+      const startedAt = Date.now();
+      const total = chatGate.unlockInMs;
+      const tick = () => {
+        const remaining = total - (Date.now() - startedAt);
+        if (remaining <= 0) {
+          setLockRemainingMs(0);
+          resetSendError();
+          return;
+        }
+        setLockRemainingMs(remaining);
+      };
+      tick();
+      const interval = setInterval(tick, 1000);
+      return () => clearInterval(interval);
+    }
+    setLockRemainingMs(null);
+  }, [isChatLocked, chatGate?.unlockInMs, resetSendError]);
 
   /* track textarea rows for input border-radius */
   useEffect(() => {
@@ -351,8 +412,8 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
               aria-label="Nhập nội dung tin nhắn"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              disabled={isLocked}
-              placeholder={isLocked ? "Hết credit — mua thêm để tiếp tục trao đổi" : "Nhắn gì đó…"}
+              disabled={isChatBlocked}
+              placeholder={isChatClosed ? "Chat hiện không khả dụng" : isChatLocked ? "Hết lượt kiểm tra — chat tạm khóa" : "Nhắn gì đó…"}
               className="flex-1"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
@@ -404,11 +465,23 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
           </div>
         </form>
 
-        {isLocked && (
+        {isChatClosed && (
           <Alert color="red" variant="light" radius="md" className="mt-2">
             <div className="flex items-center gap-2 text-xs">
               <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>Bạn đã hết credit. Mua thêm để tiếp tục trao đổi với supporter.</span>
+              <span>Chat hiện không khả dụng. Vui lòng liên hệ qua email hoặc điện thoại.</span>
+            </div>
+          </Alert>
+        )}
+
+        {isChatLocked && (
+          <Alert color="yellow" variant="light" radius="md" className="mt-2">
+            <div className="flex items-center gap-2 text-xs">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>
+                Hết lượt kiểm tra, chat sẽ mở lại sau{" "}
+                {lockRemainingMs != null ? formatDuration(lockRemainingMs) : "một lúc"}.
+              </span>
             </div>
           </Alert>
         )}

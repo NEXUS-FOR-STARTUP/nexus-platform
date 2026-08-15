@@ -1,87 +1,89 @@
 "use client";
 
 import React from "react";
-import { Coins, TrendingUp, Package } from "lucide-react";
+import { Badge, Button } from "@mantine/core";
 
 interface CreditBalanceCardProps {
   creditBalance: number;
   packageName?: string;
   pricePerCredit?: number;
+  onBuyCredits: () => void;
 }
 
 export default function CreditBalanceCard({
   creditBalance,
   packageName,
   pricePerCredit,
+  onBuyCredits,
 }: CreditBalanceCardProps) {
   const hasCredits = creditBalance > 0;
   const isZero = creditBalance === 0;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      {/* Balance — hero stat */}
-      <div className="bg-surface-app border border-border-app rounded-xl p-5 col-span-1">
-        <div className="flex items-start gap-3">
-          <div
-            className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
-              hasCredits
-                ? "bg-success-soft text-success"
-                : isZero
-                  ? "bg-danger-soft text-danger"
-                  : "bg-brand-soft/30 text-brand"
-            }`}
-          >
-            <Coins className="w-5.5 h-5.5" />
+    <div className="bg-surface-app border border-border-app rounded-xl p-5 md:px-6 md:py-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 md:gap-8">
+        {/* Stats Group */}
+        <div className="flex flex-wrap items-center gap-6 sm:gap-10">
+          {/* Balance */}
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <p className="text-base text-text-muted">Số dư credit</p>
+              {isZero && (
+                <Badge
+                  size="md"
+                  color="red"
+                  variant="light"
+                  radius="md"
+                  className="font-medium text-base"
+                >
+                  Hết credit
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold tracking-tight text-text-app tabular-nums">
+                {creditBalance}
+              </span>
+              <span className="text-base font-medium text-text-muted">credit</span>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-text-muted mb-0.5">Số dư credit</p>
-            <p className="text-2xl font-bold text-text-app tracking-tight">
-              {creditBalance}
-            </p>
-            <p className="text-base text-text-muted mt-0.5">
-              {hasCredits
-                ? `Còn ${creditBalance} lượt đánh giá`
-                : isZero
-                  ? "Hết lượt đánh giá"
-                  : "Chưa mua gói nào"}
-            </p>
-          </div>
-        </div>
-      </div>
 
-      {/* Usage stat */}
-      <div className="bg-surface-app border border-border-app rounded-xl p-5 col-span-1">
-        <div className="flex items-start gap-3">
-          <div className="w-11 h-11 rounded-xl bg-brand-soft/30 text-brand flex items-center justify-center shrink-0">
-            <TrendingUp className="w-5.5 h-5.5" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-text-muted mb-0.5">Đơn giá</p>
-            <p className="text-2xl font-bold text-text-app tracking-tight">
-              {pricePerCredit
-                ? `${pricePerCredit.toLocaleString("vi-VN")}₫`
-                : "—"}
-            </p>
-            <p className="text-base text-text-muted mt-0.5">mỗi lượt đánh giá</p>
-          </div>
-        </div>
-      </div>
+          <div className="hidden sm:block w-px h-10 bg-border-app/60" />
 
-      {/* Package info */}
-      <div className="bg-surface-app border border-border-app rounded-xl p-5 col-span-1">
-        <div className="flex items-start gap-3">
-          <div className="w-11 h-11 rounded-xl bg-surface-soft text-text-muted flex items-center justify-center shrink-0">
-            <Package className="w-5.5 h-5.5" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-text-muted mb-0.5">Gói dịch vụ</p>
-            <p className="text-base font-semibold text-text-app truncate">
+          {/* Package */}
+          <div>
+            <p className="text-base text-text-muted mb-1">Gói dịch vụ</p>
+            <p className="text-base font-semibold text-text-app">
               {packageName ?? "Chưa có gói"}
             </p>
-            <p className="text-base text-text-muted mt-0.5">
-              {pricePerCredit ? `${pricePerCredit.toLocaleString("vi-VN")}₫ / credit` : ""}
+          </div>
+
+          <div className="hidden sm:block w-px h-10 bg-border-app/60" />
+
+          {/* Unit Price */}
+          <div>
+            <p className="text-base text-text-muted mb-1">Đơn giá</p>
+            <p className="text-base font-semibold text-text-app tabular-nums">
+              {pricePerCredit
+                ? `${pricePerCredit.toLocaleString("vi-VN")} VND`
+                : "—"}{" "}
+              <span className="text-base font-normal text-text-muted">
+                / lượt
+              </span>
             </p>
           </div>
+        </div>
+
+        {/* Action Button */}
+        <div className="w-full md:w-auto pt-3 md:pt-0 border-t md:border-t-0 border-border-app/50">
+          <Button
+            onClick={onBuyCredits}
+            color="brand"
+            size="md"
+            className="font-semibold cursor-pointer h-10 px-5 text-base w-full md:w-auto"
+          >
+            {hasCredits ? "Mua thêm credit" : "Mua credit"}
+          </Button>
         </div>
       </div>
     </div>

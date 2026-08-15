@@ -29,7 +29,8 @@ Hệ thống notification 3 kênh (in-app / Resend email / Telegram grammY) cho 
 1. **Outbox pattern** thay vì gửi trực tiếp trong usecase — tách transaction ghi dữ liệu khỏi side-effect gửi email/Telegram; `provider_message_id` là anchor idempotency chống double-send khi relay retry.
 2. **Email budget cut**: chỉ `stage_changed` + `auto-verified` gửi email; các event còn lại chỉ in_app. Lý do: chi phí Resend, email dễ thành spam — tiết kiệm từ review pass 1.
 3. **Skip-actor**: người thực hiện hành động không nhận notification của chính mình (resolveRecipients).
-4. Kênh Telegram/Resend optional — không init khi thiếu key, không crash.
+4. **Retention vĩnh viễn** — không settings, không purge notifications (chỉ purge outbox sent > 30 ngày); phân trang 20, không unread_count denormalized.
+5. Kênh Telegram/Resend optional — không init khi thiếu key, không crash.
 
 ## Bugs Caught in Review
 

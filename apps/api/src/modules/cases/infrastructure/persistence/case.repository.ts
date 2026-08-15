@@ -1,4 +1,5 @@
 import { prisma } from "../../../../db.js";
+import type { Prisma } from "@prisma/client";
 import { createDocumentRecordsForUnit } from "../../../documents/infrastructure/persistence/document.repository.js";
 import { AppError } from "../../../../shared/domain/app-error.js";
 
@@ -215,6 +216,11 @@ export async function createCaseWithCheckpointAndIntake(data: {
       "intake_document",
       "inbound",
       tx,
+      undefined,
+      (doc) =>
+        typeof doc.document_type === "string" && doc.document_type.trim()
+          ? doc.document_type
+          : undefined,
     );
 
     await tx.caseEvent.create({
@@ -252,8 +258,8 @@ export async function acceptCase(caseId: string, adminId: string, nextStatus: st
   });
 }
 
-export async function deleteCase(caseId: string) {
-  return await prisma.case.delete({
+export async function deleteCase(caseId: string, tx?: Prisma.TransactionClient) {
+  return await (tx ?? prisma).case.delete({
     where: { id: caseId },
   });
 }
@@ -353,6 +359,33 @@ export async function assignCaseSupporter(caseId: string, adminId: string, suppo
   });
 }
 
+export async function assignCaseSupporterInTx(
+  tx: Prisma.TransactionClient,
+  caseId: string,
+  adminId: string,
+  supporterId: string,
+  supporterName?: string,
+) {
+  const updated = await tx.case.update({
+    where: { id: caseId },
+    data: { assigned_supporter_auth_user_id: supporterId },
+  });
+
+  await tx.caseEvent.create({
+    data: {
+      case: { connect: { id: caseId } },
+      event_type: "supporter_assigned",
+      actor: { connect: { id: adminId } },
+      metadata_json: {
+        supporter_id: supporterId,
+        ...(supporterName ? { supporter_name: supporterName } : {}),
+      },
+    },
+  });
+
+  return updated;
+}
+
 export async function findFirstIntakeUnit(caseId: string) {
   return await prisma.lifecycleUnit.findFirst({
     where: {
@@ -396,8 +429,15 @@ export async function findOpenRequestsForMoreInfo(caseId: string) {
   return await prisma.caseEvent.findMany({
     where: {
       case_id: caseId,
-      event_type: "more_info_requested",
+      event_type: { in: ["more_info_requested", "request_more_info", "case_closed", "T8_REQUEST_INFO"] },
     },
+    orderBy: { created_at: "desc" },
+  });
+}
+
+export async function findLatestCaseEventByType(caseId: string, eventType: string) {
+  return await prisma.caseEvent.findFirst({
+    where: { case_id: caseId, event_type: eventType },
     orderBy: { created_at: "desc" },
   });
 }
@@ -410,15 +450,18 @@ function buildAssessmentUnitCode(assessmentNo: number, linkedVersionNo: number) 
   return `a${String(assessmentNo).padStart(2, "0")}-v${String(linkedVersionNo).padStart(2, "0")}`;
 }
 
-export async function submitCaseRevision(data: {
-  caseId: string;
-  checkpointId: string;
-  nextVersion: number;
-  userId: string;
-  changeSummary: string;
-  documents: any[];
-  remainingBlockers: any;
-}) {
+export async function submitCaseRevisionInTx(
+  tx: Prisma.TransactionClient,
+  data: {
+    caseId: string;
+    checkpointId: string;
+    nextVersion: number;
+    userId: string;
+    changeSummary: string;
+    documents: any[];
+    remainingBlockers: any;
+  },
+) {
   const {
     caseId,
     checkpointId,
@@ -429,164 +472,118 @@ export async function submitCaseRevision(data: {
     remainingBlockers,
   } = data;
 
-  return await prisma.$transaction(async (tx: any) => {
-    await tx.checkpoint.update({
-      where: { id: checkpointId },
-      data: { latest_version_no: nextVersion },
-    });
-
-    const revisionUnit = await tx.lifecycleUnit.create({
-      data: {
-        case_id: caseId,
-        checkpoint_id: checkpointId,
-        unit_code: buildVersionUnitCode(nextVersion),
-        unit_type: "version",
-        version_no: nextVersion,
-        content: JSON.stringify({
-          change_summary: changeSummary,
-          documents,
-          remaining_blockers: remainingBlockers,
-        }),
-        file_url: documents[0]?.drive_url || documents[0]?.file_url || null,
-      },
-    });
-
-    await createDocumentRecordsForUnit(
-      caseId,
-      checkpointId,
-      revisionUnit.id,
-      revisionUnit.unit_code,
-      documents,
-      userId,
-      "revision_document",
-      "outbound",
-      tx,
-    );
-
-    await tx.case.update({
-      where: { id: caseId },
-      data: {
-        user_facing_stage: "revision_submitted",
-      },
-    });
-
-    await tx.caseEvent.create({
-      data: {
-        case: { connect: { id: caseId } },
-        event_type: "revision_submitted",
-        actor: { connect: { id: userId } },
-        metadata_json: { version_no: nextVersion, change_summary: changeSummary },
-      },
-    });
-
-    return revisionUnit;
+  await tx.checkpoint.update({
+    where: { id: checkpointId },
+    data: { latest_version_no: nextVersion },
   });
+
+  const revisionUnit = await tx.lifecycleUnit.create({
+    data: {
+      case_id: caseId,
+      checkpoint_id: checkpointId,
+      unit_code: buildVersionUnitCode(nextVersion),
+      unit_type: "version",
+      version_no: nextVersion,
+      content: JSON.stringify({
+        change_summary: changeSummary,
+        documents,
+        remaining_blockers: remainingBlockers,
+      }),
+      file_url: documents[0]?.drive_url || documents[0]?.file_url || null,
+    },
+  });
+
+  await createDocumentRecordsForUnit(
+    caseId,
+    checkpointId,
+    revisionUnit.id,
+    revisionUnit.unit_code,
+    documents,
+    userId,
+    "revision_document",
+    "outbound",
+    tx,
+  );
+
+  await tx.caseEvent.create({
+    data: {
+      case: { connect: { id: caseId } },
+      event_type: "revision_submitted",
+      actor: { connect: { id: userId } },
+      metadata_json: { version_no: nextVersion, change_summary: changeSummary },
+    },
+  });
+
+  return revisionUnit;
 }
 
-export async function createSupporterOutput(data: {
-  caseId: string;
-  checkpointId: string;
-  userId: string;
-  note?: string;
-  documents: any[];
-}) {
+export async function createSupporterOutputDocs(
+  tx: Prisma.TransactionClient,
+  data: {
+    caseId: string;
+    checkpointId: string;
+    userId: string;
+    note?: string;
+    documents: any[];
+  },
+) {
   const { caseId, checkpointId, userId, note, documents } = data;
 
-  return await prisma.$transaction(async (tx: any) => {
-    const checkpoint = await tx.checkpoint.findUnique({
-      where: { id: checkpointId },
-      select: { latest_version_no: true },
-    });
-
-    if (!checkpoint) {
-      throw new AppError(404, "CHECKPOINT_NOT_FOUND", "Không tìm thấy checkpoint");
-    }
-
-    const versionNo = checkpoint.latest_version_no;
-    const unitCode = buildVersionUnitCode(versionNo);
-    const versionUnit = await tx.lifecycleUnit.findFirst({
-      where: {
-        case_id: caseId,
-        checkpoint_id: checkpointId,
-        unit_type: "version",
-        version_no: versionNo,
-      },
-      orderBy: { created_at: "desc" },
-    });
-
-    if (!versionUnit) {
-      throw new AppError(404, "VERSION_UNIT_NOT_FOUND", "Không tìm thấy phiên bản");
-    }
-
-    const latestLedger = await tx.creditLedger.findFirst({
-      where: { case_id: caseId },
-      orderBy: { id: 'desc' },
-    });
-    const currentBalance = latestLedger?.balance_after ?? 0;
-    if (currentBalance < 1) {
-      throw new AppError(402, 'NO_CREDITS', 'Hết credit. Vui lòng mua thêm.');
-    }
-
-    await createDocumentRecordsForUnit(
-      caseId,
-      checkpointId,
-      versionUnit.id,
-      unitCode,
-      documents,
-      userId,
-      "supporter_output",
-      "outbound",
-      tx,
-    );
-
-    await tx.case.update({
-      where: { id: caseId },
-      data: {
-        user_facing_stage: "report_ready",
-        internal_status: "report_ready_to_publish",
-      },
-    });
-
-    await tx.caseEvent.create({
-      data: {
-        case: { connect: { id: caseId } },
-        event_type: "supporter_output_uploaded",
-        actor: { connect: { id: userId } },
-        metadata_json: {
-          unit_code: unitCode,
-          document_count: documents.length,
-          note: note || null,
-        },
-      },
-    });
-
-    const newBalance = currentBalance - 1;
-    await tx.creditLedger.create({
-      data: {
-        case_id: caseId,
-        amount: -1,
-        balance_after: newBalance,
-        type: 'consumption',
-        reference_id: unitCode,
-        idempotency_key: `consume-${unitCode}-${caseId}`,
-      },
-    });
-
-    await tx.caseEvent.create({
-      data: {
-        case: { connect: { id: caseId } },
-        event_type: 'credit_used',
-        actor: { connect: { id: userId } },
-        metadata_json: { new_balance: newBalance },
-      },
-    });
-
-    return {
-      unit_code: unitCode,
-      version_no: versionNo,
-      document_count: documents.length,
-    };
+  const checkpoint = await tx.checkpoint.findUnique({
+    where: { id: checkpointId },
+    select: { latest_version_no: true },
   });
+
+  if (!checkpoint) {
+    throw new AppError(404, "CHECKPOINT_NOT_FOUND", "Không tìm thấy checkpoint");
+  }
+
+  const versionNo = checkpoint.latest_version_no;
+  const unitCode = buildVersionUnitCode(versionNo);
+  const versionUnit = await tx.lifecycleUnit.findFirst({
+    where: {
+      case_id: caseId,
+      checkpoint_id: checkpointId,
+      unit_type: "version",
+      version_no: versionNo,
+    },
+    orderBy: { created_at: "desc" },
+  });
+
+  if (!versionUnit) {
+    throw new AppError(404, "VERSION_UNIT_NOT_FOUND", "Không tìm thấy phiên bản");
+  }
+
+  await createDocumentRecordsForUnit(
+    caseId,
+    checkpointId,
+    versionUnit.id,
+    unitCode,
+    documents,
+    userId,
+    "supporter_output",
+    "outbound",
+    tx,
+  );
+
+  await tx.caseEvent.create({
+    data: {
+      case: { connect: { id: caseId } },
+      event_type: "supporter_output_uploaded",
+      actor: { connect: { id: userId } },
+      metadata_json: {
+        unit_code: unitCode,
+        document_count: documents.length,
+        note: note || null,
+      },
+    },
+  });
+
+  return {
+    unit_code: unitCode,
+    version_no: versionNo,
+    document_count: documents.length,
+  };
 }
 
 export async function createExternalFeedback(data: {

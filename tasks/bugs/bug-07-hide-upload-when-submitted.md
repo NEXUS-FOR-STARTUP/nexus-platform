@@ -19,11 +19,13 @@
 
 | Field | Value |
 |-------|-------|
-| Status | Backlog |
+| Status | Done (2026-08-14 — plan `260814-1825-reject-resubmit-loop-fix`) |
 | Assignee | — |
 | Priority | Medium |
 | Target | — |
 | Ghi chú | Ẩn upload khi case ở trạng thái đã nộp chờ duyệt |
 
 ## Acceptance Criteria (draft)
-- [ ] Sinh viên không thấy nút upload khi hồ sơ ở trạng thái "đã nộp chờ duyệt"
+- [x] Sinh viên không thấy nút upload khi hồ sơ ở trạng thái "đã nộp chờ duyệt"
+
+> **Done note:** FE render nút từ `allowed_transitions` qua `filterTransitions` actor-aware (3 role) — T9 chỉ hiện ở `waiting_user`, upload bị gating theo stage.

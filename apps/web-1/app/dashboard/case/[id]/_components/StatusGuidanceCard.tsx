@@ -2,45 +2,92 @@
 
 import React from "react";
 import { Case } from "@/types";
-import { 
-  Clock, 
-  Activity, 
-  AlertCircle, 
-  CheckCircle2, 
+import {
+  Clock,
+  Activity,
+  AlertCircle,
+  CheckCircle2,
   HelpCircle,
   Zap,
 } from "lucide-react";
 import { Alert, Button } from "@mantine/core";
+import { STATUS_GUIDANCE_COPY, type GuidanceTone, type GuidanceIconKey } from "./statusCopyMap";
+import type { OpenInfoRequest } from "../hooks/useCaseDetails";
+import { isCaseFree } from "@/lib/pricing";
 
 interface StatusGuidanceCardProps {
   caseData: Case;
-  openRequestsForMoreInfo?: any[] | null;
+  creditBalance?: number | null;
+  openRequestsForMoreInfo?: OpenInfoRequest[] | null;
+  allowedTransitions?: string[];
   onSelectTab: (tab: "documents" | "discussion" | "timeline" | "settings") => void;
   onOpenPayment?: () => void;
   onOpenIntake?: () => void;
+  onSubmitRevision?: () => void;
+  onConfirmComplete?: () => void;
+  isConfirmingComplete?: boolean;
 }
+
+const ICON_BY_KEY: Record<GuidanceIconKey, React.ComponentType<{ className?: string }>> = {
+  clock: Clock,
+  activity: Activity,
+  help: HelpCircle,
+  check: CheckCircle2,
+  alert: AlertCircle,
+};
+
+const COLOR_BY_TONE: Record<GuidanceTone, string> = {
+  info: "blue",
+  warning: "orange",
+  success: "green",
+  neutral: "gray",
+  danger: "red",
+};
+
+const ALERT_CLASS = "animate-fade-in font-body text-xs shrink-0";
 
 export default function StatusGuidanceCard({
   caseData,
+  creditBalance,
   openRequestsForMoreInfo,
+  allowedTransitions = [],
   onOpenPayment,
   onOpenIntake,
+  onSubmitRevision,
+  onConfirmComplete,
+  isConfirmingComplete,
 }: StatusGuidanceCardProps) {
   const stage = caseData.user_facing_stage;
-  const hasInfoRequest = openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0;
+  const hasInfoRequest = !!openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0;
 
-  // Extract rejection reason from events when case was rejected
+  const hasTransition = (t: string) => allowedTransitions.includes(t);
+  const canResubmit = hasTransition("T3_RESUBMIT_AFTER_REJECT") || hasTransition("T4_RESUBMIT_AFTER_VETO");
+  const canOpenIntake =
+    hasTransition("T2_SUBMIT_INTAKE") || hasTransition("T16_EDIT_INTAKE") || canResubmit;
+  const canSubmitRevision = hasTransition("T9_SUBMIT_REVISION");
+
+  // D1/FIX-1: reject reason lives in T12_REJECT / T13_VETO events (legacy fallback kept).
   const rejectionReason: string | null = (() => {
     if (stage !== "rejected") return null;
     const events = caseData.events || [];
     const rejectionEvent = [...events]
       .reverse()
-      .find(e => e.event_type === "case_rejected" || e.event_type === "vetoed");
-    return (rejectionEvent?.metadata_json as any)?.reason || null;
+      .find(
+        (e) =>
+          e.event_type === "T12_REJECT" ||
+          e.event_type === "T13_VETO" ||
+          e.event_type === "case_rejected" ||
+          e.event_type === "vetoed",
+      );
+    const metadata = rejectionEvent?.metadata_json as { reason?: string } | undefined;
+    return metadata?.reason || null;
   })();
 
   if (hasInfoRequest) {
-    const queryText = openRequestsForMoreInfo[0].metadata_json?.query || "Vui lòng kiểm tra lại tài liệu đã tải lên.";
+    const queryText =
+      openRequestsForMoreInfo?.[0]?.metadata_json?.query ||
+      openRequestsForMoreInfo?.[0]?.metadata_json?.reason ||
+      "Vui lòng kiểm tra lại tài liệu đã tải lên.";
     return (
       <Alert
         variant="light"
@@ -48,205 +95,182 @@ export default function StatusGuidanceCard({
         radius="md"
         title="Yêu cầu bổ sung thông tin từ Supporter"
         icon={<HelpCircle className="w-4.5 h-4.5 shrink-0" />}
-        className="animate-fade-in font-body text-xs shrink-0"
+        className={ALERT_CLASS}
       >
-        <div className="space-y-1 flex-grow">
-            <p className="font-semibold text-warning-strong">Nội dung yêu cầu:</p>
-            <p className="italic bg-surface-app/50 p-2.5 rounded border border-warning/10 font-body leading-relaxed">
-              "{queryText}"
-            </p>
-          </div>
+        <div className="space-y-2 flex-grow">
+          <p className="font-semibold text-warning-strong">Nội dung yêu cầu:</p>
+          <p className="italic bg-surface-app/50 p-2.5 rounded border border-warning/10 font-body leading-relaxed">
+            &quot;{queryText}&quot;
+          </p>
+          {canSubmitRevision && onSubmitRevision && (
+            <Button
+              size="sm"
+              color="brand"
+              className="shrink-0 cursor-pointer"
+              onClick={onSubmitRevision}
+            >
+              Nộp tài liệu bổ sung
+            </Button>
+          )}
+        </div>
       </Alert>
     );
   }
 
-  switch (stage) {
-    case "submitted":
-      return (
-        <Alert
-          variant="light"
-          color="blue"
-          radius="md"
-          title="Hồ sơ đã gửi thành công — Chờ xét duyệt"
-          icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
-          className="animate-fade-in font-body text-xs shrink-0"
-        >
+  if (stage === "rejected") {
+    return (
+      <Alert
+        variant="light"
+        color="red"
+        radius="md"
+        title="Hồ sơ bị từ chối xét duyệt"
+        icon={<AlertCircle className="w-4.5 h-4.5 shrink-0" />}
+        className={ALERT_CLASS}
+      >
+        <div className="space-y-2 flex-grow">
+          {rejectionReason && <p className="font-semibold text-danger">Lý do từ chối:</p>}
           <p className="text-text-muted text-xs leading-relaxed">
-            Ban tổ chức đang kiểm tra hồ sơ và phân công Supporter chuyên môn phụ trách dự án (thường mất 12-24 giờ). Hiện tại bạn không cần làm gì thêm.
+            {rejectionReason
+              ? rejectionReason
+              : "Yêu cầu phản biện dự án của bạn không được duyệt. Vui lòng liên hệ với Ban tổ chức hoặc gửi thắc mắc qua phần Thảo luận."}
           </p>
-        </Alert>
-      );
+          {onOpenIntake && canResubmit && (
+            <div className="pt-1">
+              <Button size="sm" color="brand" className="shrink-0 cursor-pointer" onClick={onOpenIntake}>
+                Chỉnh sửa hồ sơ để nộp lại
+              </Button>
+            </div>
+          )}
+        </div>
+      </Alert>
+    );
+  }
 
-    case "need_more_information":
-      return (
-        <Alert
-          variant="light"
-          color="orange"
-          radius="md"
-          title="Yêu cầu bổ sung thông tin từ Supporter"
-          icon={<HelpCircle className="w-4.5 h-4.5 shrink-0" />}
-          className="animate-fade-in font-body text-xs shrink-0"
-        >
+  if (stage === "intake_pending") {
+    const hasCredits = (creditBalance ?? 0) > 0;
+    if (hasCredits) return null;
+
+    const isFree = isCaseFree(caseData);
+    return (
+      <Alert
+        variant="light"
+        color={isFree ? "blue" : "yellow"}
+        radius="md"
+        title={isFree ? "Nâng cấp lên đánh giá chuyên sâu" : "Chờ thanh toán dịch vụ"}
+        icon={isFree ? <Zap className="w-4.5 h-4.5 shrink-0" /> : <Clock className="w-4.5 h-4.5 shrink-0" />}
+        className={ALERT_CLASS}
+        styles={{ wrapper: { alignItems: "center" } }}
+      >
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-text-muted text-xs leading-relaxed">
+            {isFree
+              ? "Bạn đang dùng gói miễn phí. Mua lượt đánh giá chuyên sâu để nhận phản biện chi tiết từ chuyên gia."
+              : "Vui lòng hoàn tất thanh toán để kích hoạt quy trình phản biện."}
+          </p>
+          {onOpenPayment && (
+            <Button size="sm" color="brand" className="shrink-0 cursor-pointer" onClick={onOpenPayment}>
+              {isFree ? "Mua lượt đánh giá" : "Thanh toán ngay"}
+            </Button>
+          )}
+        </div>
+      </Alert>
+    );
+  }
+
+  if (stage === "intake_ready") {
+    return (
+      <Alert
+        variant="light"
+        color="blue"
+        radius="md"
+        icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
+        className={ALERT_CLASS}
+        styles={{ wrapper: { alignItems: "center" } }}
+      >
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="space-y-0.5">
+            <div className="mantine-Alert-title mb-0.5">Cần cập nhật thông tin hồ sơ</div>
+            <p className="text-text-muted text-xs leading-relaxed">
+              Vui lòng cập nhật thông tin hồ sơ khởi nghiệp trước khi gửi để Supporter có thể đánh giá chính xác.
+            </p>
+          </div>
+          {onOpenIntake && canOpenIntake && (
+            <Button size="sm" color="brand" className="shrink-0 cursor-pointer" onClick={onOpenIntake}>
+              Cập nhật ngay
+            </Button>
+          )}
+        </div>
+      </Alert>
+    );
+  }
+
+  if (stage === "revision_submitted") {
+    const hasSupporter = !!(caseData.assigned_supporter_auth_user_id || caseData.assigned_supporter?.name);
+    return (
+      <Alert
+        variant="light"
+        color="blue"
+        radius="md"
+        title={hasSupporter ? "Bản sửa đổi đã gửi thành công — Chờ thẩm định" : "Bản sửa đổi đã gửi thành công — Chờ Admin phân công"}
+        icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
+        className={ALERT_CLASS}
+      >
+        <p className="text-text-muted text-xs leading-relaxed">
+          {hasSupporter
+            ? "Supporter đang tiến hành thẩm định bản sửa đổi mới nhất của bạn."
+            : "Bản sửa đổi đã được ghi nhận. Ban tổ chức (Admin) đang phân công Supporter chuyên môn thẩm định bản mới này."}
+        </p>
+      </Alert>
+    );
+  }
+
+  if (stage === "need_more_information") {
+    return (
+      <Alert
+        variant="light"
+        color="orange"
+        radius="md"
+        title="Yêu cầu bổ sung thông tin từ Supporter"
+        icon={<HelpCircle className="w-4.5 h-4.5 shrink-0" />}
+        className={ALERT_CLASS}
+      >
+        <div className="space-y-2 flex-grow">
           <p className="text-text-muted text-xs leading-relaxed">
             Vui lòng kiểm tra lại tài liệu đã tải lên và bổ sung theo yêu cầu của Supporter.
           </p>
-        </Alert>
-      );
+          {canSubmitRevision && onSubmitRevision && (
+            <Button size="sm" color="brand" className="shrink-0 cursor-pointer" onClick={onSubmitRevision}>
+              Nộp tài liệu bổ sung
+            </Button>
+          )}
+        </div>
+      </Alert>
+    );
+  }
 
-    case "under_review":
-      return (
-        <Alert
-          variant="light"
-          color="blue"
-          radius="md"
-          title="Dự án đang trong quá trình phản biện"
-          icon={<Activity className="w-4.5 h-4.5 shrink-0" />}
-          className="animate-fade-in font-body text-xs shrink-0"
-        >
-          <p className="text-text-muted text-xs leading-relaxed">
-            Supporter đang tiến hành đọc tài liệu và viết báo cáo phản biện chi tiết. Vui lòng chờ báo cáo hoặc theo dõi Thảo luận nếu Supporter cần trao đổi thêm.
-          </p>
-        </Alert>
-      );
+  if (stage === "report_ready") {
+    const isFree = isCaseFree(caseData);
+    const hasCredits = isFree || (creditBalance ?? 0) > 0;
+    const canConfirmComplete = hasTransition("T17_USER_CONFIRM_COMPLETE");
 
-    case "report_ready":
-    case "waiting_for_revision": {
-      return (
-        <Alert
-          variant="light"
-          color="green"
-          radius="md"
-          title="Báo cáo phản biện đã sẵn sàng — Nhóm có thể nộp bản sửa đổi"
-          icon={<CheckCircle2 className="w-4.5 h-4.5 shrink-0" />}
-          className="animate-fade-in font-body text-xs shrink-0"
-        >
-          <div className="mt-1">
-            <p className="text-text-muted text-xs leading-relaxed">
-              Supporter đã hoàn thành đánh giá chi tiết. Nhóm có thể xem kết quả phản biện bên dưới, tiến hành sửa đổi bài làm và nộp bản mới (v02, v03...) bằng nút <strong>"Tải tài liệu"</strong> để Supporter thẩm định vòng tiếp theo.
-            </p>
-          </div>
-        </Alert>
-      );
-    }
-
-    case "revision_submitted": {
-      const hasSupporter = !!(caseData.assigned_supporter_auth_user_id || caseData.assigned_supporter?.name);
-      return (
-        <Alert
-          variant="light"
-          color="blue"
-          radius="md"
-          title={hasSupporter ? "Bản sửa đổi đã gửi thành công — Chờ thẩm định" : "Bản sửa đổi đã gửi thành công — Chờ Admin phân công"}
-          icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
-          className="animate-fade-in font-body text-xs shrink-0"
-        >
-          <p className="text-text-muted text-xs leading-relaxed">
-            {hasSupporter
-              ? "Supporter đang tiến hành thẩm định bản sửa đổi mới nhất của bạn."
-              : "Bản sửa đổi đã được ghi nhận. Ban tổ chức (Admin) đang phân công Supporter chuyên môn thẩm định bản mới này."}
-          </p>
-        </Alert>
-      );
-    }
-
-    case "closed":
-      return (
-        <Alert
-          variant="light"
-          color="gray"
-          radius="md"
-          title="Hồ sơ đã đóng"
-          icon={<AlertCircle className="w-4.5 h-4.5 shrink-0" />}
-          className="animate-fade-in font-body text-xs shrink-0"
-        >
-          <p className="text-text-muted text-xs leading-relaxed">
-            Hồ sơ phản biện này đã được đóng. Vui lòng liên hệ Ban tổ chức nếu cần thêm thông tin.
-          </p>
-        </Alert>
-      );
-
-    case "completed":
-    case "approved":
-    case "APPROVED":
-    case "sent":
-      return (
-        <Alert
-          variant="light"
-          color="green"
-          radius="md"
-          title="Quy trình phản biện đã hoàn tất"
-          icon={<CheckCircle2 className="w-4.5 h-4.5 shrink-0" />}
-          className="animate-fade-in font-body text-xs shrink-0"
-        >
-          <p className="text-text-muted text-xs leading-relaxed">
-            Hồ sơ phản biện dự án của bạn đã hoàn thành qua các vòng. Bạn có thể xem báo cáo chi tiết và điểm số tại tab Tài liệu dự án.
-          </p>
-        </Alert>
-      );
-
-    case "rejected":
+    if (!hasCredits) {
       return (
         <Alert
           variant="light"
           color="red"
           radius="md"
-          title="Hồ sơ bị từ chối xét duyệt"
+          title="Hết credit đánh giá"
           icon={<AlertCircle className="w-4.5 h-4.5 shrink-0" />}
-          className="animate-fade-in font-body text-xs shrink-0"
-        >
-          <div className="space-y-1 flex-grow">
-            {rejectionReason && (
-              <p className="font-semibold text-danger">Lý do từ chối:</p>
-            )}
-            <p className="text-text-muted text-xs leading-relaxed">
-              {rejectionReason
-                ? rejectionReason
-                : "Yêu cầu phản biện dự án của bạn không được duyệt. Vui lòng liên hệ với Ban tổ chức hoặc gửi thắc mắc qua phần Thảo luận."
-              }
-            </p>
-            {onOpenIntake && (
-              <div className="pt-2">
-                <Button
-                  size="sm"
-                  color="brand"
-                  className="shrink-0 cursor-pointer"
-                  onClick={onOpenIntake}
-                >
-                  Chỉnh sửa hồ sơ để nộp lại
-                </Button>
-              </div>
-            )}
-          </div>
-        </Alert>
-      );
-
-    case "intake_pending": {
-      const isFree = caseData.package_id === "pkg_tf_free";
-      return (
-        <Alert
-          variant="light"
-          color={isFree ? "blue" : "yellow"}
-          radius="md"
-          title={isFree ? "Nâng cấp lên đánh giá chuyên sâu" : "Chờ thanh toán dịch vụ"}
-          icon={isFree ? <Zap className="w-4.5 h-4.5 shrink-0" /> : <Clock className="w-4.5 h-4.5 shrink-0" />}
-          className="animate-fade-in font-body text-xs shrink-0"
+          className={ALERT_CLASS}
           styles={{ wrapper: { alignItems: "center" } }}
         >
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <p className="text-text-muted text-xs leading-relaxed">
-              {isFree
-                ? "Bạn đang dùng gói miễn phí. Mua lượt đánh giá chuyên sâu để nhận phản biện chi tiết từ chuyên gia."
-                : "Vui lòng hoàn tất thanh toán để kích hoạt quy trình phản biện."
-              }
+              Bạn đã hết credit đánh giá cho dự án này. Mua thêm credit để tiếp tục các lượt đánh giá tiếp theo.
             </p>
             {onOpenPayment && (
-              <Button
-                size="sm"
-                color="brand"
-                className="shrink-0 cursor-pointer"
-                onClick={onOpenPayment}
-              >
-                {isFree ? "Mua lượt đánh giá" : "Thanh toán ngay"}
+              <Button size="sm" color="brand" className="shrink-0 cursor-pointer" onClick={onOpenPayment}>
+                Mua credit
               </Button>
             )}
           </div>
@@ -254,38 +278,54 @@ export default function StatusGuidanceCard({
       );
     }
 
-    case "intake_ready":
-      return (
-        <Alert
-          variant="light"
-          color="blue"
-          radius="md"
-          icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
-          className="animate-fade-in font-body text-xs shrink-0"
-          styles={{ wrapper: { alignItems: "center" } }}
-        >
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-0.5">
-              <div className="mantine-Alert-title mb-0.5">Cần cập nhật thông tin hồ sơ</div>
-              <p className="text-text-muted text-xs leading-relaxed">
-                Vui lòng cập nhật thông tin hồ sơ khởi nghiệp trước khi gửi để Supporter có thể đánh giá chính xác.
-              </p>
-            </div>
-            {onOpenIntake && (
-              <Button
-                size="sm"
-                color="brand"
-                className="shrink-0 cursor-pointer"
-                onClick={onOpenIntake}
-              >
-                Cập nhật ngay
-              </Button>
-            )}
-          </div>
-        </Alert>
-      );
-
-    default:
-      return null;
+    return (
+      <Alert
+        variant="light"
+        color="green"
+        radius="md"
+        title="Báo cáo phản biện đã sẵn sàng"
+        icon={<CheckCircle2 className="w-4.5 h-4.5 shrink-0" />}
+        className={ALERT_CLASS}
+      >
+        <div className="space-y-2 flex-grow">
+          <p className="text-text-muted text-xs leading-relaxed">
+            Supporter đã hoàn thành đánh giá chi tiết. Xem báo cáo ở tab Tài liệu; khi nhóm đã xem xong, hãy xác nhận hoàn thành để đóng quy trình phản biện.
+          </p>
+          <p className="text-text-muted text-xs leading-relaxed">
+            Muốn tiếp tục cải thiện? Sửa tài liệu rồi gửi lại — mỗi lượt đánh giá mới = 1 credit.
+          </p>
+          {onConfirmComplete && canConfirmComplete && (
+            <Button
+              size="sm"
+              color="brand"
+              className="shrink-0 cursor-pointer"
+              loading={isConfirmingComplete}
+              onClick={onConfirmComplete}
+            >
+              Xác nhận hoàn thành
+            </Button>
+          )}
+        </div>
+      </Alert>
+    );
   }
+
+  const copy = STATUS_GUIDANCE_COPY[stage];
+  if (copy) {
+    const Icon = ICON_BY_KEY[copy.icon];
+    return (
+      <Alert
+        variant="light"
+        color={COLOR_BY_TONE[copy.tone]}
+        radius="md"
+        title={copy.title}
+        icon={<Icon className="w-4.5 h-4.5 shrink-0" />}
+        className={ALERT_CLASS}
+      >
+        <p className="text-text-muted text-xs leading-relaxed">{copy.description}</p>
+      </Alert>
+    );
+  }
+
+  return null;
 }

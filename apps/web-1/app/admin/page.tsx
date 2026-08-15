@@ -2,20 +2,21 @@
 
 import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useAdminPayments } from "./hooks/useAdminPayments";
+import { useAdminDeposits } from "./hooks/useAdminDeposits";
 import { useAdminCases } from "./hooks/useAdminCases";
 import { useAdminDocuments } from "./hooks/useAdminDocuments";
 import { useAdminPackages } from "./hooks/useAdminPackages";
-import AdminPaymentVerificationTable from "./_components/AdminPaymentVerificationTable";
+import AdminDepositVerificationTable from "./_components/AdminDepositVerificationTable";
 import AdminCaseAssignmentTable from "./_components/AdminCaseAssignmentTable";
 import AdminDocumentsTable from "./_components/AdminDocumentsTable";
 import AdminPackagesSettings from "./_components/AdminPackagesSettings";
+import AdminUsersTable from "./_components/AdminUsersTable";
 import StatsDashboard from "./_components/StatsDashboard";
 import RejectionReasonModal from "./_components/RejectionReasonModal";
 import ApprovePaymentModal from "./_components/ApprovePaymentModal";
 import { useAdminStats } from "./hooks/useAdminStats";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, AlertTriangle, FolderKanban, Activity } from "lucide-react";
+import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, AlertTriangle, FolderKanban, Activity, Users, Clock } from "lucide-react";
 import { Tooltip, UnstyledButton, Title, Text, Badge, Divider } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import classes from "../../components/layout/DoubleNavbar.module.css";
@@ -31,11 +32,11 @@ export default function AdminHubPage() {
 function AdminHubPageInner() {
   const searchParams = useSearchParams();
   const {
-    payments,
+    deposits,
     isLoading: isPaymentsLoading,
-    verifyPayment,
+    verifyDeposit,
     isVerifying,
-  } = useAdminPayments();
+  } = useAdminDeposits();
 
   const {
     cases,
@@ -46,7 +47,6 @@ function AdminHubPageInner() {
     isAssigning,
     acceptCase,
     rejectCase,
-    requestMoreInfo,
     deleteCase,
     refetchCases,
   } = useAdminCases();
@@ -71,63 +71,63 @@ function AdminHubPageInner() {
   const statsQuery = useAdminStats(statsPeriod);
 
   // Modal control states
-  const [rejectingPaymentId, setRejectingPaymentId] = useState<string | null>(null);
-  const [approvingPaymentId, setApprovingPaymentId] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages" | "stats">("stats");
+  const [rejectingDepositId, setRejectingDepositId] = useState<string | null>(null);
+  const [approvingDepositId, setApprovingDepositId] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages" | "stats" | "users">("stats");
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
-  const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "unassigned" | "assigned" | "crud">("all");
+  const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "intake" | "unassigned" | "assigned" | "crud">("all");
 
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab === "payments" || tab === "cases" || tab === "documents" || tab === "packages" || tab === "stats") {
+    if (tab === "payments" || tab === "cases" || tab === "documents" || tab === "packages" || tab === "stats" || tab === "users") {
       setActiveSection(tab);
     }
   }, [searchParams]);
 
-  const handleApproveClick = (paymentId: string) => {
-    setApprovingPaymentId(paymentId);
+  const handleApproveClick = (depositId: string) => {
+    setApprovingDepositId(depositId);
   };
 
-  const handleConfirmApprove = async (paymentId: string) => {
+  const handleConfirmApprove = async (depositId: string) => {
     try {
-      await verifyPayment({ paymentId, status: "paid" });
+      await verifyDeposit({ depositId, status: "verified" });
       notifications.show({
-        title: "Duyệt thanh toán thành công",
-        message: "Đã duyệt thanh toán thành công!",
+        title: "Duyệt nạp tiền thành công",
+        message: "Đã duyệt nạp tiền thành công!",
         color: "green",
       });
     } catch (e: any) {
       notifications.show({
         title: "Lỗi",
-        message: e?.response?.data?.message || "Gặp lỗi khi duyệt thanh toán.",
+        message: e?.response?.data?.message || "Gặp lỗi khi duyệt nạp tiền.",
         color: "red",
       });
       throw e;
     }
   };
 
-  const handleRejectClick = (paymentId: string) => {
-    setRejectingPaymentId(paymentId);
+  const handleRejectClick = (depositId: string) => {
+    setRejectingDepositId(depositId);
   };
 
   const handleConfirmReject = async (reason: string) => {
-    if (!rejectingPaymentId) return;
+    if (!rejectingDepositId) return;
     try {
-      await verifyPayment({
-        paymentId: rejectingPaymentId,
+      await verifyDeposit({
+        depositId: rejectingDepositId,
         status: "rejected",
         rejectionReason: reason,
       });
-      setRejectingPaymentId(null);
+      setRejectingDepositId(null);
       notifications.show({
-        title: "Đã từ chối thanh toán",
-        message: "Đã từ chối minh chứng thanh toán và gửi lý do cho sinh viên.",
+        title: "Đã từ chối nạp tiền",
+        message: "Đã từ chối minh chứng nạp tiền và gửi lý do cho sinh viên.",
         color: "green",
       });
     } catch (e) {
       notifications.show({
         title: "Lỗi",
-        message: "Gặp lỗi khi thực hiện từ chối thanh toán.",
+        message: "Gặp lỗi khi thực hiện từ chối nạp tiền.",
         color: "red",
       });
     }
@@ -184,23 +184,6 @@ function AdminHubPageInner() {
     }
   };
 
-  const handleRequestMoreInfo = async (caseId: string, query: string) => {
-    try {
-      await requestMoreInfo({ caseId, query });
-      notifications.show({
-        title: "Gửi yêu cầu thành công",
-        message: "Đã gửi yêu cầu làm rõ cho học viên.",
-        color: "green",
-      });
-    } catch (e) {
-      notifications.show({
-        title: "Lỗi",
-        message: "Gặp lỗi khi gửi yêu cầu.",
-        color: "red",
-      });
-    }
-  };
-
   const handleDeleteCase = async (caseId: string) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa hồ sơ đề tài này không? Hành động này không thể hoàn tác.")) {
       try {
@@ -239,28 +222,41 @@ function AdminHubPageInner() {
 
   const isLoading = isPaymentsLoading || isCasesLoading || isSupportersLoading || isDocsLoading || isPackagesLoading;
 
-  const pendingPaymentsCount = payments.filter((p) => p.status === "pending_verification").length;
-  const unassignedCasesCount = cases.filter((c) => c.internal_status === "triage_pending" || c.internal_status === "accepted_unassigned").length;
+  const pendingPaymentsCount = deposits.filter((d) => d.status === "pending").length;
+  const unassignedCasesCount = cases.filter((c) => c.user_facing_stage !== "intake_pending" && c.user_facing_stage !== "intake_ready" && (c.internal_status === "triage_pending" || c.internal_status === "accepted_unassigned")).length;
 
-  const filteredPayments = React.useMemo(() => {
+  const filteredDeposits = React.useMemo(() => {
     if (paymentFilter === "pending") {
-      return payments.filter((p) => p.status === "pending_verification");
+      return deposits.filter((d) => d.status === "pending");
     }
-    return payments.filter((p) => p.status !== "pending_verification");
-  }, [payments, paymentFilter]);
+    return deposits.filter((d) => d.status !== "pending");
+  }, [deposits, paymentFilter]);
 
   const filteredCases = React.useMemo(() => {
     if (caseFilter === "crud") {
       return cases;
     }
+    if (caseFilter === "intake") {
+      return cases.filter(
+        (c) =>
+          c.user_facing_stage === "intake_pending" ||
+          c.user_facing_stage === "intake_ready"
+      );
+    }
     const active = cases.filter(
       (c) =>
-        c.internal_status === "triage_pending" ||
-        c.internal_status === "accepted_unassigned" ||
-        c.internal_status === "assigned"
+        c.user_facing_stage !== "intake_pending" &&
+        c.user_facing_stage !== "intake_ready" &&
+        (c.internal_status === "triage_pending" ||
+          c.internal_status === "accepted_unassigned" ||
+          c.internal_status === "assigned")
     );
     if (caseFilter === "triage") {
-      return active.filter((c) => c.internal_status === "triage_pending");
+      return active.filter(
+        (c) =>
+          c.user_facing_stage === "submitted" &&
+          c.internal_status === "triage_pending"
+      );
     }
     if (caseFilter === "unassigned") {
       return active.filter((c) => c.internal_status === "accepted_unassigned");
@@ -274,8 +270,8 @@ function AdminHubPageInner() {
   const getHeaderInfo = () => {
     if (activeSection === "stats") {
       return {
-        title: "Thống kê hệ thống",
-        description: "Tổng quan dữ liệu case, doanh thu và hiệu suất vận hành theo mốc thời gian.",
+        title: "Thống kê",
+        description: "Tổng quan dữ liệu hồ sơ, doanh thu và hiệu suất vận hành.",
         icon: BarChart3,
       };
     }
@@ -299,6 +295,13 @@ function AdminHubPageInner() {
           title: "Duyệt hồ sơ mới",
           description: "Kiểm tra và quyết định duyệt, từ chối hoặc yêu cầu làm rõ hồ sơ mới gửi.",
           icon: CheckCircle,
+        };
+      }
+      if (caseFilter === "intake") {
+        return {
+          title: "Chờ sinh viên nộp hồ sơ",
+          description: "Hồ sơ đã thanh toán nhưng sinh viên chưa hoàn thành bước nộp hồ sơ phản biện.",
+          icon: Clock,
         };
       }
       if (caseFilter === "unassigned") {
@@ -326,6 +329,13 @@ function AdminHubPageInner() {
         title: "Quản lý hệ thống tài liệu",
         description: "Xem, tải xuống và gỡ bỏ tài liệu khỏi cơ sở dữ liệu & Cloudinary.",
         icon: FileText,
+      };
+    }
+    if (activeSection === "users") {
+      return {
+        title: "Quản lý người dùng",
+        description: "Tạo tài khoản mới, xem danh sách và quản lý trạng thái khóa/mở khóa người dùng.",
+        icon: Users,
       };
     }
     return {
@@ -404,15 +414,25 @@ function AdminHubPageInner() {
                   <Settings className="w-6 h-6" />
                 </UnstyledButton>
               </Tooltip>
+
+              <Tooltip label="Quản lý người dùng" position="right" withArrow>
+                <UnstyledButton
+                  onClick={() => setActiveSection("users")}
+                  className={classes.mainLink}
+                  data-active={activeSection === "users" || undefined}
+                >
+                  <Users className="w-6 h-6" />
+                </UnstyledButton>
+              </Tooltip>
             </aside>
 
           {/* Secondary Panel (Details / Submenu) */}
           <div className={classes.main}>
             <div className="mb-4">
-              <Title order={6} className={classes.title}>
-                {activeSection === "stats" ? "Thống kê" : activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : activeSection === "documents" ? "Quản lý tài liệu" : "Cấu hình gói"}
+              <Title order={4} className="font-heading font-semibold text-text-app">
+                {activeSection === "stats" ? "Thống kê" : activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : activeSection === "documents" ? "Quản lý tài liệu" : activeSection === "users" ? "Người dùng" : "Cấu hình gói"}
               </Title>
-              <Text size="sm" c="dimmed" className="font-body">
+              <Text size="xs" className="text-text-muted font-body mt-0.5">
                 {activeSection === "stats"
                   ? "Tổng quan dữ liệu vận hành."
                   : activeSection === "payments"
@@ -421,6 +441,8 @@ function AdminHubPageInner() {
                   ? "Phân loại ý tưởng & phân công."
                   : activeSection === "documents"
                   ? "Danh mục tài liệu trên hệ thống."
+                  : activeSection === "users"
+                  ? "Quản lý tài khoản & phân quyền."
                   : "Cấu hình đơn giá gói dịch vụ."}
               </Text>
             </div>
@@ -485,6 +507,13 @@ function AdminHubPageInner() {
                   <span>Chờ duyệt</span>
                 </UnstyledButton>
                 <UnstyledButton
+                  onClick={() => setCaseFilter("intake")}
+                  className={classes.link}
+                  data-active={caseFilter === "intake" || undefined}
+                >
+                  <span>Chờ sinh viên nộp hồ sơ</span>
+                </UnstyledButton>
+                <UnstyledButton
                   onClick={() => setCaseFilter("unassigned")}
                   className={classes.link}
                   data-active={caseFilter === "unassigned" || undefined}
@@ -513,6 +542,15 @@ function AdminHubPageInner() {
                   data-active={true}
                 >
                   <span>Tất cả tài liệu</span>
+                </UnstyledButton>
+              </div>
+            ) : activeSection === "users" ? (
+              <div className="flex flex-col gap-1">
+                <UnstyledButton
+                  className={classes.link}
+                  data-active={true}
+                >
+                  <span>Quản lý người dùng</span>
                 </UnstyledButton>
               </div>
             ) : (
@@ -577,8 +615,8 @@ function AdminHubPageInner() {
               </div>
             ) : activeSection === "payments" ? (
               <div>
-                <AdminPaymentVerificationTable
-                  payments={filteredPayments}
+                <AdminDepositVerificationTable
+                  deposits={filteredDeposits}
                   onApprove={handleApproveClick}
                   onReject={handleRejectClick}
                 />
@@ -593,7 +631,6 @@ function AdminHubPageInner() {
                   isAssigning={isAssigning}
                   onAccept={handleAcceptCase}
                   onReject={handleRejectCase}
-                  onRequestMoreInfo={handleRequestMoreInfo}
                   isCrudMode={caseFilter === "crud"}
                   onDelete={handleDeleteCase}
                   onRefresh={refetchCases}
@@ -606,6 +643,10 @@ function AdminHubPageInner() {
                   onDelete={handleDeleteDocument}
                   isDeleting={isDeletingDoc}
                 />
+              </div>
+            ) : activeSection === "users" ? (
+              <div>
+                <AdminUsersTable />
               </div>
             ) : (
               <div>
@@ -624,16 +665,16 @@ function AdminHubPageInner() {
 
       {/* 4. Rejection Reason Modal */}
       <RejectionReasonModal
-        isOpen={rejectingPaymentId !== null}
-        onClose={() => setRejectingPaymentId(null)}
+        isOpen={rejectingDepositId !== null}
+        onClose={() => setRejectingDepositId(null)}
         onConfirm={handleConfirmReject}
         isSubmitting={isVerifying}
       />
 
-      {/* 5. Approve Payment Modal */}
+      {/* 5. Approve Deposit Modal */}
       <ApprovePaymentModal
-        paymentId={approvingPaymentId}
-        onClose={() => setApprovingPaymentId(null)}
+        paymentId={approvingDepositId}
+        onClose={() => setApprovingDepositId(null)}
         onConfirm={handleConfirmApprove}
       />
     </div>

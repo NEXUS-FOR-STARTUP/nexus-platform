@@ -12,6 +12,9 @@ const googleSansFlex = Google_Sans_Flex({
 export const metadata: Metadata = {
   title: "Nexus Platform",
   description: "Nền tảng kiểm định ý tưởng khởi nghiệp và phản biện học thuật thông minh",
+  icons: {
+    icon: "/logo/logo-icon-03.svg",
+  },
 };
 
 export default function RootLayout({
