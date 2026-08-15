@@ -42,6 +42,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     error,
     allowedTransitions,
     openRequestsForMoreInfo,
+    confirmComplete,
+    isConfirmingComplete,
   } = useCaseDetails(id);
 
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("overview");
@@ -145,9 +147,11 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                   openRequestsForMoreInfo={openRequestsForMoreInfo}
                   allowedTransitions={filteredTransitions}
                   onSelectTab={(tab) => setActiveTab(tab)}
-                  onOpenPayment={isIntakePending ? () => setCreditBuyOpened(true) : undefined}
+                  onOpenPayment={isIntakePending || stage === "report_ready" ? () => setCreditBuyOpened(true) : undefined}
                   onOpenIntake={canOpenIntake ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
                   onSubmitRevision={() => setIsStudentUploadOpen(true)}
+                  onConfirmComplete={confirmComplete}
+                  isConfirmingComplete={isConfirmingComplete}
                 />
               }
             />

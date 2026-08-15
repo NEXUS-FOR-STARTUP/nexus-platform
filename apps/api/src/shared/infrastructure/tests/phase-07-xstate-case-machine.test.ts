@@ -141,13 +141,44 @@ test('T9_SUBMIT_REVISION — isOwner → supporter_working, upsertDoc', () => {
   assert.ok(r!.actions.some(a => a.type === 'upsertDoc'))
 })
 
-test('T14_COMPLETE — isAssignedSupporter → done', () => {
-  const r = tryTransition('report_ready_to_publish', supporterEvent('T14_COMPLETE'))
+test('T14_COMPLETE — isAdmin → done', () => {
+  const r = tryTransition('report_ready_to_publish', adminEvent('T14_COMPLETE'))
   assert.ok(r)
   assert.equal(r!.to, 'done')
 })
 
-test('T3_RESUBMIT_AFTER_REJECT — from done → null (done là final thật)', () => {
+test('T17_USER_CONFIRM_COMPLETE — isOwner → done, notifyUser', () => {
+  const r = tryTransition('report_ready_to_publish', event('T17_USER_CONFIRM_COMPLETE'))
+  assert.ok(r)
+  assert.equal(r!.to, 'done')
+  assert.ok(r!.actions.some(a => a.type === 'notifyUser'))
+})
+
+test('T17_USER_CONFIRM_COMPLETE — non-owner → null', () => {
+  const r = tryTransition('report_ready_to_publish', event('T17_USER_CONFIRM_COMPLETE', {
+    actorId: 'other-user',
+  }))
+  assert.equal(r, null)
+})
+
+test('T17_USER_CONFIRM_COMPLETE — admin actor → null (guard isOwner)', () => {
+  const r = tryTransition('report_ready_to_publish', adminEvent('T17_USER_CONFIRM_COMPLETE'))
+  assert.equal(r, null)
+})
+
+test('T19_REOPEN — isOwner → supporter_working, setSlaDeadline', () => {
+  const r = tryTransition('done', event('T19_REOPEN'))
+  assert.ok(r)
+  assert.equal(r!.to, 'supporter_working')
+  assert.ok(r!.actions.some(a => a.type === 'setSlaDeadline'))
+})
+
+test('T19_REOPEN — non-owner → null', () => {
+  const r = tryTransition('done', event('T19_REOPEN', { actorId: 'other-user' }))
+  assert.equal(r, null)
+})
+
+test('T3_RESUBMIT_AFTER_REJECT — from done → null (không khai T3 từ done)', () => {
   const r = tryTransition('done', event('T3_RESUBMIT_AFTER_REJECT'))
   assert.equal(r, null)
 })
@@ -199,8 +230,8 @@ test('T13_VETO — guard fail khi quá 48h', () => {
   assert.equal(r, null)
 })
 
-test('T14_COMPLETE — guard fail khi không phải assigned supporter (Q4)', () => {
-  const r = tryTransition('report_ready_to_publish', event('T14_COMPLETE'))
+test('T14_COMPLETE — guard fail khi supporter (không phải admin)', () => {
+  const r = tryTransition('report_ready_to_publish', supporterEvent('T14_COMPLETE'))
   assert.equal(r, null)
 })
 
@@ -255,8 +286,13 @@ test('getAvailableTransitions — supporter_working có 5 transition', () => {
   assert.ok(ts.includes('T15_CANCEL'))
 })
 
-test('getAvailableTransitions — done là terminal → []', () => {
-  assert.deepEqual(getAvailableTransitions('done'), [])
+test('getAvailableTransitions — done có T19 (không final)', () => {
+  assert.deepEqual(getAvailableTransitions('done'), ['T19_REOPEN'])
+})
+
+test('getAvailableTransitions — report_ready_to_publish có T6 + T14 + T17 + T15', () => {
+  const ts = getAvailableTransitions('report_ready_to_publish')
+  assert.deepEqual([...ts].sort(), ['T6_ASSIGN_SUPPORTER', 'T14_COMPLETE', 'T15_CANCEL', 'T17_USER_CONFIRM_COMPLETE'].sort())
 })
 
 test('getAvailableTransitions — status không hợp lệ → []', () => {
@@ -298,13 +334,13 @@ test('VALID_STATES — 8 states', () => {
   }
 })
 
-test('Machine — 8 state nodes, 22 transition edges', () => {
+test('Machine — 8 state nodes, 26 transition edges', () => {
   const snapshots: TransitionName[] = []
   for (const state of VALID_STATES) {
     const ts = getAvailableTransitions(state)
     ts.forEach(t => snapshots.push(t))
   }
-  assert.equal(snapshots.length, 22, '22 transition edges across 8 states')
+  assert.equal(snapshots.length, 26, '26 transition edges across 8 states')
 })
 
 test('Free case (lockedPrice=0) — hasCredit guard tự skip (Amendment #6)', () => {
@@ -377,4 +413,52 @@ test('T6_ASSIGN_SUPPORTER — reassign guard fail khi không phải admin', () =
 
 test('TARGET_STAGE — T16_EDIT_INTAKE → intake_ready (D8)', () => {
   assert.equal(TARGET_STAGE.T16_EDIT_INTAKE, 'intake_ready')
+})
+
+test('TARGET_STAGE — T17 → completed, T19 → under_review', () => {
+  assert.equal(TARGET_STAGE.T17_USER_CONFIRM_COMPLETE, 'completed')
+  assert.equal(TARGET_STAGE.T19_REOPEN, 'under_review')
+})
+
+// ============================================================
+// Nhóm I: Phase-08 — T6 reassign self-loop (#1) + T19 reopen (#5)
+// ============================================================
+
+test('T6_ASSIGN_SUPPORTER — reassign từ supporter_working (admin) → self-loop, emitStageChanged', () => {
+  const r = tryTransition('supporter_working', adminEvent('T6_ASSIGN_SUPPORTER'))
+  assert.ok(r)
+  assert.equal(r!.to, 'supporter_working')
+  assert.ok(r!.actions.some(a => a.type === 'emitStageChanged'))
+})
+
+test('T6_ASSIGN_SUPPORTER — reassign từ supporter_working (supporter) → null', () => {
+  const r = tryTransition('supporter_working', supporterEvent('T6_ASSIGN_SUPPORTER'))
+  assert.equal(r, null)
+})
+
+test('T6_ASSIGN_SUPPORTER — reassign từ report_ready_to_publish (admin) → self-loop, emitStageChanged', () => {
+  const r = tryTransition('report_ready_to_publish', adminEvent('T6_ASSIGN_SUPPORTER'))
+  assert.ok(r)
+  assert.equal(r!.to, 'report_ready_to_publish')
+  assert.ok(r!.actions.some(a => a.type === 'emitStageChanged'))
+})
+
+test('T6_ASSIGN_SUPPORTER — reassign từ report_ready_to_publish (supporter) → null', () => {
+  const r = tryTransition('report_ready_to_publish', supporterEvent('T6_ASSIGN_SUPPORTER'))
+  assert.equal(r, null)
+})
+
+test('T19_REOPEN — owner verify: chính chủ pass, admin actor → null', () => {
+  assert.ok(tryTransition('done', event('T19_REOPEN')))
+  assert.equal(tryTransition('done', adminEvent('T19_REOPEN')), null)
+})
+
+test('T19_REOPEN — double-fire no-op: sau reopen (supporter_working) không bắn lại được', () => {
+  const first = tryTransition('done', event('T19_REOPEN'))
+  assert.equal(first!.to, 'supporter_working')
+  assert.equal(tryTransition(first!.to, event('T19_REOPEN')), null)
+})
+
+test('T19_REOPEN — done không còn final: T19 là transition duy nhất từ done', () => {
+  assert.deepEqual(getAvailableTransitions('done'), ['T19_REOPEN'])
 })

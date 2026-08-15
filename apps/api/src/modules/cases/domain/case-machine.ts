@@ -43,6 +43,7 @@ export const caseMachine = setup({
     upsertDoc:         () => {},
     subtractCredit:    () => {},
     refundCredit:      () => {},
+    refundRemainingCredit: () => {},
     setSlaDeadline:    () => {},
     autoResumeWork:    () => {},
     resetStatus:       () => {},
@@ -78,10 +79,12 @@ export const caseMachine = setup({
         T12_REJECT: {
           target: 'cancelled',
           guard: and(['isAdmin', 'reasonMinLength']),
+          actions: 'refundRemainingCredit',
         },
         T15_CANCEL: {
           target: 'cancelled',
           guard: 'isOwner',
+          actions: 'refundRemainingCredit',
         },
       },
     },
@@ -95,6 +98,7 @@ export const caseMachine = setup({
         T15_CANCEL: {
           target: 'cancelled',
           guard: 'isOwner',
+          actions: 'refundRemainingCredit',
         },
       },
     },
@@ -114,17 +118,23 @@ export const caseMachine = setup({
         T13_VETO: {
           target: 'cancelled',
           guard: and(['isAdmin', 'isWithin48h']),
-          actions: 'refundCredit',
+          actions: ['refundCredit', 'refundRemainingCredit'],
         },
         T15_CANCEL: {
           target: 'cancelled',
           guard: 'isOwner',
+          actions: 'refundRemainingCredit',
         },
       },
     },
 
     supporter_working: {
       on: {
+        T6_ASSIGN_SUPPORTER: {
+          target: 'supporter_working',
+          guard: 'isAdmin',
+          actions: 'emitStageChanged',
+        },
         T8_REQUEST_INFO: {
           target: 'waiting_user',
           guard: 'isAssignedSupporter',
@@ -143,11 +153,12 @@ export const caseMachine = setup({
         T13_VETO: {
           target: 'cancelled',
           guard: and(['isAdmin', 'isWithin48h']),
-          actions: 'refundCredit',
+          actions: ['refundCredit', 'refundRemainingCredit'],
         },
         T15_CANCEL: {
           target: 'cancelled',
           guard: 'isOwner',
+          actions: 'refundRemainingCredit',
         },
       },
     },
@@ -162,26 +173,44 @@ export const caseMachine = setup({
         T15_CANCEL: {
           target: 'cancelled',
           guard: 'isOwner',
+          actions: 'refundRemainingCredit',
         },
       },
     },
 
     report_ready_to_publish: {
       on: {
+        T6_ASSIGN_SUPPORTER: {
+          target: 'report_ready_to_publish',
+          guard: 'isAdmin',
+          actions: 'emitStageChanged',
+        },
         T14_COMPLETE: {
           target: 'done',
-          guard: 'isAssignedSupporter',
+          guard: 'isAdmin',
+          actions: 'notifyUser',
+        },
+        T17_USER_CONFIRM_COMPLETE: {
+          target: 'done',
+          guard: 'isOwner',
           actions: 'notifyUser',
         },
         T15_CANCEL: {
           target: 'cancelled',
           guard: 'isOwner',
+          actions: 'refundRemainingCredit',
         },
       },
     },
 
     done: {
-      type: 'final' as const,
+      on: {
+        T19_REOPEN: {
+          target: 'supporter_working',
+          guard: 'isOwner',
+          actions: 'setSlaDeadline',
+        },
+      },
     },
 
     cancelled: {

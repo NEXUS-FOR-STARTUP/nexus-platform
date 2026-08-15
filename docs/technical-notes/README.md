@@ -8,4 +8,5 @@ Không dùng thư mục này thay PRD hay requirement.
 
 - [`platform-architecture-note.md`](./platform-architecture-note.md)
 - [`document-lifecycle-model-note.md`](./document-lifecycle-model-note.md)
+- [`money-credit-completion-model-note.md`](./money-credit-completion-model-note.md)
 - [`frontend-route-and-component-map.md`](./frontend-route-and-component-map.md)

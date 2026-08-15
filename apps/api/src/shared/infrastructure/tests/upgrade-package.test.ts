@@ -59,8 +59,8 @@ await test("upgrade-package - machine transition gates", async (t) => {
     },
   };
 
-  await t.test("done is terminal — no transitions", () => {
-    assert.deepStrictEqual(getAvailableTransitions("done"), []);
+  await t.test("done cho phép reopen T19 (không còn final)", () => {
+    assert.deepStrictEqual(getAvailableTransitions("done"), ["T19_REOPEN"]);
   });
 
   await t.test("cancelled allows resubmit T3/T4", () => {

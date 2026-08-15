@@ -45,5 +45,6 @@ export async function listAdminDocumentsUseCase() {
     uploaded_by_email: doc.uploaded_by?.email || "N/A",
     created_at: doc.created_at,
     updated_at: doc.updated_at,
+    superseded_at: doc.superseded_at,
   }));
 }

@@ -8,6 +8,7 @@ export const WALLET_SOURCE_TYPES = [
   'credit_purchase',
   'case_consume',
   'admin_refund',
+  'case_refund',
   'platform_bonus',
   'migration',
   'service_payment',

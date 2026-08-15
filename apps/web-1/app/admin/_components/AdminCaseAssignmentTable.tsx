@@ -284,7 +284,7 @@ export default function AdminCaseAssignmentTable({
                             >
                               Xem chi tiết
                             </Menu.Item>
-                            {item.internal_status === "triage_pending" && (
+                            {item.internal_status === "triage_pending" && item.user_facing_stage === "submitted" && (
                               <>
                                 <Menu.Item
                                   leftSection={<X className="w-3.5 h-3.5 text-danger" />}

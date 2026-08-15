@@ -485,7 +485,7 @@ export async function vetoHandler(c: Context) {
 }
 
 // ---------------------------------------------------------------------------
-// POST /api/cases/:id/complete — Supporter marks case as completed
+// POST /api/cases/:id/complete — Owner xác nhận hoàn thành (T17) / Admin force-close (T14)
 // ---------------------------------------------------------------------------
 
 export async function completeCaseHandler(c: Context) {
@@ -495,8 +495,8 @@ export async function completeCaseHandler(c: Context) {
   }
 
   const role = (session.user as any).role;
-  if (role !== "supporter" && role !== "admin") {
-    return c.json({ code: "FORBIDDEN", message: "Chỉ supporter mới có quyền đánh dấu hoàn thành" }, 403);
+  if (role !== "user" && role !== "supporter" && role !== "admin") {
+    return c.json({ code: "FORBIDDEN", message: "Không có quyền đánh dấu hoàn thành" }, 403);
   }
 
   const caseId = c.req.param("id") || "";

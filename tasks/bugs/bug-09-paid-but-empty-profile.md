@@ -19,12 +19,12 @@
 
 | Field | Value |
 |-------|-------|
-| Status | Backlog |
+| Status | Done |
 | Assignee | — |
 | Priority | Medium |
-| Target | — |
-| Ghi chú | Cần thiết kế UX khác cho case đã trả tiền nhưng thiếu thông tin hồ sơ |
+| Target | 2026-08-16 |
+| Ghi chú | Đã fix trong plan `260815-2154-backlog-bugs-fix` (2026-08-16): admin list tách bucket — review queue chỉ `submitted`/`triage_pending`, bucket riêng `intake_pending` "Chờ sinh viên nộp hồ sơ"; admin detail `intake_snapshot=null` → empty-state + disable approve/reject |
 
 ## Acceptance Criteria (draft)
-- [ ] Admin duyệt chi tiết không bị trống khi case thiếu thông tin
-- [ ] UX chỉ rõ trạng thái "chờ user cập nhật thông tin"
+- [x] Admin duyệt chi tiết không bị trống khi case thiếu thông tin
+- [x] UX chỉ rõ trạng thái "chờ user cập nhật thông tin"

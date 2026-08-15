@@ -19,12 +19,12 @@
 
 | Field | Value |
 |-------|-------|
-| Status | Backlog |
+| Status | Done |
 | Assignee | — |
 | Priority | Medium |
-| Target | — |
-| Ghi chú | User vẫn ở trang hồ sơ khi admin xóa → phải kick/redirect |
+| Target | 2026-08-16 |
+| Ghi chú | Đã fix trong plan `260815-2154-backlog-bugs-fix` (2026-08-16): `delete-case.usecase.ts` sau deleteCase → `publishToChannel(chat:{caseId}, {type:'case_deleted', caseId})`; FE `useRealtimeChat.ts` nhánh `case_deleted` (toast + redirect /dashboard + invalidate); fallback poll `useCaseDetails` 404 → redirect |
 
 ## Acceptance Criteria (draft)
-- [ ] User bị kick/redirect khi admin xóa hồ sơ đang xem
-- [ ] Không hiển thị trạng thái sai sau khi case bị xóa
+- [x] User bị kick/redirect khi admin xóa hồ sơ đang xem
+- [x] Không hiển thị trạng thái sai sau khi case bị xóa

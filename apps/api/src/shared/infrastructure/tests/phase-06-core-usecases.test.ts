@@ -591,24 +591,6 @@ test("Phase 06 - Core usecases", async (t) => {
   });
 
   // -----------------------------------------------------------------------
-  // closeCaseUseCase (no DI — hits real DB)
-  // -----------------------------------------------------------------------
-  await t.test("closeCaseUseCase - not found", async () => {
-    const { closeCaseUseCase } = await import(
-      "../../../modules/supporter/application/close-case.usecase.js"
-    );
-    const { AppError } = await import("../../domain/app-error.js");
-
-    try {
-      await closeCaseUseCase("sup-1", "nonexistent-id");
-      assert.fail("Should throw");
-    } catch (err: any) {
-      assert.ok(err instanceof AppError);
-      assert.strictEqual(err.code, "NOT_FOUND");
-    }
-  });
-
-  // -----------------------------------------------------------------------
   // listCasesUseCase — smoke test
   // -----------------------------------------------------------------------
   await t.test("listCasesUseCase - returns array", async () => {

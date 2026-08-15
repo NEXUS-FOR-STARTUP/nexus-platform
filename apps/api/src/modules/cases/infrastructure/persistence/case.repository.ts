@@ -216,6 +216,11 @@ export async function createCaseWithCheckpointAndIntake(data: {
       "intake_document",
       "inbound",
       tx,
+      undefined,
+      (doc) =>
+        typeof doc.document_type === "string" && doc.document_type.trim()
+          ? doc.document_type
+          : undefined,
     );
 
     await tx.caseEvent.create({
@@ -253,8 +258,8 @@ export async function acceptCase(caseId: string, adminId: string, nextStatus: st
   });
 }
 
-export async function deleteCase(caseId: string) {
-  return await prisma.case.delete({
+export async function deleteCase(caseId: string, tx?: Prisma.TransactionClient) {
+  return await (tx ?? prisma).case.delete({
     where: { id: caseId },
   });
 }

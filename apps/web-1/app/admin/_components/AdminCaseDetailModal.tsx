@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Modal, Button, Badge, Loader } from "@mantine/core";
+import { FileText } from "lucide-react";
 import { useAdminCaseDetail } from "../hooks/useAdminCases";
 import { statusThemeMap } from "@/types";
 import { filterTransitions } from "@/_types/transitions";
@@ -44,9 +45,10 @@ export default function AdminCaseDetailModal({
     isOwner: false,
     isAssignedSupporter: false,
   });
-  const canAccept = filteredTransitions.includes("T5_ACCEPT");
-  const canReject = filteredTransitions.includes("T12_REJECT");
-  const canAssign = filteredTransitions.includes("T6_ASSIGN_SUPPORTER");
+  const hasNoIntake = !!detailData && !detailData.intake_snapshot;
+  const canAccept = !hasNoIntake && filteredTransitions.includes("T5_ACCEPT");
+  const canReject = !hasNoIntake && filteredTransitions.includes("T12_REJECT");
+  const canAssign = !hasNoIntake && filteredTransitions.includes("T6_ASSIGN_SUPPORTER");
 
   return (
     <Modal
@@ -116,6 +118,22 @@ export default function AdminCaseDetailModal({
               </div>
             </div>
 
+            {hasNoIntake ? (
+              <div className="bg-surface-app border border-border-app rounded-lg p-8 md:p-12 text-center flex flex-col items-center justify-center gap-4 animate-fade-in font-body">
+                <div className="w-12 h-12 rounded-full bg-surface-soft border border-border-app text-text-subtle flex items-center justify-center">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <div className="space-y-1.5 max-w-sm">
+                  <h4 className="font-heading font-semibold text-sm text-text-app">
+                    Sinh viên đã thanh toán nhưng chưa nộp hồ sơ
+                  </h4>
+                  <p className="font-body text-xs text-text-muted leading-relaxed">
+                    Nội dung hồ sơ phản biện sẽ hiển thị ở đây sau khi sinh viên hoàn thành bước nộp hồ sơ.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>
             {detailData.intake_snapshot?.contact && (
               <div>
                 <h4 className="font-heading font-semibold text-sm text-text-app mb-3">Người liên hệ chính (Đại diện nhóm)</h4>
@@ -232,6 +250,8 @@ export default function AdminCaseDetailModal({
                   ))}
                 </div>
               </div>
+            )}
+              </>
             )}
           </div>
         )}

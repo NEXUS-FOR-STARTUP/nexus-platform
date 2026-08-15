@@ -431,6 +431,7 @@ model DocumentRecord {
   cloudinary_public_id      String?
   metadata_json             Json?
   uploaded_by_auth_user_id  String
+  superseded_at             DateTime?
   created_at                DateTime  @default(now())
   updated_at                DateTime  @updatedAt
 
@@ -445,6 +446,7 @@ model DocumentRecord {
   @@index([uploaded_by_auth_user_id])
   @@index([case_id, checkpoint_id])
   @@index([case_id, source_kind])
+  @@index([case_id, superseded_at])
   @@unique([lifecycle_unit_id, doc_type, seq])
   @@map("document_records")
 }

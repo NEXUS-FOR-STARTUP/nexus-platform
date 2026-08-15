@@ -27,12 +27,14 @@ User upload tài liệu -> supporter upload báo cáo -> kết thúc lần 1
 
 | Field | Value |
 |-------|-------|
-| Status | Backlog |
+| Status | Done (2026-08-14 — plan `260814-1825-reject-resubmit-loop-fix`) |
 | Assignee | — |
 | Priority | Low |
 | Target | — |
 | Ghi chú | Đổi error message sang thông báo rõ ràng "chưa đủ điều kiện để tải output" |
 
 ## Acceptance Criteria (draft)
-- [ ] Supporter upload report khi user chưa chat/upload → thấy error message mô tả đúng nguyên nhân
-- [ ] Không còn hiển thị chung chung "lỗi hệ thống"
+- [x] Supporter upload report khi user chưa chat/upload → thấy error message mô tả đúng nguyên nhân
+- [x] Không còn hiển thị chung chung "lỗi hệ thống"
+
+> **Done note:** lỗi chuyển thành `AppError` có code — `INVALID_TRANSITION`, `NO_CREDITS` (402), `DUPLICATE_CREDIT_CONSUMPTION` (409). Không còn 500 "lỗi hệ thống" chung.

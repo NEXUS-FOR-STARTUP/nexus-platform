@@ -80,7 +80,7 @@ export default function SupporterDashboard() {
           }`}
         >
           <FileText className="w-4 h-4" />
-          <span>Đã gửi báo cáo ({submittedReports.length})</span>
+          <span>Đã giao ({submittedReports.length})</span>
         </button>
 
         <button
@@ -133,7 +133,7 @@ export default function SupporterDashboard() {
               {activeFilter === "pending" 
                 ? "Không có hồ sơ cần phản biện" 
                 : activeFilter === "submitted"
-                ? "Chưa có báo cáo nào được gửi"
+                ? "Chưa có hồ sơ nào được giao"
                 : activeFilter === "completed"
                 ? "Chưa có hồ sơ nào hoàn thành"
                 : "Không có hồ sơ nào được phân công"}
@@ -142,7 +142,7 @@ export default function SupporterDashboard() {
               {activeFilter === "pending"
                 ? "Không có hồ sơ cần phản biện — tất cả đã được xử lý hoặc chưa có phân công mới."
                 : activeFilter === "submitted"
-                ? "Chưa có báo cáo nào được gửi — sau khi hoàn thành phản biện và gửi báo cáo, hồ sơ sẽ hiển thị tại đây."
+                ? "Chưa có hồ sơ nào được giao — sau khi gửi báo cáo phản biện và chờ sinh viên xác nhận, hồ sơ sẽ hiển thị tại đây."
                 : "Các hồ sơ sau khi hoàn thành sẽ hiển thị tại danh sách này."}
             </p>
           </div>

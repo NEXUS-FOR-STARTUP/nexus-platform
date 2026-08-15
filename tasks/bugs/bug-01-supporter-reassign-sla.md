@@ -21,14 +21,14 @@
 
 | Field | Value |
 |-------|-------|
-| Status | Backlog |
+| Status | Done |
 | Assignee | — |
 | Priority | High |
-| Target | — |
-| Ghi chú | Cần chốt SLA policy trước khi code |
+| Target | 2026-08-16 |
+| Ghi chú | Đã fix trong plan `260815-2154-backlog-bugs-fix` (2026-08-16): SLA đếm tiếp (đúng — no code), thêm T6 self-loop cho reassign ở `supporter_working`/`report_ready_to_publish`, refund credit dư theo FIFO giá mua thực tế (DESC, newest first), idempotency `refund-credit-{caseId}`, xóa supporter close-case route |
 
 ## Acceptance Criteria (draft)
-- [ ] Admin phân lại supporter ở stage "báo cáo chờ gửi"
-- [ ] Ghi lịch sử assign supporter vào hệ thống
-- [ ] SLA tiếp tục đếm (không reset) — chờ xác nhận
-- [ ] [user] biết thời điểm có kết quả, không cần biết ai là supporter
+- [x] Admin phân lại supporter ở stage "báo cáo chờ gửi"
+- [x] Ghi lịch sử assign supporter vào hệ thống
+- [x] SLA tiếp tục đếm (không reset) — chờ xác nhận
+- [x] [user] biết thời điểm có kết quả, không cần biết ai là supporter

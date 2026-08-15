@@ -1,8 +1,17 @@
 "use client";
 
 import React from "react";
-import { TextInput, Tooltip } from "@mantine/core";
+import { TextInput, Text, Tooltip } from "@mantine/core";
 import { HelpCircle } from "lucide-react";
+
+const SHORT_MAX = 100;
+const EMAIL_MAX = 254;
+
+const charCounter = (value: string, max: number) => (
+  <Text size="xs" c="dimmed" className="pointer-events-none">
+    {(value || "").length}/{max}
+  </Text>
+);
 
 interface ContactStepProps {
   form: any;
@@ -32,6 +41,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
             onChange: ({ value }: { value: string }) => {
               if (!value) return "Họ và tên là bắt buộc.";
               if (value.trim().length < 2) return "Họ và tên tối thiểu phải 2 ký tự.";
+              if (value.length > SHORT_MAX) return `Họ và tên không được vượt quá ${SHORT_MAX} ký tự.`;
               return undefined;
             },
           }}
@@ -47,6 +57,9 @@ export default function ContactStep({ form, values }: ContactStepProps) {
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
+                maxLength={SHORT_MAX}
+                rightSection={charCounter(field.state.value || "", SHORT_MAX)}
+                rightSectionWidth={64}
                 radius="md"
               />
             );
@@ -59,6 +72,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
             onChange: ({ value }: { value: string }) => {
               if (!value) return "Mã số sinh viên là bắt buộc.";
               if (value.trim().length < 5) return "Mã số sinh viên tối thiểu phải 5 ký tự.";
+              if (value.length > SHORT_MAX) return `Mã số sinh viên không được vượt quá ${SHORT_MAX} ký tự.`;
               return undefined;
             },
           }}
@@ -87,6 +101,9 @@ export default function ContactStep({ form, values }: ContactStepProps) {
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
+                maxLength={SHORT_MAX}
+                rightSection={charCounter(field.state.value || "", SHORT_MAX)}
+                rightSectionWidth={64}
                 radius="md"
               />
             );
@@ -98,6 +115,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
           validators={{
             onChange: ({ value }: { value: string }) => {
               if (!value || !value.trim()) return "Vai trò trong nhóm là bắt buộc.";
+              if (value.length > SHORT_MAX) return `Vai trò trong nhóm không được vượt quá ${SHORT_MAX} ký tự.`;
               return undefined;
             },
           }}
@@ -126,6 +144,9 @@ export default function ContactStep({ form, values }: ContactStepProps) {
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
+                maxLength={SHORT_MAX}
+                rightSection={charCounter(field.state.value || "", SHORT_MAX)}
+                rightSectionWidth={64}
                 radius="md"
               />
             );
@@ -178,6 +199,7 @@ export default function ContactStep({ form, values }: ContactStepProps) {
             onChange: ({ value }: { value: string }) => {
               if (!value) return "Email liên hệ là bắt buộc.";
               if (!value.includes("@")) return "Email không đúng định dạng.";
+              if (value.length > EMAIL_MAX) return `Email liên hệ không được vượt quá ${EMAIL_MAX} ký tự.`;
               return undefined;
             },
           }}
@@ -195,6 +217,9 @@ export default function ContactStep({ form, values }: ContactStepProps) {
                   onBlur={field.handleBlur}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.handleChange(e.target.value)}
                   error={hasError ? field.state.meta.errors[0] : undefined}
+                  maxLength={EMAIL_MAX}
+                  rightSection={charCounter(field.state.value || "", EMAIL_MAX)}
+                  rightSectionWidth={64}
                   radius="md"
                 />
               </div>

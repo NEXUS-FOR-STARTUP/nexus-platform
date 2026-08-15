@@ -7,6 +7,7 @@ import { CREDIT_AUDIT_SERVICE } from "../domain/order.types.js";
 import logger from "../../../shared/infrastructure/logger.js";
 import type { CreateOrderItem, CreateOrderRequest } from "../domain/order.types.js";
 import type { CreateOrderResponse } from "./orders.dto.js";
+import { transitionInTx } from "../../../services/case-transition.service.js";
 import { prisma } from "../../../db.js";
 import type { Prisma } from "@prisma/client";
 
@@ -150,6 +151,26 @@ export async function createOrderUseCase(
             metadata_json: { order_id: order.id, quantity: item.quantity, unit_price: unitPrice },
           },
         });
+
+        const caseRecord = await tx.case.findUnique({
+          where: { id: caseId },
+          select: { owner_auth_user_id: true, internal_status: true },
+        });
+        if (!caseRecord) {
+          throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án liên quan đến đơn hàng");
+        }
+        if (caseRecord.owner_auth_user_id !== userId) {
+          throw new AppError(403, "FORBIDDEN", "Không thể mua credit cho dự án của người khác");
+        }
+        if (caseRecord.internal_status === "done") {
+          await transitionInTx(tx, {
+            transition: "T19_REOPEN",
+            caseId,
+            actorId: userId,
+            roleVerified: "CUSTOMER",
+            data: {},
+          });
+        }
       }
 
       await insertOutboxEvent(tx, {

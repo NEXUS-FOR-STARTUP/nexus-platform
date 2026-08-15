@@ -19,12 +19,12 @@
 
 | Field | Value |
 |-------|-------|
-| Status | Backlog |
+| Status | Done |
 | Assignee | — |
 | Priority | High |
-| Target | — |
-| Ghi chú | Cần chốt: supporter gửi báo cáo xong = hoàn thành? hay user phải confirm? |
+| Target | 2026-08-16 |
+| Ghi chú | Đã fix trong plan `260815-2154-backlog-bugs-fix` (2026-08-16): user xác nhận hoàn thành qua T17 (isOwner) từ `report_ready_to_publish` → done; T14 guard đổi isAssignedSupporter→isAdmin (admin force-close); auto-done 7 ngày neo latest T11 fire T14 ADMIN; mua credit cho case `done` (owner verified) → T19_REOPEN → `supporter_working`, TARGET_STAGE `under_review`, re-arm SLA |
 
 ## Acceptance Criteria (draft)
-- [ ] Xác định rõ actor xác nhận hoàn thành
-- [ ] Hiển thị tick/trạng thái hoàn thành rõ ràng cho cả 2 phía
+- [x] Xác định rõ actor xác nhận hoàn thành
+- [x] Hiển thị tick/trạng thái hoàn thành rõ ràng cho cả 2 phía

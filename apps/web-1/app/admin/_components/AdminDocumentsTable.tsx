@@ -14,7 +14,6 @@ import {
   TextInput,
   Select,
   Group,
-  Text,
   Menu,
 } from "@mantine/core";
 
@@ -35,6 +34,7 @@ interface DocumentRecordDto {
   uploaded_by: string;
   uploaded_by_email: string;
   created_at: string;
+  superseded_at: string | null;
 }
 
 interface AdminDocumentsTableProps {
@@ -254,7 +254,7 @@ export default function AdminDocumentsTable({
                 <Table.Tr key={doc.id} className="hover:bg-surface-soft/30 transition-colors">
                   {/* File name & Download URL */}
                   <Table.Td>
-                    <div className="flex items-center gap-2 max-w-[280px]">
+                    <div className={`flex items-center gap-2 max-w-[280px] ${doc.superseded_at ? "opacity-60" : ""}`}>
                       {getFileIcon(doc.extension)}
                       <div className="truncate">
                         {doc.file_url ? (
@@ -286,9 +286,16 @@ export default function AdminDocumentsTable({
 
                   {/* Doc type */}
                   <Table.Td>
-                    <Badge color="blue" variant="light" size="sm">
-                      {doc.doc_type}
-                    </Badge>
+                    <div className="flex flex-col gap-1 items-start">
+                      <Badge color="blue" variant="light" size="sm">
+                        {doc.doc_type}
+                      </Badge>
+                      {doc.superseded_at && (
+                        <Badge color="orange" variant="light" size="xs">
+                          Đã thay thế
+                        </Badge>
+                      )}
+                    </div>
                   </Table.Td>
 
                   {/* Related Case */}

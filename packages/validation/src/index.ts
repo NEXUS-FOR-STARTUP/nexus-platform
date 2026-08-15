@@ -201,6 +201,90 @@ export type Case = z.infer<typeof CaseSchema>;
 // CP1 Intake — shared validation schema (FE + BE)
 // ---------------------------------------------------------------------------
 
+export const CP1_MAX_DOCUMENTS = 10;
+export const CP1_SHORT_MAX = 100;
+export const CP1_EMAIL_MAX = 254;
+export const CP1_LONG_MAX = 20000;
+
+function addCp1CapIssues(data: Record<string, unknown>, ctx: z.RefinementCtx) {
+  const contact = data.contact;
+  if (contact && typeof contact === "object") {
+    const c = contact as Record<string, unknown>;
+    const shortFields: Array<[string, string]> = [
+      ["full_name", "Họ tên người liên hệ"],
+      ["student_code", "Mã số sinh viên"],
+      ["team_role", "Vai trò trong nhóm"],
+    ];
+    for (const [field, label] of shortFields) {
+      const value = c[field];
+      if (typeof value === "string" && value.trim().length > CP1_SHORT_MAX) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `${label} không được vượt quá ${CP1_SHORT_MAX} ký tự`,
+          path: ["contact", field],
+        });
+      }
+    }
+    const email = c.email;
+    if (typeof email === "string" && email.trim().length > CP1_EMAIL_MAX) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Email liên hệ không được vượt quá ${CP1_EMAIL_MAX} ký tự`,
+        path: ["contact", "email"],
+      });
+    }
+  }
+
+  const supportNeeds = data.support_needs;
+  if (supportNeeds && typeof supportNeeds === "object") {
+    const primaryNeed = (supportNeeds as Record<string, unknown>).primary_need;
+    if (typeof primaryNeed === "string" && primaryNeed.trim().length > CP1_SHORT_MAX) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Nhu cầu hỗ trợ chính không được vượt quá ${CP1_SHORT_MAX} ký tự`,
+        path: ["support_needs", "primary_need"],
+      });
+    }
+  }
+
+  const longFields: Array<[string, string]> = [
+    ["current_blocker", "Điểm kẹt hiện tại"],
+    ["case_summary", "Tóm tắt hồ sơ"],
+  ];
+  for (const [field, label] of longFields) {
+    const value = data[field];
+    if (typeof value === "string" && value.trim().length > CP1_LONG_MAX) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `${label} không được vượt quá ${CP1_LONG_MAX} ký tự`,
+        path: [field],
+      });
+    }
+  }
+
+  const situations = data.current_situations;
+  if (Array.isArray(situations)) {
+    situations.forEach((item: unknown, index: number) => {
+      if (typeof item === "string" && item.trim().length > CP1_LONG_MAX) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Tình huống hiện tại không được vượt quá ${CP1_LONG_MAX} ký tự`,
+          path: ["current_situations", index],
+        });
+      }
+    });
+  }
+
+  const documents = data.documents;
+  if (Array.isArray(documents) && documents.length > CP1_MAX_DOCUMENTS) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `Thư mục tài liệu không được vượt quá ${CP1_MAX_DOCUMENTS} tài liệu`,
+      path: ["documents"],
+    });
+  }
+}
+
 export const Cp1IntakeSchema = z.object({
   contact: z.unknown().optional(),
   current_blocker: z.unknown().optional(),
@@ -210,6 +294,8 @@ export const Cp1IntakeSchema = z.object({
   documents: z.unknown().optional(),
   boundary_confirmations: z.unknown().optional(),
 }).passthrough().superRefine((data, ctx) => {
+  addCp1CapIssues(data, ctx);
+
   // 1. Contact validation
   const contact = data.contact;
   if (!contact || typeof contact !== 'object') {
@@ -284,6 +370,45 @@ export const Cp1IntakeSchema = z.object({
 });
 
 export type Cp1Intake = z.infer<typeof Cp1IntakeSchema>;
+
+export const Cp1IntakeCaps = z.object({
+  contact: z.unknown().optional(),
+  current_blocker: z.unknown().optional(),
+  case_summary: z.unknown().optional(),
+  current_situations: z.unknown().optional(),
+  support_needs: z.unknown().optional(),
+  documents: z.unknown().optional(),
+}).passthrough().superRefine((data, ctx) => {
+  addCp1CapIssues(data, ctx);
+});
+
+// ---------------------------------------------------------------------------
+// Document categories — shared code ↔ label map (FE + BE)
+// ---------------------------------------------------------------------------
+
+export const DOCUMENT_CATEGORY_CODES = [
+  "idea_report",
+  "pitch_deck",
+  "competitor_analysis",
+  "customer_research",
+  "task_assignment",
+  "other",
+] as const;
+
+export type DocumentCategoryCode = (typeof DOCUMENT_CATEGORY_CODES)[number];
+
+const DOCUMENT_CATEGORY_LABELS: Record<DocumentCategoryCode, string> = {
+  idea_report: "Báo cáo ý tưởng",
+  pitch_deck: "Slide thuyết trình",
+  competitor_analysis: "Phân tích đối thủ",
+  customer_research: "Khảo sát khách hàng",
+  task_assignment: "Đề cương phân công",
+  other: "Tài liệu bổ sung",
+};
+
+export function docCategoryLabel(code: string): string {
+  return DOCUMENT_CATEGORY_LABELS[code as DocumentCategoryCode] ?? code;
+}
 
 // ---------------------------------------------------------------------------
 // Notification — shared entity types (FE + BE)

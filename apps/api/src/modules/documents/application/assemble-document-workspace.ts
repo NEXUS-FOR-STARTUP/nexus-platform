@@ -224,7 +224,7 @@ function legacyFilesFromUnit(
       seq: 0,
       is_primary: true,
       doc_type: 'intake_document',
-      doc_type_label: 'Tài liệu chính',
+      doc_type_label: 'Hồ sơ nộp',
       source_kind: sourceKind,
       canonical_name: originalName,
       original_name: originalName,
@@ -252,6 +252,7 @@ function toDocumentFile(
     mime_type: string | null;
     file_url: string | null;
     download_url: string | null;
+    metadata_json?: unknown;
     uploaded_by?: {
       name: string;
       role: string;
@@ -288,7 +289,7 @@ function toDocumentFile(
   }
 
   const DEFAULT_DOC_TYPE_LABELS: Record<string, string> = {
-    intake_document: "Tài liệu chính",
+    intake_document: "Hồ sơ nộp",
     revision_document: "Bản sửa đổi",
     revision_attachment: "Tài liệu bổ sung bản sửa",
     supporter_output: "Output hỗ trợ",
@@ -302,12 +303,20 @@ function toDocumentFile(
     || DEFAULT_DOC_TYPE_LABELS[record.doc_type] 
     || "Tài liệu";
 
+  const metadata =
+    record.metadata_json && typeof record.metadata_json === "object"
+      ? (record.metadata_json as Record<string, unknown>)
+      : null;
+  const category =
+    metadata && typeof metadata.category === "string" ? metadata.category : null;
+
   return {
     id: record.id,
     seq: record.seq,
     is_primary: record.is_primary,
     doc_type: record.doc_type,
     doc_type_label: docTypeLabel,
+    category,
     source_kind: sourceKind,
     canonical_name: record.canonical_name,
     original_name: record.original_name,

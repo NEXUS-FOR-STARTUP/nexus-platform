@@ -1,5 +1,6 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import type { Prisma } from "@prisma/client";
+import { Cp1IntakeCaps } from "@repo/validation";
 import { findCaseByIdWithMembersAndCheckpoints, findLatestCaseEventByType } from "../infrastructure/persistence/case.repository.js";
 import { upsertDocumentRecordsForUnit } from "../../documents/infrastructure/persistence/document.repository.js";
 import { prisma } from "../../../db.js";
@@ -11,12 +12,39 @@ import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 
 type DbClient = Prisma.TransactionClient | typeof prisma
 
+export function buildSupersedeUpdateArgs(
+  caseId: string,
+  newRecordIds: string[],
+  now: Date = new Date(),
+) {
+  return {
+    where: {
+      case_id: caseId,
+      unit_code: "v00",
+      doc_type: "intake_document",
+      superseded_at: null,
+      id: { notIn: newRecordIds },
+    },
+    data: { superseded_at: now },
+  };
+}
+
 async function updateIntakeDataOnly(
   client: DbClient,
   caseId: string,
   caseRecord: any,
   body: IntakeRequest,
 ) {
+  const capsResult = Cp1IntakeCaps.safeParse(body);
+  if (!capsResult.success) {
+    throw new AppError(
+      400,
+      "INVALID_INTAKE",
+      "Dữ liệu intake không hợp lệ",
+      capsResult.error.issues.map((issue) => issue.message),
+    );
+  }
+
   let checkpointId = "";
 
   if (caseRecord.current_checkpoint) {
@@ -74,16 +102,25 @@ async function updateIntakeDataOnly(
     });
 
   // D13 + immutability: upsert theo ID deterministic (file cùng identity → replace, khác → thêm)
-  await upsertDocumentRecordsForUnit(
+  const createdRecords = await upsertDocumentRecordsForUnit(
     caseId,
     checkpointId,
     intakeUnit.id,
-    "intake",
+    "v00",
     body.documents || [],
     caseRecord.owner_auth_user_id,
     "intake_document",
     "inbound",
     client as any,
+    (doc) =>
+      typeof doc.document_type === "string" && doc.document_type.trim()
+        ? doc.document_type
+        : undefined,
+  );
+
+  const newRecordIds = createdRecords.map((record) => record.id);
+  await client.documentRecord.updateMany(
+    buildSupersedeUpdateArgs(caseId, newRecordIds),
   );
 
   await client.case.update({

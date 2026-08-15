@@ -19,12 +19,12 @@
 
 | Field | Value |
 |-------|-------|
-| Status | Backlog |
+| Status | Done |
 | Assignee | — |
 | Priority | Medium |
-| Target | — |
-| Ghi chú | Hiện chỉ giới hạn dung lượng (15MB), không giới hạn số file |
+| Target | 2026-08-16 |
+| Ghi chú | Đã fix trong plan `260815-2154-backlog-bugs-fix` (2026-08-16): max 10 tài liệu intake-only, enforce ở `Cp1IntakeSchema` + FE `DocumentInputStep`; KHÔNG đụng `validateDocumentWriteInputs` (revision/supporter output giữ nguyên) |
 
 ## Acceptance Criteria (draft)
-- [ ] Giới hạn số tài liệu tối đa khi upload intake
-- [ ] Báo lỗi rõ ràng khi vượt giới hạn
+- [x] Giới hạn số tài liệu tối đa khi upload intake
+- [x] Báo lỗi rõ ràng khi vượt giới hạn

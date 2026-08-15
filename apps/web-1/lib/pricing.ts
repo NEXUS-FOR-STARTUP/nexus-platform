@@ -7,6 +7,13 @@ export const PACKAGE_KEYS = {
 
 export type PackageKey = (typeof PACKAGE_KEYS)[keyof typeof PACKAGE_KEYS];
 
+export function isCaseFree(caseData?: {
+  package_id?: string | null;
+  locked_price?: number | null;
+} | null): boolean {
+  return caseData?.locked_price === 0 || caseData?.package_id === PACKAGE_KEYS.FREE;
+}
+
 /**
  * Resolves the effective pricing for a case, falling back to the package price
  * or 0 if neither are set.

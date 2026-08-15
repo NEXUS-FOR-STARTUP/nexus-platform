@@ -1,7 +1,9 @@
 "use client";
 
-import { Alert, Textarea, Tooltip } from "@mantine/core";
+import { Alert, Text, Textarea, Tooltip } from "@mantine/core";
 import { HelpCircle, Info } from "lucide-react";
+
+const BLOCKER_MAX = 20000;
 
 interface SituationStepProps {
   form: any;
@@ -42,6 +44,7 @@ export default function SituationStep({ form, values }: SituationStepProps) {
               const text = typeof value === "string" ? value.trim() : "";
               if (!text) return "Mô tả điểm kẹt hiện tại là bắt buộc.";
               if (text.length < 10) return "Mô tả điểm kẹt hiện tại tối thiểu 10 ký tự.";
+              if (text.length > BLOCKER_MAX) return `Mô tả điểm kẹt hiện tại không được vượt quá ${BLOCKER_MAX} ký tự.`;
               return undefined;
             },
           }}
@@ -70,8 +73,14 @@ export default function SituationStep({ form, values }: SituationStepProps) {
                 onBlur={field.handleBlur}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
+                description={
+                  <Text size="xs" c="dimmed" ta="right">
+                    {(field.state.value || "").length}/{BLOCKER_MAX} ký tự
+                  </Text>
+                }
                 minRows={4}
                 autosize
+                maxLength={BLOCKER_MAX}
                 radius="md"
               />
             );

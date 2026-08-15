@@ -13,6 +13,7 @@ import {
 import { Alert, Button } from "@mantine/core";
 import { STATUS_GUIDANCE_COPY, type GuidanceTone, type GuidanceIconKey } from "./statusCopyMap";
 import type { OpenInfoRequest } from "../hooks/useCaseDetails";
+import { isCaseFree } from "@/lib/pricing";
 
 interface StatusGuidanceCardProps {
   caseData: Case;
@@ -23,6 +24,8 @@ interface StatusGuidanceCardProps {
   onOpenPayment?: () => void;
   onOpenIntake?: () => void;
   onSubmitRevision?: () => void;
+  onConfirmComplete?: () => void;
+  isConfirmingComplete?: boolean;
 }
 
 const ICON_BY_KEY: Record<GuidanceIconKey, React.ComponentType<{ className?: string }>> = {
@@ -51,6 +54,8 @@ export default function StatusGuidanceCard({
   onOpenPayment,
   onOpenIntake,
   onSubmitRevision,
+  onConfirmComplete,
+  isConfirmingComplete,
 }: StatusGuidanceCardProps) {
   const stage = caseData.user_facing_stage;
   const hasInfoRequest = !!openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0;
@@ -145,7 +150,7 @@ export default function StatusGuidanceCard({
     const hasCredits = (creditBalance ?? 0) > 0;
     if (hasCredits) return null;
 
-    const isFree = caseData.package_id === "pkg_tf_free";
+    const isFree = isCaseFree(caseData);
     return (
       <Alert
         variant="light"
@@ -236,6 +241,68 @@ export default function StatusGuidanceCard({
           {canSubmitRevision && onSubmitRevision && (
             <Button size="sm" color="brand" className="shrink-0 cursor-pointer" onClick={onSubmitRevision}>
               Nộp tài liệu bổ sung
+            </Button>
+          )}
+        </div>
+      </Alert>
+    );
+  }
+
+  if (stage === "report_ready") {
+    const isFree = isCaseFree(caseData);
+    const hasCredits = isFree || (creditBalance ?? 0) > 0;
+    const canConfirmComplete = hasTransition("T17_USER_CONFIRM_COMPLETE");
+
+    if (!hasCredits) {
+      return (
+        <Alert
+          variant="light"
+          color="red"
+          radius="md"
+          title="Hết credit đánh giá"
+          icon={<AlertCircle className="w-4.5 h-4.5 shrink-0" />}
+          className={ALERT_CLASS}
+          styles={{ wrapper: { alignItems: "center" } }}
+        >
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <p className="text-text-muted text-xs leading-relaxed">
+              Bạn đã hết credit đánh giá cho dự án này. Mua thêm credit để tiếp tục các lượt đánh giá tiếp theo.
+            </p>
+            {onOpenPayment && (
+              <Button size="sm" color="brand" className="shrink-0 cursor-pointer" onClick={onOpenPayment}>
+                Mua credit
+              </Button>
+            )}
+          </div>
+        </Alert>
+      );
+    }
+
+    return (
+      <Alert
+        variant="light"
+        color="green"
+        radius="md"
+        title="Báo cáo phản biện đã sẵn sàng"
+        icon={<CheckCircle2 className="w-4.5 h-4.5 shrink-0" />}
+        className={ALERT_CLASS}
+      >
+        <div className="space-y-2 flex-grow">
+          <p className="text-text-muted text-xs leading-relaxed">
+            Supporter đã hoàn thành đánh giá chi tiết. Xem báo cáo ở tab Tài liệu; khi nhóm đã xem xong, hãy xác nhận hoàn thành để đóng quy trình phản biện.
+          </p>
+          <p className="text-text-muted text-xs leading-relaxed">
+            Muốn tiếp tục cải thiện? Sửa tài liệu rồi gửi lại — mỗi lượt đánh giá mới = 1 credit.
+          </p>
+          {onConfirmComplete && canConfirmComplete && (
+            <Button
+              size="sm"
+              color="brand"
+              className="shrink-0 cursor-pointer"
+              loading={isConfirmingComplete}
+              onClick={onConfirmComplete}
+            >
+              Xác nhận hoàn thành
             </Button>
           )}
         </div>
