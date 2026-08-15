@@ -16,7 +16,7 @@ import RejectionReasonModal from "./_components/RejectionReasonModal";
 import ApprovePaymentModal from "./_components/ApprovePaymentModal";
 import { useAdminStats } from "./hooks/useAdminStats";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, AlertTriangle, FolderKanban, Activity, Users } from "lucide-react";
+import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, AlertTriangle, FolderKanban, Activity, Users, Clock } from "lucide-react";
 import { Tooltip, UnstyledButton, Title, Text, Badge, Divider } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import classes from "../../components/layout/DoubleNavbar.module.css";
@@ -75,7 +75,7 @@ function AdminHubPageInner() {
   const [approvingDepositId, setApprovingDepositId] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages" | "stats" | "users">("stats");
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
-  const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "unassigned" | "assigned" | "crud">("all");
+  const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "intake" | "unassigned" | "assigned" | "crud">("all");
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -223,7 +223,7 @@ function AdminHubPageInner() {
   const isLoading = isPaymentsLoading || isCasesLoading || isSupportersLoading || isDocsLoading || isPackagesLoading;
 
   const pendingPaymentsCount = deposits.filter((d) => d.status === "pending").length;
-  const unassignedCasesCount = cases.filter((c) => c.internal_status === "triage_pending" || c.internal_status === "accepted_unassigned").length;
+  const unassignedCasesCount = cases.filter((c) => c.user_facing_stage !== "intake_pending" && c.user_facing_stage !== "intake_ready" && (c.internal_status === "triage_pending" || c.internal_status === "accepted_unassigned")).length;
 
   const filteredDeposits = React.useMemo(() => {
     if (paymentFilter === "pending") {
@@ -236,14 +236,27 @@ function AdminHubPageInner() {
     if (caseFilter === "crud") {
       return cases;
     }
+    if (caseFilter === "intake") {
+      return cases.filter(
+        (c) =>
+          c.user_facing_stage === "intake_pending" ||
+          c.user_facing_stage === "intake_ready"
+      );
+    }
     const active = cases.filter(
       (c) =>
-        c.internal_status === "triage_pending" ||
-        c.internal_status === "accepted_unassigned" ||
-        c.internal_status === "assigned"
+        c.user_facing_stage !== "intake_pending" &&
+        c.user_facing_stage !== "intake_ready" &&
+        (c.internal_status === "triage_pending" ||
+          c.internal_status === "accepted_unassigned" ||
+          c.internal_status === "assigned")
     );
     if (caseFilter === "triage") {
-      return active.filter((c) => c.internal_status === "triage_pending");
+      return active.filter(
+        (c) =>
+          c.user_facing_stage === "submitted" &&
+          c.internal_status === "triage_pending"
+      );
     }
     if (caseFilter === "unassigned") {
       return active.filter((c) => c.internal_status === "accepted_unassigned");
@@ -282,6 +295,13 @@ function AdminHubPageInner() {
           title: "Duyệt hồ sơ mới",
           description: "Kiểm tra và quyết định duyệt, từ chối hoặc yêu cầu làm rõ hồ sơ mới gửi.",
           icon: CheckCircle,
+        };
+      }
+      if (caseFilter === "intake") {
+        return {
+          title: "Chờ sinh viên nộp hồ sơ",
+          description: "Hồ sơ đã thanh toán nhưng sinh viên chưa hoàn thành bước nộp hồ sơ phản biện.",
+          icon: Clock,
         };
       }
       if (caseFilter === "unassigned") {
@@ -485,6 +505,13 @@ function AdminHubPageInner() {
                   data-active={caseFilter === "triage" || undefined}
                 >
                   <span>Chờ duyệt</span>
+                </UnstyledButton>
+                <UnstyledButton
+                  onClick={() => setCaseFilter("intake")}
+                  className={classes.link}
+                  data-active={caseFilter === "intake" || undefined}
+                >
+                  <span>Chờ sinh viên nộp hồ sơ</span>
                 </UnstyledButton>
                 <UnstyledButton
                   onClick={() => setCaseFilter("unassigned")}
