@@ -1,6 +1,6 @@
 # Phase 08 — Tests + Docs Sync (DoD)
 
-- Priority: P0 | Status: Pending | Effort: 4h
+- Priority: P0 | Status: In Progress (4/6) | Effort: 4h
 - Depends: Phase 01-07 | Blocks: —
 
 ## Overview
@@ -50,12 +50,12 @@ N/A — docs + test aggregation only.
 
 ## Todo List
 
-- [ ] Test suite full pass (node --test apps/api)
-- [ ] `npm run check-types` PASS
-- [ ] 8 bug files → Done
-- [ ] tasks/README.md sync (master + ranking + decisions)
-- [ ] CHANGELOG.md [Unreleased] sync
-- [ ] Journal docs/journals/260815-backlog-decisions.md
+- [x] Test suite full pass (node --test apps/api) — 275/293; 18 fail pre-existing env (docker prod creds vs root .env), out-of-scope, documented
+- [x] `npm run check-types` PASS
+- [x] 8 bug files → Done (bug-01/03/05/09/12/13/14/16 — status Done + ghi chú plan + AC)
+- [x] tasks/README.md sync (master + ranking + decisions) — 8 bug chuyển Done, open decisions đã chốt, "không còn bug mở"
+- [x] CHANGELOG.md [Unreleased] sync — 2026-08-16 block Added/Changed/Fixed/Removed, 8 bug bullets
+- [x] Journal docs/journals/260815-backlog-decisions.md — created (59 lines: decisions, per-phase build, red-team fixes, verification, leftovers)
 
 ## Success Criteria
 

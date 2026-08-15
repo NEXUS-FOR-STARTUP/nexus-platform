@@ -1,6 +1,6 @@
 # Phase 06 — Admin Queue (#9)
 
-- Priority: P0 | Status: Pending | Effort: 3h
+- Priority: P0 | Status: Done | Effort: 3h
 - Depends: Phase 05 | Blocks: —
 
 ## Overview
@@ -40,9 +40,9 @@ Admin list hiện hiện mọi state (gốc bug: `useAdminCases.ts:16` gọi `/a
 
 ## Todo List
 
-- [ ] admin/page.tsx: +bucket intake_pending (filter + sidebar)
-- [ ] AdminCaseDetailModal: empty-state + disable approve/reject khi intake_snapshot null
-- [ ] `npm run check-types` PASS
+- [x] admin/page.tsx: +bucket intake_pending (filter + sidebar)
+- [x] AdminCaseDetailModal: empty-state + disable approve/reject khi intake_snapshot null
+- [x] `npm run check-types` PASS
 - [ ] Manual: case chưa nộp intake → hiện ở bucket "Chờ sinh viên nộp hồ sơ", detail empty-state, không approve được
 
 ## Success Criteria

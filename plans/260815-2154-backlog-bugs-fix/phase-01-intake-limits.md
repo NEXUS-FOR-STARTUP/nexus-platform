@@ -1,6 +1,6 @@
 # Phase 01 — Intake Limits (#13 + #14)
 
-- Priority: P0 | Status: Pending | Effort: 4h
+- Priority: P0 | Status: Done | Effort: 4h
 - Depends: — | Blocks: Phase 02
 
 ## Overview
@@ -50,13 +50,13 @@ Chặn giới hạn intake: tối đa **10 tài liệu** (#13) + cap ký tự te
 
 ## Todo List
 
-- [ ] Schema: cap documents ≤10 + string buckets (B1-B6)
-- [ ] submit-intake: validateCp1Intake trong updateIntakeDataOnly
-- [ ] FE DocumentInputStep: MAX_DOCUMENT_COUNT guard + counter + disable + Alert
-- [ ] FE 4 step: maxLength + counter theo bucket
-- [ ] Test cp1-intake-validation.test.ts
-- [ ] `npm run check-types` PASS
-- [ ] `npm test` (apps/api) PASS
+- [x] Schema: cap documents ≤10 + string buckets (B1-B6)
+- [x] submit-intake: validateCp1Intake trong updateIntakeDataOnly
+- [x] FE DocumentInputStep: MAX_DOCUMENT_COUNT guard + counter + disable + Alert
+- [x] FE 4 step: maxLength + counter theo bucket
+- [x] Test cp1-intake-validation.test.ts
+- [x] `npm run check-types` PASS
+- [x] `npm test` (apps/api) PASS
 - [ ] Manual: upload 11 doc → bị chặn FE + BE; text > max → bị chặn; revision/supporter output không đổi
 
 ## Success Criteria

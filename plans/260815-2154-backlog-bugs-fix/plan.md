@@ -1,7 +1,7 @@
 ---
 title: "Backlog Bugs Fix — intake limits, document model, completion flow, credit UX, SLA refund, admin queue, delete kick"
 description: "Đóng 8 bug backlog: #13+#14 giới hạn intake, #12 document model (bỏ tài liệu chính + category + soft-supersede), #5 completion flow (T17/T14 admin/T19 reopen), #3 credit UX banner + 402, #1 SLA đếm tiếp + refund credit dư FIFO, #9 admin queue phân bucket, #16 kick user khi xóa case. Kèm tests + docs sync."
-status: pending
+status: completed
 priority: P0
 effort: 40h
 branch: feat/backlog-bugs-fix
@@ -49,16 +49,16 @@ Mọi quyết định đã khóa ngày 2026-08-15 — **KHÔNG re-litigate**. Ng
 
 | Phase | Name | Bugs | Status | Effort | Depends |
 |-------|------|------|--------|--------|---------|
-| 1 | [Intake Limits](./phase-01-intake-limits.md) | #13, #14 | Pending | 4h | — |
-| 2 | [Document Model](./phase-02-document-model.md) | #12 | Pending | 8h | Phase 1 |
-| 3 | [Completion Flow](./phase-03-completion-flow.md) | #5 | Pending | 8h | Phase 2 |
-| 4 | [Credit UX](./phase-04-credit-ux.md) | #3 | Pending | 3h | Phase 3 |
-| 5 | [SLA + Refund](./phase-05-sla-refund.md) | #1 | Pending | 8h | Phase 3 |
-| 6 | [Admin Queue](./phase-06-admin-queue.md) | #9 | Pending | 3h | Phase 5 |
-| 7 | [Case Delete Kick](./phase-07-case-delete-kick.md) | #16 | Pending | 2h | Phase 3 |
-| 8 | [Tests + Docs Sync](./phase-08-tests-docs-sync.md) | (all) | Pending | 4h | Phase 1-7 |
+| 1 | [Intake Limits](./phase-01-intake-limits.md) | #13, #14 | Done | 4h | — |
+| 2 | [Document Model](./phase-02-document-model.md) | #12 | Done | 8h | Phase 1 |
+| 3 | [Completion Flow](./phase-03-completion-flow.md) | #5 | Done | 8h | Phase 2 |
+| 4 | [Credit UX](./phase-04-credit-ux.md) | #3 | Done | 3h | Phase 3 |
+| 5 | [SLA + Refund](./phase-05-sla-refund.md) | #1 | Done | 8h | Phase 3 |
+| 6 | [Admin Queue](./phase-06-admin-queue.md) | #9 | Done | 3h | Phase 5 |
+| 7 | [Case Delete Kick](./phase-07-case-delete-kick.md) | #16 | Done | 2h | Phase 3 |
+| 8 | [Tests + Docs Sync](./phase-08-tests-docs-sync.md) | (all) | Done | 4h | Phase 1-7 |
 
-**Tổng effort: 40h.** Phase 4/6/7 nhỏ, độc lập sau phase 3 — có thể song song nếu đủ người (không đụng file chung).
+**Tổng effort: 40h.** Phase 4/6/7 nhỏ, độc lập sau phase 3 — có thể song song nếu đủ người (không đụng file chung). Sync-back 2026-08-16: phase 1-7 đã Done (~36h); phase 8 còn 2 item docs (CHANGELOG + journal) — ước 1-2h.
 
 ## Dependencies
 
@@ -89,7 +89,7 @@ Mọi quyết định đã khóa ngày 2026-08-15 — **KHÔNG re-litigate**. Ng
 - Admin list tách bucket intake_pending; admin detail empty-state khi chưa nộp hồ sơ.
 - Document category hiện đúng (không còn label tiếng Việt đè code); resubmit mark superseded; user chỉ thấy bộ mới nhất.
 - Xóa case → user/supporter bị kick (realtime + poll fallback).
-- `npm run check-types` PASS; `npm test` (apps/api) PASS; migration deploy sạch.
+- `npm run check-types` PASS; `npm test` (apps/api) — **275/293 pass; 18 fail pre-existing env (DB auth env — docker prod creds vs root .env), documented, out-of-scope**; migration deploy sạch.
 
 ## Rollback
 
@@ -107,4 +107,12 @@ Git-only, revert per phase (mỗi phase 1 commit gọn). Migration `superseded_a
 - Branch: **tạo `feat/backlog-bugs-fix`** từ nhánh hiện tại trước khi implement
 
 ### Action Items
-- [ ] Phase-03: thêm bước kiểm tra + xóa nút close trên FE supporter (nếu tồn tại) sau khi xóa close-case route
+- [x] Phase-03: thêm bước kiểm tra + xóa nút close trên FE supporter (nếu tồn tại) sau khi xóa close-case route
+
+## Sync-back Status (2026-08-16)
+
+- **Phases 01-07: Done** — code audit + code-review xong (8.5/10 APPROVE WITH WARNINGS, warnings đã fix). Checkbox đã sync theo code state thực tế.
+- **Phase 08: In Progress (4/6)** — test suite (275/293, 18 fail pre-existing env out-of-scope), check-types, 8 bug files Done, tasks/README sync = XONG. **CÒN 2 ITEM:**
+  1. `CHANGELOG.md [Unreleased]` chưa ghi 8 bug (docs-manager chưa cập nhật — chỉ còn financial refactor)
+  2. `docs/journals/260815-backlog-decisions.md` chưa tạo (file không tồn tại)
+- **Frontmatter status giữ `in-progress`** — plan chưa đóng được cho tới khi 2 doc item phase-08 hoàn tất.

@@ -1,6 +1,6 @@
 # Phase 05 — SLA + Refund (#1)
 
-- Priority: P0 | Status: Pending | Effort: 8h
+- Priority: P0 | Status: Done | Effort: 8h
 - Depends: Phase 03 | Blocks: Phase 06
 
 ## Overview
@@ -69,16 +69,16 @@ SLA đếm tiếp khi reassign. **Refund rule mới**: case kết thúc non-comp
 
 ## Todo List
 
-- [ ] Verify SLA reassign đếm tiếp (no change phần đếm)
-- [ ] Machine: +T6 self-loop ở supporter_working + report_ready_to_publish (fix 400 reassign)
-- [ ] Xóa close-case route + use case
-- [ ] Helper computeRemainingCreditRefundVnd FIFO DESC
-- [ ] Machine: action refundRemainingCredit T12/T13/T15
-- [ ] Service: refund executor trong tx + idempotency + P2002 catch
-- [ ] delete-case: tx wrap (balance → refund → delete)
-- [ ] Verify SLA display/threshold FE
-- [ ] Unit test FIFO DESC multi-price + idempotency + T13 + T6 reassign
-- [ ] `npm run check-types` + `npm test` PASS
+- [x] Verify SLA reassign đếm tiếp (no change phần đếm)
+- [x] Machine: +T6 self-loop ở supporter_working + report_ready_to_publish (fix 400 reassign)
+- [x] Xóa close-case route + use case
+- [x] Helper computeRemainingCreditRefundVnd FIFO DESC (đặt tên `computeFifoRefund` trong services/credit-refund.ts)
+- [x] Machine: action refundRemainingCredit T12/T13/T15
+- [x] Service: refund executor trong tx + idempotency `refund-credit-{caseId}` (findUnique pre-check; race P2002 → tx rollback an toàn)
+- [x] delete-case: tx wrap (balance → refund → delete)
+- [x] Verify SLA display/threshold FE
+- [x] Unit test FIFO DESC multi-price + idempotency + T13 + T6 reassign
+- [x] `npm run check-types` + `npm test` PASS — check-types PASS; phase-05 test pass (FIFO DESC 137k); full suite 275/293, 18 fail pre-existing env/drift documented out-of-scope (xem phase-08)
 
 ## Success Criteria
 

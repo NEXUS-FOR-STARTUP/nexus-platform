@@ -1,6 +1,6 @@
 # Phase 02 — Document Model (#12)
 
-- Priority: P0 | Status: Pending | Effort: 8h
+- Priority: P0 | Status: Done | Effort: 8h
 - Depends: Phase 01 | Blocks: Phase 03
 
 ## Overview
@@ -73,16 +73,16 @@ superseded_at DateTime?
 
 ## Todo List
 
-- [ ] Migration `superseded_at` (--create-only + review + deploy)
-- [ ] Category codes + label map (shared validation)
-- [ ] Fix doc_type overwrite (document.repository.ts:77)
-- [ ] Filter superseded_at null ở findDocumentRecordsByCaseId
-- [ ] unit_code "intake"→"v00" (submit-intake.usecase.ts:81)
-- [ ] Mark superseded sau upsertDocumentRecordsForUnit (submit-intake.usecase.ts:77-87)
-- [ ] FE: DOCUMENT_TYPE_OPTIONS gửi code; label render qua map
-- [ ] FE: document-workspace.types grouping + label switch + superseded flag
-- [ ] Integration test supersede
-- [ ] `npm run check-types` + `npm test` PASS
+- [x] Migration `superseded_at` (--create-only + review + deploy) — NOTE: migrate dev bị drift có sẵn (đòi reset → bị chặn); tạo migration SQL thủ công + `migrate deploy` OK
+- [x] Category codes + label map (shared validation)
+- [x] Fix doc_type overwrite (document.repository.ts:77)
+- [x] Filter superseded_at null ở findDocumentRecordsByCaseId
+- [x] unit_code "intake"→"v00" (submit-intake.usecase.ts:81)
+- [x] Mark superseded sau upsertDocumentRecordsForUnit (submit-intake.usecase.ts:77-87)
+- [x] FE: DOCUMENT_TYPE_OPTIONS gửi code; label render qua map
+- [x] FE: document-workspace.types.ts grouping + label switch + superseded flag — RESOLVED post-review: BE payload expose `category` (document-contract.ts `DocumentFile.category`); grouping qua `document-groups.ts` `buildCategoryGroups`; label qua `docCategoryLabel` (buildSupportFlowRows); superseded: admin badge + opacity `AdminDocumentsTable.tsx` + user read filter `superseded_at null`
+- [x] Integration test supersede (unit-level, fake client + prisma stub)
+- [x] `npm run check-types` + `npm test` PASS
 
 ## Success Criteria
 

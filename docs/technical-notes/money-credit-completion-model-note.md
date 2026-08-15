@@ -71,6 +71,8 @@ supporter nộp báo cáo (T11, trừ 1 credit) → report_ready
 - Hiện tại supporter tự gọi T14 → done (`complete-case.usecase.ts:15-19`) — lệch chuẩn, đang sửa theo bug #5
 - Bug UI kèm theo: `supporter/page.tsx:25` filter `report_ready_to_publish` vào tab "Đã hoàn thành" (sai — là "đã giao")
 
+> **Implementation (2026-08-16):** T17 isOwner + T14 isAdmin đã đổi guard (supporter không tự close nữa); auto-done 7 ngày = `setInterval` daily sweep neo latest T11, fire T14 ADMIN (`auto-done-sweep.ts`); done không còn `final` — T19 reachable.
+
 ### 5.1 Reopen (quyết định B — chốt 2026-08-15)
 
 Lý do: user có thể tiếp tục lâu dài dự án của họ trên cùng 1 case (lịch sử chat, doc, đánh giá giữ nguyên).
@@ -90,6 +92,8 @@ done ──user mua credit cho case này (order)──▶ REOPEN ──▶ suppo
 - Chat tự mở lại khi rời `done` (chat gate theo stage)
 - Document lifecycle: round mới = unit version mới (`vNN`) — khớp model `case → checkpoint → version → assessment`
 
+> **Implementation (2026-08-16):** reopen trong `create-order.usecase.ts` — case `done` + owner verified (`owner_auth_user_id !== userId` → 403) → `T19_REOPEN` → machine `supporter_working`, `TARGET_STAGE = under_review` (không admin re-approve), action `setSlaDeadline` re-arm SLA 48h.
+
 ### 5.2 UX vòng 2 — bug #3 (chốt 2026-08-15)
 
 Mục tiêu: user hiểu rule "mỗi lượt đánh giá = 1 credit" đúng thời điểm. Hai điểm chạm duy nhất (KISS — bỏ confirm modal):
@@ -101,6 +105,8 @@ Mục tiêu: user hiểu rule "mỗi lượt đánh giá = 1 credit" đúng th�
 
 KHÔNG thêm confirm khi user gửi bản đã sửa (gửi bản sửa free — không có gì để chặn).
 
+> **Implementation (2026-08-16):** banner credit guidance đã đưa vào `StatusGuidanceCard` (case page user); T11/T3 hết credit → BE throw 402 `NO_CREDITS` pre-check trong `transitionInTx` (không đưa T5 — admin-facing); fix free-case: `subtractCredit` no-op khi `lockedPrice === 0`.
+
 ### 5.3 Bug #9 — paid nhưng chưa nộp intake (chốt 2026-08-15)
 
 - **Mua credit KHÔNG đổi state case, KHÔNG gửi cho admin duyệt** — order chỉ trừ ví VND + tạo creditLedger. Case chỉ vào hàng đợi duyệt khi user nộp intake (T2 → `submitted`)
@@ -110,12 +116,16 @@ KHÔNG thêm confirm khi user gửi bản đã sửa (gửi bản sửa free —
   1. Admin list: hàng đợi duyệt chỉ hiện `submitted`/`triage_pending`; case chưa nộp intake tách mục "Chờ sinh viên nộp hồ sơ"
   2. Admin detail: `intake_snapshot = null` → empty-state "Sinh viên đã thanh toán nhưng chưa nộp hồ sơ" + vô hiệu nút duyệt
 
+> **Implementation (2026-08-16):** FE-only đúng thiết kế — `admin/page.tsx` thêm bucket `intake_pending` + review queue lọc terminal states; `AdminCaseDetailModal` gate approve/reject trên `intake_snapshot` + empty-state. BE filters pass-through không đổi (`list-admin-cases.usecase.ts`).
+
 ### 5.4 Bug #16 — kick user khi admin xóa case (chốt 2026-08-15)
 
 - Hiện trạng: `delete-case.usecase.ts:36` hard-delete, không emit event, không publish realtime; FE không xử lý deleted-state
 - Chốt: **đẩy tín hiệu `CASE_DELETED` vào kênh `chat:{caseId}`** (tái dùng kênh sẵn có — không thêm kênh mới)
 - FE: nhận tín hiệu → toast "Hồ sơ đã bị xóa" + redirect `/dashboard` + invalidate queries; fallback: poll `useCaseDetails` nhận 404 → redirect
 - Không thêm notification riêng (toast đủ); supporter xem case bị xóa cũng bị kick cùng cơ chế
+
+> **Implementation (2026-08-16):** sau deleteCase (trong cùng tx với refund) → `publishToChannel(chat:{caseId}, {type:'case_deleted', caseId})`; FE `useRealtimeChat` nhánh `case_deleted` (toast + redirect + invalidate); `useCaseDetails` 404 → redirect.
 
 ### 5.5 Bug #1 — reassign supporter & SLA (chốt 2026-08-15)
 
@@ -125,6 +135,8 @@ KHÔNG thêm confirm khi user gửi bản đã sửa (gửi bản sửa free —
 - Lịch sử assign đã có: `caseEvent "supporter_assigned"` + metadata + auditLogger (`case.repository.ts:369-379`)
 - **User hủy case**: giữ nguyên 2 đường đã có guard — xóa khi stage `submitted` (chưa duyệt, `delete-case.usecase.ts:27-33`); đóng (T15_CANCEL) ở `report_ready`. Không mở rộng stage mới
 - Kèm rule refund credit dư — xem mục 8
+
+> **Implementation (2026-08-16):** SLA đếm tiếp (không reset) giữ nguyên; thêm T6 self-loop (isAdmin) ở `supporter_working` + `report_ready_to_publish` (reassign đang 400 ở đó); xóa supporter close-case route (bypass machine); refund rule mới ở mục 8.
 
 ## 6. Bất nhất đã phát hiện (cần xử lý khi viết lại doc)
 
@@ -157,3 +169,5 @@ KHÔNG thêm confirm khi user gửi bản đã sửa (gửi bản sửa free —
 | Credit đã tiêu | Không hoàn (đã nhận lượt đánh giá) |
 
 **Nguyên tắc:** user mua dư credit rồi case kết thúc không dùng hết mà giữ = scam tiền user → bắt buộc refund. Chỉ các logic cần refund mới hoàn — case hoàn thành bình thường (done) không hoàn gì.
+
+> **Implementation (2026-08-16):** `services/credit-refund.ts` — `refundRemainingCreditInTx` gọi từ T12/T13/T15 + admin delete (chung 1 tx: balance → refund → delete); walk purchases **DESC (newest first)** — consumption ăn credit cũ trước nên credit dư thuộc lượt mua mới nhất; giá lấy `metadata_json.unit_price` → fallback `orderItem.unit_price`; idempotency `refund-credit-{caseId}` (walletTransaction + creditLedger `type:'refund'` đánh dấu balance=0); T13 giữ `locked_price` riêng. Ví dụ test: mua 3@39k rồi 2@49k, tiêu 2 → hoàn 137,000 VND.

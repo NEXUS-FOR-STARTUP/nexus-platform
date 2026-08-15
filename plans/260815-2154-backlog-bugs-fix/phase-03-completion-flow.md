@@ -1,6 +1,6 @@
 # Phase 03 — Completion Flow (#5)
 
-- Priority: P0 | Status: Pending | Effort: 8h
+- Priority: P0 | Status: Done | Effort: 8h
 - Depends: Phase 02 | Blocks: Phase 04, 05, 07
 
 ## Overview
@@ -75,15 +75,15 @@ Chốt ai xác nhận hoàn thành: **user** (T17) từ `report_ready_to_publish
 
 ## Todo List
 
-- [ ] transition.types.ts: +T17/T19 (names, ALL_TRANSITIONS, TARGET_STAGE — T19→under_review)
-- [ ] case-machine.ts: T17, T14→isAdmin, done bỏ final + T19 (isOwner + setSlaDeadline)
-- [ ] case-transition.service.ts: setSlaDeadline ở T19
-- [ ] create-order.usecase.ts: hook T19 — owner verify + done check + no-op
-- [ ] complete-case.usecase.ts: admin-only
-- [ ] Auto-done sweep (7 ngày kể từ latest T11, fire T14 ADMIN, setInterval interim)
-- [ ] FE: transitions T17/T14 (không T19) + StatusGuidanceCard nút xác nhận + supporter pages
-- [ ] Test machine T17/T14/T19
-- [ ] `npm run check-types` + `npm test` PASS
+- [x] transition.types.ts: +T17/T19 (names, ALL_TRANSITIONS, TARGET_STAGE — T19→under_review)
+- [x] case-machine.ts: T17, T14→isAdmin, done bỏ final + T19 (isOwner + setSlaDeadline)
+- [x] case-transition.service.ts: setSlaDeadline ở T19 — KHÔNG cần sửa file: executeAction 'setSlaDeadline' đã generic, machine actions gắn ở T19 là đủ
+- [x] create-order.usecase.ts: hook T19 — owner verify + done check + no-op
+- [x] complete-case.usecase.ts: admin-only (T14) + owner (T17); supporter → 403
+- [x] Auto-done sweep (7 ngày kể từ latest T11, fire T14 ADMIN, setInterval interim) — auto-done-sweep.ts + hook start ở index.ts
+- [x] FE: transitions T17/T14 (không T19) + StatusGuidanceCard nút xác nhận + supporter pages (bỏ nút hoàn thành + banner chờ xác nhận + retitle tab)
+- [x] Test machine T17/T14/T19 (+ upgrade-package done-terminal assertion đã cập nhật)
+- [x] `npm run check-types` + `npm test` PASS — NOTE: full suite còn 18 fail pre-existing do DB auth env (docker prod creds vs root .env), toàn bộ ở file test chưa đụng; 4 file test đụng tới đều pass 133/133
 - [ ] Manual: supporter nộp → report_ready → user xác nhận → done; supporter không còn nút hoàn thành; admin force-close; mua credit case done (chủ case) → reopen; mua credit case done của người khác → 403
 
 ## Success Criteria

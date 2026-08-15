@@ -1,6 +1,6 @@
 # Phase 07 — Case Delete Kick (#16)
 
-- Priority: P0 | Status: Pending | Effort: 2h
+- Priority: P0 | Status: Done | Effort: 2h
 - Depends: Phase 03 | Blocks: —
 
 ## Overview
@@ -42,10 +42,10 @@ Khi admin xóa case → push tín hiệu realtime `case_deleted` vào kênh `cha
 
 ## Todo List
 
-- [ ] delete-case: publish case_deleted
-- [ ] useRealtimeChat: case_deleted branch
-- [ ] useCaseDetails: 404 fallback redirect
-- [ ] `npm run check-types` PASS
+- [x] delete-case: publish case_deleted
+- [x] useRealtimeChat: case_deleted branch
+- [x] useCaseDetails: 404 fallback redirect
+- [x] `npm run check-types` PASS
 - [ ] Manual: admin xóa case → user/supporter mở case bị kick (toast + redirect); không mở tab chat vẫn bị kick qua poll 404
 
 ## Success Criteria

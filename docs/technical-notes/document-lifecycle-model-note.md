@@ -100,6 +100,8 @@ Không có primary document. Mọi tài liệu intake bình đẳng, mỗi tài 
 - Cho phép nhiều file cùng category (không ràng buộc 1/type) — #13 đã chặn trần 10 file/lần nộp; UI nhóm theo category khi render
 - Báo cáo đánh giá (`assessment_report`) của supporter riêng biệt — không đổi
 
+> **Implementation (2026-08-16):** đúng thiết kế — FE gửi code, BE map category vào `metadata_json.category` qua param scoped intake (không sửa luồng revision/supporter output); legacy Vietnamese-label docs giữ nguyên (display-only).
+
 ### 8.3 Thay thế ngầm (soft-supersede)
 
 Không xóa, không append, không thay toàn bộ:
@@ -110,8 +112,12 @@ Không xóa, không append, không thay toàn bộ:
 - Cần migration thêm cột `superseded_at DateTime?` vào `document_records` (nullable, create-only)
 - `legacyFilesFromUnit` + `unit.file_url` thành thừa → bỏ dần
 
+> **Implementation (2026-08-16):** migration `20260816170000_add_document_record_superseded_at` (additive + index `[case_id, superseded_at]`) đã tạo --create-only; marking trong `submit-intake.usecase.ts` (`buildSupersedeUpdateArgs` — where: unit v00 + `superseded_at null` + `id notIn` bộ mới); user read filter `superseded_at null` trong `findDocumentRecordsByCaseId`.
+
 ### 8.4 Fix kỹ thuật kèm theo
 
 - Sửa doc_type bị label tiếng Việt đè (`document.repository.ts:77` — `doc.doc_type || doc.document_type || defaultDocType`): FE gửi code, không gửi label
 - Sửa `unit_code: "intake"` → `"v00"` (`submit-intake.usecase.ts:81`) — record khớp code unit thật
 - Admin per-case đọc qua cùng `assembleDocumentWorkspace` (view chuẩn); bảng admin global giữ thô + filter theo case
+
+> **Implementation (2026-08-16):** `unit_code v00` đã fix; admin per-case đọc qua `assembleDocumentWorkspace`; bảng admin global (`list-admin-documents.usecase.ts`) lọc theo case; FE label đổi "Tài liệu chính" → category label, `is_primary` giữ (report artifacts depend).
