@@ -5,6 +5,7 @@ import type {
   ExternalFeedbackMetadata,
   ExternalFeedbackUnit,
 } from "@/types/case";
+import { docCategoryLabel } from "@repo/validation";
 
 export interface DocumentWorkspaceProps {
   workspace: DocumentWorkspaceType | null;
@@ -17,6 +18,7 @@ export type DocumentRow = {
   key: string;
   versionLabel: string;
   contextLabel: string;
+  categoryKey: string | null;
   displayName: string;
   url: string | null;
   hasAction: boolean;
@@ -54,7 +56,10 @@ export function buildSupportFlowRows(units: DocumentUnit[]): DocumentRow[] {
       return {
         ...buildCommonRow(unit, file, uniqueKey),
         versionLabel: `v${String(unit.version_no).padStart(2, "0")}`,
-        contextLabel: file.doc_type_label ?? (file.is_primary ? "Tài liệu chính" : "Output hỗ trợ"),
+        contextLabel: file.category
+          ? docCategoryLabel(file.category)
+          : (file.doc_type_label ?? "Tài liệu"),
+        categoryKey: file.category ?? null,
       };
     }),
   );
@@ -72,6 +77,7 @@ export function buildExternalFeedbackRows(units: ExternalFeedbackUnit[]): Docume
           : unit.linked_version_no
             ? `v${String(unit.linked_version_no).padStart(2, "0")}`
             : "—",
+        categoryKey: null,
       };
     }),
   );
@@ -130,6 +136,7 @@ function buildCommonRow(
     formatLabel: getFormatLabel(file, url),
     versionLabel: "",
     contextLabel: "",
+    categoryKey: null,
     uploaderLabel,
     uploaderRole,
     createdAt: file.created_at ?? "",

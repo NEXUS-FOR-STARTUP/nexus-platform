@@ -1,17 +1,16 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Table, Badge, Text, Anchor, Select } from "@mantine/core";
+import { Select } from "@mantine/core";
 import {
   DocumentWorkspaceProps,
-  DocumentRow,
   WorkspaceTab,
   FilterRole,
-  formatDate,
-  getFormatColor,
   buildSupportFlowRows,
   buildExternalFeedbackRows,
 } from "./document-workspace.types";
+import { buildCategoryGroups } from "./document-groups";
+import DocumentRowsTable from "./DocumentRowsTable";
 
 export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps) {
   const [activeCheckpoint, setActiveCheckpoint] = useState<string | null>(null);
@@ -78,6 +77,11 @@ export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps)
     return documentRows;
   }, [activeTab, documentRows, feedbackRows, filterRole]);
 
+  const displayedGroups = useMemo(
+    () => (activeTab === "documents" ? buildCategoryGroups(displayedRows) : []),
+    [activeTab, displayedRows]
+  );
+
   if (!workspace || workspace.checkpoints.length === 0 || !selectedCheckpoint) {
     return (
       <div className="bg-surface-app border border-border-app rounded-xl p-8 text-center">
@@ -91,9 +95,7 @@ export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps)
 
   return (
     <div className="bg-surface-app border border-border-app rounded-xl overflow-hidden">
-      {/* Toolbar */}
       <div className="px-4 py-3 border-b border-border-app flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-surface-app">
-        {/* Left: Main Workspace Tabs */}
         <div className="flex items-center gap-2 overflow-x-auto">
           <button
             type="button"
@@ -144,7 +146,6 @@ export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps)
           </button>
         </div>
 
-        {/* Right: Role Filter Dropdown & Checkpoint Selector */}
         <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0">
           {activeTab === "documents" && (
             <Select
@@ -177,7 +178,6 @@ export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps)
         </div>
       </div>
 
-      {/* Table Body */}
       {displayedRows.length === 0 ? (
         <div className="p-8 text-center">
           <p className="text-base font-medium text-text-muted">
@@ -187,162 +187,11 @@ export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps)
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto w-full">
-          <Table
-            highlightOnHover
-            verticalSpacing="sm"
-            horizontalSpacing="md"
-            className="w-full min-w-[800px]"
-          >
-            <Table.Thead className="bg-surface-soft/40 border-b border-border-app">
-              <Table.Tr>
-                {/* 1. Phiên bản / Đợt - NẰM ĐẦU TIÊN */}
-                <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[100px]">
-                  {activeTab === "documents" ? "Phiên bản" : "Đợt"}
-                </Table.Th>
-
-                {/* 2. Phân loại / Liên kết */}
-                <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[160px]">
-                  {activeTab === "documents" ? "Phân loại" : "Liên kết bản nộp"}
-                </Table.Th>
-
-                {/* 3. Người tải (chỉ có ở tab Tài liệu bài nộp) */}
-                {activeTab === "documents" && (
-                  <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[130px]">
-                    Người tải
-                  </Table.Th>
-                )}
-
-                {/* 4. Tên tài liệu */}
-                <Table.Th className="text-base font-medium text-text-muted py-3.5">
-                  Tên tài liệu
-                </Table.Th>
-
-                {/* 5. Ngày tải */}
-                <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[150px]">
-                  Ngày tải
-                </Table.Th>
-
-                {/* 6. Nguồn */}
-                <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[130px]">
-                  Nguồn
-                </Table.Th>
-
-                {/* 7. Định dạng */}
-                <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[100px]">
-                  Định dạng
-                </Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-
-            <Table.Tbody>
-              {displayedRows.map((row) => {
-                const isSupporter =
-                  row.uploaderRole === "supporter" || row.uploaderRole === "admin";
-                const isStudent = row.uploaderRole === "student";
-                const { date, time } = formatDate(row.createdAt);
-
-                return (
-                  <Table.Tr
-                    key={row.key}
-                    className="transition-colors hover:bg-surface-soft/60"
-                  >
-                    {/* 1. Phiên bản / Đợt */}
-                    <Table.Td className="py-3.5">
-                      <Text className="text-base font-medium text-text-app">
-                        {row.versionLabel}
-                      </Text>
-                    </Table.Td>
-
-                    {/* 2. Phân loại / Liên kết */}
-                    <Table.Td className="py-3.5">
-                      <Badge
-                        variant="light"
-                        color={
-                          isSupporter
-                            ? "violet"
-                            : row.contextLabel.includes("chính")
-                              ? "teal"
-                              : "blue"
-                        }
-                        size="md"
-                        radius="xl"
-                        className="font-medium text-base whitespace-nowrap"
-                      >
-                        {row.contextLabel}
-                      </Badge>
-                    </Table.Td>
-
-                    {/* 3. Người tải */}
-                    {activeTab === "documents" && (
-                      <Table.Td className="py-3.5">
-                        <Badge
-                          variant="light"
-                          color={isSupporter ? "violet" : isStudent ? "teal" : "gray"}
-                          size="md"
-                          radius="xl"
-                          className="font-medium text-base whitespace-nowrap"
-                        >
-                          {row.uploaderLabel}
-                        </Badge>
-                      </Table.Td>
-                    )}
-
-                    {/* 4. Tên tài liệu (font bình thường, không bôi đậm, mở link trực tiếp) */}
-                    <Table.Td className="py-3.5">
-                      {row.hasAction && row.url ? (
-                        <Anchor
-                          href={row.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-base text-brand hover:underline font-normal break-words"
-                        >
-                          {row.displayName}
-                        </Anchor>
-                      ) : (
-                        <Text className="text-base text-text-muted font-normal break-words">
-                          {row.displayName}
-                        </Text>
-                      )}
-                    </Table.Td>
-
-                    {/* 5. Ngày tải */}
-                    <Table.Td className="py-3.5">
-                      <Text className="font-normal text-text-app text-base leading-tight">
-                        {date}
-                      </Text>
-                      {time && (
-                        <Text c="dimmed" className="text-base mt-0.5 font-normal">
-                          {time}
-                        </Text>
-                      )}
-                    </Table.Td>
-
-                    {/* 6. Nguồn */}
-                    <Table.Td className="py-3.5">
-                      <Text className="text-base text-text-app font-normal">
-                        {row.sourceLabel}
-                      </Text>
-                    </Table.Td>
-
-                    {/* 7. Định dạng */}
-                    <Table.Td className="py-3.5">
-                      <Badge
-                        variant="light"
-                        color={getFormatColor(row.formatLabel)}
-                        size="md"
-                        radius="xl"
-                        className="font-medium text-base uppercase whitespace-nowrap"
-                      >
-                        {row.formatLabel}
-                      </Badge>
-                    </Table.Td>
-                  </Table.Tr>
-                );
-              })}
-            </Table.Tbody>
-          </Table>
-        </div>
+        <DocumentRowsTable
+          activeTab={activeTab}
+          rows={displayedRows}
+          groups={displayedGroups}
+        />
       )}
     </div>
   );

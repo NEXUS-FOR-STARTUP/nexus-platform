@@ -59,6 +59,7 @@ export function buildDocumentRecordInput(
   uploaderId: string,
   defaultDocType: string,
   defaultDirection: DocumentDirection,
+  category?: string,
 ): CreateDocumentRecordInput | null {
   const url = doc.file_url || doc.drive_url || "";
   if (!url.trim()) return null;
@@ -67,6 +68,10 @@ export function buildDocumentRecordInput(
   const originalName = doc.original_name || canonicalNameFromUrl(url);
   const extension = doc.extension || extensionFromFilename(originalName);
   const mimeType = doc.mime_type || mimeTypeFromExtension(extension);
+  const docType = category ? defaultDocType : (doc.doc_type || doc.document_type || defaultDocType);
+  const metadataJson = category
+    ? { ...((doc.metadata_json ?? {}) as Record<string, unknown>), category }
+    : doc.metadata_json;
 
   return {
     case_id: caseId,
@@ -74,7 +79,7 @@ export function buildDocumentRecordInput(
     lifecycle_unit_id: lifecycleUnitId,
     unit_code: unitCode,
     direction: defaultDirection,
-    doc_type: doc.doc_type || doc.document_type || defaultDocType,
+    doc_type: docType,
     seq,
     is_primary: seq === 0,
     source_kind: sourceKind,
@@ -85,7 +90,7 @@ export function buildDocumentRecordInput(
     file_url: url,
     download_url: doc.download_url || url,
     cloudinary_public_id: doc.cloudinary_public_id || null,
-    metadata_json: doc.metadata_json,
+    metadata_json: metadataJson,
     uploaded_by_auth_user_id: uploaderId,
   };
 }
@@ -118,7 +123,7 @@ function stableStringHash(str: string) {
 
 export async function findDocumentRecordsByCaseId(caseId: string) {
   return await prisma.documentRecord.findMany({
-    where: { case_id: caseId },
+    where: { case_id: caseId, superseded_at: null },
     include: {
       uploaded_by: {
         select: {
@@ -195,10 +200,14 @@ export async function createDocumentRecordsForUnit(
   defaultDirection: DocumentDirection,
   client: DocumentRecordClient = prisma,
   metadataFactory?: (doc: DocumentInputLike, index: number) => Prisma.InputJsonValue | undefined,
+  category?: string | ((doc: DocumentInputLike) => string | undefined),
 ) {
   const inputs: CreateDocumentRecordInput[] = [];
   let seq = 0;
   for (const doc of documents) {
+    const docCategory = typeof category === "function"
+      ? category(doc)
+      : category;
     const input = buildDocumentRecordInput(
       caseId,
       checkpointId,
@@ -212,6 +221,7 @@ export async function createDocumentRecordsForUnit(
       uploaderId,
       defaultDocType,
       defaultDirection,
+      docCategory,
     );
     if (!input) continue;
     inputs.push(input);
@@ -231,10 +241,14 @@ export async function upsertDocumentRecordsForUnit(
   defaultDocType: string,
   defaultDirection: DocumentDirection,
   client: DocumentRecordClient = prisma,
+  category?: string | ((doc: DocumentInputLike) => string | undefined),
 ) {
   const created = [];
   let seq = 0;
   for (const doc of documents) {
+    const docCategory = typeof category === "function"
+      ? category(doc)
+      : category;
     const input = buildDocumentRecordInput(
       caseId,
       checkpointId,
@@ -245,6 +259,7 @@ export async function upsertDocumentRecordsForUnit(
       uploaderId,
       defaultDocType,
       defaultDirection,
+      docCategory,
     );
     if (!input) continue;
     created.push(await upsertDocumentRecord(input, client));
