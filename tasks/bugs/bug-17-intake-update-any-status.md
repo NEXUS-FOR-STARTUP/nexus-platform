@@ -19,12 +19,14 @@
 
 | Field | Value |
 |-------|-------|
-| Status | Backlog |
+| Status | Done (2026-08-14 — plan `260814-1825-reject-resubmit-loop-fix`) |
 | Assignee | — |
 | Priority | Medium |
 | Target | — |
 | Ghi chú | User lui trang → điền lại → update được kể cả khi đã gửi. Chặn update khi case đã gửi admin duyệt |
 
 ## Acceptance Criteria (draft)
-- [ ] User không update được intake khi hồ sơ đã gửi (guard FE + BE)
-- [ ] Hiển thị trạng thái khóa/chặn khi không được phép update
+- [x] User không update được intake khi hồ sơ đã gửi (guard FE + BE)
+- [x] Hiển thị trạng thái khóa/chặn khi không được phép update
+
+> **Done note:** BE guard `submit-intake` — chỉ `triage_pending`/`cancelled` (else 400 `INVALID_CASE_STAGE`), `waiting_user` → 409 `REVISION_REQUIRED`; FE gating theo `filterTransitions`.

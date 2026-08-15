@@ -68,7 +68,7 @@
 |---|---------|-----------|
 | 1 | SLA khi reassign supporter: đếm tiếp hay reset? | Đếm tiếp (không reset) — T6 self-loop ở supporter_working/report_ready |
 | 2 | Ai xác nhận hoàn thành: user hay supporter? | User xác nhận (T17 isOwner); T14 admin-only force-close; auto-done 7 ngày fire T14 ADMIN |
-| 3 | Gói miễn phí vs Premium khác gì? | (không thuộc 8 bug này — đã chốt ở plan trước) |
+| 3 | Gói miễn phí vs Premium khác gì? | Ngoài scope — business decision (plan 260809 phase-05). Model: free = `pkg_tf_free` 0đ, trả phí = `pkg_tf_audit` 39k; mua credit KHÔNG tự thăng gói, upgrade riêng |
 | 4 | Giới hạn số tài liệu / số ký tự intake? | Max 10 tài liệu; text caps ≤100/≤254/≤20000 theo field |
 | 5 | User có quyền hủy hồ sơ ở stage "báo cáo chờ gửi"? | Giữ nguyên quyền hủy của owner (T15) + refund credit dư |
 

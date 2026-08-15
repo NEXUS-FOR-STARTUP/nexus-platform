@@ -112,7 +112,5 @@ Git-only, revert per phase (mỗi phase 1 commit gọn). Migration `superseded_a
 ## Sync-back Status (2026-08-16)
 
 - **Phases 01-07: Done** — code audit + code-review xong (8.5/10 APPROVE WITH WARNINGS, warnings đã fix). Checkbox đã sync theo code state thực tế.
-- **Phase 08: In Progress (4/6)** — test suite (275/293, 18 fail pre-existing env out-of-scope), check-types, 8 bug files Done, tasks/README sync = XONG. **CÒN 2 ITEM:**
-  1. `CHANGELOG.md [Unreleased]` chưa ghi 8 bug (docs-manager chưa cập nhật — chỉ còn financial refactor)
-  2. `docs/journals/260815-backlog-decisions.md` chưa tạo (file không tồn tại)
-- **Frontmatter status giữ `in-progress`** — plan chưa đóng được cho tới khi 2 doc item phase-08 hoàn tất.
+- **Phase 08: Done (6/6)** — test suite (275/293, 18 fail pre-existing env out-of-scope), check-types, 8 bug files Done, tasks/README sync, CHANGELOG `[Unreleased]` 2026-08-16 block, journal `docs/journals/260815-backlog-decisions.md` — tất cả hoàn tất.
+- **Frontmatter status `completed`** — plan đã đóng. Còn lại: 7 manual browser-verify (cố ý `[ ]`, follow-up), setInterval sweep interim → cron follow-up.
