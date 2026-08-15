@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 
 /**
- * Supporter machine actions (D14): T7/T8/T10/T14.
+ * Supporter machine actions (D14): T7/T8/T10.
  * T11 (submit output) is handled by useSupporterOutputUpload.
  */
 export function useSupporterActions(caseId: string) {
@@ -46,15 +46,6 @@ export function useSupporterActions(caseId: string) {
     onSuccess: invalidate,
   });
 
-  // T14_COMPLETE: report_ready_to_publish → done
-  const completeCaseMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiClient.post(`/cases/${caseId}/complete`);
-      return response.data;
-    },
-    onSuccess: invalidate,
-  });
-
   return {
     startWork: startWorkMutation.mutateAsync,
     isStartingWork: startWorkMutation.isPending,
@@ -62,7 +53,5 @@ export function useSupporterActions(caseId: string) {
     isRequestingMoreInfo: requestMoreInfoMutation.isPending,
     startReviewRevision: startReviewRevisionMutation.mutateAsync,
     isStartingReviewRevision: startReviewRevisionMutation.isPending,
-    completeCase: completeCaseMutation.mutateAsync,
-    isCompletingCase: completeCaseMutation.isPending,
   };
 }

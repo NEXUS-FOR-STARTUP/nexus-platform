@@ -24,6 +24,7 @@ import { depositRouter } from './modules/deposits/infrastructure/http/deposit.ro
 import { registerNotificationListener } from './modules/notifications/application/notification-listener.js'
 import { startRelay } from './modules/notifications/application/notification-relay.js'
 import { startOutboxRelay, stopOutboxRelay } from "./shared/infrastructure/outbox-relay.js";
+import { startAutoDoneSweep, stopAutoDoneSweep } from "./modules/cases/application/auto-done-sweep.js";
 import { prisma } from './db.js'
 import { AppError } from './shared/domain/app-error.js'
 import logger from './shared/infrastructure/logger.js'
@@ -176,6 +177,12 @@ app.onError((err, c) => {
 
 process.on("SIGTERM", () => {
   stopOutboxRelay();
+  stopAutoDoneSweep();
+});
+
+process.on("SIGINT", () => {
+  stopOutboxRelay();
+  stopAutoDoneSweep();
 });
 
 export { app }
@@ -184,6 +191,7 @@ if (process.env.NODE_ENV !== 'test') {
   registerNotificationListener();
   startRelay();
   startOutboxRelay();
+  startAutoDoneSweep();
 
   serve({
     fetch: app.fetch,

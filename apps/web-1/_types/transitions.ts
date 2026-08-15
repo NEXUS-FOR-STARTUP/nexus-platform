@@ -31,9 +31,10 @@ export const TRANSITION_ACTOR_RULES: Record<string, TransitionActorRule> = {
   T11_SUBMIT_OUTPUT: { roles: ["SUPPORTER"], actor: "assignedSupporter" },
   T12_REJECT: { roles: ["ADMIN"], actor: "none" },
   T13_VETO: { roles: ["ADMIN"], actor: "none" },
-  T14_COMPLETE: { roles: ["SUPPORTER"], actor: "assignedSupporter" },
+  T14_COMPLETE: { roles: ["ADMIN"], actor: "none" },
   T15_CANCEL: { roles: ["CUSTOMER"], actor: "owner" },
   T16_EDIT_INTAKE: { roles: ["CUSTOMER"], actor: "owner" },
+  T17_USER_CONFIRM_COMPLETE: { roles: ["CUSTOMER"], actor: "owner" },
 };
 
 export interface TransitionActorContext {

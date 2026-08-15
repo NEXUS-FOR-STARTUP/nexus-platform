@@ -19,7 +19,7 @@ import SupporterRequestInfoModal from "./_components/SupporterRequestInfoModal";
 import { useSupporterActions } from "../../hooks/useSupporterActions";
 import { Button } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { Play, HelpCircle, RefreshCw, CheckCircle2, Clock } from "lucide-react";
+import { Play, HelpCircle, RefreshCw, Clock } from "lucide-react";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -42,8 +42,6 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
     requestMoreInfo,
     startReviewRevision,
     isStartingReviewRevision,
-    completeCase,
-    isCompletingCase,
   } = useSupporterActions(id);
 
   React.useEffect(() => {
@@ -83,10 +81,10 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
   const canRequestInfo = filteredTransitions.includes("T8_REQUEST_INFO");
   const canStartReviewRevision = filteredTransitions.includes("T10_START_REVIEW_REVISION");
   const canUploadOutput = filteredTransitions.includes("T11_SUBMIT_OUTPUT");
-  const canComplete = filteredTransitions.includes("T14_COMPLETE");
   const isWaitingUser = caseData.internal_status === "waiting_user";
+  const isReportReady = caseData.internal_status === "report_ready_to_publish";
 
-  const hasActionBar = canStartWork || canRequestInfo || canStartReviewRevision || canComplete;
+  const hasActionBar = canStartWork || canRequestInfo || canStartReviewRevision;
 
   const handleStartWork = async () => {
     try {
@@ -103,15 +101,6 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
       notifications.show({ title: "Đã tiếp nhận", message: "Đã tiếp nhận bản sửa đổi và tiếp tục thẩm định.", color: "green" });
     } catch {
       notifications.show({ title: "Lỗi", message: "Không thể tiếp nhận bản sửa đổi. Vui lòng thử lại.", color: "red" });
-    }
-  };
-
-  const handleCompleteCase = async () => {
-    try {
-      await completeCase();
-      notifications.show({ title: "Đã hoàn tất", message: "Hồ sơ đã được hoàn tất và đóng quy trình.", color: "green" });
-    } catch {
-      notifications.show({ title: "Lỗi", message: "Không thể hoàn tất hồ sơ. Vui lòng thử lại.", color: "red" });
     }
   };
 
@@ -153,6 +142,13 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
           </div>
         )}
 
+        {isReportReady && (
+          <div className="p-4 rounded-xl bg-info-soft border border-info/15 text-info font-body text-xs flex items-center gap-2 shrink-0">
+            <Clock className="w-4 h-4 shrink-0" />
+            <span>Đã giao báo cáo — chờ sinh viên xác nhận hoàn thành.</span>
+          </div>
+        )}
+
         {hasActionBar && (
           <div className="flex flex-wrap items-center gap-2 shrink-0">
             {canStartWork && (
@@ -190,18 +186,6 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
                 onClick={handleStartReviewRevision}
               >
                 Tiếp nhận bản sửa đổi
-              </Button>
-            )}
-            {canComplete && (
-              <Button
-                size="sm"
-                color="green"
-                className="font-semibold cursor-pointer h-8.5 text-xs"
-                leftSection={<CheckCircle2 className="w-3.5 h-3.5" />}
-                loading={isCompletingCase}
-                onClick={handleCompleteCase}
-              >
-                Hoàn tất hồ sơ
               </Button>
             )}
           </div>

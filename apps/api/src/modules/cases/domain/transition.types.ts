@@ -19,6 +19,8 @@ export type TransitionName =
   | 'T14_COMPLETE'
   | 'T15_CANCEL'
   | 'T16_EDIT_INTAKE'
+  | 'T17_USER_CONFIRM_COMPLETE'
+  | 'T19_REOPEN'
 
 export const ALL_TRANSITIONS: readonly TransitionName[] = [
   'T1_CREATE_CASE', 'T2_SUBMIT_INTAKE', 'T3_RESUBMIT_AFTER_REJECT',
@@ -26,6 +28,7 @@ export const ALL_TRANSITIONS: readonly TransitionName[] = [
   'T7_START_WORK', 'T8_REQUEST_INFO', 'T9_SUBMIT_REVISION',
   'T10_START_REVIEW_REVISION', 'T11_SUBMIT_OUTPUT',
   'T12_REJECT', 'T13_VETO', 'T14_COMPLETE', 'T15_CANCEL', 'T16_EDIT_INTAKE',
+  'T17_USER_CONFIRM_COMPLETE', 'T19_REOPEN',
 ]
 
 export const TARGET_STAGE: Partial<Record<TransitionName, CaseStage>> = {
@@ -45,6 +48,8 @@ export const TARGET_STAGE: Partial<Record<TransitionName, CaseStage>> = {
   T14_COMPLETE:                'completed',
   T15_CANCEL:                  'closed',
   T16_EDIT_INTAKE:             'intake_ready',
+  T17_USER_CONFIRM_COMPLETE:   'completed',
+  T19_REOPEN:                  'under_review',
 }
 
 export interface TransitionEvent {
@@ -67,7 +72,7 @@ export type GuardName =
   | 'reasonMinLength'
 
 export type ActionName =
-  | 'upsertDoc' | 'subtractCredit' | 'refundCredit'
+  | 'upsertDoc' | 'subtractCredit' | 'refundCredit' | 'refundRemainingCredit'
   | 'setSlaDeadline' | 'emitStageChanged' | 'notifyUser'
   | 'resetStatus' | 'autoResumeWork' | 'lockPrice'
 

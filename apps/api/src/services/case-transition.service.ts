@@ -12,6 +12,7 @@ import { emitEvent } from '../shared/infrastructure/event-bus.js'
 import { DOMAIN_EVENTS } from '../shared/domain/domain-events.js'
 import logger from '../shared/infrastructure/logger.js'
 import { walletService } from '../modules/wallet/application/wallet.service.js'
+import { refundRemainingCreditInTx } from './credit-refund.js'
 
 function targetStageFor(transition: TransitionName): CaseStage {
   const stage = TARGET_STAGE[transition]
@@ -100,6 +101,8 @@ async function executeAction(
     }
 
     case 'subtractCredit': {
+      const lockedPrice = context.data?.lockedPrice as number | undefined
+      if ((lockedPrice ?? 0) === 0) break
       const unitCode = context.unitCode ?? `case-${caseId}`
       const key = `consume-${unitCode}-${caseId}`
       const balResult = await tx.creditLedger.aggregate({
@@ -131,6 +134,15 @@ async function executeAction(
       if (!ownerId || !lockedPrice || lockedPrice === 0) break
       const key = `refund-${caseId}`
       await walletService.refund(ownerId, lockedPrice, 'admin_veto', caseId, key, tx)
+      break
+    }
+
+    case 'refundRemainingCredit': {
+      await refundRemainingCreditInTx(
+        tx,
+        caseId,
+        context.data?.caseOwnerId as string | undefined,
+      )
       break
     }
 
@@ -187,6 +199,12 @@ export async function transitionInTx(
     ? await getCreditBalanceInTx(tx, caseId)
     : 0
 
+  const creditGated = transitionName === 'T11_SUBMIT_OUTPUT' || transitionName === 'T3_RESUBMIT_AFTER_REJECT'
+  if (creditGated && (caseRecord.locked_price ?? 0) !== 0 && creditBalance < 1) {
+    throw new AppError(402, 'NO_CREDITS',
+      'Hết credit. Vui lòng mua thêm credit để tiếp tục.')
+  }
+
   const event: TransitionEvent = {
     type: transitionName,
     actor: { id: actorId, role: roleVerified },
@@ -210,7 +228,11 @@ export async function transitionInTx(
   }
 
   const { to: nextStatus, actions } = transitionResult
-  const nextStage = targetStageFor(transitionName)
+  const isAssignReassign =
+    transitionName === 'T6_ASSIGN_SUPPORTER' && nextStatus === currentStatus
+  const nextStage = isAssignReassign
+    ? caseRecord.user_facing_stage as CaseStage
+    : targetStageFor(transitionName)
 
   try {
     for (const action of actions) {

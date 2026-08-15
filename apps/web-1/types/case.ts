@@ -195,6 +195,7 @@ export interface DocumentFile {
   is_primary: boolean;
   doc_type?: string | null;
   doc_type_label?: string | null;
+  category?: string | null;
   source_kind: "drive" | "cloudinary" | "generated";
   canonical_name: string | null;
   original_name: string | null;

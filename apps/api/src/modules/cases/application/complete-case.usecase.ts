@@ -12,15 +12,23 @@ export async function completeCaseUseCase(userId: string, role: string, caseId: 
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
   }
 
-  if (role === "supporter" && caseRecord.assigned_supporter_auth_user_id !== userId) {
-    throw new AppError(403, "FORBIDDEN", "Bạn không phải là supporter được phân công cho dự án này");
+  if (role === "supporter") {
+    throw new AppError(403, "FORBIDDEN", "Supporter không có quyền đóng quy trình — chỉ chủ sở hữu hoặc Admin");
   }
 
-  const roleVerified = role === 'admin' ? 'ADMIN' : 'SUPPORTER';
+  const isAdmin = role === "admin";
+  const isOwner = caseRecord.owner_auth_user_id === userId;
+
+  if (!isAdmin && !isOwner) {
+    throw new AppError(403, "FORBIDDEN", "Bạn không có quyền hoàn thành dự án này");
+  }
+
+  const transition = isAdmin ? "T14_COMPLETE" : "T17_USER_CONFIRM_COMPLETE";
+  const roleVerified = isAdmin ? "ADMIN" : "CUSTOMER";
 
   try {
     const result = await executeTransition({
-      transition: 'T14_COMPLETE',
+      transition,
       caseId,
       actorId: userId,
       roleVerified,
@@ -39,11 +47,11 @@ export async function completeCaseUseCase(userId: string, role: string, caseId: 
       },
     });
 
-    logger.info({ caseId, transition: 'T14_COMPLETE', actorId: userId, actorRole: role, duration_ms: Date.now() - startTime }, 'case transition: complete');
+    logger.info({ caseId, transition, actorId: userId, actorRole: role, duration_ms: Date.now() - startTime }, 'case transition: complete');
 
     return { stage: result.stage, status: result.status };
   } catch (error) {
-    logger.error({ err: error, caseId, transition: 'T14_COMPLETE', actorId: userId, actorRole: role, duration_ms: Date.now() - startTime }, 'case transition failed: complete');
+    logger.error({ err: error, caseId, transition, actorId: userId, actorRole: role, duration_ms: Date.now() - startTime }, 'case transition failed: complete');
     throw error;
   }
 }
