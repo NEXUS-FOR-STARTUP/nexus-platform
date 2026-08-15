@@ -3,7 +3,9 @@
 import React, { useRef, useState } from "react";
 import { Alert, Button, Tooltip, Text, Badge, ActionIcon, Paper, Group, Select, Stack } from "@mantine/core";
 import { CheckCircle2, HelpCircle, Copy, Download, Upload, X, FileText, AlertCircle } from "lucide-react";
+import { DOCUMENT_CATEGORY_CODES, docCategoryLabel } from "@repo/validation";
 import { apiClient } from "@/lib/api-client";
+import { IntakeDocument } from "../../_types/intake.types";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -19,28 +21,13 @@ interface DocumentInputStepProps {
 // ---------------------------------------------------------------------------
 
 const MAX_DOCUMENT_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15MB
+const MAX_DOCUMENT_COUNT = 10;
 const ACCEPT_EXTENSIONS = ".pdf,.docx,.xlsx,.pptx,.md,.txt";
 
-const DOCUMENT_TYPE_OPTIONS = [
-  { label: "Báo cáo ý tưởng (Draft Report)", value: "Báo cáo ý tưởng" },
-  { label: "Slide thuyết trình (Pitch Deck)", value: "Slide thuyết trình" },
-  {
-    label: "Phân tích đối thủ (Competitor Analysis)",
-    value: "Phân tích đối thủ cạnh tranh",
-  },
-  {
-    label: "Khảo sát & Phỏng vấn khách hàng (Customer Research)",
-    value: "Khảo sát khách hàng",
-  },
-  {
-    label: "Đề cương phân công (Task Assignment)",
-    value: "Đề cương phân công",
-  },
-  {
-    label: "Tài liệu bổ sung khác (Other resources)",
-    value: "Tài liệu bổ sung",
-  },
-];
+const DOCUMENT_TYPE_OPTIONS = DOCUMENT_CATEGORY_CODES.map((code) => ({
+  value: code,
+  label: docCategoryLabel(code),
+}));
 
 const TEMPLATE_MD_URL = "/idea-template/TEMPLATE_STARTUP_CHECKPOINT1_V2.md";
 const TEMPLATE_DOCX_URL = "/idea-template/TEMPLATE_STARTUP_CHECKPOINT1_V2.docx";
@@ -94,6 +81,14 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
     // Client-side size validation
     if (file.size > MAX_DOCUMENT_FILE_SIZE_BYTES) {
       setUploadError(`File "${file.name}" vượt quá giới hạn 15MB. Vui lòng chọn file nhỏ hơn.`);
+      return;
+    }
+
+    const existingDocs = (parentField.state.value ?? []) as IntakeDocument[];
+    if (existingDocs.length >= MAX_DOCUMENT_COUNT) {
+      setUploadError(
+        `Tối đa ${MAX_DOCUMENT_COUNT} tài liệu mỗi hồ sơ. Vui lòng xóa bớt tài liệu trước khi tải thêm.`,
+      );
       return;
     }
 
@@ -262,14 +257,14 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                   leftSection={<Upload className="w-4 h-4" />}
                   onClick={() => fileInputRef.current?.click()}
                   loading={uploading}
-                  disabled={uploading}
+                  disabled={uploading || docs.length >= MAX_DOCUMENT_COUNT}
                   className="font-body font-semibold cursor-pointer h-10 px-4 rounded-xl text-sm border-border-strong text-text-app hover:bg-surface-hover w-fit"
                 >
                   {uploading ? "Đang tải lên..." : "Chọn file tài liệu"}
                 </Button>
 
                 <Text size="xs" c="dimmed">
-                  .pdf, .docx, .xlsx, .pptx, .md, .txt &bull; tối đa 15MB
+                  .pdf, .docx, .xlsx, .pptx, .md, .txt &bull; tối đa 15MB &bull; {docs.length}/{MAX_DOCUMENT_COUNT} tài liệu
                 </Text>
 
                 {/* Upload error banner */}
@@ -291,7 +286,7 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
               {hasDocs && (
                 <Stack gap="sm">
                   <label className="text-sm font-semibold text-text-app">
-                    Tài liệu đã tải lên ({docs.length})
+                    Tài liệu đã tải lên ({docs.length}/{MAX_DOCUMENT_COUNT})
                   </label>
 
                   {docs.map((doc: any, index: number) => (

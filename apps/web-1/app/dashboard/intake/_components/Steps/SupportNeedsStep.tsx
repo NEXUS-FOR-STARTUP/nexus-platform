@@ -17,6 +17,8 @@ const PRIMARY_NEEDS = [
   { key: "improve_rejected_idea", label: "Cần góp ý để cải thiện ý tưởng sau phản hồi chưa tốt từ giảng viên" },
 ];
 
+const PRIMARY_NEED_MAX = 100;
+
 export default function SupportNeedsStep({ form, values }: SupportNeedsStepProps) {
   return (
     <div className="space-y-5 font-body">
@@ -41,6 +43,7 @@ export default function SupportNeedsStep({ form, values }: SupportNeedsStepProps
           validators={{
             onChange: ({ value }: { value: string }) => {
               if (!value) return "Nhu cầu hỗ trợ chính là bắt buộc.";
+              if (value.length > PRIMARY_NEED_MAX) return `Nhu cầu hỗ trợ chính không được vượt quá ${PRIMARY_NEED_MAX} ký tự.`;
               return undefined;
             },
           }}

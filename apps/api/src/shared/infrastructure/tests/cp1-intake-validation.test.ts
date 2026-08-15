@@ -1,5 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert";
+import {
+  Cp1IntakeCaps,
+  Cp1IntakeSchema,
+  CP1_EMAIL_MAX,
+  CP1_LONG_MAX,
+  CP1_MAX_DOCUMENTS,
+  CP1_SHORT_MAX,
+} from "@repo/validation";
 
 const { validateCp1Intake } = await import(
   "../../../modules/cases/http/cases.schema.js"
@@ -275,4 +283,162 @@ test("Cp1Intake validation snapshot — old imperative validator", async (t) => 
       assert.deepStrictEqual(actual, c.expectedErrors);
     });
   }
+});
+
+const CAP_ERRORS: TestCase[] = [
+  {
+    name: "cap: 11 documents rejected",
+    body: {
+      ...VALID_BODY,
+      documents: Array.from({ length: CP1_MAX_DOCUMENTS + 1 }, (_, i) => ({
+        file_url: `https://example.com/doc-${i}.pdf`,
+        document_type: "business_plan",
+      })),
+    },
+    expectedErrors: [`Thư mục tài liệu không được vượt quá ${CP1_MAX_DOCUMENTS} tài liệu`],
+  },
+  {
+    name: "cap: exactly 10 documents valid",
+    body: {
+      ...VALID_BODY,
+      documents: Array.from({ length: CP1_MAX_DOCUMENTS }, (_, i) => ({
+        file_url: `https://example.com/doc-${i}.pdf`,
+        document_type: "business_plan",
+      })),
+    },
+    expectedErrors: [],
+  },
+  {
+    name: "cap: full_name over short max",
+    body: {
+      ...VALID_BODY,
+      contact: { ...VALID_BODY.contact, full_name: "a".repeat(CP1_SHORT_MAX + 1) },
+    },
+    expectedErrors: [`Họ tên người liên hệ không được vượt quá ${CP1_SHORT_MAX} ký tự`],
+  },
+  {
+    name: "cap: student_code over short max",
+    body: {
+      ...VALID_BODY,
+      contact: { ...VALID_BODY.contact, student_code: "b".repeat(CP1_SHORT_MAX + 1) },
+    },
+    expectedErrors: [`Mã số sinh viên không được vượt quá ${CP1_SHORT_MAX} ký tự`],
+  },
+  {
+    name: "cap: team_role over short max",
+    body: {
+      ...VALID_BODY,
+      contact: { ...VALID_BODY.contact, team_role: "c".repeat(CP1_SHORT_MAX + 1) },
+    },
+    expectedErrors: [`Vai trò trong nhóm không được vượt quá ${CP1_SHORT_MAX} ký tự`],
+  },
+  {
+    name: "cap: email over 254 rejected",
+    body: {
+      ...VALID_BODY,
+      contact: { ...VALID_BODY.contact, email: `${"d".repeat(CP1_EMAIL_MAX - 4)}@x.io` },
+    },
+    expectedErrors: [`Email liên hệ không được vượt quá ${CP1_EMAIL_MAX} ký tự`],
+  },
+  {
+    name: "cap: email exactly 254 valid",
+    body: {
+      ...VALID_BODY,
+      contact: { ...VALID_BODY.contact, email: `${"e".repeat(CP1_EMAIL_MAX - 5)}@x.io` },
+    },
+    expectedErrors: [],
+  },
+  {
+    name: "cap: primary_need over short max",
+    body: {
+      ...VALID_BODY,
+      support_needs: { primary_need: "f".repeat(CP1_SHORT_MAX + 1) },
+    },
+    expectedErrors: [`Nhu cầu hỗ trợ chính không được vượt quá ${CP1_SHORT_MAX} ký tự`],
+  },
+  {
+    name: "cap: current_blocker over long max",
+    body: {
+      ...VALID_BODY,
+      current_blocker: "g".repeat(CP1_LONG_MAX + 1),
+    },
+    expectedErrors: [`Điểm kẹt hiện tại không được vượt quá ${CP1_LONG_MAX} ký tự`],
+  },
+  {
+    name: "cap: case_summary over long max",
+    body: {
+      ...VALID_BODY,
+      current_blocker: "",
+      case_summary: "h".repeat(CP1_LONG_MAX + 1),
+    },
+    expectedErrors: [`Tóm tắt hồ sơ không được vượt quá ${CP1_LONG_MAX} ký tự`],
+  },
+  {
+    name: "cap: current_situations item over long max",
+    body: {
+      ...VALID_BODY,
+      current_blocker: "",
+      current_situations: ["i".repeat(CP1_LONG_MAX + 1)],
+    },
+    expectedErrors: [`Tình huống hiện tại không được vượt quá ${CP1_LONG_MAX} ký tự`],
+  },
+  {
+    name: "cap: long cloudinary file_url exempt (no cap on urls)",
+    body: {
+      ...VALID_BODY,
+      documents: [
+        { file_url: `https://res.cloudinary.com/demo/image/upload/${"j".repeat(300)}.pdf`, document_type: "business_plan" },
+      ],
+    },
+    expectedErrors: [],
+  },
+  {
+    name: "cap: zalo stays 10-digit regex exempt",
+    body: {
+      ...VALID_BODY,
+      contact: { ...VALID_BODY.contact, zalo: "0987654321" },
+    },
+    expectedErrors: [],
+  },
+];
+
+test("Cp1Intake caps — full schema", async (t) => {
+  for (const c of CAP_ERRORS) {
+    await t.test(c.name, () => {
+      const actual = validateCp1Intake(c.body);
+      assert.deepStrictEqual(actual, c.expectedErrors);
+    });
+  }
+});
+
+test("Cp1IntakeCaps — lean schema enforces max only, no min", async () => {
+  const overCap = Cp1IntakeCaps.safeParse({
+    contact: { full_name: "k".repeat(CP1_SHORT_MAX + 1) },
+  });
+  assert.strictEqual(overCap.success, false);
+  assert.deepStrictEqual(
+    overCap.error.issues.map((i) => i.message),
+    [`Họ tên người liên hệ không được vượt quá ${CP1_SHORT_MAX} ký tự`],
+  );
+
+  const underMin = Cp1IntakeCaps.safeParse({
+    contact: { full_name: "A" },
+    current_blocker: "ngắn",
+    documents: [],
+  });
+  assert.strictEqual(underMin.success, true);
+
+  const elevenDocs = Cp1IntakeCaps.safeParse({
+    documents: Array.from({ length: CP1_MAX_DOCUMENTS + 1 }, (_, i) => ({
+      file_url: `https://example.com/doc-${i}.pdf`,
+    })),
+  });
+  assert.strictEqual(elevenDocs.success, false);
+  assert.deepStrictEqual(
+    elevenDocs.error.issues.map((i) => i.message),
+    [`Thư mục tài liệu không được vượt quá ${CP1_MAX_DOCUMENTS} tài liệu`],
+  );
+
+  const fullValid = Cp1IntakeSchema.safeParse(VALID_BODY);
+  assert.strictEqual(fullValid.success, true);
 });
