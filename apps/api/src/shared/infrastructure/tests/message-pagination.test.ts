@@ -61,3 +61,76 @@ test("listMessagesUseCase forwards options to repository", async () => {
   });
   assert.deepStrictEqual(result, { messages: [], next_cursor: null });
 });
+
+test("listCaseMessages: page mới nhất trước, asc, cursor lùi về quá khứ, không trùng lặp", async (t) => {
+  const { prisma } = await import("../../../db.js");
+  const { listCaseMessages } = await import(
+    "../../../modules/cases/infrastructure/persistence/case.repository.js"
+  );
+  const { decodeMessageCursor } = await import(
+    "../../../modules/cases/application/message-cursor.js"
+  );
+
+  // 120 tin: m1 cũ nhất → m120 mới nhất, mỗi tin cách nhau 1 phút
+  const all = Array.from({ length: 120 }, (_, i) => ({
+    id: `m${i + 1}`,
+    case_id: "case-1",
+    created_at: new Date(Date.UTC(2026, 0, 1, 0, i)),
+  }));
+
+  const original = prisma.caseMessage.findMany;
+  const capturedArgs: any[] = [];
+  prisma.caseMessage.findMany = (async (args: any) => {
+    capturedArgs.push(args);
+    // Mô phỏng DB: lọc case_id + before, sort desc như orderBy được truyền xuống
+    let rows = all.filter((m) => m.case_id === (args.where?.case_id ?? m.case_id));
+    const or = args.where?.OR;
+    if (Array.isArray(or)) {
+      const ltTime: Date = or[0]?.created_at?.lt;
+      const eqTime: Date = or[1]?.created_at;
+      const ltId: string = or[1]?.id?.lt;
+      rows = rows.filter((m) => {
+        const t = m.created_at.getTime();
+        return t < ltTime.getTime() || (t === eqTime.getTime() && m.id < ltId);
+      });
+    }
+    rows.sort((a, b) => b.created_at.getTime() - a.created_at.getTime() || b.id.localeCompare(a.id));
+    return rows.slice(0, args.take);
+  }) as unknown as typeof prisma.caseMessage.findMany;
+
+  try {
+    const page1 = await listCaseMessages("case-1", { limit: 50 });
+    // orderBy desc chính là chỗ bug cũ (asc trả về tin cũ nhất) — chặn tái phạm
+    assert.deepStrictEqual(capturedArgs[0]?.orderBy, [
+      { created_at: "desc" },
+      { id: "desc" },
+    ]);
+    assert.strictEqual(capturedArgs[0]?.take, 51); // limit + 1 để tính hasMore
+
+    // Page đầu = 50 tin MỚI NHẤT (m71..m120), thứ tự asc, cursor trỏ tin cũ nhất của page
+    assert.strictEqual(page1.messages.length, 50);
+    assert.strictEqual(page1.messages[0].id, "m71");
+    assert.strictEqual(page1.messages[49].id, "m120");
+    assert.ok(page1.next_cursor);
+    const c1 = decodeMessageCursor(page1.next_cursor);
+    assert.strictEqual(c1?.id, "m71");
+
+    const page2 = await listCaseMessages("case-1", { limit: 50, before: c1! });
+    assert.strictEqual(page2.messages[0].id, "m21");
+    assert.strictEqual(page2.messages[49].id, "m70");
+    const c2 = decodeMessageCursor(page2.next_cursor!);
+    assert.strictEqual(c2?.id, "m21");
+
+    const page3 = await listCaseMessages("case-1", { limit: 50, before: c2! });
+    assert.strictEqual(page3.messages.length, 20);
+    assert.strictEqual(page3.messages[0].id, "m1");
+    assert.strictEqual(page3.messages[19].id, "m20");
+    assert.strictEqual(page3.next_cursor, null);
+
+    // Không trùng lặp/thiếu sót giữa các trang
+    const ids = [...page1.messages, ...page2.messages, ...page3.messages].map((m) => m.id);
+    assert.strictEqual(new Set(ids).size, 120);
+  } finally {
+    prisma.caseMessage.findMany = original;
+  }
+});

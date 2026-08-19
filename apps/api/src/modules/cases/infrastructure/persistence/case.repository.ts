@@ -722,13 +722,15 @@ export async function listCaseMessages(
         : {}),
     },
     include: { sender: true },
-    orderBy: [{ created_at: "asc" }, { id: "asc" }],
+    orderBy: [{ created_at: "desc" }, { id: "desc" }],
     take: limit + 1, // +1 để biết còn trang cũ hơn không
   });
   const hasMore = rows.length > limit;
-  const messages = hasMore ? rows.slice(0, limit) : rows;
+  // Lấy từ mới nhất đi ngược về quá khứ rồi đảo ngược để trả về thứ tự asc (cũ → mới) như UI mong đợi.
+  const messages = (hasMore ? rows.slice(0, limit) : rows).slice().reverse();
+  // Cursor trỏ vào tin CŨ NHẤT của page — lần fetch tiếp theo lùi về quá khứ.
   const next_cursor = hasMore
-    ? encodeMessageCursor(messages[messages.length - 1].created_at, messages[messages.length - 1].id)
+    ? encodeMessageCursor(messages[0].created_at, messages[0].id)
     : null;
   return { messages, next_cursor };
 }
