@@ -63,15 +63,33 @@ export function useCaseChatVirtualizer(
     overscan: 8,
   });
 
-  // Scroll xuống cuối CHỈ khi tin cuối thay đổi (tin mới/optimistic) — không scroll khi prepend trang cũ
+  // Scroll xuống cuối khi tin cuối thay đổi hoặc khi khởi tạo
   const lastMessageIdRef = useRef<string | undefined>(undefined);
   useEffect(() => {
     const lastId = messages[messages.length - 1]?.id;
     if (lastId === undefined || lastMessageIdRef.current === lastId) return;
+    const isFirst = lastMessageIdRef.current === undefined;
     lastMessageIdRef.current = lastId;
-    requestAnimationFrame(() => {
-      virtualizer.scrollToIndex(rows.length - 1, { align: "end", behavior: "smooth" });
-    });
+
+    if (isFirst) {
+      requestAnimationFrame(() => {
+        virtualizer.scrollToIndex(rows.length - 1, { align: "end", behavior: "auto" });
+        setTimeout(() => {
+          if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+          }
+        }, 50);
+      });
+    } else {
+      requestAnimationFrame(() => {
+        virtualizer.scrollToIndex(rows.length - 1, { align: "end", behavior: "smooth" });
+        setTimeout(() => {
+          if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+          }
+        }, 100);
+      });
+    }
   }, [messages, rows.length, virtualizer]);
 
   // Khi viewport chạm gần đầu danh sách → fetch trang cũ hơn + ghi lại anchor scroll.

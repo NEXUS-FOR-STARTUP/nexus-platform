@@ -150,10 +150,9 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
   /* ─── Render ─────────────────────────────────────────────── */
   return (
     <div
-      className="flex flex-col overflow-hidden rounded-xl border border-border-app animate-fade-in h-full"
+      className="flex flex-col overflow-hidden rounded-xl border border-border-app animate-fade-in h-full flex-1 min-h-0"
       style={{
         background: "var(--color-surface-app)",
-        boxShadow: "var(--shadow-md)",
       }}
     >
       {/* ── Header ── */}

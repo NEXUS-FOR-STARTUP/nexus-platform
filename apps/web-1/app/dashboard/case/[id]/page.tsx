@@ -115,7 +115,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         stage={stage}
       />
 
-      <div className={`flex-grow flex flex-col h-full min-w-0 p-6 space-y-6 ${activeTab === "discussion" ? "overflow-hidden" : "overflow-y-auto"}`}>
+      <div className={`flex-grow flex flex-col h-full min-w-0 p-6 ${activeTab === "discussion" ? "overflow-hidden" : "space-y-6 overflow-y-auto"}`}>
         {activeTab !== "discussion" && (
           <CaseStatusHeader
             caseData={caseData}
@@ -133,7 +133,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           />
         )}
 
-        <div className="w-full flex flex-col pb-8">
+        <div className={`w-full flex flex-col ${activeTab === "discussion" ? "flex-1 min-h-0 h-full" : "pb-8"}`}>
           {activeTab === "overview" && (
             <CaseOverviewPanel
               caseData={caseData}
