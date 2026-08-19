@@ -2,6 +2,7 @@ import { prisma } from "../../../../db.js";
 import type { Prisma } from "@prisma/client";
 import { createDocumentRecordsForUnit } from "../../../documents/infrastructure/persistence/document.repository.js";
 import { AppError } from "../../../../shared/domain/app-error.js";
+import { MESSAGE_PAGE_DEFAULT, encodeMessageCursor } from "../../application/message-cursor.js";
 
 
 export async function findManyCasesByRole(userId: string, role: string) {
@@ -703,19 +704,35 @@ export async function createCaseEvent(caseId: string, userId: string, eventType:
   });
 }
 
-export async function listCaseMessages(caseId: string) {
-  try {
-    return await prisma.caseMessage.findMany({
-      where: { case_id: caseId },
-      include: {
-        sender: true,
-      },
-      orderBy: { created_at: "asc" },
-    });
-  } catch (error) {
-    console.error("[listCaseMessages] Failed to fetch case messages:", error);
-    return [];
-  }
+export async function listCaseMessages(
+  caseId: string,
+  options: { limit?: number; before?: { createdAt: Date; id: string } } = {},
+) {
+  const { limit = MESSAGE_PAGE_DEFAULT, before } = options;
+  const rows = await prisma.caseMessage.findMany({
+    where: {
+      case_id: caseId,
+      ...(before
+        ? {
+            OR: [
+              { created_at: { lt: before.createdAt } },
+              { created_at: before.createdAt, id: { lt: before.id } },
+            ],
+          }
+        : {}),
+    },
+    include: { sender: true },
+    orderBy: [{ created_at: "desc" }, { id: "desc" }],
+    take: limit + 1, // +1 để biết còn trang cũ hơn không
+  });
+  const hasMore = rows.length > limit;
+  // Lấy từ mới nhất đi ngược về quá khứ rồi đảo ngược để trả về thứ tự asc (cũ → mới) như UI mong đợi.
+  const messages = (hasMore ? rows.slice(0, limit) : rows).slice().reverse();
+  // Cursor trỏ vào tin CŨ NHẤT của page — lần fetch tiếp theo lùi về quá khứ.
+  const next_cursor = hasMore
+    ? encodeMessageCursor(messages[0].created_at, messages[0].id)
+    : null;
+  return { messages, next_cursor };
 }
 
 export async function createCaseMessage(data: {

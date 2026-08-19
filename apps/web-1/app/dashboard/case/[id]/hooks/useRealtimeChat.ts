@@ -1,11 +1,12 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { notifications } from "@mantine/notifications";
 import type { Centrifuge } from "centrifuge";
 import { UnauthorizedError } from "centrifuge";
 import { getCentrifugeClient } from "@/lib/realtime/centrifuge-client";
-import type { CaseMessage } from "@/types";
+import type { CaseMessage, CaseMessagesPage } from "@/types";
+import { appendMessageAsc } from "@/lib/case-message-utils";
 
 const TOKEN_API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -53,11 +54,19 @@ export function useRealtimeChat(caseId: string) {
         return;
       }
       if (data?.type !== "message" || !data.message?.id) return;
-      queryClient.setQueryData<CaseMessage[]>(["case-messages", caseId], (old = []) => {
-        if (old.some((m) => m.id === data.message!.id)) return old;
-        return [...old, data.message!].sort((a, b) =>
-          a.created_at.localeCompare(b.created_at),
-        );
+      queryClient.setQueryData<InfiniteData<CaseMessagesPage>>(["case-messages", caseId], (old) => {
+        if (!old?.pages?.length) return old; // chưa có cache → query sẽ tự fetch kèm message mới
+        // Page cuối cùng = trang mới nhất (pages = cũ → mới). Gắn tin mới vào đây.
+        const lastIndex = old.pages.length - 1;
+        const last = old.pages[lastIndex];
+        if (last.messages.some((m) => m.id === data.message!.id)) return old;
+        return {
+          ...old,
+          pages: [
+            ...old.pages.slice(0, lastIndex),
+            { ...last, messages: appendMessageAsc(last.messages, data.message!) },
+          ],
+        };
       });
     });
 

@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { useCaseChat } from "../hooks/useCaseChat";
 import { useRealtimeChat } from "../hooks/useRealtimeChat";
+import { useCaseChatVirtualizer } from "../hooks/useCaseChatVirtualizer";
 import { useSession } from "@/lib/auth-client";
 import { ArrowUp, MessageSquare, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
 import { ActionIcon, Textarea, Tooltip, Alert } from "@mantine/core";
@@ -26,20 +26,6 @@ function formatTime(dateStr: string) {
   return new Date(dateStr).toLocaleTimeString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",
-  });
-}
-
-function formatDateLabel(dateStr: string) {
-  const d = new Date(dateStr);
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-  if (d.toDateString() === today.toDateString()) return "Hôm nay";
-  if (d.toDateString() === yesterday.toDateString()) return "Hôm qua";
-  return d.toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
   });
 }
 
@@ -90,17 +76,20 @@ function formatDuration(ms: number) {
   return `${seconds}s`;
 }
 
-/* ─── Virtualizer row types ────────────────────────────────── */
-type Row =
-  | { kind: "divider"; label: string }
-  | { kind: "message"; msg: any };
-
 /* ─── Component ─────────────────────────────────────────────── */
 export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
   const { data: session } = useSession();
-  const { messages, isLoading, isFetching, error, refetch, sendMessage, isSending, sendError, resetSendError } =
-    useCaseChat(caseId);
+  const {
+    messages, isLoading, isFetching, error, refetch, sendMessage, isSending, sendError, resetSendError,
+    hasPreviousPage, isFetchingPreviousPage, fetchPreviousPage,
+  } = useCaseChat(caseId);
   useRealtimeChat(caseId);
+
+  const { scrollRef, rows, virtualizer } = useCaseChatVirtualizer(messages, {
+    hasPreviousPage,
+    isFetchingPreviousPage,
+    fetchPreviousPage,
+  });
 
   const chatGate = useMemo(() => extractChatGateError(sendError), [sendError]);
   const isChatClosed =
@@ -147,47 +136,6 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
     return () => observer.disconnect();
   }, []);
 
-  /* scrollable container ref for virtualizer */
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  /* ── Flatten messages + date dividers into rows ── */
-  const rows = useMemo<Row[]>(() => {
-    const result: Row[] = [];
-    let lastLabel: string | null = null;
-    for (const msg of messages) {
-      const label = formatDateLabel(msg.created_at);
-      if (label !== lastLabel) {
-        result.push({ kind: "divider", label });
-        lastLabel = label;
-      }
-      result.push({ kind: "message", msg });
-    }
-    return result;
-  }, [messages]);
-
-  /* ── TanStack Virtual ── */
-  const virtualizer = useVirtualizer({
-    count: rows.length,
-    getScrollElement: () => scrollRef.current,
-    estimateSize: (index) => {
-      const row = rows[index];
-      if (row.kind === "divider") return 36;
-      // estimate taller for multiline; actual size is measured via measureElement
-      const lineCount = (row.msg.content?.split("\n").length ?? 1);
-      return Math.max(72, 56 + lineCount * 18);
-    },
-    overscan: 8,
-  });
-
-  /* scroll to bottom whenever messages change */
-  useEffect(() => {
-    if (rows.length === 0) return;
-    // wait one tick so virtualizer measures first
-    requestAnimationFrame(() => {
-      virtualizer.scrollToIndex(rows.length - 1, { align: "end", behavior: "smooth" });
-    });
-  }, [rows.length]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim()) return;
@@ -202,10 +150,9 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
   /* ─── Render ─────────────────────────────────────────────── */
   return (
     <div
-      className="flex flex-col overflow-hidden rounded-xl border border-border-app animate-fade-in h-full"
+      className="flex flex-col overflow-hidden rounded-xl border border-border-app animate-fade-in h-full flex-1 min-h-0"
       style={{
         background: "var(--color-surface-app)",
-        boxShadow: "var(--shadow-md)",
       }}
     >
       {/* ── Header ── */}
@@ -216,14 +163,6 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
         <div className="flex items-center gap-2">
           <MessageSquare className="w-4 h-4 text-brand" />
           <span className="text-xs font-semibold text-text-app tracking-wide">Trao đổi</span>
-          {messages.length > 0 && (
-            <span
-              className="text-xs font-semibold px-1.5 py-0.5 rounded-full"
-              style={{ background: "var(--color-brand-soft)", color: "var(--color-brand)" }}
-            >
-              {messages.length}
-            </span>
-          )}
         </div>
 
         <Tooltip label="Tải tin nhắn mới" position="left" withArrow>
