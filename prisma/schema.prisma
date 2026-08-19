@@ -545,6 +545,7 @@ model CaseMessage {
 
   @@index([case_id])
   @@index([sender_auth_user_id])
+  @@index([case_id, created_at, id])
   @@map("case_messages")
 }
 
