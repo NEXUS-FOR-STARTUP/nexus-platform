@@ -56,11 +56,16 @@ export function useRealtimeChat(caseId: string) {
       if (data?.type !== "message" || !data.message?.id) return;
       queryClient.setQueryData<InfiniteData<CaseMessagesPage>>(["case-messages", caseId], (old) => {
         if (!old?.pages?.length) return old; // chưa có cache → query sẽ tự fetch kèm message mới
-        const [first, ...rest] = old.pages;
-        if (first.messages.some((m) => m.id === data.message!.id)) return old;
+        // Page cuối cùng = trang mới nhất (pages = cũ → mới). Gắn tin mới vào đây.
+        const lastIndex = old.pages.length - 1;
+        const last = old.pages[lastIndex];
+        if (last.messages.some((m) => m.id === data.message!.id)) return old;
         return {
           ...old,
-          pages: [{ ...first, messages: appendMessageAsc(first.messages, data.message!) }, ...rest],
+          pages: [
+            ...old.pages.slice(0, lastIndex),
+            { ...last, messages: appendMessageAsc(last.messages, data.message!) },
+          ],
         };
       });
     });

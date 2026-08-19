@@ -35,11 +35,12 @@ export function useCaseChat(caseId: string) {
     refetchInterval: 60_000, // giữ nguyên fallback 60s — refetch chỉ các page đã load (thường 1 page)
   });
 
-  // pages[0] = trang mới nhất; flatten ngược để được thứ tự asc (cũ → mới)
+  // TanStack v5 prepend page cũ vào ĐẦU mảng pages khi fetchPreviousPage
+  // → pages = [cũ nhất ... mới nhất]; mỗi page đã asc → flatten theo thứ tự pages là cũ → mới.
   const messages = useMemo(() => {
     const pages = messagesQuery.data?.pages ?? [];
     const flat: CaseMessage[] = [];
-    for (let i = pages.length - 1; i >= 0; i--) flat.push(...pages[i].messages);
+    for (const page of pages) flat.push(...page.messages);
     return flat;
   }, [messagesQuery.data]);
 
@@ -55,11 +56,16 @@ export function useCaseChat(caseId: string) {
         ["case-messages", caseId],
         (old) => {
           if (!old?.pages?.length) return old;
-          const [first, ...rest] = old.pages;
-          if (first.messages.some((m) => m.id === newMessage.id)) return old;
+          // Page cuối cùng = trang mới nhất (pages = cũ → mới). Gắn tin mới vào đây.
+          const lastIndex = old.pages.length - 1;
+          const last = old.pages[lastIndex];
+          if (last.messages.some((m) => m.id === newMessage.id)) return old;
           return {
             ...old,
-            pages: [{ ...first, messages: appendMessageAsc(first.messages, newMessage) }, ...rest],
+            pages: [
+              ...old.pages.slice(0, lastIndex),
+              { ...last, messages: appendMessageAsc(last.messages, newMessage) },
+            ],
           };
         },
       );

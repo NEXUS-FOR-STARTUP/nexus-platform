@@ -163,14 +163,6 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
         <div className="flex items-center gap-2">
           <MessageSquare className="w-4 h-4 text-brand" />
           <span className="text-xs font-semibold text-text-app tracking-wide">Trao đổi</span>
-          {messages.length > 0 && (
-            <span
-              className="text-xs font-semibold px-1.5 py-0.5 rounded-full"
-              style={{ background: "var(--color-brand-soft)", color: "var(--color-brand)" }}
-            >
-              {messages.length}
-            </span>
-          )}
         </div>
 
         <Tooltip label="Tải tin nhắn mới" position="left" withArrow>

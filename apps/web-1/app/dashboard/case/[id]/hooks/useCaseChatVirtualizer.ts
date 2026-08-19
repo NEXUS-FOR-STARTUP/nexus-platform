@@ -65,6 +65,9 @@ export function useCaseChatVirtualizer(
 
   // Scroll xuống cuối khi tin cuối thay đổi hoặc khi khởi tạo
   const lastMessageIdRef = useRef<string | undefined>(undefined);
+  // Chặn preload trang cũ cho tới khi scroll-to-bottom khởi tạo xong — nếu không,
+  // anchor restore sau prepend sẽ ghim scroll giữa danh sách khi vào tab chat.
+  const initialScrollDoneRef = useRef(false);
   useEffect(() => {
     const lastId = messages[messages.length - 1]?.id;
     if (lastId === undefined || lastMessageIdRef.current === lastId) return;
@@ -78,6 +81,7 @@ export function useCaseChatVirtualizer(
           if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
           }
+          initialScrollDoneRef.current = true;
         }, 50);
       });
     } else {
@@ -99,15 +103,15 @@ export function useCaseChatVirtualizer(
   const restorePendingRef = useRef(false);
   useEffect(() => {
     const range = virtualizer.range;
-    if (!range || !hasPreviousPage || isFetchingPreviousPage || restorePendingRef.current) return;
+    if (!range || !initialScrollDoneRef.current || !hasPreviousPage || isFetchingPreviousPage || restorePendingRef.current) return;
     if (range.startIndex <= PRELOAD_THRESHOLD) {
       const el = scrollRef.current;
       const anchorItem = virtualizer
         .getVirtualItems()
-        .find((vItem) => rows[vItem.index].kind === "message");
+        .find((vItem) => rows[vItem.index]?.kind === "message");
       if (el && anchorItem) {
         const row = rows[anchorItem.index];
-        if (row.kind === "message") {
+        if (row && row.kind === "message") {
           anchorRef.current = { messageId: row.msg.id, offset: anchorItem.start - el.scrollTop };
         }
       }
