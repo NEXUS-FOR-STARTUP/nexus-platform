@@ -126,6 +126,11 @@ export interface CaseMessage {
   sender?: User;
 }
 
+export interface CaseMessagesPage {
+  messages: CaseMessage[];
+  next_cursor: string | null;
+}
+
 export interface CaseEvent {
   id: string;
   case_id: string;
