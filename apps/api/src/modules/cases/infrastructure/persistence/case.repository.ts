@@ -2,6 +2,7 @@ import { prisma } from "../../../../db.js";
 import type { Prisma } from "@prisma/client";
 import { createDocumentRecordsForUnit } from "../../../documents/infrastructure/persistence/document.repository.js";
 import { AppError } from "../../../../shared/domain/app-error.js";
+import { MESSAGE_PAGE_DEFAULT, encodeMessageCursor } from "../../application/message-cursor.js";
 
 
 export async function findManyCasesByRole(userId: string, role: string) {
@@ -703,19 +704,33 @@ export async function createCaseEvent(caseId: string, userId: string, eventType:
   });
 }
 
-export async function listCaseMessages(caseId: string) {
-  try {
-    return await prisma.caseMessage.findMany({
-      where: { case_id: caseId },
-      include: {
-        sender: true,
-      },
-      orderBy: { created_at: "asc" },
-    });
-  } catch (error) {
-    console.error("[listCaseMessages] Failed to fetch case messages:", error);
-    return [];
-  }
+export async function listCaseMessages(
+  caseId: string,
+  options: { limit?: number; before?: { createdAt: Date; id: string } } = {},
+) {
+  const { limit = MESSAGE_PAGE_DEFAULT, before } = options;
+  const rows = await prisma.caseMessage.findMany({
+    where: {
+      case_id: caseId,
+      ...(before
+        ? {
+            OR: [
+              { created_at: { lt: before.createdAt } },
+              { created_at: before.createdAt, id: { lt: before.id } },
+            ],
+          }
+        : {}),
+    },
+    include: { sender: true },
+    orderBy: [{ created_at: "asc" }, { id: "asc" }],
+    take: limit + 1, // +1 để biết còn trang cũ hơn không
+  });
+  const hasMore = rows.length > limit;
+  const messages = hasMore ? rows.slice(0, limit) : rows;
+  const next_cursor = hasMore
+    ? encodeMessageCursor(messages[messages.length - 1].created_at, messages[messages.length - 1].id)
+    : null;
+  return { messages, next_cursor };
 }
 
 export async function createCaseMessage(data: {

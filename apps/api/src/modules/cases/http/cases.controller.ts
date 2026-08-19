@@ -39,6 +39,9 @@ import { vetoCaseUseCase } from "../application/veto-case.usecase.js";
 import { completeCaseUseCase } from "../application/complete-case.usecase.js";
 import { upgradePackageUseCase } from "../application/upgrade-package.usecase.js";
 import { resubmitCaseUseCase } from "../application/resubmit-case.usecase.js";
+import { AppError } from "../../../shared/domain/app-error.js";
+import { parseMessageLimit, decodeMessageCursor } from "../application/message-cursor.js";
+
 
 // ---------------------------------------------------------------------------
 // GET /api/cases — List cases based on role
@@ -353,7 +356,20 @@ export async function listMessagesHandler(c: Context) {
   }
 
   try {
-    const result = await listMessagesUseCase(caseId);
+    const cursorRaw = c.req.query("cursor");
+    let before: { createdAt: Date; id: string } | undefined;
+    if (cursorRaw) {
+      const decoded = decodeMessageCursor(cursorRaw);
+      if (!decoded) {
+        throw new AppError(400, "INVALID_CURSOR", "Tham số phân trang không hợp lệ");
+      }
+      before = decoded;
+    }
+
+    const result = await listMessagesUseCase(caseId, {
+      limit: parseMessageLimit(c.req.query("limit")),
+      before,
+    });
     return c.json(result);
   } catch (error: any) {
     return handleError(c, error);
