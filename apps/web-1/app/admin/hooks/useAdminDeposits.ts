@@ -11,6 +11,7 @@ export function useAdminDeposits() {
       const response = await apiClient.get("/deposits/admin/all");
       return response.data.deposits || [];
     },
+    refetchInterval: 10000,
   });
 
   const verifyDepositMutation = useMutation({

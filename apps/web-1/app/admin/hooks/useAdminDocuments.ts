@@ -10,6 +10,7 @@ export function useAdminDocuments() {
       const response = await apiClient.get("/admin/documents");
       return response.data;
     },
+    refetchInterval: 10000,
   });
 
   const deleteDocumentMutation = useMutation({

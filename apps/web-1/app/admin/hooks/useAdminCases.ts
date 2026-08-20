@@ -16,6 +16,7 @@ export function useAdminCases() {
       const response = await apiClient.get("/admin/cases");
       return response.data;
     },
+    refetchInterval: 10000,
   });
 
   const supportersQuery = useQuery<User[]>({
@@ -24,6 +25,7 @@ export function useAdminCases() {
       const response = await apiClient.get("/cases/supporters");
       return response.data;
     },
+    refetchInterval: 10000,
   });
 
   const acceptCaseMutation = useMutation({
@@ -106,5 +108,6 @@ export function useAdminCaseDetail(caseId: string | null) {
       return response.data;
     },
     enabled: !!caseId,
+    refetchInterval: 10000,
   });
 }

@@ -35,6 +35,7 @@ export function useAdminUsers(params: UseAdminUsersParams = {}) {
       });
       return result.data;
     },
+    refetchInterval: 10000,
   });
 
   const createUserMutation = useMutation({

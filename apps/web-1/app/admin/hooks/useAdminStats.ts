@@ -38,5 +38,6 @@ export function useAdminStats(period: string = "30d") {
       });
       return response.data;
     },
+    refetchInterval: 10000,
   });
 }

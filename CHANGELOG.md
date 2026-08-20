@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chặn duyệt hồ sơ (T5_ACCEPT) khi thanh toán chưa hoàn tất — chỉ trạng thái `paid` hoặc `not_required` mới được duyệt (fail-closed)
 
 ### Changed
+- Admin pages (cases, deposits, documents, packages, stats, users) tự động làm mới dữ liệu mỗi 10 giây qua `refetchInterval` — không cần refresh trang, đồng bộ với cơ chế polling của trang chi tiết case (user/supporter)
 - Sau khi mua credit, case được cập nhật `payment_status: paid` và chuyển từ `intake_pending` sang `intake_ready`
 - Admin UI vô hiệu hóa nút Duyệt hồ sơ cho đến khi thanh toán hoàn tất
 ## [1.1.0] - 2026-08-09
