@@ -2,7 +2,7 @@ import './env.js'
 
 import { createHash } from 'node:crypto'
 import { prismaAdapter } from 'better-auth/adapters/prisma'
-import { betterAuth } from 'better-auth'
+import { APIError, betterAuth } from 'better-auth'
 import { admin, emailOTP, openAPI } from 'better-auth/plugins'
 import { prisma } from './db.js'
 import {
@@ -125,12 +125,40 @@ export const auth = betterAuth({
       clientSecret: requiredEnv('GOOGLE_CLIENT_SECRET'),
     },
   },
+  hooks: {
+    // Chặn đăng ký/gửi lại mã cho email đã xác minh: trả 409 để UI chuyển thẳng login.
+    // Dùng hooks.before native của Better Auth (chạy trên HTTP path, body đã parse,
+    // APIError throw từ hook propagate tới client) — không intercept Hono bên ngoài.
+    before: async (ctx) => {
+      // Type của main hooks.before không expose path/body, nhưng runtime luôn có:
+      // dispatch.mjs set path = endpoint.path, router parse body trước khi gọi handler.
+      const { path, body } = ctx as unknown as {
+        path?: string
+        body?: { email?: unknown }
+      }
+      if (
+        path === '/sign-up/email' ||
+        path === '/email-otp/send-verification-otp'
+      ) {
+        if (body && typeof body.email === 'string') {
+          const existing = await prisma.user.findUnique({
+            where: { email: body.email.toLowerCase() },
+            select: { email_verified: true },
+          })
+          if (existing?.email_verified) {
+            throw new APIError('CONFLICT', {
+              message: 'EMAIL_ALREADY_VERIFIED',
+            })
+          }
+        }
+      }
+    },
+  },
   plugins: [
     admin(),
     openAPI(),
     emailOTP({
       overrideDefaultEmailVerification: true,
-      sendVerificationOnSignUp: true,
       otpLength: 6,
       expiresIn: 300,
       allowedAttempts: 3,
