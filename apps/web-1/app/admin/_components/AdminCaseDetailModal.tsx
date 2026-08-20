@@ -6,6 +6,7 @@ import { FileText } from "lucide-react";
 import { useAdminCaseDetail } from "../hooks/useAdminCases";
 import { statusThemeMap } from "@/types";
 import { filterTransitions } from "@/_types/transitions";
+import { isCasePaymentComplete } from "@/lib/pricing";
 
 interface AdminCaseDetailModalProps {
   caseId: string | null;
@@ -47,6 +48,7 @@ export default function AdminCaseDetailModal({
   });
   const hasNoIntake = !!detailData && !detailData.intake_snapshot;
   const canAccept = !hasNoIntake && filteredTransitions.includes("T5_ACCEPT");
+  const paymentComplete = isCasePaymentComplete(detailData?.case);
   const canReject = !hasNoIntake && filteredTransitions.includes("T12_REJECT");
   const canAssign = !hasNoIntake && filteredTransitions.includes("T6_ASSIGN_SUPPORTER");
 
@@ -274,9 +276,11 @@ export default function AdminCaseDetailModal({
             )}
             {detailData && canAccept && (
               <Button
-                onClick={() => onApprove(detailData.case.id)}
+                onClick={paymentComplete ? () => onApprove(detailData.case.id) : undefined}
                 color="green"
-                className="font-semibold cursor-pointer"
+                disabled={!paymentComplete}
+                title={!paymentComplete ? "Chưa hoàn tất thanh toán" : undefined}
+                className="font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Duyệt hồ sơ
               </Button>

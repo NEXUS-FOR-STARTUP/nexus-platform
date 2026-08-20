@@ -56,6 +56,7 @@ await test("upgrade-package - machine transition gates", async (t) => {
       caseOwnerId: "user-1",
       creditBalance: 1,
       lockedPrice: 39000,
+      paymentStatus: "paid",
     },
   };
 

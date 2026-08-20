@@ -43,6 +43,21 @@ export function isValidInternalStatus(
   );
 }
 
+/**
+ * Payment statuses that authorize admin approval (T5_ACCEPT). Fail-closed: any
+ * other value — including missing/unknown — blocks approval.
+ */
+export const COMPLETE_PAYMENT_STATUSES = ["paid", "not_required"] as const;
+
+export type CompletePaymentStatus = (typeof COMPLETE_PAYMENT_STATUSES)[number];
+
+export function isPaymentComplete(paymentStatus: unknown): boolean {
+  return (
+    typeof paymentStatus === "string" &&
+    (COMPLETE_PAYMENT_STATUSES as readonly string[]).includes(paymentStatus)
+  );
+}
+
 export function isFinalCaseStage(stage?: string | null): boolean {
   return stage === "closed" || stage === "completed" || stage === "rejected";
 }

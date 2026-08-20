@@ -10,6 +10,7 @@ import AdminCaseDetailModal from "./AdminCaseDetailModal";
 import AssignSupporterModal from "./AssignSupporterModal";
 import RejectCaseModal from "./RejectCaseModal";
 import ApproveCaseModal from "./ApproveCaseModal";
+import { isCasePaymentComplete } from "@/lib/pricing";
 
 interface AdminCaseAssignmentTableProps {
   cases: any[];
@@ -295,8 +296,10 @@ export default function AdminCaseAssignmentTable({
                                 </Menu.Item>
                                 <Menu.Item
                                   leftSection={<CheckCircle className="w-3.5 h-3.5 text-success" />}
-                                  onClick={() => setAcceptingCaseId(item.id)}
-                                  className="text-text-app hover:bg-surface-soft cursor-pointer text-xs font-semibold"
+                                  onClick={isCasePaymentComplete(item) ? () => setAcceptingCaseId(item.id) : undefined}
+                                  disabled={!isCasePaymentComplete(item)}
+                                  title={!isCasePaymentComplete(item) ? "Chưa hoàn tất thanh toán" : undefined}
+                                  className="text-text-app hover:bg-surface-soft cursor-pointer text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                   Duyệt hồ sơ
                                 </Menu.Item>

@@ -67,10 +67,9 @@ export interface StageStatus {
 
 export type GuardName =
   | 'isOwner' | 'isAssignedSupporter'
-  | 'isAdmin' | 'isSupporter' | 'hasCredit'
+  | 'isAdmin' | 'isSupporter' | 'hasCredit' | 'hasPaymentComplete'
   | 'isWithin48h' | 'isBeforeSubmission'
   | 'reasonMinLength'
-
 export type ActionName =
   | 'upsertDoc' | 'subtractCredit' | 'refundCredit' | 'refundRemainingCredit'
   | 'setSlaDeadline' | 'emitStageChanged' | 'notifyUser'
