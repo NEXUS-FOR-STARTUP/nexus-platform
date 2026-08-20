@@ -52,3 +52,4 @@ prisma/backup
 .vscode/
 *.log
 nul
+.omp/
