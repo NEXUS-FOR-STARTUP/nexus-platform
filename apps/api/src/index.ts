@@ -135,6 +135,40 @@ app.get('/stream', (c) => {
   })
 })
 
+// Chặn đăng ký bằng email đã tồn tại + đã xác minh: trả 409 để UI chuyển thẳng sang login,
+// thay vì rơi vào luồng verify page → gửi lại → 409 → login (anti-enumeration của Better Auth).
+// Email tồn tại nhưng chưa verify vẫn cho qua để vào trang nhập OTP.
+app.post('/api/auth/sign-up/email', async (c) => {
+  const body = await c.req.raw.clone().json().catch(() => null)
+  if (typeof body?.email === 'string') {
+    const existing = await prisma.user.findUnique({
+      where: { email: body.email.toLowerCase() },
+      select: { email_verified: true },
+    })
+    if (existing?.email_verified) {
+      return c.json({ message: 'EMAIL_ALREADY_VERIFIED' }, 409)
+    }
+  }
+  return auth.handler(c.req.raw)
+})
+
+// Chặn gửi lại mã xác minh cho email đã xác minh: tránh spam OTP cho tài khoản đã kích hoạt.
+// Endpoint gốc của Better Auth luôn gửi cho user tồn tại (kể cả email_verified=true),
+// và runInBackgroundOrAwait nuốt lỗi callback nên không thể chặn từ trong plugin.
+app.post('/api/auth/email-otp/send-verification-otp', async (c) => {
+  const body = await c.req.raw.clone().json().catch(() => null)
+  if (body?.type === 'email-verification' && typeof body.email === 'string') {
+    const user = await prisma.user.findUnique({
+      where: { email: body.email.toLowerCase() },
+      select: { email_verified: true },
+    })
+    if (user?.email_verified) {
+      return c.json({ message: 'EMAIL_ALREADY_VERIFIED' }, 409)
+    }
+  }
+  return auth.handler(c.req.raw)
+})
+
 app.on(['POST', 'GET'], '/api/auth/*', (c) => auth.handler(c.req.raw))
 
 app.get('/session', async (c) => {
