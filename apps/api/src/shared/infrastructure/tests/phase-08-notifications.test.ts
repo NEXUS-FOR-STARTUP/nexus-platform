@@ -279,6 +279,17 @@ test("Phase 08 - Notifications", async (t) => {
     assert.ok(html.includes("&lt;b&gt;"));
   });
 
+  await t.test("email service - render OTP marker as large safe block", async () => {
+    const { renderEmailHtml } = await import("../../../modules/notifications/infrastructure/email.service.js");
+    const html = renderEmailHtml("Xác minh email", "Mã:\n<otp>582690</otp>\nHết hạn sau 5 phút.", null);
+    assert.ok(html.includes('font-size:32px'), "OTP phải được render lớn");
+    assert.ok(html.includes(">582690</div>"), "OTP phải nằm trong block an toàn");
+
+    const malicious = renderEmailHtml("Xác minh email", "<otp><script>alert(1)</script></otp>", null);
+    assert.ok(!malicious.includes("<script>"), "marker OTP không được mở HTML tùy ý");
+    assert.ok(malicious.includes("&lt;otp&gt;"), "marker không hợp lệ phải bị escape");
+  });
+
   await t.test("templates - mọi DOMAIN_EVENTS đều có template (chống bug key mismatch)", async () => {
     const { DOMAIN_EVENTS } = await import("../../domain/domain-events.js");
     const { renderTemplate } = await import("../../../modules/notifications/application/notification-templates.js");
