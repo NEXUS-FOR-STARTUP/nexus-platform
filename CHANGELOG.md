@@ -7,16 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 2026-08-16 — Backlog bugs fix (8 bugs: #1 #3 #5 #9 #12 #13 #14 #16)
+
+**Added**
+- Completion flow: T17_USER_CONFIRM_COMPLETE (user xác nhận hoàn thành, isOwner), T19_REOPEN (mua credit case `done` → `under_review`, re-arm SLA 48h), auto-done 7 ngày (daily sweep neo latest T11, fire T14 ADMIN)
+- Document model: category codes (`idea_report`/`pitch_deck`/`competitor_analysis`/`customer_research`/`task_assignment`/`other`) vào `metadata_json.category`, soft-supersede `superseded_at` (index `[case_id, superseded_at]`), `unit_code` `intake` → `v00`
+- Intake caps: max 10 tài liệu (intake-only) + text caps (≤100/≤254/≤20000 theo field) — `Cp1IntakeCaps`
+- Refund credit dư: hoàn VND về ví theo giá mua thực tế (walk DESC), idempotency `refund-credit-{caseId}`
+- Realtime `case_deleted` trên kênh `chat:{caseId}` khi admin xóa case
+
+**Changed**
+- T14 guard: isAssignedSupporter → **isAdmin** (supporter không còn tự close; user confirm qua T17)
+- T6 self-loop cho reassign ở `supporter_working`/`report_ready_to_publish` — SLA đếm tiếp, không reset
+- T11/T3 hết credit → 402 `NO_CREDITS` rõ (thay 400 generic); `subtractCredit` no-op khi `lockedPrice === 0` (free case)
+- Admin list tách bucket `intake_pending` "Chờ sinh viên nộp hồ sơ"; detail empty-state khi `intake_snapshot = null` (disable approve/reject)
+- FE banner credit guidance tại `report_ready` (có credit → guidance; hết credit → đỏ + nút mua)
+
+**Fixed**
+- #1 Reassign supporter: SLA đếm tiếp (không reset); refund credit dư FIFO đúng giá mua; idempotent, không hoàn kép
+- #3 User không hiểu "lần 2 phải mua credit": banner guidance + 402 NO_CREDITS rõ ràng
+- #5 Chưa rõ ai xác nhận hoàn thành: user confirm (T17), admin-only force-close (T14), auto-done 7 ngày, mua credit case done → reopen
+- #9 Trả tiền nhưng chưa nộp hồ sơ: admin queue tách bucket, detail empty-state, vô hiệu nút duyệt
+- #12 Admin thấy nhiều tài liệu, user thấy 1: bỏ "tài liệu chính", category codes, soft-supersede, user chỉ thấy bộ mới nhất
+- #13 Intake spam tài liệu: giới hạn 10 tài liệu
+- #14 Intake lưu không giới hạn chữ: caps ≤100/≤254/≤20000
+- #16 Không kick khi xóa case: realtime `case_deleted` + FE toast/redirect + poll fallback 404
+
+**Removed**
+- Supporter close-case route (bypass machine, không guard)
+
 ### Added
+- Financial domain refactor: deposits module (POST /api/deposits, POST /api/deposits/:id/verify)
+- Financial domain refactor: orders module (POST /api/orders)
+- Legacy dual-write feature flags: DUAL_WRITE_WALLET_TOPUP, DUAL_WRITE_PAYMENT
+- docs/financial-domain-migration-sql.md — migration SQL for production deployment
+- Bắt buộc xác minh email OTP trước đăng nhập: OTP 6 số qua Resend (hết hạn 300s, tối đa 3 lần nhập, rate-limit 3/60s); `RESEND_API_KEY` bắt buộc; không auto sign-in sau đăng ký; email đã verify → 409 `EMAIL_ALREADY_VERIFIED`; trang `/auth/verify-email` + gửi lại mã + lỗi OTP tiếng Việt
 - Chặn duyệt hồ sơ (T5_ACCEPT) khi thanh toán chưa hoàn tất — chỉ trạng thái `paid` hoặc `not_required` mới được duyệt (fail-closed)
 - Giới hạn gửi tin chat 1 tin/giây/user trên API (`claimMessageSendSlot` sync trước await). 429 `RATE_LIMITED` kèm `unlockInMs`. Nội dung rỗng hoặc >5000 không chiếm slot
 
 ### Changed
+- POST /api/wallet/topups → 410 Gone (use POST /api/deposits)
+- POST /api/payments → 410 Gone (use POST /api/deposits or POST /api/orders)
+- GET /api/payments, GET /api/payments/my, GET /api/payments/:id → 410 Gone (use /api/deposits)
+- POST /api/payments/proof, POST /api/payments/:id/verify → 410 Gone
+- WalletTopup, Payment models marked @deprecated in schema
+- Payment, WalletTopup use cases marked @deprecated
 - Admin pages (cases, deposits, documents, packages, stats, users) tự động làm mới dữ liệu mỗi 10 giây qua `refetchInterval` — không cần refresh trang, đồng bộ với cơ chế polling của trang chi tiết case (user/supporter)
 - Sau khi mua credit, case được cập nhật `payment_status: paid` và chuyển từ `intake_pending` sang `intake_ready`
 - Admin UI vô hiệu hóa nút Duyệt hồ sơ cho đến khi thanh toán hoàn tất
 
+### Removed
+- Legacy payment routes (6 endpoints) returning 410 Gone
+
 ### Fixed
+- Notification `CASE_APPROVED`/`CASE_REJECTED`: emit `caseCode` từ `case_code` (trước chỉ `caseId` nên email/in-app ra `Case undefined`); field thiếu/rỗng fallback `chưa xác định`; Telegram assignment supporter thêm tên
 - Chat: chặn Enter khi tin đang gửi (`isSending`) — khớp nút submit đã disable
 
 ## [1.1.0] - 2026-08-09
