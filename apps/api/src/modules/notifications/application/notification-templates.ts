@@ -46,7 +46,7 @@ const TEMPLATES: Record<string, Template> = {
     studentBody: (p) =>
       `Case ${payloadText(p, "caseCode", "chưa xác định")} đã có supporter phụ trách: ${payloadText(p, "supporterName", "chưa xác định")}.`,
     supporterBody: (p) =>
-      `Case ${payloadText(p, "caseCode", "chưa xác định")} được giao cho bạn. Supporter phụ trách: ${payloadText(p, "supporterName", "chưa xác định")}.`,
+      `Case ${payloadText(p, "caseCode", "chưa xác định")} được giao cho Supporter phụ trách: ${payloadText(p, "supporterName", "chưa xác định")}.`,
     studentLink: (p) => `/dashboard/case/${p.caseId}`,
     supporterLink: (p) => `/supporter/case/${p.caseId}`,
   },
