@@ -9,11 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Chặn duyệt hồ sơ (T5_ACCEPT) khi thanh toán chưa hoàn tất — chỉ trạng thái `paid` hoặc `not_required` mới được duyệt (fail-closed)
+- Giới hạn gửi tin chat 1 tin/giây/user trên API (`claimMessageSendSlot` sync trước await). 429 `RATE_LIMITED` kèm `unlockInMs`. Nội dung rỗng hoặc >5000 không chiếm slot
 
 ### Changed
 - Admin pages (cases, deposits, documents, packages, stats, users) tự động làm mới dữ liệu mỗi 10 giây qua `refetchInterval` — không cần refresh trang, đồng bộ với cơ chế polling của trang chi tiết case (user/supporter)
 - Sau khi mua credit, case được cập nhật `payment_status: paid` và chuyển từ `intake_pending` sang `intake_ready`
 - Admin UI vô hiệu hóa nút Duyệt hồ sơ cho đến khi thanh toán hoàn tất
+
+### Fixed
+- Chat: chặn Enter khi tin đang gửi (`isSending`) — khớp nút submit đã disable
+
 ## [1.1.0] - 2026-08-09
 
 ### Added
