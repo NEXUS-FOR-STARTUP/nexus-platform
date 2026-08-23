@@ -50,6 +50,11 @@ docs/case-documents/
 docker-example
 prisma/backup
 .vscode/
-*.log
+	*.log
 nul
 .omp/
+# Claude Code local settings (personal, machine-specific — never commit)
+.claude/settings.local.json
+.claude/worktrees/
+# Scratch file
+note.txt
