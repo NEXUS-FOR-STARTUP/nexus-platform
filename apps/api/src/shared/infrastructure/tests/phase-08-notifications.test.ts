@@ -117,6 +117,35 @@ test("Phase 08 - Notifications", async (t) => {
     assert.ok(auto.body?.includes("tự động"));
   });
 
+  await t.test("templates - case.approved/assigned/rejected identity", async () => {
+    const { renderTemplate } = await import("../../../modules/notifications/application/notification-templates.js");
+    const payload = { caseId: "c1", caseCode: "NX-1", supporterName: "Nguyễn Văn A" };
+
+    const approved = renderTemplate("case.approved", payload, "student");
+    assert.ok(approved.body?.includes("NX-1"));
+    assert.ok(!approved.body?.includes("undefined"));
+
+    const assignedStudent = renderTemplate("case.assigned", payload, "student");
+    assert.ok(assignedStudent.body?.includes("Nguyễn Văn A"));
+    assert.strictEqual(assignedStudent.link, "/dashboard/case/c1");
+
+    const assignedSupporter = renderTemplate("case.assigned", payload, "supporter");
+    assert.ok(assignedSupporter.body?.includes("Nguyễn Văn A"));
+    assert.strictEqual(assignedSupporter.link, "/supporter/case/c1");
+
+    const rejected = renderTemplate("case.rejected", payload, "student");
+    assert.ok(rejected.body?.includes("NX-1"));
+    assert.ok(!rejected.body?.includes("undefined"));
+  });
+
+  await t.test("templates - missing caseCode falls back, never undefined", async () => {
+    const { renderTemplate } = await import("../../../modules/notifications/application/notification-templates.js");
+
+    const r = renderTemplate("case.approved", { caseId: "c1" }, "student");
+    assert.ok(r.body?.includes("chưa xác định"));
+    assert.ok(!r.body?.includes("undefined"));
+  });
+
   // ------------------------------------------------------------------
   // Relay — retry backoff + in_app insert + purge
   // ------------------------------------------------------------------

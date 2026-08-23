@@ -138,7 +138,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim()) return;
+    if (!inputText.trim() || isSending) return;
     try {
       await sendMessage(inputText.trim());
       setInputText("");
