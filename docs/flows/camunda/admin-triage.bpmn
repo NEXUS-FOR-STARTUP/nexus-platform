@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_triage" targetNamespace="http://bpmn.io/schema/bpmn" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <bpmn:process id="admin-triage" name="Xét duyệt &amp; phân công (Admin triage)" isExecutable="true">
+    <bpmn:startEvent id="Start_CaseSubmitted" name="Case đã nộp">
+      <bpmn:messageEventDefinition messageRef="Message_caseSubmitted" />
+      <bpmn:outgoing>Flow_ToReview</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="GwMergeReview" name="Vào thẩm định">
+      <bpmn:incoming>Flow_ToReview</bpmn:incoming>
+      <bpmn:incoming>Flow_UpdateBack</bpmn:incoming>
+      <bpmn:incoming>Flow_DecUnknown</bpmn:incoming>
+      <bpmn:outgoing>Flow_MergeReview</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="ReviewCase" name="Xem &amp; thẩm định case">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition externalReference="triage-review-form" />
+        <zeebe:assignmentDefinition candidateGroups="admins" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_MergeReview</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToEligibility</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:businessRuleTask id="CheckEligibility" name="Case có thể duyệt?">
+      <bpmn:extensionElements>
+        <zeebe:calledDecision decisionId="approve_eligibility" resultVariable="approval" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToEligibility</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToGwApproved</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:exclusiveGateway id="GwApproved" name="Đủ điều kiện duyệt?" default="Flow_NotEligible">
+      <bpmn:incoming>Flow_ToGwApproved</bpmn:incoming>
+      <bpmn:outgoing>Flow_Eligible</bpmn:outgoing>
+      <bpmn:outgoing>Flow_NotEligible</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:intermediateCatchEvent id="WaitCaseUpdated" name="Chờ sinh viên thanh toán / nộp lại">
+      <bpmn:messageEventDefinition messageRef="Message_caseUpdated" />
+      <bpmn:incoming>Flow_NotEligible</bpmn:incoming>
+      <bpmn:outgoing>Flow_UpdateBack</bpmn:outgoing>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:exclusiveGateway id="GwMergeDecision" name="Vào ra quyết định">
+      <bpmn:incoming>Flow_Eligible</bpmn:incoming>
+      <bpmn:incoming>Flow_VetoInvalid</bpmn:incoming>
+      <bpmn:outgoing>Flow_MergeDecision</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="DecideAction" name="Ra quyết định: Duyệt / Từ chối / Veto">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition externalReference="triage-decision-form" />
+        <zeebe:assignmentDefinition candidateGroups="admins" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_MergeDecision</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToGwDecision</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GwDecision" name="Quyết định" default="Flow_DecUnknown">
+      <bpmn:incoming>Flow_ToGwDecision</bpmn:incoming>
+      <bpmn:outgoing>Flow_DecAccept</bpmn:outgoing>
+      <bpmn:outgoing>Flow_DecReject</bpmn:outgoing>
+      <bpmn:outgoing>Flow_DecVeto</bpmn:outgoing>
+      <bpmn:outgoing>Flow_DecUnknown</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="AcceptCase" name="Chấp nhận case">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="accept-case" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_DecAccept</bpmn:incoming>
+      <bpmn:outgoing>Flow_AcceptDone</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="AssignSupporter" name="Gán supporter">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition externalReference="assign-supporter-form" />
+        <zeebe:assignmentDefinition candidateGroups="admins" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_AcceptDone</bpmn:incoming>
+      <bpmn:outgoing>Flow_Assigned</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="End_Assigned" name="Case vào hàng đợi supporter">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="publish-message" />
+      </bpmn:extensionElements>
+      <bpmn:messageEventDefinition messageRef="Message_caseAssigned" />
+      <bpmn:incoming>Flow_Assigned</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="EnterRejectReason" name="Nhập lý do từ chối (≥10 ký tự)">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition externalReference="reject-reason-form" />
+        <zeebe:assignmentDefinition candidateGroups="admins" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_DecReject</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToRefund</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:businessRuleTask id="RefundPolicy" name="Chính sách hoàn tiền khi đóng">
+      <bpmn:extensionElements>
+        <zeebe:calledDecision decisionId="refund_on_terminal" resultVariable="refundPolicy" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToRefund</bpmn:incoming>
+      <bpmn:outgoing>Flow_Reject</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:serviceTask id="RejectCase" name="Từ chối &amp; đóng case + hoàn lượt chưa dùng">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="reject-case" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Reject</bpmn:incoming>
+      <bpmn:outgoing>Flow_RejectEnd</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Rejected" name="Case đóng (bị từ chối)">
+      <bpmn:incoming>Flow_RejectEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:businessRuleTask id="CheckVeto" name="Veto có hợp lệ?">
+      <bpmn:extensionElements>
+        <zeebe:calledDecision decisionId="veto_eligibility" resultVariable="veto" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_DecVeto</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToGwVeto</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:exclusiveGateway id="GwVeto" name="Veto hợp lệ?" default="Flow_VetoInvalid">
+      <bpmn:incoming>Flow_ToGwVeto</bpmn:incoming>
+      <bpmn:outgoing>Flow_VetoValid</bpmn:outgoing>
+      <bpmn:outgoing>Flow_VetoInvalid</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="VetoCase" name="Veto: đóng case + hoàn tiền gói &amp; lượt">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="veto-case" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_VetoValid</bpmn:incoming>
+      <bpmn:outgoing>Flow_VetoEnd</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Vetoed" name="Case đóng (bị veto)">
+      <bpmn:incoming>Flow_VetoEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:textAnnotation id="Note_Eligibility" text="Điều kiện duyệt: Đã thanh toán (hoặc miễn phí) + còn ≥1 lượt đánh giá. Chi tiết: approve-eligibility.dmn" />
+    <bpmn:textAnnotation id="Note_VetoWindow" text="Veto chỉ trong 48 giờ kể từ lúc tạo case; áp dụng khi case đã được duyệt và đang xử lý. Chi tiết: veto-eligibility.dmn" />
+    <bpmn:sequenceFlow id="Flow_ToReview" sourceRef="Start_CaseSubmitted" targetRef="GwMergeReview" />
+    <bpmn:sequenceFlow id="Flow_UpdateBack" name="Case đã cập nhật — xem lại" sourceRef="WaitCaseUpdated" targetRef="GwMergeReview" />
+    <bpmn:sequenceFlow id="Flow_DecUnknown" name="Không xác định — xem lại" sourceRef="GwDecision" targetRef="GwMergeReview" />
+    <bpmn:sequenceFlow id="Flow_MergeReview" sourceRef="GwMergeReview" targetRef="ReviewCase" />
+    <bpmn:sequenceFlow id="Flow_ToEligibility" sourceRef="ReviewCase" targetRef="CheckEligibility" />
+    <bpmn:sequenceFlow id="Flow_ToGwApproved" sourceRef="CheckEligibility" targetRef="GwApproved" />
+    <bpmn:sequenceFlow id="Flow_Eligible" name="Đủ điều kiện" sourceRef="GwApproved" targetRef="GwMergeDecision">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=approval.allowed = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_NotEligible" name="Chưa đủ điều kiện — chờ cập nhật" sourceRef="GwApproved" targetRef="WaitCaseUpdated" />
+    <bpmn:sequenceFlow id="Flow_MergeDecision" sourceRef="GwMergeDecision" targetRef="DecideAction" />
+    <bpmn:sequenceFlow id="Flow_ToGwDecision" sourceRef="DecideAction" targetRef="GwDecision" />
+    <bpmn:sequenceFlow id="Flow_DecAccept" name="Duyệt" sourceRef="GwDecision" targetRef="AcceptCase">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=decision = "approve"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_DecReject" name="Từ chối" sourceRef="GwDecision" targetRef="EnterRejectReason">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=decision = "reject"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_DecVeto" name="Veto" sourceRef="GwDecision" targetRef="CheckVeto">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=decision = "veto"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_AcceptDone" sourceRef="AcceptCase" targetRef="AssignSupporter" />
+    <bpmn:sequenceFlow id="Flow_Assigned" sourceRef="AssignSupporter" targetRef="End_Assigned" />
+    <bpmn:sequenceFlow id="Flow_ToRefund" sourceRef="EnterRejectReason" targetRef="RefundPolicy" />
+    <bpmn:sequenceFlow id="Flow_Reject" sourceRef="RefundPolicy" targetRef="RejectCase" />
+    <bpmn:sequenceFlow id="Flow_RejectEnd" sourceRef="RejectCase" targetRef="End_Rejected" />
+    <bpmn:sequenceFlow id="Flow_ToGwVeto" sourceRef="CheckVeto" targetRef="GwVeto" />
+    <bpmn:sequenceFlow id="Flow_VetoValid" name="Hợp lệ" sourceRef="GwVeto" targetRef="VetoCase">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=veto.allowed = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_VetoInvalid" name="Quá hạn — quay lại chọn" sourceRef="GwVeto" targetRef="GwMergeDecision" />
+    <bpmn:sequenceFlow id="Flow_VetoEnd" sourceRef="VetoCase" targetRef="End_Vetoed" />
+    <bpmn:association id="Assoc_Eligibility" sourceRef="Note_Eligibility" targetRef="CheckEligibility" />
+    <bpmn:association id="Assoc_VetoWindow" sourceRef="Note_VetoWindow" targetRef="CheckVeto" />
+  </bpmn:process>
+  <bpmn:message id="Message_caseSubmitted" name="case-submitted" />
+  <bpmn:message id="Message_caseUpdated" name="case-updated">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=caseId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Message_caseAssigned" name="case-assigned">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=caseId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_triage">
+    <bpmndi:BPMNPlane id="BPMNPlane_triage" bpmnElement="admin-triage">
+      <bpmndi:BPMNShape id="Start_CaseSubmitted_di" bpmnElement="Start_CaseSubmitted">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwMergeReview_di" bpmnElement="GwMergeReview" isMarkerVisible="true">
+        <dc:Bounds x="240" y="115" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ReviewCase_di" bpmnElement="ReviewCase">
+        <dc:Bounds x="340" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CheckEligibility_di" bpmnElement="CheckEligibility">
+        <dc:Bounds x="490" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwApproved_di" bpmnElement="GwApproved" isMarkerVisible="true">
+        <dc:Bounds x="640" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="WaitCaseUpdated_di" bpmnElement="WaitCaseUpdated">
+        <dc:Bounds x="720" y="260" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwMergeDecision_di" bpmnElement="GwMergeDecision" isMarkerVisible="true">
+        <dc:Bounds x="790" y="115" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DecideAction_di" bpmnElement="DecideAction">
+        <dc:Bounds x="940" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwDecision_di" bpmnElement="GwDecision" isMarkerVisible="true">
+        <dc:Bounds x="1090" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AcceptCase_di" bpmnElement="AcceptCase">
+        <dc:Bounds x="1240" y="0" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AssignSupporter_di" bpmnElement="AssignSupporter">
+        <dc:Bounds x="1390" y="0" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Assigned_di" bpmnElement="End_Assigned">
+        <dc:Bounds x="1540" y="22" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EnterRejectReason_di" bpmnElement="EnterRejectReason">
+        <dc:Bounds x="1240" y="90" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="RefundPolicy_di" bpmnElement="RefundPolicy">
+        <dc:Bounds x="1390" y="90" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="RejectCase_di" bpmnElement="RejectCase">
+        <dc:Bounds x="1540" y="90" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Rejected_di" bpmnElement="End_Rejected">
+        <dc:Bounds x="1690" y="112" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CheckVeto_di" bpmnElement="CheckVeto">
+        <dc:Bounds x="1240" y="180" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwVeto_di" bpmnElement="GwVeto" isMarkerVisible="true">
+        <dc:Bounds x="1390" y="195" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="VetoCase_di" bpmnElement="VetoCase">
+        <dc:Bounds x="1540" y="180" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Vetoed_di" bpmnElement="End_Vetoed">
+        <dc:Bounds x="1690" y="202" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Note_Eligibility_di" bpmnElement="Note_Eligibility">
+        <dc:Bounds x="200" y="430" width="300" height="100" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Note_VetoWindow_di" bpmnElement="Note_VetoWindow">
+        <dc:Bounds x="200" y="550" width="300" height="100" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_ToReview_di" bpmnElement="Flow_ToReview">
+        <di:waypoint x="188" y="120" />
+        <di:waypoint x="214" y="120" />
+        <di:waypoint x="214" y="140" />
+        <di:waypoint x="240" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_UpdateBack_di" bpmnElement="Flow_UpdateBack">
+        <di:waypoint x="756" y="278" />
+        <di:waypoint x="756" y="340" />
+        <di:waypoint x="265" y="340" />
+        <di:waypoint x="265" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_DecUnknown_di" bpmnElement="Flow_DecUnknown">
+        <di:waypoint x="1090" y="120" />
+        <di:waypoint x="1090" y="360" />
+        <di:waypoint x="265" y="360" />
+        <di:waypoint x="265" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_MergeReview_di" bpmnElement="Flow_MergeReview">
+        <di:waypoint x="290" y="140" />
+        <di:waypoint x="310" y="140" />
+        <di:waypoint x="310" y="120" />
+        <di:waypoint x="340" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToEligibility_di" bpmnElement="Flow_ToEligibility">
+        <di:waypoint x="440" y="120" />
+        <di:waypoint x="490" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToGwApproved_di" bpmnElement="Flow_ToGwApproved">
+        <di:waypoint x="590" y="120" />
+        <di:waypoint x="640" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Eligible_di" bpmnElement="Flow_Eligible">
+        <di:waypoint x="690" y="120" />
+        <di:waypoint x="690" y="140" />
+        <di:waypoint x="790" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_NotEligible_di" bpmnElement="Flow_NotEligible">
+        <di:waypoint x="665" y="145" />
+        <di:waypoint x="665" y="278" />
+        <di:waypoint x="720" y="278" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_MergeDecision_di" bpmnElement="Flow_MergeDecision">
+        <di:waypoint x="840" y="140" />
+        <di:waypoint x="865" y="140" />
+        <di:waypoint x="865" y="120" />
+        <di:waypoint x="940" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToGwDecision_di" bpmnElement="Flow_ToGwDecision">
+        <di:waypoint x="1040" y="120" />
+        <di:waypoint x="1090" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_DecAccept_di" bpmnElement="Flow_DecAccept">
+        <di:waypoint x="1115" y="95" />
+        <di:waypoint x="1115" y="40" />
+        <di:waypoint x="1240" y="40" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_DecReject_di" bpmnElement="Flow_DecReject">
+        <di:waypoint x="1140" y="120" />
+        <di:waypoint x="1190" y="120" />
+        <di:waypoint x="1190" y="130" />
+        <di:waypoint x="1240" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_DecVeto_di" bpmnElement="Flow_DecVeto">
+        <di:waypoint x="1115" y="145" />
+        <di:waypoint x="1115" y="220" />
+        <di:waypoint x="1240" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AcceptDone_di" bpmnElement="Flow_AcceptDone">
+        <di:waypoint x="1340" y="40" />
+        <di:waypoint x="1390" y="40" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Assigned_di" bpmnElement="Flow_Assigned">
+        <di:waypoint x="1490" y="40" />
+        <di:waypoint x="1540" y="40" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToRefund_di" bpmnElement="Flow_ToRefund">
+        <di:waypoint x="1340" y="130" />
+        <di:waypoint x="1390" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Reject_di" bpmnElement="Flow_Reject">
+        <di:waypoint x="1490" y="130" />
+        <di:waypoint x="1540" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RejectEnd_di" bpmnElement="Flow_RejectEnd">
+        <di:waypoint x="1640" y="130" />
+        <di:waypoint x="1690" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToGwVeto_di" bpmnElement="Flow_ToGwVeto">
+        <di:waypoint x="1340" y="220" />
+        <di:waypoint x="1390" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_VetoValid_di" bpmnElement="Flow_VetoValid">
+        <di:waypoint x="1440" y="220" />
+        <di:waypoint x="1540" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_VetoInvalid_di" bpmnElement="Flow_VetoInvalid">
+        <di:waypoint x="1390" y="235" />
+        <di:waypoint x="1390" y="320" />
+        <di:waypoint x="700" y="320" />
+        <di:waypoint x="700" y="140" />
+        <di:waypoint x="790" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_VetoEnd_di" bpmnElement="Flow_VetoEnd">
+        <di:waypoint x="1640" y="220" />
+        <di:waypoint x="1690" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_Eligibility_di" bpmnElement="Assoc_Eligibility">
+        <di:waypoint x="200" y="480" />
+        <di:waypoint x="440" y="480" />
+        <di:waypoint x="440" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_VetoWindow_di" bpmnElement="Assoc_VetoWindow">
+        <di:waypoint x="200" y="600" />
+        <di:waypoint x="900" y="600" />
+        <di:waypoint x="900" y="220" />
+        <di:waypoint x="1240" y="220" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

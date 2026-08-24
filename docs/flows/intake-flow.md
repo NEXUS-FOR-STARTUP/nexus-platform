@@ -26,9 +26,39 @@ Giúp khách mô tả đúng case để Nexus có đủ bối cảnh audit, khô
 6. User đi qua các bước nhập thông tin, nhóm, idea, tài liệu, deadline, và kỳ vọng.
 7. User xem màn `Review before submit`.
 8. User bấm `Gửi case`.
-9. Hệ thống tạo case ở trạng thái `submitted` và chuyển user sang case workspace.
+9. Hệ thống tạo case: gói trả phí → trạng thái `Chờ thanh toán`; gói miễn phí → `Đã nộp` và vào thẳng hàng đợi xét duyệt.
+
+## Sơ đồ luồng
+
+```mermaid
+flowchart TD
+    subgraph SV["SINH VIÊN"]
+        A(["Vào wizard"]) --> B["Bước 1: chọn tình huống<br/>bắt buộc ≥1 trong 6 hoặc mô tả rõ"]
+        B --> C["Bước 2-8: liên hệ, nhóm, nhu cầu,<br/>tài liệu, deadline, kỳ vọng, ranh giới"]
+        C --> D["Bước 9: xem lại toàn bộ trước khi gửi"]
+        D --> E{"Đủ dữ liệu tối thiểu?"}
+        E -- "thiếu → chặn gửi, chỉ rõ chỗ thiếu" --> C
+        E -- "đủ" --> F["Gửi case"]
+    end
+    subgraph HT["HỆ THỐNG"]
+        F --> G["Tạo case kèm hồ sơ intake"]
+        G --> H{"Gói dịch vụ"}
+        H -- "chuyên sâu 39.000đ — mặc định hiện tại<br/>(chưa có màn chọn gói)" --> I["Chờ thanh toán<br/>chưa vào hàng đợi duyệt"]
+        H -- "miễn phí" --> J["Đã nộp"]
+        I --> K["Thanh toán xong → Sẵn sàng nộp<br/>(xem flow thanh toán)"]
+        K --> L["Sinh viên bấm Gửi case lại"]
+        L --> J
+        J --> M(["Hàng đợi xét duyệt của admin"])
+    end
+    RULES["Ràng buộc:<br/>• Gói do hệ thống gán — sinh viên không tự chọn<br/>• Sửa hồ sơ: được phép đến khi admin duyệt<br/>• Bỏ dở: dữ liệu giữ lại, quay lại làm tiếp<br/>• Có link Drive, chưa upload file: vẫn nộp được nếu đủ rõ<br/>• ⚠ Kẹt đã biết: thanh toán trước khi nộp lần đầu →<br/>  bấm Gửi case không lên được Đã nộp (đang sửa)"]
+    classDef warn fill:#FEF3C7,stroke:#D97706,color:#92400E
+    class I,K warn
+```
+
+> ⚠️ **Điểm đã biết (đang sửa):** nếu sinh viên thanh toán trước khi nộp, case chuyển sang `Sẵn sàng nộp`; bấm Gửi case lúc này case không lên được `Đã nộp` — hồ sơ bị kẹt ngoài hàng đợi xét duyệt. Vấn đề này đã được truy vết theo code, chờ chốt phương án sửa (xem `docs/research/brainstorm-2026-08-21-flow-confusion-intake-payment-credit.md`).
 
 ## Tình huống đầu vào chính
+
 
 - Chưa có idea và cần tìm hướng.
 - Có nhiều idea và cần chọn một hướng.

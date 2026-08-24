@@ -30,7 +30,34 @@ Cho user, admin, và supporter một mô hình nhất quán để biết case đ
 10. Supporter review round mới và publish report mới.
 11. Case hoàn tất khi gói hỗ trợ đã xong hoặc được đóng có chủ đích.
 
+## Sơ đồ luồng
+
+```mermaid
+flowchart TD
+    A(["Case: Đã nộp"]) --> B["Admin duyệt + gán supporter<br/>(cam kết SLA bắt đầu chạy)"]
+    B --> C["Supporter đọc tài liệu"]
+    C --> D{"Đủ thông tin để phân tích?"}
+    D -- "thiếu" --> E["Yêu cầu bổ sung kèm lý do rõ"]
+    E --> F["Sinh viên bổ sung → nộp lại"]
+    F --> C
+    D -- "đủ" --> G["Supporter phân tích, viết báo cáo"]
+    G --> H["Nộp báo cáo vào case<br/>trừ 1 lượt đánh giá"]
+    H --> I["Sinh viên nhận thông báo, xem báo cáo"]
+    I --> J{"Sinh viên quyết định"}
+    J -- "tiếp tục cải thiện" --> K["Sinh viên sửa tài liệu của mình<br/>gửi bản mới — miễn phí, không trừ lượt"]
+    K --> C
+    J -- "xác nhận hoàn tất" --> L(["Case hoàn tất"])
+    J -- "im lặng 7 ngày" --> L
+    L -. "sinh viên mua lượt mới" .-> M["Case mở lại, bắt đầu vòng mới<br/>không cần admin duyệt lại, SLA chạy lại"]
+    M --> C
+    B -. "kết thúc không trọn vẹn:<br/>từ chối/veto/hủy/xóa" .-> N(["Hoàn lượt chưa dùng về ví<br/>theo đúng giá đã mua<br/>veto hoàn thêm tiền gói"])
+    RULES["Ràng buộc vòng đời:<br/>• Mỗi vòng = 1 lượt, trừ đúng lúc supporter nộp báo cáo<br/>• Report mới nổi bật, bản cũ giữ làm lịch sử<br/>• Supporter không tự đóng case<br/>• Hết lượt: case đứng yên, không tự đóng<br/>• Bản sửa của sinh viên không bao giờ trừ lượt"]
+    classDef note fill:#FEF3C7,stroke:#D97706,color:#92400E
+    class N note
+```
+
 ## User-facing stage đề xuất
+
 
 - `submitted`
 - `under_review`
