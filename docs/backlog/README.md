@@ -42,7 +42,7 @@ Backlog là nơi capture 3 loại thông tin:
 
 | File                                                               | Status | Priority | Mô tả ngắn                                 |
 | ------------------------------------------------------------------ | ------ | -------- | ------------------------------------------ |
-| [credit-du-tru-account-level.md](./credit-du-tru-account-level.md) | Draft  | Medium   | Credit dự trữ account-level cho lượt audit |
+| [credit-du-tru-account-level.md](./credit-du-tru-account-level.md) | Rejected | Medium | Credit dự trữ account-level — bị thay bởi VND wallet (2026-08-11) |
 
 ## Quy tắc
 
