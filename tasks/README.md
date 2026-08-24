@@ -76,7 +76,8 @@
 
 ```
 tasks/
-├── README.md          ← master tracking (file này)
+├── README.md          ← master tracking bug tracker (file này)
+├── gap-analysis-tasks.md ← master tracking gap analysis (GA-01…GA-20)
 └── bugs/
     ├── bug-01-supporter-reassign-sla.md
     ├── bug-02-supporter-report-error-message.md
