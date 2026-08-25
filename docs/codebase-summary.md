@@ -1,6 +1,6 @@
 # Tóm tắt codebase
 
-_Cập nhật: 2026-08-13. Tổng hợp từ codebase hiện tại và docs canonical trong `docs/`._
+_Cập nhật: 2026-08-24. Tổng hợp từ codebase hiện tại và docs canonical trong `docs/`._
 
 ## Repo này là gì
 
@@ -13,10 +13,10 @@ Công cụ hỗ trợ: **CodeGraph** (`.codegraph/`) — index code symbol, call
 ### `apps/api` (148 files src, ~15,300 LOC)
 
 Backend Hono với:
-- modules: cases (22 routes), admin (20 routes: case triage, documents, stats, packages, service-types, users), payments (7 routes, gồm sepay webhook), reports (4 routes), supporter (5 routes), notifications (5 routes: list, unread-count, read, read-all, SSE stream), realtime (2 routes: connection-token, cases/:caseId/subscribe-token), ai-engine (2 routes), packages (1 route), documents (1 route), wallet (4 routes: balance, history, topups, purchase-credits), system (4 route: `/`, `/health`, `/stream`, `/session`)
-- shared infra: AppError, requireAuth, requireCaseAccess, audit-logger, **event-bus + domain-events** (9 event types) + **outbox pattern** cho notifications
+- modules: cases (22 routes), admin (19 routes: case triage, documents, stats, packages, service-types, users), payments (2 routes: proof + sepay-webhook), reports (4 routes), supporter (4 routes), notifications (5 routes: list, unread-count, read, read-all, SSE stream), realtime (2 routes: connection-token, cases/:caseId/subscribe-token), ai-engine (2 routes), packages (2 routes), documents (1 route), wallet (4 routes: balance, history, purchase-credits [deprecated], topups [410 GONE]), deposits (5 routes), orders (3 routes), system (4 route: `/`, `/health`, `/stream`, `/session`)
+- shared infra: AppError, requireAuth, requireCaseAccess, audit-logger, **event-bus + domain-events** (14 event types) + **outbox pattern** cho notifications
 - services: Cloudinary (file upload), Google Generative AI
-- ~77 API endpoints (73 module routes + 4 system), Hono + Better Auth + Prisma 7 + Vercel AI SDK
+- ~79 API endpoints (75 module routes + 4 system), Hono + Better Auth + Prisma 7 + Vercel AI SDK
 - Kiến trúc: modular monolith + Clean Architecture (domain/application/infrastructure/presentation)
 - Auth: Better Auth (email/password, Google OAuth, admin plugin)
 - DB: Prisma + PostgreSQL, PgBouncer adapter
@@ -34,18 +34,17 @@ Next.js 16.2.0 product app với:
 - UI: Mantine UI v9, Lucide React, Recharts, TipTap, Tailwind CSS v4
 - Port: 3001
 
-### `packages/` (4 packages)
+### `packages/` (3 packages)
 
 | Package | Mô tả |
 |---------|-------|
-| `ui` | Primitive React components (Button, Card, Code) — placeholder, chưa dùng Mantine |
-| `validation` | Zod schemas (IdeaInput, TeamMemberInput, TeamFitInput) — shared giữa api và web-1 |
+| `validation` | Zod schemas (IdeaInput, TeamMemberInput, TeamFitInput, Cp1IntakeSchema, …) — shared giữa api và web-1 |
 | `eslint-config` | 3 ESLint 9 flat configs (base, next.js, react-internal) |
 | `typescript-config` | 3 tsconfig presets (base, nextjs, react-library) |
 
 ### `prisma/schema.prisma`
 
-26 models: 5 auth (User, Session, Account, Verification, TwoFactor) + 21 business (ServicePackage, ServiceType, ServicePricing, UserWallet, WalletTransaction, WalletTopup, Case, CaseMember, Checkpoint, LifecycleUnit, DocumentRecord, DocumentType, Report, Payment, CaseMessage, CaseEvent, AiJob, TeamFitReport, CreditLedger, Notification, NotificationOutbox). 18 migrations (mới nhất: `20260811202613_add_workflow_engine_schema`; wallet + service catalog: `20260811135015_add_wallet_and_service_catalog`).
+30 models: 5 auth (User, Session, Account, Verification, TwoFactor) + 25 business (ServicePackage, ServiceType, ServicePricing, UserWallet, WalletTransaction, WalletTopup [deprecated], Deposit, Order, OrderItem, DomainEventOutbox, Case, CaseMember, Checkpoint, LifecycleUnit, DocumentRecord, DocumentType, Report, Payment [deprecated], CaseMessage, CaseEvent, AiJob, TeamFitReport, CreditLedger, Notification, NotificationOutbox). 23 migrations (mới nhất: `20260819171456_case_messages_pagination_index`).
 
 > Ghi chú: migration `20260722000000_add_audit_rounds` vẫn còn trong lịch sử migrations (tạo bảng `audit_rounds`), nhưng model `AuditRound` không còn trong schema hiện tại — luồng vòng sửa đã chuyển sang stage-based + credit ledger. Mọi tham chiếu tài liệu tới model `AuditRound` là stale.
 
@@ -63,7 +62,7 @@ Next.js 16.2.0 product app với:
 - `AGENTS.md` — hướng dẫn agent cho `docs/`
 - `README.md` — navigation docs
 - `prd/`, `flows/`, `requirements/`, `technical-notes/` — canonical product docs
-- `journals/` — journal entries (6 files, 2026-07-21)
+- `journals/` — journal entries (24 files, 2026-06-29 → 2026-08-21)
 - `ai-rules/` — AI documentation rules
 - `archive/` — legacy reference
 - `nexus-document/` — tài liệu nguồn học thuật & vận hành
@@ -84,7 +83,7 @@ Next.js 16.2.0 product app với:
 - Notifications (2026-08-07): module notifications 5 endpoints + SSE stream `/api/notifications/stream`; event bus `shared/domain/domain-events.ts` + `shared/infrastructure/event-bus.ts`; outbox pattern (NotificationOutbox); frontend `useNotifications` + `NotificationBell` (SSE + TanStack Query). Env mới: RESEND_*, TELEGRAM_*, NOTIFICATIONS_ENABLED. Types/validation dùng chung FE↔BE qua `@repo/validation` (NOTIFICATION_TYPES, NotificationItemSchema, ListNotificationsResponseSchema); Telegram admin alert trên `payment.verified`.
 - Realtime chat (2026-08-08): module realtime 2 endpoints (`/api/realtime/connection-token`, `/api/realtime/cases/:caseId/subscribe-token`); Centrifugo v6 transport, HS256 JWT 15min, channel `chat:{caseId}`; fire-and-forget publish sau insert message; frontend `useRealtimeChat` + `centrifuge-client` singleton. Env: CENTRIFUGO_URL, CENTRIFUGO_TOKEN_SECRET, CENTRIFUGO_API_KEY, NEXT_PUBLIC_CENTRIFUGO_URL. Ops: `docs/realtime-centrifugo-guide.md`.
 - Pricing logic tập trung: `getCaseEffectivePrice`, `formatPrice`, `caseRequiresPayment`, `validatePaymentProof` trong `@/lib/pricing.ts`.
-- Wallet VND (2026-08-11): backend `apps/api/src/modules/wallet/` 4 routes — `GET /api/wallet/balance`, `GET /api/wallet/history`, `POST /api/wallet/topups` (SePay QR + transfer content, min 10,000 VND), `POST /api/wallet/purchase-credits`; Prisma `UserWallet` (cached `balance`, currency VND) + `WalletTransaction` (immutable ledger, `balance_before`/`balance_after`) + `WalletTopup`. Frontend: trang `/dashboard/wallet` (`WalletBalanceCard`, `WalletTransactionList`, `WalletTransactionItem`, `WalletTopupModal`); nav item "Ví của tôi" (icon Wallet) trong `DashboardShell` cho student; hooks `useWalletBalance`/`useWalletHistory`/`useCreateTopup` (`app/dashboard/wallet/hooks/useWallet.ts`, query key `["wallet", ...]`).
+- Wallet VND (2026-08-11): backend `apps/api/src/modules/wallet/` — `GET /api/wallet/balance`, `GET /api/wallet/history` là live; `POST /api/wallet/topups` → **410 GONE** ("Tạo mã nạp tiền tại POST /api/deposits"); `POST /api/wallet/purchase-credits` **deprecated 2026-08-12**. Top-up thuộc module **deposits** (5 routes: `GET /api/deposits/admin/all`, `GET /api/deposits`, `POST /api/deposits`, `GET /api/deposits/:id`, `POST /api/deposits/:id/verify`); mua credit/order thuộc module **orders** (3 routes). Prisma `UserWallet` (cached `balance`, currency VND) + `WalletTransaction` (immutable ledger, `balance_before`/`balance_after`); `WalletTopup` `@deprecated`. Frontend: trang `/dashboard/wallet` (`WalletBalanceCard`, `WalletTransactionList`, `WalletTransactionItem`, `WalletTopupModal` — nay tạo deposit); nav item "Ví của tôi" (icon Wallet) trong `DashboardShell` cho student; hooks `useWalletBalance`/`useWalletHistory`/`useCreateDeposit` (`app/dashboard/wallet/hooks/useWallet.ts`, query key `["wallet", ...]`).
 - Settings & UserMenu modal (2026-08-13, spec F07 `docs/requirements/settings-sidebar-and-profile.md`): khu vực `/dashboard/settings` — nested layout sidebar (pattern Facebook): `/dashboard/settings` → redirect profile, `/dashboard/settings/profile` (Thông tin cơ bản: tên hiển thị + email là `TextInput disabled` + avatar "Đổi ảnh" thông báo đang phát triển; helper text → Tooltip trên label), `/dashboard/settings/password` (Đổi mật khẩu, `revokeOtherSessions: true`; ghi chú dài → Tooltip). Route cũ `/dashboard/profile` → redirect stub. Avatar trong `DashboardShell` mở Mantine `Popover` (`components/layout/_components/UserMenu.tsx`, `position="bottom-end"` neo dưới avatar, thay dropdown cũ): dòng email xem nhanh (mọi role, phân biệt tài khoản) + dòng số dư ví compact (student) + options + Đăng xuất tách biệt — student: Hồ sơ/Thanh toán/Cài đặt; admin/supporter: workspace link (bỏ info block to: avatar lớn, tên, role badge — 2026-08-13). Hook `useProfileMutations` (`app/dashboard/settings/hooks/`); `lib/auth-errors.ts` `translateAuthError` dùng chung. `DashboardShell` 200 → 60 dòng.
 
 ## Ràng buộc vận hành

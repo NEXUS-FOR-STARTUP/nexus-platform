@@ -1,6 +1,6 @@
 # System Architecture
 
-_Cập nhật: 2026-08-11. Bám codebase hiện tại._
+_Cập nhật: 2026-08-24. Bám codebase hiện tại._
 
 ## 1. Mục tiêu tài liệu
 
@@ -14,7 +14,7 @@ Nexus hiện là monorepo Turborepo với 3 vùng chính:
 - `packages/validation`: Zod schemas dùng chung (FE↔BE)
 - Mantine UI v9: design system chính cho web-1
 
-Data model trung tâm nằm ở `prisma/schema.prisma` (26 models), với auth, case, checkpoint, lifecycle unit, document record, report, payment, event, AI job, team-fit report, credit ledger, notification (Notification + NotificationOutbox), service catalog (ServiceType + ServicePricing), và wallet (UserWallet + WalletTransaction + WalletTopup).
+Data model trung tâm nằm ở `prisma/schema.prisma` (30 models), với auth, case, checkpoint, lifecycle unit, document record, report, payment, event, AI job, team-fit report, credit ledger, notification (Notification + NotificationOutbox), service catalog (ServiceType + ServicePricing), wallet (UserWallet + WalletTransaction + WalletTopup [deprecated]), deposit/order (Deposit + Order + OrderItem), và domain event outbox (DomainEventOutbox).
 
 ## 2.1 Sơ đồ kiến trúc (text-based)
 
@@ -38,8 +38,8 @@ Data model trung tâm nằm ở `prisma/schema.prisma` (26 models), với auth, 
 │  │  module  │ │  module  │ │ module │ │    modules       │  │
 │  │22 routes │ │          │ │        │ │                  │  │
 │  ├──────────┤ ├──────────┤ ├────────┤ ├──────────────────┤  │
-│  │ Payments │ │ Packages │ │AI Eng. │ │ Shared: AppError │  │
-│  │7 routes  │ │  module  │ │ module │ │ requireAuth, etc │  │
+│  │Payments  │ │ Packages │ │AI Eng. │ │ Shared: AppError │  │
+│  │2 routes  │ │  module  │ │ module │ │ requireAuth, etc │  │
 │  └────┬─────┘ └────┬─────┘ └───┬────┘ └──────────────────┘  │
 │       └────────────┴───────────┴───────────────────────────  │
 │                         │ Prisma                              │
@@ -47,11 +47,11 @@ Data model trung tâm nằm ở `prisma/schema.prisma` (26 models), với auth, 
                           │
                   ┌───────┴───────┐
                   │  PostgreSQL   │
-                  │ (21 models)   │
+                  │ (30 models)   │
                   └───────────────┘
 ```
 
-> Sơ đồ trên là snapshot trước phase notifications + realtime + wallet. Module mới `notifications` (5 routes: list, unread-count, `:id/read` PATCH, read-all PATCH, `stream` SSE) + `realtime` (2 routes: connection-token, `cases/:caseId/subscribe-token`) + `wallet` (4 routes: balance, history, topups, purchase-credits) + event bus `shared/` (xem §4.5, §4.6) chưa vẽ vào. API hiện: 11 modules, 69 routes (65 module + 4 system: `/`, `/health`, `/stream`, `/session`).
+> Sơ đồ trên là snapshot trước phase notifications + realtime + wallet + deposits/orders. Module mới `notifications` (5 routes: list, unread-count, `:id/read` PATCH, read-all PATCH, `stream` SSE) + `realtime` (2 routes: connection-token, `cases/:caseId/subscribe-token`) + `wallet` (4 routes: balance, history, purchase-credits [deprecated], topups [410 GONE]) + `deposits` (5 routes) + `orders` (3 routes) + event bus `shared/` (xem §4.5, §4.6) chưa vẽ vào. API hiện: 13 modules, 79 routes (75 module + 4 system: `/`, `/health`, `/stream`, `/session`).
 
 ## 3. Frontend surfaces chính
 
@@ -72,7 +72,7 @@ Tham chiếu:
 - stage-based case flow: `CaseStatusHeader` (hiển thị `user_facing_stage` + next action), `StatusGuidanceCard`, `CaseOverviewPanel`
 - credit/ledger economy: `CreditPanel`, `CreditQuantityModal`, `CreditActions`, `CreditTransactionHistory`, `CreditBalanceCard` — mua credit, xem lịch sử giao dịch, số dư hiện tại
 - payment/credit là core economy (không còn là surface phụ): mua credit qua sepay webhook, admin veto-with-refund (48h)
-- ví VND (2026-08-11): trang `/dashboard/wallet` hiển thị số dư VND (`WalletBalanceCard`), lịch sử giao dịch (`WalletTransactionList`/`WalletTransactionItem`), và modal nạp tiền SePay (`WalletTopupModal` — trả QR + transfer content); nav item "Ví của tôi" (icon Wallet) trong `DashboardShell` cho student; hooks `useWalletBalance`/`useWalletHistory`/`useCreateTopup` (`app/dashboard/wallet/hooks/useWallet.ts`, polling 30s)
+- ví VND (2026-08-11): trang `/dashboard/wallet` hiển thị số dư VND (`WalletBalanceCard`), lịch sử giao dịch (`WalletTransactionList`/`WalletTransactionItem`), và modal nạp tiền SePay (`WalletTopupModal` — trả QR + transfer content); nav item "Ví của tôi" (icon Wallet) trong `DashboardShell` cho student; hooks `useWalletBalance`/`useWalletHistory`/`useCreateDeposit` (`app/dashboard/wallet/hooks/useWallet.ts`, polling 30s)
 
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/page.tsx`
@@ -128,14 +128,14 @@ Tham chiếu:
 
 ### 4.5 Notification workflow (SSE + event bus + outbox)
 - Module mới `apps/api/src/modules/notifications/` theo clean architecture: domain (`notification.types`), application (4 inbox usecases: list, unread-count, mark-read, mark-all-read + `notification-listener` + `notification-relay` + `notification-templates` + `recipients`), infrastructure (`notification.repository`, `notification-outbox.repository`, `sse-hub`, `email.service` (Resend), `telegram.service` (grammY)), http (`notifications.routes` + controller)
-- **Event bus mới** `shared/domain/domain-events.ts` (9 event types) + `shared/infrastructure/event-bus.ts` (`emitEvent`/`onEvent`, queueMicrotask) — khác với "direct module-to-module calls" trước đây: usecase emit event, notifications module subscribe
+- **Event bus mới** `shared/domain/domain-events.ts` (14 event types) + `shared/infrastructure/event-bus.ts` (`emitEvent`/`onEvent`, queueMicrotask) — khác với "direct module-to-module calls" trước đây: usecase emit event, notifications module subscribe
 - **Outbox pattern**: listener ghi outbox rows → relay worker (setInterval 2s) xử lý kênh in-app/email/telegram với retry exponential backoff; crash/restart → pending rows xử lý lại
 - **SSE**: `GET /api/notifications/stream` (requireAuth, cap 5 connection/user, heartbeat 25s, `retry: 5000`); chỉ gửi ping → client refetch REST list. CORS allowMethods mở rộng thêm `PATCH`
 - Endpoints (5): `GET /api/notifications` (list), `GET /api/notifications/unread-count`, `PATCH /api/notifications/:id/read`, `PATCH /api/notifications/read-all`, `GET /api/notifications/stream` (SSE)
 - Frontend: `apps/web-1/lib/hooks/useNotifications.ts` (SSE + TanStack Query), `components/layout/NotificationBell.tsx`, `types/notification.ts`
 - Env mới (optional, 6): `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ADMIN_CHAT_ID`, `TELEGRAM_SUPPORTER_CHAT_ID`, `NOTIFICATIONS_ENABLED`
 - Kênh Telegram: admin alert tự động trên event `payment.verified`; `payment.proof_uploaded` gửi kèm `transferContent` ("Nội dung chuyển khoản")
-- Types/validation dùng chung FE↔BE qua `@repo/validation` (single source of truth): `NOTIFICATION_TYPES` (9 events), `NotificationItemSchema`, `ListNotificationsResponseSchema`
+- Types/validation dùng chung FE↔BE qua `@repo/validation` (single source of truth): `NOTIFICATION_TYPES` (14 events: case.assigned, case.approved, case.rejected, payment.proof_uploaded, payment.verified, payment.rejected, case.stage_changed, report.published, request_more_info, deposit.verified, deposit.rejected, order.paid, order.refunded, wallet.balance_changed), `NotificationItemSchema`, `ListNotificationsResponseSchema`
 - Test: `apps/api/src/shared/infrastructure/tests/phase-08-notifications.test.ts` (16 tests, all pass)
 - SSE chỉ dùng cho notifications; chat realtime đi qua Centrifugo (xem §4.6)
 
@@ -150,11 +150,11 @@ Tham chiếu:
 - Test: `apps/api/src/shared/infrastructure/tests/phase-09-realtime-chat.test.ts`
 - Ops chi tiết: [`realtime-centrifugo-guide.md`](./realtime-centrifugo-guide.md)
 
-### 4.7 Wallet workflow (ví VND + SePay top-up) — ship 2026-08-11
-- Module `apps/api/src/modules/wallet/` (clean architecture: domain `wallet.types`, application `wallet.service` + `wallet-topup.usecase` + `purchase-credits.usecase`, infrastructure/http `wallet.routes`) mount tại `/api/wallet`, toàn bộ qua `requireAuth`
-- Endpoints (4): `GET /api/wallet/balance` (số dư từ `user_wallets.balance`), `GET /api/wallet/history?limit&offset` (danh sách `wallet_transactions`), `POST /api/wallet/topups` (tạo `WalletTopup` pending, trả QR + `transferContent` prefix `CR`, min 10,000 VND), `POST /api/wallet/purchase-credits` (`packageId`, `caseId`, `quantity`)
-- **DB = source of truth cho ví**: `UserWallet` (cached `balance`, `currency` = "VND") + `WalletTransaction` (append-only ledger, `balance_before`/`balance_after`) + `WalletTopup` (status `pending` → verified qua SePay webhook). Khác `credit_ledgers` cũ (case-level) — ví là account-level VND
-- Frontend: trang `apps/web-1/app/dashboard/wallet/page.tsx` (header "Ví của tôi", `WalletBalanceCard`, `WalletTransactionList`, `WalletTopupModal`); hooks trong `app/dashboard/wallet/hooks/useWallet.ts` (`useWalletBalance`, `useWalletHistory`, `useCreateTopup` — polling 30s, mutation invalidates `["wallet"]`)
+### 4.7 Wallet + deposit workflow (ví VND + SePay top-up) — ship 2026-08-11
+- Module `apps/api/src/modules/wallet/` (clean architecture: domain `wallet.types`, application `wallet.service`, infrastructure/http `wallet.routes`) mount tại `/api/wallet`, toàn bộ qua `requireAuth`. **Live endpoints (2):** `GET /api/wallet/balance` (số dư từ `user_wallets.balance`), `GET /api/wallet/history?limit&offset` (danh sách `wallet_transactions`). `POST /api/wallet/topups` → **410 GONE** ("Tạo mã nạp tiền tại POST /api/deposits"); `POST /api/wallet/purchase-credits` **deprecated 2026-08-12** — cả hai usecase (`wallet-topup.usecase`, `purchase-credits.usecase`) còn trên đĩa nhưng không dùng.
+- **Top-up/nạp tiền thuộc module deposits** `apps/api/src/modules/deposits/` — 5 routes: `GET /api/deposits/admin/all`, `GET /api/deposits`, `POST /api/deposits` (tạo deposit pending, trả QR + `transferContent` prefix `CR`, min 10,000 VND), `GET /api/deposits/:id`, `POST /api/deposits/:id/verify`. **Mua credit/order thuộc module orders** (3 routes: GET/POST `/api/orders`, GET `/api/orders/:id`).
+- **DB = source of truth cho ví**: `UserWallet` (cached `balance`, `currency` = "VND") + `WalletTransaction` (append-only ledger, `balance_before`/`balance_after`); `WalletTopup` `@deprecated` (replaced by deposits). Khác `credit_ledgers` cũ (case-level) — ví là account-level VND
+- Frontend: trang `apps/web-1/app/dashboard/wallet/page.tsx` (header "Ví của tôi", `WalletBalanceCard`, `WalletTransactionList`, `WalletTopupModal` — nay tạo deposit); hooks trong `app/dashboard/wallet/hooks/useWallet.ts` (`useWalletBalance`, `useWalletHistory`, `useCreateDeposit` — polling 30s, mutation invalidates `["wallet"]`)
 - Nav: `DashboardShell` thêm menu item "Ví của tôi" (icon `Wallet` từ lucide-react) cho student → `router.push("/dashboard/wallet")`
 
 ## 5. Case workspace data flow
