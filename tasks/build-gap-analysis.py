@@ -26,9 +26,10 @@ PRIORITIES = ["P0", "P1", "P2"]
 
 WIDTHS = {"ID": 8, "Tên task": 42, "Mô tả vấn đề": 46, "Priority": 10, "Category": 13,
           "Status": 13, "Assignee": 12, "Hạn dự kiến": 14, "Evidence / Tham chiếu": 46,
-          "Acceptance / Phạm vi": 46, "Ghi chú": 34}
+          "Acceptance / Phạm vi": 46, "Ghi chú": 34, "Báo cáo": 42}
 CENTER_COLS = {"ID", "Priority", "Category", "Status", "Assignee", "Hạn dự kiến"}
-WRAP_COLS = {"Tên task", "Mô tả vấn đề", "Evidence / Tham chiếu", "Acceptance / Phạm vi", "Ghi chú"}
+WRAP_COLS = {"Tên task", "Mô tả vấn đề", "Evidence / Tham chiếu", "Acceptance / Phạm vi", "Ghi chú", "Báo cáo"}
+
 
 HEADER_FILL = PatternFill("solid", start_color="1E293B")
 HEADER_FONT = Font(bold=True, color="FFFFFF", size=11)
@@ -201,6 +202,7 @@ conventions = [
     "5. Evidence: task Done phải có ≥1 link (PR/commit/doc) — không link = chưa hoàn thành.",
     "6. Priority: P0 chặn release / vi phạm pháp lý → ưu tiên tuyệt đối, không trễ quá 1 sprint; P1 trong kế hoạch học kỳ; P2 làm khi rảnh, không cam kết hạn.",
     "7. Sort: luôn giữ P0 trước rồi ID; ID cố định GA-01…GA-20, không đổi khi sắp xếp.",
+    "8. Báo cáo: task Done điền cột Báo cáo trỏ journal trong docs/journals/. Từ nay làm xong là trỏ vào đây. Todo để trống.",
 ]
 for i, line in enumerate(conventions):
     cell = cv.cell(row=3 + i, column=1, value=line)
