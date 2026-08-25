@@ -1,10 +1,15 @@
 export interface ListAdminCasesRequest {
+  page?: string;
+  limit?: string;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: string;
   stage?: string;
   internal_status?: string;
-  limit?: string;
+  view?: string;
 }
 
-interface AdminCaseListItemDto {
+export interface AdminCaseListItemDto {
   id: string;
   case_code: string;
   team_name: string | null;

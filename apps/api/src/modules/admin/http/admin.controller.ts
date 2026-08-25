@@ -8,7 +8,6 @@ import { rejectCaseUseCase } from "../application/reject-case.usecase.js";
 import { adminAssignSupporterUseCase } from "../application/assign-supporter.usecase.js";
 import { listAdminDocumentsUseCase } from "../application/list-admin-documents.usecase.js";
 import { deleteAdminDocumentUseCase } from "../application/delete-admin-document.usecase.js";
-import type { ListAdminCasesRequest } from "../application/admin.dto.js";
 import { listAdminPackagesUseCase } from "../application/list-admin-packages.usecase.js";
 import { updatePackagePriceUseCase } from "../application/update-package-price.usecase.js";
 import { updatePackageStatusUseCase } from "../application/update-package-status.usecase.js";
@@ -18,6 +17,8 @@ import { setCurrentPricingUseCase, getPricingHistoryUseCase } from "../../packag
 import { createAdminUserUseCase } from "../application/create-admin-user.usecase.js";
 import { banUserUseCase } from "../application/ban-user.usecase.js";
 import { unbanUserUseCase } from "../application/unban-user.usecase.js";
+import { exportAdminDataUseCase, parseExportResource } from "../application/export-admin-data.usecase.js";
+
 
 // ---------------------------------------------------------------------------
 // Auth helper — admin-specific
@@ -45,10 +46,9 @@ export async function listAdminCasesHandler(c: Context) {
   }
 
   try {
-    const query = c.req.query() as ListAdminCasesRequest;
-    const result = await listAdminCasesUseCase(query);
+    const result = await listAdminCasesUseCase(c.req.query());
     return c.json(result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleError(c, error);
   }
 }
@@ -401,3 +401,23 @@ export async function unbanUserHandler(c: Context) {
     return handleError(c, error);
   }
 }
+
+export async function exportAdminDataHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  try {
+    const resource = parseExportResource(c.req.query("resource"));
+    const { csv, filename } = await exportAdminDataUseCase(resource);
+    return c.body(csv, 200, {
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Cache-Control": "no-store, private",
+    });
+  } catch (error: unknown) {
+    return handleError(c, error);
+  }
+}
+

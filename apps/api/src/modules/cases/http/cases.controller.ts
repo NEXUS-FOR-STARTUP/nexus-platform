@@ -54,9 +54,9 @@ export async function listCasesHandler(c: Context) {
   }
 
   try {
-    const result = await listCasesUseCase(session);
+    const result = await listCasesUseCase(session, c.req.query());
     return c.json(result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleError(c, error);
   }
 }
