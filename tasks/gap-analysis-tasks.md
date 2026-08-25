@@ -1,16 +1,16 @@
 # Gap Analysis Tasks — Nexus Platform
 
 > Nguồn: [`docs/research/mandatory-features-gap-analysis-2026-08-24.md`](../docs/research/mandatory-features-gap-analysis-2026-08-24.md) (đã review bởi code-reviewer agent, mọi claim xác minh bằng source)
-> Import: 2026-08-24 · 21 task (P0 × 4, P1 × 9, P2 × 8) · Sẽ đồng bộ sang Google Sheet task management sau khi authorize Google MCP
+> Import: 2026-08-24 · 22 task (P0 × 4, P1 × 10, P2 × 8) · Sẽ đồng bộ sang Google Sheet task management sau khi authorize Google MCP
 
 ## Overview
 
 | Nhóm | Tổng | Todo | In Progress | Review | Done | Blocked |
 |------|------|------|-------------|--------|------|---------|
 | P0 | 4 | 3 | 1 | 0 | 0 | 0 |
-| P1 | 9 | 9 | 0 | 0 | 0 | 0 |
+| P1 | 10 | 9 | 1 | 0 | 0 | 0 |
 | P2 | 8 | 8 | 0 | 0 | 0 | 0 |
-| **Tổng** | **21** | **20** | **1** | 0 | 0 | 0 |
+| **Tổng** | **22** | **20** | **2** | 0 | 0 | 0 |
 
 ## Master Tracking Table
 
@@ -37,6 +37,7 @@
 | GA-19 | Chat unread-per-user | Chat hiển thị tổng số tin nhắn thay vì unread-per-user — người dùng không biết tin nào mới, dễ bỏ sót phản hồi. | P2 | Chat | Todo |  |  | `case/[id]/page.tsx:113` (messages?.length = tổng số tin) | Unread count theo user thay vì tổng số tin | Nice-to-have |
 | GA-20 | Backup tự động (scheduled + RPO) | Backup DB chỉ là guide thủ công, không scheduled, không RPO, không test restore — hệ thống giữ dữ liệu tài chính, mất dữ liệu là thảm họa. | P2 | Infra | Todo |  |  | `docs/db-backup-guide.md` (chỉ guide thủ công) | Scheduled pg_dump + RPO rõ ràng + test restore | Hệ thống giữ dữ liệu tài chính |
 | GA-21 | Trả nợ test: 28 failures baseline (DB env + Windows path + error-code drift) | Full API suite `npm test` (apps/api) fail 28 test cố hữu có trên baseline — stash experiment chứng minh bỏ GA-02 ra vẫn y hệt 28 (0 regression do GA-02): 7 test cần Postgres live (`Can't reach database server at 127.0.0.1:5432`), 1 test hardcode Windows path (`E:/FPT/...`) vỡ module resolution trên WSL, 14 test assertion lệch error code/type (`FEATURE_DEPRECATED` vs `VALIDATION_ERROR`, `INVALID_CASE_STAGE`, `FILE_TOO_LARGE` vs `INVALID_FILE_TYPE`, `instanceof AppError`), 6 parent group fail theo. Chặn success bar "100% tests pass" nhưng không phải regression GA-02. | P2 | Infra | Todo |  |  | `plans/250825-2100-ga02-intake-flow-fix/reports/tester.md` §3 (28 failures, 4 category A–D) | Start Postgres local (hoặc mock Prisma) cho 7 test DB-dependent; sửa Windows path trong api.test.ts; reconcile error-code drift; re-baseline phase-06 assertions | Không chặn GA-02 (0 regression đã chứng minh); chốt CI có chạy Postgres cho `npm test` hay không |
+| GA-22 | Ví mặc định khi đăng ký + get-or-create khi mua credit | User chưa từng nạp tiền không có row `user_wallets` (ví chỉ được tạo ở deposit) → bấm "thanh toán ngay"/mua credit fail "tạo đơn hàng thất bại — không tìm thấy ví" (WALLET_NOT_FOUND 404). Fix: tạo ví balance 0 khi signup + mọi đường ghi ví (withdraw/refund/payForOrder/deposit) get-or-create thay vì throw. | P1 | Payment | In Progress | Phung Luu Hoang Long |  | `wallet.service.ts:80` (withdraw throw WALLET_NOT_FOUND cũ); `wallet.repository.ts` `getOrCreateWalletInTx`; `auth.ts` `databaseHooks.user.create.after`; test `phase-10-wallet-auto-create.test.ts` 3/3; reports `tester-wallet-autocreate.md` + `reviewer-wallet-autocreate.md` | User mới mua credit thấy InsufficientBalance thay vì "không tìm thấy ví"; signup tự tạo ví; không đụng schema | Phát hiện khi manual test GA-02 (case NX-890059); reviewer APPROVED_WITH_NITS đã xử lý; `WalletNotFoundError` class giữ (credit-refund còn so code string) |
 
 ## Execution Order (khuyến nghị)
 

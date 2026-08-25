@@ -154,6 +154,21 @@ export const auth = betterAuth({
       }
     },
   },
+  databaseHooks: {
+    user: {
+      create: {
+        // Ví mặc định khi tạo tài khoản: user mới luôn có user_wallets row.
+        // Best-effort — nếu fail, mua credit vẫn tự tạo ví (getOrCreateWalletInTx).
+        after: async (user) => {
+          try {
+            await prisma.userWallet.create({ data: { user_id: user.id } })
+          } catch (error) {
+            logger.warn({ userId: user.id, error }, 'auto-create wallet on signup failed')
+          }
+        },
+      },
+    },
+  },
   plugins: [
     admin(),
     openAPI(),

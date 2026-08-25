@@ -3,16 +3,13 @@ import type { Prisma } from '@prisma/client'
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 import { insertOutboxEvent } from "../../../shared/infrastructure/persistence/outbox.repository.js";
 import {
-  getWalletForUpdate,
+  getOrCreateWalletInTx,
   createTransaction,
   updateWalletBalance,
   getWalletBalance as repoGetBalance,
   getTransactionHistory,
 } from '../infrastructure/persistence/wallet.repository.js'
-import {
-  InsufficientBalanceError,
-  WalletNotFoundError,
-} from '../domain/wallet.types.js'
+import { InsufficientBalanceError } from '../domain/wallet.types.js'
 
 export class WalletService {
   async getBalance(userId: string): Promise<number> {
@@ -27,20 +24,13 @@ export class WalletService {
     idempotencyKey: string,
   ) {
     return prisma.$transaction(async (tx) => {
-      let wallet = await getWalletForUpdate(tx, userId)
-      if (!wallet) {
-        wallet = await tx.userWallet.create({
-          data: { user_id: userId, balance: 0 },
-          select: { id: true, balance: true },
-        })
-        wallet = (await getWalletForUpdate(tx, userId))!
-      }
+      const wallet = await getOrCreateWalletInTx(tx, userId)
 
-      const balanceBefore = wallet!.balance
+      const balanceBefore = wallet.balance
       const balanceAfter = balanceBefore + amountVnd
 
       const txn = await createTransaction(tx, {
-        walletId: wallet!.id,
+        walletId: wallet.id,
         type: 'deposit',
         amount: amountVnd,
         balanceBefore,
@@ -50,7 +40,7 @@ export class WalletService {
         idempotencyKey,
       })
 
-      await updateWalletBalance(tx, wallet!.id, balanceAfter)
+      await updateWalletBalance(tx, wallet.id, balanceAfter)
 
       await insertOutboxEvent(tx, {
         event_type: DOMAIN_EVENTS.WALLET_BALANCE_CHANGED,
@@ -75,10 +65,7 @@ export class WalletService {
     opts?: { referenceType?: string; referenceId?: string },
   ) {
     return prisma.$transaction(async (tx) => {
-      const wallet = await getWalletForUpdate(tx, userId)
-      if (!wallet) {
-        throw new WalletNotFoundError(userId)
-      }
+      const wallet = await getOrCreateWalletInTx(tx, userId)
 
       if (wallet.balance < amountVnd) {
         throw new InsufficientBalanceError(wallet.balance, amountVnd)
@@ -86,7 +73,6 @@ export class WalletService {
 
       const balanceBefore = wallet.balance
       const balanceAfter = balanceBefore - amountVnd
-
       const txn = await createTransaction(tx, {
         walletId: wallet.id,
         type: 'withdrawal',
@@ -113,8 +99,7 @@ export class WalletService {
     tx?: Prisma.TransactionClient,
   ): Promise<void> {
     if (tx) {
-      const wallet = await getWalletForUpdate(tx, userId)
-      if (!wallet) throw new WalletNotFoundError(userId)
+      const wallet = await getOrCreateWalletInTx(tx, userId)
       const balanceBefore = wallet.balance
       const balanceAfter = balanceBefore + amountVnd
       await createTransaction(tx, {
@@ -153,8 +138,7 @@ export class WalletService {
   ): Promise<void> {
     const client = tx ?? prisma;
     return client.$transaction(async (innerTx) => {
-      const wallet = await getWalletForUpdate(innerTx, userId);
-      if (!wallet) throw new WalletNotFoundError(userId);
+      const wallet = await getOrCreateWalletInTx(innerTx, userId);
       if (wallet.balance < amountVnd) throw new InsufficientBalanceError(wallet.balance, amountVnd);
 
       const balanceBefore = wallet.balance;
