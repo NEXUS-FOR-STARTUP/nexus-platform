@@ -6,13 +6,14 @@ import { verifyDepositUseCase } from "../../application/verify-deposit.usecase.j
 import { listDepositsUseCase } from "../../application/list-deposits.usecase.js";
 import { getDepositUseCase } from "../../application/get-deposit.usecase.js";
 import { listAllDepositsUseCase } from "../../application/list-all-deposits.usecase.js";
+import type { CreateDepositRequest } from "../../domain/deposit.types.js";
 
 export async function createDepositHandler(c: Context) {
   try {
     const session = await getSession(c);
     if (!session) return c.json({ code: "UNAUTHORIZED", message: "Vui lòng đăng nhập" }, 401);
-    const { amount } = await c.req.json<{ amount: number }>();
-    const result = await createDepositUseCase(session.user.id, amount);
+    const { amount, idempotency_key } = await c.req.json<CreateDepositRequest>();
+    const result = await createDepositUseCase(session.user.id, amount, idempotency_key);
     return c.json(result, 201);
   } catch (err) { return handleError(c, err); }
 }
