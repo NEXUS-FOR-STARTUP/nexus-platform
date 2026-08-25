@@ -118,6 +118,7 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: true,
     autoSignIn: false,
+    revokeSessionsOnPasswordReset: true,
   },
   socialProviders: {
     google: {
