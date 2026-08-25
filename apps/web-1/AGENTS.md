@@ -50,6 +50,8 @@ RootLayout → Providers
 
 | Hook | File | Purpose |
 |------|------|---------|
+| useCasesList | dashboard/hooks/ | Student case list |
+| useMyPayments | dashboard/hooks/ | Student payment history |
 | useCaseDetails | case/[id]/hooks/ | Single case + workspace (10s poll) |
 | useCaseChat | case/[id]/hooks/ | Messages + send (60s poll fallback) |
 | useRealtimeChat | case/[id]/hooks/ | Centrifugo WS subscription `chat:{caseId}` → live messages |
@@ -59,6 +61,8 @@ RootLayout → Providers
 | useTeamFitSaveMutation | team-fit/hooks/ | Save as case |
 | useAdminCases | admin/hooks/ | Admin case triage (5 actions) |
 | useAdminStats | admin/hooks/ | Dashboard stats |
+| useAdminDocuments | admin/hooks/ | Document CRUD |
+| useAdminPayments | admin/hooks/ | Payment verification |
 | useAdminPackages | admin/hooks/ | Package management |
 | useNotifications | lib/hooks/ | Notification list + unread count |
 | useProfileMutations | dashboard/settings/hooks/ | Cập nhật tên + đổi mật khẩu (Better Auth, revokeOtherSessions) |

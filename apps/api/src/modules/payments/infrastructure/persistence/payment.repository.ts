@@ -20,6 +20,37 @@ export async function findManyPaymentsWithCase() {
   });
 }
 
+export async function findManyMyPayments(userId: string) {
+  return await prisma.payment.findMany({
+    where: {
+      payer_auth_user_id: userId,
+      status: {
+        in: ["unpaid", "pending_verification", "paid", "rejected"],
+      },
+    },
+    select: {
+      id: true,
+      case_id: true,
+      currency: true,
+      bank_transaction_id: true,
+      amount: true,
+      status: true,
+      verified_at: true,
+      created_at: true,
+      case: {
+        select: {
+          case_code: true,
+          package: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { created_at: "desc" },
+  });
+}
 
 export async function findPaymentById(id: string) {
   return await prisma.payment.findUnique({

@@ -120,6 +120,20 @@ export const PaymentSchema = z.object({
 
 export type Payment = z.infer<typeof PaymentSchema>;
 
+export const PaymentHistoryItemSchema = z.object({
+  id: z.string().uuid(),
+  case_id: z.string().uuid(),
+  case_code: z.string(),
+  package_name: z.string().nullable().optional(),
+  amount: z.number().int().min(0),
+  currency: z.string(),
+  status: z.enum(['unpaid', 'pending_verification', 'paid', 'rejected']),
+  verified_at: z.string().datetime().nullable().optional(),
+  bank_transaction_id: z.string().nullable().optional(),
+  created_at: z.string().datetime(),
+});
+
+export type PaymentHistoryItem = z.infer<typeof PaymentHistoryItemSchema>;
 
 // ---------------------------------------------------------------------------
 // User & Session — shared entity types (FE + BE)

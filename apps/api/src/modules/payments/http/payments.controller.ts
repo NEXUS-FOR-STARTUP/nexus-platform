@@ -6,6 +6,7 @@ import {
 } from "../../../shared/infrastructure/http-helpers.js";
 import { requireCaseAccess } from "../../../shared/infrastructure/authorization.js";
 import { listPaymentsUseCase } from "../application/list-payments.usecase.js";
+import { listMyPaymentsUseCase } from "../application/list-my-payments.usecase.js";
 import { uploadPaymentProofUseCase } from "../application/upload-payment-proof.usecase.js";
 import { verifyPaymentUseCase } from "../application/verify-payment.usecase.js";
 import { createPaymentUseCase } from "../application/create-payment.usecase.js";
@@ -72,6 +73,19 @@ export async function createPaymentHandler(c: Context) {
 // GET /api/payments/my — Get current user payment history
 // ---------------------------------------------------------------------------
 
+export async function listMyPaymentsHandler(c: Context) {
+  const session = await getSession(c);
+  if (!session) {
+    return c.json({ code: "UNAUTHORIZED", message: "Chưa đăng nhập" }, 401);
+  }
+
+  try {
+    const result = await listMyPaymentsUseCase(session.user.id);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
 
 // ---------------------------------------------------------------------------
 // GET /api/payments/:id — Get payment detail
