@@ -1,42 +1,41 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
+import { useEffect, useState } from "react";
+import { Pagination, Button } from "@mantine/core";
+import { FileText, ClipboardList, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 import { useCasesList } from "../dashboard/hooks/useCasesList";
 import CaseCard from "../dashboard/_components/CaseCard";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { FileText, ClipboardList, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
-import { Button } from "@mantine/core";
+
+const PAGE_SIZE = 20;
+
+const FILTER_STATUS: Record<"pending" | "submitted" | "completed" | "all", string | undefined> = {
+  pending: "assigned,supporter_working,waiting_user",
+  submitted: "report_ready_to_publish",
+  completed: "done",
+  all: undefined,
+};
 
 export default function SupporterDashboard() {
-  const { data: cases, isLoading, error, refetch } = useCasesList();
   const [activeFilter, setActiveFilter] = useState<"pending" | "submitted" | "completed" | "all">("pending");
+  const [page, setPage] = useState(1);
 
-  // Filter cases assigned to the supporter
-  const pendingCases = cases?.filter(
-    (c) => c.internal_status === "assigned" || c.internal_status === "supporter_working" || c.internal_status === "waiting_user"
-  ) || [];
+  useEffect(() => {
+    setPage(1);
+  }, [activeFilter]);
 
-  const completedCases = cases?.filter(
-    (c) => c.internal_status === "done"
-  ) || [];
+  const { data, isLoading, error, refetch } = useCasesList({
+    page,
+    limit: PAGE_SIZE,
+    internal_status: FILTER_STATUS[activeFilter],
+  });
 
-  const submittedReports = cases?.filter(
-    (c) => c.internal_status === "report_ready_to_publish"
-  ) || [];
-
-  const displayedCases = 
-    activeFilter === "pending" 
-      ? pendingCases 
-      : activeFilter === "submitted"
-      ? submittedReports
-      : activeFilter === "completed" 
-      ? completedCases 
-      : cases || [];
+  const cases = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
     <div className="space-y-8 font-body text-xs text-text-app pb-12 animate-fade-in max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
-      {/* Supporter Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="font-heading text-2xl sm:text-3xl font-bold text-text-app">
@@ -57,7 +56,6 @@ export default function SupporterDashboard() {
         </Button>
       </div>
 
-      {/* Filter Tabs */}
       <div className="flex border-b border-border-app gap-6">
         <button
           onClick={() => setActiveFilter("pending")}
@@ -68,7 +66,7 @@ export default function SupporterDashboard() {
           }`}
         >
           <ClipboardList className="w-4 h-4" />
-          <span>Cần phản biện ({pendingCases.length})</span>
+          <span>Cần phản biện{activeFilter === "pending" ? ` (${total})` : ""}</span>
         </button>
 
         <button
@@ -80,7 +78,7 @@ export default function SupporterDashboard() {
           }`}
         >
           <FileText className="w-4 h-4" />
-          <span>Đã giao ({submittedReports.length})</span>
+          <span>Đã giao{activeFilter === "submitted" ? ` (${total})` : ""}</span>
         </button>
 
         <button
@@ -92,7 +90,7 @@ export default function SupporterDashboard() {
           }`}
         >
           <CheckCircle2 className="w-4 h-4" />
-          <span>Đã hoàn thành ({completedCases.length})</span>
+          <span>Đã hoàn thành{activeFilter === "completed" ? ` (${total})` : ""}</span>
         </button>
 
         <button
@@ -103,11 +101,10 @@ export default function SupporterDashboard() {
               : "border-transparent text-text-muted hover:text-text-app"
           }`}
         >
-          <span>Tất cả ({cases?.length || 0})</span>
+          <span>Tất cả{activeFilter === "all" ? ` (${total})` : ""}</span>
         </button>
       </div>
 
-      {/* Main Content */}
       {isLoading ? (
         <div className="py-8">
           <LoadingSkeleton variant="card" count={3} />
@@ -117,7 +114,7 @@ export default function SupporterDashboard() {
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>Không thể tải danh sách hồ sơ. Vui lòng thử lại sau.</span>
         </div>
-      ) : displayedCases.length === 0 ? (
+      ) : cases.length === 0 ? (
         <div className="py-12 border border-border-app rounded-2xl bg-surface-app text-center flex flex-col items-center justify-center gap-4">
           <div className="w-12 h-12 rounded-full bg-surface-soft border border-border-app text-text-subtle flex items-center justify-center">
             {activeFilter === "pending" ? (
@@ -130,29 +127,36 @@ export default function SupporterDashboard() {
           </div>
           <div className="space-y-1.5 max-w-sm">
             <h4 className="font-heading font-semibold text-sm text-text-app">
-              {activeFilter === "pending" 
-                ? "Không có hồ sơ cần phản biện" 
+              {activeFilter === "pending"
+                ? "Không có hồ sơ cần phản biện"
                 : activeFilter === "submitted"
-                ? "Chưa có hồ sơ nào được giao"
-                : activeFilter === "completed"
-                ? "Chưa có hồ sơ nào hoàn thành"
-                : "Không có hồ sơ nào được phân công"}
+                  ? "Chưa có hồ sơ nào được giao"
+                  : activeFilter === "completed"
+                    ? "Chưa có hồ sơ nào hoàn thành"
+                    : "Không có hồ sơ nào được phân công"}
             </h4>
             <p className="font-body text-xs text-text-muted leading-relaxed">
               {activeFilter === "pending"
                 ? "Không có hồ sơ cần phản biện — tất cả đã được xử lý hoặc chưa có phân công mới."
                 : activeFilter === "submitted"
-                ? "Chưa có hồ sơ nào được giao — sau khi gửi báo cáo phản biện và chờ sinh viên xác nhận, hồ sơ sẽ hiển thị tại đây."
-                : "Các hồ sơ sau khi hoàn thành sẽ hiển thị tại danh sách này."}
+                  ? "Chưa có hồ sơ nào được giao — sau khi gửi báo cáo phản biện và chờ sinh viên xác nhận, hồ sơ sẽ hiển thị tại đây."
+                  : "Các hồ sơ sau khi hoàn thành sẽ hiển thị tại danh sách này."}
             </p>
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {displayedCases.map((item) => (
-            <CaseCard key={item.id} item={item} hrefPrefix="/supporter/case" />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {cases.map((item) => (
+              <CaseCard key={item.id} item={item} hrefPrefix="/supporter/case" />
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <div className="flex justify-center pt-2">
+              <Pagination total={totalPages} value={page} onChange={setPage} size="sm" color="brand" radius="md" />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
