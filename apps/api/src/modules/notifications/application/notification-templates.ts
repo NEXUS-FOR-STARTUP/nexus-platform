@@ -15,8 +15,8 @@ interface Template {
 }
 
 const STAGE_LABELS: Record<string, string> = {
-  intake_pending: "Chờ thanh toán",
-  intake_ready: "Sẵn sàng khởi động",
+  intake_pending: "Chờ nộp hồ sơ",
+  intake_ready: "Đã cập nhật hồ sơ",
   submitted: "Đã nộp",
   under_review: "Đang phản biện",
   report_ready: "Báo cáo sẵn sàng",
