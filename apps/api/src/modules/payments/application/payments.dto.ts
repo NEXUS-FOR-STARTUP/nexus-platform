@@ -46,24 +46,6 @@ export interface GetPaymentResponse {
   bankInfo: BankInfo;
 }
 
-export type PaymentHistoryStatus = "unpaid" | "pending_verification" | "paid" | "rejected";
-
-export interface PaymentHistoryItem {
-  id: string;
-  case_id: string;
-  case_code: string;
-  package_name?: string | null;
-  amount: number;
-  currency: string;
-  status: PaymentHistoryStatus;
-  verified_at?: string | null;
-  bank_transaction_id?: string | null;
-  created_at: string;
-}
-
-export interface ListMyPaymentsResponse {
-  payments: PaymentHistoryItem[];
-}
 
 export interface BankInfo {
   bankName: string;
