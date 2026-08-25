@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 2026-08-24 — GA-01 OTP reset password + GA-07 rolling session
+
+**Added**
+- Trang `/auth/reset-password`: email + OTP 6 số + mật khẩu mới; prefill email từ `sessionStorage` key `nexus.password-reset.email`
+- `emailAndPassword.revokeSessionsOnPasswordReset: true` — reset OTP xong hủy session cũ
+
+**Changed**
+- `/auth/forgot-password` gọi `emailOtp.requestPasswordReset` (không còn core `requestPasswordReset` bị disable)
+- Session Better Auth explicit rolling: `expiresIn` 7 ngày, `updateAge` 1 ngày — không phải absolute+idle cứng
+
+
 ### 2026-08-16 — Backlog bugs fix (8 bugs: #1 #3 #5 #9 #12 #13 #14 #16)
 
 **Added**
