@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { useForm } from "@tanstack/react-form";
 import {
   Anchor,
@@ -14,13 +15,24 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import { authClient } from "@/lib/auth-client";
+import { translateAuthError } from "@/lib/auth-errors";
 import AuthShell from "@/components/layout/AuthShell";
 
+const RESET_EMAIL_KEY = "nexus.password-reset.email";
+
+function showErrorNotification(message: string) {
+  notifications.show({
+    title: "Thao tác không thành công",
+    message,
+    color: "red",
+  });
+}
+
 export default function ForgotPasswordPage() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -28,22 +40,28 @@ export default function ForgotPasswordPage() {
     },
     onSubmit: async ({ value }) => {
       setIsLoading(true);
-      setError(null);
-      setSuccess(false);
+
+      const email = value.email.trim().toLowerCase();
 
       try {
-        const res = await authClient.requestPasswordReset({
-          email: value.email,
-          redirectTo: "/auth/reset-password",
-        });
+        const res = await authClient.emailOtp.requestPasswordReset({ email });
 
         if (res.error) {
-          setError(res.error.message || "Đã xảy ra lỗi khi gửi yêu cầu khôi phục mật khẩu.");
-        } else {
-          setSuccess(true);
+          if (res.error.status === 429) {
+            showErrorNotification("Bạn đã gửi quá nhiều yêu cầu. Vui lòng chờ 60s và thử lại.");
+          } else {
+            showErrorNotification(
+              translateAuthError(res.error.message) ||
+                "Đã xảy ra lỗi khi gửi mã đặt lại mật khẩu.",
+            );
+          }
+          return;
         }
-      } catch (err: any) {
-        setError(err.message || "Đã xảy ra lỗi khi gửi yêu cầu khôi phục mật khẩu.");
+
+        sessionStorage.setItem(RESET_EMAIL_KEY, email);
+        router.push("/auth/reset-password");
+      } catch {
+        showErrorNotification("Đã xảy ra lỗi khi gửi mã đặt lại mật khẩu.");
       } finally {
         setIsLoading(false);
       }
@@ -57,22 +75,8 @@ export default function ForgotPasswordPage() {
           Quên mật khẩu?
         </Title>
         <Text c="dimmed" fz="sm" ta="center" mt={5}>
-          Nhập email của bạn để nhận liên kết đặt lại mật khẩu
+          Nhập email của bạn để nhận mã OTP đặt lại mật khẩu
         </Text>
-
-        {error && (
-          <div className="flex items-start gap-2 p-3 bg-danger-soft border border-danger/20 text-danger rounded-lg text-xs">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {success && (
-          <div className="flex items-start gap-2 p-3 bg-success-soft border border-success/20 text-success rounded-lg text-xs">
-            <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
-            <span>Liên kết khôi phục mật khẩu đã được gửi đến email của bạn.</span>
-          </div>
-        )}
 
         <form
           onSubmit={(e) => {
@@ -108,7 +112,7 @@ export default function ForgotPasswordPage() {
               />
             )}
           />
-          
+
           <Group justify="space-between" mt="lg">
             <Anchor component={Link} href="/auth" c="dimmed" size="sm" className="font-semibold">
               <Center inline>
@@ -124,7 +128,7 @@ export default function ForgotPasswordPage() {
               className="font-semibold cursor-pointer"
               leftSection={isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
             >
-              Gửi liên kết
+              Gửi mã OTP
             </Button>
           </Group>
         </form>
