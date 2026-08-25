@@ -65,7 +65,7 @@ RootLayout → Providers
 | useAdminPayments | admin/hooks/ | Payment verification |
 | useAdminPackages | admin/hooks/ | Package management |
 | useNotifications | lib/hooks/ | Notification list + unread count |
-| useProfileMutations | dashboard/settings/hooks/ | Cập nhật tên + đổi mật khẩu (Better Auth, revokeOtherSessions) |
+| useProfileMutations | dashboard/settings/hooks/ | Đổi tên + mật khẩu (Better Auth); đổi ảnh POST /api/profile/avatar |
 
 ## MANTINE UI STYLING RULE
 
