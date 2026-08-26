@@ -42,7 +42,7 @@ flowchart TD
     I -- "Từ chối" --> M["Nhập lý do bắt buộc ≥10 ký tự<br/>lưu timeline, sinh viên nhìn thấy"]
     M --> N(["Case đóng —<br/>hoàn lượt chưa dùng về ví"])
     I -- "Veto — chỉ trong 48h từ lúc tạo case" --> O(["Case đóng —<br/>hoàn tiền gói + lượt chưa dùng"])
-    RULES["Ràng buộc:<br/>• Duyệt = đồng ý nhận case, chưa cần gán ngay<br/>• Đổi supporter: cam kết SLA đếm tiếp, không reset<br/>• Case sắp/quá hạn SLA phải nổi bật trong queue<br/>• Từ chối phải kèm lý do — không có nút im lặng"]
+    RULES["Ràng buộc:<br/>• Duyệt = đồng ý nhận case, chưa cần gán ngay<br/>• Đổi supporter: SLA đang đếm thì giữ; quá hạn (`<= now`) reset +48h<br/>• Case sắp/quá hạn SLA phải nổi bật trong queue<br/>• Từ chối phải kèm lý do — không có nút im lặng"]
     classDef warn fill:#FEF3C7,stroke:#D97706,color:#92400E
     class C,G warn
 ```

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 2026-08-26 — T6 SLA reset khi phân công lại quá hạn
+
+**Fixed**
+- T6 admin reassign: action `resetSlaIfOverdue` — `sla_deadline_at <= now` thì set `now+48h`; đang đếm giữ nguyên; null không ghi (T7 vẫn set lần đầu)
+
 ### 2026-08-24 — GA-01 OTP reset password + GA-07 rolling session
 
 **Added**

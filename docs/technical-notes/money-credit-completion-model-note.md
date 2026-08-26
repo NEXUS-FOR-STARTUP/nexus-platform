@@ -129,14 +129,16 @@ KHÔNG thêm confirm khi user gửi bản đã sửa (gửi bản sửa free —
 
 ### 5.5 Bug #1 — reassign supporter & SLA (chốt 2026-08-15)
 
-- **SLA đếm tiếp, KHÔNG reset khi reassign** — SLA là cam kết "bao giờ có kết quả" với user, không phụ thuộc ai làm; user không quan tâm supporter nào bận
+- **SLA đếm tiếp khi còn hạn; T6 reassign quá hạn (`sla_deadline_at <= now`) reset `now+48h`** — đang đếm giữ cam kết với user; quá hạn người mới được cửa sổ 48h. Null không ghi (T7 `setSlaDeadline` lần đầu)
 - **Reassign tự do**: admin đổi supporter sớm nhất có thể khi biết supporter bận — không có cửa sổ chờ bắt buộc (code hiện tại đã cho phép: `assign-supporter.usecase.ts:45-47` chỉ chặn final stage)
 - **Thêm cảnh báo SLA**: admin list hiển thị SLA deadline + đánh dấu sắp hết hạn/quá hạn
 - Lịch sử assign đã có: `caseEvent "supporter_assigned"` + metadata + auditLogger (`case.repository.ts:369-379`)
 - **User hủy case**: giữ nguyên 2 đường đã có guard — xóa khi stage `submitted` (chưa duyệt, `delete-case.usecase.ts:27-33`); đóng (T15_CANCEL) ở `report_ready`. Không mở rộng stage mới
 - Kèm rule refund credit dư — xem mục 8
 
-> **Implementation (2026-08-16):** SLA đếm tiếp (không reset) giữ nguyên; thêm T6 self-loop (isAdmin) ở `supporter_working` + `report_ready_to_publish` (reassign đang 400 ở đó); xóa supporter close-case route (bypass machine); refund rule mới ở mục 8.
+> **Implementation (2026-08-16):** SLA đếm tiếp (không reset) lúc đó; thêm T6 self-loop (isAdmin) ở `supporter_working` + `report_ready_to_publish` (reassign đang 400 ở đó); xóa supporter close-case route (bypass machine); refund rule mới ở mục 8.
+>
+> **Update (2026-08-26):** T6 action `resetSlaIfOverdue` — overdue (`sla_deadline_at <= now`) → `sla_deadline_at = now+48h`; còn hạn giữ; null no-op. T7/T9/T19 vẫn `setSlaDeadline`. Unassign không đụng SLA.
 
 ## 6. Bất nhất đã phát hiện (cần xử lý khi viết lại doc)
 
