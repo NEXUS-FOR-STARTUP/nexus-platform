@@ -178,8 +178,13 @@ export async function getAdminStatsUseCase(period: string = "30d"): Promise<Admi
   });
   const totalRevenue = revenueAgg._sum.total_amount ?? 0;
 
-  // 5. SLA breach
-  const slaBreachCount = 0;
+  // 5. SLA breach — open cases whose 48h clock has passed
+  const slaBreachCount = await prisma.case.count({
+    where: {
+      sla_deadline_at: { lte: new Date() },
+      internal_status: { notIn: ["done", "cancelled"] },
+    },
+  });
 
   // 6. Cases by stage
   const stageGroups = await prisma.case.groupBy({

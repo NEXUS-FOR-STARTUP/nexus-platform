@@ -17,7 +17,7 @@ import ApprovePaymentModal from "./_components/ApprovePaymentModal";
 import AdminExportMenu from "./_components/AdminExportMenu";
 import { useAdminStats } from "./hooks/useAdminStats";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, AlertTriangle, FolderKanban, Activity, Users, Clock } from "lucide-react";
+import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, FolderKanban, Activity, Users, Clock } from "lucide-react";
 import { Tooltip, UnstyledButton, Title, Text, Badge, Divider } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import classes from "../../components/layout/DoubleNavbar.module.css";
@@ -558,8 +558,7 @@ function AdminHubPageInner() {
 
         {!statsQuery.isLoading && statsQuery.data && statsQuery.data.slaBreachCount > 0 && (
           <div className="flex items-center gap-2 p-3 rounded-lg bg-danger-soft border border-danger/20 text-danger text-xs font-semibold">
-            <AlertTriangle className="w-4 h-4 shrink-0" />
-            <span>🔴 {statsQuery.data.slaBreachCount} hồ sơ đang quá hạn SLA — cần kiểm tra và phân công lại.</span>
+            <span>{statsQuery.data.slaBreachCount} hồ sơ đang quá hạn SLA. Cần kiểm tra và phân công lại.</span>
           </div>
         )}
 
