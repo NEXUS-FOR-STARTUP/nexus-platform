@@ -62,6 +62,11 @@ export const auth = betterAuth({
     'https://nexusforstartup.site',
     'https://www.nexusforstartup.site',
   ],
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 3,
+  },
   user: {
     modelName: 'user',
     fields: {
@@ -77,6 +82,8 @@ export const auth = betterAuth({
     },
   },
   session: {
+    expiresIn: 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 24,
     modelName: 'session',
     fields: {
       expiresAt: 'expires_at',
@@ -118,6 +125,7 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: true,
     autoSignIn: false,
+    revokeSessionsOnPasswordReset: true,
   },
   socialProviders: {
     google: {

@@ -16,6 +16,8 @@
   ```
 
 - Sửa trực tiếp xlsx sẽ bị ghi đè ở lần build sau.
+- Cột **Báo cáo**: task `Done` trỏ journal `docs/journals/`. Không viết lại Mô tả / Acceptance / Ghi chú — chỉ tick Status + điền Báo cáo.
+
 - Script tự tính kết quả công thức Overview, nhúng cached values vào XML và verify (output bắt chước `recalc.py`).
 
 ## Lưu ý môi trường

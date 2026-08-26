@@ -74,6 +74,7 @@ RootLayout → Providers
 | useNotifications | lib/hooks/ | Notification list + unread count (SSE) |
 | useProfileMutations | dashboard/settings/hooks/ | Cập nhật tên + đổi mật khẩu (Better Auth, revokeOtherSessions) |
 
+
 ## MANTINE UI STYLING RULE
 
 - **Không tự thêm Tailwind positioning classes** (`fixed`, `inset-0`, `flex`, `items-center`, `justify-center`) vào Mantine UI components (`Modal`, `Drawer`, v.v.). Mantine đã có layout mặc định. Override class gây xung đột hiển thị, lệch modal khỏi giữa màn hình.

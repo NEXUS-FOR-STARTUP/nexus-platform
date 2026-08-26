@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm } from "@tanstack/react-form";
 import { Avatar, Button, Group, Paper, Stack, TextInput, Tooltip } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
 import { ImagePlus, Info } from "lucide-react";
 import { useProfileMutations } from "../../hooks/useProfileMutations";
 
@@ -21,7 +20,8 @@ interface ProfileInfoFormProps {
 }
 
 export default function ProfileInfoForm({ user, refetch }: ProfileInfoFormProps) {
-  const { updateName } = useProfileMutations();
+  const { updateName, changeAvatar } = useProfileMutations();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm({
     defaultValues: { name: user.name ?? "" } as ProfileFormValues,
@@ -43,10 +43,17 @@ export default function ProfileInfoForm({ user, refetch }: ProfileInfoFormProps)
   }, [user.name, form]);
 
   const handleChangeAvatar = () => {
-    notifications.show({
-      title: "Đang phát triển",
-      message: "Chức năng này đang được phát triển.",
-      color: "blue",
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    changeAvatar.mutate(file, {
+      onSuccess: () => {
+        void refetch();
+      },
     });
   };
 
@@ -67,9 +74,18 @@ export default function ProfileInfoForm({ user, refetch }: ProfileInfoFormProps)
               variant="default"
               leftSection={<ImagePlus className="w-4 h-4" />}
               onClick={handleChangeAvatar}
+              loading={changeAvatar.isPending}
+              disabled={changeAvatar.isPending}
             >
               Đổi ảnh
             </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+              hidden
+              onChange={handleAvatarFile}
+            />
           </Group>
 
           <form.Field
