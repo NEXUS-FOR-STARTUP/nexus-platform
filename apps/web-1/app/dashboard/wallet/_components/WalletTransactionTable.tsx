@@ -1,6 +1,8 @@
 "use client";
 
 import { Table, Badge, Text } from "@mantine/core";
+import { depositDetailHref } from "@/lib/deposit-display";
+import { WalletRowDetailAction } from "./WalletRowDetailAction";
 import {
   WalletTransactionItem,
   SortField,
@@ -28,7 +30,7 @@ export function WalletTransactionTable({
   };
 
   return (
-    <Table.ScrollContainer minWidth={700}>
+    <Table.ScrollContainer minWidth={820}>
       <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md" className="w-full">
         <Table.Thead className="bg-surface-soft/40 border-b border-border-app">
           <Table.Tr>
@@ -67,6 +69,13 @@ export function WalletTransactionTable({
             >
               Số dư sau giao dịch
             </Table.Th>
+            <Table.Th
+              ta="center"
+              className="whitespace-nowrap px-2 py-3.5 text-base font-medium text-text-muted"
+              style={{ width: 1 }}
+            >
+              Chi tiết
+            </Table.Th>
           </Table.Tr>
         </Table.Thead>
 
@@ -76,7 +85,14 @@ export function WalletTransactionTable({
             const typeLabel = TYPE_LABELS[tx.type] ?? tx.type;
             const badgeColor = TYPE_COLORS[tx.type] ?? "gray";
             const { date, time } = formatDateTime(tx.created_at);
-            const description = tx.source_description || typeLabel;
+            const description = (tx.source_description || typeLabel).replace(
+              /\s*\([+-]?\d[\d.,]*\s*VND\)\s*$/i,
+              "",
+            );
+            const depositHref =
+              (tx.source_type === "deposit" || tx.source_type === "topup") && tx.source_id
+                ? depositDetailHref(tx.source_id)
+                : null;
 
             return (
               <Table.Tr
@@ -108,14 +124,9 @@ export function WalletTransactionTable({
 
                 {/* Description */}
                 <Table.Td className="py-3.5">
-                  <Text className="text-text-app line-clamp-1 font-medium text-base">
+                  <Text className="text-base font-medium text-text-app">
                     {description}
                   </Text>
-                  {tx.source_id && (
-                    <Text c="dimmed" className="font-mono text-base mt-0.5">
-                      Mã: {tx.source_id}
-                    </Text>
-                  )}
                 </Table.Td>
 
                 {/* Amount */}
@@ -139,6 +150,11 @@ export function WalletTransactionTable({
                   <Text c="dimmed" className="tabular-nums font-normal text-base">
                     {tx.balance_after != null ? formatVND(tx.balance_after) : "—"}
                   </Text>
+                </Table.Td>
+                <Table.Td ta="center" className="px-2 py-3.5" style={{ width: 1 }}>
+                  <div className="flex justify-center">
+                    <WalletRowDetailAction href={depositHref} />
+                  </div>
                 </Table.Td>
               </Table.Tr>
             );

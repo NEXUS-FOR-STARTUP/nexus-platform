@@ -68,7 +68,7 @@ export default function UserMenu() {
   const options: UserMenuOption[] = [
     { href: getHomeLink(user.role), label: "Trang chủ", icon: Home },
     ...(isStudent
-      ? [{ href: "/dashboard/wallet", label: "Thanh toán", icon: CreditCard }]
+      ? [{ href: "/dashboard/wallet", label: "Ví của tôi", icon: CreditCard }]
       : []),
     ...(settingsHref
       ? [{ href: settingsHref, label: "Cài đặt", icon: Settings }]

@@ -4,6 +4,7 @@ import {
   handleError,
   readJsonBody,
 } from "../../../shared/infrastructure/http-helpers.js";
+import { AppError } from "../../../shared/domain/app-error.js";
 import { requireCaseAccess } from "../../../shared/infrastructure/authorization.js";
 import { listPaymentsUseCase } from "../application/list-payments.usecase.js";
 import { listMyPaymentsUseCase } from "../application/list-my-payments.usecase.js";
@@ -12,10 +13,12 @@ import { verifyPaymentUseCase } from "../application/verify-payment.usecase.js";
 import { createPaymentUseCase } from "../application/create-payment.usecase.js";
 import { getPaymentUseCase } from "../application/get-payment.usecase.js";
 import type { VerifyPaymentRequest, CreatePaymentRequest } from "../application/payments.dto.js";
+import { isFinalDepositStatus } from "../../deposits/domain/deposit.types.js";
 import { fileStorageService } from "../infrastructure/file-storage.service.js";
 import { findDepositById } from "../../deposits/infrastructure/persistence/deposit.repository.js";
 import { prisma } from "../../../db.js";
 import logger from "../../../shared/infrastructure/logger.js";
+
 
 // ---------------------------------------------------------------------------
 // GET /api/payments — Get all payments (Admin only)
@@ -143,18 +146,57 @@ export async function uploadPaymentProofHandler(c: Context) {
       return c.json({ code: "VALIDATION_ERROR", message: "Thiếu mã giao dịch nạp tiền" }, 400);
     }
 
-    const proofFile = await fileStorageService.saveProofFile(file);
-
     const deposit = await findDepositById(depositId);
     if (!deposit || deposit.user_id !== session.user.id) {
-      await fileStorageService.deleteFile(proofFile.publicId);
       return c.json({ code: "DEPOSIT_NOT_FOUND", message: "Không tìm thấy giao dịch nạp tiền" }, 404);
     }
 
-    await prisma.deposit.update({
-      where: { id: depositId },
-      data: { proof_file_url: proofFile.fileUrl },
-    });
+    if (isFinalDepositStatus(deposit.status)) {
+      throw new AppError(409, "FINAL_STATUS", "Giao dịch đã ở trạng thái cuối, không thể thay đổi minh chứng");
+    }
+
+    if (deposit.status !== "pending") {
+      throw new AppError(409, "DEPOSIT_NOT_PENDING", "Chỉ có thể tải minh chứng khi giao dịch đang chờ xử lý");
+    }
+
+    const proofFile = await fileStorageService.saveProofFile(file);
+
+    let proofCleanedUp = false;
+    const cleanupUploadedProof = async () => {
+      if (proofCleanedUp) return;
+      proofCleanedUp = true;
+      try {
+        await fileStorageService.deleteFile(proofFile.publicId);
+      } catch (cleanupError) {
+        logger.error(
+          { err: cleanupError, depositId, userId: session.user.id, publicId: proofFile.publicId },
+          "failed to delete uploaded deposit proof",
+        );
+      }
+    };
+
+    try {
+      const updateResult = await prisma.deposit.updateMany({
+        where: {
+          id: depositId,
+          user_id: session.user.id,
+          status: "pending",
+        },
+        data: { proof_file_url: proofFile.fileUrl },
+      });
+
+      if (updateResult.count === 0) {
+        await cleanupUploadedProof();
+        throw new AppError(
+          409,
+          "DEPOSIT_NOT_PENDING",
+          "Giao dịch không còn ở trạng thái chờ xử lý, không thể thay đổi minh chứng",
+        );
+      }
+    } catch (error) {
+      await cleanupUploadedProof();
+      throw error;
+    }
     logger.info({ depositId, userId: session.user.id, fileUrl: proofFile.fileUrl }, "deposit proof uploaded");
     return c.json({ success: true, fileUrl: proofFile.fileUrl }, 201);
   } catch (error: any) {
