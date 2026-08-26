@@ -1,6 +1,8 @@
 "use client";
 
 import { Badge, Text } from "@mantine/core";
+import { depositDetailHref } from "@/lib/deposit-display";
+import { WalletRowDetailAction } from "./WalletRowDetailAction";
 import {
   WalletTransactionItem,
   TYPE_LABELS,
@@ -23,14 +25,20 @@ export function WalletTransactionCardList({
         const typeLabel = TYPE_LABELS[tx.type] ?? tx.type;
         const badgeColor = TYPE_COLORS[tx.type] ?? "gray";
         const { date, time } = formatDateTime(tx.created_at);
-        const description = tx.source_description || typeLabel;
+        const description = (tx.source_description || typeLabel).replace(
+          /\s*\([+-]?\d[\d.,]*\s*VND\)\s*$/i,
+          "",
+        );
+        const depositHref =
+          (tx.source_type === "deposit" || tx.source_type === "topup") && tx.source_id
+            ? depositDetailHref(tx.source_id)
+            : null;
 
         return (
           <div
             key={tx.id}
             className="p-4 flex items-start justify-between gap-3"
           >
-            {/* Left side: Type & Description & Time */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                 <Badge
@@ -47,9 +55,13 @@ export function WalletTransactionCardList({
                 </span>
               </div>
 
-              <Text className="font-medium text-text-app line-clamp-1 text-base">
+              <Text className="text-base font-medium text-text-app">
                 {description}
               </Text>
+
+              <div className="mt-1">
+                <WalletRowDetailAction href={depositHref} />
+              </div>
 
               {tx.balance_after != null && (
                 <Text c="dimmed" className="text-base mt-1 tabular-nums">
@@ -58,7 +70,6 @@ export function WalletTransactionCardList({
               )}
             </div>
 
-            {/* Right side: Amount */}
             <div className="text-right shrink-0">
               <span
                 className={`text-base font-semibold tabular-nums ${

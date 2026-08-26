@@ -24,8 +24,10 @@ export function WalletTopupModal({ opened, onClose, initialAmount }: Props) {
   const createDeposit = useCreateDeposit();
 
   useEffect(() => {
-    if (opened) setTopupKey(crypto.randomUUID());
-  }, [opened]);
+    if (!opened) return;
+    setTopupKey(crypto.randomUUID());
+    setAmount(initialAmount ?? DEFAULT_TOPUP_AMOUNT);
+  }, [opened, initialAmount]);
 
   const handleCreate = () => {
     if (amount < MIN_TOPUP_AMOUNT) return;
