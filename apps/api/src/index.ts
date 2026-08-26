@@ -48,6 +48,7 @@ app.use(
     },
     allowHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    exposeHeaders: ['Content-Disposition'],
     credentials: true,
   }),
 )

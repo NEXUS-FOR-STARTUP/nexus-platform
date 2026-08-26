@@ -66,6 +66,9 @@ export const auth = betterAuth({
     enabled: true,
     window: 60,
     max: 3,
+    customRules: {
+      '/get-session': false,
+    },
   },
   user: {
     modelName: 'user',

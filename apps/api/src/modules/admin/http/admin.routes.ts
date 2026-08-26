@@ -19,9 +19,13 @@ import {
   createAdminUserHandler,
   banUserHandler,
   unbanUserHandler,
+  exportAdminDataHandler,
 } from "./admin.controller.js";
 
+
 export const adminRouter = new Hono();
+
+adminRouter.get("/exports", exportAdminDataHandler);
 
 adminRouter.get("/cases", listAdminCasesHandler);
 adminRouter.get("/cases/:id", getAdminCaseDetailHandler);

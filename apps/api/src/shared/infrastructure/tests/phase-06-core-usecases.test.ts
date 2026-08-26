@@ -600,6 +600,9 @@ test("Phase 06 - Core usecases", async (t) => {
 
     const result = await listCasesUseCase({ user: { id: "user-1", role: "user" } });
     assert.ok(Array.isArray(result.items));
+    assert.equal(typeof result.total, "number");
+    assert.equal(typeof result.page, "number");
+    assert.equal(typeof result.limit, "number");
   });
 
   // -----------------------------------------------------------------------

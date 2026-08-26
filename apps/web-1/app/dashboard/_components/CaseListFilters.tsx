@@ -11,7 +11,6 @@ export const SUPPORTER_STATUS_OPTIONS = [
   { value: "done", label: "Hoàn thành" },
   { value: "cancelled", label: "Đã hủy" },
 ];
-
 export const STUDENT_STAGE_OPTIONS = [
   { value: "intake_pending", label: "Chờ kích hoạt" },
   { value: "intake_ready", label: "Sẵn sàng cập nhật" },

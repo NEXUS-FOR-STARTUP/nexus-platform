@@ -109,3 +109,31 @@ export async function getTransactionHistory(
   ])
   return { transactions, total }
 }
+
+export async function countTransactionsExport(): Promise<number> {
+  return prisma.walletTransaction.count()
+}
+
+export async function findTransactionsExportPage(offset: number, take: number) {
+  return prisma.walletTransaction.findMany({
+    select: {
+      id: true,
+      wallet_id: true,
+      type: true,
+      amount: true,
+      currency: true,
+      balance_before: true,
+      balance_after: true,
+      source_type: true,
+      source_id: true,
+      reference_type: true,
+      reference_id: true,
+      created_at: true,
+      wallet: { select: { user_id: true, user: { select: { email: true } } } },
+    },
+    orderBy: [{ created_at: 'desc' }, { id: 'desc' }],
+    skip: offset,
+    take,
+  })
+}
+

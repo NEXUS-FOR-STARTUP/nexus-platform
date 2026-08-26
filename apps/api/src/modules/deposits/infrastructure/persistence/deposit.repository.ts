@@ -98,3 +98,32 @@ export async function findDepositsAdmin(params: {
 export async function countDepositsAdmin(status?: string): Promise<number> {
   return prisma.deposit.count({ where: status ? { status } : undefined });
 }
+
+export async function countDepositsExport(): Promise<number> {
+  return prisma.deposit.count();
+}
+
+export async function findDepositsExportPage(offset: number, take: number) {
+  return prisma.deposit.findMany({
+    select: {
+      id: true,
+      user_id: true,
+      amount: true,
+      currency: true,
+      transfer_content: true,
+      status: true,
+      rejection_reason: true,
+      bank_transaction_id: true,
+      bank_credited_at: true,
+      verified_by: true,
+      verification_source: true,
+      created_at: true,
+      updated_at: true,
+      user: { select: { name: true, email: true } },
+    },
+    orderBy: [{ created_at: "desc" }, { id: "desc" }],
+    skip: offset,
+    take,
+  });
+}
+

@@ -73,7 +73,6 @@ export default function SupporterDashboard() {
         }}
         stageOptions={SUPPORTER_STATUS_OPTIONS}
       />
-
       {isLoading ? (
         <div className="py-8">
           <LoadingSkeleton variant="card" count={3} />
