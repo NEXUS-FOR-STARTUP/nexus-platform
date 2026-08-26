@@ -48,6 +48,7 @@ export const caseMachine = setup({
     refundCredit:      () => {},
     refundRemainingCredit: () => {},
     setSlaDeadline:    () => {},
+    resetSlaIfOverdue: () => {},
     autoResumeWork:    () => {},
     resetStatus:       () => {},
     notifyUser:        () => {},
@@ -97,6 +98,7 @@ export const caseMachine = setup({
         T6_ASSIGN_SUPPORTER: {
           target: 'assigned',
           guard: 'isAdmin',
+          actions: 'resetSlaIfOverdue',
         },
         T15_CANCEL: {
           target: 'cancelled',
@@ -111,7 +113,7 @@ export const caseMachine = setup({
         T6_ASSIGN_SUPPORTER: {
           target: 'assigned',
           guard: 'isAdmin',
-          actions: 'emitStageChanged',
+          actions: ['emitStageChanged', 'resetSlaIfOverdue'],
         },
         T7_START_WORK: {
           target: 'supporter_working',
@@ -136,7 +138,7 @@ export const caseMachine = setup({
         T6_ASSIGN_SUPPORTER: {
           target: 'supporter_working',
           guard: 'isAdmin',
-          actions: 'emitStageChanged',
+          actions: ['emitStageChanged', 'resetSlaIfOverdue'],
         },
         T8_REQUEST_INFO: {
           target: 'waiting_user',
@@ -186,7 +188,7 @@ export const caseMachine = setup({
         T6_ASSIGN_SUPPORTER: {
           target: 'report_ready_to_publish',
           guard: 'isAdmin',
-          actions: 'emitStageChanged',
+          actions: ['emitStageChanged', 'resetSlaIfOverdue'],
         },
         T14_COMPLETE: {
           target: 'done',

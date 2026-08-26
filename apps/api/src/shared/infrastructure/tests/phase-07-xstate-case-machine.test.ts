@@ -94,6 +94,7 @@ test('T6_ASSIGN_SUPPORTER — isAdmin → assigned', () => {
   const r = tryTransition('accepted_unassigned', adminEvent('T6_ASSIGN_SUPPORTER'))
   assert.ok(r)
   assert.equal(r!.to, 'assigned')
+  assert.ok(r!.actions.some(a => a.type === 'resetSlaIfOverdue'))
 })
 
 test('T7_START_WORK — isAssignedSupporter → supporter_working, setSlaDeadline', () => {
@@ -101,6 +102,7 @@ test('T7_START_WORK — isAssignedSupporter → supporter_working, setSlaDeadlin
   assert.ok(r)
   assert.equal(r!.to, 'supporter_working')
   assert.ok(r!.actions.some(a => a.type === 'setSlaDeadline'))
+  assert.ok(!r!.actions.some(a => a.type === 'resetSlaIfOverdue'))
 })
 
 test('T13_VETO — isAdmin + within 48h → cancelled, refundCredit', () => {
@@ -140,6 +142,8 @@ test('T9_SUBMIT_REVISION — isOwner → supporter_working, upsertDoc', () => {
   assert.ok(r)
   assert.equal(r!.to, 'supporter_working')
   assert.ok(r!.actions.some(a => a.type === 'upsertDoc'))
+  assert.ok(!r!.actions.some(a => a.type === 'resetSlaIfOverdue'))
+  assert.ok(!r!.actions.some(a => a.type === 'setSlaDeadline'))
 })
 
 test('T14_COMPLETE — isAdmin → done', () => {
@@ -172,6 +176,7 @@ test('T19_REOPEN — isOwner → supporter_working, setSlaDeadline', () => {
   assert.ok(r)
   assert.equal(r!.to, 'supporter_working')
   assert.ok(r!.actions.some(a => a.type === 'setSlaDeadline'))
+  assert.ok(!r!.actions.some(a => a.type === 'resetSlaIfOverdue'))
 })
 
 test('T19_REOPEN — non-owner → null', () => {
@@ -443,6 +448,7 @@ test('T6_ASSIGN_SUPPORTER — reassign từ assigned (admin) → self-loop, emit
   assert.ok(r)
   assert.equal(r!.to, 'assigned')
   assert.ok(r!.actions.some(a => a.type === 'emitStageChanged'), 'self-loop phải mang action')
+  assert.ok(r!.actions.some(a => a.type === 'resetSlaIfOverdue'))
 })
 
 test('T6_ASSIGN_SUPPORTER — reassign guard fail khi không phải admin', () => {
@@ -468,6 +474,7 @@ test('T6_ASSIGN_SUPPORTER — reassign từ supporter_working (admin) → self-l
   assert.ok(r)
   assert.equal(r!.to, 'supporter_working')
   assert.ok(r!.actions.some(a => a.type === 'emitStageChanged'))
+  assert.ok(r!.actions.some(a => a.type === 'resetSlaIfOverdue'))
 })
 
 test('T6_ASSIGN_SUPPORTER — reassign từ supporter_working (supporter) → null', () => {
@@ -480,6 +487,7 @@ test('T6_ASSIGN_SUPPORTER — reassign từ report_ready_to_publish (admin) → 
   assert.ok(r)
   assert.equal(r!.to, 'report_ready_to_publish')
   assert.ok(r!.actions.some(a => a.type === 'emitStageChanged'))
+  assert.ok(r!.actions.some(a => a.type === 'resetSlaIfOverdue'))
 })
 
 test('T6_ASSIGN_SUPPORTER — reassign từ report_ready_to_publish (supporter) → null', () => {
