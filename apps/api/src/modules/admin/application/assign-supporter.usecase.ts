@@ -33,7 +33,13 @@ export async function adminAssignSupporterUseCase(
   }
 
   if (caseItem.assigned_supporter_auth_user_id === supporterId) {
-    return caseItem;
+    if (caseItem.sla_deadline_at && caseItem.sla_deadline_at.getTime() <= Date.now()) {
+      return prisma.case.update({
+        where: { id: caseId },
+        data: { sla_deadline_at: new Date(Date.now() + 48 * 3600_000) },
+      })
+    }
+    return caseItem
   }
 
   // D12: T6 + gán supporter cùng 1 tx

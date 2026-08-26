@@ -59,6 +59,23 @@ export async function assignSupporterUseCase(
 
   const nextSupporterId = unassign ? null : supporterId;
   if (existingCase.assigned_supporter_auth_user_id === nextSupporterId) {
+    if (
+      nextSupporterId
+      && existingCase.sla_deadline_at
+      && existingCase.sla_deadline_at.getTime() <= Date.now()
+    ) {
+      const sla_deadline_at = new Date(Date.now() + 48 * 3600_000)
+      await prisma.case.update({
+        where: { id: caseId },
+        data: { sla_deadline_at },
+      })
+      return {
+        id: existingCase.id,
+        assigned_supporter_auth_user_id: existingCase.assigned_supporter_auth_user_id,
+        internal_status: existingCase.internal_status,
+        sla_deadline_at,
+      }
+    }
     const durationMs = timer();
     auditLogger.log({
       operation: "case.assign_supporter", actor_id: adminId, actor_role: "admin",

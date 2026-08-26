@@ -50,7 +50,7 @@ test("Phase 02 - Case lifecycle & admin triage", async (t) => {
       "../../../modules/cases/application/assign-supporter.usecase.js"
     );
     const result = await assignSupporterUseCase("admin-1", "case-1", "sup-1", {
-      findCaseById: async () => ({ id: "case-1", assigned_supporter_auth_user_id: "sup-1" } as any),
+      findCaseById: async () => ({ id: "case-1", assigned_supporter_auth_user_id: "sup-1", sla_deadline_at: new Date(Date.now() + 3600_000) } as any),
       findSupporterById: async () => ({ id: "sup-1", role: "supporter", name: "Supporter 1" } as any),
     });
     assert.strictEqual(result.assigned_supporter_auth_user_id, "sup-1");
