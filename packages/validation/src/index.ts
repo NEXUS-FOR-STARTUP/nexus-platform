@@ -448,3 +448,66 @@ export const ListNotificationsResponseSchema = z.object({
 });
 
 export type ListNotificationsResponse = z.infer<typeof ListNotificationsResponseSchema>;
+
+// ---------------------------------------------------------------------------
+// Case list query + paginated envelope (GA-09)
+// ---------------------------------------------------------------------------
+
+export const CASE_LIST_SORT_FIELDS = ["created_at", "case_code", "team_name"] as const;
+export type CaseListSortField = (typeof CASE_LIST_SORT_FIELDS)[number];
+
+export const CASE_LIST_DEFAULT_LIMIT = 20;
+export const CASE_LIST_MAX_LIMIT = 50;
+
+export const ADMIN_CASE_LIST_VIEWS = [
+  "all",
+  "triage",
+  "intake",
+  "unassigned",
+  "assigned",
+  "crud",
+] as const;
+export type AdminCaseListView = (typeof ADMIN_CASE_LIST_VIEWS)[number];
+
+export const CaseListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(CASE_LIST_MAX_LIMIT).default(CASE_LIST_DEFAULT_LIMIT),
+  search: z.string().trim().max(200).optional(),
+  sortBy: z.enum(CASE_LIST_SORT_FIELDS).default("created_at"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  internal_status: z.string().optional(),
+  stage: z.string().optional(),
+});
+
+export type CaseListQuery = z.infer<typeof CaseListQuerySchema>;
+
+export const AdminCaseListQuerySchema = CaseListQuerySchema.extend({
+  view: z.enum(ADMIN_CASE_LIST_VIEWS).optional(),
+});
+
+export type AdminCaseListQuery = z.infer<typeof AdminCaseListQuerySchema>;
+
+export function paginatedListSchema<T extends z.ZodTypeAny>(itemSchema: T) {
+  return z.object({
+    items: z.array(itemSchema),
+    total: z.number().int().nonnegative(),
+    page: z.number().int().positive(),
+    limit: z.number().int().positive(),
+  });
+}
+
+export const CaseListResponseSchema = paginatedListSchema(CaseSchema.passthrough());
+export type CaseListResponse = z.infer<typeof CaseListResponseSchema>;
+
+// ---------------------------------------------------------------------------
+// Admin export (GA-10)
+// ---------------------------------------------------------------------------
+
+export const ADMIN_EXPORT_RESOURCES = ["cases", "deposits", "transactions", "orders"] as const;
+export type AdminExportResource = (typeof ADMIN_EXPORT_RESOURCES)[number];
+
+export const AdminExportQuerySchema = z.object({
+  resource: z.enum(ADMIN_EXPORT_RESOURCES),
+});
+
+export type AdminExportQuery = z.infer<typeof AdminExportQuerySchema>;

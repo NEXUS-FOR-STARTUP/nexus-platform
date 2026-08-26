@@ -593,13 +593,13 @@ test("Phase 06 - Core usecases", async (t) => {
   // -----------------------------------------------------------------------
   // listCasesUseCase — smoke test
   // -----------------------------------------------------------------------
-  await t.test("listCasesUseCase - returns array", async () => {
+  await t.test("listCasesUseCase - returns paginated", async () => {
     const { listCasesUseCase } = await import(
       "../../../modules/cases/application/list-cases.usecase.js"
     );
 
     const result = await listCasesUseCase({ user: { id: "user-1", role: "user" } });
-    assert.ok(Array.isArray(result));
+    assert.ok(Array.isArray(result.items));
   });
 
   // -----------------------------------------------------------------------
