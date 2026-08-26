@@ -156,7 +156,7 @@ export default function StatusGuidanceCard({
         variant="light"
         color={isFree ? "blue" : "yellow"}
         radius="md"
-        title={isFree ? "Nâng cấp lên đánh giá chuyên sâu" : "Chờ thanh toán dịch vụ"}
+        title={isFree ? "Nâng cấp lên đánh giá chuyên sâu" : "Hồ sơ chưa thanh toán"}
         icon={isFree ? <Zap className="w-4.5 h-4.5 shrink-0" /> : <Clock className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
         styles={{ wrapper: { alignItems: "center" } }}
@@ -165,7 +165,7 @@ export default function StatusGuidanceCard({
           <p className="text-text-muted text-xs leading-relaxed">
             {isFree
               ? "Bạn đang dùng gói miễn phí. Mua lượt đánh giá chuyên sâu để nhận phản biện chi tiết từ chuyên gia."
-              : "Vui lòng hoàn tất thanh toán để kích hoạt quy trình phản biện."}
+              : "Bạn có thể nộp hồ sơ trước, thanh toán sau — phản biện chỉ bắt đầu sau khi thanh toán hoàn tất."}
           </p>
           {onOpenPayment && (
             <Button size="sm" color="brand" className="shrink-0 cursor-pointer" onClick={onOpenPayment}>
@@ -189,14 +189,14 @@ export default function StatusGuidanceCard({
       >
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-0.5">
-            <div className="mantine-Alert-title mb-0.5">Cần cập nhật thông tin hồ sơ</div>
+            <div className="mantine-Alert-title mb-0.5">Nộp hồ sơ khởi nghiệp</div>
             <p className="text-text-muted text-xs leading-relaxed">
-              Vui lòng cập nhật thông tin hồ sơ khởi nghiệp trước khi gửi để Supporter có thể đánh giá chính xác.
+              Vui lòng nộp hồ sơ khởi nghiệp để Supporter có thể đánh giá chính xác.
             </p>
           </div>
           {onOpenIntake && canOpenIntake && (
             <Button size="sm" color="brand" className="shrink-0 cursor-pointer" onClick={onOpenIntake}>
-              Cập nhật ngay
+              Nộp hồ sơ
             </Button>
           )}
         </div>

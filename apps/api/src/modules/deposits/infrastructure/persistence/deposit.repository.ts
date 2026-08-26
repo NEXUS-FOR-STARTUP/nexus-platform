@@ -29,6 +29,9 @@ export async function findDepositByTransferContent(content: string) {
     where: { transfer_content: content, status: { notIn: ["verified", "rejected"] } },
   });
 }
+export async function findDepositByIdempotencyKey(idempotencyKey: string) {
+  return prisma.deposit.findUnique({ where: { idempotency_key: idempotencyKey } });
+}
 
 export async function findPendingDepositsByUser(userId: string) {
   return prisma.deposit.findMany({

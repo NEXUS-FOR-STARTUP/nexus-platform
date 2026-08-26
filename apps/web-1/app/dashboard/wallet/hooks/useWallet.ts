@@ -59,9 +59,13 @@ export function useWalletHistory(
 export function useCreateDeposit() {
   const queryClient = useQueryClient();
 
-  return useMutation<DepositResult, { response?: { data?: { message?: string } } }, number>({
-    mutationFn: async (amount: number) => {
-      const response = await apiClient.post("/deposits", { amount });
+  return useMutation<
+    DepositResult,
+    { response?: { data?: { message?: string } } },
+    { amount: number; idempotency_key: string }
+  >({
+    mutationFn: async (input) => {
+      const response = await apiClient.post("/deposits", input);
       return response.data;
     },
     onSuccess: () => {

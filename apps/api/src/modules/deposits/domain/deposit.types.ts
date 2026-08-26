@@ -1,5 +1,6 @@
 export interface CreateDepositRequest {
   amount: number;
+  idempotency_key?: string;
   metadataJson?: Record<string, unknown>;
 }
 
