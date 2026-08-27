@@ -154,7 +154,7 @@ export async function createOrderUseCase(
 
         const caseRecord = await tx.case.findUnique({
           where: { id: caseId },
-          select: { owner_auth_user_id: true, internal_status: true },
+          select: { owner_auth_user_id: true, internal_status: true, user_facing_stage: true },
         });
         if (!caseRecord) {
           throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án liên quan đến đơn hàng");
@@ -162,6 +162,15 @@ export async function createOrderUseCase(
         if (caseRecord.owner_auth_user_id !== userId) {
           throw new AppError(403, "FORBIDDEN", "Không thể mua credit cho dự án của người khác");
         }
+
+        await tx.case.update({
+          where: { id: caseId },
+          data: {
+            payment_status: "paid",
+            ...(caseRecord.user_facing_stage === "intake_pending" ? { user_facing_stage: "intake_ready" } : {}),
+          },
+        });
+
         if (caseRecord.internal_status === "done") {
           await transitionInTx(tx, {
             transition: "T19_REOPEN",

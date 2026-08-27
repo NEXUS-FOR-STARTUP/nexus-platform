@@ -117,6 +117,35 @@ test("Phase 08 - Notifications", async (t) => {
     assert.ok(auto.body?.includes("tự động"));
   });
 
+  await t.test("templates - case.approved/assigned/rejected identity", async () => {
+    const { renderTemplate } = await import("../../../modules/notifications/application/notification-templates.js");
+    const payload = { caseId: "c1", caseCode: "NX-1", supporterName: "Nguyễn Văn A" };
+
+    const approved = renderTemplate("case.approved", payload, "student");
+    assert.ok(approved.body?.includes("NX-1"));
+    assert.ok(!approved.body?.includes("undefined"));
+
+    const assignedStudent = renderTemplate("case.assigned", payload, "student");
+    assert.ok(assignedStudent.body?.includes("Nguyễn Văn A"));
+    assert.strictEqual(assignedStudent.link, "/dashboard/case/c1");
+
+    const assignedSupporter = renderTemplate("case.assigned", payload, "supporter");
+    assert.ok(assignedSupporter.body?.includes("Nguyễn Văn A"));
+    assert.strictEqual(assignedSupporter.link, "/supporter/case/c1");
+
+    const rejected = renderTemplate("case.rejected", payload, "student");
+    assert.ok(rejected.body?.includes("NX-1"));
+    assert.ok(!rejected.body?.includes("undefined"));
+  });
+
+  await t.test("templates - missing caseCode falls back, never undefined", async () => {
+    const { renderTemplate } = await import("../../../modules/notifications/application/notification-templates.js");
+
+    const r = renderTemplate("case.approved", { caseId: "c1" }, "student");
+    assert.ok(r.body?.includes("chưa xác định"));
+    assert.ok(!r.body?.includes("undefined"));
+  });
+
   // ------------------------------------------------------------------
   // Relay — retry backoff + in_app insert + purge
   // ------------------------------------------------------------------
@@ -277,6 +306,17 @@ test("Phase 08 - Notifications", async (t) => {
     assert.ok(!html.includes("<script>"), "script phải bị escape");
     assert.ok(html.includes("&lt;script&gt;"));
     assert.ok(html.includes("&lt;b&gt;"));
+  });
+
+  await t.test("email service - render OTP marker as large safe block", async () => {
+    const { renderEmailHtml } = await import("../../../modules/notifications/infrastructure/email.service.js");
+    const html = renderEmailHtml("Xác minh email", "Mã:\n<otp>582690</otp>\nHết hạn sau 5 phút.", null);
+    assert.ok(html.includes('font-size:32px'), "OTP phải được render lớn");
+    assert.ok(html.includes(">582690</div>"), "OTP phải nằm trong block an toàn");
+
+    const malicious = renderEmailHtml("Xác minh email", "<otp><script>alert(1)</script></otp>", null);
+    assert.ok(!malicious.includes("<script>"), "marker OTP không được mở HTML tùy ý");
+    assert.ok(malicious.includes("&lt;otp&gt;"), "marker không hợp lệ phải bị escape");
   });
 
   await t.test("templates - mọi DOMAIN_EVENTS đều có template (chống bug key mismatch)", async () => {

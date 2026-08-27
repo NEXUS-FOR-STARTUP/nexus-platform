@@ -3,6 +3,7 @@ import logger from "../../../shared/infrastructure/logger.js";
 import { createCaseMessage, findCaseById, findLatestCaseEventByType } from "../infrastructure/persistence/case.repository.js";
 import { getCreditBalance, getCreditLedgerByCaseId } from "../infrastructure/persistence/credit-ledger.repository.js";
 import { evaluateChatAccess } from "./chat-access.js";
+import { claimMessageSendSlot } from "./message-send-rate-limit.js";
 import { publishToChannel } from "../../realtime/infrastructure/centrifugo.service.js";
 import { chatChannel } from "../../realtime/domain/realtime.types.js";
 
@@ -23,6 +24,16 @@ export async function sendMessageUseCase(
       400,
       "VALIDATION_ERROR",
       "Độ dài tin nhắn vượt quá giới hạn cho phép (tối đa 5000 ký tự)",
+    );
+  }
+
+  const claim = claimMessageSendSlot(userId);
+  if (!claim.ok) {
+    throw new AppError(
+      429,
+      "RATE_LIMITED",
+      "Gửi tin quá nhanh. Vui lòng đợi một giây.",
+      { unlockInMs: claim.unlockInMs },
     );
   }
 

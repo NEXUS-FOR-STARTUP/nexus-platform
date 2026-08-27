@@ -3,6 +3,7 @@ import { executeTransition } from "../../../services/case-transition.service.js"
 import logger from "../../../shared/infrastructure/logger.js";
 import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
+import { findCaseById } from "../../cases/infrastructure/persistence/case.repository.js";
 
 export async function rejectCaseUseCase(
   adminId: string,
@@ -19,6 +20,11 @@ export async function rejectCaseUseCase(
     throw new AppError(400, "VALIDATION_ERROR", "Lý do từ chối tối thiểu phải 10 ký tự");
   }
 
+  const caseItem = await findCaseById(caseId);
+  if (!caseItem) {
+    throw new AppError(404, "NOT_FOUND", "Không tìm thấy case");
+  }
+
   try {
     const result = await executeTransition({
       transition: 'T12_REJECT',
@@ -33,7 +39,7 @@ export async function rejectCaseUseCase(
       type: DOMAIN_EVENTS.CASE_REJECTED,
       actorId: adminId,
       occurredAt: new Date(),
-      payload: { caseId, reason },
+      payload: { caseId, caseCode: caseItem.case_code, reason },
     });
 
     logger.info({ caseId, transition: 'T12_REJECT', actorId: adminId, actorRole: 'admin', duration_ms: Date.now() - startTime }, 'case transition: reject');

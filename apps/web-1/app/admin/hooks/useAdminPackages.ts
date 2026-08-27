@@ -11,6 +11,7 @@ export function useAdminPackages() {
       const response = await apiClient.get("/admin/packages");
       return response.data;
     },
+    refetchInterval: 10000,
   });
 
   const updatePackagePriceMutation = useMutation({

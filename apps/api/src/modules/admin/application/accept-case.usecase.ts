@@ -15,6 +15,12 @@ export async function acceptCaseUseCase(
     throw new AppError(400, "VALIDATION_ERROR", "ID dự án không hợp lệ");
   }
 
+  const findCaseById = _deps?.findCaseById ?? defaultFindCaseById;
+  const caseItem = await findCaseById(caseId);
+  if (!caseItem) {
+    throw new AppError(404, "NOT_FOUND", "Không tìm thấy case");
+  }
+
   const result = await executeTransition({
     transition: 'T5_ACCEPT',
     caseId,
@@ -37,7 +43,7 @@ export async function acceptCaseUseCase(
     type: DOMAIN_EVENTS.CASE_APPROVED,
     actorId: adminId,
     occurredAt: new Date(),
-    payload: { caseId },
+    payload: { caseId, caseCode: caseItem.case_code },
   });
 
   return result;

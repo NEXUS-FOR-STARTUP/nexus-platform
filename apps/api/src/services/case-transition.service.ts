@@ -6,6 +6,7 @@ import {
   type TransitionName, type TransitionEvent, type CaseStage, type InternalStatus,
   type ActionDescriptor,
 } from '../modules/cases/domain/transition.types.js'
+import { isPaymentComplete } from '../modules/cases/domain/case.types.js'
 import { upsertDocumentRecordsForUnit } from '../modules/documents/infrastructure/persistence/document.repository.js'
 import { AppError } from '../shared/domain/app-error.js'
 import { emitEvent } from '../shared/infrastructure/event-bus.js'
@@ -205,6 +206,10 @@ export async function transitionInTx(
       'Hết credit. Vui lòng mua thêm credit để tiếp tục.')
   }
 
+  if (transitionName === 'T5_ACCEPT' && !isPaymentComplete(caseRecord.payment_status)) {
+    throw new AppError(402, 'PAYMENT_REQUIRED',
+      'Hồ sơ chưa hoàn tất thanh toán')
+  }
   const event: TransitionEvent = {
     type: transitionName,
     actor: { id: actorId, role: roleVerified },
@@ -215,6 +220,7 @@ export async function transitionInTx(
       currentStage: caseRecord.user_facing_stage,
       caseCreatedAt: caseRecord.created_at.toISOString(),
       lockedPrice: caseRecord.locked_price ?? 0,
+      paymentStatus: caseRecord.payment_status,
       creditBalance,
       roleVerified,
       actorId,

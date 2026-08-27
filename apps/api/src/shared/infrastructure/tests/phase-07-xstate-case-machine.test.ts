@@ -31,6 +31,7 @@ function event(t: TransitionName, overrides: Record<string, unknown> = {}): Tran
       caseOwnerId: 'user-1',
       creditBalance: 1,
       lockedPrice: 39000,
+      paymentStatus: 'paid',
       ...overrides,
     },
   }
@@ -214,6 +215,44 @@ test('T5_ACCEPT — guard fail khi hasCredit=0 (fix #9)', () => {
 test('T5_ACCEPT — guard fail khi không phải admin', () => {
   const r = tryTransition('triage_pending', event('T5_ACCEPT'))
   assert.equal(r, null)
+})
+
+// Payment status guard (T5_ACCEPT) — fail-closed
+test('T5_ACCEPT — payment_status unpaid → null (có credit)', () => {
+  const r = tryTransition('triage_pending', adminEvent('T5_ACCEPT', { paymentStatus: 'unpaid' }))
+  assert.equal(r, null)
+})
+
+test('T5_ACCEPT — payment_status pending_verification → null', () => {
+  const r = tryTransition('triage_pending', adminEvent('T5_ACCEPT', { paymentStatus: 'pending_verification' }))
+  assert.equal(r, null)
+})
+
+test('T5_ACCEPT — payment_status rejected → null', () => {
+  const r = tryTransition('triage_pending', adminEvent('T5_ACCEPT', { paymentStatus: 'rejected' }))
+  assert.equal(r, null)
+})
+
+test('T5_ACCEPT — payment_status missing → null', () => {
+  const r = tryTransition('triage_pending', adminEvent('T5_ACCEPT', { paymentStatus: undefined }))
+  assert.equal(r, null)
+})
+
+test('T5_ACCEPT — payment_status unknown → null', () => {
+  const r = tryTransition('triage_pending', adminEvent('T5_ACCEPT', { paymentStatus: 'garbage' }))
+  assert.equal(r, null)
+})
+
+test('T5_ACCEPT — payment_status paid → accepted_unassigned', () => {
+  const r = tryTransition('triage_pending', adminEvent('T5_ACCEPT', { paymentStatus: 'paid' }))
+  assert.ok(r)
+  assert.equal(r!.to, 'accepted_unassigned')
+})
+
+test('T5_ACCEPT — payment_status not_required → accepted_unassigned', () => {
+  const r = tryTransition('triage_pending', adminEvent('T5_ACCEPT', { paymentStatus: 'not_required' }))
+  assert.ok(r)
+  assert.equal(r!.to, 'accepted_unassigned')
 })
 
 test('T12_REJECT — guard fail khi reason < 10 chars', () => {

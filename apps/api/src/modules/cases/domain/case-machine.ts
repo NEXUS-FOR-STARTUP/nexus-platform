@@ -4,6 +4,7 @@ import type {
   ActionDescriptor,
 } from './transition.types.js'
 import { AppError } from '../../../shared/domain/app-error.js'
+import { isPaymentComplete } from './case.types.js'
 
 export const caseMachine = setup({
   types: {
@@ -29,6 +30,8 @@ export const caseMachine = setup({
       return (event.data?.creditBalance as number) >= 1
     },
 
+    hasPaymentComplete: ({ event }) =>
+      isPaymentComplete(event.data?.paymentStatus),
     isWithin48h: ({ event }) =>
       (Date.now() - new Date(event.data?.caseCreatedAt as string).getTime()) < 48 * 3600_000,
 
@@ -69,7 +72,7 @@ export const caseMachine = setup({
         },
         T5_ACCEPT: {
           target: 'accepted_unassigned',
-          guard: and(['isAdmin', 'hasCredit']),
+          guard: and(['isAdmin', 'hasCredit', 'hasPaymentComplete']),
         },
         T16_EDIT_INTAKE: {
           target: 'triage_pending',

@@ -15,6 +15,7 @@ test("Phase 02 - Case lifecycle & admin triage", async (t) => {
         caseOwnerId: "user-1",
         creditBalance: 1,
         lockedPrice: 39000,
+        paymentStatus: "paid",
       },
     };
     assert.ok(tryTransition("triage_pending", baseEvent as any), "admin accept valid");

@@ -52,6 +52,7 @@ prisma/backup
 .vscode/
 *.log
 nul
+.omp/
 # Claude Code local settings (personal, machine-specific — never commit)
 .claude/settings.local.json
 .claude/worktrees/

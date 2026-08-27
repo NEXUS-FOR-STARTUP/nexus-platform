@@ -75,6 +75,13 @@ export default function AuthPanel() {
     return "/dashboard";
   };
 
+  // Điều hướng tới màn nhập OTP xác minh email (email + returnUrl nội bộ, không kèm password).
+  const redirectToVerifyEmail = (email: string, returnUrl: string) => {
+    router.push(
+      `/auth/verify-email?email=${encodeURIComponent(email)}&returnUrl=${encodeURIComponent(returnUrl)}`,
+    );
+  };
+
   const handleQuickLogin = async (email: string) => {
     setAuthError(null);
     setIsLoading(true);
@@ -93,6 +100,10 @@ export default function AuthPanel() {
           },
           onError: (ctx) => {
             setIsLoading(false);
+            if (ctx.error.status === 403) {
+              redirectToVerifyEmail(email, callbackUrl);
+              return;
+            }
             setAuthError(
               ctx.error.message || "Đăng nhập nhanh không thành công.",
             );
@@ -176,6 +187,10 @@ export default function AuthPanel() {
               },
               onError: (ctx) => {
                 setIsLoading(false);
+                if (ctx.error.status === 403) {
+                  redirectToVerifyEmail(value.email, callbackUrl);
+                  return;
+                }
                 setAuthError(
                   ctx.error.message ||
                     "Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin.",
@@ -205,10 +220,21 @@ export default function AuthPanel() {
             {
               onSuccess: () => {
                 setIsLoading(false);
-                router.push(callbackUrl);
+                redirectToVerifyEmail(value.email, callbackUrl);
               },
               onError: (ctx) => {
                 setIsLoading(false);
+                if (ctx.error.status === 409) {
+                  notifications.show({
+                    title: "Email đã được xác minh",
+                    message: "Tài khoản này đã được đăng ký. Vui lòng đăng nhập.",
+                    color: "blue",
+                  });
+                  router.push(
+                    `/auth?tab=login&returnUrl=${encodeURIComponent(callbackUrl)}`,
+                  );
+                  return;
+                }
                 setAuthError(
                   ctx.error.message ||
                     "Đăng ký không thành công. Email có thể đã tồn tại.",

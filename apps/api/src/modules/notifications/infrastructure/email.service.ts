@@ -37,12 +37,16 @@ export const escapeHtml = (s: string) =>
 
 export function renderEmailHtml(title: string, body: string | null, link: string | null): string {
   const safeTitle = escapeHtml(title);
-  // Cho phép thẻ <strong> và </strong> hiển thị in đậm, các ký tự XSS khác vẫn bị escape
+  // Cho phép strong và marker OTP an toàn; mọi HTML khác vẫn bị escape.
   const safeBody = body
     ? escapeHtml(body)
-        .replace(/&lt;strong&gt;/g, "<strong>")
-        .replace(/&lt;\/strong&gt;/g, "</strong>")
-        .replace(/\n/g, "<br/>")
+      .replace(/&lt;strong&gt;/g, "<strong>")
+      .replace(/&lt;\/strong&gt;/g, "</strong>")
+      .replace(
+        /&lt;otp&gt;([0-9]{6})&lt;\/otp&gt;/g,
+        '<div style="margin:18px 0;text-align:center;font-size:32px;line-height:1;font-weight:800;letter-spacing:0.18em;color:#1a73e8;">$1</div>',
+      )
+      .replace(/\n/g, "<br/>")
     : "";
   const linkHtml = link
     ? `<div style="margin-top:24px;text-align:center;">

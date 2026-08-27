@@ -26,11 +26,25 @@ export function getCaseEffectivePrice(caseData?: {
 }
 
 /**
- * Determines whether a case requires a payment to be made.
- * Checks the case-level payment status.
+ * Determines whether a case's payment is complete, authorizing admin approval.
+ * Fail-closed: only the explicit statuses `paid` (paid/free legacy cases) and
+ * `not_required` (AI-engine free path) qualify. Every other value — including
+ * missing/unknown data — blocks approval.
  */
-export function caseRequiresPayment(caseData: { payment_status?: string }): boolean {
-  return caseData.payment_status === "unpaid" || caseData.payment_status === "pending_verification" || caseData.payment_status === "rejected";
+export function isCasePaymentComplete(
+  caseData: { payment_status?: string } | null | undefined,
+): boolean {
+  const status = caseData?.payment_status;
+  return status === "paid" || status === "not_required";
+}
+
+/**
+ * Determines whether a case requires a payment to be made.
+ * Negation of `isCasePaymentComplete`: any incomplete/missing/unknown status
+ * requires payment.
+ */
+export function caseRequiresPayment(caseData: { payment_status?: string } | null | undefined): boolean {
+  return !isCasePaymentComplete(caseData);
 }
 
 /**
