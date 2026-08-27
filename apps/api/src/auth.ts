@@ -10,6 +10,7 @@ import {
   renderEmailHtml,
 } from './modules/notifications/infrastructure/email.service.js'
 import logger from './shared/infrastructure/logger.js'
+import { accountLockoutService } from './modules/auth/infrastructure/account-lockout.service.js'
 
 const requiredEnv = (name: string): string => {
   const value = process.env[name]
@@ -159,6 +160,15 @@ export const auth = betterAuth({
         path?: string
         body?: { email?: unknown; type?: unknown }
       }
+      if (path === '/sign-in/email' && body && typeof body.email === 'string') {
+        const lockout = accountLockoutService.checkLockout(body.email)
+        if (lockout.isLocked) {
+          throw new APIError('TOO_MANY_REQUESTS', {
+            message: `ACCOUNT_LOCKED_TEMPORARY:${lockout.remainingSeconds}`,
+          })
+        }
+      }
+
       if (
         path === '/sign-up/email' ||
         (path === '/email-otp/send-verification-otp' &&
