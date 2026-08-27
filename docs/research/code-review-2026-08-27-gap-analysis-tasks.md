@@ -4,7 +4,7 @@
 - **Nhánh so sánh:** `feat/gap-analysis-tasks` (so với `dev`)
 - **Nhánh xử lý khắc phục:** `fix/gap-analysis-review-fixes`
 - **Quy mô thay đổi:** 139 files (`+7,925 / -687` lines)
-- **Đánh giá tổng thể:** ⚠️ **REQUEST CHANGES (Yêu cầu chỉnh sửa trước khi merge)**
+- **Đánh giá tổng thể:** ✅ **APPROVED (Đã khắc phục 100% lỗi rà soát — Sẵn sàng Merge vào `dev`)**
 - **Tình trạng xác minh:** ✅ **100% các mục đã được đối soát thực tế qua mã nguồn (AST / CodeGraph / Direct Source Read)**
 - **Mục tiêu nhánh:** Khắc phục 22 nhiệm vụ Gap Analysis (GA-01 đến GA-22), sửa dứt điểm bug kẹt hồ sơ intake (GA-02), tích hợp xác thực Email OTP & rolling session (GA-01, GA-07), ví VND & idempotency key nạp tiền, admin triage & CSV export, cùng bộ quy trình chuẩn BPMN 2.0 / DMN 1.3 Camunda 8.
 
@@ -409,4 +409,4 @@ flowchart LR
    - [x] `P2.9`: Cập nhật sơ đồ Mermaid trong `payment-verification-flow.md` và `intake-flow.md`.
    - [x] Chạy kiểm thử: `npm test` trong `apps/api` (Đã pass).
    - [x] Kiểm tra type check: `npm run check-types` (Đã pass 100%).
-   - [ ] Tạo commit và sẵn sàng mở PR merge vào `dev`.
+   - [x] Tạo commit và sẵn sàng mở PR merge vào `dev`.
