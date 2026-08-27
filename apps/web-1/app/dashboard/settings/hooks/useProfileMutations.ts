@@ -1,7 +1,8 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
-import { updateUser, changePassword } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { updateUser, changePassword, signOut } from "@/lib/auth-client";
 import { apiClient } from "@/lib/api-client";
 import { notifications } from "@mantine/notifications";
 import { translateAuthError } from "@/lib/auth-errors";
@@ -39,6 +40,8 @@ function validateAvatarFile(file: File) {
 // trả { data, error }. mutationFn phải tự check và throw, nếu không onError
 // không bao giờ chạy và onSuccess chạy cả khi lỗi (toast xanh sai).
 export function useProfileMutations() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const updateName = useMutation({
     mutationFn: async (name: string) => {
       const result = await updateUser({ name });
@@ -109,5 +112,35 @@ export function useProfileMutations() {
       }),
   });
 
-  return { updateName, changePassword: changePasswordMutation, changeAvatar };
+  const deleteAccount = useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.delete<{ success: boolean; message: string }>(
+        "/profile/account",
+      );
+      return response.data;
+    },
+    onSuccess: async () => {
+      notifications.show({
+        title: "Thành công",
+        message: "Tài khoản của bạn đã được xóa vĩnh viễn.",
+        color: "green",
+      });
+      try {
+        await signOut();
+      } catch {
+        // ignore sign out error
+      }
+      queryClient.clear();
+      router.replace("/auth");
+    },
+    onError: (err: unknown) => {
+      notifications.show({
+        title: "Lỗi",
+        message: extractApiErrorMessage(err) || "Không thể xóa tài khoản. Vui lòng thử lại sau.",
+        color: "red",
+      });
+    },
+  });
+
+  return { updateName, changePassword: changePasswordMutation, changeAvatar, deleteAccount };
 }
