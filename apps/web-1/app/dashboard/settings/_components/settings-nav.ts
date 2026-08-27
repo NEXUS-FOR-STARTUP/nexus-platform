@@ -1,4 +1,4 @@
-import { User, KeyRound, type LucideIcon } from "lucide-react";
+import { User, KeyRound, MonitorSmartphone, type LucideIcon } from "lucide-react";
 
 export interface SettingsNavItem {
   href: string;
@@ -9,6 +9,7 @@ export interface SettingsNavItem {
 const SETTINGS_NAV_SUB_ITEMS = [
   { href: "/profile", label: "Thông tin cơ bản", icon: User },
   { href: "/password", label: "Đổi mật khẩu", icon: KeyRound },
+  { href: "/sessions", label: "Thiết bị & Phiên đăng nhập", icon: MonitorSmartphone },
 ] satisfies { href: string; label: string; icon: LucideIcon }[];
 
 export function getSettingsNav(basePath: string): SettingsNavItem[] {

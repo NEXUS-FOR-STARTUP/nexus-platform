@@ -537,3 +537,28 @@ export const CaseUnreadCountResponseSchema = z.object({
 
 export type CaseUnreadCountResponse = z.infer<typeof CaseUnreadCountResponseSchema>;
 
+
+// ---------------------------------------------------------------------------
+// Session Management (GA-06)
+// ---------------------------------------------------------------------------
+
+export const ActiveSessionDtoSchema = z.object({
+  id: z.string().min(1),
+  ipAddress: z.string().nullable(),
+  userAgent: z.string().nullable(),
+  createdAt: z.coerce.date(),
+  expiresAt: z.coerce.date(),
+  isCurrent: z.boolean(),
+});
+export type ActiveSessionDto = z.infer<typeof ActiveSessionDtoSchema>;
+
+export const ActiveSessionsResponseSchema = z.object({
+  data: z.array(ActiveSessionDtoSchema),
+});
+export type ActiveSessionsResponse = z.infer<typeof ActiveSessionsResponseSchema>;
+
+export const RevokeSessionParamsSchema = z.object({
+  id: z.string().min(1),
+});
+export type RevokeSessionParams = z.infer<typeof RevokeSessionParamsSchema>;
+export * from "./ua-parser.js";
