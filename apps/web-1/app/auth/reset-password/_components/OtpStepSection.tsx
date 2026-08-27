@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Anchor, Box, Button, Center, Group, PinInput, Text, Title } from "@mantine/core";
@@ -9,6 +9,7 @@ import { authClient } from "@/lib/auth-client";
 import { translateAuthError } from "@/lib/auth-errors";
 
 const OTP_LENGTH = 6;
+const RESEND_COOLDOWN_SECONDS = 60;
 
 function showErrorNotification(message: string) {
   notifications.show({
@@ -30,6 +31,13 @@ export default function OtpStepSection({
   const [otp, setOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const id = setInterval(() => setResendCooldown((s) => (s <= 1 ? 0 : s - 1)), 1000);
+    return () => clearInterval(id);
+  }, [resendCooldown]);
 
   const handleResend = useCallback(async () => {
     if (!email) {
@@ -45,6 +53,7 @@ export default function OtpStepSection({
 
       if (resendError) {
         if (resendError.status === 429) {
+          setResendCooldown(RESEND_COOLDOWN_SECONDS);
           showErrorNotification("Bạn thao tác quá nhanh hoặc gửi quá nhiều yêu cầu. Vui lòng chờ 60s và thử lại.");
         } else {
           showErrorNotification(translateAuthError(resendError.message) || "Đã xảy ra lỗi khi gửi lại mã OTP.");
@@ -52,6 +61,7 @@ export default function OtpStepSection({
         return;
       }
 
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
       setOtp("");
       notifications.show({
         title: "Đã gửi lại mã",
@@ -133,10 +143,10 @@ export default function OtpStepSection({
           size="compact-xs"
           className="font-semibold cursor-pointer text-xs"
           onClick={handleResend}
-          disabled={isResending}
+          disabled={isResending || resendCooldown > 0}
           leftSection={isResending ? <Loader2 className="w-3 h-3 animate-spin" /> : undefined}
         >
-          Gửi lại mã
+          {resendCooldown > 0 ? `Gửi lại sau ${resendCooldown}s` : "Gửi lại mã"}
         </Button>
       </div>
 
