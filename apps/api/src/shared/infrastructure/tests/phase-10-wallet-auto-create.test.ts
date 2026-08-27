@@ -111,3 +111,55 @@ test('wallet auto-create — refund (tx path) user chưa có ví: tự tạo ví
   assert.equal(txnCalls[0].data.type, 'refund');
   assert.equal(txnCalls[0].data.balance_after, 5000);
 });
+
+test('wallet auto-create — payForOrder (tx path) user chưa có ví: tự tạo ví rồi InsufficientBalanceError', async () => {
+  const { fakeTx, createCalls } = makeFakeTx(null);
+  const tx = fakeTx as unknown as Prisma.TransactionClient;
+
+  await assert.rejects(
+    () => walletService.payForOrder('user-1', 39000, 'order-1', 'key-pay-1', tx),
+    (err: unknown) => {
+      assert.ok(err instanceof InsufficientBalanceError);
+      assert.equal(err.code, 'INSUFFICIENT_BALANCE');
+      assert.deepEqual(err.details, { current: 0, required: 39000 });
+      return true;
+    },
+  );
+
+  assert.equal(createCalls.length, 1);
+  assert.equal(createCalls[0].data.user_id, 'user-1');
+});
+
+test('wallet auto-create — payForOrder (tx path) ví đủ tiền: trừ tiền đúng và tạo transaction service_payment', async () => {
+  const { fakeTx, createCalls, txnCalls, updateCalls } = makeFakeTx({ id: 'w-1', balance: 50000 });
+  const tx = fakeTx as unknown as Prisma.TransactionClient;
+
+  await walletService.payForOrder('user-1', 39000, 'order-1', 'key-pay-2', tx);
+
+  assert.equal(createCalls.length, 0);
+  assert.equal(txnCalls.length, 1);
+  assert.equal(txnCalls[0].data.type, 'service_payment');
+  assert.equal(txnCalls[0].data.amount, -39000);
+  assert.equal(txnCalls[0].data.balance_before, 50000);
+  assert.equal(txnCalls[0].data.balance_after, 11000);
+  assert.equal(updateCalls[0].data.balance, 11000);
+});
+
+test('wallet auto-create — payForOrder (non-tx path) ví đủ tiền: chạy qua prisma.$transaction', async () => {
+  const { fakeTx, createCalls, txnCalls, updateCalls } = makeFakeTx({ id: 'w-1', balance: 100000 });
+  const originalTransaction = mockablePrisma.$transaction;
+  mockablePrisma.$transaction = (cb: (tx: unknown) => Promise<unknown>) => cb(fakeTx);
+
+  try {
+    await walletService.payForOrder('user-1', 39000, 'order-2', 'key-pay-3');
+  } finally {
+    mockablePrisma.$transaction = originalTransaction;
+  }
+
+  assert.equal(createCalls.length, 0);
+  assert.equal(txnCalls.length, 1);
+  assert.equal(txnCalls[0].data.type, 'service_payment');
+  assert.equal(txnCalls[0].data.amount, -39000);
+  assert.equal(txnCalls[0].data.balance_after, 61000);
+  assert.equal(updateCalls[0].data.balance, 61000);
+});

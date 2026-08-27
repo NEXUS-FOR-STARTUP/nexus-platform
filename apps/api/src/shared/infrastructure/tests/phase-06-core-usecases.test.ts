@@ -598,11 +598,31 @@ test("Phase 06 - Core usecases", async (t) => {
       "../../../modules/cases/application/list-cases.usecase.js"
     );
 
-    const result = await listCasesUseCase({ user: { id: "user-1", role: "user" } });
+    const result = await listCasesUseCase(
+      { user: { id: "user-1", role: "user" } },
+      {},
+      {
+        findPagedCasesByRole: async () => ({
+          items: [
+            {
+              id: "case-1",
+              case_code: "CASE-001",
+              title: "Test Case",
+              stage: "intake",
+              payment_status: "not_required",
+              owner_id: "user-1",
+              created_at: new Date(),
+              updated_at: new Date(),
+            } as unknown as Parameters<typeof listCasesUseCase>[0] extends { user: unknown } ? any : never,
+          ],
+          total: 1,
+        }),
+      },
+    );
     assert.ok(Array.isArray(result.items));
-    assert.equal(typeof result.total, "number");
-    assert.equal(typeof result.page, "number");
-    assert.equal(typeof result.limit, "number");
+    assert.equal(result.total, 1);
+    assert.equal(result.page, 1);
+    assert.equal(result.limit, 20);
   });
 
   // -----------------------------------------------------------------------
