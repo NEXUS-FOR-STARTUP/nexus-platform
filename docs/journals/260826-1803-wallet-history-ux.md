@@ -2,6 +2,8 @@
 title: Wallet history UX decision
 created: 2026-08-26
 scope: UX/product
+status: completed
+plan: plans/archive/260826-1803-wallet-history-ux/
 ---
 
 # Wallet history UX decision
@@ -21,3 +23,14 @@ Preserves bank-transfer proof and verification workflow without presenting a sec
 ## Risk
 
 `amount_mismatch` exists in backend workflow but has incomplete frontend recovery semantics. Resolve this product/state contract before implementation.
+
+## Implementation & Verification
+
+- **Status:** Completed (PR #23 / branch `feat/wallet-history-ux`, commit `41f2fc9`).
+- **Key files updated:**
+  - `apps/web-1/lib/deposit-display.ts`: Centralized `WALLET_COPY` and `getDepositDisplay` mapping.
+  - `apps/web-1/app/dashboard/wallet/page.tsx`: Single primary `WalletTransactionList` ledger with `DepositStuckBanner`.
+  - `apps/web-1/app/dashboard/wallet/_components/WalletRowDetailAction.tsx`: Action button to `/dashboard/payment?pid=` from ledger.
+  - `apps/web-1/app/dashboard/wallet/_components/WalletTransactionTable.tsx` & `WalletTransactionCardList.tsx`: Desktop table + mobile card list with 44px min touch targets.
+  - `apps/web-1/app/dashboard/payment/page.tsx` & `_components/ProofPreview.tsx`: Full-screen proof preview modal and proof upload flow.
+  - `apps/web-1/components/layout/_components/UserMenu.tsx`: Updated route label to "Ví của tôi".
