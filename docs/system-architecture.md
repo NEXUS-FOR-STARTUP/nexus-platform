@@ -51,7 +51,7 @@ Data model trung tâm nằm ở `prisma/schema.prisma` (30 models), với auth, 
                   └───────────────┘
 ```
 
-> Sơ đồ trên là snapshot trước phase notifications + realtime + wallet + deposits/orders. Module mới `notifications` (5 routes: list, unread-count, `:id/read` PATCH, read-all PATCH, `stream` SSE) + `realtime` (2 routes: connection-token, `cases/:caseId/subscribe-token`) + `wallet` (4 routes: balance, history, purchase-credits [deprecated], topups [410 GONE]) + `deposits` (5 routes) + `orders` (3 routes) + event bus `shared/` (xem §4.5, §4.6) chưa vẽ vào. API hiện: 13 modules, 79 routes (75 module + 4 system: `/`, `/health`, `/stream`, `/session`).
+> Sơ đồ trên là snapshot trước phase notifications + realtime + wallet + deposits/orders + profile. Module mới `notifications` (5 routes: list, unread-count, `:id/read` PATCH, read-all PATCH, `stream` SSE) + `realtime` (2 routes: connection-token, `cases/:caseId/subscribe-token`) + `wallet` (4 routes: balance, history, purchase-credits [deprecated], topups [410 GONE]) + `deposits` (5 routes) + `orders` (3 routes) + `profile` (2 routes: avatar upload, delete account) + event bus `shared/` (xem §4.5, §4.6, §4.8) chưa vẽ vào. API hiện: 14 modules, 81 routes (77 module + 4 system: `/`, `/health`, `/stream`, `/session`).
 
 ## 3. Frontend surfaces chính
 
@@ -156,6 +156,17 @@ Tham chiếu:
 - **DB = source of truth cho ví**: `UserWallet` (cached `balance`, `currency` = "VND") + `WalletTransaction` (append-only ledger, `balance_before`/`balance_after`); `WalletTopup` `@deprecated` (replaced by deposits). Khác `credit_ledgers` cũ (case-level) — ví là account-level VND
 - Frontend: trang `apps/web-1/app/dashboard/wallet/page.tsx` (header "Ví của tôi", `WalletBalanceCard`, `WalletTransactionList`, `WalletTopupModal` — nay tạo deposit); hooks trong `app/dashboard/wallet/hooks/useWallet.ts` (`useWalletBalance`, `useWalletHistory`, `useCreateDeposit` — polling 30s, mutation invalidates `["wallet"]`)
 - Nav: `DashboardShell` thêm menu item "Ví của tôi" (icon `Wallet` từ lucide-react) cho student → `router.push("/dashboard/wallet")`
+
+### 4.8 Profile & account workflow (avatar upload + account deletion) — ship 2026-08-27
+- Module `apps/api/src/modules/profile/` (domain `avatar-upload-rules`, application `upload-avatar.usecase`, `delete-account.usecase`, http `profile.routes`, `avatar.controller`, `profile.controller`) mount tại `/api/profile`, toàn bộ qua `requireAuth`.
+- **Avatar upload (`POST /api/profile/avatar`)**:
+  - DoS Guard: kiểm tra header `content-length` $\le 2\text{ MB} + 64\text{ KB}$ trước khi parse multipart body.
+  - Validation: cho phép `.jpg`, `.jpeg`, `.png`, `.webp`, đối chiếu MIME type với extension, dung lượng $\le 2\text{ MB}$.
+  - Cloudinary: tải lên thư mục `nexus-platform/avatars` với resource type `image`, lưu secure URL vào `User.image` trong PostgreSQL.
+  - Rollback & Cleanup: tự động xóa avatar mới trên Cloudinary nếu cập nhật DB thất bại; tự động dọn dẹp avatar Cloudinary cũ khi upload mới thành công (bỏ qua nếu avatar cũ là external URL OAuth).
+- **Account deletion (`DELETE /api/profile/account`)**: tuân thủ NĐ 13/2023 về quyền xóa dữ liệu cá nhân.
+- Frontend: form Cài đặt `/dashboard/settings/profile` (`ProfileInfoForm`), mutation `useProfileMutations`, đồng bộ tức thì qua Better Auth `refetch()` cập nhật đồng thời form profile và Popover `UserMenu` trên Navbar Header.
+- Test: `apps/api/src/shared/infrastructure/tests/avatar-upload.test.ts` (9/9 pass).
 
 ## 5. Case workspace data flow
 

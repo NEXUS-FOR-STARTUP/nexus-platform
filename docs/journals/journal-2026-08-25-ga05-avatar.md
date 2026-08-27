@@ -1,8 +1,8 @@
 # Journal: GA-05 Đổi ảnh đại diện
 
-**Ngày:** 2026-08-25
+**Ngày:** 2026-08-27
 
-**Plan:** `plans/archive/260825-1050-ga-05-avatar-upload/`
+**Plan:** `plans/260827-1400-ga05-avatar-upload/`
 
 **Tracker:** GA-05 = Done
 
@@ -32,9 +32,9 @@ Bấm **Đổi ảnh**, chọn file trên máy. Hệ thống nhận ảnh, lưu 
 
 ## Kiểm tra
 
-- Test API avatar: 7/7 pass
+- Test API avatar: 9/9 pass (`apps/api/src/shared/infrastructure/tests/avatar-upload.test.ts`)
 - `npm run check-types`: pass
-- Nút Đổi ảnh trên UI còn phải xác nhận chạy đúng (có lần bấm không đổi)
+- Nút Đổi ảnh trên UI: đã xác nhận hoạt động mượt mà (reset input value, loading indicator, disable nút khi upload, refetch session tự động cập nhật Form & Navbar UserMenu)
 
 ## Quyết định
 

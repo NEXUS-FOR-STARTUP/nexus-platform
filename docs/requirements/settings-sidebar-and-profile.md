@@ -100,7 +100,7 @@ Tách user menu ra khỏi `DashboardShell`:
 
 ### Trang Thông tin cơ bản
 
-- Avatar (hiển thị `sUser.image` nếu có, else initial) + button "Đổi ảnh" → notification "Chức năng đang được phát triển".
+- Avatar (hiển thị `sUser.image` nếu có, else initial) + button "Đổi ảnh" (đã hoàn thiện upload Cloudinary qua GA05 `POST /api/profile/avatar`, 2026-08-27; trước đây hiển thị thông báo đang phát triển ở F07).
 - Các ô có thể sửa: Tên hiển thị (editable, TanStack Form).
 - Email đăng nhập: **full, read-only** — ô hiển thị rõ ràng (không phải input disabled mập mờ), kèm ghi chú "Email dùng để đăng nhập".
 - **Nút "Lưu thay đổi" ở cuối trang**.
@@ -142,7 +142,7 @@ Tách user menu ra khỏi `DashboardShell`:
 - "Cài đặt" trong modal → `/dashboard/settings` mở page có sidebar (pattern Facebook).
 - Sidebar settings chỉ chứa mục cài đặt: Thông tin cơ bản, Đổi mật khẩu; active state đúng theo route; **không có** mục Ví/Thanh toán.
 - Profile: thông tin trong các ô, email read-only hiển thị full, **nút Save ở cuối**; sửa tên → mutation thành công → toast; Enter submit được (có `<form>`).
-- Avatar: click → notification "Chức năng đang được phát triển", không mở file picker.
+- Avatar: click mở file picker chọn ảnh (.jpg/.jpeg/.png/.webp <= 2MB), upload Cloudinary và hiển thị tức thì trên form & Navbar (GA05 hoàn thành 2026-08-27; trước đây notification "đang phát triển" ở F07).
 - Đổi pass: validate inline, success → toast + xóa field, session khác bị revoke.
 - `/dashboard/profile` cũ → redirect sang settings, không 404.
 - Mobile 375px: sidebar chuyển nav ngang, page không horizontal scroll.
