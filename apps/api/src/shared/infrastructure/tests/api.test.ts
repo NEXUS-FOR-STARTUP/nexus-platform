@@ -136,14 +136,13 @@ test("backend demo regression coverage", async (t) => {
   });
 
   await t.test("backfill script helpers produce deterministic ids and quarantine empty urls", async () => {
-    const moduleUrl = pathToFileURL(
-      "E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/api/src/modules/documents/infrastructure/persistence/document.repository.ts",
-    ).href;
     const {
       buildDocumentRecordInput,
       buildDocumentRecordId,
       buildReportArtifactDocumentRecordId,
-    } = await import(moduleUrl);
+    } = await import(
+      "../../../modules/documents/infrastructure/persistence/document.repository.js"
+    );
 
     const input = buildDocumentRecordInput(
       "case-2",
@@ -154,6 +153,7 @@ test("backend demo regression coverage", async (t) => {
       1,
       "system",
       "revision_document",
+      "inbound",
       "revision",
     );
 
@@ -170,6 +170,7 @@ test("backend demo regression coverage", async (t) => {
         0,
         "system",
         "revision_document",
+        "inbound",
         "revision",
       ),
       null,
