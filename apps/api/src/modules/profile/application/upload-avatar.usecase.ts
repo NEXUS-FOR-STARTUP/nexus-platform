@@ -26,7 +26,7 @@ export type UploadAvatarResult = {
   publicId: string;
 };
 
-type UploadAvatarDeps = {
+export type UploadAvatarDeps = {
   uploadFile?: typeof uploadFile;
   deleteFile?: typeof deleteFile;
   extractPublicId?: typeof extractPublicId;
@@ -48,6 +48,10 @@ function normalizeExtension(fileName: string) {
 }
 
 export function validateAvatarFile(file: AvatarFile) {
+  if (file.size <= 0) {
+    throw new AppError(400, "INVALID_FILE", "Tệp ảnh không hợp lệ hoặc trống");
+  }
+
   const extension = normalizeExtension(file.name);
   if (!isAllowedAvatarExtension(extension)) {
     throw new AppError(

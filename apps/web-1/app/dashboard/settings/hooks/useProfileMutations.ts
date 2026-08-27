@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateUser, changePassword, signOut } from "@/lib/auth-client";
+import { authClient, updateUser, changePassword, signOut } from "@/lib/auth-client";
 import { apiClient } from "@/lib/api-client";
 import { notifications } from "@mantine/notifications";
 import { translateAuthError } from "@/lib/auth-errors";
@@ -98,12 +98,17 @@ export function useProfileMutations() {
       );
       return response.data;
     },
-    onSuccess: () =>
+    onSuccess: () => {
+      void authClient.getSession();
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
       notifications.show({
         title: "Thành công",
         message: "Đã cập nhật ảnh đại diện.",
         color: "green",
-      }),
+      });
+    },
     onError: (err: unknown) =>
       notifications.show({
         title: "Lỗi",
