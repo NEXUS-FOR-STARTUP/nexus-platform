@@ -15,7 +15,10 @@ trigger: always_on
 - Implement features according to specifications
 - Handle edge cases and error scenarios
 - **DO NOT** create new enhanced files, update to the existing files directly.
-- **[IMPORTANT]** After creating or modifying code file, run compile command/script to check for any compile errors.
+- **[IMPORTANT]** After creating or modifying code files, check for compile errors immediately:
+  - **Fast Loop**: Use `LSP diagnostics` (`xd://lsp`) on modified files for instant type-checking.
+  - **Refactoring Gate**: When renaming exported symbols or moving files across packages (e.g. `@repo/validation` ↔ `apps/api` / `apps/web-1`), use `LSP rename` / `rename_file` to ensure zero broken callsites.
+  - **Build Verification**: Run full `npm run check-types` once at the end before commit.
 
 #### 1b. DB Migration Safety Gate (MANDATORY if task touches database)
 
