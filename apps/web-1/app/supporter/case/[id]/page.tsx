@@ -13,6 +13,8 @@ import DocumentWorkspace from "../../../dashboard/case/[id]/_components/document
 import TabDiscussionChat from "../../../dashboard/case/[id]/_components/TabDiscussionChat";
 import ActivityTimeline from "../../../dashboard/case/[id]/_components/ActivityTimeline";
 import CaseOverviewPanel from "../../../dashboard/case/[id]/_components/CaseOverviewPanel";
+import { useCaseUnreadCount } from "../../../dashboard/case/[id]/hooks/useCaseUnreadCount";
+import { useRealtimeChat } from "../../../dashboard/case/[id]/hooks/useRealtimeChat";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import SupporterOutputUploadModal from "./_components/SupporterOutputUploadModal";
 import SupporterRequestInfoModal from "./_components/SupporterRequestInfoModal";
@@ -36,6 +38,9 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
   const [isOutputUploadOpen, setIsOutputUploadOpen] = useState(false);
   const [isRequestInfoOpen, setIsRequestInfoOpen] = useState(false);
 
+
+  const { unreadCount, markAsRead } = useCaseUnreadCount(id);
+  useRealtimeChat(id, { activeTab, markAsRead });
   const {
     startWork,
     isStartingWork,
@@ -111,9 +116,12 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
         onTabChange={(tab) => {
           if (tab !== "settings") {
             setActiveTab(tab);
+            if (tab === "discussion") {
+              void markAsRead();
+            }
           }
         }}
-        messageCount={caseData.messages?.length}
+        unreadCount={unreadCount}
         hideSettings
         hideCredits
       />

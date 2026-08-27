@@ -45,7 +45,7 @@ Mỗi nhiệm vụ trong Gap Analysis được mô tả chi tiết thành 1 file
 | **GA-16** | Admin Taxonomy & Auto-priority | P2 | 📋 **Policy (Vận hành)** | [`bugs/ga-16-admin-taxonomy-and-priority.md`](./bugs/ga-16-admin-taxonomy-and-priority.md) |
 | **GA-17** | CSRF & Durable Rate Limit | P2 | ⚠️ **Partially** | [`bugs/ga-17-app-csrf-and-rate-limit-infra.md`](./bugs/ga-17-app-csrf-and-rate-limit-infra.md) |
 | **GA-18** | Dọn dẹp Deprecated & Dead code | P2 | ⚠️ **Partially** | [`bugs/ga-18-cleanup-deprecated-dead-code.md`](./bugs/ga-18-cleanup-deprecated-dead-code.md) |
-| **GA-19** | Chat unread per user | P2 | ❌ **Todo** | [`bugs/ga-19-chat-unread-per-user.md`](./bugs/ga-19-chat-unread-per-user.md) |
+| **GA-19** | Chat unread per user | P2 | ✅ **Done** | [`bugs/ga-19-chat-unread-per-user.md`](./bugs/ga-19-chat-unread-per-user.md) |
 | **GA-20** | Tự động hóa Backup DB | P2 | ✅ **Done** | [`bugs/ga-20-automated-db-backup.md`](./bugs/ga-20-automated-db-backup.md) |
 | **GA-21** | Trả nợ test baseline | P2 | ❌ **Todo** | [`bugs/ga-21-baseline-test-debt.md`](./bugs/ga-21-baseline-test-debt.md) |
 | **GA-22** | Auto-create ví khi Signup | P1 | ✅ **Done** | [`bugs/ga-22-wallet-auto-create-on-signup.md`](./bugs/ga-22-wallet-auto-create-on-signup.md) |

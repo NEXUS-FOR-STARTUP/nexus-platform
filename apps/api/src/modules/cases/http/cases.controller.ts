@@ -19,6 +19,8 @@ import { assignSupporterUseCase } from "../application/assign-supporter.usecase.
 import { updateCaseStatusUseCase } from "../application/update-case-status.usecase.js";
 import { listMessagesUseCase } from "../application/list-messages.usecase.js";
 import { sendMessageUseCase } from "../application/send-message.usecase.js";
+import { markChatReadUseCase } from "../application/mark-chat-read.usecase.js";
+import { getChatUnreadCountUseCase } from "../application/get-chat-unread-count.usecase.js";
 import { updateCaseSettingsUseCase } from "../application/update-case-settings.usecase.js";
 import { deleteCaseUseCase } from "../application/delete-case.usecase.js";
 import { listDocumentTypesUseCase } from "../../documents/application/list-document-types.usecase.js";
@@ -396,6 +398,53 @@ export async function sendMessageHandler(c: Context) {
       body?.content || "",
     );
     return c.json(result, 201);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/cases/:id/chat/read — Mark chat messages as read (GA-19)
+// ---------------------------------------------------------------------------
+
+export async function markChatReadHandler(c: Context) {
+  const caseId = c.req.param("id") || "";
+  const access = await requireCaseAccess(c, caseId);
+  if (!access.ok) {
+    return access.response;
+  }
+
+  try {
+    const body = (await readJsonBody(c)) as { last_read_message_id?: string };
+    const result = await markChatReadUseCase(
+      access.session.user.id,
+      (access.session.user as any).role,
+      caseId,
+      body?.last_read_message_id,
+    );
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/cases/:id/chat/unread — Get unread chat message count (GA-19)
+// ---------------------------------------------------------------------------
+
+export async function getChatUnreadCountHandler(c: Context) {
+  const caseId = c.req.param("id") || "";
+  const access = await requireCaseAccess(c, caseId);
+  if (!access.ok) {
+    return access.response;
+  }
+
+  try {
+    const result = await getChatUnreadCountUseCase(
+      caseId,
+      access.session.user.id,
+    );
+    return c.json(result);
   } catch (error: any) {
     return handleError(c, error);
   }

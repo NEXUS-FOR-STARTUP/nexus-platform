@@ -13,6 +13,8 @@ import type { WorkspaceTab } from "./_components/WorkspaceSidebar";
 import DocumentWorkspace from "./_components/documents/DocumentWorkspace";
 import TabDiscussionChat from "./_components/TabDiscussionChat";
 import ActivityTimeline from "./_components/ActivityTimeline";
+import { useCaseUnreadCount } from "./hooks/useCaseUnreadCount";
+import { useRealtimeChat } from "./hooks/useRealtimeChat";
 import TabCaseSettings from "./_components/TabCaseSettings";
 import CreditPanel from "./_components/CreditPanel";
 import CaseOverviewPanel from "./_components/CaseOverviewPanel";
@@ -45,8 +47,9 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     confirmComplete,
     isConfirmingComplete,
   } = useCaseDetails(id);
-
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("overview");
+  const { unreadCount, markAsRead } = useCaseUnreadCount(id);
+  useRealtimeChat(id, { activeTab, markAsRead });
   const [isStudentUploadOpen, setIsStudentUploadOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [creditBuyOpened, setCreditBuyOpened] = useState(false);
@@ -102,7 +105,12 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   };
 
   const handleTabChange = (tab: WorkspaceTab) => {
-    if (isTabAvailable(tab)) setActiveTab(tab);
+    if (isTabAvailable(tab)) {
+      setActiveTab(tab);
+      if (tab === "discussion") {
+        void markAsRead();
+      }
+    }
   };
 
   return (
@@ -110,7 +118,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
       <WorkspaceSidebar
         activeTab={activeTab}
         onTabChange={handleTabChange}
-        messageCount={caseData.messages?.length}
+        unreadCount={unreadCount}
         creditBalance={creditBalance ?? undefined}
         stage={stage}
       />

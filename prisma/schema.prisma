@@ -47,6 +47,7 @@ model User {
   wallet_topups          WalletTopup[]
   deposits               Deposit[]
   orders                 Order[]
+  chat_read_states       CaseChatReadState[]
 
   @@unique([email])
   @@unique([username])
@@ -345,6 +346,7 @@ model Case {
   team_fit_report    TeamFitReport?
   credit_ledgers     CreditLedger[]
   notifications      Notification[]
+  chat_read_states   CaseChatReadState[]
 
   @@index([owner_auth_user_id])
   @@index([assigned_supporter_auth_user_id])
@@ -547,6 +549,25 @@ model CaseMessage {
   @@index([sender_auth_user_id])
   @@index([case_id, created_at, id])
   @@map("case_messages")
+}
+
+model CaseChatReadState {
+  id                   String    @id @default(uuid())
+  case_id              String
+  user_id              String
+  last_read_message_id String?
+  last_read_at         DateTime  @default(now())
+  created_at           DateTime  @default(now())
+  updated_at           DateTime  @updatedAt
+
+  case                 Case      @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  user                 User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([case_id, user_id])
+  @@index([case_id])
+  @@index([user_id])
+  @@index([case_id, last_read_at])
+  @@map("case_chat_read_states")
 }
 
 model CaseEvent {

@@ -512,3 +512,28 @@ export const AdminExportQuerySchema = z.object({
 
 export type AdminExportQuery = z.infer<typeof AdminExportQuerySchema>;
 
+// ---------------------------------------------------------------------------
+// Case Chat Read State & Unread Count (GA-19)
+// ---------------------------------------------------------------------------
+
+export const MarkChatReadRequestSchema = z.object({
+  last_read_message_id: z.string().optional(),
+});
+
+export type MarkChatReadRequest = z.infer<typeof MarkChatReadRequestSchema>;
+
+export const MarkChatReadResponseSchema = z.object({
+  success: z.boolean(),
+  unread_count: z.number().int().nonnegative(),
+  last_read_at: z.string().optional(),
+});
+
+export type MarkChatReadResponse = z.infer<typeof MarkChatReadResponseSchema>;
+
+export const CaseUnreadCountResponseSchema = z.object({
+  unread_count: z.number().int().nonnegative(),
+  last_read_at: z.string().optional(),
+});
+
+export type CaseUnreadCountResponse = z.infer<typeof CaseUnreadCountResponseSchema>;
+

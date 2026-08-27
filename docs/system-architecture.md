@@ -139,17 +139,20 @@ Tham chiếu:
 - Test: `apps/api/src/shared/infrastructure/tests/phase-08-notifications.test.ts` (16 tests, all pass)
 - SSE chỉ dùng cho notifications; chat realtime đi qua Centrifugo (xem §4.6)
 
-### 4.6 Realtime chat workflow (Centrifugo v6) — đã ship 2026-08-08
-- Module mới `apps/api/src/modules/realtime/`: 2 routes — `GET /api/realtime/connection-token`, `GET /api/realtime/cases/:caseId/subscribe-token` (cả 2 qua `requireAuth` + `requireCaseAccess`)
+### 4.6 Realtime chat workflow (Centrifugo v6) & Unread Tracking (GA-19) — đã ship 2026-08-08, nâng cấp 2026-08-27
+- Module `apps/api/src/modules/realtime/`: 2 routes — `GET /api/realtime/connection-token`, `GET /api/realtime/cases/:caseId/subscribe-token` (cả 2 qua `requireAuth` + `requireCaseAccess`)
 - Token: HS256 JWT qua `jose`, TTL 15 phút, channel `chat:{caseId}`
-- Publish: `infrastructure/centrifugo.service.ts` POST `{CENTRIFUGO_URL}/api/publish` với header `X-API-Key`; fire-and-forget sau khi insert message trong `send-message.usecase.ts` (`toPublishMessage` sanitize payload — không leak email)
+- Publish: `infrastructure/centrifugo.service.ts` POST `{CENTRIFUGO_URL}/api/publish` với header `X-API-Key`; fire-and-forget sau khi insert message trong `send-message.usecase.ts` (`toPublishMessage` sanitize payload — không leak email) và khi đánh dấu đã đọc trong `mark-chat-read.usecase.ts` (event `chat:read`)
+- **Unread-per-User Tracking (GA-19)**:
+  - Model `CaseChatReadState` (bảng `case_chat_read_states`, unique `(case_id, user_id)`): lưu `last_read_message_id`, `last_read_at` (neo theo timestamp created_at của tin nhắn).
+  - Endpoints: `POST /api/cases/:id/chat/read` (đánh dấu đã đọc tới message chỉ định + broadcast `chat:read`), `GET /api/cases/:id/chat/unread` (lấy số tin chưa đọc).
+  - Frontend: hook `useCaseUnreadCount` (TanStack Query, auto-refetch khi reconnect qua `client.on("connected")` + `refetchOnWindowFocus: true`), `WorkspaceSidebar` badge hiển thị đúng số tin chưa đọc thay vì tổng số tin nhắn.
 - **DB = source of truth**; Centrifugo chỉ transport realtime. Client không publish trực tiếp — tin phải qua REST để giữ credit check + stage lock + access control
 - Env: `CENTRIFUGO_URL` (default `http://localhost:8010`), `CENTRIFUGO_API_KEY` (thiếu → bỏ publish + warn), `CENTRIFUGO_TOKEN_SECRET` (thiếu → 503)
-- Web-1: `lib/realtime/centrifuge-client.ts` (singleton, `NEXT_PUBLIC_CENTRIFUGO_URL` default `ws://localhost:8010/connection/websocket`), `hooks/useRealtimeChat.ts` (per-sub token, dedup theo message id), `TabDiscussionChat.tsx`
+- Web-1: `lib/realtime/centrifuge-client.ts` (singleton, `NEXT_PUBLIC_CENTRIFUGO_URL` default `ws://localhost:8010/connection/websocket`), `hooks/useRealtimeChat.ts` (per-sub token, dedup theo message id, xử lý `chat:read` và tăng unread count realtime), `hooks/useCaseUnreadCount.ts`, `TabDiscussionChat.tsx`
 - Fallback: `useCaseChat` polling `refetchInterval: 60_000` khi Centrifugo down
-- Test: `apps/api/src/shared/infrastructure/tests/phase-09-realtime-chat.test.ts`
+- Tests: `apps/api/src/shared/infrastructure/tests/phase-09-realtime-chat.test.ts` và `apps/api/src/shared/infrastructure/tests/ga-19-chat-unread.test.ts`
 - Ops chi tiết: [`realtime-centrifugo-guide.md`](./realtime-centrifugo-guide.md)
-
 ### 4.7 Wallet + deposit workflow (ví VND + SePay top-up) — ship 2026-08-11
 - Module `apps/api/src/modules/wallet/` (clean architecture: domain `wallet.types`, application `wallet.service`, infrastructure/http `wallet.routes`) mount tại `/api/wallet`, toàn bộ qua `requireAuth`. **Live endpoints (2):** `GET /api/wallet/balance` (số dư từ `user_wallets.balance`), `GET /api/wallet/history?limit&offset` (danh sách `wallet_transactions`). `POST /api/wallet/topups` → **410 GONE** ("Tạo mã nạp tiền tại POST /api/deposits"); `POST /api/wallet/purchase-credits` **deprecated 2026-08-12** — cả hai usecase (`wallet-topup.usecase`, `purchase-credits.usecase`) còn trên đĩa nhưng không dùng.
 - **Top-up/nạp tiền thuộc module deposits** `apps/api/src/modules/deposits/` — 5 routes: `GET /api/deposits/admin/all`, `GET /api/deposits`, `POST /api/deposits` (tạo deposit pending, trả QR + `transferContent` prefix `CR`, min 10,000 VND), `GET /api/deposits/:id`, `POST /api/deposits/:id/verify`. **Mua credit/order thuộc module orders** (3 routes: GET/POST `/api/orders`, GET `/api/orders/:id`).
@@ -191,17 +194,19 @@ Tham chiếu:
 
 ### 5.2 Chat / discussion
 Chat hiện là **realtime qua Centrifugo (WebSocket primary)** + REST fallback:
-- `useRealtimeChat(caseId)`: lấy subscribe-token qua `/api/realtime/cases/:caseId/subscribe-token`, sub WebSocket `chat:{caseId}`, publication → `setQueryData` cache + dedupe theo message id
-- REST (source of truth): GET `/cases/:id/messages`, POST `/cases/:id/messages`
+- `useRealtimeChat(caseId)`: lấy subscribe-token qua `/api/realtime/cases/:caseId/subscribe-token`, sub WebSocket `chat:{caseId}`, publication → `setQueryData` cache + dedupe theo message id, xử lý `chat:read` và tăng unread count
+- `useCaseUnreadCount(caseId)`: TanStack Query hook lấy số tin chưa đọc từ `GET /cases/:id/chat/unread`, mutation `POST /cases/:id/chat/read`, reconnect sync qua listener `client.on("connected")` và window focus
+- REST (source of truth): GET `/cases/:id/messages`, POST `/cases/:id/messages`, POST `/cases/:id/chat/read`, GET `/cases/:id/chat/unread`
 - Fallback khi Centrifugo down: `useCaseChat` polling `refetchInterval: 60_000` (không còn 5s polling)
 - Client KHÔNG publish trực tiếp — tin qua REST để giữ credit check + stage lock + access control
 
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/hooks/useRealtimeChat.ts`
+- `apps/web-1/app/dashboard/case/[id]/hooks/useCaseUnreadCount.ts`
 - `apps/web-1/app/dashboard/case/[id]/hooks/useCaseChat.ts`
 - `apps/web-1/lib/realtime/centrifuge-client.ts`
 - `apps/web-1/app/dashboard/case/[id]/_components/TabDiscussionChat.tsx`
-
+- `apps/web-1/app/dashboard/case/[id]/_components/WorkspaceSidebar.tsx`
 ### 5.3 Timeline / activity log
 - `ActivityTimeline` đọc `caseData.events`
 - timeline hiện map nhiều event_type sang label UI
