@@ -135,7 +135,7 @@ Tham chiếu:
 - Frontend: `apps/web-1/lib/hooks/useNotifications.ts` (SSE + TanStack Query), `components/layout/NotificationBell.tsx`, `types/notification.ts`
 - Env mới (optional, 6): `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ADMIN_CHAT_ID`, `TELEGRAM_SUPPORTER_CHAT_ID`, `NOTIFICATIONS_ENABLED`
 - Kênh Telegram: admin alert tự động trên event `payment.verified`; `payment.proof_uploaded` gửi kèm `transferContent` ("Nội dung chuyển khoản")
-- Types/validation dùng chung FE↔BE qua `@repo/validation` (single source of truth): `NOTIFICATION_TYPES` (14 events: case.assigned, case.approved, case.rejected, payment.proof_uploaded, payment.verified, payment.rejected, case.stage_changed, report.published, request_more_info, deposit.verified, deposit.rejected, order.paid, order.refunded, wallet.balance_changed), `NotificationItemSchema`, `ListNotificationsResponseSchema`
+- Types/validation dùng chung FE↔BE qua `@repo/validation` (single source of truth): `NOTIFICATION_TYPES` (9 notification types trong `@repo/validation`: case.assigned, case.approved, case.rejected, payment.proof_uploaded, payment.verified, payment.rejected, case.stage_changed, report.published, request_more_info; 5 financial events được định nghĩa riêng tại backend domain events), `NotificationItemSchema`, `ListNotificationsResponseSchema`
 - Test: `apps/api/src/shared/infrastructure/tests/phase-08-notifications.test.ts` (16 tests, all pass)
 - SSE chỉ dùng cho notifications; chat realtime đi qua Centrifugo (xem §4.6)
 

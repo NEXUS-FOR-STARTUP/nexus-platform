@@ -14,7 +14,7 @@
 
 1. `accept-case` / `reject-case` / `veto-case`: `findCaseById` trước `executeTransition`, 404 `Không tìm thấy case`, emit `caseCode: caseItem.case_code`. HTTP `{ stage, status }` không đổi.
 2. `notification-templates.ts`: `payloadText(payload, key, fallback)` — trim string rỗng → `chưa xác định`. Dùng cho `caseCode`, `supporterName`, `reason`, `query`, stage keys.
-3. `case.assigned` supporterBody: `Case ${code} được giao cho bạn. Supporter phụ trách: ${name}.` Student body giữ câu cũ, cũng guard name.
+3. `case.assigned` supporterBody: `Case ${code} được giao cho bạn. Supporter phụ trách: ${name}.` Student body giữ câu cũ, cũng guard name qua `payloadText`.
 
 ## Verify
 
