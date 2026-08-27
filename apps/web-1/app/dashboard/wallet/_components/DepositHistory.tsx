@@ -1,17 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { AlertCircle, ChevronRight, Clock, RotateCcw, XCircle } from "lucide-react";
+import { AlertCircle, ChevronRight, Clock, type LucideIcon, RotateCcw, XCircle } from "lucide-react";
 import { Button, Skeleton } from "@mantine/core";
 import { depositDetailHref, getDepositDisplay } from "@/lib/deposit-display";
 import { useMyDeposits } from "../hooks/useWallet";
 import { formatVND } from "./wallet-transaction.types";
 
-const STATUS_ICON = {
+const STATUS_ICON: Record<string, LucideIcon> = {
   pending: Clock,
   rejected: XCircle,
   amount_mismatch: AlertCircle,
-} as const;
+};
 
 function bannerTitle(status: string): string {
   if (status === "rejected") return "Khoản nạp bị từ chối";

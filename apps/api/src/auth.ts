@@ -65,9 +65,21 @@ export const auth = betterAuth({
   rateLimit: {
     enabled: true,
     window: 60,
-    max: 3,
+    max: 60,
     customRules: {
       '/get-session': false,
+      '/email-otp/send-verification-otp': {
+        window: 60,
+        max: 3,
+      },
+      '/sign-in/email': {
+        window: 60,
+        max: 10,
+      },
+      '/sign-up/email': {
+        window: 60,
+        max: 5,
+      },
     },
   },
   user: {
@@ -145,11 +157,12 @@ export const auth = betterAuth({
       // dispatch.mjs set path = endpoint.path, router parse body trước khi gọi handler.
       const { path, body } = ctx as unknown as {
         path?: string
-        body?: { email?: unknown }
+        body?: { email?: unknown; type?: unknown }
       }
       if (
         path === '/sign-up/email' ||
-        path === '/email-otp/send-verification-otp'
+        (path === '/email-otp/send-verification-otp' &&
+          (body?.type === 'email-verification' || !body?.type))
       ) {
         if (body && typeof body.email === 'string') {
           const existing = await prisma.user.findUnique({

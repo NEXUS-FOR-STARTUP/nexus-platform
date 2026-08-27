@@ -49,7 +49,7 @@ flowchart TD
         H -- "sai/thiếu → yêu cầu gửi lại" --> C
     end
     J --> K{"Trạng thái case?"}
-    K -- "chưa nộp hồ sơ" --> L["Chuyển Sẵn sàng nộp"]
+    K -- "chưa nộp hồ sơ" --> L["Giữ nguyên trạng thái intake (draft/ready)<br/>Cập nhật payment_status: paid"]
     K -- "đã hoàn tất" --> M["Mở lại case để làm vòng mới<br/>không cần duyệt lại"]
     K -- "còn lại" --> N(["Lượt nằm chờ, dùng cho vòng sau"])
     RULES["Ràng buộc:<br/>• Giá do hệ thống tính từ gói — không nhận giá từ sinh viên<br/>• Nạp ví ≠ thanh toán; chỉ Mua lượt mới đánh dấu Đã thanh toán<br/>• Lượt gắn theo case, không theo tài khoản<br/>• 1 lượt = 1 lần supporter nộp báo cáo<br/>• Trừ lượt đúng 1, không tính theo số tài liệu hay lượt tải"]

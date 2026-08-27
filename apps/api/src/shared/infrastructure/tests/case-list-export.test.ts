@@ -109,7 +109,8 @@ test("csv serializer", async (t) => {
     assert.strictEqual(csvEscape(null), "");
     assert.strictEqual(csvEscape("=1+1"), "'=1+1");
     assert.strictEqual(csvEscape("+cmd"), "'+cmd");
-    assert.strictEqual(csvEscape("-2"), "'-2");
+    assert.strictEqual(csvEscape("-2"), "-2");
+    assert.strictEqual(csvEscape("-2+3"), "'-2+3");
     assert.strictEqual(csvEscape("@SUM(A1)"), "'@SUM(A1)");
   });
 

@@ -86,7 +86,7 @@ Client-side only (no middleware guard):
 - `useSession()` in layout → redirect if missing/wrong role
 - `apiClient` 401 interceptor → `/auth`
 - Protected: dashboard (user), admin (admin), supporter (supporter)
-- **Chú ý:** `/auth/forgot-password` hiện BROKEN — client gọi `authClient.requestPasswordReset` nhưng server `apps/api/src/auth.ts` không cấu hình `sendResetPassword` (→ Better Auth `RESET_PASSWORD_DISABLED`), và không tồn tại trang `/auth/reset-password`. Đừng build thêm trên luồng này trước khi fix server. Routes `/dashboard/payments` (→ `/dashboard/wallet`) và `/dashboard/profile` (→ `/dashboard/settings/profile`) là redirect stub, `useMyPayments`/`PaymentHistoryList` là dead code.
+- Routes `/dashboard/payments` (→ `/dashboard/wallet`) và `/dashboard/profile` (→ `/dashboard/settings/profile`) là redirect stub, `useMyPayments`/`PaymentHistoryList` là dead code.
 
 ## UI CONVENTIONS
 

@@ -11,7 +11,11 @@ export function csvEscape(value: unknown): string {
         ? value
         : String(value);
   if (/^[=+\-@\t\r]/.test(raw)) {
-    raw = `'${raw}`;
+    const isPureNegativeNumber =
+      raw.startsWith("-") && !Number.isNaN(Number(raw)) && raw.trim() !== "-";
+    if (!isPureNegativeNumber) {
+      raw = `'${raw}`;
+    }
   }
   if (/[",\r\n]/.test(raw)) {
     return `"${raw.replaceAll('"', '""')}"`;

@@ -61,6 +61,7 @@ function VerifyEmailForm() {
         }
         return;
       }
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
       setOtp("");
       notifications.show({
         title: "Đã gửi lại mã",
