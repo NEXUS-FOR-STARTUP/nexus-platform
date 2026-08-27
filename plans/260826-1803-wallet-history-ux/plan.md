@@ -1,7 +1,7 @@
 ---
 title: Wallet history UX implementation plan
 description: Simplify wallet history while preserving deposit proof access and responsive consistency
-status: pending
+status: completed
 priority: P1
 effort: 2-3 days
 scope: frontend UX, state mapping, responsive web
@@ -27,10 +27,10 @@ None detected. Existing UX brainstorm is scoped under this plan in `reports/brai
 
 | Phase | Name | Status |
 |---|---|---|
-| 1 | Content and state contract | Pending |
-| 2 | Wallet information architecture | Pending |
-| 3 | Deposit history and proof access | Pending |
-| 4 | Responsive consistency and validation | Pending |
+| 1 | Content and state contract | Completed |
+| 2 | Wallet information architecture | Completed |
+| 3 | Deposit history and proof access | Completed |
+| 4 | Responsive consistency and validation | Completed |
 
 ## Dependencies
 
