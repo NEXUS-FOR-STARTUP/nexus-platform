@@ -7,10 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 2026-08-27 — Gap Analysis Code Review Remediations (PR #24)
+
+**Fixed**
+- Auth rate limiting: loại trừ `/auth/get-session` khỏi rate limiter để tránh chặn 429 khi client tự động polling session
+- Password reset: bổ sung OTP resend cooldown timer và fallback hiển thị lỗi tiếng Việt an toàn
+- Realtime chat: cấu hình TTL dọn dẹp bộ nhớ đệm rate limit chat slot
+- Unit tests & Mock DB: tách mock database cho `listCases` test, bổ sung test suites cho `payForOrder` và deposit idempotency
+
+### 2026-08-26 — Wallet History UX & Deposit Improvements (PR #23)
+
+**Added**
+- Banner cảnh báo các khoản nạp tiền đang ở trạng thái chờ duyệt trên trang ví
+- Quản lý và xem trước ảnh biên lai chuyển khoản đặt trong modal chi tiết nạp tiền
+- Cơ chế tự động dọn dẹp file ảnh biên lai mồ côi nếu transaction ghi database thất bại
+
+**Changed**
+- Hợp nhất lịch sử giao dịch ví thành một sổ cái duy nhất trên trang `/wallet`
+- Chặn tải lên biên lai sau khi yêu cầu nạp tiền đã rời khỏi trạng thái `pending`
+
+### 2026-08-26 — GA-09 Case List Pagination & GA-10 Admin CSV Export (PR #21)
+
+**Added**
+- Phân trang, tìm kiếm và sắp xếp server-side cho danh sách Case (`GET /cases`)
+- Component `CaseListFilters` dùng chung: sinh viên lọc theo `user_facing_stage`, supporter lọc theo `internal_status`
+- API xuất dữ liệu CSV phía Admin cho Cases, Deposits, Transactions, Orders (`/api/admin/export/*`) kèm menu xuất file `AdminExportMenu`
+
+### 2026-08-26 — GA-02 Intake Flow Fix & GA-22 Wallet Auto-create (PR #20)
+
+**Added**
+- Tự động tạo ví rỗng khi người dùng mới đăng ký thông qua Better Auth hook `databaseHooks.user.create.after`
+- Áp dụng pattern `getOrCreateWalletInTx` cho toàn bộ chu trình nạp, rút, hoàn tiền, thanh toán đơn hàng (trả về `InsufficientBalance` thay vì lỗi `WALLET_NOT_FOUND`)
+- Chống double-submit tạo mã nạp tiền: tham số `idempotency_key` cho `POST /deposits` và khóa giao diện client
+
+**Fixed**
+- Hồ sơ không còn bị kẹt ở trạng thái `intake_ready` sau khi thanh toán; thực thi bất biến Single-Writer cho `user_facing_stage`
+- Payment webhook chỉ ghi nhận trạng thái thanh toán `payment_status`, không tự ý chuyển đổi stage của hồ sơ
+
 ### 2026-08-26 — T6 SLA reset khi phân công lại quá hạn
 
 **Fixed**
 - T6 admin reassign: action `resetSlaIfOverdue` — `sla_deadline_at <= now` thì set `now+48h`; đang đếm giữ nguyên; null không ghi (T7 vẫn set lần đầu)
+- Admin dashboard: tính doanh thu theo đơn hàng đã thanh toán (`paid`), đếm chính xác số lượng hồ sơ quá hạn SLA, định dạng thời gian còn lại `1d 23h` / `Xh Ym`
+
+### 2026-08-25 — GA-05 Profile Avatar Upload
+
+**Added**
+- API `POST /api/profile/avatar`: tiếp nhận ảnh đại diện, upload lên Cloudinary từ server và ghi URL trực tiếp vào `User.image`
+- Giao diện tải ảnh đại diện tại trang Hồ sơ cá nhân kèm tính năng xem trước và validation định dạng ảnh
 
 ### 2026-08-24 — GA-01 OTP reset password + GA-07 rolling session
 
@@ -21,7 +65,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Changed**
 - `/auth/forgot-password` gọi `emailOtp.requestPasswordReset` (không còn core `requestPasswordReset` bị disable)
 - Session Better Auth explicit rolling: `expiresIn` 7 ngày, `updateAge` 1 ngày — không phải absolute+idle cứng
-
 
 ### 2026-08-16 — Backlog bugs fix (8 bugs: #1 #3 #5 #9 #12 #13 #14 #16)
 
