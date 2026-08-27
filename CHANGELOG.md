@@ -203,7 +203,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Codebase summary with file structure
 - Research logging best practices
 
-[Unreleased]: https://github.com/NEXUS-FOR-STARTUP/nexus-platform/compare/v1.0.0...dev
-[1.1.0]: https://github.com/NEXUS-FOR-STARTUP/nexus-platform/compare/v1.0.0...dev
+[Unreleased]: https://github.com/NEXUS-FOR-STARTUP/nexus-platform/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/NEXUS-FOR-STARTUP/nexus-platform/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/NEXUS-FOR-STARTUP/nexus-platform/compare/v0.0.1...v1.0.0
 [0.0.1]: https://github.com/NEXUS-FOR-STARTUP/nexus-platform/releases/tag/v0.0.1
