@@ -51,7 +51,7 @@ Data model trung tâm nằm ở `prisma/schema.prisma` (30 models), với auth, 
                   └───────────────┘
 ```
 
-> Sơ đồ trên là snapshot trước phase notifications + realtime + wallet + deposits/orders + profile. Module mới `notifications` (5 routes: list, unread-count, `:id/read` PATCH, read-all PATCH, `stream` SSE) + `realtime` (2 routes: connection-token, `cases/:caseId/subscribe-token`) + `wallet` (4 routes: balance, history, purchase-credits [deprecated], topups [410 GONE]) + `deposits` (5 routes) + `orders` (3 routes) + `profile` (2 routes: avatar upload, delete account) + event bus `shared/` (xem §4.5, §4.6, §4.8) chưa vẽ vào. API hiện: 14 modules, 81 routes (77 module + 4 system: `/`, `/health`, `/stream`, `/session`).
+> Sơ đồ trên là snapshot trước phase notifications + realtime + wallet + deposits/orders + profile. Module mới `notifications` (5 routes: list, unread-count, `:id/read` PATCH, read-all PATCH, `stream` SSE) + `realtime` (2 routes: connection-token, `cases/:caseId/subscribe-token`) + `wallet` (4 routes: balance, history, purchase-credits [deprecated], topups [410 GONE]) + `deposits` (5 routes) + `orders` (3 routes) + `profile` (5 routes: avatar upload, delete account, list active sessions, revoke session, revoke other sessions) + event bus `shared/` (xem §4.5, §4.6, §4.8) chưa vẽ vào. API hiện: 14 modules, 86 routes (82 module + 4 system: `/`, `/health`, `/stream`, `/session`).
 
 ## 3. Frontend surfaces chính
 
@@ -160,17 +160,23 @@ Tham chiếu:
 - Frontend: trang `apps/web-1/app/dashboard/wallet/page.tsx` (header "Ví của tôi", `WalletBalanceCard`, `WalletTransactionList`, `WalletTopupModal` — nay tạo deposit); hooks trong `app/dashboard/wallet/hooks/useWallet.ts` (`useWalletBalance`, `useWalletHistory`, `useCreateDeposit` — polling 30s, mutation invalidates `["wallet"]`)
 - Nav: `DashboardShell` thêm menu item "Ví của tôi" (icon `Wallet` từ lucide-react) cho student → `router.push("/dashboard/wallet")`
 
-### 4.8 Profile & account workflow (avatar upload + account deletion) — ship 2026-08-27
-- Module `apps/api/src/modules/profile/` (domain `avatar-upload-rules`, application `upload-avatar.usecase`, `delete-account.usecase`, http `profile.routes`, `avatar.controller`, `profile.controller`) mount tại `/api/profile`, toàn bộ qua `requireAuth`.
+### 4.8 Profile, account & session management workflow — ship 2026-08-27 / 2026-08-28
+- Module `apps/api/src/modules/profile/` (domain `avatar-upload-rules`, application `upload-avatar.usecase`, `delete-account.usecase`, `list-sessions.usecase`, `revoke-session.usecase`, `revoke-other-sessions.usecase`, http `profile.routes`, `avatar.controller`, `profile.controller`, `session.controller`) mount tại `/api/profile`, toàn bộ qua `requireAuth`.
 - **Avatar upload (`POST /api/profile/avatar`)**:
   - DoS Guard: kiểm tra header `content-length` $\le 2\text{ MB} + 64\text{ KB}$ trước khi parse multipart body.
   - Validation: cho phép `.jpg`, `.jpeg`, `.png`, `.webp`, đối chiếu MIME type với extension, dung lượng $\le 2\text{ MB}$.
   - Cloudinary: tải lên thư mục `nexus-platform/avatars` với resource type `image`, lưu secure URL vào `User.image` trong PostgreSQL.
   - Rollback & Cleanup: tự động xóa avatar mới trên Cloudinary nếu cập nhật DB thất bại; tự động dọn dẹp avatar Cloudinary cũ khi upload mới thành công (bỏ qua nếu avatar cũ là external URL OAuth).
 - **Account deletion (`DELETE /api/profile/account`)**: tuân thủ NĐ 13/2023 về quyền xóa dữ liệu cá nhân.
-- Frontend: form Cài đặt `/dashboard/settings/profile` (`ProfileInfoForm`), mutation `useProfileMutations`, đồng bộ tức thì qua Better Auth `refetch()` cập nhật đồng thời form profile và Popover `UserMenu` trên Navbar Header.
-- Test: `apps/api/src/shared/infrastructure/tests/avatar-upload.test.ts` (9/9 pass).
-
+- **Session management UI & API (GA-06)**:
+  - `GET /api/profile/sessions`: Lấy danh sách phiên còn hạn (`expires_at > now()`, `take: 100`), đối chiếu `s.id === currentSessionId` trên server để xác định `isCurrent: true` (bất biến, không bị lệch khi Better Auth xoay vòng rolling token `updateAge: 24h`), tuyệt đối loại bỏ trường `token` bí mật khỏi DTO.
+  - `DELETE /api/profile/sessions/:id`: Thu hồi 1 phiên làm việc của user (ngăn chặn tự thu hồi phiên hiện tại `CANNOT_REVOKE_CURRENT_SESSION`, bảo vệ chống IDOR qua `user_id`).
+  - `POST /api/profile/sessions/revoke-others`: Thu hồi tất cả phiên khác (`id !== currentSessionId`) kèm guard kiểm tra `currentSessionId` hợp lệ.
+  - Audit logging: ghi nhận mọi thao tác thu hồi vào `auditLogger.log` (`profile.revoke_session`, `profile.revoke_other_sessions`).
+- Frontend:
+  - Form Cài đặt `/dashboard/settings/profile` (`ProfileInfoForm`), mutation `useProfileMutations`, đồng bộ tức thì qua Better Auth `refetch()` cập nhật đồng thời form profile và Popover `UserMenu` trên Navbar Header.
+  - Trang Quản lý thiết bị `/dashboard/settings/sessions` & `/supporter/settings/sessions` (`SessionsList`, `SessionItem`, `RevokeOthersModal`): phân tích User-Agent (OS, Browser, Device Type) với regex ưu tiên chính xác, hiển thị IP rút gọn (`formatIpAddress`), badge "Phiên hiện tại", scoped loading spinner theo `sessionId`, và `onSettled` cache invalidation.
+- Test: `apps/api/src/shared/infrastructure/tests/avatar-upload.test.ts` (9/9 pass), `apps/api/src/shared/infrastructure/tests/session-management.test.ts` (16/16 pass).
 ## 5. Case workspace data flow
 
 ### 5.1 Case details

@@ -95,6 +95,7 @@ Tách user menu ra khỏi `DashboardShell`:
 - Mục hiện tại:
   - **Thông tin cơ bản** (User) → `/dashboard/settings/profile`
   - **Đổi mật khẩu** (KeyRound) → `/dashboard/settings/password`
+  - **Thiết bị & Phiên đăng nhập** (MonitorSmartphone) → `/dashboard/settings/sessions` (GA-06 hoàn thành 2026-08-28)
 - **KHÔNG build trước** Thông báo/2FA/Ngôn ngữ (YAGNI).
 - **KHÔNG** đưa Ví/Thanh toán vào sidebar (đã chốt — option ngoài modal).
 
@@ -111,6 +112,14 @@ Tách user menu ra khỏi `DashboardShell`:
 - 3 field (hiện tại / mới / xác nhận), TanStack Form, inline validation (≥8 ký tự + gợi ý độ mạnh).
 - `revokeOtherSessions: true` — đồng bộ với message toast.
 - Submit: loading state, success → xóa field + toast.
+
+### Trang Quản lý thiết bị & Phiên đăng nhập (GA-06 hoàn thành 2026-08-28)
+
+- Danh sách phiên đăng nhập còn hạn (`GET /api/profile/sessions`), phân tích User-Agent thành OS & Trình duyệt qua `ua-parser.ts`, format IP (`formatIpAddress`).
+- Badge "Phiên hiện tại" gán bất biến theo `session.id` (không lo desync khi xoay vòng rolling token).
+- Nút "Đăng xuất" từng thiết bị (`DELETE /api/profile/sessions/:id`) với scoped loading theo `sessionId`.
+- Nút "Đăng xuất khỏi tất cả thiết bị khác" (`POST /api/profile/sessions/revoke-others`) kích hoạt `RevokeOthersModal` xác nhận.
+- Áp dụng `onSettled` cache invalidation trong `useSessionMutations` đảm bảo giao diện luôn được làm mới.
 
 ### Hooks layer
 
@@ -171,6 +180,7 @@ Không còn — đã chốt:
   - `/dashboard/settings` → redirect `/dashboard/settings/profile` (`settings/page.tsx`, 5 dòng)
   - `/dashboard/settings/profile` — Thông tin cơ bản (`ProfileInfoForm`): tên hiển thị (TanStack Form), **email là `TextInput disabled`** (helper "không thể thay đổi" → Tooltip trên label, 2026-08-13), avatar + "Đổi ảnh" → notification "Chức năng đang được phát triển"; form `gap="lg"` cho thoáng
   - `/dashboard/settings/password` — Đổi mật khẩu (`ChangePasswordForm`): 3 field, inline validation ≥8 ký tự, `revokeOtherSessions: true`; ghi chú dài trên field "Mật khẩu mới" → Tooltip trên label (2026-08-13)
+  - `/dashboard/settings/sessions` và `/supporter/settings/sessions` — Thiết bị & Phiên đăng nhập (`SessionsList`, `SessionItem`, `RevokeOthersModal`, GA-06 hoàn thành 2026-08-28)
   - Route cũ `/dashboard/profile` → redirect stub 5 dòng sang `/dashboard/settings/profile`
 - `DashboardShell` 200 → **60 dòng**; user menu tách thành `components/layout/_components/UserMenu.tsx` (193 → **162 dòng**): Mantine `Popover` `position="bottom-end"` neo ngay dưới avatar (đổi từ `Modal centered` theo feedback người dùng 2026-08-13 — không mở giữa màn hình desktop); popover gọn lại (feedback 2026-08-13): bỏ info block to centered (avatar 56, tên, role badge) nhưng **giữ email xem nhanh** (mọi role, `truncate` 1 dòng — phân biệt tài khoản) + **dòng số dư ví compact** (student, số tiền tô đỏ `text-danger` ngay sau label để đọc lướt thấy) + options + **Đăng xuất** tách biệt — student: **Hồ sơ** `/dashboard/settings/profile`, **Thanh toán** `/dashboard/wallet`, **Cài đặt** `/dashboard/settings`; admin: **Bàn làm việc Admin** `/admin`; supporter: **Bàn làm việc Supporter** `/supporter`. Giữ nguyên disconnect Centrifugo khi đổi tài khoản, `signOut` + `queryClient.clear()`.
 - `lib/auth-errors.ts` — `translateAuthError` (Better Auth EN→VI) dùng chung cho settings + auth pages.

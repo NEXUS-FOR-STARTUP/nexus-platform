@@ -3,7 +3,8 @@
 - **ID:** GA-04
 - **Priority:** P0 (Khẩn cấp / Pháp lý)
 - **Category:** Legal / Compliance
-- **Status:** Todo
+- **Status:** Done
+- **Plan & Verification:** `plans/260827-0900-ga04-user-delete-account/`
 - **Nguồn:** `docs/research/mandatory-features-gap-analysis-2026-08-24.md`
 - **Căn cứ pháp lý:** Nghị định số 13/2023/NĐ-CP (Bảo vệ dữ liệu cá nhân - Quyền xóa dữ liệu trong vòng 72 giờ)
 

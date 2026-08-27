@@ -3,7 +3,7 @@
 - **ID:** GA-14
 - **Priority:** P2
 - **Category:** Wallet / Financial
-- **Status:** Partially Implemented
+- **Status:** Dropped (Đã bỏ theo quyết định quản trị/MVP)
 - **Nguồn:** `docs/research/mandatory-features-gap-analysis-2026-08-24.md`
 
 ---

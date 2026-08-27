@@ -34,7 +34,9 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 - `/supporter/case/[id]`
 - `/dashboard/payments` (redirect → `/dashboard/wallet`)
 - `/dashboard/profile` (redirect → `/dashboard/settings/profile`)
-- `/auth/forgot-password` (BROKEN — server chưa có `sendResetPassword`)
+- `/dashboard/settings` (sidebar settings: `/profile`, `/password`, `/sessions`)
+- `/supporter/settings` (supporter settings: `/profile`, `/password`, `/sessions`)
+- `/auth/forgot-password` (đã fix OTP flow)
 
 > Ghi chú (cập nhật 2026-08-24): `/supporter/case/[id]/review` **không tồn tại** — supporter biên tập report qua usecases `get-draft-report`/`edit-draft-report` + modal upload, không có page riêng. Route `/dashboard/wallet` đã triển khai — ví VND student (số dư, lịch sử giao dịch, nạp tiền SePay). Nav item "Ví của tôi" (icon Wallet) được thêm vào `DashboardShell` cho student. Backend: wallet module giữ live `GET /api/wallet/balance` + `GET /api/wallet/history`; **nạp tiền thuộc module deposits** (5 routes, `POST /api/deposits` + `POST /api/deposits/:id/verify`), `POST /api/wallet/topups` → **410 GONE**, `POST /api/wallet/purchase-credits` **deprecated**.
 
@@ -89,6 +91,8 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | `/admin/case/[id]` | Admin | Admin case detail | New | Canonical route cho detail view; không gộp tạm trong `/admin` |
 | `/supporter` | Supporter, Admin | Supporter queue | Reuse + adapt | Giữ route; đổi filter và copy theo queue thật |
 | `/supporter/case/[id]` | Supporter, Admin | Supporter case workspace | Reuse + adapt | Giữ route |
+| `/dashboard/settings/sessions` | User | Quản lý thiết bị & Phiên đăng nhập (GA-06) | New (2026-08-28) | Hiển thị phiên, OS/Browser, badge phiên hiện tại, thu hồi phiên |
+| `/supporter/settings/sessions` | Supporter | Quản lý thiết bị & Phiên đăng nhập supporter (GA-06) | New (2026-08-28) | Tái sử dụng SessionsList cho supporter |
 
 ## 6. Route transition map
 
