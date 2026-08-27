@@ -18,6 +18,7 @@ const ADMIN_INCLUDE = {
   package: true,
   lifecycle_units: {
     where: { unit_type: "version" },
+    orderBy: { version_no: "asc" },
     take: 1,
   },
 } satisfies Prisma.CaseInclude;

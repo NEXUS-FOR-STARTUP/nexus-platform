@@ -66,8 +66,10 @@ export default function AuthPanel() {
 
   // Compute redirect URL: returnUrl > package-specific > /dashboard
   const getRedirectUrl = () => {
-    const returnUrl = searchParams.get("returnUrl");
-    if (returnUrl) return returnUrl;
+    const raw = searchParams.get("returnUrl");
+    if (raw && raw.startsWith("/") && !raw.startsWith("//") && !raw.startsWith("/\\")) {
+      return raw;
+    }
 
     const packageId = searchParams.get("packageId");
     if (packageId === "pkg_tf_free") return "/dashboard/team-fit";
