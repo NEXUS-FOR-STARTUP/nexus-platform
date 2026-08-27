@@ -29,9 +29,9 @@ Tuy nhiên, đợt rà soát phát hiện **4 lỗi Critical (P1) thực tế đ
 | Phân loại | Tổng số | Đã khắc phục (Fixed) | Đang chờ (Pending) | Trạng thái rủi ro |
 |---|:---:|:---:|:---:|---|
 | **P1 — Critical & Security** | 5 | **5 / 5 (100%)** | **0** | 🟢 Đã giải quyết triệt để toàn bộ lỗi P1 |
-| **P2 — Major & Reliability** | 10 | **5** (`P2.1`, `P2.2`, `P2.3`, `P2.6`, `P2.9`) | **5** (`P2.4`, `P2.5`, `P2.7`, `P2.8`, `P2.10`) | 🟠 Còn phần FE timer/cooldown & test mock |
+| **P2 — Major & Reliability** | 10 | **8** (`P2.1`, `P2.2`, `P2.3`, `P2.4`, `P2.5`, `P2.6`, `P2.7`, `P2.9`) | **2** (`P2.8` mock test, `P2.10` doc note) | 🟢 Logic & UI State/Timer đã hoàn thiện |
 | **P3 — Minor & Hygiene** | 12 | **11** (tất cả trừ `P3.11`) | **1** (`P3.11` test wallet) | 🟢 Đã hoàn thành 92% các điểm cải thiện |
-| **Tổng cộng** | **27** | **21 / 27 (78%)** | **6 / 27** | ✅ `npm run check-types` 100% PASS |
+| **Tổng cộng** | **27** | **24 / 27 (89%)** | **3 / 27** | ✅ `npm run check-types` 100% PASS |
 ---
 
 ## 3. Ma trận Phân loại & Thứ tự Ưu tiên Khắc phục
@@ -68,13 +68,12 @@ Tuy nhiên, đợt rà soát phát hiện **4 lỗi Critical (P1) thực tế đ
 | **P3.3** | Xóa export `EmailField`, `OtpField` không dùng | `ResetPasswordFields.tsx:12,18,42,61` | ✅ Fixed | Xóa dead code |
 | **P2.9** | Sửa sơ đồ Mermaid luồng thanh toán / intake | `payment-verification-flow.md`, `intake-flow.md` | ✅ Fixed | Đồng bộ tài liệu với kiến trúc GA-02 |
 | **P2.10** | Chuẩn hoá thuật ngữ `not_required` trong tài liệu | `case.types.ts` / docs | ✅ Done | Đồng bộ thuật ngữ quy trình |
-#### 🟠 Tầng 3: Trung Bình (Liên quan UI State, Timer hoặc Logic nhiều Component)
-| Mã | Hạng mục | Tệp tin | Mức độ | Phạm vi tác động |
+#### 🟠 Tầng 3: Trung Bình (Liên quan UI State, Timer hoặc Logic nhiều Component) — `✅ 3/3 HOÀN THÀNH`
+| Mã | Hạng mục | Tệp tin | Trạng thái | Ghi chú thực thi |
 |---|---|---|:---:|---|
-| **P2.4** | Kích hoạt `setResendCooldown` khi gửi OTP thành công | `verify-email/page.tsx`, `OtpStepSection.tsx` | 🟠 P2 | Thêm state đếm ngược và disabled button ở FE |
-| **P2.5** | Thêm fallback UI / redirect khi vào reset pass rỗng email | `ResetPasswordForm.tsx:9` | 🟠 P2 | Xử lý điều hướng người dùng quay lại forgot-password |
-| **P2.7** | Thêm cơ chế dọn dẹp entry hết hạn (TTL eviction) | `message-send-rate-limit.ts:1` | 🟠 P2 | Thêm dọn expired keys tránh rò rỉ RAM |
-
+| **P2.4** | Kích hoạt `setResendCooldown` khi gửi OTP thành công | `verify-email/page.tsx`, `OtpStepSection.tsx` | ✅ Fixed | Đã thêm state đếm ngược 60s & disabled UI |
+| **P2.5** | Thêm fallback UI / redirect khi vào reset pass rỗng email | `ResetPasswordForm.tsx:9` | ✅ Fixed | Đã thêm màn hình fallback & nút quay lại |
+| **P2.7** | Thêm cơ chế dọn dẹp entry hết hạn (TTL eviction) | `message-send-rate-limit.ts:1` | ✅ Fixed | Tự động quét và giải phóng key cũ > 5s |
 #### 🔴 Tầng 4: Cao / Kiểm thử (Cần can thiệp mock DB hoặc bổ sung Test Suite)
 | Mã | Hạng mục | Tệp tin | Mức độ | Phạm vi tác động |
 |---|---|---|:---:|---|
@@ -399,9 +398,9 @@ flowchart LR
    - [x] `P2.2`: Nâng rateLimit toàn cục auth lên 60 req/min, chỉ cấu hình `max: 3` cho các route nhạy cảm.
    - [x] `P3.3`: Xóa dead code `EmailField`, `OtpField` trong `ResetPasswordFields.tsx`.
 3. **Đợt 3 — Hoàn thiện Frontend State/UI & Test Mock:**
-   - [ ] `P2.4`: Thêm `setResendCooldown` khi gửi OTP thành công ở `verify-email` và `reset-password`.
-   - [ ] `P2.5`: Thêm fallback điều hướng khi vào thẳng `/auth/reset-password` không có email.
-   - [ ] `P2.7`: Thêm cơ chế dọn dẹp TTL định kỳ cho Map rate limit trong `message-send-rate-limit.ts`.
+   - [x] `P2.4`: Thêm `setResendCooldown` khi gửi OTP thành công ở `verify-email` và `reset-password`.
+   - [x] `P2.5`: Thêm fallback điều hướng khi vào thẳng `/auth/reset-password` không có email.
+   - [x] `P2.7`: Thêm cơ chế dọn dẹp TTL định kỳ cho Map rate limit trong `message-send-rate-limit.ts`.
    - [ ] `P2.8`: Bổ sung mock DB cho test `listCasesUseCase` trong `phase-06-core-usecases.test.ts`.
    - [ ] `P3.11`: Bổ sung unit test auto-create cho `payForOrder` trong `phase-10-wallet-auto-create.test.ts`.
 4. **Đợt 4 — Đồng bộ Tài liệu & Chạy Verification:**
