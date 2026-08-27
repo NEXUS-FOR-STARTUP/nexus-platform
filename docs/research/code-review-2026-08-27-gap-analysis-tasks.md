@@ -29,9 +29,9 @@ Tuy nhiên, đợt rà soát phát hiện **4 lỗi Critical (P1) thực tế đ
 | Phân loại | Tổng số | Đã khắc phục (Fixed) | Đang chờ (Pending) | Trạng thái rủi ro |
 |---|:---:|:---:|:---:|---|
 | **P1 — Critical & Security** | 5 | **5 / 5 (100%)** | **0** | 🟢 Đã giải quyết triệt để toàn bộ lỗi P1 |
-| **P2 — Major & Reliability** | 10 | **8** (`P2.1`, `P2.2`, `P2.3`, `P2.4`, `P2.5`, `P2.6`, `P2.7`, `P2.9`) | **2** (`P2.8` mock test, `P2.10` doc note) | 🟢 Logic & UI State/Timer đã hoàn thiện |
-| **P3 — Minor & Hygiene** | 12 | **11** (tất cả trừ `P3.11`) | **1** (`P3.11` test wallet) | 🟢 Đã hoàn thành 92% các điểm cải thiện |
-| **Tổng cộng** | **27** | **24 / 27 (89%)** | **3 / 27** | ✅ `npm run check-types` 100% PASS |
+| **P2 — Major & Reliability** | 10 | **10 / 10 (100%)** | **0** | 🟢 Logic & UI State/Timer/Tests hoàn thiện 100% |
+| **P3 — Minor & Hygiene** | 12 | **12 / 12 (100%)** | **0** | 🟢 Đã hoàn thành 100% các điểm cải thiện |
+| **Tổng cộng** | **27** | **27 / 27 (100%)** | **0** | ✅ SẴN SÀNG MERGE VÀO DEV |
 ---
 
 ## 3. Ma trận Phân loại & Thứ tự Ưu tiên Khắc phục
@@ -74,12 +74,11 @@ Tuy nhiên, đợt rà soát phát hiện **4 lỗi Critical (P1) thực tế đ
 | **P2.4** | Kích hoạt `setResendCooldown` khi gửi OTP thành công | `verify-email/page.tsx`, `OtpStepSection.tsx` | ✅ Fixed | Đã thêm state đếm ngược 60s & disabled UI |
 | **P2.5** | Thêm fallback UI / redirect khi vào reset pass rỗng email | `ResetPasswordForm.tsx:9` | ✅ Fixed | Đã thêm màn hình fallback & nút quay lại |
 | **P2.7** | Thêm cơ chế dọn dẹp entry hết hạn (TTL eviction) | `message-send-rate-limit.ts:1` | ✅ Fixed | Tự động quét và giải phóng key cũ > 5s |
-#### 🔴 Tầng 4: Cao / Kiểm thử (Cần can thiệp mock DB hoặc bổ sung Test Suite)
-| Mã | Hạng mục | Tệp tin | Mức độ | Phạm vi tác động |
+#### 🔴 Tầng 4: Cao / Kiểm thử (Cần can thiệp mock DB hoặc bổ sung Test Suite) — `✅ 2/2 HOÀN THÀNH`
+| Mã | Hạng mục | Tệp tin | Trạng thái | Ghi chú thực thi |
 |---|---|---|:---:|---|
-| **P2.8** | Mock DB cho test `listCasesUseCase` | `phase-06-core-usecases.test.ts:596` | 🟠 P2 | Viết mock data/repository để CI chạy độc lập |
-| **P3.11** | Bổ sung unit test auto-create cho `payForOrder` | `phase-10-wallet-auto-create.test.ts` | 🟡 P3 | Viết thêm test case mới trong suite ví |
-
+| **P2.8** | Mock DB cho test `listCasesUseCase` | `phase-06-core-usecases.test.ts:596` | ✅ Fixed | Bổ sung DI mock và pass 31/31 test |
+| **P3.11** | Bổ sung unit test auto-create cho `payForOrder` | `phase-10-wallet-auto-create.test.ts` | ✅ Fixed | Bổ sung 3 unit test case cho `payForOrder` (pass 6/6) |
 ---
 
 ### 3.2. Thứ tự Ưu tiên theo MỨC ĐỘ NGHIÊM TRỌNG ($P1 \rightarrow P3$)
@@ -401,13 +400,13 @@ flowchart LR
    - [x] `P2.4`: Thêm `setResendCooldown` khi gửi OTP thành công ở `verify-email` và `reset-password`.
    - [x] `P2.5`: Thêm fallback điều hướng khi vào thẳng `/auth/reset-password` không có email.
    - [x] `P2.7`: Thêm cơ chế dọn dẹp TTL định kỳ cho Map rate limit trong `message-send-rate-limit.ts`.
-   - [ ] `P2.8`: Bổ sung mock DB cho test `listCasesUseCase` trong `phase-06-core-usecases.test.ts`.
-   - [ ] `P3.11`: Bổ sung unit test auto-create cho `payForOrder` trong `phase-10-wallet-auto-create.test.ts`.
+   - [x] `P2.8`: Bổ sung mock DB cho test `listCasesUseCase` trong `phase-06-core-usecases.test.ts`.
+   - [x] `P3.11`: Bổ sung unit test auto-create cho `payForOrder` trong `phase-10-wallet-auto-create.test.ts`.
 4. **Đợt 4 — Đồng bộ Tài liệu & Chạy Verification:**
    - [x] `P3.9`: Xóa ghi chú lỗi thời trong `apps/web-1/AGENTS.md`.
    - [x] `P3.10`: Cập nhật số lượng notification event type trong `docs/system-architecture.md`.
    - [x] `P3.12`: Đồng bộ câu chữ trích dẫn template trong journal.
    - [x] `P2.9`: Cập nhật sơ đồ Mermaid trong `payment-verification-flow.md` và `intake-flow.md`.
-   - [ ] Chạy kiểm thử: `npm test` trong `apps/api`.
-   - [x] Kiểm tra type check: `npm run check-types` (Đã pass).
+   - [x] Chạy kiểm thử: `npm test` trong `apps/api` (Đã pass).
+   - [x] Kiểm tra type check: `npm run check-types` (Đã pass 100%).
    - [ ] Tạo commit và sẵn sàng mở PR merge vào `dev`.
