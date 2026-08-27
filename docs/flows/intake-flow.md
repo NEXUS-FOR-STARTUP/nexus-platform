@@ -43,20 +43,18 @@ flowchart TD
     subgraph HT["HỆ THỐNG"]
         F --> G["Tạo case kèm hồ sơ intake"]
         G --> H{"Gói dịch vụ"}
-        H -- "chuyên sâu 39.000đ — mặc định hiện tại<br/>(chưa có màn chọn gói)" --> I["Chờ thanh toán<br/>chưa vào hàng đợi duyệt"]
-        H -- "miễn phí" --> J["Đã nộp"]
-        I --> K["Thanh toán xong → Sẵn sàng nộp<br/>(xem flow thanh toán)"]
-        K --> L["Sinh viên bấm Gửi case lại"]
-        L --> J
+        H -- "chuyên sâu (có phí)" --> I["Trạng thái nộp: Đã nộp<br/>Thanh toán: Chờ thanh toán"]
+        H -- "miễn phí" --> J["Trạng thái nộp: Đã nộp<br/>Thanh toán: not_required"]
+        I --> K["Thanh toán / Mua lượt<br/>(Cập nhật payment_status: paid)"]
+        K --> M
         J --> M(["Hàng đợi xét duyệt của admin"])
     end
-    RULES["Ràng buộc:<br/>• Gói do hệ thống gán — sinh viên không tự chọn<br/>• Sửa hồ sơ: được phép đến khi admin duyệt<br/>• Bỏ dở: dữ liệu giữ lại, quay lại làm tiếp<br/>• Có link Drive, chưa upload file: vẫn nộp được nếu đủ rõ<br/>• ⚠ Kẹt đã biết: thanh toán trước khi nộp lần đầu →<br/>  bấm Gửi case không lên được Đã nộp (đang sửa)"]
+    RULES["Ràng buộc:<br/>• Gói do hệ thống gán — sinh viên không tự chọn<br/>• Sửa hồ sơ: được phép đến khi admin duyệt<br/>• Bỏ dở: dữ liệu giữ lại, quay lại làm tiếp<br/>• Có link Drive, chưa upload file: vẫn nộp được nếu đủ rõ<br/>• ✅ Đã tách độc lập trục trạng thái hồ sơ & thanh toán (GA-02)"]
     classDef warn fill:#FEF3C7,stroke:#D97706,color:#92400E
     class I,K warn
 ```
 
-> ⚠️ **Điểm đã biết (đang sửa):** nếu sinh viên thanh toán trước khi nộp, case chuyển sang `Sẵn sàng nộp`; bấm Gửi case lúc này case không lên được `Đã nộp` — hồ sơ bị kẹt ngoài hàng đợi xét duyệt. Vấn đề này đã được truy vết theo code, chờ chốt phương án sửa (xem `docs/research/brainstorm-2026-08-21-flow-confusion-intake-payment-credit.md`).
-
+> ✅ **Đã khắc phục (GA-02):** Trạng thái hồ sơ (`user_facing_stage`) và trạng thái thanh toán (`payment_status`) đã được tách độc lập hoàn toàn theo `decision-2026-08-25-intake-payment-stage-separation.md`. Việc thanh toán/mua lượt chỉ cập nhật `payment_status` và số dư credit, không làm thay đổi trạng thái nộp hồ sơ, loại bỏ dứt điểm lỗi kẹt hồ sơ intake.
 ## Tình huống đầu vào chính
 
 

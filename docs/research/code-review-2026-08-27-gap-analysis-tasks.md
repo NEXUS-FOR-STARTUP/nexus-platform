@@ -28,10 +28,10 @@ Tuy nhiên, đợt rà soát phát hiện **4 lỗi Critical (P1) thực tế đ
 
 | Phân loại | Tổng số | Đã khắc phục (Fixed) | Đang chờ (Pending) | Trạng thái rủi ro |
 |---|:---:|:---:|:---:|---|
-| **P1 — Critical & Security** | 5 | **2** (`P1.3`, `P1.4`) | **3** (`P1.1`, `P1.2`, `P1.5`) | 🔴 Đang mở khóa luồng Quên mật khẩu & Open Redirect |
-| **P2 — Major & Reliability** | 10 | **2** (`P2.3`, `P2.6`) | **8** (7 code + 1 doc note) | 🟠 Cần xử lý rate limit, version sort & FE state |
-| **P3 — Minor & Hygiene** | 12 | **10** (tất cả trừ `P3.3`, `P3.11`) | **2** (`P3.3`, `P3.11`) | 🟢 Đã hoàn thành 83% các điểm cải thiện |
-| **Tổng cộng** | **27** | **14 / 27 (52%)** | **13 / 27** | ✅ Đã vượt qua `npm run check-types` |
+| **P1 — Critical & Security** | 5 | **5 / 5 (100%)** | **0** | 🟢 Đã giải quyết triệt để toàn bộ lỗi P1 |
+| **P2 — Major & Reliability** | 10 | **5** (`P2.1`, `P2.2`, `P2.3`, `P2.6`, `P2.9`) | **5** (`P2.4`, `P2.5`, `P2.7`, `P2.8`, `P2.10`) | 🟠 Còn phần FE timer/cooldown & test mock |
+| **P3 — Minor & Hygiene** | 12 | **11** (tất cả trừ `P3.11`) | **1** (`P3.11` test wallet) | 🟢 Đã hoàn thành 92% các điểm cải thiện |
+| **Tổng cộng** | **27** | **21 / 27 (78%)** | **6 / 27** | ✅ `npm run check-types` 100% PASS |
 ---
 
 ## 3. Ma trận Phân loại & Thứ tự Ưu tiên Khắc phục
@@ -57,18 +57,17 @@ Tuy nhiên, đợt rà soát phát hiện **4 lỗi Critical (P1) thực tế đ
 | **P3.10** | Cập nhật số lượng notification event type thành 9 | `docs/system-architecture.md:138` | ✅ Fixed | Đã cập nhật tài liệu kiến trúc |
 | **P3.12** | Đồng bộ chuỗi template trong journal | `2026-08-21-notification-identity.md:17` | ✅ Fixed | Đã đồng bộ template string |
 | **TS Fix** | Thêm partial index type cho `STATUS_ICON` | `DepositHistory.tsx:10` | ✅ Fixed | Giải quyết TS7053 implicit any |
-#### 🟡 Tầng 2: Thấp (Logic nội bộ 1 file, tác động cục bộ)
-| Mã | Hạng mục | Tệp tin | Mức độ | Phạm vi tác động |
+#### 🟡 Tầng 2: Thấp (Logic nội bộ 1 file, tác động cục bộ) — `✅ 7/7 HOÀN THÀNH`
+| Mã | Hạng mục | Tệp tin | Trạng thái | Ghi chú thực thi |
 |---|---|---|:---:|---|
-| **P1.1** | Bỏ chặn `body.type !== 'email-verification'` | `apps/api/src/auth.ts:150` | 🔴 P1 | Mở khóa toàn bộ luồng Quên mật khẩu |
-| **P1.2** | Validate `returnUrl` bắt đầu bằng `/` hợp lệ | `AuthPanel.tsx:68` | 🔴 P1 | Chống Open Redirect |
-| **P1.5** | Chuẩn hóa nhánh `tx` cho `payForOrder` | `wallet.service.ts:137` | 🔴 P1 | Gỡ "quả mìn" crash khi có caller dùng tx |
-| **P2.1** | Thêm `orderBy: { version_no: 'asc' }` vào include | `case-list.repository.ts:19` | 🟠 P2 | Đảm bảo tính đúng đắn % hoàn thiện intake |
-| **P2.2** | Nâng root rateLimit lên 60 req/min, siết route nhạy cảm | `apps/api/src/auth.ts:65` | 🟠 P2 | Ngăn chặn 429 giả cho người dùng thường |
-| **P3.3** | Xóa export `EmailField`, `OtpField` không dùng | `ResetPasswordFields.tsx:12,18,42,61` | 🟡 P3 | Xóa dead code |
-| **P2.9** | Sửa sơ đồ Mermaid luồng thanh toán / intake | `payment-verification-flow.md`, `intake-flow.md` | 🟠 P2 | Đồng bộ tài liệu với kiến trúc GA-02 |
-| **P2.10** | Chuẩn hoá thuật ngữ `not_required` trong tài liệu | `case.types.ts` / docs | ⚪ Ghi chú | Đồng bộ thuật ngữ quy trình |
-
+| **P1.1** | Bỏ chặn `body.type !== 'email-verification'` | `apps/api/src/auth.ts:150` | ✅ Fixed | Mở khóa toàn bộ luồng Quên mật khẩu |
+| **P1.2** | Validate `returnUrl` bắt đầu bằng `/` hợp lệ | `AuthPanel.tsx:68` | ✅ Fixed | Chống Open Redirect |
+| **P1.5** | Chuẩn hóa nhánh `tx` cho `payForOrder` | `wallet.service.ts:137` | ✅ Fixed | Gỡ "quả mìn" crash khi có caller dùng tx |
+| **P2.1** | Thêm `orderBy: { version_no: 'asc' }` vào include | `case-list.repository.ts:19` | ✅ Fixed | Đảm bảo tính đúng đắn % hoàn thiện intake |
+| **P2.2** | Nâng root rateLimit lên 60 req/min, siết route nhạy cảm | `apps/api/src/auth.ts:65` | ✅ Fixed | Ngăn chặn 429 giả cho người dùng thường |
+| **P3.3** | Xóa export `EmailField`, `OtpField` không dùng | `ResetPasswordFields.tsx:12,18,42,61` | ✅ Fixed | Xóa dead code |
+| **P2.9** | Sửa sơ đồ Mermaid luồng thanh toán / intake | `payment-verification-flow.md`, `intake-flow.md` | ✅ Fixed | Đồng bộ tài liệu với kiến trúc GA-02 |
+| **P2.10** | Chuẩn hoá thuật ngữ `not_required` trong tài liệu | `case.types.ts` / docs | ✅ Done | Đồng bộ thuật ngữ quy trình |
 #### 🟠 Tầng 3: Trung Bình (Liên quan UI State, Timer hoặc Logic nhiều Component)
 | Mã | Hạng mục | Tệp tin | Mức độ | Phạm vi tác động |
 |---|---|---|:---:|---|
@@ -383,9 +382,9 @@ flowchart LR
 1. **Đợt 1 — Khắc phục 5 lỗi P1 Critical & Security:**
    - [x] `P1.3`: Xóa ký tự tab ở dòng 53 file `.gitignore`.
    - [x] `P1.4`: Đã xóa bỏ file `tasks/build-gap-analysis.py`.
-   - [ ] `P1.1`: Sửa hook `before` trong `apps/api/src/auth.ts` để mở khóa tính năng quên mật khẩu cho user đã xác minh email.
-   - [ ] `P1.2`: Thêm bộ lọc an toàn cho `returnUrl` trong `AuthPanel.tsx` chống Open Redirect.
-   - [ ] `P1.5`: Chuẩn hóa lại nhánh `tx` trong `wallet.service.ts:payForOrder` tương tự hàm `refund`.
+   - [x] `P1.1`: Sửa hook `before` trong `apps/api/src/auth.ts` để mở khóa tính năng quên mật khẩu cho user đã xác minh email.
+   - [x] `P1.2`: Thêm bộ lọc an toàn cho `returnUrl` trong `AuthPanel.tsx` chống Open Redirect.
+   - [x] `P1.5`: Chuẩn hóa lại nhánh `tx` trong `wallet.service.ts:payForOrder` tương tự hàm `refund`.
 2. **Đợt 2 — Khắc phục các Quick-Wins P2 & P3:**
    - [x] `P2.3`: Bổ sung `"email_already_verified"` vào từ điển `auth-errors.ts`.
    - [x] `P2.6`: Thêm `.trim()` và kiểm tra kiểu chuỗi cho lý do từ chối ở `reject-case.usecase.ts`.
@@ -396,9 +395,9 @@ flowchart LR
    - [x] `P3.6`: Bổ sung `"team_name"` vào signature `setSort` trong `useAdminCases.ts`.
    - [x] `P3.7`: Giữ nguyên badge tổng trên sidebar admin trong `admin/page.tsx`.
    - [x] `P3.8`: Dời `claimMessageSendSlot` xuống sau validate trong `send-message.usecase.ts`.
-   - [ ] `P2.1`: Thêm `orderBy: { version_no: 'asc' }` vào `ADMIN_INCLUDE` trong `case-list.repository.ts`.
-   - [ ] `P2.2`: Nâng rateLimit toàn cục auth lên 60 req/min, chỉ cấu hình `max: 3` cho các route nhạy cảm.
-   - [ ] `P3.3`: Xóa dead code `EmailField`, `OtpField` trong `ResetPasswordFields.tsx`.
+   - [x] `P2.1`: Thêm `orderBy: { version_no: 'asc' }` vào `ADMIN_INCLUDE` trong `case-list.repository.ts`.
+   - [x] `P2.2`: Nâng rateLimit toàn cục auth lên 60 req/min, chỉ cấu hình `max: 3` cho các route nhạy cảm.
+   - [x] `P3.3`: Xóa dead code `EmailField`, `OtpField` trong `ResetPasswordFields.tsx`.
 3. **Đợt 3 — Hoàn thiện Frontend State/UI & Test Mock:**
    - [ ] `P2.4`: Thêm `setResendCooldown` khi gửi OTP thành công ở `verify-email` và `reset-password`.
    - [ ] `P2.5`: Thêm fallback điều hướng khi vào thẳng `/auth/reset-password` không có email.
@@ -409,7 +408,7 @@ flowchart LR
    - [x] `P3.9`: Xóa ghi chú lỗi thời trong `apps/web-1/AGENTS.md`.
    - [x] `P3.10`: Cập nhật số lượng notification event type trong `docs/system-architecture.md`.
    - [x] `P3.12`: Đồng bộ câu chữ trích dẫn template trong journal.
-   - [ ] `P2.9`: Cập nhật sơ đồ Mermaid trong `payment-verification-flow.md` và `intake-flow.md`.
+   - [x] `P2.9`: Cập nhật sơ đồ Mermaid trong `payment-verification-flow.md` và `intake-flow.md`.
    - [ ] Chạy kiểm thử: `npm test` trong `apps/api`.
    - [x] Kiểm tra type check: `npm run check-types` (Đã pass).
    - [ ] Tạo commit và sẵn sàng mở PR merge vào `dev`.
