@@ -124,7 +124,7 @@ export function useAdminCases(view: AdminCaseListView = "all") {
     setSearch,
     sortBy,
     sortOrder,
-    setSort: (nextSortBy: "created_at" | "case_code", nextOrder: "asc" | "desc") => {
+    setSort: (nextSortBy: "created_at" | "case_code" | "team_name", nextOrder: "asc" | "desc") => {
       setSortBy(nextSortBy);
       setSortOrder(nextOrder);
     },

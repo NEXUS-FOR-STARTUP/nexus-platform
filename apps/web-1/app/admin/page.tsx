@@ -232,7 +232,7 @@ function AdminHubPageInner() {
   const isLoading = isPaymentsLoading || isCasesLoading || isSupportersLoading || isDocsLoading || isPackagesLoading;
 
   const pendingPaymentsCount = deposits.filter((d) => d.status === "pending").length;
-  const queueBadge = caseFilter === "all" ? casesTotal : 0;
+  const queueBadge = casesTotal;
 
   const filteredDeposits = React.useMemo(() => {
     if (paymentFilter === "pending") {

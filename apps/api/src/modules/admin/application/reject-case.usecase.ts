@@ -16,7 +16,7 @@ export async function rejectCaseUseCase(
     throw new AppError(400, "VALIDATION_ERROR", "ID dự án không hợp lệ");
   }
 
-  if (reason.length < 10) {
+  if (typeof reason !== "string" || reason.trim().length < 10) {
     throw new AppError(400, "VALIDATION_ERROR", "Lý do từ chối tối thiểu phải 10 ký tự");
   }
 

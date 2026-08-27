@@ -20,7 +20,7 @@ export async function uploadAvatarHandler(c: Context<AuthEnv>) {
     const body = await c.req.parseBody();
     const file = body["file"];
 
-    if (!file || typeof file === "string") {
+    if (!file || typeof file === "string" || Array.isArray(file)) {
       return c.json(
         { code: "VALIDATION_ERROR", message: "Thiếu tệp tải lên" },
         400,

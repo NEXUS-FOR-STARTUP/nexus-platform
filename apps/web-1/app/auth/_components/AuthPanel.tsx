@@ -352,8 +352,8 @@ export default function AuthPanel() {
             validators={{
               onChange: ({ value }) => {
                 if (!value) return "Mật khẩu là bắt buộc";
-                if (value.length < 6)
-                  return "Mật khẩu phải chứa ít nhất 6 ký tự";
+                if (value.length < 8)
+                  return "Mật khẩu phải chứa ít nhất 8 ký tự";
                 return undefined;
               },
             }}

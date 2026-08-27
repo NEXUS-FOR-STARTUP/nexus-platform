@@ -331,7 +331,7 @@ function SlaTimer({ deadline }: { deadline: string | null | undefined }) {
       if (hours > 24) {
         const days = Math.floor(hours / 24)
         setTimeLeft(`${days}d ${hours % 24}h`)
-        setColorClass("text-green")
+        setColorClass("text-success")
       } else if (hours < 4) {
         setTimeLeft(`${hours}h ${minutes}m`);
         setColorClass("text-danger font-semibold");
@@ -340,7 +340,7 @@ function SlaTimer({ deadline }: { deadline: string | null | undefined }) {
         setColorClass("text-warning font-semibold");
       } else {
         setTimeLeft(`${hours}h ${minutes}m`);
-        setColorClass("text-green");
+        setColorClass("text-success");
       }
     };
     update();

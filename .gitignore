@@ -50,7 +50,7 @@ docs/case-documents/
 docker-example
 prisma/backup
 .vscode/
-	*.log
+*.log
 # Logs
 logs/
 nul

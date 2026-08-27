@@ -7,11 +7,11 @@ import { depositDetailHref, getDepositDisplay } from "@/lib/deposit-display";
 import { useMyDeposits } from "../hooks/useWallet";
 import { formatVND } from "./wallet-transaction.types";
 
-const STATUS_ICON = {
+const STATUS_ICON: Partial<Record<string, typeof Clock>> = {
   pending: Clock,
   rejected: XCircle,
   amount_mismatch: AlertCircle,
-} as const;
+};
 
 function bannerTitle(status: string): string {
   if (status === "rejected") return "Khoản nạp bị từ chối";
