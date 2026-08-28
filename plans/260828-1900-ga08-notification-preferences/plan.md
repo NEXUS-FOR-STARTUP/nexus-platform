@@ -9,13 +9,14 @@ created: 2026-08-27
 updated: 2026-08-28
 ticket: tasks/bugs/ga-08-notification-preferences.md
 report: docs/journals/journal-2026-08-28-ga08-notification-preferences.md
+supersededBy: 260828-1345-ga08-email-only-preferences
 ---
 
 # Notification Preferences GA-08
 
 ## Status
 
-Completed 2026-08-28. Báo cáo: [`docs/journals/journal-2026-08-28-ga08-notification-preferences.md`](../../docs/journals/journal-2026-08-28-ga08-notification-preferences.md).
+Completed 2026-08-28. **Superseded** by [`plans/260828-1345-ga08-email-only-preferences/plan.md`](../260828-1345-ga08-email-only-preferences/plan.md). Báo cáo v1: [`docs/journals/journal-2026-08-28-ga08-notification-preferences.md`](../../docs/journals/journal-2026-08-28-ga08-notification-preferences.md).
 
 ## Context
 

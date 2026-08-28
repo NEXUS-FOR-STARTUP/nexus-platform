@@ -12,11 +12,14 @@ created: 2026-08-28
 ticket: tasks/bugs/ga-08-notification-preferences.md
 brainstorm: plans/260828-1900-ga08-notification-preferences/reports/brainstorm-ux-grouping.md
 parent: plans/260828-1900-ga08-notification-preferences/plan.md
+supersededBy: 260828-1345-ga08-email-only-preferences
 ---
 
 # GA-08 UI: 2 section nhóm / kênh
 
 ## Overview
+
+**Superseded** by [`../260828-1345-ga08-email-only-preferences/plan.md`](../260828-1345-ga08-email-only-preferences/plan.md) — v2 còn 1 switch email, không 2 section nhóm/kênh.
 
 4 switch cùng visual = user đọc 4 việc độc lập. Luật thật: 2 nhóm × 2 kênh AND, commit bằng Lưu.
 
