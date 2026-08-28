@@ -2,7 +2,13 @@ import { DOMAIN_EVENTS, type DomainEvent } from "../../../shared/domain/domain-e
 import { onEvent } from "../../../shared/infrastructure/event-bus.js";
 import logger from "../../../shared/infrastructure/logger.js";
 import { insertOutboxRow } from "../infrastructure/persistence/notification-outbox.repository.js";
+import { findNotificationPreferencesByUserIds } from "../infrastructure/persistence/notification-preference.repository.js";
 import { telegramBot } from "../infrastructure/telegram.service.js";
+import {
+  ALL_ENABLED_PREFERENCE,
+  allowsNotificationChannel,
+  type NotificationPreferenceSnapshot,
+} from "./preference-policy.js";
 import { channelsFor, resolveRecipients } from "./recipients.js";
 import { renderTemplate } from "./notification-templates.js";
 
@@ -13,28 +19,46 @@ type ListenerDeps = {
   resolve?: typeof resolveRecipients;
   channels?: typeof channelsFor;
   insert?: typeof insertOutboxRow;
+  loadPreferences?: (userIds: string[]) => Promise<Map<string, NotificationPreferenceSnapshot>>;
 };
 
 export function registerNotificationListener(deps: ListenerDeps = {}): void {
+  const resolved: ListenerDeps = {
+    ...deps,
+    loadPreferences: deps.loadPreferences ?? findNotificationPreferencesByUserIds,
+  };
   for (const type of Object.values(DOMAIN_EVENTS)) {
     onEvent(type, (event) => {
-      void handleEvent(event, deps).catch((error) => {
+      void handleEvent(event, resolved).catch((error) => {
         logger.error({ eventId: event.eventId, type: event.type, err: error }, "notification listener failed");
       });
     });
   }
 }
 
-export async function handleEvent(
-  event: DomainEvent,
-  deps: { resolve?: typeof resolveRecipients; channels?: typeof channelsFor; insert?: typeof insertOutboxRow } = {},
-): Promise<void> {
+export async function handleEvent(event: DomainEvent, deps: ListenerDeps = {}): Promise<void> {
   const { resolve = resolveRecipients, channels = channelsFor, insert = insertOutboxRow } = deps;
   const payload = event.payload as Record<string, unknown>;
 
   const recipients = await resolve(event); // rỗng → bỏ qua
+  let preferenceByUser = new Map<string, NotificationPreferenceSnapshot>();
+  if (deps.loadPreferences) {
+    try {
+      preferenceByUser = await deps.loadPreferences(
+        [...new Set(recipients.map((recipient) => recipient.userId))],
+      );
+    } catch (error) {
+      logger.error(
+        { eventId: event.eventId, type: event.type, err: error },
+        "notification preference load failed",
+      );
+    }
+  }
+
   for (const r of recipients) {
+    const preference = preferenceByUser.get(r.userId) ?? ALL_ENABLED_PREFERENCE;
     for (const channel of channels(event.type, r.role, payload)) {
+      if (!allowsNotificationChannel(preference, event.type, channel)) continue;
       const { title, body, link } = renderTemplate(event.type, payload, r.role);
 
       let recipientType: string;

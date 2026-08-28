@@ -8,12 +8,16 @@ import {
   getUnreadCountHandler,
   markReadHandler,
   markAllReadHandler,
+  getPreferencesHandler,
+  updatePreferencesHandler,
 } from "./notifications.controller.js";
 
 export const notificationsRouter = new Hono();
 
 notificationsRouter.get("/", requireAuth, listNotificationsHandler);
 notificationsRouter.get("/unread-count", requireAuth, getUnreadCountHandler);
+notificationsRouter.get("/preferences", requireAuth, getPreferencesHandler);
+notificationsRouter.put("/preferences", requireAuth, updatePreferencesHandler);
 notificationsRouter.patch("/:id/read", requireAuth, markReadHandler);
 notificationsRouter.patch("/read-all", requireAuth, markAllReadHandler);
 

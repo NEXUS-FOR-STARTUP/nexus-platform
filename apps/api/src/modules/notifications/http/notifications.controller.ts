@@ -1,9 +1,13 @@
 import type { Context } from "hono";
-import { handleError } from "../../../shared/infrastructure/http-helpers.js";
+import { handleError, readJsonBody } from "../../../shared/infrastructure/http-helpers.js";
 import { listNotificationsUseCase } from "../application/list-notifications.usecase.js";
 import { getUnreadCountUseCase } from "../application/get-unread-count.usecase.js";
 import { markNotificationReadUseCase } from "../application/mark-notification-read.usecase.js";
 import { markAllReadUseCase } from "../application/mark-all-read.usecase.js";
+import {
+  getNotificationPreferencesUseCase,
+  updateNotificationPreferencesUseCase,
+} from "../application/notification-preferences.usecase.js";
 
 // GET /api/notifications?page=&limit=
 export async function listNotificationsHandler(c: Context) {
@@ -48,6 +52,25 @@ export async function markAllReadHandler(c: Context) {
   try {
     const result = await markAllReadUseCase(user.id);
     return c.json(result);
+  } catch (error) {
+    return handleError(c, error);
+  }
+}
+
+export async function getPreferencesHandler(c: Context) {
+  const user = c.get("user");
+  try {
+    return c.json(await getNotificationPreferencesUseCase(user.id));
+  } catch (error) {
+    return handleError(c, error);
+  }
+}
+
+export async function updatePreferencesHandler(c: Context) {
+  const user = c.get("user");
+  try {
+    const body = await readJsonBody(c);
+    return c.json(await updateNotificationPreferencesUseCase(user.id, body));
   } catch (error) {
     return handleError(c, error);
   }

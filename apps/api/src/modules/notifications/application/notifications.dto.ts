@@ -1,1 +1,6 @@
-export type { NotificationItem, ListNotificationsResponse } from "@repo/validation";
+export type {
+  NotificationItem,
+  ListNotificationsResponse,
+  NotificationPreference,
+  NotificationPreferenceResponse,
+} from "@repo/validation";
