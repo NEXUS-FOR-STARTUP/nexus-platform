@@ -26,11 +26,6 @@ export function useNotificationPreferences() {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(notificationPreferencesQueryKey, data);
-      notifications.show({
-        title: "Thành công",
-        message: "Đã lưu cài đặt thông báo.",
-        color: "green",
-      });
     },
     onError: () => {
       notifications.show({

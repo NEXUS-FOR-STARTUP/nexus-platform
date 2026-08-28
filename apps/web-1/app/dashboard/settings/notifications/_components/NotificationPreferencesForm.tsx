@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, Paper, Stack, Switch, Text } from "@mantine/core";
+import { Paper, Stack, Switch, Text } from "@mantine/core";
 import { type NotificationPreference } from "@/types/notification";
 import { useNotificationPreferences } from "../../hooks/useNotificationPreferences";
 
@@ -36,7 +36,7 @@ export default function NotificationPreferencesForm() {
         <div>
           <Text fw={600}>Cài đặt thông báo</Text>
           <Text size="sm" className="text-text-muted">
-            Chọn có nhận email thông báo hay không. Nhấn Lưu để áp dụng.
+            Bật hoặc tắt nhận email thông báo.
           </Text>
         </div>
 
@@ -47,14 +47,21 @@ export default function NotificationPreferencesForm() {
           label="Nhận email"
           description="Gửi thông báo tới email đã đăng ký."
           onChange={(event) => {
+            if (save.isPending) return;
             const checked = event.currentTarget.checked;
-            setDraft((current) => (current ? { ...current, email_enabled: checked } : current));
+            const previous = draft.email_enabled;
+            if (checked === previous) return;
+            setDraft({ email_enabled: checked });
+            save.mutate(
+              { email_enabled: checked },
+              {
+                onError: () => {
+                  setDraft({ email_enabled: previous });
+                },
+              },
+            );
           }}
         />
-
-        <Button color="brand" loading={save.isPending} onClick={() => save.mutate(draft)}>
-          Lưu
-        </Button>
       </Stack>
     </Paper>
   );
