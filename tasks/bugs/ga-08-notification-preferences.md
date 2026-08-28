@@ -3,7 +3,10 @@
 - **ID:** GA-08
 - **Priority:** P1
 - **Category:** Notification / UX
-- **Status:** Todo
+- **Status:** Done
+- **Completion Date:** 2026-08-28
+- **Báo cáo kế hoạch:** `plans/260828-1900-ga08-notification-preferences/plan.md`
+- **Báo cáo hoàn thành:** `docs/journals/journal-2026-08-28-ga08-notification-preferences.md`
 - **Nguồn:** `docs/research/mandatory-features-gap-analysis-2026-08-24.md`
 
 ---
