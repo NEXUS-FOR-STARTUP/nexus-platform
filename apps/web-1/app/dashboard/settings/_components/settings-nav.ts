@@ -14,7 +14,9 @@ const SETTINGS_NAV_SUB_ITEMS = [
 ] satisfies { href: string; label: string; icon: LucideIcon }[];
 
 export function getSettingsNav(basePath: string): SettingsNavItem[] {
-  return SETTINGS_NAV_SUB_ITEMS.map((item) => ({
+  return SETTINGS_NAV_SUB_ITEMS.filter(
+    (item) => !(basePath.startsWith("/supporter") && item.href === "/notifications"),
+  ).map((item) => ({
     ...item,
     href: `${basePath}${item.href}`,
   }));
