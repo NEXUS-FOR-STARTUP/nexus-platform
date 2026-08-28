@@ -1,7 +1,6 @@
 import {
   DEFAULT_NOTIFICATION_PREFERENCES,
   UpdateNotificationPreferenceSchema,
-  toNotificationPreferenceResponse,
   type NotificationPreferenceResponse,
 } from "@repo/validation";
 import { AppError } from "../../../shared/domain/app-error.js";
@@ -21,7 +20,7 @@ export async function getNotificationPreferencesUseCase(
 ): Promise<NotificationPreferenceResponse> {
   const findByUserId = deps.findByUserId ?? findNotificationPreference;
   const row = await findByUserId(userId);
-  return toNotificationPreferenceResponse(row ?? { ...DEFAULT_NOTIFICATION_PREFERENCES });
+  return row ?? { ...DEFAULT_NOTIFICATION_PREFERENCES };
 }
 
 export async function updateNotificationPreferencesUseCase(
@@ -36,5 +35,5 @@ export async function updateNotificationPreferencesUseCase(
 
   const upsert = deps.upsert ?? upsertNotificationPreference;
   const saved = await upsert(userId, parsed.data);
-  return toNotificationPreferenceResponse(saved);
+  return saved;
 }

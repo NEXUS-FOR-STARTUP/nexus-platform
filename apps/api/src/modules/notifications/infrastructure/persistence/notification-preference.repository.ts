@@ -4,31 +4,11 @@ import { type NotificationPreference } from "@repo/validation";
 const PREFERENCE_SELECT = {
   user_id: true,
   email_enabled: true,
-  telegram_enabled: true,
-  in_app_enabled: true,
-  case_status_updates: true,
-  chat_messages: true,
-  payment_alerts: true,
-  marketing_news: true,
 } as const;
 
-function toPreference(row: {
-  email_enabled: boolean;
-  telegram_enabled: boolean;
-  in_app_enabled: boolean;
-  case_status_updates: boolean;
-  chat_messages: boolean;
-  payment_alerts: boolean;
-  marketing_news: boolean;
-}): NotificationPreference {
+function toPreference(row: { email_enabled: boolean }): NotificationPreference {
   return {
     email_enabled: row.email_enabled,
-    telegram_enabled: row.telegram_enabled,
-    in_app_enabled: row.in_app_enabled,
-    case_status_updates: row.case_status_updates,
-    chat_messages: row.chat_messages,
-    payment_alerts: row.payment_alerts,
-    marketing_news: row.marketing_news,
   };
 }
 
@@ -65,4 +45,3 @@ export async function upsertNotificationPreference(
   });
   return toPreference(row);
 }
-
