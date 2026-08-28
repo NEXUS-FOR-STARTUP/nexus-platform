@@ -10,3 +10,4 @@ Không dùng thư mục này thay PRD hay requirement.
 - [`document-lifecycle-model-note.md`](./document-lifecycle-model-note.md)
 - [`money-credit-completion-model-note.md`](./money-credit-completion-model-note.md)
 - [`frontend-route-and-component-map.md`](./frontend-route-and-component-map.md)
+- [`notification-preferences-decision.md`](./notification-preferences-decision.md)
