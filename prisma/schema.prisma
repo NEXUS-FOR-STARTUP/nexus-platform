@@ -43,6 +43,7 @@ model User {
 
   document_records       DocumentRecord[]
   notifications          Notification[]
+  notification_preferences NotificationPreference?
   wallet                 UserWallet?
   wallet_topups          WalletTopup[]
   deposits               Deposit[]
@@ -695,4 +696,21 @@ model NotificationOutbox {
   @@index([status, next_retry_at])
   @@index([status, sent_at]) // purge job
   @@map("notification_outbox")
+}
+
+model NotificationPreference {
+  user_id             String   @id
+  email_enabled       Boolean  @default(true)
+  telegram_enabled    Boolean  @default(true)
+  in_app_enabled      Boolean  @default(true)
+  case_status_updates Boolean  @default(true)
+  chat_messages       Boolean  @default(true)
+  payment_alerts      Boolean  @default(true)
+  marketing_news      Boolean  @default(true)
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
 }
