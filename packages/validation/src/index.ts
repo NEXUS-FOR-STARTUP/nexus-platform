@@ -449,38 +449,13 @@ export const ListNotificationsResponseSchema = z.object({
 
 export type ListNotificationsResponse = z.infer<typeof ListNotificationsResponseSchema>;
 
-export const NOTIFICATION_PREFERENCE_ACTIVE_FIELDS = [
-  "case_status_updates",
-  "payment_alerts",
-  "in_app_enabled",
-  "email_enabled",
-] as const;
-
-export const NOTIFICATION_PREFERENCE_RESERVED_FIELDS = [
-  "telegram_enabled",
-  "chat_messages",
-  "marketing_news",
-] as const;
-
 export const DEFAULT_NOTIFICATION_PREFERENCES = {
   email_enabled: true,
-  telegram_enabled: true,
-  in_app_enabled: true,
-  case_status_updates: true,
-  chat_messages: true,
-  payment_alerts: true,
-  marketing_news: true,
 } as const;
 
 export const NotificationPreferenceSchema = z
   .object({
     email_enabled: z.boolean(),
-    telegram_enabled: z.boolean(),
-    in_app_enabled: z.boolean(),
-    case_status_updates: z.boolean(),
-    chat_messages: z.boolean(),
-    payment_alerts: z.boolean(),
-    marketing_news: z.boolean(),
   })
   .strict();
 
@@ -488,22 +463,9 @@ export type NotificationPreference = z.infer<typeof NotificationPreferenceSchema
 
 export const UpdateNotificationPreferenceSchema = NotificationPreferenceSchema;
 
-export const NotificationPreferenceResponseSchema = NotificationPreferenceSchema.extend({
-  active_fields: z.array(z.enum(NOTIFICATION_PREFERENCE_ACTIVE_FIELDS)),
-  reserved_fields: z.array(z.enum(NOTIFICATION_PREFERENCE_RESERVED_FIELDS)),
-});
+export const NotificationPreferenceResponseSchema = NotificationPreferenceSchema;
 
 export type NotificationPreferenceResponse = z.infer<typeof NotificationPreferenceResponseSchema>;
-
-export function toNotificationPreferenceResponse(
-  preference: NotificationPreference,
-): NotificationPreferenceResponse {
-  return {
-    ...preference,
-    active_fields: [...NOTIFICATION_PREFERENCE_ACTIVE_FIELDS],
-    reserved_fields: [...NOTIFICATION_PREFERENCE_RESERVED_FIELDS],
-  };
-}
 
 // ---------------------------------------------------------------------------
 // Case list query + paginated envelope (GA-09)
