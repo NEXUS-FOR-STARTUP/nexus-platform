@@ -136,6 +136,20 @@ app.get('/stream', (c) => {
     await stream.writeln('from Hono streaming')
   })
 })
+// Consent validation: reject signup without affirmative terms agreement
+// (GDPR Art 7, NĐ 13/2023/NĐ-CP Điều 11)
+app.use('/api/auth/sign-up/email', async (c, next) => {
+  if (c.req.method === 'POST') {
+    const body = await c.req.json().catch(() => ({}))
+    if (body.terms !== true) {
+      return c.json(
+        { message: 'Bạn phải đồng ý với Điều khoản dịch vụ và Chính sách bảo mật.' },
+        400,
+      )
+    }
+  }
+  return next()
+})
 
 app.on(['POST', 'GET'], '/api/auth/*', (c) => auth.handler(c.req.raw))
 
