@@ -4,7 +4,10 @@
 - **Priority:** P1
 - **Category:** Policy (Pháp lý)
 - **Type:** Policy / Non-technical (Soạn thảo văn bản điều khoản pháp lý)
-- **Status:** Todo
+- **Status:** Done
+- **Assignee:** Phung Luu Hoang Long
+- **Completed Date:** 2026-08-30
+- **Evidence:** `plans/260830-1000-ga12-tos-privacy-consent/`; `apps/web-1/app/terms/page.tsx`; `apps/web-1/app/privacy/page.tsx`; `apps/web-1/components/policy/PolicyDocumentLayout.tsx`; `AppShell.tsx`; `AuthPanel.tsx`; `prisma/migrations/20260830100000_add_user_terms_and_privacy_agreement/`; test `ga-12-terms-and-privacy.test.ts` (3/3 pass)
 - **Nguồn:** `docs/research/mandatory-features-gap-analysis-2026-08-24.md`
 - **Căn cứ pháp lý:** Nghị định số 13/2023/NĐ-CP (Điều 11 — Sự đồng ý của chủ thể dữ liệu)
 

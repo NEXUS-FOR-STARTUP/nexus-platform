@@ -6,11 +6,11 @@
 ## Overview
 
 | Nhóm | Tổng | Todo | In Progress | Review | Done | Dropped |
-|------|------|------|-------------|--------|------|---------|
+|---|---|---|---|---|---|---|
 | P0 | 4 | 0 | 0 | 0 | **4** | 0 |
-| P1 | 10 | 2 | 0 | 0 | **7** | **1** |
+| P1 | 10 | 1 | 0 | 0 | **8** | **1** |
 | P2 | 8 | 5 | 0 | 0 | **2** | **1** |
-| **Tổng** | **22** | **7** | 0 | **0** | **13** | **2** |
+| **Tổng** | **22** | **6** | 0 | **0** | **14** | **2** |
 
 ## Master Tracking Table
 
@@ -27,7 +27,7 @@
 | GA-09 | Pagination/search server-side cho case list + admin cases | List case và list admin cases trả toàn bộ dữ liệu không phân trang, không search, không sort server-side — UI/API sẽ vỡ khi số case tăng. | P1 | Admin | Done |  |  | `list-cases.usecase.ts:3-5` (findManyCasesByRole không pagination/search); `list-admin-cases.usecase.ts:13-39` (chỉ stage/internal_status/limit) | Offset/page + text search (case_code, tên) + sort server-side | Sẽ vỡ khi số case tăng | `docs/journals/journal-2026-08-25-ga09-ga10-case-list-export.md` |
 | GA-10 | Export CSV/Excel cho admin | Không có endpoint export và chưa có thư viện csv/xlsx — admin không xuất được dữ liệu case/deposit/transactions để đối soát. | P1 | Admin | Done |  |  | Không có endpoint export, không có thư viện csv/xlsx | Export danh sách case/deposit/transactions theo filter | Phục vụ đối soát | `docs/journals/journal-2026-08-25-ga09-ga10-case-list-export.md` |
 | GA-11 | User-facing data export | Không có endpoint download my data — người dùng không tự lấy được dữ liệu cá nhân của mình; NĐ 13/2023 Điều 9 quy định quyền truy cập/cung cấp dữ liệu. | P1 | Legal | Dropped |  |  | `docs/research/mandatory-features-gap-analysis-2026-08-24.md` | Người dùng tự tải dữ liệu cá nhân của mình | Đã bỏ theo quyết định quản trị MVP (không bắt buộc ban đầu) |  |
-| GA-12 | ToS/Privacy Policy thật + ghi nhận consent | Soạn thảo văn bản ToS/Privacy Policy thật và chính sách ghi nhận consent — thiếu căn cứ pháp lý xử lý dữ liệu theo NĐ 13/2023. | P1 | Policy (Pháp lý) | Todo |  |  | `AuthPanel.tsx:417-424` (checkbox terms không link văn bản) | Soạn thảo ToS/Privacy Policy văn bản chuẩn pháp lý | Task thuộc về Policy (soạn thảo văn bản điều khoản), không phải code kỹ thuật |  |
+| GA-12 | ToS/Privacy Policy thật + ghi nhận consent | Soạn thảo văn bản ToS/Privacy Policy thật và chính sách ghi nhận consent — thiếu căn cứ pháp lý xử lý dữ liệu theo NĐ 13/2023. | P1 | Policy (Pháp lý) | Done | Phung Luu Hoang Long | 2026-08-30 | `plans/260830-1000-ga12-tos-privacy-consent/`; `apps/web-1/app/terms/page.tsx`; `apps/web-1/app/privacy/page.tsx`; `apps/web-1/components/policy/PolicyDocumentLayout.tsx`; `AppShell.tsx`; `AuthPanel.tsx`; `prisma/migrations/20260830100000_add_user_terms_and_privacy_agreement/`; test `ga-12-terms-and-privacy.test.ts` (3/3 pass) | Soạn thảo ToS/Privacy Policy chuẩn NĐ 13/2023 + 2 trang công khai `/terms`, `/privacy` + Footer links + Checkbox AuthPanel + migration lưu `terms_and_privacy_version`, `terms_and_privacy_accepted_at` | Đã hoàn thành 100% | `docs/journals/journal-2026-08-30-ga12-tos-privacy-consent.md` |
 | GA-13 | 2FA cho admin/supporter | Chưa cài twoFactor plugin — admin/supporter đăng nhập chỉ bằng password; admin duyệt deposit là điểm chẹn tiền, mất tài khoản admin là rủi ro tài chính trực tiếp. | P1 | Security | Todo |  |  | `auth.ts:69` (map field) + `auth.ts:157-177` (không cài twoFactor plugin) | Cài twoFactor plugin + UI setup TOTP; bắt buộc cho admin/supporter | Admin duyệt deposit là điểm chẹn tiền |  |
 | GA-14 | Rút tiền thủ công khỏi ví | Ví chỉ có balance/history/purchase-credits, không có route rút tiền — người dùng không tự rút được tiền khỏi ví. | P2 | Wallet | Dropped |  |  | `wallet.routes.ts` (chỉ balance/history/purchase-credits/topups-410) | Route user-initiated withdrawal + quy trình duyệt | Đã bỏ theo quyết định quản trị MVP |  |
 | GA-15 | Policy credit mở: hết hạn / refund / chuyển credit | Chưa chốt chính sách vòng đời credit (hết hạn, refund, chuyển credit giữa user) — rủi ro tranh chấp khi credit biến mất hoặc không dùng được. | P2 | Policy (Kinh doanh) | Todo |  |  | `docs/backlog/credit-du-tru-account-level.md` §7 | Chốt văn bản chính sách: credit hết hạn không? refund policy? chuyển credit giữa user? | Task thuộc về Policy (chính sách kinh doanh & hoàn tiền), không phải code kỹ thuật |  |

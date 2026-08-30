@@ -15,9 +15,9 @@ Nguồn sự thật chính cho toàn bộ các nhiệm vụ phát triển hiện
 | Nhóm | Tổng | Todo | In Progress | Review | Done | Blocked / Dropped |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
 | **P0 (Khẩn cấp/Bảo mật/Pháp lý)** | 4 | 0 | 0 | 0 | **4** | 0 |
-| **P1 (Tính năng bắt buộc học kỳ)** | 10 | 3 | 0 | 0 | **6** | **1 (Bỏ)** |
+| **P1 (Tính năng bắt buộc học kỳ)** | 10 | 1 | 0 | 0 | **8** | **1 (Bỏ)** |
 | **P2 (Cải tiến & Nợ kỹ thuật)** | 8 | 5 | 0 | 0 | **2** | **1 (Bỏ)** |
-| **TỔNG CỘNG** | **22** | **8** | **0** | **0** | **12** | **2** |
+| **TỔNG CỘNG** | **22** | **6** | **0** | **0** | **14** | **2** |
 
 ---
 
@@ -34,11 +34,11 @@ Mỗi nhiệm vụ trong Gap Analysis được mô tả chi tiết thành 1 file
 | **GA-05** | Upload Avatar người dùng | P1 | ✅ **Done** | [`bugs/ga-05-avatar-upload.md`](./bugs/ga-05-avatar-upload.md) |
 | **GA-06** | UI quản lý Session/Thiết bị | P1 | ✅ **Done** | [`bugs/ga-06-session-management-ui.md`](./bugs/ga-06-session-management-ui.md) |
 | **GA-07** | Session timeout policy | P1 | ✅ **Done** | [`bugs/ga-07-session-timeout-policy.md`](./bugs/ga-07-session-timeout-policy.md) |
-| **GA-08** | Notification preferences | P1 | ❌ **Todo** | [`bugs/ga-08-notification-preferences.md`](./bugs/ga-08-notification-preferences.md) |
+| **GA-08** | Notification preferences | P1 | ✅ **Done** | [`bugs/ga-08-notification-preferences.md`](./bugs/ga-08-notification-preferences.md) |
 | **GA-09** | Pagination & Search server-side | P1 | ✅ **Done** | [`bugs/ga-09-server-pagination-search.md`](./bugs/ga-09-server-pagination-search.md) |
 | **GA-10** | Export CSV/Excel cho Admin | P1 | ✅ **Done** | [`bugs/ga-10-admin-export-csv.md`](./bugs/ga-10-admin-export-csv.md) |
 | **GA-11** | User data export (NĐ 13/2023) | P1 | ⚪ **Dropped** | [`bugs/ga-11-user-data-export.md`](./bugs/ga-11-user-data-export.md) |
-| **GA-12** | ToS/Privacy Policy + Consent | P1 | 📋 **Policy (Pháp lý)** | [`bugs/ga-12-tos-privacy-policy-consent.md`](./bugs/ga-12-tos-privacy-policy-consent.md) |
+| **GA-12** | ToS/Privacy Policy + Consent | P1 | ✅ **Done** | [`bugs/ga-12-tos-privacy-policy-consent.md`](./bugs/ga-12-tos-privacy-policy-consent.md) |
 | **GA-13** | 2FA cho Admin/Supporter | P1 | ❌ **Todo** | [`bugs/ga-13-two-factor-authentication.md`](./bugs/ga-13-two-factor-authentication.md) |
 | **GA-14** | Rút tiền thủ công khỏi ví | P2 | ⚪ **Dropped** | [`bugs/ga-14-wallet-manual-withdrawal.md`](./bugs/ga-14-wallet-manual-withdrawal.md) |
 | **GA-15** | Chính sách Credit mở | P2 | 📋 **Policy (Kinh doanh)** | [`bugs/ga-15-credit-lifecycle-policy.md`](./bugs/ga-15-credit-lifecycle-policy.md) |

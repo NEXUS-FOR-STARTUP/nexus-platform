@@ -420,10 +420,36 @@ export default function AuthPanel() {
                 name="terms"
                 children={(field) => (
                   <Checkbox
-                    label="Tôi đồng ý với điều khoản dịch vụ"
+                    label={
+                      <Text size="xs" className="font-body text-text-muted select-none">
+                        Tôi đồng ý với{" "}
+                        <Anchor
+                          component={Link}
+                          href="/terms"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-brand font-medium hover:underline inline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Điều khoản dịch vụ
+                        </Anchor>{" "}
+                        và{" "}
+                        <Anchor
+                          component={Link}
+                          href="/privacy"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-brand font-medium hover:underline inline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Chính sách bảo mật
+                        </Anchor>
+                      </Text>
+                    }
                     checked={field.state.value}
                     onChange={(e) => field.handleChange(e.target.checked)}
                     radius="sm"
+                    color="brand"
                     disabled={isLoading}
                   />
                 )}
