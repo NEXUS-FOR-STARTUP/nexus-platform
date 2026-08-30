@@ -50,6 +50,8 @@ export default function AppShell({ children }: AppShellProps) {
   const footerLinks = [
     { href: "/privacy", label: "Chính sách bảo mật" },
     { href: "/terms", label: "Điều khoản sử dụng" },
+    { href: "/refund-policy", label: "Thanh toán & Hoàn tiền" },
+    { href: "/fair-use-policy", label: "Quy chế & Fair-Use" },
   ];
 
   return (
