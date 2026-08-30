@@ -16,8 +16,8 @@ Nguồn sự thật chính cho toàn bộ các nhiệm vụ phát triển hiện
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
 | **P0 (Khẩn cấp/Bảo mật/Pháp lý)** | 4 | 0 | 0 | 0 | **4** | 0 |
 | **P1 (Tính năng bắt buộc học kỳ)** | 10 | 1 | 0 | 0 | **8** | **1 (Bỏ)** |
-| **P2 (Cải tiến & Nợ kỹ thuật)** | 8 | 5 | 0 | 0 | **2** | **1 (Bỏ)** |
-| **TỔNG CỘNG** | **22** | **6** | **0** | **0** | **14** | **2** |
+| **P2 (Cải tiến & Nợ kỹ thuật)** | 8 | 3 | 0 | 0 | **4** | **1 (Bỏ)** |
+| **TỔNG CỘNG** | **22** | **4** | **0** | **0** | **16** | **2** |
 
 ---
 
@@ -41,8 +41,8 @@ Mỗi nhiệm vụ trong Gap Analysis được mô tả chi tiết thành 1 file
 | **GA-12** | ToS/Privacy Policy + Consent | P1 | ✅ **Done** | [`bugs/ga-12-tos-privacy-policy-consent.md`](./bugs/ga-12-tos-privacy-policy-consent.md) |
 | **GA-13** | 2FA cho Admin/Supporter | P1 | ❌ **Todo** | [`bugs/ga-13-two-factor-authentication.md`](./bugs/ga-13-two-factor-authentication.md) |
 | **GA-14** | Rút tiền thủ công khỏi ví | P2 | ⚪ **Dropped** | [`bugs/ga-14-wallet-manual-withdrawal.md`](./bugs/ga-14-wallet-manual-withdrawal.md) |
-| **GA-15** | Chính sách Credit mở | P2 | 📋 **Policy (Kinh doanh)** | [`bugs/ga-15-credit-lifecycle-policy.md`](./bugs/ga-15-credit-lifecycle-policy.md) |
-| **GA-16** | Admin Taxonomy & Auto-priority | P2 | 📋 **Policy (Vận hành)** | [`bugs/ga-16-admin-taxonomy-and-priority.md`](./bugs/ga-16-admin-taxonomy-and-priority.md) |
+| **GA-15** | Chính sách Credit mở | P2 | ✅ **Done** | [`bugs/ga-15-credit-lifecycle-policy.md`](./bugs/ga-15-credit-lifecycle-policy.md) |
+| **GA-16** | Admin Taxonomy & Auto-priority | P2 | ✅ **Done** | [`bugs/ga-16-admin-taxonomy-and-priority.md`](./bugs/ga-16-admin-taxonomy-and-priority.md) |
 | **GA-17** | CSRF & Durable Rate Limit | P2 | ⚠️ **Partially** | [`bugs/ga-17-app-csrf-and-rate-limit-infra.md`](./bugs/ga-17-app-csrf-and-rate-limit-infra.md) |
 | **GA-18** | Dọn dẹp Deprecated & Dead code | P2 | ⚠️ **Partially** | [`bugs/ga-18-cleanup-deprecated-dead-code.md`](./bugs/ga-18-cleanup-deprecated-dead-code.md) |
 | **GA-19** | Chat unread per user | P2 | ✅ **Done** | [`bugs/ga-19-chat-unread-per-user.md`](./bugs/ga-19-chat-unread-per-user.md) |

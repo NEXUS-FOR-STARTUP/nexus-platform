@@ -4,7 +4,10 @@
 - **Priority:** P2
 - **Category:** Policy (Kinh doanh)
 - **Type:** Policy / Non-technical (Quyết định chính sách hạn dùng, hoàn tiền, chuyển credit)
-- **Status:** Todo
+- **Status:** Done
+- **Assignee:** Phùng Lưu Hoàng Long
+- **Completed Date:** 2026-08-30
+- **Evidence:** `docs/policies/credit-lifecycle-and-refund-policy.md`; `apps/web-1/app/terms/page.tsx` (Điều 5, 6, 7); `docs/research/brainstorm-2026-08-30-policy-legal-compliance-ga12.md`
 - **Nguồn:** `docs/research/mandatory-features-gap-analysis-2026-08-24.md`, `docs/backlog/credit-du-tru-account-level.md §7`
 
 ---
