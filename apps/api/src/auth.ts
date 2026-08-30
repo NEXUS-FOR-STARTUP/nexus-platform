@@ -171,6 +171,18 @@ export const auth = betterAuth({
         }
       }
 
+      // Validate consent flag: signup payload must include terms: true
+      // (GDPR Art 7, NĐ 13/2023/NĐ-CP Điều 11 — affirmative consent)
+      if (
+        path === '/sign-up/email' &&
+        body &&
+        (body as Record<string, unknown>).terms !== true
+      ) {
+        throw new APIError('BAD_REQUEST', {
+          message: 'Bạn phải đồng ý với Điều khoản dịch vụ và Chính sách bảo mật.',
+        })
+      }
+
       if (
         path === '/sign-up/email' ||
         (path === '/email-otp/send-verification-otp' &&
@@ -197,7 +209,7 @@ export const auth = betterAuth({
           return {
             data: {
               ...user,
-              terms_and_privacy_version: '2026-08-v1',
+              terms_and_privacy_version: '2026-08-v2.0',
               terms_and_privacy_accepted_at: new Date(),
             },
           }

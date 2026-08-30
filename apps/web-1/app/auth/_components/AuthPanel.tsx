@@ -167,7 +167,7 @@ export default function AuthPanel() {
       email: "",
       password: "",
       confirmPassword: "",
-      terms: true,
+      terms: false,
     },
     onSubmit: async ({ value }) => {
       setAuthError(null);

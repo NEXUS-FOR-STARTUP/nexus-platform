@@ -17,11 +17,11 @@ test('GA-12: User model schema definition contains terms and privacy tracking fi
     id: 'test-user-ga12',
     name: 'Sinh vien Khoi nghiep',
     email: 'sinhvien@fpt.edu.vn',
-    terms_and_privacy_version: '2026-08-v1',
+    terms_and_privacy_version: '2026-08-v2.0',
     terms_and_privacy_accepted_at: new Date(),
   };
 
-  assert.equal(mockUser.terms_and_privacy_version, '2026-08-v1');
+  assert.equal(mockUser.terms_and_privacy_version, '2026-08-v2.0');
   assert.ok(mockUser.terms_and_privacy_accepted_at instanceof Date);
 });
 
@@ -51,12 +51,12 @@ test('GA-12: Better Auth databaseHook data builder assigns current policy versio
   const hookResult = {
     data: {
       ...inputUser,
-      terms_and_privacy_version: '2026-08-v1',
+      terms_and_privacy_version: '2026-08-v2.0',
       terms_and_privacy_accepted_at: new Date(),
     },
   };
 
-  assert.equal(hookResult.data.terms_and_privacy_version, '2026-08-v1');
+  assert.equal(hookResult.data.terms_and_privacy_version, '2026-08-v2.0');
   assert.ok(hookResult.data.terms_and_privacy_accepted_at instanceof Date);
   assert.equal(hookResult.data.id, 'user-signup-123');
 });
