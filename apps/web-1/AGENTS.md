@@ -14,7 +14,7 @@ Next.js 16 App Router product app. Mantine UI v9, TanStack Query v5 / Form v1, L
 app/
 ├── layout.tsx + providers.tsx → Root layout (QueryClient, Mantine, Theme)
 ├── page.tsx → Landing (AppShell)
-├── auth/ → Login/register + verify-email + forgot-password (AuthPanel, TanStack Form + Google OAuth)
+├── auth/ → Login/register (Google OAuth, Email OTP & Password; legacy verify-email @deprecated)
 ├── dashboard/ → Student (role=user)
 │   └── case/[id]/ → Workspace (6 tabs: overview/documents/discussion/credits/timeline/settings)
 ├── admin/ → Admin panel (6 sections via ?tab=: stats/payments/cases/documents/packages/users, 8 hooks)
@@ -72,7 +72,7 @@ RootLayout → Providers
 | useAdminPayments | admin/hooks/ | Payment verification |
 | useAdminPackages | admin/hooks/ | Package management |
 | useNotifications | lib/hooks/ | Notification list + unread count (SSE) |
-| useProfileMutations | dashboard/settings/hooks/ | Cập nhật tên + đổi mật khẩu (Better Auth, revokeOtherSessions) |
+| useProfileMutations | dashboard/settings/hooks/ | Cập nhật tên + đặt/đổi mật khẩu + avatar + xóa tài khoản |
 
 
 ## MANTINE UI STYLING RULE
