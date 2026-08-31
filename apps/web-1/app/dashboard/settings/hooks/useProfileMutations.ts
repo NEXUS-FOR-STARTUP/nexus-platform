@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { authClient, updateUser, changePassword, signOut } from "@/lib/auth-client";
+import { authClient, updateUser, signOut } from "@/lib/auth-client";
 import { apiClient } from "@/lib/api-client";
 import { notifications } from "@mantine/notifications";
 import { translateAuthError } from "@/lib/auth-errors";
@@ -36,7 +36,7 @@ function validateAvatarFile(file: File) {
   }
 }
 
-// QUAN TRỌNG: Better Auth updateUser/changePassword KHÔNG throw khi lỗi —
+// QUAN TRỌNG: Better Auth updateUser KHÔNG throw khi lỗi —
 // trả { data, error }. mutationFn phải tự check và throw, nếu không onError
 // không bao giờ chạy và onSuccess chạy cả khi lỗi (toast xanh sai).
 export function useProfileMutations() {
@@ -60,28 +60,6 @@ export function useProfileMutations() {
         message:
           translateAuthError(err instanceof Error ? err.message : "") ||
           "Không thể cập nhật tên hiển thị.",
-        color: "red",
-      }),
-  });
-
-  const changePasswordMutation = useMutation({
-    mutationFn: async (input: { currentPassword: string; newPassword: string }) => {
-      const result = await changePassword({ ...input, revokeOtherSessions: true });
-      if (result.error) throw new Error(result.error.message || "change password failed");
-      return result.data;
-    },
-    onSuccess: () =>
-      notifications.show({
-        title: "Thành công",
-        message: "Đã đổi mật khẩu thành công. Các thiết bị khác đã được đăng xuất.",
-        color: "green",
-      }),
-    onError: (err: unknown) =>
-      notifications.show({
-        title: "Lỗi",
-        message:
-          translateAuthError(err instanceof Error ? err.message : "") ||
-          "Không thể đổi mật khẩu. Kiểm tra lại mật khẩu hiện tại.",
         color: "red",
       }),
   });
@@ -147,5 +125,5 @@ export function useProfileMutations() {
     },
   });
 
-  return { updateName, changePassword: changePasswordMutation, changeAvatar, deleteAccount };
+  return { updateName, changeAvatar, deleteAccount };
 }
