@@ -142,10 +142,10 @@ export default function PolicyDocumentLayout({
               <div className="text-xs text-text-muted font-body">
                 <p className="mb-1">Cần hỗ trợ về điều khoản?</p>
                 <a
-                  href="mailto:contact@nexusplatform.vn"
+                  href="mailto:phungluuhoanglong@gmail.com"
                   className="text-brand font-medium hover:underline"
                 >
-                  contact@nexusplatform.vn
+                  phungluuhoanglong@gmail.com
                 </a>
               </div>
             </aside>
