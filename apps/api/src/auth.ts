@@ -2,6 +2,7 @@ import './env.js'
 
 import { prismaAdapter } from 'better-auth/adapters/prisma'
 import { APIError, betterAuth } from 'better-auth'
+import { createAuthMiddleware } from 'better-auth/api'
 import { admin, emailOTP, openAPI } from 'better-auth/plugins'
 import { prisma } from './db.js'
 import { sendVerificationEmail } from './modules/notifications/application/auth-verification-email.js'
@@ -120,7 +121,7 @@ export const auth = betterAuth({
     // Chặn đăng ký/gửi lại mã cho email đã xác minh: trả 409 để UI chuyển thẳng login.
     // Dùng hooks.before native của Better Auth (chạy trên HTTP path, body đã parse,
     // APIError throw từ hook propagate tới client) — không intercept Hono bên ngoài.
-    before: async (ctx) => {
+    before: createAuthMiddleware(async (ctx) => {
       // Type của main hooks.before không expose path/body, nhưng runtime luôn có:
       // dispatch.mjs set path = endpoint.path, router parse body trước khi gọi handler.
       const { path, body } = ctx as unknown as {
@@ -155,8 +156,8 @@ export const auth = betterAuth({
           }
         }
       }
-    },
-    after: async (ctx) => {
+    }),
+    after: createAuthMiddleware(async (ctx) => {
       const authCtx = ctx as {
         path?: string
         body?: { email?: unknown }
@@ -186,7 +187,7 @@ export const auth = betterAuth({
           accountLockoutService.recordSuccess(email)
         }
       }
-    },
+    }),
   },
   databaseHooks: {
     user: {
