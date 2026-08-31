@@ -41,16 +41,16 @@ A read-only inspection against the production PostgreSQL instance was conducted 
 
 ## 3. Comprehensive Issue Tracker
 
-| Issue ID | Severity | Status | Category | Affected File(s) | Description & Action |
+| Issue ID | Severity | Status | Commit SHA | Affected File(s) | Description & Action |
 |---|---|---|---|---|---|
-| **#R1** | 🟠 **HIGH** | ✅ **FIXED** | Security Architecture | `apps/api/src/auth.ts`<br>`apps/api/src/modules/auth/infrastructure/account-lockout.service.ts` | **Per-Account Brute Force Defense**: Re-wired `accountLockoutService.checkLockout()` in `hooks.before` and `recordFailure()` / `recordSuccess()` in `hooks.after`. |
-| **#R2** | 🟠 **HIGH** | ✅ **FIXED** (`d96ce2a`) | Client Resilience | `apps/web-1/app/auth/hooks/use-google-sign-in.ts` | **Google OAuth Loading Hang**: `setLoading(false)` was only in `catch`. Updated to check `res?.error` and translate auth errors. |
-| **#R3** | — | 🔄 **Merged into #R1** | Code Hygiene | `apps/api/src/modules/auth/infrastructure/account-lockout.service.ts` | Merged into architectural decision for #R1 (re-wire vs delete). |
-| **#R4** | 🟠 **HIGH** | ✅ **FIXED** (`62d85a3`) | Route Architecture | `apps/web-1/app/auth/verify-email/page.tsx` | **Legacy Standalone Verification**: Marked with `@deprecated` annotation. Kept for backwards compatibility with direct link hits. |
-| **#R5** | 🟡 **NIT** | ⚪ **ACCEPTED** (Skipped) | Security / Privacy | `apps/api/src/modules/profile/http/profile.routes.ts` | **User Enumeration**: Acceptable risk with 10 req/min IP rate limiting to allow quick password status check on frontend. |
-| **#R6** | 🟡 **NIT** | ⚪ **ACCEPTED** (Skipped) | Infrastructure | `apps/api/src/modules/profile/infrastructure/password-rate-limit.ts` | **In-Memory Rate Limiter**: Acceptable for current single-instance deployment. |
-| **#R7** | 🟡 **NIT** | ⚪ **ACCEPTED** (Skipped) | Governance / Legal | `privacy/page.tsx`<br>`refund-policy/page.tsx`<br>`PolicyDocumentLayout.tsx` | **Contact Email**: Temporary contact address while domain mailbox configuration is pending. |
-| **#R8** | 🟡 **NIT** | ✅ **FIXED** (`62d85a3`) | Documentation | `apps/web-1/AGENTS.md` | **Stale Route References**: Updated documentation to reflect OTP + Password flows and marked legacy routes as deprecated. |
+| **#R1** | 🟠 **HIGH** | ✅ **FIXED** | `d02f049` | `apps/api/src/auth.ts`<br>`apps/api/src/modules/auth/infrastructure/account-lockout.service.ts` | **Per-Account Brute Force Defense**: Re-wired `accountLockoutService.checkLockout()` in `hooks.before` and `recordFailure()` / `recordSuccess()` in `hooks.after`. |
+| **#R2** | 🟠 **HIGH** | ✅ **FIXED** | `d96ce2a` | `apps/web-1/app/auth/hooks/use-google-sign-in.ts` | **Google OAuth Loading Hang**: `setLoading(false)` was only in `catch`. Updated to check `res?.error` and translate auth errors. |
+| **#R3** | 🟡 **MEDIUM** | ✅ **FIXED** | `d02f049` | `apps/api/src/modules/auth/infrastructure/account-lockout.service.ts` | **Dead Code Prevention**: Re-integrated the 173-line lockout service into the active auth pipeline. |
+| **#R4** | 🟠 **HIGH** | ✅ **FIXED** | `62d85a3` | `apps/web-1/app/auth/verify-email/page.tsx` | **Legacy Standalone Verification**: Marked with `@deprecated` annotation. Kept for backwards compatibility with direct link hits. |
+| **#R5** | 🟡 **NIT** | ⚪ **ACCEPTED** | `N/A` (Skipped) | `apps/api/src/modules/profile/http/profile.routes.ts` | **User Enumeration**: Acceptable risk with 10 req/min IP rate limiting to allow quick password status check on frontend. |
+| **#R6** | 🟡 **NIT** | ⚪ **ACCEPTED** | `N/A` (Skipped) | `apps/api/src/modules/profile/infrastructure/password-rate-limit.ts` | **In-Memory Rate Limiter**: Acceptable for current single-instance deployment. |
+| **#R7** | 🟡 **NIT** | ⚪ **ACCEPTED** | `N/A` (Skipped) | `privacy/page.tsx`<br>`refund-policy/page.tsx`<br>`PolicyDocumentLayout.tsx` | **Contact Email**: Temporary contact address while domain mailbox configuration is pending. |
+| **#R8** | 🟡 **NIT** | ✅ **FIXED** | `62d85a3` | `apps/web-1/AGENTS.md` | **Stale Route References**: Updated documentation to reflect OTP + Password flows and marked legacy routes as deprecated. |
 
 ---
 
