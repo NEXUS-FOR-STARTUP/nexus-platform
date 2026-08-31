@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Button, Divider, Group, TextInput } from "@mantine/core";
+import { Button, TextInput, UnstyledButton } from "@mantine/core";
 import { AlertCircle } from "lucide-react";
 import { getAuthRedirectUrl } from "../get-auth-redirect";
 import { useEmailOtpLogin } from "../hooks/use-email-otp-login";
@@ -12,7 +12,7 @@ import { GoogleButton } from "./GoogleButton";
 
 const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
 
-type Step = "idle" | "otp";
+type Step = "idle" | "email" | "otp";
 
 export default function AuthPanel() {
   const searchParams = useSearchParams();
@@ -27,6 +27,11 @@ export default function AuthPanel() {
   const normalizedEmail = email.trim().toLowerCase();
   const emailValid = EMAIL_REGEX.test(normalizedEmail);
 
+  const goIdle = () => {
+    setStep("idle");
+    otp.clearError();
+  };
+
   const handleOtpStart = async () => {
     if (!emailValid || busy) return;
     const sent = await otp.send(normalizedEmail);
@@ -35,41 +40,16 @@ export default function AuthPanel() {
 
   return (
     <div className="w-full font-body text-xs text-text-app space-y-4">
-      <div className="text-center space-y-1">
+      <div className="text-center space-y-1 pb-1">
         <h1 className="font-heading text-xl font-bold tracking-tight text-text-app sm:text-2xl">
           Đăng nhập vào Nexus
         </h1>
-        <p className="text-xs text-text-muted sm:text-sm">
-          {step === "otp"
-            ? `Mã đã gửi đến ${normalizedEmail}`
-            : "Đăng nhập hoặc tạo tài khoản để tiếp tục"}
-        </p>
+        {step === "otp" && (
+          <p className="text-xs text-text-muted sm:text-sm">
+            Mã đã gửi đến {normalizedEmail}
+          </p>
+        )}
       </div>
-
-      {step === "idle" && (
-        <Group grow>
-          <GoogleButton onClick={() => void google.signInGoogle()} loading={google.loading}>
-            Tiếp tục với Google
-          </GoogleButton>
-        </Group>
-      )}
-
-      {step === "idle" && (
-        <div className="py-0.5">
-          <Divider
-            label="Hoặc tiếp tục bằng email"
-            labelPosition="center"
-            styles={{
-              label: {
-                fontSize: "14px",
-                fontWeight: 400,
-                color: "var(--mantine-color-dimmed)",
-              },
-            }}
-            className="border-border-app"
-          />
-        </div>
-      )}
 
       {error && (
         <div className="flex items-start gap-2 p-3 bg-danger-soft border border-danger/20 text-danger rounded-lg text-xs font-body">
@@ -79,13 +59,32 @@ export default function AuthPanel() {
       )}
 
       {step === "idle" && (
+        <div className="space-y-3">
+          <GoogleButton onClick={() => void google.signInGoogle()} loading={google.loading}>
+            Tiếp tục với Google
+          </GoogleButton>
+
+          <Button
+            fullWidth
+            radius="md"
+            size="md"
+            variant="default"
+            className="h-10 cursor-pointer font-medium border-border-app hover:bg-surface-soft transition-colors"
+            onClick={() => setStep("email")}
+          >
+            Tiếp tục với Email
+          </Button>
+        </div>
+      )}
+
+      {step === "email" && (
         <form
           onSubmit={(e) => {
             e.preventDefault();
             void handleOtpStart();
           }}
         >
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <TextInput
               id="email"
               type="email"
@@ -98,6 +97,7 @@ export default function AuthPanel() {
               radius="md"
               size="md"
               autoComplete="email"
+              autoFocus
               disabled={busy}
               classNames={{
                 input: "border-border-app focus:border-brand",
@@ -106,25 +106,26 @@ export default function AuthPanel() {
             <Button
               type="submit"
               fullWidth
-              radius="xl"
+              radius="md"
               size="md"
               color="brand"
-              className="h-10 cursor-pointer font-semibold"
+              className="h-10 cursor-pointer font-semibold mt-4"
               disabled={!emailValid || busy}
               loading={otp.sending}
             >
-              Đăng nhập
+              Tiếp tục
             </Button>
-            <p
-              className="text-center"
-              style={{
-                fontSize: "14px",
-                fontWeight: 400,
-                color: "var(--mantine-color-dimmed)",
-              }}
-            >
-              Tài khoản chưa đăng ký sẽ được tạo tự động
-            </p>
+            <div className="text-center">
+              <UnstyledButton
+                type="button"
+                disabled={busy}
+                onClick={goIdle}
+                className="text-xs sm:text-sm font-normal text-text-muted hover:text-text-app cursor-pointer transition-colors"
+                style={{ color: "var(--mantine-color-dimmed)" }}
+              >
+                Quay lại
+              </UnstyledButton>
+            </div>
           </div>
         </form>
       )}
@@ -136,6 +137,7 @@ export default function AuthPanel() {
           cooldown={otp.cooldown}
           onVerify={(code) => void otp.verify(normalizedEmail, code)}
           onResend={() => void otp.send(normalizedEmail)}
+          onBack={() => setStep("email")}
         />
       )}
     </div>

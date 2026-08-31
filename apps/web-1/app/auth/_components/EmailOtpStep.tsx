@@ -10,6 +10,7 @@ interface EmailOtpStepProps {
   cooldown: number;
   onVerify: (otp: string) => void;
   onResend: () => void;
+  onBack: () => void;
 }
 
 export function EmailOtpStep({
@@ -18,6 +19,7 @@ export function EmailOtpStep({
   cooldown,
   onVerify,
   onResend,
+  onBack,
 }: EmailOtpStepProps) {
   const [code, setCode] = useState("");
   const submittedRef = useRef<string | null>(null);
@@ -69,7 +71,7 @@ export function EmailOtpStep({
 
       <Button
         fullWidth
-        radius="xl"
+        radius="md"
         size="md"
         color="brand"
         className="h-10 cursor-pointer font-semibold"
@@ -79,6 +81,18 @@ export function EmailOtpStep({
       >
         Tiếp tục
       </Button>
+
+      <div className="text-center pt-1">
+        <UnstyledButton
+          type="button"
+          disabled={verifying}
+          onClick={onBack}
+          className="text-xs sm:text-sm font-normal text-text-muted hover:text-text-app cursor-pointer transition-colors"
+          style={{ color: "var(--mantine-color-dimmed)" }}
+        >
+          Quay lại
+        </UnstyledButton>
+      </div>
     </Stack>
   );
 }

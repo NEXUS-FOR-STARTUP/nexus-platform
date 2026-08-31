@@ -5,9 +5,10 @@ import type { ComponentPropsWithoutRef } from "react";
 
 type GoogleButtonProps = ButtonProps & ComponentPropsWithoutRef<"button">;
 
-export function GoogleButton({ children, ...props }: GoogleButtonProps) {
+export function GoogleButton({ children, fullWidth = true, ...props }: GoogleButtonProps) {
   return (
     <Button
+      fullWidth={fullWidth}
       leftSection={
         <svg viewBox="0 0 48 48" width="18" height="18" aria-hidden>
           <path
@@ -29,7 +30,7 @@ export function GoogleButton({ children, ...props }: GoogleButtonProps) {
         </svg>
       }
       variant="default"
-      radius="xl"
+      radius="md"
       size="md"
       className="h-10 cursor-pointer font-medium border-border-app hover:bg-surface-soft transition-colors"
       {...props}
