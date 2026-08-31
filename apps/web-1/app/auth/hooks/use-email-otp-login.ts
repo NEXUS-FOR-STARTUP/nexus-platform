@@ -8,6 +8,15 @@ import { translateAuthError } from "@/lib/auth-errors";
 export const OTP_LENGTH = 6;
 export const OTP_RESEND_SECONDS = 60;
 
+function axiosStatus(err: unknown): number | undefined {
+  if (!err || typeof err !== "object" || !("response" in err)) return undefined;
+  const response = err.response;
+  if (!response || typeof response !== "object" || !("status" in response)) {
+    return undefined;
+  }
+  return typeof response.status === "number" ? response.status : undefined;
+}
+
 export function useEmailOtpLogin(returnUrl: string) {
   const router = useRouter();
   const [sending, setSending] = useState(false);
@@ -35,9 +44,10 @@ export function useEmailOtpLogin(returnUrl: string) {
       });
 
       if (sendError) {
-        if (sendError.status === 429) {
+        const status = sendError.status;
+        if (status === 429) {
           setCooldown(OTP_RESEND_SECONDS);
-          setError("Bạn đã gửi quá nhiều yêu cầu. Vui lòng chờ và thử lại.");
+          setError("Bạn đã gửi quá nhiều yêu cầu. Vui lòng chờ 1 phút rồi thử lại.");
           return false;
         }
         setError(translateAuthError(sendError.message));
@@ -46,7 +56,13 @@ export function useEmailOtpLogin(returnUrl: string) {
 
       setCooldown(OTP_RESEND_SECONDS);
       return true;
-    } catch {
+    } catch (err: unknown) {
+      const status = axiosStatus(err);
+      if (status === 429) {
+        setCooldown(OTP_RESEND_SECONDS);
+        setError("Bạn đã gửi quá nhiều yêu cầu. Vui lòng chờ 1 phút rồi thử lại.");
+        return false;
+      }
       setError(translateAuthError());
       return false;
     } finally {

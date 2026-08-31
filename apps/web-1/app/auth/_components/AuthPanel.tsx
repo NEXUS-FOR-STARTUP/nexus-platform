@@ -1,41 +1,76 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Anchor, Button, Checkbox, Text, TextInput, UnstyledButton } from "@mantine/core";
 import { AlertCircle } from "lucide-react";
 import { getAuthRedirectUrl } from "../get-auth-redirect";
 import { useEmailOtpLogin } from "../hooks/use-email-otp-login";
+import { useEmailPasswordLogin } from "../hooks/use-email-password-login";
 import { useGoogleSignIn } from "../hooks/use-google-sign-in";
+import { AuthIdleStep } from "./AuthIdleStep";
+import { EmailChoiceStep } from "./EmailChoiceStep";
 import { EmailOtpStep } from "./EmailOtpStep";
-import { GoogleButton } from "./GoogleButton";
+import { PasswordStep } from "./PasswordStep";
+import { RegisterConfirmModal } from "./RegisterConfirmModal";
 
 const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
 
-type Step = "idle" | "email" | "otp";
+type Step = "idle" | "email" | "password" | "otp";
 
 export default function AuthPanel() {
   const searchParams = useSearchParams();
   const returnUrl = getAuthRedirectUrl(searchParams);
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [step, setStep] = useState<Step>("idle");
+  const [registerOpen, setRegisterOpen] = useState(false);
   const otp = useEmailOtpLogin(returnUrl);
+  const passLogin = useEmailPasswordLogin(returnUrl);
   const google = useGoogleSignIn(returnUrl);
 
-  const error = otp.error;
-  const busy = otp.sending || otp.verifying || google.loading;
+  const error = otp.error || passLogin.error;
+  const busy =
+    otp.sending || otp.verifying || passLogin.loading || google.loading;
   const normalizedEmail = email.trim().toLowerCase();
   const emailValid = EMAIL_REGEX.test(normalizedEmail);
 
   const goIdle = () => {
     setStep("idle");
     otp.clearError();
+    passLogin.clearError();
+    setPassword("");
   };
 
-  const handleOtpStart = async () => {
+  const handlePasswordChoice = () => {
     if (!emailValid || busy || !agreed) return;
+    otp.clearError();
+    passLogin.clearError();
+    setStep("password");
+  };
+
+  const handleRegisterConfirm = async () => {
+    const sent = await otp.send(normalizedEmail);
+    if (sent) {
+      setRegisterOpen(false);
+      setStep("otp");
+    }
+  };
+
+  const handlePasswordLogin = async () => {
+    if (!emailValid || busy || !agreed || password.length < 8) return;
+    otp.clearError();
+    passLogin.clearError();
+    const result = await passLogin.loginWithPassword(normalizedEmail, password);
+    if (result === "not-exists") {
+      setRegisterOpen(true);
+    }
+  };
+
+  const handleOtpLogin = async () => {
+    if (!emailValid || busy || !agreed) return;
+    otp.clearError();
+    passLogin.clearError();
     const sent = await otp.send(normalizedEmail);
     if (sent) setStep("otp");
   };
@@ -61,123 +96,42 @@ export default function AuthPanel() {
       )}
 
       {step === "idle" && (
-        <div className="space-y-4">
-          <div className="space-y-3">
-            <GoogleButton
-              onClick={() => {
-                if (!agreed) return;
-                void google.signInGoogle();
-              }}
-              loading={google.loading}
-              disabled={!agreed}
-            >
-              Tiếp tục với Google
-            </GoogleButton>
-
-            <Button
-              fullWidth
-              radius="md"
-              size="md"
-              variant="default"
-              className="h-10 cursor-pointer font-medium border-border-app hover:bg-surface-soft transition-colors"
-              onClick={() => {
-                if (!agreed) return;
-                setStep("email");
-              }}
-              disabled={!agreed}
-            >
-              Tiếp tục với Email
-            </Button>
-          </div>
-
-          <Checkbox
-            checked={agreed}
-            onChange={(e) => setAgreed(e.currentTarget.checked)}
-            disabled={busy}
-            radius="sm"
-            color="brand"
-            label={
-              <Text size="xs" className="font-body text-text-muted select-none">
-                Bằng việc tiếp tục, bạn đồng ý với{" "}
-                <Anchor
-                  component={Link}
-                  href="/terms"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-brand font-medium hover:underline inline"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Điều khoản dịch vụ
-                </Anchor>{" "}
-                và{" "}
-                <Anchor
-                  component={Link}
-                  href="/privacy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-brand font-medium hover:underline inline"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Chính sách bảo mật
-                </Anchor>{" "}
-                của Nexus.
-              </Text>
-            }
-          />
-        </div>
+        <AuthIdleStep
+          agreed={agreed}
+          setAgreed={setAgreed}
+          busy={busy}
+          googleLoading={google.loading}
+          onGoogle={() => void google.signInGoogle()}
+          onEmail={() => setStep("email")}
+        />
       )}
 
       {step === "email" && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void handleOtpStart();
+        <EmailChoiceStep
+          email={email}
+          setEmail={setEmail}
+          busy={busy}
+          otpBusy={otp.sending}
+          emailValid={emailValid}
+          onPasswordChoice={() => void handlePasswordChoice()}
+          onOtpLogin={() => void handleOtpLogin()}
+          onBack={goIdle}
+        />
+      )}
+
+      {step === "password" && (
+        <PasswordStep
+          password={password}
+          setPassword={setPassword}
+          busy={passLogin.loading}
+          onSubmit={() => void handlePasswordLogin()}
+          onBack={() => {
+            setPassword("");
+            passLogin.clearError();
+            setRegisterOpen(false);
+            setStep("email");
           }}
-        >
-          <div className="flex flex-col gap-4">
-            <TextInput
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.currentTarget.value)}
-              label="Địa chỉ Email"
-              placeholder="name@example.com"
-              required
-              variant="default"
-              radius="md"
-              size="md"
-              autoComplete="email"
-              autoFocus
-              disabled={busy}
-              classNames={{
-                input: "border-border-app focus:border-brand",
-              }}
-            />
-            <Button
-              type="submit"
-              fullWidth
-              radius="md"
-              size="md"
-              color="brand"
-              className="h-10 cursor-pointer font-semibold mt-4"
-              disabled={!emailValid || busy}
-              loading={otp.sending}
-            >
-              Tiếp tục
-            </Button>
-            <div className="text-center">
-              <UnstyledButton
-                type="button"
-                disabled={busy}
-                onClick={goIdle}
-                className="text-xs sm:text-sm font-normal text-text-muted hover:text-text-app cursor-pointer transition-colors"
-                style={{ color: "var(--mantine-color-dimmed)" }}
-              >
-                Quay lại
-              </UnstyledButton>
-            </div>
-          </div>
-        </form>
+        />
       )}
 
       {step === "otp" && (
@@ -190,6 +144,14 @@ export default function AuthPanel() {
           onBack={() => setStep("email")}
         />
       )}
+
+      <RegisterConfirmModal
+        opened={registerOpen}
+        email={normalizedEmail}
+        loading={otp.sending}
+        onClose={() => setRegisterOpen(false)}
+        onConfirm={() => void handleRegisterConfirm()}
+      />
     </div>
   );
 }
