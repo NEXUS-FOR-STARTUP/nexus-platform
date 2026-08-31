@@ -93,6 +93,8 @@ export const auth = betterAuth({
       banReason: 'ban_reason',
       banExpires: 'ban_expires',
       displayUsername: 'display_username',
+      termsAndPrivacyVersion: 'terms_and_privacy_version',
+      termsAndPrivacyAcceptedAt: 'terms_and_privacy_accepted_at',
       createdAt: 'created_at',
       updatedAt: 'updated_at',
     },
@@ -191,8 +193,16 @@ export const auth = betterAuth({
   databaseHooks: {
     user: {
       create: {
+        before: async (user) => {
+          return {
+            data: {
+              ...user,
+              terms_and_privacy_version: '2026-08-v2.0',
+              terms_and_privacy_accepted_at: new Date(),
+            },
+          }
+        },
         // Ví mặc định khi tạo tài khoản: user mới luôn có user_wallets row.
-        // Best-effort — nếu fail, mua credit vẫn tự tạo ví (getOrCreateWalletInTx).
         after: async (user) => {
           try {
             await prisma.userWallet.create({ data: { user_id: user.id } })

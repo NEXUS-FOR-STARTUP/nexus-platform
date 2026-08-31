@@ -4,7 +4,10 @@
 - **Priority:** P2
 - **Category:** Policy (Vận hành)
 - **Type:** Policy / Non-technical (Ban hành danh mục lý do đóng case & quy chế gói free)
-- **Status:** Todo
+- **Status:** Done
+- **Assignee:** Phùng Lưu Hoàng Long
+- **Completed Date:** 2026-08-30
+- **Evidence:** `docs/policies/operational-taxonomy-and-fair-use-policy.md`; 7 mã lý do đóng case (`STUDENT_REQUEST`, `INACTIVE_TIMEOUT`, `DUPLICATE_CASE`, `INSUFFICIENT_DATA`, `OUT_OF_SCOPE`, `VIOLATION_POLICY`, `OTHER`); thuật toán Auto-priority Score; Fair-use policy giới hạn 3 lần miễn phí Team-Fit
 - **Nguồn:** `docs/research/mandatory-features-gap-analysis-2026-08-24.md`, `docs/flows/case-lifecycle-flow.md`
 
 ---

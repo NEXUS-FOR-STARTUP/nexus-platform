@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 enum VerificationSource {
@@ -12,43 +12,45 @@ enum VerificationSource {
 }
 
 model User {
-  id                 String      @id
-  name               String
-  email              String
-  email_verified     Boolean     @default(false)
-  image              String?
-  created_at         DateTime    @default(now())
-  updated_at         DateTime    @updatedAt
-  two_factor_enabled Boolean?    @default(false)
-  role               String      @default("user")
-  banned             Boolean     @default(false)
-  ban_reason         String?
-  ban_expires        DateTime?
-  username           String?
-  display_username   String?
-  sessions           Session[]
-  accounts           Account[]
-  two_factors        TwoFactor[]
+  id                            String      @id
+  name                          String
+  email                         String
+  email_verified                Boolean     @default(false)
+  image                         String?
+  created_at                    DateTime    @default(now())
+  updated_at                    DateTime    @updatedAt
+  two_factor_enabled            Boolean?    @default(false)
+  role                          String      @default("user")
+  banned                        Boolean     @default(false)
+  ban_reason                    String?
+  ban_expires                   DateTime?
+  username                      String?
+  display_username              String?
+  terms_and_privacy_version     String?
+  terms_and_privacy_accepted_at DateTime?
+  sessions                      Session[]
+  accounts                      Account[]
+  two_factors                   TwoFactor[]
 
   // --- Business Relations ---
-  owned_cases        Case[]        @relation("OwnerCases")
-  assigned_cases     Case[]        @relation("AssignedCases")
-  case_memberships   CaseMember[]  @relation("CaseMembers")
-  approved_reports       Report[]      @relation("ReportApprover")
-  verified_payments      Payment[]     @relation("PaymentVerifier")
-  payment_payments       Payment[]     @relation("PaymentPayer")
-  sent_messages          CaseMessage[] @relation("MessageSender")
-  acted_events           CaseEvent[]   @relation("EventActor")
-  package_price_changes  ServicePackage[] @relation("PackagePriceChanger")
+  owned_cases           Case[]           @relation("OwnerCases")
+  assigned_cases        Case[]           @relation("AssignedCases")
+  case_memberships      CaseMember[]     @relation("CaseMembers")
+  approved_reports      Report[]         @relation("ReportApprover")
+  verified_payments     Payment[]        @relation("PaymentVerifier")
+  payment_payments      Payment[]        @relation("PaymentPayer")
+  sent_messages         CaseMessage[]    @relation("MessageSender")
+  acted_events          CaseEvent[]      @relation("EventActor")
+  package_price_changes ServicePackage[] @relation("PackagePriceChanger")
 
-  document_records       DocumentRecord[]
-  notifications          Notification[]
+  document_records         DocumentRecord[]
+  notifications            Notification[]
   notification_preferences NotificationPreference?
-  wallet                 UserWallet?
-  wallet_topups          WalletTopup[]
-  deposits               Deposit[]
-  orders                 Order[]
-  chat_read_states       CaseChatReadState[]
+  wallet                   UserWallet?
+  wallet_topups            WalletTopup[]
+  deposits                 Deposit[]
+  orders                   Order[]
+  chat_read_states         CaseChatReadState[]
 
   @@unique([email])
   @@unique([username])
@@ -56,16 +58,16 @@ model User {
 }
 
 model Session {
-  id          String   @id
-  expires_at  DateTime
-  token       String
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-  ip_address  String?
-  user_agent  String?
+  id              String   @id
+  expires_at      DateTime
+  token           String
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  ip_address      String?
+  user_agent      String?
   impersonated_by String?
-  user_id     String
-  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id         String
+  user            User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([token])
   @@index([user_id])
@@ -73,44 +75,44 @@ model Session {
 }
 
 model Account {
-  id                      String    @id
-  account_id              String
-  provider_id             String
-  user_id                 String
-  user                    User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  access_token            String?
-  refresh_token           String?
-  id_token                String?
-  access_token_expires_at DateTime?
+  id                       String    @id
+  account_id               String
+  provider_id              String
+  user_id                  String
+  user                     User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  access_token             String?
+  refresh_token            String?
+  id_token                 String?
+  access_token_expires_at  DateTime?
   refresh_token_expires_at DateTime?
-  scope                   String?
-  password                String?
-  created_at              DateTime  @default(now())
-  updated_at              DateTime  @updatedAt
+  scope                    String?
+  password                 String?
+  created_at               DateTime  @default(now())
+  updated_at               DateTime  @updatedAt
 
   @@index([user_id])
   @@map("accounts")
 }
 
 model Verification {
-  id          String   @id
-  identifier  String
-  value       String
-  expires_at  DateTime
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  id         String   @id
+  identifier String
+  value      String
+  expires_at DateTime
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@index([identifier])
   @@map("verifications")
 }
 
 model TwoFactor {
-  id            String   @id
-  secret        String
-  backup_codes   String
-  user_id       String
-  user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  verified      Boolean? @default(true)
+  id           String   @id
+  secret       String
+  backup_codes String
+  user_id      String
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  verified     Boolean? @default(true)
 
   @@index([secret])
   @@index([user_id])
@@ -133,13 +135,13 @@ model ServicePackage {
   created_at            DateTime  @default(now())
   updated_at            DateTime  @updatedAt
 
-  last_price_changed_by_user User?    @relation("PackagePriceChanger", fields: [last_price_changed_by], references: [id])
-  cases                     Case[]
-  payments                  Payment[]
-  pricing_tiers             ServicePricing[]
+  last_price_changed_by_user User?            @relation("PackagePriceChanger", fields: [last_price_changed_by], references: [id])
+  cases                      Case[]
+  payments                   Payment[]
+  pricing_tiers              ServicePricing[]
 
-  service_type_id        String?
-  service_type            ServiceType?     @relation(fields: [service_type_id], references: [id])
+  service_type_id String?
+  service_type    ServiceType? @relation(fields: [service_type_id], references: [id])
 
   @@index([last_price_changed_by])
   @@index([service_type_id])
@@ -156,24 +158,24 @@ enum WalletTxType {
 }
 
 model ServiceType {
-  id          String           @id @default(uuid())
-  code        String           @unique
+  id          String   @id @default(uuid())
+  code        String   @unique
   name        String
   description String?
-  is_active   Boolean          @default(true)
-  created_at  DateTime         @default(now())
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
 
-  packages    ServicePackage[]
+  packages ServicePackage[]
 
   @@map("service_types")
 }
 
 model ServicePricing {
-  id             String          @id @default(uuid())
+  id             String         @id @default(uuid())
   package_id     String
-  package        ServicePackage  @relation(fields: [package_id], references: [id])
+  package        ServicePackage @relation(fields: [package_id], references: [id])
   price          Int
-  is_current     Boolean         @default(true)
+  is_current     Boolean        @default(true)
   previous_price Int?
   changed_by     String?
   changed_at     DateTime?
@@ -183,13 +185,13 @@ model ServicePricing {
 }
 
 model UserWallet {
-  id           String              @id @default(uuid())
-  user_id      String              @unique
-  user         User                @relation(fields: [user_id], references: [id])
-  balance      Int                 @default(0)
-  currency     String              @default("VND")
-  created_at   DateTime            @default(now())
-  updated_at   DateTime            @updatedAt
+  id         String   @id @default(uuid())
+  user_id    String   @unique
+  user       User     @relation(fields: [user_id], references: [id])
+  balance    Int      @default(0)
+  currency   String   @default("VND")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   transactions WalletTransaction[]
 
@@ -197,21 +199,21 @@ model UserWallet {
 }
 
 model WalletTransaction {
-  id               String         @id @default(uuid())
-  wallet_id        String
-  wallet           UserWallet     @relation(fields: [wallet_id], references: [id])
-  type             WalletTxType
-  amount           Int
-  currency         String         @default("VND")
-  balance_before   Int
-  balance_after    Int
-  source_type      String
-  source_id        String?
-  reference_type   String?
-  reference_id     String?
-  idempotency_key  String         @unique
-  metadata_json    Json?
-  created_at       DateTime       @default(now())
+  id              String       @id @default(uuid())
+  wallet_id       String
+  wallet          UserWallet   @relation(fields: [wallet_id], references: [id])
+  type            WalletTxType
+  amount          Int
+  currency        String       @default("VND")
+  balance_before  Int
+  balance_after   Int
+  source_type     String
+  source_id       String?
+  reference_type  String?
+  reference_id    String?
+  idempotency_key String       @unique
+  metadata_json   Json?
+  created_at      DateTime     @default(now())
 
   @@index([wallet_id, created_at])
   @@map("wallet_transactions")
@@ -219,40 +221,40 @@ model WalletTransaction {
 
 /// @deprecated Replaced by deposits table. Read-only, will be archived.
 model WalletTopup {
-  id                    String    @id @default(uuid())
-  user_id               String
-  user                  User      @relation(fields: [user_id], references: [id])
-  amount                Int
-  currency              String    @default("VND")
-  transfer_content      String
-  status                String    @default("pending")
-  verified_by           String?
-  verification_source   String?
-  metadata_json         Json?
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
+  id                  String   @id @default(uuid())
+  user_id             String
+  user                User     @relation(fields: [user_id], references: [id])
+  amount              Int
+  currency            String   @default("VND")
+  transfer_content    String
+  status              String   @default("pending")
+  verified_by         String?
+  verification_source String?
+  metadata_json       Json?
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
 
   @@map("wallet_topups")
 }
 
 model Deposit {
-  id                    String              @id @default(uuid())
-  user_id               String
-  user                  User                @relation(fields: [user_id], references: [id])
-  amount                Int
-  currency              String              @default("VND")
-  transfer_content      String              @unique
-  idempotency_key       String              @unique
-  status                String              @default("pending")
-  proof_file_url        String?
-  rejection_reason      String?
-  bank_transaction_id   String?
-  bank_credited_at      DateTime?
-  verified_by           String?
-  verification_source   VerificationSource  @default(manual)
-  metadata_json         Json?
-  created_at            DateTime            @default(now())
-  updated_at            DateTime            @updatedAt
+  id                  String             @id @default(uuid())
+  user_id             String
+  user                User               @relation(fields: [user_id], references: [id])
+  amount              Int
+  currency            String             @default("VND")
+  transfer_content    String             @unique
+  idempotency_key     String             @unique
+  status              String             @default("pending")
+  proof_file_url      String?
+  rejection_reason    String?
+  bank_transaction_id String?
+  bank_credited_at    DateTime?
+  verified_by         String?
+  verification_source VerificationSource @default(manual)
+  metadata_json       Json?
+  created_at          DateTime           @default(now())
+  updated_at          DateTime           @updatedAt
 
   @@index([user_id, created_at])
   @@index([status, created_at])
@@ -260,17 +262,17 @@ model Deposit {
 }
 
 model Order {
-  id                     String    @id @default(uuid())
-  user_id                String
-  user                   User      @relation(fields: [user_id], references: [id])
-  total_amount           Int
-  currency               String    @default("VND")
-  status                 String    @default("pending")
-  idempotency_key        String    @unique
-  wallet_transaction_id  String?
-  metadata_json          Json?
-  created_at             DateTime  @default(now())
-  updated_at             DateTime  @updatedAt
+  id                    String   @id @default(uuid())
+  user_id               String
+  user                  User     @relation(fields: [user_id], references: [id])
+  total_amount          Int
+  currency              String   @default("VND")
+  status                String   @default("pending")
+  idempotency_key       String   @unique
+  wallet_transaction_id String?
+  metadata_json         Json?
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
 
   items OrderItem[]
 
@@ -293,17 +295,17 @@ model OrderItem {
 }
 
 model DomainEventOutbox {
-  id             Int       @id @default(autoincrement())
-  event_type     String
-  payload_json   Json
-  status         String    @default("pending")
-  attempts       Int       @default(0)
-  processing_at  DateTime?
-  next_retry_at  DateTime?
-  sent_at        DateTime?
-  last_error     String?
-  created_at     DateTime  @default(now())
-  updated_at     DateTime  @updatedAt
+  id            Int       @id @default(autoincrement())
+  event_type    String
+  payload_json  Json
+  status        String    @default("pending")
+  attempts      Int       @default(0)
+  processing_at DateTime?
+  next_retry_at DateTime?
+  sent_at       DateTime?
+  last_error    String?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
 
   @@index([status, next_retry_at])
   @@index([status, created_at])
@@ -311,8 +313,8 @@ model DomainEventOutbox {
 }
 
 model Case {
-  id                              String   @id @default(uuid())
-  case_code                       String   @unique
+  id                              String    @id @default(uuid())
+  case_code                       String    @unique
   group_no                        String?
   owner_auth_user_id              String
   team_name                       String?
@@ -322,32 +324,32 @@ model Case {
   package_id                      String?
   locked_price                    Int?
   assigned_supporter_auth_user_id String?
-  user_facing_stage               String   @default("intake")
-  internal_status                 String   @default("triage_pending")
-  payment_status                  String   @default("unpaid")
+  user_facing_stage               String    @default("intake")
+  internal_status                 String    @default("triage_pending")
+  payment_status                  String    @default("unpaid")
   deadline                        DateTime?
   sla_deadline_at                 DateTime?
-  version_no                      Int      @default(0)
-  created_at                      DateTime @default(now())
-  updated_at                      DateTime @updatedAt
+  version_no                      Int       @default(0)
+  created_at                      DateTime  @default(now())
+  updated_at                      DateTime  @updatedAt
 
   owner              User            @relation("OwnerCases", fields: [owner_auth_user_id], references: [id])
   assigned_supporter User?           @relation("AssignedCases", fields: [assigned_supporter_auth_user_id], references: [id])
   package            ServicePackage? @relation(fields: [package_id], references: [id])
 
-  members            CaseMember[]
-  checkpoints        Checkpoint[]
-  lifecycle_units    LifecycleUnit[]
-  reports            Report[]
-  payments           Payment[]
-  messages           CaseMessage[]
-  events             CaseEvent[]
-  ai_jobs            AiJob[]
-  document_records   DocumentRecord[]
-  team_fit_report    TeamFitReport?
-  credit_ledgers     CreditLedger[]
-  notifications      Notification[]
-  chat_read_states   CaseChatReadState[]
+  members          CaseMember[]
+  checkpoints      Checkpoint[]
+  lifecycle_units  LifecycleUnit[]
+  reports          Report[]
+  payments         Payment[]
+  messages         CaseMessage[]
+  events           CaseEvent[]
+  ai_jobs          AiJob[]
+  document_records DocumentRecord[]
+  team_fit_report  TeamFitReport?
+  credit_ledgers   CreditLedger[]
+  notifications    Notification[]
+  chat_read_states CaseChatReadState[]
 
   @@index([owner_auth_user_id])
   @@index([assigned_supporter_auth_user_id])
@@ -356,15 +358,15 @@ model Case {
 }
 
 model CaseMember {
-  id            String   @id @default(uuid())
-  case_id       String
-  auth_user_id  String
-  role_in_team  String?
-  access_level  String   @default("member")
-  created_at    DateTime @default(now())
+  id           String   @id @default(uuid())
+  case_id      String
+  auth_user_id String
+  role_in_team String?
+  access_level String   @default("member")
+  created_at   DateTime @default(now())
 
-  case          Case     @relation(fields: [case_id], references: [id], onDelete: Cascade)
-  user          User     @relation("CaseMembers", fields: [auth_user_id], references: [id])
+  case Case @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  user User @relation("CaseMembers", fields: [auth_user_id], references: [id])
 
   @@index([case_id])
   @@index([auth_user_id])
@@ -382,67 +384,71 @@ model Checkpoint {
   created_at           DateTime @default(now())
   updated_at           DateTime @updatedAt
 
-  case                 Case            @relation(fields: [case_id], references: [id], onDelete: Cascade)
-  lifecycle_units      LifecycleUnit[]
-  reports              Report[]
+  case            Case            @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  lifecycle_units LifecycleUnit[]
+  reports         Report[]
 
-  document_records     DocumentRecord[]
+  document_records DocumentRecord[]
+
   @@index([case_id])
   @@map("checkpoints")
 }
 
 model LifecycleUnit {
-  id                 String   @id @default(uuid())
-  case_id            String
-  checkpoint_id      String
-  unit_code          String
-  unit_type          String
-  version_no         Int      @default(1)
-  assessment_no      Int      @default(0)
-  linked_version_no  Int?
-  drive_folder_id    String?
-  content            String?  @db.Text
-  file_url           String?
-  created_at         DateTime @default(now())
+  id                String   @id @default(uuid())
+  case_id           String
+  checkpoint_id     String
+  unit_code         String
+  unit_type         String
+  version_no        Int      @default(1)
+  assessment_no     Int      @default(0)
+  linked_version_no Int?
+  drive_folder_id   String?
+  content           String?  @db.Text
+  file_url          String?
+  created_at        DateTime @default(now())
 
-  case               Case       @relation(fields: [case_id], references: [id], onDelete: Cascade)
-  checkpoint         Checkpoint @relation(fields: [checkpoint_id], references: [id], onDelete: Cascade)
-  reports            Report[]
+  case       Case       @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  checkpoint Checkpoint @relation(fields: [checkpoint_id], references: [id], onDelete: Cascade)
+  reports    Report[]
 
-  document_records   DocumentRecord[]
+  document_records DocumentRecord[]
+
   @@index([case_id])
   @@index([checkpoint_id])
   @@map("lifecycle_units")
 }
+
 model DocumentRecord {
-  id                        String    @id @default(uuid())
-  case_id                   String
-  checkpoint_id             String
-  lifecycle_unit_id         String?
-  unit_code                 String?
-  direction                 String?
-  doc_type                  String    @default("generic")
-  seq                       Int       @default(0)
-  is_primary                Boolean   @default(false)
-  source_kind               String
-  canonical_name            String?
-  original_name             String?
-  extension                 String?
-  mime_type                 String?
-  file_url                  String?
-  download_url              String?
-  cloudinary_public_id      String?
-  metadata_json             Json?
-  uploaded_by_auth_user_id  String
-  superseded_at             DateTime?
-  created_at                DateTime  @default(now())
-  updated_at                DateTime  @updatedAt
+  id                       String    @id @default(uuid())
+  case_id                  String
+  checkpoint_id            String
+  lifecycle_unit_id        String?
+  unit_code                String?
+  direction                String?
+  doc_type                 String    @default("generic")
+  seq                      Int       @default(0)
+  is_primary               Boolean   @default(false)
+  source_kind              String
+  canonical_name           String?
+  original_name            String?
+  extension                String?
+  mime_type                String?
+  file_url                 String?
+  download_url             String?
+  cloudinary_public_id     String?
+  metadata_json            Json?
+  uploaded_by_auth_user_id String
+  superseded_at            DateTime?
+  created_at               DateTime  @default(now())
+  updated_at               DateTime  @updatedAt
 
-  case             Case            @relation(fields: [case_id], references: [id], onDelete: Cascade)
-  checkpoint       Checkpoint      @relation(fields: [checkpoint_id], references: [id], onDelete: Cascade)
-  lifecycle_unit   LifecycleUnit?  @relation(fields: [lifecycle_unit_id], references: [id])
-  uploaded_by      User            @relation(fields: [uploaded_by_auth_user_id], references: [id], onDelete: Cascade)
+  case           Case           @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  checkpoint     Checkpoint     @relation(fields: [checkpoint_id], references: [id], onDelete: Cascade)
+  lifecycle_unit LifecycleUnit? @relation(fields: [lifecycle_unit_id], references: [id])
+  uploaded_by    User           @relation(fields: [uploaded_by_auth_user_id], references: [id], onDelete: Cascade)
 
+  @@unique([lifecycle_unit_id, doc_type, seq])
   @@index([case_id])
   @@index([checkpoint_id])
   @@index([lifecycle_unit_id])
@@ -450,44 +456,43 @@ model DocumentRecord {
   @@index([case_id, checkpoint_id])
   @@index([case_id, source_kind])
   @@index([case_id, superseded_at])
-  @@unique([lifecycle_unit_id, doc_type, seq])
   @@map("document_records")
 }
 
 model DocumentType {
-  code        String   @id
-  label       String
-  flow        String
-  unit_scope  String
-  is_active   Boolean  @default(true)
-  sort_order  Int      @default(0)
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  code       String   @id
+  label      String
+  flow       String
+  unit_scope String
+  is_active  Boolean  @default(true)
+  sort_order Int      @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@index([flow, unit_scope, is_active])
   @@map("document_types")
 }
 
 model Report {
-  id                        String    @id @default(uuid())
-  case_id                   String
-  checkpoint_id             String
-  lifecycle_unit_id         String?
-  report_type               String
-  content_md                String    @db.Text
-  status                    String    @default("draft")
-  created_by                String
-  approved_by_auth_user_id  String?
-  sent_at                   DateTime?
-  document_id               String?
-  created_at                DateTime  @default(now())
-  updated_at                DateTime  @updatedAt
+  id                       String    @id @default(uuid())
+  case_id                  String
+  checkpoint_id            String
+  lifecycle_unit_id        String?
+  report_type              String
+  content_md               String    @db.Text
+  status                   String    @default("draft")
+  created_by               String
+  approved_by_auth_user_id String?
+  sent_at                  DateTime?
+  document_id              String?
+  created_at               DateTime  @default(now())
+  updated_at               DateTime  @updatedAt
 
-  case               Case           @relation(fields: [case_id], references: [id], onDelete: Cascade)
-  checkpoint         Checkpoint     @relation(fields: [checkpoint_id], references: [id], onDelete: Cascade)
-  lifecycle_unit     LifecycleUnit? @relation(fields: [lifecycle_unit_id], references: [id])
-  approved_by        User?          @relation("ReportApprover", fields: [approved_by_auth_user_id], references: [id])
-  events             CaseEvent[]
+  case           Case           @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  checkpoint     Checkpoint     @relation(fields: [checkpoint_id], references: [id], onDelete: Cascade)
+  lifecycle_unit LifecycleUnit? @relation(fields: [lifecycle_unit_id], references: [id])
+  approved_by    User?          @relation("ReportApprover", fields: [approved_by_auth_user_id], references: [id])
+  events         CaseEvent[]
 
   @@index([case_id])
   @@index([checkpoint_id])
@@ -498,37 +503,37 @@ model Report {
 
 /// @deprecated Replaced by deposits (wallet top-up) and orders (purchase). Read-only, will be archived.
 model Payment {
-  id                       String    @id @default(uuid())
+  id                       String             @id @default(uuid())
   case_id                  String
   package_id               String?
   amount                   Int
-  status                   String    @default("pending_verification")
+  status                   String             @default("pending_verification")
   proof_file_url           String?
   rejection_reason         String?
   verified_by_auth_user_id String?
   verified_at              DateTime?
   verification_source      VerificationSource @default(manual)
-  created_at               DateTime  @default(now())
-  updated_at               DateTime  @updatedAt
-  metadata_json             Json?
-  transfer_content          String?
-  bank_transaction_id       String?
-  bank_credited_at          DateTime?
-  payer_auth_user_id        String?
-  currency                  String     @default("VND")
-  payment_method            String     @default("bank_transfer")
-  type                      String?    @default("purchase")
+  created_at               DateTime           @default(now())
+  updated_at               DateTime           @updatedAt
+  metadata_json            Json?
+  transfer_content         String?
+  bank_transaction_id      String?
+  bank_credited_at         DateTime?
+  payer_auth_user_id       String?
+  currency                 String             @default("VND")
+  payment_method           String             @default("bank_transfer")
+  type                     String?            @default("purchase")
 
-  case        Case           @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  case        Case            @relation(fields: [case_id], references: [id], onDelete: Cascade)
   package     ServicePackage? @relation(fields: [package_id], references: [id])
-  verified_by User?          @relation("PaymentVerifier", fields: [verified_by_auth_user_id], references: [id])
+  verified_by User?           @relation("PaymentVerifier", fields: [verified_by_auth_user_id], references: [id])
   events      CaseEvent[]
-  payer       User?          @relation("PaymentPayer", fields: [payer_auth_user_id], references: [id], onDelete: SetNull)
+  payer       User?           @relation("PaymentPayer", fields: [payer_auth_user_id], references: [id], onDelete: SetNull)
 
+  @@unique([transfer_content])
   @@index([case_id])
   @@index([package_id])
   @@index([verified_by_auth_user_id])
-  @@unique([transfer_content])
   @@index([transfer_content])
   @@index([bank_transaction_id])
   @@index([payer_auth_user_id])
@@ -543,8 +548,8 @@ model CaseMessage {
   content              String   @db.Text
   created_at           DateTime @default(now())
 
-  case                 Case     @relation(fields: [case_id], references: [id], onDelete: Cascade)
-  sender               User     @relation("MessageSender", fields: [sender_auth_user_id], references: [id])
+  case   Case @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  sender User @relation("MessageSender", fields: [sender_auth_user_id], references: [id])
 
   @@index([case_id])
   @@index([sender_auth_user_id])
@@ -553,16 +558,16 @@ model CaseMessage {
 }
 
 model CaseChatReadState {
-  id                   String    @id @default(uuid())
+  id                   String   @id @default(uuid())
   case_id              String
   user_id              String
   last_read_message_id String?
-  last_read_at         DateTime  @default(now())
-  created_at           DateTime  @default(now())
-  updated_at           DateTime  @updatedAt
+  last_read_at         DateTime @default(now())
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
 
-  case                 Case      @relation(fields: [case_id], references: [id], onDelete: Cascade)
-  user                 User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  case Case @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([case_id, user_id])
   @@index([case_id])
@@ -584,10 +589,10 @@ model CaseEvent {
   actor_role         String?
   created_at         DateTime @default(now())
 
-  case                 Case     @relation(fields: [case_id], references: [id], onDelete: Cascade)
-  actor                User     @relation("EventActor", fields: [actor_auth_user_id], references: [id])
-  report               Report?  @relation(fields: [report_id], references: [id])
-  payment              Payment? @relation(fields: [payment_id], references: [id])
+  case    Case     @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  actor   User     @relation("EventActor", fields: [actor_auth_user_id], references: [id])
+  report  Report?  @relation(fields: [report_id], references: [id])
+  payment Payment? @relation(fields: [payment_id], references: [id])
 
   @@index([case_id])
   @@index([actor_auth_user_id])
@@ -607,7 +612,7 @@ model AiJob {
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
-  case          Case     @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  case Case @relation(fields: [case_id], references: [id], onDelete: Cascade)
 
   @@index([case_id])
   @@map("ai_jobs")
@@ -621,7 +626,7 @@ model TeamFitReport {
   result_snapshot Json
   created_at      DateTime @default(now())
 
-  case            Case     @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  case Case @relation(fields: [case_id], references: [id], onDelete: Cascade)
 
   @@unique([case_id])
   @@index([case_id])
@@ -634,13 +639,13 @@ model CreditLedger {
   amount          Int
   balance_after   Int
   type            String
-  reference_type   String?
+  reference_type  String?
   reference_id    String?
   idempotency_key String   @unique
   metadata_json   Json?
   created_at      DateTime @default(now())
 
-  case            Case     @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  case Case @relation(fields: [case_id], references: [id], onDelete: Cascade)
 
   @@index([case_id, created_at])
   @@map("credit_ledgers")
@@ -663,8 +668,8 @@ model Notification {
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
 
-  user          User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  case          Case?     @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  user User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  case Case? @relation(fields: [case_id], references: [id], onDelete: Cascade)
 
   @@index([user_id, read_at])
   @@index([user_id, created_at(sort: Desc)])
@@ -699,10 +704,10 @@ model NotificationOutbox {
 }
 
 model NotificationPreference {
-  user_id        String   @id
-  email_enabled  Boolean  @default(true)
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+  user_id       String   @id
+  email_enabled Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
 
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
