@@ -5,6 +5,8 @@
 **Branch:** `feat/login-page-ui`  
 **Plan phone 30/08:** cancelled — không implement SĐT
 
+> **Superseded.** Password login đã mở lại. Flow hiện tại: `docs/journals/journal-2026-08-31-email-password-otp-settings.md`. Phần “bỏ password login / xóa Đổi mật khẩu” **sai** so với working tree.
+
 ---
 
 ## 1. Tóm tắt
