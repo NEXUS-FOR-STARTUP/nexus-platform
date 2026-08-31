@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Button, TextInput, UnstyledButton } from "@mantine/core";
+import { Anchor, Button, Checkbox, Text, TextInput, UnstyledButton } from "@mantine/core";
 import { AlertCircle } from "lucide-react";
 import { getAuthRedirectUrl } from "../get-auth-redirect";
 import { useEmailOtpLogin } from "../hooks/use-email-otp-login";
@@ -18,6 +19,7 @@ export default function AuthPanel() {
   const searchParams = useSearchParams();
   const returnUrl = getAuthRedirectUrl(searchParams);
   const [email, setEmail] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [step, setStep] = useState<Step>("idle");
   const otp = useEmailOtpLogin(returnUrl);
   const google = useGoogleSignIn(returnUrl);
@@ -33,7 +35,7 @@ export default function AuthPanel() {
   };
 
   const handleOtpStart = async () => {
-    if (!emailValid || busy) return;
+    if (!emailValid || busy || !agreed) return;
     const sent = await otp.send(normalizedEmail);
     if (sent) setStep("otp");
   };
@@ -60,7 +62,14 @@ export default function AuthPanel() {
 
       {step === "idle" && (
         <div className="space-y-3">
-          <GoogleButton onClick={() => void google.signInGoogle()} loading={google.loading}>
+          <GoogleButton
+            onClick={() => {
+              if (!agreed) return;
+              void google.signInGoogle();
+            }}
+            loading={google.loading}
+            disabled={!agreed}
+          >
             Tiếp tục với Google
           </GoogleButton>
 
@@ -70,7 +79,11 @@ export default function AuthPanel() {
             size="md"
             variant="default"
             className="h-10 cursor-pointer font-medium border-border-app hover:bg-surface-soft transition-colors"
-            onClick={() => setStep("email")}
+            onClick={() => {
+              if (!agreed) return;
+              setStep("email");
+            }}
+            disabled={!agreed}
           >
             Tiếp tục với Email
           </Button>
@@ -110,7 +123,7 @@ export default function AuthPanel() {
               size="md"
               color="brand"
               className="h-10 cursor-pointer font-semibold mt-4"
-              disabled={!emailValid || busy}
+              disabled={!emailValid || busy || !agreed}
               loading={otp.sending}
             >
               Tiếp tục
@@ -138,8 +151,44 @@ export default function AuthPanel() {
           onVerify={(code) => void otp.verify(normalizedEmail, code)}
           onResend={() => void otp.send(normalizedEmail)}
           onBack={() => setStep("email")}
+          blocked={!agreed}
         />
       )}
+
+      <Checkbox
+        checked={agreed}
+        onChange={(e) => setAgreed(e.currentTarget.checked)}
+        disabled={busy}
+        radius="sm"
+        color="brand"
+        label={
+          <Text size="xs" className="font-body text-text-muted select-none">
+            Bằng việc tiếp tục, bạn đồng ý với{" "}
+            <Anchor
+              component={Link}
+              href="/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brand font-medium hover:underline inline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Điều khoản dịch vụ
+            </Anchor>{" "}
+            và{" "}
+            <Anchor
+              component={Link}
+              href="/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brand font-medium hover:underline inline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Chính sách bảo mật
+            </Anchor>{" "}
+            của Nexus.
+          </Text>
+        }
+      />
     </div>
   );
 }
