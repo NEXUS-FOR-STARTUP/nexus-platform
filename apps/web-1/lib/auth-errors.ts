@@ -1,7 +1,7 @@
 // Better Auth English → Vietnamese error translation (shared by auth pages).
 // Chuyển nguyên `translateError` từ profile page cũ sang đây để tái dùng.
 export function translateAuthError(message?: string): string {
-  if (!message) return "";
+  if (!message) return "Đã có lỗi xảy ra. Vui lòng thử lại.";
   const map: Record<string, string> = {
     "invalid password": "Mật khẩu hiện tại không đúng.",
     "password is too weak": "Mật khẩu mới quá yếu. Vui lòng chọn mật khẩu mạnh hơn.",
