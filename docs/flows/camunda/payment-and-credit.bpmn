@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_payment" targetNamespace="http://bpmn.io/schema/bpmn" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <bpmn:process id="payment-and-credit" name="Thanh toán &amp; mua lượt đánh giá" isExecutable="true">
+    <bpmn:startEvent id="Start_Deposit" name="Sinh viên cần mua lượt">
+      <bpmn:outgoing>Flow_ToDepositRequest</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="GwMergeDeposit" name="Vào nạp tiền">
+      <bpmn:incoming>Flow_ToDepositRequest</bpmn:incoming>
+      <bpmn:incoming>Flow_NoBalance</bpmn:incoming>
+      <bpmn:outgoing>Flow_MergeDeposit</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="CreateDepositRequest" name="Tạo yêu cầu nạp (chọn số tiền)">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition externalReference="deposit-form" />
+        <zeebe:assignmentDefinition candidateGroups="students" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_MergeDeposit</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToGenerateCode</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="GenerateDepositCode" name="Tạo mã nạp &amp; QR">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="create-deposit" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToGenerateCode</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToTransfer</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GwMergeUpload" name="Vào chuyển khoản">
+      <bpmn:incoming>Flow_ToTransfer</bpmn:incoming>
+      <bpmn:incoming>Flow_VerifyNo</bpmn:incoming>
+      <bpmn:outgoing>Flow_MergeUpload</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="TransferUpload" name="Chuyển khoản &amp; tải minh chứng">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition externalReference="deposit-proof-form" />
+        <zeebe:assignmentDefinition candidateGroups="students" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_MergeUpload</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToGwAuto</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:eventBasedGateway id="GwAuto" name="Tiền về bằng cách nào?">
+      <bpmn:incoming>Flow_ToGwAuto</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToCatchBank</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ToCatchAdmin</bpmn:outgoing>
+    </bpmn:eventBasedGateway>
+    <bpmn:intermediateCatchEvent id="CatchBank" name="Ngân hàng báo tự động">
+      <bpmn:messageEventDefinition messageRef="Message_bankDeposit" />
+      <bpmn:incoming>Flow_ToCatchBank</bpmn:incoming>
+      <bpmn:outgoing>Flow_BankVerified</bpmn:outgoing>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="CatchAdminVerify" name="Admin xác nhận thủ công">
+      <bpmn:messageEventDefinition messageRef="Message_adminVerify" />
+      <bpmn:incoming>Flow_ToCatchAdmin</bpmn:incoming>
+      <bpmn:outgoing>Flow_AdminVerified</bpmn:outgoing>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:exclusiveGateway id="GwMergeVerified" name="Nạp tiền đã được xác nhận">
+      <bpmn:incoming>Flow_BankVerified</bpmn:incoming>
+      <bpmn:incoming>Flow_AdminVerified</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToGwVerified</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="GwVerified" name="Đối chiếu đạt?" default="Flow_VerifyNo">
+      <bpmn:incoming>Flow_ToGwVerified</bpmn:incoming>
+      <bpmn:outgoing>Flow_VerifyYes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_VerifyNo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="CreditWallet" name="Cộng tiền ví">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="credit-wallet" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_VerifyYes</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToBuyCredits</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="BuyCredits" name="Mua lượt đánh giá cho case">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition externalReference="buy-credits-form" />
+        <zeebe:assignmentDefinition candidateGroups="students" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToBuyCredits</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToCheckBalance</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="CheckBalance" name="Kiểm tra số dư ví">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="check-balance" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToCheckBalance</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToGwBalance</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GwBalance" name="Đủ số dư?" default="Flow_NoBalance">
+      <bpmn:incoming>Flow_ToGwBalance</bpmn:incoming>
+      <bpmn:outgoing>Flow_BalanceYes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_NoBalance</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="ProcessPurchase" name="Trừ ví + cộng lượt + đánh dấu Đã thanh toán">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="process-purchase" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_BalanceYes</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToGwCaseState</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GwCaseState" name="Trạng thái case?" default="Flow_StateOther">
+      <bpmn:incoming>Flow_ToGwCaseState</bpmn:incoming>
+      <bpmn:outgoing>Flow_StatePreSubmit</bpmn:outgoing>
+      <bpmn:outgoing>Flow_StateCompleted</bpmn:outgoing>
+      <bpmn:outgoing>Flow_StateOther</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="MarkReady" name="Chuyển Sẵn sàng nộp">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="mark-ready-to-submit" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_StatePreSubmit</bpmn:incoming>
+      <bpmn:outgoing>Flow_ReadyDone</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="ReopenCase" name="Mở lại case để làm vòng mới">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="reopen-case" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_StateCompleted</bpmn:incoming>
+      <bpmn:outgoing>Flow_Reopened</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Reopened" name="Case mở lại">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="publish-message" />
+      </bpmn:extensionElements>
+      <bpmn:messageEventDefinition messageRef="Message_caseReopened" />
+      <bpmn:incoming>Flow_Reopened</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Done" name="Xong — lượt sẵn sàng">
+      <bpmn:incoming>Flow_ReadyDone</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_NoOp" name="Lượt nằm chờ vòng sau">
+      <bpmn:incoming>Flow_StateOther</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:textAnnotation id="Note_StageJump" text="⚠ Lệch so với code hiện tại (PR #19): mua lượt khi case chưa nộp đẩy case sang 'Sẵn sàng nộp'; việc nộp sau đó bị kẹt. Xem docs/research/brainstorm-2026-08-21-flow-confusion-intake-payment-credit.md" />
+    <bpmn:textAnnotation id="Note_OneCredit" text="1 lượt gắn theo case (không theo tài khoản); trừ đúng 1 lần mỗi lần supporter nộp báo cáo; bản sửa của sinh viên không trừ lượt." />
+    <bpmn:sequenceFlow id="Flow_ToDepositRequest" sourceRef="Start_Deposit" targetRef="GwMergeDeposit" />
+    <bpmn:sequenceFlow id="Flow_MergeDeposit" sourceRef="GwMergeDeposit" targetRef="CreateDepositRequest" />
+    <bpmn:sequenceFlow id="Flow_ToGenerateCode" sourceRef="CreateDepositRequest" targetRef="GenerateDepositCode" />
+    <bpmn:sequenceFlow id="Flow_ToTransfer" sourceRef="GenerateDepositCode" targetRef="GwMergeUpload" />
+    <bpmn:sequenceFlow id="Flow_MergeUpload" sourceRef="GwMergeUpload" targetRef="TransferUpload" />
+    <bpmn:sequenceFlow id="Flow_ToGwAuto" sourceRef="TransferUpload" targetRef="GwAuto" />
+    <bpmn:sequenceFlow id="Flow_ToCatchBank" sourceRef="GwAuto" targetRef="CatchBank" />
+    <bpmn:sequenceFlow id="Flow_ToCatchAdmin" sourceRef="GwAuto" targetRef="CatchAdminVerify" />
+    <bpmn:sequenceFlow id="Flow_BankVerified" sourceRef="CatchBank" targetRef="GwMergeVerified" />
+    <bpmn:sequenceFlow id="Flow_AdminVerified" sourceRef="CatchAdminVerify" targetRef="GwMergeVerified" />
+    <bpmn:sequenceFlow id="Flow_ToGwVerified" sourceRef="GwMergeVerified" targetRef="GwVerified" />
+    <bpmn:sequenceFlow id="Flow_VerifyYes" name="Đã xác nhận" sourceRef="GwVerified" targetRef="CreditWallet">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=depositVerified = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_VerifyNo" name="Chưa khớp — gửi lại minh chứng" sourceRef="GwVerified" targetRef="GwMergeUpload" />
+    <bpmn:sequenceFlow id="Flow_ToBuyCredits" sourceRef="CreditWallet" targetRef="BuyCredits" />
+    <bpmn:sequenceFlow id="Flow_ToCheckBalance" sourceRef="BuyCredits" targetRef="CheckBalance" />
+    <bpmn:sequenceFlow id="Flow_ToGwBalance" sourceRef="CheckBalance" targetRef="GwBalance" />
+    <bpmn:sequenceFlow id="Flow_BalanceYes" name="Đủ số dư" sourceRef="GwBalance" targetRef="ProcessPurchase">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=balanceSufficient = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_NoBalance" name="Không đủ — nạp thêm" sourceRef="GwBalance" targetRef="GwMergeDeposit" />
+    <bpmn:sequenceFlow id="Flow_ToGwCaseState" sourceRef="ProcessPurchase" targetRef="GwCaseState" />
+    <bpmn:sequenceFlow id="Flow_StatePreSubmit" name="Chưa nộp hồ sơ" sourceRef="GwCaseState" targetRef="MarkReady">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=caseStage = "pre_submit"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_StateCompleted" name="Đã hoàn tất" sourceRef="GwCaseState" targetRef="ReopenCase">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=caseStage = "completed"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_StateOther" name="Khác" sourceRef="GwCaseState" targetRef="End_NoOp" />
+    <bpmn:sequenceFlow id="Flow_ReadyDone" sourceRef="MarkReady" targetRef="End_Done" />
+    <bpmn:sequenceFlow id="Flow_Reopened" sourceRef="ReopenCase" targetRef="End_Reopened" />
+    <bpmn:association id="Assoc_StageJump" sourceRef="Note_StageJump" targetRef="MarkReady" />
+    <bpmn:association id="Assoc_OneCredit" sourceRef="Note_OneCredit" targetRef="ProcessPurchase" />
+  </bpmn:process>
+  <bpmn:message id="Message_bankDeposit" name="bank-deposit-received">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=depositCode" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Message_adminVerify" name="admin-verified-deposit">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=depositCode" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Message_caseReopened" name="case-reopened">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=caseId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_payment">
+    <bpmndi:BPMNPlane id="BPMNPlane_payment" bpmnElement="payment-and-credit">
+      <bpmndi:BPMNShape id="Start_Deposit_di" bpmnElement="Start_Deposit">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwMergeDeposit_di" bpmnElement="GwMergeDeposit" isMarkerVisible="true">
+        <dc:Bounds x="240" y="115" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CreateDepositRequest_di" bpmnElement="CreateDepositRequest">
+        <dc:Bounds x="340" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GenerateDepositCode_di" bpmnElement="GenerateDepositCode">
+        <dc:Bounds x="490" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwMergeUpload_di" bpmnElement="GwMergeUpload" isMarkerVisible="true">
+        <dc:Bounds x="640" y="115" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TransferUpload_di" bpmnElement="TransferUpload">
+        <dc:Bounds x="740" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwAuto_di" bpmnElement="GwAuto">
+        <dc:Bounds x="890" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CatchBank_di" bpmnElement="CatchBank">
+        <dc:Bounds x="990" y="20" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CatchAdminVerify_di" bpmnElement="CatchAdminVerify">
+        <dc:Bounds x="990" y="170" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwMergeVerified_di" bpmnElement="GwMergeVerified" isMarkerVisible="true">
+        <dc:Bounds x="1140" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwVerified_di" bpmnElement="GwVerified" isMarkerVisible="true">
+        <dc:Bounds x="1290" y="175" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CreditWallet_di" bpmnElement="CreditWallet">
+        <dc:Bounds x="1390" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BuyCredits_di" bpmnElement="BuyCredits">
+        <dc:Bounds x="1540" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CheckBalance_di" bpmnElement="CheckBalance">
+        <dc:Bounds x="1690" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwBalance_di" bpmnElement="GwBalance" isMarkerVisible="true">
+        <dc:Bounds x="1840" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ProcessPurchase_di" bpmnElement="ProcessPurchase">
+        <dc:Bounds x="1940" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwCaseState_di" bpmnElement="GwCaseState" isMarkerVisible="true">
+        <dc:Bounds x="2090" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="MarkReady_di" bpmnElement="MarkReady">
+        <dc:Bounds x="2240" y="25" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ReopenCase_di" bpmnElement="ReopenCase">
+        <dc:Bounds x="2240" y="165" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Reopened_di" bpmnElement="End_Reopened">
+        <dc:Bounds x="2390" y="187" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Done_di" bpmnElement="End_Done">
+        <dc:Bounds x="2390" y="47" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_NoOp_di" bpmnElement="End_NoOp">
+        <dc:Bounds x="2240" y="265" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Note_StageJump_di" bpmnElement="Note_StageJump">
+        <dc:Bounds x="2510" y="80" width="300" height="130" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Note_OneCredit_di" bpmnElement="Note_OneCredit">
+        <dc:Bounds x="2510" y="250" width="300" height="110" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_ToDepositRequest_di" bpmnElement="Flow_ToDepositRequest">
+        <di:waypoint x="188" y="120" />
+        <di:waypoint x="214" y="120" />
+        <di:waypoint x="214" y="140" />
+        <di:waypoint x="240" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_MergeDeposit_di" bpmnElement="Flow_MergeDeposit">
+        <di:waypoint x="290" y="140" />
+        <di:waypoint x="310" y="140" />
+        <di:waypoint x="310" y="120" />
+        <di:waypoint x="340" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToGenerateCode_di" bpmnElement="Flow_ToGenerateCode">
+        <di:waypoint x="440" y="120" />
+        <di:waypoint x="490" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToTransfer_di" bpmnElement="Flow_ToTransfer">
+        <di:waypoint x="590" y="120" />
+        <di:waypoint x="615" y="120" />
+        <di:waypoint x="615" y="140" />
+        <di:waypoint x="640" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_MergeUpload_di" bpmnElement="Flow_MergeUpload">
+        <di:waypoint x="690" y="140" />
+        <di:waypoint x="715" y="140" />
+        <di:waypoint x="715" y="120" />
+        <di:waypoint x="740" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToGwAuto_di" bpmnElement="Flow_ToGwAuto">
+        <di:waypoint x="840" y="120" />
+        <di:waypoint x="890" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToCatchBank_di" bpmnElement="Flow_ToCatchBank">
+        <di:waypoint x="940" y="120" />
+        <di:waypoint x="965" y="120" />
+        <di:waypoint x="965" y="38" />
+        <di:waypoint x="990" y="38" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToCatchAdmin_di" bpmnElement="Flow_ToCatchAdmin">
+        <di:waypoint x="940" y="120" />
+        <di:waypoint x="965" y="120" />
+        <di:waypoint x="965" y="188" />
+        <di:waypoint x="990" y="188" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_BankVerified_di" bpmnElement="Flow_BankVerified">
+        <di:waypoint x="1026" y="38" />
+        <di:waypoint x="1060" y="38" />
+        <di:waypoint x="1060" y="120" />
+        <di:waypoint x="1140" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AdminVerified_di" bpmnElement="Flow_AdminVerified">
+        <di:waypoint x="1026" y="188" />
+        <di:waypoint x="1070" y="188" />
+        <di:waypoint x="1070" y="120" />
+        <di:waypoint x="1140" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToGwVerified_di" bpmnElement="Flow_ToGwVerified">
+        <di:waypoint x="1190" y="120" />
+        <di:waypoint x="1190" y="200" />
+        <di:waypoint x="1290" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_VerifyYes_di" bpmnElement="Flow_VerifyYes">
+        <di:waypoint x="1340" y="200" />
+        <di:waypoint x="1365" y="200" />
+        <di:waypoint x="1365" y="120" />
+        <di:waypoint x="1390" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_VerifyNo_di" bpmnElement="Flow_VerifyNo">
+        <di:waypoint x="1315" y="225" />
+        <di:waypoint x="1315" y="260" />
+        <di:waypoint x="665" y="260" />
+        <di:waypoint x="665" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToBuyCredits_di" bpmnElement="Flow_ToBuyCredits">
+        <di:waypoint x="1490" y="120" />
+        <di:waypoint x="1540" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToCheckBalance_di" bpmnElement="Flow_ToCheckBalance">
+        <di:waypoint x="1640" y="120" />
+        <di:waypoint x="1690" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToGwBalance_di" bpmnElement="Flow_ToGwBalance">
+        <di:waypoint x="1790" y="120" />
+        <di:waypoint x="1840" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_BalanceYes_di" bpmnElement="Flow_BalanceYes">
+        <di:waypoint x="1890" y="120" />
+        <di:waypoint x="1940" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_NoBalance_di" bpmnElement="Flow_NoBalance">
+        <di:waypoint x="1840" y="120" />
+        <di:waypoint x="1840" y="10" />
+        <di:waypoint x="265" y="10" />
+        <di:waypoint x="265" y="115" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToGwCaseState_di" bpmnElement="Flow_ToGwCaseState">
+        <di:waypoint x="2040" y="120" />
+        <di:waypoint x="2090" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_StatePreSubmit_di" bpmnElement="Flow_StatePreSubmit">
+        <di:waypoint x="2115" y="95" />
+        <di:waypoint x="2115" y="65" />
+        <di:waypoint x="2240" y="65" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_StateCompleted_di" bpmnElement="Flow_StateCompleted">
+        <di:waypoint x="2115" y="145" />
+        <di:waypoint x="2115" y="205" />
+        <di:waypoint x="2240" y="205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_StateOther_di" bpmnElement="Flow_StateOther">
+        <di:waypoint x="2140" y="120" />
+        <di:waypoint x="2170" y="120" />
+        <di:waypoint x="2170" y="283" />
+        <di:waypoint x="2240" y="283" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ReadyDone_di" bpmnElement="Flow_ReadyDone">
+        <di:waypoint x="2340" y="65" />
+        <di:waypoint x="2390" y="65" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Reopened_di" bpmnElement="Flow_Reopened">
+        <di:waypoint x="2340" y="205" />
+        <di:waypoint x="2390" y="205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_StageJump_di" bpmnElement="Assoc_StageJump">
+        <di:waypoint x="2510" y="145" />
+        <di:waypoint x="2480" y="145" />
+        <di:waypoint x="2480" y="65" />
+        <di:waypoint x="2340" y="65" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_OneCredit_di" bpmnElement="Assoc_OneCredit">
+        <di:waypoint x="2510" y="305" />
+        <di:waypoint x="2220" y="305" />
+        <di:waypoint x="2220" y="120" />
+        <di:waypoint x="2040" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

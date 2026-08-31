@@ -1,19 +1,65 @@
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useDebouncedValue } from "@mantine/hooks";
 import { apiClient } from "@/lib/api-client";
 import { User } from "@/types";
+import type { AdminCaseListView } from "@repo/validation";
 
-export function useAdminCases() {
+export interface AdminCaseListItem {
+  id: string;
+  case_code: string;
+  team_name: string | null;
+  created_at: string;
+  deadline: string | null;
+  user_facing_stage: string;
+  internal_status: string;
+  payment_status: string;
+  package_name: string;
+  completeness: number;
+  owner_name: string;
+  assigned_supporter: { id: string; name: string } | null;
+  sla_deadline_at: string | null;
+}
+
+interface AdminCaseListResponse {
+  items: AdminCaseListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+const PAGE_SIZE = 20;
+
+export function useAdminCases(view: AdminCaseListView = "all") {
   const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebouncedValue(search, 300);
+  const [sortBy, setSortBy] = useState<"created_at" | "case_code" | "team_name">("created_at");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  useEffect(() => {
+    setPage(1);
+  }, [view, debouncedSearch, sortBy, sortOrder]);
+
+  const listQuery = {
+    view,
+    search: debouncedSearch.trim() || undefined,
+    sortBy,
+    sortOrder,
+    page,
+    limit: PAGE_SIZE,
+  };
 
   const {
-    data: casesData,
+    data,
     isLoading: isCasesLoading,
     error: casesError,
     refetch: refetchCases,
-  } = useQuery<any[]>({
-    queryKey: ["admin-cases"],
+  } = useQuery<AdminCaseListResponse>({
+    queryKey: ["admin-cases", listQuery],
     queryFn: async () => {
-      const response = await apiClient.get("/admin/cases");
+      const response = await apiClient.get("/admin/cases", { params: listQuery });
       return response.data;
     },
     refetchInterval: 10000,
@@ -28,16 +74,18 @@ export function useAdminCases() {
     refetchInterval: 10000,
   });
 
+  const invalidateCases = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin-cases"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-case-detail"] });
+    queryClient.invalidateQueries({ queryKey: ["case"] });
+  };
+
   const acceptCaseMutation = useMutation({
     mutationFn: async (caseId: string) => {
       const response = await apiClient.post(`/admin/cases/${caseId}/accept`);
       return response.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-cases"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-case-detail"] });
-      queryClient.invalidateQueries({ queryKey: ["case"] });
-    },
+    onSuccess: invalidateCases,
   });
 
   const rejectCaseMutation = useMutation({
@@ -45,11 +93,7 @@ export function useAdminCases() {
       const response = await apiClient.post(`/admin/cases/${caseId}/reject`, { reason });
       return response.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-cases"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-case-detail"] });
-      queryClient.invalidateQueries({ queryKey: ["case"] });
-    },
+    onSuccess: invalidateCases,
   });
 
   const assignSupporterMutation = useMutation({
@@ -59,11 +103,7 @@ export function useAdminCases() {
       });
       return response.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-cases"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-case-detail"] });
-      queryClient.invalidateQueries({ queryKey: ["case"] });
-    },
+    onSuccess: invalidateCases,
   });
 
   const deleteCaseMutation = useMutation({
@@ -71,15 +111,23 @@ export function useAdminCases() {
       const response = await apiClient.delete(`/cases/${caseId}`);
       return response.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-cases"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-case-detail"] });
-      queryClient.invalidateQueries({ queryKey: ["case"] });
-    },
+    onSuccess: invalidateCases,
   });
 
   return {
-    cases: casesData || [],
+    cases: data?.items ?? [],
+    total: data?.total ?? 0,
+    page,
+    limit: PAGE_SIZE,
+    setPage,
+    search,
+    setSearch,
+    sortBy,
+    sortOrder,
+    setSort: (nextSortBy: "created_at" | "case_code" | "team_name", nextOrder: "asc" | "desc") => {
+      setSortBy(nextSortBy);
+      setSortOrder(nextOrder);
+    },
     isCasesLoading,
     casesError,
     refetchCases,
@@ -111,3 +159,4 @@ export function useAdminCaseDetail(caseId: string | null) {
     refetchInterval: 10000,
   });
 }
+

@@ -14,10 +14,10 @@ Next.js 16 App Router product app. Mantine UI v9, TanStack Query v5 / Form v1, L
 app/
 ├── layout.tsx + providers.tsx → Root layout (QueryClient, Mantine, Theme)
 ├── page.tsx → Landing (AppShell)
-├── (auth)/ → Login/register (AuthPanel, TanStack Form + Google OAuth)
+├── auth/ → Login/register (Google OAuth, Email OTP & Password; legacy verify-email @deprecated)
 ├── dashboard/ → Student (role=user)
-│   └── case/[id]/ → Workspace (4 tabs, 16 components, 6 hooks)
-├── admin/ → Admin panel (5 sections, 5 hooks, 11 components)
+│   └── case/[id]/ → Workspace (6 tabs: overview/documents/discussion/credits/timeline/settings)
+├── admin/ → Admin panel (6 sections via ?tab=: stats/payments/cases/documents/packages/users, 8 hooks)
 └── supporter/ → Supporter workspace (case view + output upload; settings mirrors student via shared dashboard SettingsLayout)
 
 components/ → Shared: 3 shells (App/Auth/Dashboard), 4 landing, 4 UI primitives
@@ -32,9 +32,9 @@ RootLayout → Providers
 ├── AppShell → Landing (/)
 ├── AuthShell → Auth (/auth/*)
 └── DashboardShell → Protected (role-guarded)
-    ├── /dashboard/* (student)
-    ├── /admin/* (admin)
-    └── /supporter/* (supporter|admin)
+    ├── /dashboard/* (student, role=user)
+    ├── /admin/* (admin, role=admin)
+    └── /supporter/* (supporter, role=supporter)
 ```
 
 ## DATA FETCHING PATTERN
@@ -46,26 +46,34 @@ RootLayout → Providers
 - Mutations invalidate related queries on success
 - No Redux/Zustand
 
-## CUSTOM HOOKS (16 total)
+## CUSTOM HOOKS (21 total)
 
 | Hook | File | Purpose |
 |------|------|---------|
 | useCasesList | dashboard/hooks/ | Student case list |
-| useMyPayments | dashboard/hooks/ | Student payment history |
 | useCaseDetails | case/[id]/hooks/ | Single case + workspace (10s poll) |
+| useCaseChatVirtualizer | case/[id]/hooks/ | @tanstack/react-virtual chat list (backward preload, scroll anchor) |
 | useCaseChat | case/[id]/hooks/ | Messages + send (60s poll fallback) |
 | useRealtimeChat | case/[id]/hooks/ | Centrifugo WS subscription `chat:{caseId}` → live messages |
 | useCaseDocumentUploads | case/[id]/hooks/ | 4 sub-hooks: document types, student upload, supporter-output upload, external-feedback upload |
 | useIntakeForm | intake/hooks/ | 7-step wizard (TanStack Form + localStorage) |
+| useWalletBalance | wallet/hooks/ | Wallet VND balance (30s poll) |
+| useWalletHistory | wallet/hooks/ | Wallet transaction history (30s poll) |
+| useCreateDeposit | wallet/hooks/ | Create deposit (POST /deposits) |
 | useTeamFitMutation | team-fit/hooks/ | AI team-fit analysis |
 | useTeamFitSaveMutation | team-fit/hooks/ | Save as case |
 | useAdminCases | admin/hooks/ | Admin case triage (5 actions) |
+| useAdminCaseDetail | admin/hooks/ | Admin case detail modal |
 | useAdminStats | admin/hooks/ | Dashboard stats |
+| useAdminDeposits | admin/hooks/ | Deposit verification |
+| useAdminUsers | admin/hooks/ | User management (ban/unban) |
+| useSupporterActions | supporter/hooks/ | Supporter case actions (T7/T8/T10) |
 | useAdminDocuments | admin/hooks/ | Document CRUD |
 | useAdminPayments | admin/hooks/ | Payment verification |
 | useAdminPackages | admin/hooks/ | Package management |
-| useNotifications | lib/hooks/ | Notification list + unread count |
-| useProfileMutations | dashboard/settings/hooks/ | Cập nhật tên + đổi mật khẩu (Better Auth, revokeOtherSessions) |
+| useNotifications | lib/hooks/ | Notification list + unread count (SSE) |
+| useProfileMutations | dashboard/settings/hooks/ | Cập nhật tên + đặt/đổi mật khẩu + avatar + xóa tài khoản |
+
 
 ## MANTINE UI STYLING RULE
 
@@ -77,7 +85,8 @@ Client-side only (no middleware guard):
 
 - `useSession()` in layout → redirect if missing/wrong role
 - `apiClient` 401 interceptor → `/auth`
-- Protected: dashboard (user), admin (admin), supporter (supporter|admin)
+- Protected: dashboard (user), admin (admin), supporter (supporter)
+- Routes `/dashboard/payments` (→ `/dashboard/wallet`) và `/dashboard/profile` (→ `/dashboard/settings/profile`) là redirect stub, `useMyPayments`/`PaymentHistoryList` là dead code.
 
 ## UI CONVENTIONS
 

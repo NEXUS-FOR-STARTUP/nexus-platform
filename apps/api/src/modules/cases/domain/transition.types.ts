@@ -72,7 +72,7 @@ export type GuardName =
   | 'reasonMinLength'
 export type ActionName =
   | 'upsertDoc' | 'subtractCredit' | 'refundCredit' | 'refundRemainingCredit'
-  | 'setSlaDeadline' | 'emitStageChanged' | 'notifyUser'
+  | 'setSlaDeadline' | 'resetSlaIfOverdue' | 'emitStageChanged' | 'notifyUser'
   | 'resetStatus' | 'autoResumeWork' | 'lockPrice'
 
 export interface ActionDescriptor {

@@ -214,10 +214,9 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
       return { success: true, case_id: caseId, stage: result.stage, status: result.status };
     }
 
-    // triage_pending: content + transition cùng 1 tx (M1 — tránh partial write)
-    const transition = caseRecord.user_facing_stage === "intake_ready"
-      ? "T16_EDIT_INTAKE"
-      : "T2_SUBMIT_INTAKE";
+    // triage_pending: content + transition cùng 1 tx (M1 — tránh partial write).
+    // GA-02: submit luôn T2_SUBMIT_INTAKE → user_facing_stage "submitted" (không kẹt intake_ready).
+    const transition = "T2_SUBMIT_INTAKE";
 
     const result = await prisma.$transaction(async (tx) => {
       await updateIntakeDataOnly(tx, caseId, caseRecord, body);

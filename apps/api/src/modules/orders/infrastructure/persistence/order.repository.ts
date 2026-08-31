@@ -48,3 +48,28 @@ export async function findOrdersByUser(userId: string, limit = 20, offset = 0) {
 export async function countOrdersByUser(userId: string): Promise<number> {
   return prisma.order.count({ where: { user_id: userId } });
 }
+
+export async function countOrdersExport(): Promise<number> {
+  return prisma.order.count();
+}
+
+export async function findOrdersExportPage(offset: number, take: number) {
+  return prisma.order.findMany({
+    select: {
+      id: true,
+      user_id: true,
+      total_amount: true,
+      currency: true,
+      status: true,
+      wallet_transaction_id: true,
+      created_at: true,
+      updated_at: true,
+      user: { select: { name: true, email: true } },
+      items: { select: { service_type: true, quantity: true } },
+    },
+    orderBy: [{ created_at: "desc" }, { id: "desc" }],
+    skip: offset,
+    take,
+  });
+}
+

@@ -125,9 +125,9 @@ MVP đạt khi có thể demo trọn câu chuyện sau:
 
 ## 8. Quyết định khóa cho phase 1
 
-- Admin có thể `Yêu cầu bổ sung` trước khi accept.
+- Admin triage: accept/reject (lý do từ chối ≥ 10 ký tự) / assign supporter. `Yêu cầu bổ sung` của admin đã xóa (2026-08-14, F03) — kênh triage giờ là reject reason; yêu cầu bổ sung do supporter thực hiện (machine T8) sau khi được assign.
 - Report phase 1 là structured rich text trong hệ thống và có thể kèm file đính kèm.
-- Không làm in-app chat hoặc hỏi đáp tự do trong phase 1.
+- Realtime chat đã ship 2026-08-08 (Centrifugo v6, WS primary + REST 60s fallback) — dòng "không làm in-app chat" là quyết định phase-1 gốc, đã được thay thế.
 - Payment không nằm trong luồng bắt buộc của demo round đầu, nhưng tính năng cấu hình giá gói dịch vụ (Packages Pricing Configuration) dành cho Admin đã được hiện thực hóa đầy đủ ở admin console, cùng với cơ chế khóa giá (Price Locking) và lưu vết thay đổi (Pricing Change Audit Trail).
 
 ## 9. Thiếu / chưa rõ

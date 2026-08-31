@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm } from "@tanstack/react-form";
-import { Avatar, Button, Group, Paper, Stack, TextInput, Tooltip } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
-import { ImagePlus, Info } from "lucide-react";
+import { Avatar, Button, Group, Paper, Stack, Text, TextInput, Tooltip } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { AlertTriangle, ImagePlus, Info, Trash2 } from "lucide-react";
 import { useProfileMutations } from "../../hooks/useProfileMutations";
+import { DeleteAccountModal } from "./DeleteAccountModal";
 
 interface ProfileFormValues {
   name: string;
@@ -21,7 +22,9 @@ interface ProfileInfoFormProps {
 }
 
 export default function ProfileInfoForm({ user, refetch }: ProfileInfoFormProps) {
-  const { updateName } = useProfileMutations();
+  const { updateName, changeAvatar, deleteAccount } = useProfileMutations();
+  const [deleteModalOpened, { open: openDeleteModal, close: closeDeleteModal }] = useDisclosure(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm({
     defaultValues: { name: user.name ?? "" } as ProfileFormValues,
@@ -43,15 +46,23 @@ export default function ProfileInfoForm({ user, refetch }: ProfileInfoFormProps)
   }, [user.name, form]);
 
   const handleChangeAvatar = () => {
-    notifications.show({
-      title: "Đang phát triển",
-      message: "Chức năng này đang được phát triển.",
-      color: "blue",
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    changeAvatar.mutate(file, {
+      onSuccess: () => {
+        void refetch();
+      },
     });
   };
 
   return (
-    <Paper p="xl" radius="md" className="bg-surface-app border border-border-app max-w-md">
+    <Stack gap="xl" className="max-w-md">
+      <Paper p="xl" radius="md" className="bg-surface-app border border-border-app">
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -67,9 +78,18 @@ export default function ProfileInfoForm({ user, refetch }: ProfileInfoFormProps)
               variant="default"
               leftSection={<ImagePlus className="w-4 h-4" />}
               onClick={handleChangeAvatar}
+              loading={changeAvatar.isPending}
+              disabled={changeAvatar.isPending}
             >
               Đổi ảnh
             </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+              hidden
+              onChange={handleAvatarFile}
+            />
           </Group>
 
           <form.Field
@@ -122,6 +142,37 @@ export default function ProfileInfoForm({ user, refetch }: ProfileInfoFormProps)
           </Button>
         </Stack>
       </form>
-    </Paper>
+      </Paper>
+
+      <Paper p="xl" radius="md" className="bg-surface-app border border-red-500/30">
+        <Stack gap="md">
+          <Group gap="xs">
+            <AlertTriangle className="w-5 h-5 text-red-500" />
+            <Text fw={600} size="sm" c="red" className="font-heading">
+              Vùng nguy hiểm
+            </Text>
+          </Group>
+          <Text size="xs" c="dimmed">
+            Xóa tài khoản của bạn và toàn bộ thông tin cá nhân. Hành động này không thể hoàn tác.
+          </Text>
+          <Button
+            color="red"
+            variant="light"
+            leftSection={<Trash2 className="w-4 h-4" />}
+            onClick={openDeleteModal}
+            className="self-start"
+          >
+            Xóa tài khoản
+          </Button>
+        </Stack>
+      </Paper>
+
+      <DeleteAccountModal
+        opened={deleteModalOpened}
+        onClose={closeDeleteModal}
+        onConfirm={() => deleteAccount.mutate()}
+        loading={deleteAccount.isPending}
+      />
+    </Stack>
   );
 }

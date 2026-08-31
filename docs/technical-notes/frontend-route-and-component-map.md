@@ -32,9 +32,13 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 - `/admin`
 - `/supporter`
 - `/supporter/case/[id]`
-- `/supporter/case/[id]/review`
+- `/dashboard/payments` (redirect → `/dashboard/wallet`)
+- `/dashboard/profile` (redirect → `/dashboard/settings/profile`)
+- `/dashboard/settings` (sidebar settings: `/profile`, `/password`, `/sessions`)
+- `/supporter/settings` (supporter settings: `/profile`, `/password`, `/sessions`)
+- `/auth/forgot-password` (đã fix OTP flow)
 
-> Ghi chú (cập nhật 2026-08-11): route `/dashboard/wallet` đã triển khai — ví VND student (số dư, lịch sử giao dịch, nạp tiền SePay). Nav item "Ví của tôi" (icon Wallet) được thêm vào `DashboardShell` cho student. Backend module `wallet` (4 routes: `/api/wallet/balance`, `/history`, `/topups`, `/purchase-credits`) đã có.
+> Ghi chú (cập nhật 2026-08-24): `/supporter/case/[id]/review` **không tồn tại** — supporter biên tập report qua usecases `get-draft-report`/`edit-draft-report` + modal upload, không có page riêng. Route `/dashboard/wallet` đã triển khai — ví VND student (số dư, lịch sử giao dịch, nạp tiền SePay). Nav item "Ví của tôi" (icon Wallet) được thêm vào `DashboardShell` cho student. Backend: wallet module giữ live `GET /api/wallet/balance` + `GET /api/wallet/history`; **nạp tiền thuộc module deposits** (5 routes, `POST /api/deposits` + `POST /api/deposits/:id/verify`), `POST /api/wallet/topups` → **410 GONE**, `POST /api/wallet/purchase-credits` **deprecated**.
 
 ### Shell hiện có
 
@@ -68,7 +72,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 - Giữ `/auth` làm route auth hợp nhất.
 - Giữ `/dashboard/intake` làm route create case wizard.
 - Giữ `/dashboard/case/[id]` làm user case workspace.
-- Giữ `/supporter/case/[id]` và `/supporter/case/[id]/review`.
+- Giữ `/supporter/case/[id]`; KHÔNG tạo `/supporter/case/[id]/review` — supporter biên tập report qua modal/`SupporterOutputUploadModal` (get-draft-report/edit-draft-report usecases), page riêng không tồn tại.
 - Dùng `/admin/case/[id]` như route canonical cho admin case detail ngay từ phase 1.
 - Xem `/dashboard/case/[id]/payment` là legacy/deferred route, không thuộc luồng CP1 MVP chính.
 
@@ -87,7 +91,8 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | `/admin/case/[id]` | Admin | Admin case detail | New | Canonical route cho detail view; không gộp tạm trong `/admin` |
 | `/supporter` | Supporter, Admin | Supporter queue | Reuse + adapt | Giữ route; đổi filter và copy theo queue thật |
 | `/supporter/case/[id]` | Supporter, Admin | Supporter case workspace | Reuse + adapt | Giữ route |
-| `/supporter/case/[id]/review` | Supporter, Admin | Supporter report composer | Reuse + adapt | Giữ route; đây là chỗ biên tập report |
+| `/dashboard/settings/sessions` | User | Quản lý thiết bị & Phiên đăng nhập (GA-06) | New (2026-08-28) | Hiển thị phiên, OS/Browser, badge phiên hiện tại, thu hồi phiên |
+| `/supporter/settings/sessions` | Supporter | Quản lý thiết bị & Phiên đăng nhập supporter (GA-06) | New (2026-08-28) | Tái sử dụng SessionsList cho supporter |
 
 ## 6. Route transition map
 
@@ -109,8 +114,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 
 - `/auth` -> đăng nhập thành công với role `supporter` -> `/supporter`
 - `/supporter` -> click case -> `/supporter/case/[id]`
-- `/supporter/case/[id]` -> `Biên tập phản biện` -> `/supporter/case/[id]/review`
-- `/supporter/case/[id]/review` -> publish thành công -> quay lại `/supporter/case/[id]`
+- `/supporter/case/[id]` -> biên tập report trong workspace (get-draft-report/edit-draft-report usecases) -> publish qua `SupporterOutputUploadModal`
 
 ## 7. Route-level implementation notes
 
@@ -156,7 +160,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | `useIntakeForm` | Existing | intake | Adapt để bám field set mới |
 | `WalletBalanceCard` / `WalletTransactionList` / `WalletTransactionItem` | New (2026-08-11) | `/dashboard/wallet` | Số dư VND + lịch sử giao dịch (`wallet_transactions`) |
 | `WalletTopupModal` | New (2026-08-11) | `/dashboard/wallet` | Nạp tiền SePay — trả QR + transfer content |
-| `useWallet` (useWalletBalance / useWalletHistory / useCreateTopup) | New (2026-08-11) | `/dashboard/wallet` | Query balance/history (polling 30s), topup mutation |
+| `useWallet` (useWalletBalance / useWalletHistory / useCreateDeposit) | New (2026-08-11) | `/dashboard/wallet` | Query balance/history (polling 30s), create-deposit mutation |
 
 ## 8.4 User case workspace
 
@@ -252,7 +256,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | `SupporterCaseSummaryPanel` | summary riêng cho supporter |
 | `SupporterAuditChecklistPanel` | checklist audit tối thiểu trong UI |
 | `SupporterRoundComparisonPanel` | đặt bản cũ / bản mới cạnh nhau |
-| `SupporterReportComposer` | wrapper rõ cho route `/supporter/case/[id]/review` |
+| `SupporterReportComposer` | wrapper rõ cho report composer trong `/supporter/case/[id]` (không dùng route riêng) |
 | `CloseCaseModal` | đóng case với lý do rõ |
 | `SupporterRequestMoreInfoAction` | phát yêu cầu bổ sung từ supporter |
 
@@ -268,7 +272,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | `usePaymentUpload` | deferred |
 | `useAdminCases` | refactor theo triage flow |
 | `useAdminPayments` | deferred |
-| `useWallet` | mới — ví VND: `useWalletBalance` (polling 30s), `useWalletHistory`, `useCreateTopup` |
+| `useWallet` | mới — ví VND: `useWalletBalance` (polling 30s), `useWalletHistory`, `useCreateDeposit` |
 
 ## 9. Reuse / adapt / new summary
 
@@ -326,7 +330,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 2. Refactor `/dashboard/case/[id]` thành report-centric workspace.
 3. Thêm revision upload gating theo stage trong user workspace.
 4. Refactor `/supporter` và `/supporter/case/[id]`.
-5. Chuyển `/supporter/case/[id]/review` sang draft report composer (get-draft-report/edit-draft-report usecases).
+5. Gắn draft report composer (get-draft-report/edit-draft-report usecases) vào `/supporter/case/[id]` — không tạo route `/supporter/case/[id]/review`.
 6. Refactor `/admin` thành triage queue.
 7. Triển khai `/admin/case/[id]` như detail page riêng cho admin.
 

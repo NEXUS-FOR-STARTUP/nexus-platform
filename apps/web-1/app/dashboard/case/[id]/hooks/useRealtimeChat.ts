@@ -5,16 +5,29 @@ import { notifications } from "@mantine/notifications";
 import type { Centrifuge } from "centrifuge";
 import { UnauthorizedError } from "centrifuge";
 import { getCentrifugeClient } from "@/lib/realtime/centrifuge-client";
+import { useSession } from "@/lib/auth-client";
 import type { CaseMessage, CaseMessagesPage } from "@/types";
+import type { CaseUnreadCountResponse } from "@repo/validation";
 import { appendMessageAsc } from "@/lib/case-message-utils";
 
 const TOKEN_API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
-export function useRealtimeChat(caseId: string) {
+interface UseRealtimeChatOptions {
+  activeTab?: string;
+  markAsRead?: (lastReadMessageId?: string) => Promise<void> | void;
+}
+
+export function useRealtimeChat(caseId: string, options: UseRealtimeChatOptions = {}) {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { data: session } = useSession();
   const subRef = useRef<ReturnType<Centrifuge["newSubscription"]> | null>(null);
 
+  const activeTabRef = useRef(options.activeTab);
+  activeTabRef.current = options.activeTab;
+
+  const markAsReadRef = useRef(options.markAsRead);
+  markAsReadRef.current = options.markAsRead;
   useEffect(() => {
     if (!caseId) return;
     const client = getCentrifugeClient();
@@ -42,7 +55,14 @@ export function useRealtimeChat(caseId: string) {
     });
 
     sub.on("publication", (ctx) => {
-      const data = ctx.data as { type?: string; message?: CaseMessage };
+      const data = ctx.data as {
+        type?: string;
+        message?: CaseMessage;
+        user_id?: string;
+        last_read_at?: string;
+        last_read_message_id?: string | null;
+      };
+
       if (data?.type === "case_deleted") {
         notifications.show({
           title: "Hồ sơ đã bị xóa",
@@ -53,23 +73,56 @@ export function useRealtimeChat(caseId: string) {
         router.replace("/dashboard");
         return;
       }
+
+      if (data?.type === "chat:read") {
+        if (data.user_id === session?.user?.id) {
+          queryClient.setQueryData<CaseUnreadCountResponse>(
+            ["cases", caseId, "unread-count"],
+            () => ({
+              unread_count: 0,
+              last_read_at: data.last_read_at,
+            }),
+          );
+        }
+        return;
+      }
+
       if (data?.type !== "message" || !data.message?.id) return;
+
+      const newMsg = data.message;
+      const currentUserId = session?.user?.id;
+      const isFromOther = newMsg.sender_auth_user_id !== currentUserId;
+
       queryClient.setQueryData<InfiniteData<CaseMessagesPage>>(["case-messages", caseId], (old) => {
-        if (!old?.pages?.length) return old; // chưa có cache → query sẽ tự fetch kèm message mới
-        // Page cuối cùng = trang mới nhất (pages = cũ → mới). Gắn tin mới vào đây.
+        if (!old?.pages?.length) return old;
         const lastIndex = old.pages.length - 1;
         const last = old.pages[lastIndex];
-        if (last.messages.some((m) => m.id === data.message!.id)) return old;
+        if (last.messages.some((m) => m.id === newMsg.id)) return old;
         return {
           ...old,
           pages: [
             ...old.pages.slice(0, lastIndex),
-            { ...last, messages: appendMessageAsc(last.messages, data.message!) },
+            { ...last, messages: appendMessageAsc(last.messages, newMsg) },
           ],
         };
       });
-    });
 
+      if (isFromOther) {
+        if (activeTabRef.current === "discussion") {
+          if (markAsReadRef.current) {
+            void markAsReadRef.current(newMsg.id);
+          }
+        } else {
+          queryClient.setQueryData<CaseUnreadCountResponse>(
+            ["cases", caseId, "unread-count"],
+            (old: CaseUnreadCountResponse | undefined) => ({
+              unread_count: (old?.unread_count ?? 0) + 1,
+              last_read_at: old?.last_read_at,
+            }),
+          );
+        }
+      }
+    });
     sub.subscribe();
     subRef.current = sub;
 
@@ -79,5 +132,5 @@ export function useRealtimeChat(caseId: string) {
       client.removeSubscription(sub);
       subRef.current = null;
     };
-  }, [caseId, queryClient, router]);
+  }, [caseId, queryClient, router, session?.user?.id]);
 }

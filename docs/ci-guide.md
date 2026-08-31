@@ -1,6 +1,6 @@
 # CI Guide
 
-_Cập nhật: 2026-08-03._
+_Cập nhật: 2026-08-24._
 
 ## Overview
 
@@ -16,8 +16,8 @@ Job env:
 
 | Event | Branch |
 |-------|--------|
-| Push | `main` |
-| Pull Request | targeting `main` |
+| Push | `main`, `dev`, `staging` |
+| Pull Request | targeting `main`, `dev`, `staging` |
 
 ## Steps
 

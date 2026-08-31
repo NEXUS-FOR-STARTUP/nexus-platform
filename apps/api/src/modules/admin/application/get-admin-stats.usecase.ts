@@ -171,15 +171,20 @@ export async function getAdminStatsUseCase(period: string = "30d"): Promise<Admi
       ? Math.round((paidCases / nonIntakeCount) * 100 * 100) / 100
       : 0;
 
-  // 4. Total revenue from paid payments
-  const revenueAgg = await prisma.payment.aggregate({
+  // 4. Total revenue from paid orders
+  const revenueAgg = await prisma.order.aggregate({
     where: { status: "paid" },
-    _sum: { amount: true },
+    _sum: { total_amount: true },
   });
-  const totalRevenue = revenueAgg._sum.amount ?? 0;
+  const totalRevenue = revenueAgg._sum.total_amount ?? 0;
 
-  // 5. SLA breach
-  const slaBreachCount = 0;
+  // 5. SLA breach — open cases whose 48h clock has passed
+  const slaBreachCount = await prisma.case.count({
+    where: {
+      sla_deadline_at: { lte: new Date() },
+      internal_status: { notIn: ["done", "cancelled"] },
+    },
+  });
 
   // 6. Cases by stage
   const stageGroups = await prisma.case.groupBy({
@@ -223,14 +228,14 @@ export async function getAdminStatsUseCase(period: string = "30d"): Promise<Admi
   const buckets = generateBuckets(period);
   const earliestDate = buckets[0].startDate;
 
-  // Fetch paid payments since earliestDate
-  const payments = await prisma.payment.findMany({
+  // Fetch paid orders since earliestDate
+  const orders = await prisma.order.findMany({
     where: {
       status: "paid",
       created_at: { gte: earliestDate },
     },
     select: {
-      amount: true,
+      total_amount: true,
       created_at: true,
     },
   });
@@ -247,11 +252,11 @@ export async function getAdminStatsUseCase(period: string = "30d"): Promise<Admi
   });
 
   // Fill buckets
-  for (const p of payments) {
-    const pTime = new Date(p.created_at).getTime();
+  for (const order of orders) {
+    const orderTime = new Date(order.created_at).getTime();
     for (const b of buckets) {
-      if (pTime >= b.startDate.getTime() && pTime <= b.endDate.getTime()) {
-        b.revenue += p.amount;
+      if (orderTime >= b.startDate.getTime() && orderTime <= b.endDate.getTime()) {
+        b.revenue += order.total_amount;
         b.transactions += 1;
         break;
       }

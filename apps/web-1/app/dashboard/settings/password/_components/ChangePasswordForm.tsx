@@ -3,7 +3,10 @@
 import { useForm } from "@tanstack/react-form";
 import { Button, Group, Paper, PasswordInput, Stack, Tooltip } from "@mantine/core";
 import { Info } from "lucide-react";
-import { useProfileMutations } from "../../hooks/useProfileMutations";
+import {
+  useHasPasswordQuery,
+  useProfileMutations,
+} from "../../hooks/useProfileMutations";
 
 interface ChangePasswordFormValues {
   currentPassword: string;
@@ -12,7 +15,10 @@ interface ChangePasswordFormValues {
 }
 
 export default function ChangePasswordForm() {
-  const { changePassword } = useProfileMutations();
+  const hasPasswordQuery = useHasPasswordQuery();
+  const hasPassword = hasPasswordQuery.data === true;
+  const { changePassword, setPassword } = useProfileMutations();
+  const pending = changePassword.isPending || setPassword.isPending;
 
   const form = useForm({
     defaultValues: {
@@ -20,8 +26,11 @@ export default function ChangePasswordForm() {
       newPassword: "",
       confirmPassword: "",
     } as ChangePasswordFormValues,
-    // Dùng `mutate` + per-call onSuccess (form.reset) — xem ghi chú ở ProfileInfoForm.
     onSubmit: ({ value }) => {
+      if (!hasPassword) {
+        setPassword.mutate(value.newPassword, { onSuccess: () => form.reset() });
+        return;
+      }
       changePassword.mutate(
         { currentPassword: value.currentPassword, newPassword: value.newPassword },
         { onSuccess: () => form.reset() },
@@ -29,6 +38,15 @@ export default function ChangePasswordForm() {
     },
   });
 
+  if (hasPasswordQuery.isLoading) {
+    return (
+      <Paper p="xl" radius="md" className="bg-surface-app border border-border-app max-w-md">
+        <Button type="button" color="brand" loading>
+          Đặt mật khẩu
+        </Button>
+      </Paper>
+    );
+  }
   return (
     <Paper p="xl" radius="md" className="bg-surface-app border border-border-app max-w-md">
       <form
@@ -38,29 +56,32 @@ export default function ChangePasswordForm() {
         }}
       >
         <Stack gap="lg">
-          <form.Field
-            name="currentPassword"
-            validators={{
-              onChange: ({ value }: { value: string }) =>
-                !value ? "Vui lòng nhập mật khẩu hiện tại." : undefined,
-            }}
-          >
-            {(field) => {
-              const hasError =
-                field.state.meta.isTouched && field.state.meta.errors.length > 0;
-              return (
-                <PasswordInput
-                  label="Mật khẩu hiện tại"
-                  placeholder="Nhập mật khẩu hiện tại"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.currentTarget.value)}
-                  error={hasError ? field.state.meta.errors[0] : undefined}
-                  size="md"
-                />
-              );
-            }}
-          </form.Field>
+          {hasPassword ? (
+            <form.Field
+              name="currentPassword"
+              validators={{
+                onChange: ({ value }: { value: string }) =>
+                  !value ? "Vui lòng nhập mật khẩu hiện tại." : undefined,
+              }}
+            >
+              {(field) => {
+                const hasError =
+                  field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                return (
+                  <PasswordInput
+                    label="Mật khẩu hiện tại"
+                    placeholder="Nhập mật khẩu hiện tại"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.currentTarget.value)}
+                    error={hasError ? field.state.meta.errors[0] : undefined}
+                    size="md"
+                    autoComplete="current-password"
+                  />
+                );
+              }}
+            </form.Field>
+          ) : null}
 
           <form.Field
             name="newPassword"
@@ -79,7 +100,7 @@ export default function ChangePasswordForm() {
                 <PasswordInput
                   label={
                     <Group gap={6} align="center">
-                      <span>Mật khẩu mới</span>
+                      <span>{hasPassword ? "Mật khẩu mới" : "Mật khẩu"}</span>
                       <Tooltip
                         label="Tối thiểu 8 ký tự. Không nên trùng mật khẩu đã dùng ở nơi khác."
                         withArrow
@@ -118,8 +139,8 @@ export default function ChangePasswordForm() {
                 field.state.meta.isTouched && field.state.meta.errors.length > 0;
               return (
                 <PasswordInput
-                  label="Xác nhận mật khẩu mới"
-                  placeholder="Nhập lại mật khẩu mới"
+                  label={hasPassword ? "Xác nhận mật khẩu mới" : "Xác nhận mật khẩu"}
+                  placeholder="Nhập lại mật khẩu"
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.currentTarget.value)}
@@ -130,8 +151,8 @@ export default function ChangePasswordForm() {
             }}
           </form.Field>
 
-          <Button type="submit" color="brand" loading={changePassword.isPending}>
-            Xác nhận đổi mật khẩu
+          <Button type="submit" color="brand" loading={pending || hasPasswordQuery.isLoading}>
+            {hasPassword ? "Xác nhận đổi mật khẩu" : "Đặt mật khẩu"}
           </Button>
         </Stack>
       </form>

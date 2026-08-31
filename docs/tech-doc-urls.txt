@@ -4,6 +4,7 @@ https://better-auth.com/docs/authentication/google
 https://better-auth.com/docs/integrations/hono
 https://better-auth.com/docs/plugins/admin
 https://better-auth.com/docs/plugins/open-api
+https://better-auth.com/docs/plugins/email-otp
 
 https://hono.dev/llms.txt
 https://hono.dev/docs/helpers/streaming

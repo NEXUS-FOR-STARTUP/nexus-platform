@@ -56,12 +56,38 @@ export function useWalletHistory(
   });
 }
 
+export interface WalletDeposit {
+  id: string;
+  amount: number;
+  currency: string;
+  transfer_content: string;
+  status: "pending" | "verified" | "rejected" | "amount_mismatch";
+  verified_at: string | null;
+  bank_transaction_id: string | null;
+  created_at: string;
+}
+
+export function useMyDeposits() {
+  return useQuery<{ deposits: WalletDeposit[] }>({
+    queryKey: ["deposits"],
+    queryFn: async () => {
+      const response = await apiClient.get("/deposits", { params: { limit: 20, offset: 0 } });
+      return response.data;
+    },
+    refetchInterval: 30_000,
+  });
+}
+
 export function useCreateDeposit() {
   const queryClient = useQueryClient();
 
-  return useMutation<DepositResult, { response?: { data?: { message?: string } } }, number>({
-    mutationFn: async (amount: number) => {
-      const response = await apiClient.post("/deposits", { amount });
+  return useMutation<
+    DepositResult,
+    { response?: { data?: { message?: string } } },
+    { amount: number; idempotency_key: string }
+  >({
+    mutationFn: async (input) => {
+      const response = await apiClient.post("/deposits", input);
       return response.data;
     },
     onSuccess: () => {

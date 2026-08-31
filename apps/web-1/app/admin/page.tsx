@@ -14,9 +14,10 @@ import AdminUsersTable from "./_components/AdminUsersTable";
 import StatsDashboard from "./_components/StatsDashboard";
 import RejectionReasonModal from "./_components/RejectionReasonModal";
 import ApprovePaymentModal from "./_components/ApprovePaymentModal";
+import AdminExportMenu from "./_components/AdminExportMenu";
 import { useAdminStats } from "./hooks/useAdminStats";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, AlertTriangle, FolderKanban, Activity, Users, Clock } from "lucide-react";
+import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, FolderKanban, Activity, Users, Clock } from "lucide-react";
 import { Tooltip, UnstyledButton, Title, Text, Badge, Divider } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import classes from "../../components/layout/DoubleNavbar.module.css";
@@ -31,6 +32,7 @@ export default function AdminHubPage() {
 
 function AdminHubPageInner() {
   const searchParams = useSearchParams();
+  const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "intake" | "unassigned" | "assigned" | "crud">("all");
   const {
     deposits,
     isLoading: isPaymentsLoading,
@@ -40,6 +42,15 @@ function AdminHubPageInner() {
 
   const {
     cases,
+    total: casesTotal,
+    page: casesPage,
+    limit: casesLimit,
+    setPage: setCasesPage,
+    search: casesSearch,
+    setSearch: setCasesSearch,
+    sortBy,
+    sortOrder,
+    setSort,
     isCasesLoading,
     supporters,
     isSupportersLoading,
@@ -49,7 +60,7 @@ function AdminHubPageInner() {
     rejectCase,
     deleteCase,
     refetchCases,
-  } = useAdminCases();
+  } = useAdminCases(caseFilter);
 
   const {
     documents,
@@ -70,12 +81,10 @@ function AdminHubPageInner() {
   const [statsPeriod, setStatsPeriod] = useState("30d");
   const statsQuery = useAdminStats(statsPeriod);
 
-  // Modal control states
   const [rejectingDepositId, setRejectingDepositId] = useState<string | null>(null);
   const [approvingDepositId, setApprovingDepositId] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages" | "stats" | "users">("stats");
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
-  const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "intake" | "unassigned" | "assigned" | "crud">("all");
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -223,7 +232,7 @@ function AdminHubPageInner() {
   const isLoading = isPaymentsLoading || isCasesLoading || isSupportersLoading || isDocsLoading || isPackagesLoading;
 
   const pendingPaymentsCount = deposits.filter((d) => d.status === "pending").length;
-  const unassignedCasesCount = cases.filter((c) => c.user_facing_stage !== "intake_pending" && c.user_facing_stage !== "intake_ready" && (c.internal_status === "triage_pending" || c.internal_status === "accepted_unassigned")).length;
+  const queueBadge = casesTotal;
 
   const filteredDeposits = React.useMemo(() => {
     if (paymentFilter === "pending") {
@@ -231,41 +240,6 @@ function AdminHubPageInner() {
     }
     return deposits.filter((d) => d.status !== "pending");
   }, [deposits, paymentFilter]);
-
-  const filteredCases = React.useMemo(() => {
-    if (caseFilter === "crud") {
-      return cases;
-    }
-    if (caseFilter === "intake") {
-      return cases.filter(
-        (c) =>
-          c.user_facing_stage === "intake_pending" ||
-          c.user_facing_stage === "intake_ready"
-      );
-    }
-    const active = cases.filter(
-      (c) =>
-        c.user_facing_stage !== "intake_pending" &&
-        c.user_facing_stage !== "intake_ready" &&
-        (c.internal_status === "triage_pending" ||
-          c.internal_status === "accepted_unassigned" ||
-          c.internal_status === "assigned")
-    );
-    if (caseFilter === "triage") {
-      return active.filter(
-        (c) =>
-          c.user_facing_stage === "submitted" &&
-          c.internal_status === "triage_pending"
-      );
-    }
-    if (caseFilter === "unassigned") {
-      return active.filter((c) => c.internal_status === "accepted_unassigned");
-    }
-    if (caseFilter === "assigned") {
-      return active.filter((c) => c.internal_status === "assigned");
-    }
-    return active;
-  }, [cases, caseFilter]);
 
   const getHeaderInfo = () => {
     if (activeSection === "stats") {
@@ -387,9 +361,9 @@ function AdminHubPageInner() {
                   data-active={activeSection === "cases" || undefined}
                 >
                   <UserCheck className="w-6 h-6" />
-                  {unassignedCasesCount > 0 && (
+                  {queueBadge > 0 && (
                     <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-xs font-semibold bg-brand text-white flex items-center justify-center border-2 border-surface-app">
-                      {unassignedCasesCount}
+                      {queueBadge}
                     </span>
                   )}
                 </UnstyledButton>
@@ -492,9 +466,9 @@ function AdminHubPageInner() {
                 >
                   <div className="flex items-center justify-between w-full">
                     <span>Tất cả cần xử lý</span>
-                    {unassignedCasesCount > 0 && (
+                    {queueBadge > 0 && (
                       <Badge color="brand" size="sm" variant="light">
-                        {unassignedCasesCount}
+                        {queueBadge}
                       </Badge>
                     )}
                   </div>
@@ -569,26 +543,25 @@ function AdminHubPageInner() {
 
       {/* Main Content Area - Scrollable */}
       <div className="flex-grow flex flex-col h-full min-w-0 overflow-y-auto p-6 space-y-6">
-        {/* Dynamic Main Header */}
-        <div className="flex items-center gap-3 shrink-0 pb-2 border-b border-border-app/50">
-          <div className="w-10 h-10 rounded-xl bg-brand-soft/40 text-brand flex items-center justify-center shrink-0">
-            <HeaderIcon className="w-5 h-5" />
+        <div className="flex items-center justify-between gap-3 shrink-0 pb-2 border-b border-border-app/50">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-brand-soft/40 text-brand flex items-center justify-center shrink-0">
+              <HeaderIcon className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="font-heading text-xl sm:text-2xl font-bold text-text-app">{currentHeader.title}</h1>
+              <p className="text-text-muted text-xs mt-0.5">{currentHeader.description}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-heading text-xl sm:text-2xl font-bold text-text-app">{currentHeader.title}</h1>
-            <p className="text-text-muted text-xs mt-0.5">{currentHeader.description}</p>
-          </div>
+          {activeSection === "stats" && <AdminExportMenu />}
         </div>
 
-        {/* SLA Alert Banner - global overdue warning */}
         {!statsQuery.isLoading && statsQuery.data && statsQuery.data.slaBreachCount > 0 && (
           <div className="flex items-center gap-2 p-3 rounded-lg bg-danger-soft border border-danger/20 text-danger text-xs font-semibold">
-            <AlertTriangle className="w-4 h-4 shrink-0" />
-            <span>🔴 {statsQuery.data.slaBreachCount} hồ sơ đang quá hạn SLA — cần kiểm tra và phân công lại.</span>
+            <span>{statsQuery.data.slaBreachCount} hồ sơ đang quá hạn SLA. Cần kiểm tra và phân công lại.</span>
           </div>
         )}
 
-        {/* 2. Loading State or Section Content */}
         {isLoading ? (
           <div className="space-y-6 flex-grow">
             <LoadingSkeleton variant="table-row" count={2} />
@@ -625,7 +598,19 @@ function AdminHubPageInner() {
               <div>
                 <AdminCaseAssignmentTable
                   key={caseFilter}
-                  cases={filteredCases}
+                  cases={cases}
+                  total={casesTotal}
+                  page={casesPage}
+                  limit={casesLimit}
+                  onPageChange={setCasesPage}
+                  search={casesSearch}
+                  onSearchChange={setCasesSearch}
+                  sortValue={`${sortBy}_${sortOrder}`}
+                  onSortChange={(value) => {
+                    const match = value.match(/^(created_at|case_code)_(asc|desc)$/);
+                    if (!match) return;
+                    setSort(match[1] as "created_at" | "case_code", match[2] as "asc" | "desc");
+                  }}
                   supporters={supporters}
                   onAssign={handleAssignSupporter}
                   isAssigning={isAssigning}
@@ -663,7 +648,6 @@ function AdminHubPageInner() {
         )}
       </div>
 
-      {/* 4. Rejection Reason Modal */}
       <RejectionReasonModal
         isOpen={rejectingDepositId !== null}
         onClose={() => setRejectingDepositId(null)}
@@ -671,7 +655,6 @@ function AdminHubPageInner() {
         isSubmitting={isVerifying}
       />
 
-      {/* 5. Approve Deposit Modal */}
       <ApprovePaymentModal
         paymentId={approvingDepositId}
         onClose={() => setApprovingDepositId(null)}

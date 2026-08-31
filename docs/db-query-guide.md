@@ -1,6 +1,6 @@
 # Production Database Script Query Guide (Read-Only)
 
-_Cập nhật: 2026-08-03. Production DB là self-hosted PostgreSQL 18.4 trên VPS (docker-compose.prod.yml)._
+_Cập nhật: 2026-08-24. Production DB là self-hosted PostgreSQL 18.4 trên VPS (docker-compose.prod.yml)._
 
 Tài liệu này hướng dẫn cách viết file script tạm thời để truy vấn dữ liệu từ Production Database một cách nhanh chóng, an toàn bằng Node.js/TypeScript, sử dụng tài khoản Read-Only `guest` đã được cấu hình trong file `.env`.
 
@@ -79,7 +79,7 @@ npx tsx scripts/temp-query.ts
 
 ## 3. Các bảng dữ liệu chính trong Schema `public`
 
-Toàn bộ 24 bảng được cấu hình trong [schema.prisma](../prisma/schema.prisma), chia theo nhóm:
+Toàn bộ 30 bảng được cấu hình trong [schema.prisma](../prisma/schema.prisma), chia theo nhóm:
 
 ### Auth (Better Auth quản lý)
 * `users` - Người dùng hệ thống.
@@ -107,11 +107,17 @@ Toàn bộ 24 bảng được cấu hình trong [schema.prisma](../prisma/schema
 * `payments` - Thanh toán (legacy, @deprecated — thay bởi deposits).
 * `service_packages` - Gói dịch vụ.
 * `credit_ledgers` - Sổ cái credit (purchase/consumption/refund).
+* `service_types` - Loại dịch vụ.
+* `service_pricing` - Giá theo dịch vụ (singular table — ngoại lệ @@map).
 
 ### Wallet
 * `user_wallets` - Ví của người dùng (1 user = 1 wallet).
 * `wallet_transactions` - Biến động số dư ví (append-only).
 * `wallet_topups` - Nạp tiền cũ (legacy, @deprecated — thay bởi deposits).
+
+### Notifications
+* `notifications` - Thông báo đã render cho user (in-app/email/telegram).
+* `notification_outbox` - Hàng đợi outbox cho notification relay (2s tick).
 
 ### Infrastructure
 * `domain_event_outbox` - Outbox pattern cho financial events (atomic DB write + event publish).

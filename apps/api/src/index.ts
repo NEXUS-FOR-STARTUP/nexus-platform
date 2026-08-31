@@ -21,6 +21,7 @@ import { realtimeRouter } from './modules/realtime/http/realtime.routes.js'
 import { walletRoutes } from './modules/wallet/infrastructure/http/wallet.routes.js'
 import { orderRouter } from './modules/orders/infrastructure/http/order.routes.js'
 import { depositRouter } from './modules/deposits/infrastructure/http/deposit.routes.js'
+import { profileRouter } from './modules/profile/http/profile.routes.js'
 import { registerNotificationListener } from './modules/notifications/application/notification-listener.js'
 import { startRelay } from './modules/notifications/application/notification-relay.js'
 import { startOutboxRelay, stopOutboxRelay } from "./shared/infrastructure/outbox-relay.js";
@@ -47,6 +48,7 @@ app.use(
     },
     allowHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    exposeHeaders: ['Content-Disposition'],
     credentials: true,
   }),
 )
@@ -162,6 +164,7 @@ app.route('/api/realtime', realtimeRouter)
 app.route('/api/wallet', walletRoutes)
 app.route('/api/orders', orderRouter)
 app.route('/api/deposits', depositRouter)
+app.route('/api/profile', profileRouter)
 
 // Global error handler — catches unhandled errors, no stack trace leak
 app.onError((err, c) => {

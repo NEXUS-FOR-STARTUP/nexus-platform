@@ -1,14 +1,20 @@
 import { prisma } from '../../../../db.js'
 import type { Prisma } from '@prisma/client'
 
-export async function getOrCreateWallet(userId: string) {
-  let wallet = await prisma.userWallet.findUnique({ where: { user_id: userId } })
-  if (!wallet) {
-    wallet = await prisma.userWallet.create({
-      data: { user_id: userId, balance: 0 },
-    })
-  }
-  return wallet
+// NOTE: race window khi 2 request đồng thời đều thấy thiếu ví → 1 request
+// dính P2002 (user_id unique) làm tx rollback, client retry sẽ qua. Được giảm
+// thiểu bởi databaseHooks.user.create.after tạo sẵn ví khi signup — không cần
+// retry wrapper.
+export async function getOrCreateWalletInTx(
+  tx: Prisma.TransactionClient,
+  userId: string,
+): Promise<{ id: string; balance: number }> {
+  const wallet = await getWalletForUpdate(tx, userId)
+  if (wallet) return wallet
+  return tx.userWallet.create({
+    data: { user_id: userId, balance: 0 },
+    select: { id: true, balance: true },
+  })
 }
 
 export async function getWalletBalance(userId: string): Promise<number> {
@@ -103,3 +109,31 @@ export async function getTransactionHistory(
   ])
   return { transactions, total }
 }
+
+export async function countTransactionsExport(): Promise<number> {
+  return prisma.walletTransaction.count()
+}
+
+export async function findTransactionsExportPage(offset: number, take: number) {
+  return prisma.walletTransaction.findMany({
+    select: {
+      id: true,
+      wallet_id: true,
+      type: true,
+      amount: true,
+      currency: true,
+      balance_before: true,
+      balance_after: true,
+      source_type: true,
+      source_id: true,
+      reference_type: true,
+      reference_id: true,
+      created_at: true,
+      wallet: { select: { user_id: true, user: { select: { email: true } } } },
+    },
+    orderBy: [{ created_at: 'desc' }, { id: 'desc' }],
+    skip: offset,
+    take,
+  })
+}
+

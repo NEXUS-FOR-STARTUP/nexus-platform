@@ -26,9 +26,37 @@ Giúp khách mô tả đúng case để Nexus có đủ bối cảnh audit, khô
 6. User đi qua các bước nhập thông tin, nhóm, idea, tài liệu, deadline, và kỳ vọng.
 7. User xem màn `Review before submit`.
 8. User bấm `Gửi case`.
-9. Hệ thống tạo case ở trạng thái `submitted` và chuyển user sang case workspace.
+9. Hệ thống tạo case: gói trả phí → trạng thái `Chờ thanh toán`; gói miễn phí → `Đã nộp` và vào thẳng hàng đợi xét duyệt.
 
+## Sơ đồ luồng
+
+```mermaid
+flowchart TD
+    subgraph SV["SINH VIÊN"]
+        A(["Vào wizard"]) --> B["Bước 1: chọn tình huống<br/>bắt buộc ≥1 trong 6 hoặc mô tả rõ"]
+        B --> C["Bước 2-8: liên hệ, nhóm, nhu cầu,<br/>tài liệu, deadline, kỳ vọng, ranh giới"]
+        C --> D["Bước 9: xem lại toàn bộ trước khi gửi"]
+        D --> E{"Đủ dữ liệu tối thiểu?"}
+        E -- "thiếu → chặn gửi, chỉ rõ chỗ thiếu" --> C
+        E -- "đủ" --> F["Gửi case"]
+    end
+    subgraph HT["HỆ THỐNG"]
+        F --> G["Tạo case kèm hồ sơ intake"]
+        G --> H{"Gói dịch vụ"}
+        H -- "chuyên sâu (có phí)" --> I["Trạng thái nộp: Đã nộp<br/>Thanh toán: Chờ thanh toán"]
+        H -- "miễn phí" --> J["Trạng thái nộp: Đã nộp<br/>Thanh toán: not_required"]
+        I --> K["Thanh toán / Mua lượt<br/>(Cập nhật payment_status: paid)"]
+        K --> M
+        J --> M(["Hàng đợi xét duyệt của admin"])
+    end
+    RULES["Ràng buộc:<br/>• Gói do hệ thống gán — sinh viên không tự chọn<br/>• Sửa hồ sơ: được phép đến khi admin duyệt<br/>• Bỏ dở: dữ liệu giữ lại, quay lại làm tiếp<br/>• Có link Drive, chưa upload file: vẫn nộp được nếu đủ rõ<br/>• ✅ Đã tách độc lập trục trạng thái hồ sơ & thanh toán (GA-02)"]
+    classDef warn fill:#FEF3C7,stroke:#D97706,color:#92400E
+    class I,K warn
+```
+
+> ✅ **Đã khắc phục (GA-02):** Trạng thái hồ sơ (`user_facing_stage`) và trạng thái thanh toán (`payment_status`) đã được tách độc lập hoàn toàn theo `decision-2026-08-25-intake-payment-stage-separation.md`. Việc thanh toán/mua lượt chỉ cập nhật `payment_status` và số dư credit, không làm thay đổi trạng thái nộp hồ sơ, loại bỏ dứt điểm lỗi kẹt hồ sơ intake.
 ## Tình huống đầu vào chính
+
 
 - Chưa có idea và cần tìm hướng.
 - Có nhiều idea và cần chọn một hướng.

@@ -15,6 +15,8 @@ import {
   updateCaseStatusHandler,
   listMessagesHandler,
   sendMessageHandler,
+  markChatReadHandler,
+  getChatUnreadCountHandler,
   updateCaseSettingsHandler,
   deleteCaseHandler,
   intakeHandler,
@@ -41,6 +43,8 @@ casesRouter.post("/:id/assign", assignSupporterHandler);
 casesRouter.post("/:id/status", updateCaseStatusHandler);
 casesRouter.get("/:id/messages", listMessagesHandler);
 casesRouter.post("/:id/messages", sendMessageHandler);
+casesRouter.post("/:id/chat/read", markChatReadHandler);
+casesRouter.get("/:id/chat/unread", getChatUnreadCountHandler);
 casesRouter.put("/:id/settings", updateCaseSettingsHandler);
 casesRouter.delete("/:id", deleteCaseHandler);
 casesRouter.post("/:id/intake", intakeHandler);

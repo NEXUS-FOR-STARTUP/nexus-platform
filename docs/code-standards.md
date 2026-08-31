@@ -1,6 +1,6 @@
 # Code standards
 
-_Cập nhật: 2026-08-12_
+_Cập nhật: 2026-08-24_
 
 ## Repo structure
 
@@ -41,9 +41,9 @@ _Cập nhật: 2026-08-12_
 
 ## API module organization
 
-- Bounded context theo domain: cases, reports, payments, packages, documents, admin, supporter, ai-engine, notifications, realtime.
+- Bounded context theo domain: cases, reports, payments, packages, documents, admin, supporter, ai-engine, notifications, realtime, wallet, deposits, orders.
 - Layering theo clean architecture: domain → application → infrastructure → presentation.
-- Modules giao tiếp trực tiếp qua use-case/service; event bus (`shared/domain/domain-events.ts` + `shared/infrastructure/event-bus.ts`) dùng cho notifications (9 event types), phần còn lại không cần.
+- Modules giao tiếp trực tiếp qua use-case/service; event bus (`shared/domain/domain-events.ts` + `shared/infrastructure/event-bus.ts`) dùng cho notifications (14 event types), phần còn lại không cần.
 - Shared infra: `AppError` class, `requireAuth` middleware, `requireCaseAccess` authorization, audit-logger.
 
 ## Error handling
@@ -69,7 +69,7 @@ _Cập nhật: 2026-08-12_
 
 ## Testing standards
 
-_Trạng thái hiện tại: 15 test files tại `apps/api/src/shared/infrastructure/tests/` — Node built-in runner (`node:test` + `node:assert`), chạy qua `tsx --test` (chỉ trong apps/api)._
+_Trạng thái hiện tại: 22 files tại `apps/api/src/shared/infrastructure/tests/` (21 `*.test.ts` + `coverage-report.ts`) — Node built-in runner (`node:test` + `node:assert`), chạy qua `tsx --test` (chỉ trong apps/api)._
 
 - **Unit test:** Node built-in runner (`node:test`) + `tsx --test` — chuẩn hiện tại của repo, không dùng Vitest.
 - **Test naming:** `{module}.test.ts`, đặt trong `apps/api/src/shared/infrastructure/tests/`.

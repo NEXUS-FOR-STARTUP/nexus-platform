@@ -1,6 +1,6 @@
 # Realtime Chat Centrifugo — Vận hành & Troubleshooting
 
-> Ops doc module realtime chat (Centrifugo v6). Research chi tiết: `plans/260808-1030-realtime-chat-centrifugo/research/centrifugo-realtime-chat-2026-08-08.md`; plan: `plans/260808-1030-realtime-chat-centrifugo/plan.md`.
+> Ops doc module realtime chat (Centrifugo v6). Research chi tiết: `plans/260808-1030-realtime-chat-centrifugo/research/centrifugo-realtime-chat-2026-08-08.md`; plan: `plans/260808-1030-realtime-chat-centrifugo/plan.md`; GA-19 plan: `plans/260827-1600-ga19-chat-unread-per-user/plan.md`.
 
 ## Kiến trúc
 
@@ -13,33 +13,43 @@ Client (web-1) ──REST POST /cases/:id/messages──▶ API sendMessageUseCa
                                                      │  POST /api/publish {channel: "chat:{caseId}"}
                                                      ▼
                                         Centrifugo v6 (WebSocket pub/sub)
-                                                     │  push publication
+                                                     │  push publication (type: "message" | "chat:read")
                                                      ▼
                                         Client (web-1) sub.on("publication")
                                                      │  setQueryData cache + dedupe theo message id
                                                      ▼
-                                                UI cập nhật realtime
+                                                UI cập nhật realtime (badge unread + message stream)
 ```
 
 - **DB = source of truth.** Centrifugo chỉ transport realtime.
 - **Client KHÔNG publish trực tiếp** — tin phải qua REST để giữ credit check + stage lock + access control.
+- **Unread Tracking & Read Receipts (GA-19):**
+  - Khi xem tin nhắn: `POST /api/cases/:id/chat/read` cập nhật `case_chat_read_states` trên DB và phát event `chat:read` qua Centrifugo.
+  - Client nhận event `chat:read` từ chính mình (ở tab/thiết bị khác) để reset unread count badge về 0 tức thì.
+  - Phục hồi khi reconnect / sleep máy: hook `useCaseUnreadCount` lắng nghe `client.on("connected")` + `refetchOnWindowFocus` để tự bù đắp tin bị lỡ.
 - Fallback Centrifugo down: `useCaseChat` polling `refetchInterval: 60_000` (`apps/web-1/app/dashboard/case/[id]/hooks/useCaseChat.ts:15`).
 
 ## File liên quan
 
-| Layer | File |
-|---|---|
-| Web hook | `apps/web-1/app/dashboard/case/[id]/hooks/useRealtimeChat.ts` |
-| Web client singleton | `apps/web-1/lib/realtime/centrifuge-client.ts` |
-| Web UI | `apps/web-1/app/dashboard/case/[id]/_components/TabDiscussionChat.tsx` |
-| API publish | `apps/api/src/modules/realtime/infrastructure/centrifugo.service.ts` |
-| API token routes | `apps/api/src/modules/realtime/http/realtime.routes.ts` |
-| API JWT | `apps/api/src/modules/realtime/infrastructure/centrifugo-token.service.ts` |
-| Channel helpers | `apps/api/src/modules/realtime/domain/realtime.types.ts` |
-| Send hook | `apps/api/src/modules/cases/application/send-message.usecase.ts` (publish ~dòng 46) |
-| Config | `centrifugo/config.json` |
-| Compose service | `docker-compose.prod.yml` (`centrifugo` service) |
-| Test | `apps/api/src/shared/infrastructure/tests/phase-09-realtime-chat.test.ts` |
+| Layer | File | Ghi chú |
+|---|---|---|
+| Web hook | `apps/web-1/app/dashboard/case/[id]/hooks/useRealtimeChat.ts` | Stream messages, case_deleted, chat:read |
+| Web hook | `apps/web-1/app/dashboard/case/[id]/hooks/useCaseUnreadCount.ts` | Unread count badge, reconnect sync, markAsRead |
+| Web client singleton | `apps/web-1/lib/realtime/centrifuge-client.ts` | Centrifuge instance singleton |
+| Web UI | `apps/web-1/app/dashboard/case/[id]/_components/TabDiscussionChat.tsx` | UI khung chat & auto mark-as-read |
+| Web UI | `apps/web-1/app/dashboard/case/[id]/_components/WorkspaceSidebar.tsx` | Badge hiển thị `unreadCount` |
+| API publish | `apps/api/src/modules/realtime/infrastructure/centrifugo.service.ts` | Publish HTTP API tới Centrifugo |
+| API token routes | `apps/api/src/modules/realtime/http/realtime.routes.ts` | Token auth & subscribe endpoints |
+| API JWT | `apps/api/src/modules/realtime/infrastructure/centrifugo-token.service.ts` | Ký token HMAC SHA-256 |
+| Channel helpers & types | `apps/api/src/modules/realtime/domain/realtime.types.ts` | `chatChannel`, `buildChatReadMessage`, `ChatReadEventPayload` |
+| API Send UseCase | `apps/api/src/modules/cases/application/send-message.usecase.ts` | Publish event `message` |
+| API Mark Read UseCase | `apps/api/src/modules/cases/application/mark-chat-read.usecase.ts` | Upsert read state & publish event `chat:read` |
+| API Unread Count UseCase | `apps/api/src/modules/cases/application/get-chat-unread-count.usecase.ts` | Lấy số lượng tin chưa đọc theo user |
+| DB Persistence | `apps/api/src/modules/cases/infrastructure/persistence/case.repository.ts` | `upsertCaseChatReadState`, `getUnreadMessageCount` |
+| Config | `centrifugo/config.json` | Cấu hình Centrifugo v6 |
+| Compose service | `docker-compose.prod.yml` (`centrifugo` service) | Service container Centrifugo |
+| Tests | `apps/api/src/shared/infrastructure/tests/phase-09-realtime-chat.test.ts` | Tests token & channel subscriptions |
+| Tests | `apps/api/src/shared/infrastructure/tests/ga-19-chat-unread.test.ts` | Tests unread calculation & mark-as-read broadcast |
 
 ## Env vars (BẮT BUỘC khớp API + Centrifugo)
 
@@ -82,7 +92,7 @@ Centrifugo config server port `8000` (trong container). Host port do `CENTRIFUGO
 
 - **`NEXT_PUBLIC_CENTRIFUGO_URL` build-time arg** — Next.js inline vào JS bundle. Thiếu build-arg → fallback `ws://localhost:8010/connection/websocket` → Web prod không connect. Xem `docs/docker-build-push-guide.md`.
 - Traefik route centrifugo: `Host(${DOMAIN}) && PathPrefix(/connection)` → port `8000`. SSE stream + centrifugo = 2 router riêng.
-- Không migration DB (không đổi Prisma schema).
+- Migration DB: Model `CaseChatReadState` (`case_chat_read_states`) được tạo cho tính năng đếm tin chưa đọc theo user (GA-19).
 
 ## Troubleshooting — "chat không realtime, phải refresh page"
 

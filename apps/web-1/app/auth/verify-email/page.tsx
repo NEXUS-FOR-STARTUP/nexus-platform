@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * @deprecated Legacy standalone email verification page.
+ * Email verification is now handled inline via Email OTP during authentication (`EmailOtpStep`).
+ * Kept for backward-compatibility with direct URL links.
+ */
+
 import React, { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -61,6 +67,7 @@ function VerifyEmailForm() {
         }
         return;
       }
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
       setOtp("");
       notifications.show({
         title: "Đã gửi lại mã",

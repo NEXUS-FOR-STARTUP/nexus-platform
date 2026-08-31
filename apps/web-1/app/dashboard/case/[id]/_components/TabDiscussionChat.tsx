@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useCaseChat } from "../hooks/useCaseChat";
-import { useRealtimeChat } from "../hooks/useRealtimeChat";
+import { useCaseUnreadCount } from "../hooks/useCaseUnreadCount";
 import { useCaseChatVirtualizer } from "../hooks/useCaseChatVirtualizer";
 import { useSession } from "@/lib/auth-client";
 import { ArrowUp, MessageSquare, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
@@ -79,12 +79,17 @@ function formatDuration(ms: number) {
 /* ─── Component ─────────────────────────────────────────────── */
 export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
   const { data: session } = useSession();
+  const { markAsRead } = useCaseUnreadCount(caseId);
   const {
     messages, isLoading, isFetching, error, refetch, sendMessage, isSending, sendError, resetSendError,
     hasPreviousPage, isFetchingPreviousPage, fetchPreviousPage,
   } = useCaseChat(caseId);
-  useRealtimeChat(caseId);
-
+  useEffect(() => {
+    if (messages.length > 0) {
+      const latestMsg = messages[messages.length - 1];
+      void markAsRead(latestMsg.id);
+    }
+  }, [messages, markAsRead]);
   const { scrollRef, rows, virtualizer } = useCaseChatVirtualizer(messages, {
     hasPreviousPage,
     isFetchingPreviousPage,

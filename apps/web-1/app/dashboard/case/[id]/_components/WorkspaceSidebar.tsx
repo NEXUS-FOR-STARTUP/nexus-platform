@@ -10,6 +10,7 @@ export type WorkspaceTab = "overview" | "documents" | "discussion" | "timeline" 
 interface WorkspaceSidebarProps {
   activeTab: WorkspaceTab;
   onTabChange: (tab: WorkspaceTab) => void;
+  unreadCount?: number;
   messageCount?: number;
   creditBalance?: number;
   hideSettings?: boolean;
@@ -20,6 +21,7 @@ interface WorkspaceSidebarProps {
 export default function WorkspaceSidebar({
   activeTab,
   onTabChange,
+  unreadCount,
   messageCount,
   creditBalance,
   hideSettings = false,
@@ -50,7 +52,7 @@ export default function WorkspaceSidebar({
             id: "discussion" as const,
             label: "Chat với Supporter",
             icon: MessageSquare,
-            count: messageCount,
+            count: unreadCount ?? messageCount,
           },
         ]
       : []),

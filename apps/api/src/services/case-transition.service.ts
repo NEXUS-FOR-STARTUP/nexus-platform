@@ -156,6 +156,20 @@ async function executeAction(
       break
     }
 
+    case 'resetSlaIfOverdue': {
+      const row = await tx.case.findUniqueOrThrow({
+        where: { id: caseId },
+        select: { sla_deadline_at: true },
+      })
+      if (!row.sla_deadline_at) break
+      if (row.sla_deadline_at.getTime() > Date.now()) break
+      await tx.case.update({
+        where: { id: caseId },
+        data: { sla_deadline_at: new Date(Date.now() + 48 * 3600_000) },
+      })
+      break
+    }
+
     case 'autoResumeWork':
     case 'resetStatus':
     case 'notifyUser':

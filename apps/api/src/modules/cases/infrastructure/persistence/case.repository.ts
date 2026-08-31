@@ -815,3 +815,76 @@ export async function upgradeCasePackage(
     },
   });
 }
+
+export async function upsertCaseChatReadState(
+  caseId: string,
+  userId: string,
+  lastReadMessageId?: string,
+) {
+  let readTimestamp = new Date();
+
+  if (lastReadMessageId) {
+    const message = await prisma.caseMessage.findUnique({
+      where: { id: lastReadMessageId },
+      select: { created_at: true },
+    });
+    if (message) {
+      readTimestamp = message.created_at;
+    }
+  }
+
+  return await prisma.caseChatReadState.upsert({
+    where: {
+      case_id_user_id: {
+        case_id: caseId,
+        user_id: userId,
+      },
+    },
+    update: {
+      last_read_message_id: lastReadMessageId ?? undefined,
+      last_read_at: readTimestamp,
+    },
+    create: {
+      case_id: caseId,
+      user_id: userId,
+      last_read_message_id: lastReadMessageId ?? null,
+      last_read_at: readTimestamp,
+    },
+  });
+}
+
+export async function getCaseChatReadState(caseId: string, userId: string) {
+  return await prisma.caseChatReadState.findUnique({
+    where: {
+      case_id_user_id: {
+        case_id: caseId,
+        user_id: userId,
+      },
+    },
+  });
+}
+
+export async function getUnreadMessageCount(
+  caseId: string,
+  userId: string,
+): Promise<number> {
+  const readState = await prisma.caseChatReadState.findUnique({
+    where: {
+      case_id_user_id: {
+        case_id: caseId,
+        user_id: userId,
+      },
+    },
+    select: { last_read_at: true },
+  });
+
+  const lastReadAt = readState?.last_read_at ?? new Date(0);
+
+  return await prisma.caseMessage.count({
+    where: {
+      case_id: caseId,
+      sender_auth_user_id: { not: userId },
+      created_at: { gt: lastReadAt },
+    },
+  });
+}

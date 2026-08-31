@@ -1,19 +1,26 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { User, statusThemeMap } from "@/types";
 import { CheckCircle, Search, MoreVertical, Trash2, Eye, RefreshCw, UserCheck, X } from "lucide-react";
 import { Select, Badge, Table, Pagination, TextInput, Group, Menu, ActionIcon, Tooltip } from "@mantine/core";
-
-// Import extracted modals
 import AdminCaseDetailModal from "./AdminCaseDetailModal";
 import AssignSupporterModal from "./AssignSupporterModal";
 import RejectCaseModal from "./RejectCaseModal";
 import ApproveCaseModal from "./ApproveCaseModal";
 import { isCasePaymentComplete } from "@/lib/pricing";
+import type { AdminCaseListItem } from "../hooks/useAdminCases";
 
 interface AdminCaseAssignmentTableProps {
-  cases: any[];
+  cases: AdminCaseListItem[];
+  total: number;
+  page: number;
+  limit: number;
+  onPageChange: (page: number) => void;
+  search: string;
+  onSearchChange: (value: string) => void;
+  sortValue: string;
+  onSortChange: (value: string) => void;
   supporters: User[];
   onAssign: (caseId: string, supporterId: string) => Promise<void>;
   isAssigning?: boolean;
@@ -27,14 +34,22 @@ interface AdminCaseAssignmentTableProps {
 function getSlaRowClass(deadline: string | null | undefined): string {
   if (!deadline) return "";
   const diff = new Date(deadline).getTime() - Date.now();
-  if (diff <= 0) return "bg-danger-soft/30"; // overdue - red tint
-  if (diff < 12 * 60 * 60 * 1000) return "bg-warning-soft/30"; // <12h - yellow tint
-  if (diff < 24 * 60 * 60 * 1000) return "bg-warning-soft/15"; // <24h - subtle yellow
-  return ""; // OK - no tint
+  if (diff <= 0) return "bg-danger-soft/30";
+  if (diff < 12 * 60 * 60 * 1000) return "bg-warning-soft/30";
+  if (diff < 24 * 60 * 60 * 1000) return "bg-warning-soft/15";
+  return "";
 }
 
 export default function AdminCaseAssignmentTable({
   cases,
+  total,
+  page,
+  limit,
+  onPageChange,
+  search,
+  onSearchChange,
+  sortValue,
+  onSortChange,
   supporters,
   onAssign,
   onAccept,
@@ -43,109 +58,24 @@ export default function AdminCaseAssignmentTable({
   onDelete,
   onRefresh,
 }: AdminCaseAssignmentTableProps) {
-  const [activePage, setActivePage] = useState(1);
-  const itemsPerPage = 5;
-
-  // Modal control states (store the ID of the active case for the modal)
   const [detailCaseId, setDetailCaseId] = useState<string | null>(null);
   const [assignCaseId, setAssignCaseId] = useState<string | null>(null);
   const [rejectingCaseId, setRejectingCaseId] = useState<string | null>(null);
   const [acceptingCaseId, setAcceptingCaseId] = useState<string | null>(null);
 
-  // Search, filter, and sort state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedPackage, setSelectedPackage] = useState("all");
-  const [sortBy, setSortBy] = useState("created_at_desc");
-
-  // Extract unique packages dynamically
-  const uniquePackages = useMemo(() => {
-    const pkgs = new Set<string>();
-    cases.forEach((c) => {
-      if (c.package_name) pkgs.add(c.package_name);
-    });
-    return Array.from(pkgs);
-  }, [cases]);
-
-  // Filter and sort cases
-  const filteredAndSortedCases = useMemo(() => {
-    let result = [...cases];
-
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      result = result.filter(
-        (c) =>
-          c.case_code?.toLowerCase().includes(query) ||
-          c.team_name?.toLowerCase().includes(query) ||
-          c.owner_name?.toLowerCase().includes(query)
-      );
-    }
-
-    if (selectedPackage && selectedPackage !== "all") {
-      result = result.filter((c) => c.package_name === selectedPackage);
-    }
-
-    result.sort((a, b) => {
-      if (sortBy === "created_at_desc") {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      }
-      if (sortBy === "created_at_asc") {
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      }
-      if (sortBy === "case_code_asc") {
-        return (a.case_code || "").localeCompare(b.case_code || "");
-      }
-      if (sortBy === "case_code_desc") {
-        return (b.case_code || "").localeCompare(a.case_code || "");
-      }
-      return 0;
-    });
-
-    return result;
-  }, [cases, searchQuery, selectedPackage, sortBy]);
-
-  // Reset page when filtering or cases change
-  useEffect(() => {
-    setActivePage(1);
-  }, [cases.length, searchQuery, selectedPackage, sortBy]);
-
-  if (cases.length === 0) {
-    return (
-      <div className="p-8 border border-border-app rounded-lg bg-surface-app text-center flex flex-col items-center justify-center gap-3 font-body text-xs text-text-app">
-        <div className="w-10 h-10 rounded-full bg-surface-soft border border-border-app text-text-subtle flex items-center justify-center">
-          <CheckCircle className="w-5 h-5 text-success" />
-        </div>
-        <div className="space-y-0.5">
-          <p className="font-heading font-semibold text-xs text-text-app">Không có hồ sơ nào cần xử lý</p>
-          <p className="font-body text-base text-text-muted">
-            Tất cả các hồ sơ đã được xử lý xong hoặc không tìm thấy hồ sơ phù hợp.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const totalPages = Math.ceil(filteredAndSortedCases.length / itemsPerPage);
-  const paginatedCases = filteredAndSortedCases.slice((activePage - 1) * itemsPerPage, activePage * itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const activePage = page;
 
   return (
     <div className="space-y-4 font-body text-xs text-text-app">
-      {/* Search and Filters */}
       <Group gap="sm" mb="md" style={{ width: "100%" }}>
         <TextInput
           placeholder="Tìm theo mã hồ sơ, tên nhóm, chủ sở hữu..."
           leftSection={<Search className="w-4 h-4 text-text-muted" />}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.currentTarget.value)}
+          value={search}
+          onChange={(e) => onSearchChange(e.currentTarget.value)}
           radius="md"
           style={{ flexGrow: 1 }}
-        />
-        <Select
-          placeholder="Gói dịch vụ"
-          data={[{ value: "all", label: "Tất cả các gói" }, ...uniquePackages.map(p => ({ value: p, label: p }))]}
-          value={selectedPackage}
-          onChange={(val) => setSelectedPackage(val || "all")}
-          radius="md"
-          style={{ width: 160 }}
         />
         <Select
           placeholder="Sắp xếp"
@@ -155,8 +85,8 @@ export default function AdminCaseAssignmentTable({
             { value: "case_code_asc", label: "Mã hồ sơ (A-Z)" },
             { value: "case_code_desc", label: "Mã hồ sơ (Z-A)" },
           ]}
-          value={sortBy}
-          onChange={(val) => setSortBy(val || "created_at_desc")}
+          value={sortValue}
+          onChange={(val) => onSortChange(val || "created_at_desc")}
           radius="md"
           style={{ width: 180 }}
         />
@@ -174,6 +104,19 @@ export default function AdminCaseAssignmentTable({
         )}
       </Group>
 
+      {total === 0 ? (
+        <div className="p-8 border border-border-app rounded-lg bg-surface-app text-center flex flex-col items-center justify-center gap-3 font-body text-xs text-text-app">
+          <div className="w-10 h-10 rounded-full bg-surface-soft border border-border-app text-text-subtle flex items-center justify-center">
+            <CheckCircle className="w-5 h-5 text-success" />
+          </div>
+          <div className="space-y-0.5">
+            <p className="font-heading font-semibold text-xs text-text-app">Không có hồ sơ nào cần xử lý</p>
+            <p className="font-body text-base text-text-muted">
+              Tất cả các hồ sơ đã được xử lý xong hoặc không tìm thấy hồ sơ phù hợp.
+            </p>
+          </div>
+        </div>
+      ) : (
       <Table.ScrollContainer minWidth={800}>
         <Table striped highlightOnHover withTableBorder withColumnBorders verticalSpacing="sm" horizontalSpacing="md">
           <Table.Thead className="bg-brand-soft">
@@ -188,14 +131,7 @@ export default function AdminCaseAssignmentTable({
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {filteredAndSortedCases.length === 0 ? (
-              <Table.Tr>
-                <Table.Td colSpan={7} className="text-center py-8 text-text-muted">
-                  Không tìm thấy kết quả phù hợp với bộ lọc hiện tại.
-                </Table.Td>
-              </Table.Tr>
-            ) : (
-              paginatedCases.map((item) => {
+            {cases.map((item) => {
                 return (
                   <Table.Tr key={item.id} className={`${getSlaRowClass(item.sla_deadline_at)} hover:bg-surface-soft/30 transition-colors`}>
                     <Table.Td className="font-heading font-semibold text-xs" title={item.case_code}>
@@ -320,18 +256,18 @@ export default function AdminCaseAssignmentTable({
                     </Table.Td>
                   </Table.Tr>
                 );
-              })
-            )}
+              })}
           </Table.Tbody>
         </Table>
       </Table.ScrollContainer>
+      )}
 
-      {totalPages > 1 && (
+      {totalPages > 1 && total > 0 && (
         <div className="flex justify-center pt-2">
           <Pagination
             total={totalPages}
             value={activePage}
-            onChange={setActivePage}
+            onChange={onPageChange}
             size="sm"
             color="brand"
             radius="md"
@@ -393,9 +329,9 @@ function SlaTimer({ deadline }: { deadline: string | null | undefined }) {
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       if (hours > 24) {
-        const days = Math.floor(hours / 24);
-        setTimeLeft(`${days} ngày`);
-        setColorClass("text-green");
+        const days = Math.floor(hours / 24)
+        setTimeLeft(`${days}d ${hours % 24}h`)
+        setColorClass("text-success")
       } else if (hours < 4) {
         setTimeLeft(`${hours}h ${minutes}m`);
         setColorClass("text-danger font-semibold");
@@ -404,7 +340,7 @@ function SlaTimer({ deadline }: { deadline: string | null | undefined }) {
         setColorClass("text-warning font-semibold");
       } else {
         setTimeLeft(`${hours}h ${minutes}m`);
-        setColorClass("text-green");
+        setColorClass("text-success");
       }
     };
     update();

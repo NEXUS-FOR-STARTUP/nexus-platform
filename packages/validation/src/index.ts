@@ -448,3 +448,199 @@ export const ListNotificationsResponseSchema = z.object({
 });
 
 export type ListNotificationsResponse = z.infer<typeof ListNotificationsResponseSchema>;
+
+export const DEFAULT_NOTIFICATION_PREFERENCES = {
+  email_enabled: true,
+} as const;
+
+export const NotificationPreferenceSchema = z
+  .object({
+    email_enabled: z.boolean(),
+  })
+  .strict();
+
+export type NotificationPreference = z.infer<typeof NotificationPreferenceSchema>;
+
+export const UpdateNotificationPreferenceSchema = NotificationPreferenceSchema;
+
+export const NotificationPreferenceResponseSchema = NotificationPreferenceSchema;
+
+export type NotificationPreferenceResponse = z.infer<typeof NotificationPreferenceResponseSchema>;
+
+// ---------------------------------------------------------------------------
+// Case list query + paginated envelope (GA-09)
+// ---------------------------------------------------------------------------
+
+export const CASE_LIST_SORT_FIELDS = ["created_at", "case_code", "team_name"] as const;
+export type CaseListSortField = (typeof CASE_LIST_SORT_FIELDS)[number];
+
+export const CASE_LIST_DEFAULT_LIMIT = 20;
+export const CASE_LIST_MAX_LIMIT = 50;
+
+export const ADMIN_CASE_LIST_VIEWS = [
+  "all",
+  "triage",
+  "intake",
+  "unassigned",
+  "assigned",
+  "crud",
+] as const;
+export type AdminCaseListView = (typeof ADMIN_CASE_LIST_VIEWS)[number];
+
+export const CaseListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(CASE_LIST_MAX_LIMIT).default(CASE_LIST_DEFAULT_LIMIT),
+  search: z.string().trim().max(200).optional(),
+  sortBy: z.enum(CASE_LIST_SORT_FIELDS).default("created_at"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  internal_status: z.string().optional(),
+  stage: z.string().optional(),
+});
+
+export type CaseListQuery = z.infer<typeof CaseListQuerySchema>;
+
+export const AdminCaseListQuerySchema = CaseListQuerySchema.extend({
+  view: z.enum(ADMIN_CASE_LIST_VIEWS).optional(),
+});
+
+export type AdminCaseListQuery = z.infer<typeof AdminCaseListQuerySchema>;
+
+export function paginatedListSchema<T extends z.ZodTypeAny>(itemSchema: T) {
+  return z.object({
+    items: z.array(itemSchema),
+    total: z.number().int().nonnegative(),
+    page: z.number().int().positive(),
+    limit: z.number().int().positive(),
+  });
+}
+
+export const CaseListResponseSchema = paginatedListSchema(CaseSchema.passthrough());
+export type CaseListResponse = z.infer<typeof CaseListResponseSchema>;
+
+// ---------------------------------------------------------------------------
+// Admin export (GA-10)
+// ---------------------------------------------------------------------------
+
+export const ADMIN_EXPORT_RESOURCES = ["cases", "deposits", "transactions", "orders"] as const;
+export type AdminExportResource = (typeof ADMIN_EXPORT_RESOURCES)[number];
+
+export const AdminExportQuerySchema = z.object({
+  resource: z.enum(ADMIN_EXPORT_RESOURCES),
+});
+
+export type AdminExportQuery = z.infer<typeof AdminExportQuerySchema>;
+
+// ---------------------------------------------------------------------------
+// Case Chat Read State & Unread Count (GA-19)
+// ---------------------------------------------------------------------------
+
+export const MarkChatReadRequestSchema = z.object({
+  last_read_message_id: z.string().optional(),
+});
+
+export type MarkChatReadRequest = z.infer<typeof MarkChatReadRequestSchema>;
+
+export const MarkChatReadResponseSchema = z.object({
+  success: z.boolean(),
+  unread_count: z.number().int().nonnegative(),
+  last_read_at: z.string().optional(),
+});
+
+export type MarkChatReadResponse = z.infer<typeof MarkChatReadResponseSchema>;
+
+export const CaseUnreadCountResponseSchema = z.object({
+  unread_count: z.number().int().nonnegative(),
+  last_read_at: z.string().optional(),
+});
+
+export type CaseUnreadCountResponse = z.infer<typeof CaseUnreadCountResponseSchema>;
+
+
+// ---------------------------------------------------------------------------
+// Session Management (GA-06)
+// ---------------------------------------------------------------------------
+
+export const ActiveSessionDtoSchema = z.object({
+  id: z.string().min(1),
+  ipAddress: z.string().nullable(),
+  userAgent: z.string().nullable(),
+  createdAt: z.coerce.date(),
+  expiresAt: z.coerce.date(),
+  isCurrent: z.boolean(),
+});
+export type ActiveSessionDto = z.infer<typeof ActiveSessionDtoSchema>;
+
+export const ActiveSessionsResponseSchema = z.object({
+  data: z.array(ActiveSessionDtoSchema),
+});
+export type ActiveSessionsResponse = z.infer<typeof ActiveSessionsResponseSchema>;
+
+export const RevokeSessionParamsSchema = z.object({
+  id: z.string().min(1),
+});
+export type RevokeSessionParams = z.infer<typeof RevokeSessionParamsSchema>;
+export interface ParsedUserAgent {
+  browser: string;
+  os: string;
+  deviceType: "desktop" | "mobile" | "tablet" | "unknown";
+}
+
+export function parseUserAgent(uaString?: string | null): ParsedUserAgent {
+  if (!uaString || typeof uaString !== "string") {
+    return {
+      browser: "Trình duyệt không xác định",
+      os: "Hệ điều hành không xác định",
+      deviceType: "unknown",
+    };
+  }
+
+  const ua = uaString.slice(0, 500); // Guard chống ReDoS
+
+  // 1. Phân tích OS
+  let os = "Hệ điều hành khác";
+  let deviceType: "desktop" | "mobile" | "tablet" | "unknown" = "desktop";
+
+  if (/Windows NT 10.0/i.test(ua)) os = "Windows 10/11";
+  else if (/Windows NT 6.3/i.test(ua)) os = "Windows 8.1";
+  else if (/Windows NT 6.1/i.test(ua)) os = "Windows 7";
+  else if (/Windows NT/i.test(ua)) os = "Windows";
+  else if (/iPad/i.test(ua)) {
+    os = "iPadOS";
+    deviceType = "tablet";
+  } else if (/iPhone|iPod/i.test(ua)) {
+    os = "iOS";
+    deviceType = "mobile";
+  } else if (/Macintosh|Mac OS X/i.test(ua)) {
+    os = "macOS";
+    deviceType = "desktop";
+  } else if (/Android/i.test(ua)) {
+    os = "Android";
+    deviceType = /Mobile/i.test(ua) ? "mobile" : "tablet";
+  } else if (/CrOS/i.test(ua)) {
+    os = "ChromeOS";
+    deviceType = "desktop";
+  } else if (/Linux/i.test(ua)) {
+    os = "Linux";
+    deviceType = "desktop";
+  }
+
+  // 2. Phân tích Browser (Thứ tự ưu tiên: Edge -> Opera -> CocCoc -> Brave -> Chrome -> Safari -> Firefox)
+  let browser = "Trình duyệt khác";
+  if (/Edg\//i.test(ua)) browser = "Microsoft Edge";
+  else if (/OPR\/|Opera/i.test(ua)) browser = "Opera";
+  else if (/coc_coc/i.test(ua)) browser = "Cốc Cốc";
+  else if (/Brave/i.test(ua)) browser = "Brave";
+  else if (/Chrome\//i.test(ua)) browser = "Google Chrome";
+  else if (/Firefox\//i.test(ua)) browser = "Mozilla Firefox";
+  else if (/Safari\//i.test(ua) && !/Chrome\//i.test(ua)) browser = "Apple Safari";
+
+  return { browser, os, deviceType };
+}
+
+export function formatIpAddress(ip?: string | null): string {
+  if (!ip) return "IP không xác định";
+  if (ip === "::1" || ip === "127.0.0.1" || ip.includes("localhost")) {
+    return "Localhost";
+  }
+  return ip.replace(/^::ffff:/, ""); // Bỏ prefix IPv4-mapped IPv6
+}

@@ -21,7 +21,34 @@
 6. Nếu admin accept nhưng chưa assign ngay, case ở trạng thái `accepted_unassigned`.
 7. Khi assign supporter, case chuyển sang `assigned` và xuất hiện trong queue của supporter.
 
+## Sơ đồ luồng
+
+```mermaid
+flowchart TD
+    subgraph QUEUE["HÀNG ĐỢI ADMIN"]
+        A(["Case vào hệ thống"]) --> B{"Case thuộc nhóm nào?"}
+        B -- "chưa nộp / chưa thanh toán" --> C["Mục Chờ sinh viên<br/>(ẩn khỏi danh sách chính)"]
+        B -- "đã nộp" --> D["Hàng đợi xét duyệt"]
+        D --> E["Mở chi tiết:<br/>tóm tắt, tài liệu, feedback,<br/>deadline, mức độ gấp"]
+    end
+    E --> F{"Điều kiện duyệt"}
+    F -- "chưa thanh toán → nút Duyệt khóa<br/>hiện lý do: Chưa hoàn tất thanh toán" --> G["Đợi sinh viên mua lượt"]
+    G -. "đã thanh toán" .-> F
+    F -- "đã thanh toán nhưng chưa nộp đủ hồ sơ" --> H["Hiện thông báo:<br/>đã thanh toán nhưng chưa nộp hồ sơ"]
+    F -- "Đã thanh toán (hoặc miễn phí)<br/>+ còn ≥1 lượt" --> I{"Quyết định"}
+    I -- "Duyệt" --> J["Chờ phân công"]
+    J --> K["Gán supporter"]
+    K --> L(["Vào hàng đợi supporter"])
+    I -- "Từ chối" --> M["Nhập lý do bắt buộc ≥10 ký tự<br/>lưu timeline, sinh viên nhìn thấy"]
+    M --> N(["Case đóng —<br/>hoàn lượt chưa dùng về ví"])
+    I -- "Veto — chỉ trong 48h từ lúc tạo case" --> O(["Case đóng —<br/>hoàn tiền gói + lượt chưa dùng"])
+    RULES["Ràng buộc:<br/>• Duyệt = đồng ý nhận case, chưa cần gán ngay<br/>• Đổi supporter: SLA đang đếm thì giữ; quá hạn (`<= now`) reset +48h<br/>• Case sắp/quá hạn SLA phải nổi bật trong queue<br/>• Từ chối phải kèm lý do — không có nút im lặng"]
+    classDef warn fill:#FEF3C7,stroke:#D97706,color:#92400E
+    class C,G warn
+```
+
 ## Tiêu chí triage tối thiểu
+
 
 - Có đủ thông tin để hiểu case đang kẹt ở đâu chưa.
 - Có đủ tài liệu hoặc link tài liệu để supporter bắt đầu chưa.

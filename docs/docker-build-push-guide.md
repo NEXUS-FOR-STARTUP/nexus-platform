@@ -154,7 +154,7 @@ Từ phase notifications, `docker-compose.prod.yml` có **router Traefik riêng*
 - Cả 2 router trỏ cùng service port `8000`.
 - Sau khi sửa labels: chạy lại `docker compose -f docker-compose.prod.yml up -d` để Traefik nhận label mới.
 
-> Khi **schema thay đổi** (vd migration `20260807040000_add_notifications`) → **bắt buộc `--no-cache`** build API: `prisma generate` chạy trong build stage, cache layer không invalidate khi chỉ schema đổi → image cũ chạy Prisma Client cũ → lỗi `Unknown argument`/missing field khi ghi notification.
+> Khi **schema thay đổi** (vd migration `20260819171456_case_messages_pagination_index`) → **bắt buộc `--no-cache`** build API: `prisma generate` chạy trong build stage, cache layer không invalidate khi chỉ schema đổi → image cũ chạy Prisma Client cũ → lỗi `Unknown argument`/missing field khi ghi notification.
 
 ## Troubleshooting
 

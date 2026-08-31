@@ -1,12 +1,22 @@
 import { AppError } from "../../../shared/domain/app-error.js";
-import { findDepositById } from "../infrastructure/persistence/deposit.repository.js";
+import { findDepositById as defaultFindDepositById } from "../infrastructure/persistence/deposit.repository.js";
 import { getDepositBankInfo } from "../../payments/domain/bank-info.js";
 import type { GetDepositResponse } from "./deposits.dto.js";
+
+type GetDepositDeps = {
+  findDepositById?: typeof defaultFindDepositById;
+};
+
+const defaultDeps = {
+  findDepositById: defaultFindDepositById,
+};
 
 export async function getDepositUseCase(
   userId: string,
   depositId: string,
+  deps: GetDepositDeps = {},
 ): Promise<GetDepositResponse> {
+  const { findDepositById } = { ...defaultDeps, ...deps };
   const deposit = await findDepositById(depositId);
   if (!deposit) {
     throw new AppError(404, "DEPOSIT_NOT_FOUND", "Không tìm thấy thông tin nạp tiền");

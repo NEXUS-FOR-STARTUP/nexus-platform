@@ -27,15 +27,6 @@ export async function sendMessageUseCase(
     );
   }
 
-  const claim = claimMessageSendSlot(userId);
-  if (!claim.ok) {
-    throw new AppError(
-      429,
-      "RATE_LIMITED",
-      "Gửi tin quá nhanh. Vui lòng đợi một giây.",
-      { unlockInMs: claim.unlockInMs },
-    );
-  }
 
   const caseItem = await findCaseById(caseId);
   if (!caseItem) {
@@ -70,6 +61,16 @@ export async function sendMessageUseCase(
       access.code,
       messageByCode[access.code],
       access.unlockInMs !== undefined ? { unlockInMs: access.unlockInMs } : undefined,
+    );
+  }
+
+  const claim = claimMessageSendSlot(userId);
+  if (!claim.ok) {
+    throw new AppError(
+      429,
+      "RATE_LIMITED",
+      "Gửi tin quá nhanh. Vui lòng đợi một giây.",
+      { unlockInMs: claim.unlockInMs },
     );
   }
 

@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_lifecycle" targetNamespace="http://bpmn.io/schema/bpmn" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <bpmn:process id="case-lifecycle" name="Vòng đời case (supporter làm việc)" isExecutable="true">
+    <bpmn:startEvent id="Start_Assigned" name="Case đã gán supporter">
+      <bpmn:messageEventDefinition messageRef="Message_caseAssigned" />
+      <bpmn:outgoing>Flow_Start</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:startEvent id="Start_Reopened" name="Case mở lại (mua lượt mới)">
+      <bpmn:messageEventDefinition messageRef="Message_caseReopened" />
+      <bpmn:outgoing>Flow_StartReopened</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="GwMergeStart" name="Vào vòng làm việc">
+      <bpmn:incoming>Flow_Start</bpmn:incoming>
+      <bpmn:incoming>Flow_StartReopened</bpmn:incoming>
+      <bpmn:outgoing>Flow_MergeStart</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="StartWork" name="Bắt đầu làm — cam kết SLA 48h">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="start-work" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_MergeStart</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToAnalyze</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GwMergeAnalyze" name="Vào phân tích">
+      <bpmn:incoming>Flow_ToAnalyze</bpmn:incoming>
+      <bpmn:incoming>Flow_Provided</bpmn:incoming>
+      <bpmn:incoming>Flow_ReviseDone</bpmn:incoming>
+      <bpmn:outgoing>Flow_MergeAnalyze</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="AnalyzeDocs" name="Đọc tài liệu &amp; phân tích">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition externalReference="supporter-analysis-form" />
+        <zeebe:assignmentDefinition candidateGroups="supporters" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_MergeAnalyze</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToGwEnough</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GwEnough" name="Đủ thông tin?" default="Flow_NeedInfo">
+      <bpmn:incoming>Flow_ToGwEnough</bpmn:incoming>
+      <bpmn:outgoing>Flow_Enough</bpmn:outgoing>
+      <bpmn:outgoing>Flow_NeedInfo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="RequestInfo" name="Yêu cầu bổ sung (kèm lý do)">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition externalReference="request-info-form" />
+        <zeebe:assignmentDefinition candidateGroups="supporters" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_NeedInfo</bpmn:incoming>
+      <bpmn:outgoing>Flow_Requested</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="ProvideInfo" name="Sinh viên bổ sung &amp; nộp lại">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition externalReference="provide-info-form" />
+        <zeebe:assignmentDefinition candidateGroups="students" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Requested</bpmn:incoming>
+      <bpmn:outgoing>Flow_Provided</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="WriteReport" name="Viết báo cáo">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition externalReference="write-report-form" />
+        <zeebe:assignmentDefinition candidateGroups="supporters" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Enough</bpmn:incoming>
+      <bpmn:outgoing>Flow_Wrote</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="SubmitReport" name="Nộp báo cáo">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition externalReference="submit-report-form" />
+        <zeebe:assignmentDefinition candidateGroups="supporters" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Wrote</bpmn:incoming>
+      <bpmn:outgoing>Flow_Submitted</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="ConsumeCredit" name="Ghi nhận nộp báo cáo (trừ 1 lượt, idempotent)">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="submit-output" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Submitted</bpmn:incoming>
+      <bpmn:outgoing>Flow_Consumed</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="StudentDecision" name="Xem báo cáo &amp; quyết định">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition externalReference="report-decision-form" />
+        <zeebe:assignmentDefinition candidateGroups="students" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Consumed</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToGwStudent</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="Boundary_Silence" name="Quá 7 ngày im lặng" attachedToRef="StudentDecision" cancelActivity="true">
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">="PT168H"</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+      <bpmn:outgoing>Flow_Silence</bpmn:outgoing>
+    </bpmn:boundaryEvent>
+    <bpmn:serviceTask id="AutoComplete" name="Tự động hoàn tất (quét 7 ngày)">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="auto-complete" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Silence</bpmn:incoming>
+      <bpmn:outgoing>Flow_AutoDone</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Auto" name="Case hoàn tất (tự động)">
+      <bpmn:incoming>Flow_AutoDone</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="GwStudent" name="Sinh viên quyết định?" default="Flow_Complete">
+      <bpmn:incoming>Flow_ToGwStudent</bpmn:incoming>
+      <bpmn:outgoing>Flow_Revise</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Complete</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="ReviseDocs" name="Sửa tài liệu &amp; gửi bản mới (không trừ lượt)">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition externalReference="revise-docs-form" />
+        <zeebe:assignmentDefinition candidateGroups="students" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Revise</bpmn:incoming>
+      <bpmn:outgoing>Flow_ReviseDone</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="CompleteCase" name="Hoàn tất case">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="complete-case" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Complete</bpmn:incoming>
+      <bpmn:outgoing>Flow_Completed</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Done" name="Case hoàn tất">
+      <bpmn:incoming>Flow_Completed</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:textAnnotation id="Note_AdminComplete" text="Admin có thể chốt hoàn tất trực tiếp khi báo cáo sẵn sàng — không cần sinh viên xác nhận." />
+    <bpmn:textAnnotation id="Note_Terminal" text="Kết thúc không trọn (từ chối/veto/hủy/xóa) có thể xảy ra bất kỳ lúc nào → hoàn lượt chưa dùng theo giá đã mua (FIFO); veto hoàn thêm tiền gói. Chi tiết: refund-on-terminal.dmn" />
+    <bpmn:sequenceFlow id="Flow_Start" sourceRef="Start_Assigned" targetRef="GwMergeStart" />
+    <bpmn:sequenceFlow id="Flow_StartReopened" sourceRef="Start_Reopened" targetRef="GwMergeStart" />
+    <bpmn:sequenceFlow id="Flow_MergeStart" sourceRef="GwMergeStart" targetRef="StartWork" />
+    <bpmn:sequenceFlow id="Flow_ToAnalyze" sourceRef="StartWork" targetRef="GwMergeAnalyze" />
+    <bpmn:sequenceFlow id="Flow_MergeAnalyze" sourceRef="GwMergeAnalyze" targetRef="AnalyzeDocs" />
+    <bpmn:sequenceFlow id="Flow_ToGwEnough" sourceRef="AnalyzeDocs" targetRef="GwEnough" />
+    <bpmn:sequenceFlow id="Flow_Enough" name="Đủ thông tin" sourceRef="GwEnough" targetRef="WriteReport">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=enoughInfo = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_NeedInfo" name="Thiếu" sourceRef="GwEnough" targetRef="RequestInfo" />
+    <bpmn:sequenceFlow id="Flow_Requested" sourceRef="RequestInfo" targetRef="ProvideInfo" />
+    <bpmn:sequenceFlow id="Flow_Provided" name="Đã bổ sung — phân tích lại" sourceRef="ProvideInfo" targetRef="GwMergeAnalyze" />
+    <bpmn:sequenceFlow id="Flow_Wrote" sourceRef="WriteReport" targetRef="SubmitReport" />
+    <bpmn:sequenceFlow id="Flow_Submitted" sourceRef="SubmitReport" targetRef="ConsumeCredit" />
+    <bpmn:sequenceFlow id="Flow_Consumed" sourceRef="ConsumeCredit" targetRef="StudentDecision" />
+    <bpmn:sequenceFlow id="Flow_Silence" sourceRef="Boundary_Silence" targetRef="AutoComplete" />
+    <bpmn:sequenceFlow id="Flow_AutoDone" sourceRef="AutoComplete" targetRef="End_Auto" />
+    <bpmn:sequenceFlow id="Flow_ToGwStudent" sourceRef="StudentDecision" targetRef="GwStudent" />
+    <bpmn:sequenceFlow id="Flow_Revise" name="Cần cải thiện" sourceRef="GwStudent" targetRef="ReviseDocs">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=decision = "revise"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Complete" name="Xác nhận hoàn tất" sourceRef="GwStudent" targetRef="CompleteCase" />
+    <bpmn:sequenceFlow id="Flow_ReviseDone" name="Bản mới — phân tích lại" sourceRef="ReviseDocs" targetRef="GwMergeAnalyze" />
+    <bpmn:sequenceFlow id="Flow_Completed" sourceRef="CompleteCase" targetRef="End_Done" />
+    <bpmn:association id="Assoc_AdminComplete" sourceRef="Note_AdminComplete" targetRef="ConsumeCredit" />
+    <bpmn:association id="Assoc_Terminal" sourceRef="Note_Terminal" targetRef="StudentDecision" />
+  </bpmn:process>
+  <bpmn:message id="Message_caseAssigned" name="case-assigned" />
+  <bpmn:message id="Message_caseReopened" name="case-reopened" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_lifecycle">
+    <bpmndi:BPMNPlane id="BPMNPlane_lifecycle" bpmnElement="case-lifecycle">
+      <bpmndi:BPMNShape id="Start_Assigned_di" bpmnElement="Start_Assigned">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_Reopened_di" bpmnElement="Start_Reopened">
+        <dc:Bounds x="152" y="190" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwMergeStart_di" bpmnElement="GwMergeStart" isMarkerVisible="true">
+        <dc:Bounds x="290" y="115" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartWork_di" bpmnElement="StartWork">
+        <dc:Bounds x="390" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwMergeAnalyze_di" bpmnElement="GwMergeAnalyze" isMarkerVisible="true">
+        <dc:Bounds x="590" y="115" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AnalyzeDocs_di" bpmnElement="AnalyzeDocs">
+        <dc:Bounds x="690" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwEnough_di" bpmnElement="GwEnough" isMarkerVisible="true">
+        <dc:Bounds x="840" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="RequestInfo_di" bpmnElement="RequestInfo">
+        <dc:Bounds x="940" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ProvideInfo_di" bpmnElement="ProvideInfo">
+        <dc:Bounds x="1090" y="200" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="WriteReport_di" bpmnElement="WriteReport">
+        <dc:Bounds x="940" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubmitReport_di" bpmnElement="SubmitReport">
+        <dc:Bounds x="1090" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ConsumeCredit_di" bpmnElement="ConsumeCredit">
+        <dc:Bounds x="1240" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StudentDecision_di" bpmnElement="StudentDecision">
+        <dc:Bounds x="1390" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Boundary_Silence_di" bpmnElement="Boundary_Silence">
+        <dc:Bounds x="1422" y="142" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AutoComplete_di" bpmnElement="AutoComplete">
+        <dc:Bounds x="1422" y="310" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Auto_di" bpmnElement="End_Auto">
+        <dc:Bounds x="1422" y="420" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwStudent_di" bpmnElement="GwStudent" isMarkerVisible="true">
+        <dc:Bounds x="1590" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ReviseDocs_di" bpmnElement="ReviseDocs">
+        <dc:Bounds x="1740" y="90" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CompleteCase_di" bpmnElement="CompleteCase">
+        <dc:Bounds x="1740" y="0" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Done_di" bpmnElement="End_Done">
+        <dc:Bounds x="1890" y="22" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Note_AdminComplete_di" bpmnElement="Note_AdminComplete">
+        <dc:Bounds x="2000" y="120" width="320" height="110" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Note_Terminal_di" bpmnElement="Note_Terminal">
+        <dc:Bounds x="2000" y="260" width="320" height="120" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Start_di" bpmnElement="Flow_Start">
+        <di:waypoint x="188" y="120" />
+        <di:waypoint x="214" y="120" />
+        <di:waypoint x="214" y="140" />
+        <di:waypoint x="290" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_StartReopened_di" bpmnElement="Flow_StartReopened">
+        <di:waypoint x="188" y="208" />
+        <di:waypoint x="203" y="208" />
+        <di:waypoint x="203" y="140" />
+        <di:waypoint x="290" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_MergeStart_di" bpmnElement="Flow_MergeStart">
+        <di:waypoint x="340" y="140" />
+        <di:waypoint x="365" y="140" />
+        <di:waypoint x="365" y="120" />
+        <di:waypoint x="390" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToAnalyze_di" bpmnElement="Flow_ToAnalyze">
+        <di:waypoint x="490" y="120" />
+        <di:waypoint x="565" y="120" />
+        <di:waypoint x="565" y="140" />
+        <di:waypoint x="590" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_MergeAnalyze_di" bpmnElement="Flow_MergeAnalyze">
+        <di:waypoint x="640" y="140" />
+        <di:waypoint x="665" y="140" />
+        <di:waypoint x="665" y="120" />
+        <di:waypoint x="690" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToGwEnough_di" bpmnElement="Flow_ToGwEnough">
+        <di:waypoint x="790" y="120" />
+        <di:waypoint x="840" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Enough_di" bpmnElement="Flow_Enough">
+        <di:waypoint x="890" y="120" />
+        <di:waypoint x="940" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_NeedInfo_di" bpmnElement="Flow_NeedInfo">
+        <di:waypoint x="865" y="145" />
+        <di:waypoint x="865" y="240" />
+        <di:waypoint x="940" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Requested_di" bpmnElement="Flow_Requested">
+        <di:waypoint x="1040" y="240" />
+        <di:waypoint x="1090" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Provided_di" bpmnElement="Flow_Provided">
+        <di:waypoint x="1190" y="240" />
+        <di:waypoint x="1240" y="240" />
+        <di:waypoint x="1240" y="340" />
+        <di:waypoint x="615" y="340" />
+        <di:waypoint x="615" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Wrote_di" bpmnElement="Flow_Wrote">
+        <di:waypoint x="1040" y="120" />
+        <di:waypoint x="1090" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Submitted_di" bpmnElement="Flow_Submitted">
+        <di:waypoint x="1190" y="120" />
+        <di:waypoint x="1240" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Consumed_di" bpmnElement="Flow_Consumed">
+        <di:waypoint x="1340" y="120" />
+        <di:waypoint x="1390" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Silence_di" bpmnElement="Flow_Silence">
+        <di:waypoint x="1440" y="178" />
+        <di:waypoint x="1440" y="348" />
+        <di:waypoint x="1422" y="348" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AutoDone_di" bpmnElement="Flow_AutoDone">
+        <di:waypoint x="1522" y="350" />
+        <di:waypoint x="1522" y="438" />
+        <di:waypoint x="1458" y="438" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToGwStudent_di" bpmnElement="Flow_ToGwStudent">
+        <di:waypoint x="1490" y="120" />
+        <di:waypoint x="1590" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Revise_di" bpmnElement="Flow_Revise">
+        <di:waypoint x="1615" y="95" />
+        <di:waypoint x="1615" y="130" />
+        <di:waypoint x="1740" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Complete_di" bpmnElement="Flow_Complete">
+        <di:waypoint x="1615" y="95" />
+        <di:waypoint x="1615" y="40" />
+        <di:waypoint x="1740" y="40" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ReviseDone_di" bpmnElement="Flow_ReviseDone">
+        <di:waypoint x="1740" y="170" />
+        <di:waypoint x="1560" y="170" />
+        <di:waypoint x="1560" y="410" />
+        <di:waypoint x="615" y="410" />
+        <di:waypoint x="615" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Completed_di" bpmnElement="Flow_Completed">
+        <di:waypoint x="1840" y="40" />
+        <di:waypoint x="1890" y="40" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_AdminComplete_di" bpmnElement="Assoc_AdminComplete">
+        <di:waypoint x="2000" y="175" />
+        <di:waypoint x="1340" y="175" />
+        <di:waypoint x="1340" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_Terminal_di" bpmnElement="Assoc_Terminal">
+        <di:waypoint x="2000" y="280" />
+        <di:waypoint x="1360" y="280" />
+        <di:waypoint x="1360" y="120" />
+        <di:waypoint x="1390" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
