@@ -16,14 +16,19 @@ export class EmailService {
 
   async send(to: string, subject: string, html: string, idempotencyKey: string): Promise<void> {
     if (!this.resend) return;
-    await this.resend.emails.send({
+    const { error } = await this.resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL ?? "Nexus Platform <noreply@nexusforstartup.site>",
       to,
       subject,
       html,
-      headers: { "Idempotency-Key": idempotencyKey }, // retry cùng outbox.id → Resend dedupe, không gửi trùng
-    });
+      headers: { "Idempotency-Key": idempotencyKey },
+    })
+    if (error) {
+      logger.error({ error, to }, "Resend send failed")
+      throw new Error(error.message)
+    }
   }
+
 }
 
 export const emailService = new EmailService();
