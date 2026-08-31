@@ -9,6 +9,7 @@ export interface AccountLockoutConfig {
   maxAttempts: number
   lockoutDurationMs: number
   attemptWindowMs: number
+  maxStoreSize: number
 }
 
 export interface LockoutStatus {
@@ -27,8 +28,9 @@ interface AttemptRecord {
 
 const DEFAULT_CONFIG: AccountLockoutConfig = {
   maxAttempts: 5,
-  lockoutDurationMs: 15 * 60 * 1000, // 15 minutes lockout
-  attemptWindowMs: 15 * 60 * 1000, // 15 minutes window for failed attempts
+  lockoutDurationMs: 15 * 60 * 1000,
+  attemptWindowMs: 15 * 60 * 1000,
+  maxStoreSize: 10000,
 }
 
 export class AccountLockoutService {
@@ -44,8 +46,19 @@ export class AccountLockoutService {
   }
 
   /**
-   * Checks if an account is currently locked.
+   * Sweeps expired records to free memory.
    */
+  private sweepExpired(): void {
+    const now = Date.now()
+    for (const [key, record] of this.store.entries()) {
+      if (record.lockedUntil && record.lockedUntil <= now) {
+        this.store.delete(key)
+      } else if (!record.lockedUntil && now - record.lastAttemptAt > this.config.attemptWindowMs) {
+        this.store.delete(key)
+      }
+    }
+  }
+
   checkLockout(email: string): LockoutStatus {
     const key = this.normalizeKey(email)
     const record = this.store.get(key)
@@ -116,6 +129,18 @@ export class AccountLockoutService {
 
     let record = this.store.get(key)
     if (!record) {
+      if (this.store.size >= this.config.maxStoreSize) {
+        this.sweepExpired()
+        if (this.store.size >= this.config.maxStoreSize) {
+          const evictCount = Math.floor(this.config.maxStoreSize * 0.2)
+          let i = 0
+          for (const [k] of this.store.entries()) {
+            if (i++ >= evictCount) break
+            this.store.delete(k)
+          }
+        }
+      }
+
       record = {
         attempts: 1,
         firstAttemptAt: now,
