@@ -74,22 +74,12 @@ export default function AppShell({ children }: AppShellProps) {
               <Button
                 component={Link}
                 href="/auth"
-                variant="default"
-                radius="md"
-                size="sm"
-                className="font-semibold text-text-muted border-border-app hover:bg-surface-soft font-body"
-              >
-                Đăng nhập
-              </Button>
-              <Button
-                component={Link}
-                href="/auth?tab=register"
                 color="brand"
                 radius="md"
                 size="sm"
                 className="font-semibold font-body"
               >
-                Đăng ký
+                Đăng nhập
               </Button>
             </Group>
 
@@ -127,18 +117,6 @@ export default function AppShell({ children }: AppShellProps) {
             <Button
               component={Link}
               href="/auth"
-              variant="default"
-              radius="md"
-              fullWidth
-              size="md"
-              onClick={closeDrawer}
-              className="font-semibold text-text-muted border-border-app"
-            >
-              Đăng nhập
-            </Button>
-            <Button
-              component={Link}
-              href="/auth?tab=register"
               color="brand"
               radius="md"
               fullWidth
@@ -146,7 +124,7 @@ export default function AppShell({ children }: AppShellProps) {
               onClick={closeDrawer}
               className="font-semibold"
             >
-              Đăng ký
+              Đăng nhập
             </Button>
           </div>
         </ScrollArea>
