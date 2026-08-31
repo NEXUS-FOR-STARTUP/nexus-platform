@@ -11,7 +11,6 @@ interface EmailOtpStepProps {
   onVerify: (otp: string) => void;
   onResend: () => void;
   onBack: () => void;
-  blocked?: boolean;
 }
 
 export function EmailOtpStep({
@@ -21,7 +20,6 @@ export function EmailOtpStep({
   onVerify,
   onResend,
   onBack,
-  blocked = false,
 }: EmailOtpStepProps) {
   const [code, setCode] = useState("");
   const submittedRef = useRef<string | null>(null);
@@ -31,7 +29,7 @@ export function EmailOtpStep({
   }, [verifying]);
 
   const submit = (value: string) => {
-    if (value.length !== OTP_LENGTH || verifying || blocked) return;
+    if (value.length !== OTP_LENGTH || verifying) return;
     if (submittedRef.current === value) return;
     submittedRef.current = value;
     onVerify(value);
@@ -78,7 +76,7 @@ export function EmailOtpStep({
         color="brand"
         className="h-10 cursor-pointer font-semibold"
         loading={verifying}
-        disabled={code.length !== OTP_LENGTH || blocked}
+        disabled={code.length !== OTP_LENGTH}
         onClick={() => submit(code)}
       >
         Tiếp tục
