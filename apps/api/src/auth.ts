@@ -38,6 +38,20 @@ export const auth = betterAuth({
   },
   user: {
     modelName: 'user',
+    additionalFields: {
+      termsAndPrivacyVersion: {
+        type: 'string',
+        required: false,
+        input: false,
+        fieldName: 'terms_and_privacy_version',
+      },
+      termsAndPrivacyAcceptedAt: {
+        type: 'date',
+        required: false,
+        input: false,
+        fieldName: 'terms_and_privacy_accepted_at',
+      },
+    },
     fields: {
       emailVerified: 'email_verified',
       twoFactorEnabled: 'two_factor_enabled',
@@ -46,8 +60,6 @@ export const auth = betterAuth({
       banReason: 'ban_reason',
       banExpires: 'ban_expires',
       displayUsername: 'display_username',
-      termsAndPrivacyVersion: 'terms_and_privacy_version',
-      termsAndPrivacyAcceptedAt: 'terms_and_privacy_accepted_at',
       createdAt: 'created_at',
       updatedAt: 'updated_at',
     },
@@ -142,8 +154,8 @@ export const auth = betterAuth({
           return {
             data: {
               ...user,
-              terms_and_privacy_version: '2026-08-v2.0',
-              terms_and_privacy_accepted_at: new Date(),
+              termsAndPrivacyVersion: '2026-08-v2.0',
+              termsAndPrivacyAcceptedAt: new Date(),
             },
           }
         },

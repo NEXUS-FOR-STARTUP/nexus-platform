@@ -47,16 +47,15 @@ test('GA-12: Better Auth databaseHook data builder assigns current policy versio
     email: 'nguyenvana@gmail.com',
   };
 
-  // Logic corresponding to databaseHooks.user.create.before in auth.ts
   const hookResult = {
     data: {
       ...inputUser,
-      terms_and_privacy_version: '2026-08-v2.0',
-      terms_and_privacy_accepted_at: new Date(),
+      termsAndPrivacyVersion: '2026-08-v2.0',
+      termsAndPrivacyAcceptedAt: new Date(),
     },
   };
 
-  assert.equal(hookResult.data.terms_and_privacy_version, '2026-08-v2.0');
-  assert.ok(hookResult.data.terms_and_privacy_accepted_at instanceof Date);
+  assert.equal(hookResult.data.termsAndPrivacyVersion, '2026-08-v2.0');
+  assert.ok(hookResult.data.termsAndPrivacyAcceptedAt instanceof Date);
   assert.equal(hookResult.data.id, 'user-signup-123');
 });
