@@ -5,8 +5,8 @@ import { APIError, betterAuth } from 'better-auth'
 import { admin, emailOTP, openAPI } from 'better-auth/plugins'
 import { prisma } from './db.js'
 import { sendVerificationEmail } from './modules/notifications/application/auth-verification-email.js'
+import { accountLockoutService } from './modules/auth/infrastructure/account-lockout.service.js'
 import logger from './shared/infrastructure/logger.js'
-
 const requiredEnv = (name: string): string => {
   const value = process.env[name]
   if (!value) throw new Error(`${name} is required`)
@@ -127,6 +127,16 @@ export const auth = betterAuth({
         path?: string
         body?: { email?: unknown; type?: unknown }
       }
+
+      if (path === '/sign-in/email' && body && typeof body.email === 'string') {
+        const lockout = accountLockoutService.checkLockout(body.email)
+        if (lockout.isLocked) {
+          throw new APIError('TOO_MANY_REQUESTS', {
+            message: `ACCOUNT_LOCKED_TEMPORARY:${lockout.remainingSeconds}`,
+          })
+        }
+      }
+
       if (path === '/sign-up/email') {
         throw new APIError('BAD_REQUEST', { message: 'PASSWORD_AUTH_DISABLED' })
       }
@@ -143,6 +153,37 @@ export const auth = betterAuth({
           if (existing?.email_verified) {
             throw new APIError('CONFLICT', { message: 'EMAIL_ALREADY_VERIFIED' })
           }
+        }
+      }
+    },
+    after: async (ctx) => {
+      const authCtx = ctx as {
+        path?: string
+        body?: { email?: unknown }
+        context?: { returned?: unknown }
+      }
+      const path = authCtx.path
+      const email =
+        authCtx.body && typeof authCtx.body.email === 'string'
+          ? authCtx.body.email
+          : undefined
+
+      if (path === '/sign-in/email' && email) {
+        const returned = authCtx.context?.returned
+        const isFailure =
+          returned instanceof APIError ||
+          (Boolean(returned) &&
+            typeof returned === 'object' &&
+            ('statusCode' in (returned as Record<string, unknown>) ||
+              'status' in (returned as Record<string, unknown>)) &&
+            ((returned as { statusCode?: number }).statusCode === 401 ||
+              (returned as { status?: string | number }).status === 'UNAUTHORIZED' ||
+              (returned as { status?: string | number }).status === 401))
+
+        if (isFailure) {
+          accountLockoutService.recordFailure(email)
+        } else {
+          accountLockoutService.recordSuccess(email)
         }
       }
     },

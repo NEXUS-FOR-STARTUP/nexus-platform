@@ -43,7 +43,7 @@ A read-only inspection against the production PostgreSQL instance was conducted 
 
 | Issue ID | Severity | Status | Category | Affected File(s) | Description & Action |
 |---|---|---|---|---|---|
-| **#R1** | 🟠 **HIGH** | ⏳ **Pending Decision** | Security Architecture | `apps/api/src/auth.ts:116-120`<br>`apps/api/src/modules/auth/infrastructure/account-lockout.service.ts` | **Per-Account Brute Force Regression**: When restoring `/sign-in/email`, `accountLockoutService.checkLockout()` was not re-wired. Protection currently relies solely on IP-based rate limiting (10 req/min). |
+| **#R1** | 🟠 **HIGH** | ✅ **FIXED** | Security Architecture | `apps/api/src/auth.ts`<br>`apps/api/src/modules/auth/infrastructure/account-lockout.service.ts` | **Per-Account Brute Force Defense**: Re-wired `accountLockoutService.checkLockout()` in `hooks.before` and `recordFailure()` / `recordSuccess()` in `hooks.after`. |
 | **#R2** | 🟠 **HIGH** | ✅ **FIXED** (`d96ce2a`) | Client Resilience | `apps/web-1/app/auth/hooks/use-google-sign-in.ts` | **Google OAuth Loading Hang**: `setLoading(false)` was only in `catch`. Updated to check `res?.error` and translate auth errors. |
 | **#R3** | — | 🔄 **Merged into #R1** | Code Hygiene | `apps/api/src/modules/auth/infrastructure/account-lockout.service.ts` | Merged into architectural decision for #R1 (re-wire vs delete). |
 | **#R4** | 🟠 **HIGH** | ✅ **FIXED** (`62d85a3`) | Route Architecture | `apps/web-1/app/auth/verify-email/page.tsx` | **Legacy Standalone Verification**: Marked with `@deprecated` annotation. Kept for backwards compatibility with direct link hits. |
@@ -94,5 +94,5 @@ In PR #26, `/sign-in/email` was restored without re-wiring `accountLockoutServic
 - [x] Google OAuth loading leak resolved (`#R2`)
 - [x] Legacy routes deprecated and documented (`#R4`, `#R8`)
 - [x] TypeScript type checking clean across all packages (`npm run check-types` passed)
-- [ ] Team decision on `#R1` (Re-wire `accountLockoutService` vs. accept IP-only rate limit)
+- [x] Per-Account lockout defense re-wired and verified (`#R1`)
 - [ ] Push local commits to remote branch (`git push origin feat/login-page-ui`)

@@ -2,6 +2,12 @@
 // Chuyển nguyên `translateError` từ profile page cũ sang đây để tái dùng.
 export function translateAuthError(message?: string): string {
   if (!message) return "Đã có lỗi xảy ra. Vui lòng thử lại.";
+  if (message.startsWith("ACCOUNT_LOCKED_TEMPORARY")) {
+    const seconds = message.split(":")[1];
+    return seconds
+      ? `Tài khoản tạm thời bị khóa do nhập sai nhiều lần. Vui lòng thử lại sau ${seconds} giây.`
+      : "Tài khoản tạm thời bị khóa do nhập sai nhiều lần. Vui lòng thử lại sau ít phút.";
+  }
   const map: Record<string, string> = {
     "invalid password": "Mật khẩu hiện tại không đúng.",
     "password is too weak": "Mật khẩu mới quá yếu. Vui lòng chọn mật khẩu mạnh hơn.",
