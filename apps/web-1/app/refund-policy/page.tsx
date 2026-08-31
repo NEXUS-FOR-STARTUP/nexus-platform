@@ -130,7 +130,7 @@ export default function RefundPolicyPage() {
           </Title>
           <div className="space-y-3 text-text-muted">
             <p>
-              <strong className="text-text-main">6.1. Giải quyết nội bộ trước:</strong> Trước khi yêu cầu ngân hàng hoàn tiền (chargeback), bạn đồng ý liên hệ với bộ phận CSKH của Nexus (contact@nexusplatform.vn) để chúng tôi có cơ hội tra soát và giải quyết thỏa đáng.
+              <strong className="text-text-main">6.1. Giải quyết nội bộ trước:</strong> Trước khi yêu cầu ngân hàng hoàn tiền (chargeback), bạn đồng ý liên hệ với bộ phận CSKH của Nexus (phungluuhoanglong@gmail.com) để chúng tôi có cơ hội tra soát và giải quyết thỏa đáng.
             </p>
             <p>
               <strong className="text-text-main">6.2. Gian lận Chargeback:</strong> Việc cố tình lạm dụng cơ chế chargeback của ngân hàng sau khi đã nhận và sử dụng dịch vụ thành công cấu thành hành vi lừa đảo. Nexus bảo lưu quyền khóa vĩnh viễn tài khoản và cung cấp bằng chứng giao dịch cho cơ quan pháp luật hoặc tổ chức phát hành thẻ.

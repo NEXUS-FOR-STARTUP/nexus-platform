@@ -54,7 +54,7 @@ export default function PrivacyPage() {
           <div className="space-y-3 text-text-muted">
             <p><strong className="text-text-main">Chủ quản nền tảng:</strong> Hệ sinh thái Hỗ trợ Ý tưởng & Kiểm định Khởi nghiệp Sinh viên Nexus</p>
             <p><strong className="text-text-main">Nhân sự phụ trách Bảo vệ Dữ liệu (DPO):</strong> Ban Kỹ thuật & Pháp chế Nexus Platform</p>
-            <p><strong className="text-text-main">Kênh liên hệ chính thức:</strong> contact@nexusplatform.vn</p>
+            <p><strong className="text-text-main">Kênh liên hệ chính thức:</strong> phungluuhoanglong@gmail.com</p>
           </div>
         </section>
 
@@ -210,7 +210,7 @@ export default function PrivacyPage() {
             Chính sách bảo mật này có hiệu lực từ ngày công bố ở đầu trang. Khi chúng tôi có những sửa đổi mang tính chất quan trọng ảnh hưởng đến quyền lợi của bạn, hệ thống sẽ yêu cầu bạn xác nhận đồng ý lại ở lần đăng nhập tiếp theo.
           </p>
           <p className="text-text-muted leading-relaxed">
-            Mọi thắc mắc, yêu cầu khiếu nại hoặc thực thi quyền chủ thể dữ liệu, vui lòng gửi email tới Bộ phận Pháp chế (DPO) qua địa chỉ: <strong className="text-brand">contact@nexusplatform.vn</strong>. Chúng tôi cam kết xử lý và phản hồi trong thời gian sớm nhất theo luật định.
+            Mọi thắc mắc, yêu cầu khiếu nại hoặc thực thi quyền chủ thể dữ liệu, vui lòng gửi email tới Bộ phận Pháp chế (DPO) qua địa chỉ: <strong className="text-brand">phungluuhoanglong@gmail.com</strong>. Chúng tôi cam kết xử lý và phản hồi trong thời gian sớm nhất theo luật định.
           </p>
         </section>
       </div>

@@ -1,54 +1,16 @@
 import './env.js'
 
-import { createHash } from 'node:crypto'
 import { prismaAdapter } from 'better-auth/adapters/prisma'
 import { APIError, betterAuth } from 'better-auth'
 import { admin, emailOTP, openAPI } from 'better-auth/plugins'
 import { prisma } from './db.js'
-import {
-  emailService,
-  renderEmailHtml,
-} from './modules/notifications/infrastructure/email.service.js'
-import logger from './shared/infrastructure/logger.js'
+import { sendVerificationEmail } from './modules/notifications/application/auth-verification-email.js'
 import { accountLockoutService } from './modules/auth/infrastructure/account-lockout.service.js'
-
+import logger from './shared/infrastructure/logger.js'
 const requiredEnv = (name: string): string => {
   const value = process.env[name]
-
-  if (!value) {
-    throw new Error(`${name} is required`)
-  }
-
+  if (!value) throw new Error(`${name} is required`)
   return value
-}
-
-type VerificationOtpType =
-  | 'sign-in'
-  | 'email-verification'
-  | 'forget-password'
-  | 'change-email'
-
-const OTP_SUBJECTS: Record<VerificationOtpType, string> = {
-  'email-verification': 'Xác minh email của bạn',
-  'sign-in': 'Mã đăng nhập của bạn',
-  'forget-password': 'Mã đặt lại mật khẩu của bạn',
-  'change-email': 'Mã xác minh thay đổi email của bạn',
-}
-
-const sendVerificationEmail = (
-  email: string,
-  otp: string,
-  type: VerificationOtpType,
-): Promise<void> => {
-  const subject = OTP_SUBJECTS[type]
-  const body = `Mã xác minh của bạn là:\n<otp>${otp}</otp>\nMã có hiệu lực trong 5 phút.`
-  const html = renderEmailHtml(subject, body, null)
-  // Idempotency key ổn định theo type + email + otp → retry cùng OTP không gửi email trùng.
-  const idempotencyKey = createHash('sha256')
-    .update(`${type}:${email.toLowerCase()}:${otp}`)
-    .digest('hex')
-
-  return emailService.send(email, subject, html, idempotencyKey)
 }
 
 // Bắt buộc RESEND_API_KEY cho luồng email verification: thiếu key → fail fast,
@@ -69,22 +31,27 @@ export const auth = betterAuth({
     max: 60,
     customRules: {
       '/get-session': false,
-      '/email-otp/send-verification-otp': {
-        window: 60,
-        max: 3,
-      },
-      '/sign-in/email': {
-        window: 60,
-        max: 10,
-      },
-      '/sign-up/email': {
-        window: 60,
-        max: 5,
-      },
+      '/email-otp/send-verification-otp': { window: 60, max: 3 },
+      '/sign-in/email': { window: 60, max: 10 },
+      '/sign-up/email': { window: 60, max: 5 },
     },
   },
   user: {
     modelName: 'user',
+    additionalFields: {
+      termsAndPrivacyVersion: {
+        type: 'string',
+        required: false,
+        input: false,
+        fieldName: 'terms_and_privacy_version',
+      },
+      termsAndPrivacyAcceptedAt: {
+        type: 'date',
+        required: false,
+        input: false,
+        fieldName: 'terms_and_privacy_accepted_at',
+      },
+    },
     fields: {
       emailVerified: 'email_verified',
       twoFactorEnabled: 'two_factor_enabled',
@@ -93,8 +60,6 @@ export const auth = betterAuth({
       banReason: 'ban_reason',
       banExpires: 'ban_expires',
       displayUsername: 'display_username',
-      termsAndPrivacyVersion: 'terms_and_privacy_version',
-      termsAndPrivacyAcceptedAt: 'terms_and_privacy_accepted_at',
       createdAt: 'created_at',
       updatedAt: 'updated_at',
     },
@@ -162,6 +127,7 @@ export const auth = betterAuth({
         path?: string
         body?: { email?: unknown; type?: unknown }
       }
+
       if (path === '/sign-in/email' && body && typeof body.email === 'string') {
         const lockout = accountLockoutService.checkLockout(body.email)
         if (lockout.isLocked) {
@@ -171,10 +137,13 @@ export const auth = betterAuth({
         }
       }
 
+      if (path === '/sign-up/email') {
+        throw new APIError('BAD_REQUEST', { message: 'PASSWORD_AUTH_DISABLED' })
+      }
+
       if (
-        path === '/sign-up/email' ||
-        (path === '/email-otp/send-verification-otp' &&
-          (body?.type === 'email-verification' || !body?.type))
+        path === '/email-otp/send-verification-otp' &&
+        (body?.type === 'email-verification' || !body?.type)
       ) {
         if (body && typeof body.email === 'string') {
           const existing = await prisma.user.findUnique({
@@ -182,10 +151,39 @@ export const auth = betterAuth({
             select: { email_verified: true },
           })
           if (existing?.email_verified) {
-            throw new APIError('CONFLICT', {
-              message: 'EMAIL_ALREADY_VERIFIED',
-            })
+            throw new APIError('CONFLICT', { message: 'EMAIL_ALREADY_VERIFIED' })
           }
+        }
+      }
+    },
+    after: async (ctx) => {
+      const authCtx = ctx as {
+        path?: string
+        body?: { email?: unknown }
+        context?: { returned?: unknown }
+      }
+      const path = authCtx.path
+      const email =
+        authCtx.body && typeof authCtx.body.email === 'string'
+          ? authCtx.body.email
+          : undefined
+
+      if (path === '/sign-in/email' && email) {
+        const returned = authCtx.context?.returned
+        const isFailure =
+          returned instanceof APIError ||
+          (Boolean(returned) &&
+            typeof returned === 'object' &&
+            ('statusCode' in (returned as Record<string, unknown>) ||
+              'status' in (returned as Record<string, unknown>)) &&
+            ((returned as { statusCode?: number }).statusCode === 401 ||
+              (returned as { status?: string | number }).status === 'UNAUTHORIZED' ||
+              (returned as { status?: string | number }).status === 401))
+
+        if (isFailure) {
+          accountLockoutService.recordFailure(email)
+        } else {
+          accountLockoutService.recordSuccess(email)
         }
       }
     },
@@ -197,8 +195,8 @@ export const auth = betterAuth({
           return {
             data: {
               ...user,
-              terms_and_privacy_version: '2026-08-v2.0',
-              terms_and_privacy_accepted_at: new Date(),
+              termsAndPrivacyVersion: '2026-08-v2.0',
+              termsAndPrivacyAcceptedAt: new Date(),
             },
           }
         },
@@ -218,19 +216,13 @@ export const auth = betterAuth({
     openAPI(),
     emailOTP({
       overrideDefaultEmailVerification: true,
+      disableSignUp: false,
       otpLength: 6,
       expiresIn: 300,
       allowedAttempts: 3,
       rateLimit: { window: 60, max: 3 },
       sendVerificationOTP: async ({ email, otp, type }) => {
-        // Không await network call: email gửi nền, catch ghi lỗi có cấu trúc,
-        // không tạo unhandled rejection.
-        void sendVerificationEmail(email, otp, type).catch((err) => {
-          logger.error(
-            { err, email, type },
-            'Không gửi được email OTP xác minh',
-          )
-        })
+        await sendVerificationEmail(email, otp, type)
       },
     }),
   ],

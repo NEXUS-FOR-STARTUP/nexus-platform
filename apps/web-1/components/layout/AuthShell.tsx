@@ -7,20 +7,20 @@ interface AuthShellProps {
 
 export default function AuthShell({ children }: AuthShellProps) {
   return (
-    <div className="flex min-h-screen bg-bg-app transition-colors duration-200">
+    <div className="relative flex min-h-screen flex-col justify-center bg-bg-app px-4 py-12 transition-colors duration-200 sm:px-6 lg:px-8">
       {/* Top action bar for theme toggle */}
       <div className="absolute top-4 right-4 flex items-center gap-2">
         <ThemeToggler />
       </div>
 
-      <div className="flex flex-col justify-center flex-1 px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto w-full max-w-md">
-          {/* Form Content */}
-          <div className="bg-surface-app py-8 px-5 border border-border-app rounded-xl shadow-xs sm:px-10">
-            {children}
-          </div>
+      <div className="mx-auto w-full max-w-[420px]">
+        {/* Form Content */}
+        <div className="rounded-2xl border border-border-app bg-surface-app p-6 sm:p-8">
+          {children}
         </div>
       </div>
     </div>
   );
 }
+
+
