@@ -40,3 +40,5 @@ Sau khi xác minh, ghi 1 dòng theo format trên (ví dụ: `2026-08-03 HH:MM | 
 | 2026-08-10 18:27 | 0442a6a | staging | Merge branch 'dev' into staging | 🔵 api |
 | 2026-09-01 06:21 | 8b7d5d7 | staging | Merge pull request #22 from NEXUS-FOR-STARTUP/feat/gap-analysis-tasks | 🔵 api 🟢 web |
 | 2026-09-01 07:01 | 0cacea9 | staging | fix(auth): wrap hooks with createAuthMiddleware to prevent 500 error | 🔵 api |
+| 2026-09-01 08:42 | fabeb83 | staging | feat(web): elevate status banner, permanent timeline | 🟢 web |
+| 2026-09-01 10:58 | 71cb29a | dev | Merge pull request #27 from NEXUS-FOR-STARTUP/fix/ux-credit-block | 🔵 api 🟢 web |
