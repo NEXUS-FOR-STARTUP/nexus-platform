@@ -187,16 +187,6 @@ export default function PaymentPage() {
             </Button>
           </div>
         ) : null}
-
-        {payment.status === "verified" ? (
-          <Button
-            className="min-h-11"
-            color="brand"
-            onClick={() => router.push("/dashboard/wallet")}
-          >
-            {WALLET_COPY.backToWallet}
-          </Button>
-        ) : null}
       </div>
     </div>
   );
