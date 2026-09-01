@@ -38,3 +38,5 @@ Sau khi xác minh, ghi 1 dòng theo format trên (ví dụ: `2026-08-03 HH:MM | 
 | 2026-07-29 18:24 | 62f3e59   | feat/wave-system | docs: thêm deploy-log.md, cập nhật docker-build-push-guide với bước ghi log bắt buộc | 🔵 api 🟢 web |
 | 2026-08-09 19:02 | 4a504c5   | staging          | docs(changelog): add v1.1.0 release notes                                             | 🔵 api 🟢 web |
 | 2026-08-10 18:27 | 0442a6a | staging | Merge branch 'dev' into staging | 🔵 api |
+| 2026-09-01 06:21 | 8b7d5d7 | staging | Merge pull request #22 from NEXUS-FOR-STARTUP/feat/gap-analysis-tasks | 🔵 api 🟢 web |
+| 2026-09-01 07:01 | 0cacea9 | staging | fix(auth): wrap hooks with createAuthMiddleware to prevent 500 error | 🔵 api |
