@@ -65,17 +65,6 @@ function extractChatGateError(error: unknown): ChatGateError | null {
   }
   return null;
 }
-
-function formatDuration(ms: number) {
-  const totalSeconds = Math.ceil(ms / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  if (minutes > 0) return `${minutes}m ${seconds}s`;
-  return `${seconds}s`;
-}
-
 /* ─── Component ─────────────────────────────────────────────── */
 export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
   const { data: session } = useSession();
@@ -106,29 +95,8 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
 
   const [inputText, setInputText] = useState("");
   const [isMultiLine, setIsMultiLine] = useState(false);
-  const [lockRemainingMs, setLockRemainingMs] = useState<number | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  /* countdown until the chat lock window expires */
-  useEffect(() => {
-    if (isChatLocked && chatGate?.unlockInMs != null) {
-      const startedAt = Date.now();
-      const total = chatGate.unlockInMs;
-      const tick = () => {
-        const remaining = total - (Date.now() - startedAt);
-        if (remaining <= 0) {
-          setLockRemainingMs(0);
-          resetSendError();
-          return;
-        }
-        setLockRemainingMs(remaining);
-      };
-      tick();
-      const interval = setInterval(tick, 1000);
-      return () => clearInterval(interval);
-    }
-    setLockRemainingMs(null);
-  }, [isChatLocked, chatGate?.unlockInMs, resetSendError]);
 
   /* track textarea rows for input border-radius */
   useEffect(() => {
@@ -357,7 +325,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               disabled={isChatBlocked}
-              placeholder={isChatClosed ? "Chat hiện không khả dụng" : isChatLocked ? "Hết lượt kiểm tra — chat tạm khóa" : "Nhắn gì đó…"}
+              placeholder={isChatClosed ? "Chat hiện không khả dụng" : isChatLocked ? "Hết lượt kiểm tra và ân hạn. Vui lòng nạp thêm credit." : "Nhắn gì đó…"}
               className="flex-1"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
@@ -423,8 +391,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
             <div className="flex items-center gap-2 text-xs">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>
-                Hết lượt kiểm tra, chat sẽ mở lại sau{" "}
-                {lockRemainingMs != null ? formatDuration(lockRemainingMs) : "một lúc"}.
+                Hết lượt kiểm tra và đã qua thời gian ân hạn 24h. Vui lòng mua thêm credit để tiếp tục trao đổi.
               </span>
             </div>
           </Alert>

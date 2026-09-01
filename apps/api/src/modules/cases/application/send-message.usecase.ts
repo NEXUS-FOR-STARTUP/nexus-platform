@@ -54,7 +54,7 @@ export async function sendMessageUseCase(
       CHAT_FREE_TIER: "Chat là đặc quyền cho dự án trả phí. Vui lòng liên hệ admin qua email hoặc điện thoại.",
       CHAT_REJECTED: "Dự án đang ở trạng thái từ chối. Vui lòng chỉnh sửa hồ sơ và nộp lại, hoặc liên hệ admin.",
       CHAT_CLOSED: "Hồ sơ đã đóng, không thể gửi tin nhắn. Vui lòng liên hệ admin qua email hoặc điện thoại.",
-      CHAT_LOCKED: "Hết lượt kiểm tra. Chat sẽ mở lại sau khi hết thời gian khóa.",
+      CHAT_LOCKED: "Hết lượt kiểm tra và đã qua thời gian ân hạn. Vui lòng nạp thêm credit để tiếp tục chat.",
     };
     throw new AppError(
       409,

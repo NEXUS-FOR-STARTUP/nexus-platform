@@ -62,6 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Notification `CASE_APPROVED`/`CASE_REJECTED`: emit `caseCode` từ `case_code` (trước chỉ `caseId` nên email/in-app ra `Case undefined`); field thiếu/rỗng fallback `chưa xác định`; Telegram assignment supporter thêm tên
 - Chat: chặn Enter khi tin đang gửi (`isSending`) — khớp nút submit đã disable
+- UX `StatusGuidanceCard`: gỡ bỏ early-return chặn hiển thị khi `!hasCredits` ở stage `report_ready`, đảm bảo sinh viên luôn nhìn thấy và có thể bấm "Xác nhận hoàn thành" (`T17_USER_CONFIRM_COMPLETE`) để đóng quy trình đánh giá kể cả khi số dư credit bằng 0; chuyển cảnh báo hết credit thành banner phụ gọn gàng bên trong cùng card thông báo
 
 ## [1.1.0] - 2026-08-09
 

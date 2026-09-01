@@ -8,7 +8,6 @@ import {
   AlertCircle,
   CheckCircle2,
   HelpCircle,
-  Zap,
   Coins,
   ArrowRight,
 } from "lucide-react";
@@ -301,31 +300,6 @@ export default function StatusGuidanceCard({
     const hasCredits = isFree || (creditBalance ?? 0) > 0;
     const canConfirmComplete = hasTransition("T17_USER_CONFIRM_COMPLETE");
 
-    if (!hasCredits) {
-      return (
-        <Alert
-          variant="light"
-          color="red"
-          radius="md"
-          title="Hết credit đánh giá"
-          icon={<AlertCircle className="w-4.5 h-4.5 shrink-0" />}
-          className={ALERT_CLASS}
-          styles={{ wrapper: { alignItems: "center" } }}
-        >
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <p className="text-text-muted text-xs leading-relaxed">
-              Bạn đã hết credit đánh giá cho dự án này. Mua thêm credit để tiếp tục các lượt đánh giá tiếp theo.
-            </p>
-            {onOpenPayment && (
-              <Button size="sm" color="brand" className="shrink-0 cursor-pointer" onClick={onOpenPayment}>
-                Mua credit
-              </Button>
-            )}
-          </div>
-        </Alert>
-      );
-    }
-
     return (
       <Alert
         variant="light"
@@ -335,23 +309,40 @@ export default function StatusGuidanceCard({
         icon={<CheckCircle2 className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
       >
-        <div className="space-y-2 flex-grow">
+        <div className="space-y-3 flex-grow mt-1">
           <p className="text-text-muted text-xs leading-relaxed">
             Supporter đã hoàn thành đánh giá chi tiết. Xem báo cáo ở tab Tài liệu; khi nhóm đã xem xong, hãy xác nhận hoàn thành để đóng quy trình phản biện.
           </p>
-          <p className="text-text-muted text-xs leading-relaxed">
-            Muốn tiếp tục cải thiện? Sửa tài liệu rồi gửi lại — mỗi lượt đánh giá mới = 1 credit.
-          </p>
+
+          {!hasCredits ? (
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-danger-soft dark:bg-red-950/30 p-2.5 rounded border border-danger/10 dark:border-red-800/40">
+              <p className="text-danger dark:text-red-300 text-xs leading-relaxed">
+                Bạn đã hết credit. Nếu muốn tiếp tục nộp bản sửa đổi mới ở vòng sau, vui lòng mua thêm credit.
+              </p>
+              {onOpenPayment && (
+                <Button size="xs" color="red" variant="light" className="shrink-0 cursor-pointer" onClick={onOpenPayment}>
+                  Mua credit
+                </Button>
+              )}
+            </div>
+          ) : (
+            <p className="text-text-muted text-xs leading-relaxed">
+              Muốn tiếp tục cải thiện? Sửa tài liệu rồi gửi lại — mỗi lượt đánh giá mới = 1 credit.
+            </p>
+          )}
+
           {onConfirmComplete && canConfirmComplete && (
-            <Button
-              size="sm"
-              color="brand"
-              className="shrink-0 cursor-pointer"
-              loading={isConfirmingComplete}
-              onClick={onConfirmComplete}
-            >
-              Xác nhận hoàn thành
-            </Button>
+            <div className="pt-1">
+              <Button
+                size="sm"
+                color="brand"
+                className="shrink-0 cursor-pointer w-full sm:w-auto"
+                loading={isConfirmingComplete}
+                onClick={onConfirmComplete}
+              >
+                Xác nhận hoàn thành
+              </Button>
+            </div>
           )}
         </div>
       </Alert>
