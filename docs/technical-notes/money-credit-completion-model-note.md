@@ -38,7 +38,7 @@ Tiền thật (VND) ──nạp──▶ UserWallet (VND) ──mua──▶ Cre
 - Guard `hasCredit` (`case-machine.ts:27-30`): `lockedPrice === 0` (case free) → skip; ngược lại cần `creditBalance >= 1`
 - Áp cho đúng 3 transition: **T5_ACCEPT** (`:69-72`), **T11_SUBMIT_OUTPUT** (`:138-142`), **T3_RESUBMIT_AFTER_REJECT** (`:190-194`)
 - **Hết credit → transition bị chặn → case đứng im ở state hiện tại.** KHÔNG có transition nào phản ứng với balance=0, KHÔNG auto-close. "Credit hết = hoàn tất case" là HIỂU SAI — không tồn tại trong machine
-- Chat gate (D16): hết credit → `CHAT_LOCKED` khóa **24h** (`chat-access.ts:37-42`, `CHAT_LOCK_WINDOW_MS`), sau 24h chat tự mở lại kể cả balance=0. Case `closed`/`rejected`/free → chat đóng (`:25-27`)
+- Chat gate (D16 - Updated): hết credit → **Ân hạn mở chat 24h** (`chat-access.ts`), cho phép Q&A với supporter. Hết 24h → `CHAT_LOCKED` vĩnh viễn cho đến khi mua credit. Case `closed`/`rejected`/free → chat đóng (`:25-27`)
 
 ## 4. Refund — về VND, không hoàn credit
 
@@ -106,6 +106,7 @@ Mục tiêu: user hiểu rule "mỗi lượt đánh giá = 1 credit" đúng th�
 KHÔNG thêm confirm khi user gửi bản đã sửa (gửi bản sửa free — không có gì để chặn).
 
 > **Implementation (2026-08-16):** banner credit guidance đã đưa vào `StatusGuidanceCard` (case page user); T11/T3 hết credit → BE throw 402 `NO_CREDITS` pre-check trong `transitionInTx` (không đưa T5 — admin-facing); fix free-case: `subtractCredit` no-op khi `lockedPrice === 0`.
+> **Update (2026-09-01):** Sửa lỗi UX tại `StatusGuidanceCard.tsx` stage `report_ready`: gỡ bỏ early-return khi `!hasCredits` (trước đó ẩn mất nút "Xác nhận hoàn thành" T17). Hết credit chuyển thành cảnh báo phụ bên trong card thành công màu xanh, đảm bảo sinh viên luôn có thể xác nhận hoàn thành quy trình đánh giá kể cả khi số dư credit = 0.
 
 ### 5.3 Bug #9 — paid nhưng chưa nộp intake (chốt 2026-08-15)
 
