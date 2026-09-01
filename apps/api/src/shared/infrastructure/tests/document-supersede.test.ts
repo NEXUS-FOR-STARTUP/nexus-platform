@@ -4,7 +4,9 @@ import type { Prisma } from "@prisma/client";
 
 test("Document supersede — repository helpers", async (t) => {
   const {
+    buildDocumentRecordId,
     buildDocumentRecordInput,
+    upsertDocumentRecord,
     upsertDocumentRecordsForUnit,
     findDocumentRecordsByCaseId,
   } = await import(
@@ -70,13 +72,13 @@ test("Document supersede — repository helpers", async (t) => {
   });
 
   await t.test("upsertDocumentRecordsForUnit: per-doc category fn + updateMany caller marks superseded", async () => {
-    const createdRows: any[] = [];
+    const createdRows: Array<{ doc_type: string; metadata_json: unknown }> = [];
     const fakeClient = {
       documentRecord: {
-        upsert: async (args: any) => {
-          const row = { id: args.where.id, ...args.create };
-          createdRows.push(row);
-          return row;
+        findFirst: async () => null,
+        create: async (args: { data: { doc_type: string; metadata_json: unknown } }) => {
+          createdRows.push(args.data);
+          return args.data;
         },
       },
     };
@@ -113,6 +115,128 @@ test("Document supersede — repository helpers", async (t) => {
     assert.strictEqual(createdRows[0].doc_type, "intake_document");
     assert.deepStrictEqual(createdRows[0].metadata_json, { category: "idea_report" });
     assert.deepStrictEqual(createdRows[1].metadata_json, { category: "pitch_deck" });
+  });
+
+  await t.test("upsertDocumentRecord updates existing row by unit+doc_type+seq", async () => {
+    const finds: Array<{ where: { lifecycle_unit_id: string; doc_type: string; seq: number } }> = [];
+    const updates: Array<{ where: { id: string }; data: { superseded_at: Date | null } }> = [];
+    let created = false;
+    const fakeClient = {
+      documentRecord: {
+        findFirst: async (args: { where: { lifecycle_unit_id: string; doc_type: string; seq: number } }) => {
+          finds.push(args);
+          return { id: "existing-uuid" };
+        },
+        update: async (args: { where: { id: string }; data: { superseded_at: Date | null } }) => {
+          updates.push(args);
+          return { id: args.where.id };
+        },
+        create: async () => {
+          created = true;
+          throw new Error("must not create when row exists");
+        },
+      },
+    };
+
+    const input = buildDocumentRecordInput(
+      "case-1",
+      "cp-1",
+      "unit-1",
+      "v00",
+      { file_url: "https://res.cloudinary.com/demo/a.pdf", document_type: "idea_report" },
+      0,
+      "user-1",
+      "intake_document",
+      "inbound",
+      "idea_report",
+    );
+    assert.ok(input);
+
+    const row = await upsertDocumentRecord(
+      input!,
+      fakeClient as unknown as Prisma.TransactionClient,
+    );
+
+    assert.strictEqual(row.id, "existing-uuid");
+    assert.strictEqual(created, false);
+    assert.deepStrictEqual(finds[0].where, {
+      lifecycle_unit_id: "unit-1",
+      doc_type: "intake_document",
+      seq: 0,
+    });
+    assert.strictEqual(updates[0].where.id, "existing-uuid");
+    assert.strictEqual(updates[0].data.superseded_at, null);
+  });
+
+  await t.test("upsertDocumentRecord creates hashed id when no existing unit row", async () => {
+    let createdId: string | undefined;
+    const fakeClient = {
+      documentRecord: {
+        findFirst: async () => null,
+        create: async (args: { data: { id: string } }) => {
+          createdId = args.data.id;
+          return args.data;
+        },
+        update: async () => {
+          throw new Error("must not update when row missing");
+        },
+      },
+    };
+
+    const input = buildDocumentRecordInput(
+      "case-1",
+      "cp-1",
+      "unit-1",
+      "v00",
+      { file_url: "https://res.cloudinary.com/demo/a.pdf" },
+      0,
+      "user-1",
+      "intake_document",
+      "inbound",
+    );
+    assert.ok(input);
+
+    await upsertDocumentRecord(
+      input!,
+      fakeClient as unknown as Prisma.TransactionClient,
+    );
+
+    assert.strictEqual(createdId, buildDocumentRecordId(input!));
+  });
+
+  await t.test("upsertDocumentRecord falls back to hashed id when unit is null", async () => {
+    type UpsertArgs = {
+      where: { id?: string };
+    };
+    const calls: UpsertArgs[] = [];
+    const fakeClient = {
+      documentRecord: {
+        upsert: async (args: UpsertArgs) => {
+          calls.push(args);
+          return { id: args.where.id };
+        },
+      },
+    };
+
+    const input = buildDocumentRecordInput(
+      "case-1",
+      "cp-1",
+      null,
+      null,
+      { file_url: "https://res.cloudinary.com/demo/orphan.pdf" },
+      0,
+      "user-1",
+      "intake_document",
+      "inbound",
+    );
+    assert.ok(input);
+
+    await upsertDocumentRecord(
+      input!,
+      fakeClient as unknown as Prisma.TransactionClient,
+    );
+
+    assert.strictEqual(calls[0].where.id, buildDocumentRecordId(input!));
   });
 
   await t.test("findDocumentRecordsByCaseId filters superseded_at null", async () => {
