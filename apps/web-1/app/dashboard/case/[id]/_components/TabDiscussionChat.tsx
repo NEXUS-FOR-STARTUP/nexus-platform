@@ -37,10 +37,19 @@ function avatarHue(id: string) {
 
 function getRoleBadge(role?: string) {
   if (role === "admin")
-    return { label: "Admin", cls: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" };
+    return {
+      label: "Admin",
+      cls: "bg-red-50 text-red-600 border border-red-200/60 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900/40",
+    };
   if (role === "supporter")
-    return { label: "Supporter", cls: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400" };
-  return { label: "Sinh viên", cls: "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400" };
+    return {
+      label: "Supporter",
+      cls: "bg-blue-50 text-blue-600 border border-blue-200/60 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/40",
+    };
+  return {
+    label: "Sinh viên",
+    cls: "bg-slate-100 text-slate-600 border border-slate-200/60 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700/60",
+  };
 }
 
 /* ─── Chat gate error (D16) ───────────────────────────────── */
@@ -70,7 +79,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
   const { data: session } = useSession();
   const { markAsRead } = useCaseUnreadCount(caseId);
   const {
-    messages, isLoading, isFetching, error, refetch, sendMessage, isSending, sendError, resetSendError,
+    messages, isLoading, isFetching, error, refetch, sendMessage, isSending, sendError,
     hasPreviousPage, isFetchingPreviousPage, fetchPreviousPage,
   } = useCaseChat(caseId);
   useEffect(() => {
@@ -118,7 +127,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
     } catch {}
   };
 
-  const isMyMessage = (msg: any) => msg.sender_auth_user_id === session?.user?.id;
+  const isMyMessage = (msg: { sender_auth_user_id?: string | null }) => msg.sender_auth_user_id === session?.user?.id;
 
   /* ─── Render ─────────────────────────────────────────────── */
   return (
@@ -135,7 +144,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
       >
         <div className="flex items-center gap-2">
           <MessageSquare className="w-4 h-4 text-brand" />
-          <span className="text-xs font-semibold text-text-app tracking-wide">Trao đổi</span>
+          <span className="text-[13px] font-semibold text-text-app tracking-wide">Trao đổi</span>
         </div>
 
         <Tooltip label="Tải tin nhắn mới" position="left" withArrow>
@@ -165,14 +174,14 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-text-muted">
             <div
-              className="w-12 h-12 rounded-full flex items-center justify-center"
+              className="w-10 h-10 rounded-full flex items-center justify-center"
               style={{ background: "var(--color-brand-soft)" }}
             >
               <MessageSquare className="w-5 h-5 text-brand" />
             </div>
             <div className="text-center">
-              <p className="text-xs font-semibold text-text-app mb-0.5">Chưa có trao đổi nào</p>
-              <p className="text-base text-text-muted max-w-[260px] leading-relaxed">
+              <p className="text-[14px] font-semibold text-text-app mb-0.5">Chưa có trao đổi nào</p>
+              <p className="text-[13px] text-text-muted max-w-[280px] leading-relaxed">
                 Đây là nơi nhóm và Supporter phối hợp trong suốt quá trình phản biện.
               </p>
             </div>
@@ -194,97 +203,121 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
                     left: 0,
                     right: 0,
                     transform: `translateY(${vItem.start}px)`,
-                    paddingBottom: "12px",
+                    paddingBottom: row.kind === "divider" ? "8px" : row.isFirstInGroup ? "6px" : "3px",
                   }}
                 >
                   {row.kind === "divider" ? (
                     /* ── Date divider ── */
-                    <div className="flex items-center gap-3 py-1">
-                      <div className="flex-1 h-px" style={{ background: "var(--color-border)" }} />
+                    <div className="flex items-center justify-center gap-3 pt-3.5 pb-2 select-none">
+                      <div className="flex-1 max-w-[120px] sm:max-w-[180px] h-px opacity-60" style={{ background: "var(--color-border)" }} />
                       <span
-                        className="text-xs font-semibold px-2.5 py-0.5 rounded-full shrink-0"
+                        className="text-[11px] font-medium px-2.5 py-0.5 rounded-md shrink-0 shadow-2xs"
                         style={{
                           background: "var(--color-surface-muted)",
                           color: "var(--color-text-subtle)",
+                          border: "1px solid var(--color-border)",
                         }}
                       >
                         {row.label}
                       </span>
-                      <div className="flex-1 h-px" style={{ background: "var(--color-border)" }} />
+                      <div className="flex-1 max-w-[120px] sm:max-w-[180px] h-px opacity-60" style={{ background: "var(--color-border)" }} />
                     </div>
                   ) : (
                     /* ── Message bubble ── */
                     (() => {
                       const msg = row.msg;
                       const isMe = isMyMessage(msg);
-                      const senderName = isMe
-                        ? (session?.user?.name ?? "Tôi")
-                        : (msg.sender?.name || "Người dùng");
-                      const displayName = isMe ? "Tôi" : senderName;
+                      const senderName = msg.sender?.name || "Người dùng";
                       const role = msg.sender?.role;
                       const badge = getRoleBadge(role);
                       const hue = avatarHue(msg.sender_auth_user_id || msg.id);
                       const initials = getInitials(senderName);
+                      const isShort = (msg.content?.length ?? 0) <= 28 && !msg.content?.includes("\n");
+                      const showHeader = !isMe && row.isFirstInGroup;
 
                       return (
-                        <div className={`flex gap-2.5 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
-                          {/* Avatar */}
-                          <div
-                            className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0 mt-5 select-none"
-                            style={{ background: `hsl(${hue} 60% ${isMe ? "45%" : "50%"})` }}
-                          >
-                            {initials}
-                          </div>
-
-                          {/* Bubble group */}
-                          <div
-                            className={`space-y-1 max-w-[72%] flex flex-col ${isMe ? "items-end" : "items-start"}`}
-                          >
-                            {/* Sender + badge */}
-                            <div className={`flex items-center gap-1.5 ${isMe ? "flex-row-reverse" : ""}`}>
-                              <span className="text-base font-semibold text-text-app">
-                                {displayName}
-                              </span>
-                              {!isMe && (
-                                <span
-                                  className={`text-xs font-semibold px-1.5 py-0.5 rounded ${badge.cls}`}
+                        <div className={`flex w-full ${isMe ? "justify-end" : "justify-start"}`}>
+                          <div className={`flex gap-2 max-w-[82%] sm:max-w-[72%] ${isMe ? "justify-end" : "items-start"}`}>
+                            {/* Avatar (only for incoming messages) */}
+                            {!isMe && (
+                              showHeader ? (
+                                <div
+                                  className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-semibold shrink-0 select-none shadow-xs mt-0.5"
+                                  style={{ background: `hsl(${hue} 60% 45%)` }}
                                 >
-                                  {badge.label}
-                                </span>
-                              )}
-                            </div>
+                                  {initials}
+                                </div>
+                              ) : (
+                                <div className="w-7 shrink-0" aria-hidden="true" />
+                              )
+                            )}
 
-                            {/* Bubble */}
-                            <div
-                              className={`relative px-3.5 pt-2.5 pb-2 text-xs leading-relaxed break-words w-fit ${
-                                isMe
-                                  ? "rounded-2xl rounded-tr-sm text-white"
-                                  : "rounded-2xl rounded-tl-sm"
-                              }`}
-                              style={
-                                isMe
-                                  ? {
-                                      background: "var(--color-brand)",
-                                      boxShadow: "0 2px 8px rgba(37,99,235,0.28)",
-                                      maxWidth: "min(360px,68vw)",
-                                    }
-                                  : {
-                                      background: "var(--color-surface-soft)",
-                                      border: "1px solid var(--color-border)",
-                                      boxShadow: "var(--shadow-sm)",
-                                      maxWidth: "min(360px,68vw)",
-                                    }
-                              }
-                            >
-                              <p style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-                                {msg.content}
-                              </p>
-                              <p
-                                className="text-base mt-1 select-none"
-                                style={{ textAlign: isMe ? "right" : "left", opacity: 0.6 }}
+                            {/* Bubble group */}
+                            <div className={`flex flex-col ${isMe ? "items-end" : "items-start"} min-w-0`}>
+                              {/* Sender + badge (only for first message in group) */}
+                              {showHeader && (
+                                <div className="flex items-center gap-1.5 mb-0.5 px-0.5">
+                                  <span className="text-[12px] font-semibold text-text-app">
+                                    {senderName}
+                                  </span>
+                                  <span
+                                    className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${badge.cls}`}
+                                  >
+                                    {badge.label}
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Bubble */}
+                              <div
+                                className={`relative px-2.5 py-1.5 text-[13px] leading-snug break-words w-fit ${
+                                  isMe
+                                    ? "rounded-lg rounded-tr-xs text-white"
+                                    : "rounded-lg rounded-tl-xs text-text-app"
+                                }`}
+                                style={
+                                  isMe
+                                    ? {
+                                        background: "var(--color-brand)",
+                                        boxShadow: "0 1px 2px rgba(37,99,235,0.2)",
+                                        maxWidth: "min(380px, 75vw)",
+                                      }
+                                    : {
+                                        background: "var(--color-surface-soft)",
+                                        border: "1px solid var(--color-border)",
+                                        boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+                                        maxWidth: "min(380px, 75vw)",
+                                      }
+                                }
                               >
-                                {formatTime(msg.created_at)}
-                              </p>
+                                {isShort ? (
+                                  <div className="flex items-baseline gap-2">
+                                    <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                                      {msg.content}
+                                    </span>
+                                    <span
+                                      className={`text-[9px] shrink-0 select-none tabular-nums ${
+                                        isMe ? "text-white/75" : "text-text-subtle"
+                                      }`}
+                                    >
+                                      {formatTime(msg.created_at)}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-col">
+                                    <p style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                                      {msg.content}
+                                    </p>
+                                    <span
+                                      className={`text-[9px] mt-0.5 select-none leading-none self-end tabular-nums ${
+                                        isMe ? "text-white/75" : "text-text-subtle"
+                                      }`}
+                                    >
+                                      {formatTime(msg.created_at)}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -301,11 +334,11 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
       {/* ── Error bar ── */}
       {error && (
         <div
-          className="px-5 py-2 flex items-center gap-2 text-base shrink-0"
+          className="px-4 py-2 flex items-center gap-2 text-[13px] shrink-0"
           style={{ background: "var(--color-danger-soft)", color: "var(--color-danger)" }}
         >
           <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-          <span>{(error as any)?.message || String(error)}</span>
+          <span>{(error as Error)?.message || String(error)}</span>
         </div>
       )}
 
@@ -316,7 +349,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
       >
         <form onSubmit={handleSend}>
           <div
-            className={`flex items-end gap-2 border border-border-strong bg-surface-app px-5 py-3 transition-colors ${isMultiLine ? "rounded-2xl" : "rounded-full"}`}
+            className={`flex items-end gap-2 border border-border-strong bg-surface-app px-4 py-2.5 transition-colors ${isMultiLine ? "rounded-xl" : "rounded-lg"}`}
             style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
           >
             <Textarea
@@ -341,6 +374,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
                   background: "transparent",
                   border: "none",
                   lineHeight: "1.5",
+                  fontSize: "14px",
                   padding: "6px 0",
                   minHeight: "26px",
                 },
@@ -355,7 +389,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
               type="submit"
               disabled={!inputText.trim() || isSending}
               size={36}
-              radius="xl"
+              radius="md"
               color="brand"
               className="shrink-0 cursor-pointer"
               style={{
@@ -379,7 +413,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
 
         {isChatClosed && (
           <Alert color="red" variant="light" radius="md" className="mt-2">
-            <div className="flex items-center gap-2 text-xs">
+            <div className="flex items-center gap-2 text-[13px]">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>Chat hiện không khả dụng. Vui lòng liên hệ qua email hoặc điện thoại.</span>
             </div>
@@ -388,7 +422,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
 
         {isChatLocked && (
           <Alert color="yellow" variant="light" radius="md" className="mt-2">
-            <div className="flex items-center gap-2 text-xs">
+            <div className="flex items-center gap-2 text-[13px]">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>
                 Hết lượt kiểm tra và đã qua thời gian ân hạn 24h. Vui lòng mua thêm credit để tiếp tục trao đổi.
