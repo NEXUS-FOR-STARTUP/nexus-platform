@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { apiClient } from "@/lib/api-client";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { IntakeData, IntakeDocument } from "../_types/intake.types";
 
 const LOCAL_STORAGE_KEY = "nexus_intake_draft";
@@ -51,6 +51,7 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isLoaded, setIsLoaded] = useState(false);
+  const didHydrateRef = useRef(false);
 
   const baseInitialValues: IntakeData = initialData
     ? { ...INITIAL_VALUES, ...initialData, package_id: packageId || initialData.package_id || "" }
@@ -66,28 +67,42 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
   });
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      // UPDATE mode (caseId exists): skip localStorage, rely on initialData from API
-      // CREATE mode: restore saved draft from localStorage
-      if (!caseId) {
-        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            setDraftValues((prev) => ({
-              ...prev,
-              ...parsed,
-              current_blocker: "", // Never pre-fill — user must describe their own lecturer/team blocker
-              package_id: packageId || parsed.package_id || "",
-            }));
-          } catch (e) {
-            localStorage.removeItem(LOCAL_STORAGE_KEY);
-          }
-        }
-      }
+    if (typeof window === "undefined") return;
+
+    // UPDATE: wait for API snapshot then reset — defaultValues only apply on first mount
+    if (caseId) {
+      if (!initialData || didHydrateRef.current) return;
+      didHydrateRef.current = true;
+      const merged: IntakeData = {
+        ...INITIAL_VALUES,
+        ...initialData,
+        package_id: packageId || initialData.package_id || "",
+        contact: { ...INITIAL_VALUES.contact, ...(initialData.contact || {}) },
+        team_context: { ...INITIAL_VALUES.team_context, ...(initialData.team_context || {}) },
+        support_needs: { ...INITIAL_VALUES.support_needs, ...(initialData.support_needs || {}) },
+      };
+      setDraftValues(merged);
+      form.reset(merged);
       setIsLoaded(true);
+      return;
     }
-  }, [packageId, caseId]);
+
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setDraftValues((prev) => ({
+          ...prev,
+          ...parsed,
+          current_blocker: "",
+          package_id: packageId || parsed.package_id || "",
+        }));
+      } catch {
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+      }
+    }
+    setIsLoaded(true);
+  }, [packageId, caseId, initialData]);
 
   const submitMutation = useMutation({
     mutationFn: async (data: IntakeData) => {
@@ -105,6 +120,7 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
       queryClient.invalidateQueries({ queryKey: ["cases"] });
       const redirectId = caseId || result.id;
       queryClient.invalidateQueries({ queryKey: ["case", redirectId] });
+      queryClient.invalidateQueries({ queryKey: ["case-intake", redirectId] });
       router.push(`/dashboard/case/${redirectId}`);
     },
   });
