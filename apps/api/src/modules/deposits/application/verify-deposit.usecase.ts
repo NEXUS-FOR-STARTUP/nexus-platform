@@ -4,7 +4,7 @@ import {
   findDepositById,
   updateDepositStatus,
 } from "../infrastructure/persistence/deposit.repository.js";
-import { isFinalDepositStatus } from "../domain/deposit.types.js";
+import { isFinalDepositStatus, canAdminCreditDeposit } from "../domain/deposit.types.js";
 import { walletService } from "../../wallet/application/wallet.service.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 import { insertOutboxEvent } from "../../../shared/infrastructure/persistence/outbox.repository.js";
@@ -25,6 +25,10 @@ export async function verifyDepositUseCase(
 
   if (isFinalDepositStatus(deposit.status)) {
     throw new AppError(409, "FINAL_STATUS", "Giao dịch đã ở trạng thái cuối");
+  }
+
+  if (status === "verified" && !canAdminCreditDeposit(deposit)) {
+    throw new AppError(400, "PROOF_REQUIRED", "Chưa có ảnh minh chứng, không thể duyệt nạp tiền.");
   }
 
   if (status === "rejected" && (!rejectionReason || rejectionReason.length < 10)) {

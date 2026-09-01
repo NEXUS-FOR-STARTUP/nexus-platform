@@ -231,12 +231,16 @@ function AdminHubPageInner() {
 
   const isLoading = isPaymentsLoading || isCasesLoading || isSupportersLoading || isDocsLoading || isPackagesLoading;
 
-  const pendingPaymentsCount = deposits.filter((d) => d.status === "pending").length;
+  const pendingPaymentsCount = deposits.filter(
+    (d) => d.status === "pending" && Boolean(d.proof_file_url?.trim())
+  ).length;
   const queueBadge = casesTotal;
 
   const filteredDeposits = React.useMemo(() => {
     if (paymentFilter === "pending") {
-      return deposits.filter((d) => d.status === "pending");
+      return deposits.filter(
+        (d) => d.status === "pending" && Boolean(d.proof_file_url?.trim())
+      );
     }
     return deposits.filter((d) => d.status !== "pending");
   }, [deposits, paymentFilter]);

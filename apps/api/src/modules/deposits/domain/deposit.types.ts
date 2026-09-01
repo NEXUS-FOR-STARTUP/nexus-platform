@@ -16,3 +16,11 @@ export const FINAL_DEPOSIT_STATUSES: DepositStatus[] = ["verified", "rejected"];
 export function isFinalDepositStatus(s: string): boolean {
   return FINAL_DEPOSIT_STATUSES.includes(s as DepositStatus);
 }
+
+export function canAdminCreditDeposit(d: {
+  status: string;
+  proof_file_url: string | null;
+}): boolean {
+  if (d.proof_file_url?.trim()) return true;
+  return d.status === "amount_mismatch";
+}

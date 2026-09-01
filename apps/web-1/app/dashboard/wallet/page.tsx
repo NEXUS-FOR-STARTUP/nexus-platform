@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Button } from "@mantine/core";
-import { Plus } from "lucide-react";
+import { Button, Tabs } from "@mantine/core";
+import { Plus, History, Image as ImageIcon } from "lucide-react";
 import { WalletBalanceCard } from "./_components/WalletBalanceCard";
-import { DepositStuckBanner } from "./_components/DepositHistory";
 import { WalletTransactionList } from "./_components/WalletTransactionList";
+import { WalletProofTable } from "./_components/WalletProofTable";
 import { WalletTopupModal } from "./_components/WalletTopupModal";
 
 export default function WalletPage() {
@@ -33,14 +33,25 @@ export default function WalletPage() {
       </header>
 
       <WalletBalanceCard />
-      <DepositStuckBanner onRetry={openTopup} />
 
-      <div>
-        <h2 className="mb-3 font-heading text-lg font-semibold text-text-app">
-          Lịch sử giao dịch
-        </h2>
-        <WalletTransactionList />
-      </div>
+      <Tabs defaultValue="history" variant="outline" radius="md">
+        <Tabs.List className="mb-4">
+          <Tabs.Tab value="history" leftSection={<History size={16} />}>
+            Lịch sử giao dịch
+          </Tabs.Tab>
+          <Tabs.Tab value="proofs" leftSection={<ImageIcon size={16} />}>
+            Ảnh minh chứng
+          </Tabs.Tab>
+        </Tabs.List>
+
+        <Tabs.Panel value="history">
+          <WalletTransactionList />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="proofs">
+          <WalletProofTable />
+        </Tabs.Panel>
+      </Tabs>
 
       <WalletTopupModal
         opened={topupOpened}
