@@ -56,15 +56,11 @@ export default function WorkspaceSidebar({
           },
         ]
       : []),
-    ...(!isPreSubmission
-      ? [
-          {
-            id: "timeline" as const,
-            label: "Lịch sử hoạt động",
-            icon: History,
-          },
-        ]
-      : []),
+    {
+      id: "timeline" as const,
+      label: "Lịch sử hoạt động",
+      icon: History,
+    },
     ...(!hideCredits
       ? [
           {

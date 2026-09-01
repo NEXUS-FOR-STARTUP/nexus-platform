@@ -7,7 +7,6 @@ import { useSession } from "@/lib/auth-client";
 import { filterTransitions } from "@/_types/transitions";
 import { useCaseDetails } from "./hooks/useCaseDetails";
 import CaseStatusHeader from "./_components/CaseStatusHeader";
-import UnpaidAlertBanner from "./_components/UnpaidAlertBanner";
 import WorkspaceSidebar from "./_components/WorkspaceSidebar";
 import type { WorkspaceTab } from "./_components/WorkspaceSidebar";
 import DocumentWorkspace from "./_components/documents/DocumentWorkspace";
@@ -39,6 +38,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const {
     caseData,
     intakeSnapshot,
+    teamFitReport,
     documentWorkspace,
     isLoading,
     error,
@@ -99,8 +99,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
 
   const isTabAvailable = (tab: WorkspaceTab): boolean => {
     if (!isPreSubmission) return true;
-    if (stage === "intake_pending") return tab === "overview" || tab === "settings" || tab === "credits";
-    if (stage === "intake_ready") return tab === "overview" || tab === "documents" || tab === "settings" || tab === "credits";
+    if (stage === "intake_pending") return tab === "overview" || tab === "timeline" || tab === "settings" || tab === "credits";
+    if (stage === "intake_ready") return tab === "overview" || tab === "documents" || tab === "timeline" || tab === "settings" || tab === "credits";
     return true;
   };
 
@@ -125,20 +125,27 @@ export default function CaseWorkspacePage({ params }: PageProps) {
 
       <div className={`flex-grow flex flex-col h-full min-w-0 p-6 ${activeTab === "discussion" ? "overflow-hidden" : "space-y-6 overflow-y-auto"}`}>
         {activeTab !== "discussion" && (
-          <CaseStatusHeader
-            caseData={caseData}
-            versions={[]}
-            selectedVersion={0}
-            onVersionChange={() => {}}
-            onSelectTab={(tab) => setActiveTab(tab)}
-          />
-        )}
-
-        {(activeTab === "timeline" || activeTab === "settings") && (
-          <UnpaidAlertBanner
-            creditBalance={creditBalance}
-            onBuyCredits={() => setCreditBuyOpened(true)}
-          />
+          <>
+            <CaseStatusHeader
+              caseData={caseData}
+              versions={[]}
+              selectedVersion={0}
+              onVersionChange={() => {}}
+              onSelectTab={(tab) => setActiveTab(tab)}
+            />
+            <StatusGuidanceCard
+              caseData={caseData}
+              creditBalance={creditBalance}
+              openRequestsForMoreInfo={openRequestsForMoreInfo}
+              allowedTransitions={filteredTransitions}
+              onSelectTab={(tab) => setActiveTab(tab)}
+              onOpenPayment={isIntakePending || stage === "report_ready" ? () => setCreditBuyOpened(true) : undefined}
+              onOpenIntake={canOpenIntake ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
+              onSubmitRevision={() => setIsStudentUploadOpen(true)}
+              onConfirmComplete={confirmComplete}
+              isConfirmingComplete={isConfirmingComplete}
+            />
+          </>
         )}
 
         <div className={`w-full flex flex-col ${activeTab === "discussion" ? "flex-1 min-h-0 h-full" : "pb-8"}`}>
@@ -146,22 +153,9 @@ export default function CaseWorkspacePage({ params }: PageProps) {
             <CaseOverviewPanel
               caseData={caseData}
               intakeSnapshot={intakeSnapshot}
+              teamFitReport={teamFitReport}
               onSelectTab={(tab) => setActiveTab(tab)}
               onEditIntake={canEditIntake ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
-              guidanceCard={
-                <StatusGuidanceCard
-                  caseData={caseData}
-                  creditBalance={creditBalance}
-                  openRequestsForMoreInfo={openRequestsForMoreInfo}
-                  allowedTransitions={filteredTransitions}
-                  onSelectTab={(tab) => setActiveTab(tab)}
-                  onOpenPayment={isIntakePending || stage === "report_ready" ? () => setCreditBuyOpened(true) : undefined}
-                  onOpenIntake={canOpenIntake ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
-                  onSubmitRevision={() => setIsStudentUploadOpen(true)}
-                  onConfirmComplete={confirmComplete}
-                  isConfirmingComplete={isConfirmingComplete}
-                />
-              }
             />
           )}
 

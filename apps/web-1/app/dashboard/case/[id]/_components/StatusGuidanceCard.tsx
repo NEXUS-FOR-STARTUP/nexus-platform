@@ -9,6 +9,8 @@ import {
   CheckCircle2,
   HelpCircle,
   Zap,
+  Coins,
+  ArrowRight,
 } from "lucide-react";
 import { Alert, Button } from "@mantine/core";
 import { STATUS_GUIDANCE_COPY, type GuidanceTone, type GuidanceIconKey } from "./statusCopyMap";
@@ -148,7 +150,29 @@ export default function StatusGuidanceCard({
 
   if (stage === "intake_pending") {
     const hasCredits = (creditBalance ?? 0) > 0;
-    if (hasCredits) return null;
+    if (hasCredits) {
+      return (
+        <Alert
+          variant="light"
+          color="teal"
+          radius="md"
+          title={`Đã có ${creditBalance} credit — Hãy nộp hồ sơ để bắt đầu phản biện`}
+          icon={<CheckCircle2 className="w-4.5 h-4.5 shrink-0" />}
+          className={ALERT_CLASS}
+        >
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <p className="text-text-muted text-xs leading-relaxed">
+              Bạn đã có sẵn credit đánh giá chuyên sâu. Vui lòng nộp hồ sơ khởi nghiệp để Supporter chuyên môn tiếp nhận và bắt đầu phản biện dự án.
+            </p>
+            {onOpenIntake && canOpenIntake && (
+              <Button size="sm" color="brand" className="shrink-0 cursor-pointer" onClick={onOpenIntake} rightSection={<ArrowRight className="w-3.5 h-3.5" />}>
+                Nộp hồ sơ ngay
+              </Button>
+            )}
+          </div>
+        </Alert>
+      );
+    }
 
     const isFree = isCaseFree(caseData);
     return (
@@ -156,22 +180,46 @@ export default function StatusGuidanceCard({
         variant="light"
         color={isFree ? "blue" : "yellow"}
         radius="md"
-        title={isFree ? "Nâng cấp lên đánh giá chuyên sâu" : "Hồ sơ chưa thanh toán"}
-        icon={isFree ? <Zap className="w-4.5 h-4.5 shrink-0" /> : <Clock className="w-4.5 h-4.5 shrink-0" />}
+        title={isFree ? "Kích hoạt quy trình phản biện chuyên sâu từ Supporter" : "Hồ sơ chưa hoàn tất thanh toán"}
+        icon={isFree ? <Coins className="w-4.5 h-4.5 shrink-0" /> : <Clock className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
-        styles={{ wrapper: { alignItems: "center" } }}
       >
-        <div className="flex items-center justify-between gap-4">
+        <div className="space-y-3">
           <p className="text-text-muted text-xs leading-relaxed">
             {isFree
-              ? "Bạn đang dùng gói miễn phí. Mua lượt đánh giá chuyên sâu để nhận phản biện chi tiết từ chuyên gia."
-              : "Bạn có thể nộp hồ sơ trước, thanh toán sau — phản biện chỉ bắt đầu sau khi thanh toán hoàn tất."}
+              ? "Hồ sơ hiện tại đang ở gói đánh giá AI miễn phí. Để Supporter chuyên môn đọc tài liệu và viết báo cáo phản biện chi tiết, nhóm cần mua credit đánh giá chuyên sâu."
+              : "Hồ sơ chưa được thanh toán. Bạn có thể nộp trước hồ sơ, quy trình phản biện chính thức sẽ bắt đầu ngay khi thanh toán hoàn tất."}
           </p>
-          {onOpenPayment && (
-            <Button size="sm" color="brand" className="shrink-0 cursor-pointer" onClick={onOpenPayment}>
-              {isFree ? "Mua lượt đánh giá" : "Thanh toán ngay"}
-            </Button>
+
+          {isFree && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-brand/10 text-xs">
+              <div className="bg-surface-app/70 p-2 rounded border border-brand/15 font-body">
+                <span className="font-semibold text-brand block mb-0.5">1. Mua credit (Hiện tại)</span>
+                <span className="text-text-muted text-[11px]">Mua credit đánh giá chuyên sâu (39.000đ / lượt).</span>
+              </div>
+              <div className="bg-surface-app/70 p-2 rounded border border-border-app font-body">
+                <span className="font-semibold text-text-app block mb-0.5">2. Nộp hồ sơ chi tiết</span>
+                <span className="text-text-muted text-[11px]">Điền thông tin và tải lên tài liệu dự án (Intake).</span>
+              </div>
+              <div className="bg-surface-app/70 p-2 rounded border border-border-app font-body">
+                <span className="font-semibold text-text-app block mb-0.5">3. Nhận phản biện</span>
+                <span className="text-text-muted text-[11px]">Supporter tiếp nhận, chấm điểm và giao báo cáo.</span>
+              </div>
+            </div>
           )}
+
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            {onOpenPayment && (
+              <Button size="sm" color="brand" leftSection={<Coins className="w-4 h-4" />} className="shrink-0 cursor-pointer font-semibold text-xs" onClick={onOpenPayment}>
+                {isFree ? "Mua credit đánh giá ngay (39.000đ)" : "Thanh toán ngay"}
+              </Button>
+            )}
+            {onOpenIntake && canOpenIntake && (
+              <Button size="sm" variant="default" className="shrink-0 cursor-pointer text-xs" onClick={onOpenIntake}>
+                Cập nhật thông tin hồ sơ
+              </Button>
+            )}
+          </div>
         </div>
       </Alert>
     );

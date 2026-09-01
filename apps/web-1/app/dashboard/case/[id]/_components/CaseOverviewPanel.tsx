@@ -22,6 +22,7 @@ import {
 interface CaseOverviewPanelProps {
   caseData: Case;
   intakeSnapshot?: any;
+  teamFitReport?: any;
   onSelectTab?: (tab: "overview" | "documents" | "discussion" | "timeline" | "settings" | "credits") => void;
   onEditIntake?: () => void;
   guidanceCard?: React.ReactNode;
@@ -35,15 +36,20 @@ const PRIMARY_NEEDS_MAP: Record<string, string> = {
   improve_rejected_idea: "Cần góp ý để cải thiện ý tưởng sau phản hồi chưa tốt từ giảng viên",
 };
 
-export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCard }: CaseOverviewPanelProps) {
+export default function CaseOverviewPanel({ caseData, intakeSnapshot, teamFitReport, guidanceCard }: CaseOverviewPanelProps) {
   const intake = (intakeSnapshot as any) || {};
   const contact = intake.contact || {};
   const idea = intake.idea_context || intake.idea || intake.idea_snapshot || {};
   const teamCtx = intake.team_context || {};
   const supportNeeds = intake.support_needs || {};
 
+  const teamFit = teamFitReport || caseData.team_fit_report || {};
+  const tfIdea = (teamFit.idea_snapshot as any) || {};
+  const tfTeam = Array.isArray(teamFit.team_snapshot) ? teamFit.team_snapshot : [];
+  const tfResult = (teamFit.result_snapshot as any) || {};
+
   const schoolName = caseData.school || teamCtx.school || intake.school || "Chưa cập nhật";
-  const groupName = caseData.team_name || teamCtx.project_name || intake.project_name || intake.team_name || "Chưa cập nhật";
+  const groupName = caseData.team_name || tfIdea.projectName || teamCtx.project_name || intake.project_name || intake.team_name || "Chưa cập nhật";
   const courseContext = caseData.course_context || teamCtx.course_context || intake.course_context || "Chưa cập nhật";
   const groupNo = caseData.group_no || teamCtx.group_no || "";
   const currentBlocker = intake.current_blocker || teamCtx.team_status_summary || (caseData as any).current_blocker || "";
@@ -55,17 +61,20 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
   const contactPhone = contact.zalo || contact.phone || "Chưa cập nhật";
   const contactTelegram = contact.telegram || "";
 
-  const field = idea.field || intake.field || "Chưa cập nhật";
-  const targetCustomer = idea.target_customer || idea.targetCustomer || intake.target_customer || intake.targetCustomer || "Chưa cập nhật";
-  const problem = idea.problem || intake.problem || "Chưa cập nhật";
-  const solution = idea.solution || intake.solution || "Chưa cập nhật";
-  const mvp = idea.mvp || intake.mvp || "";
+  const field = idea.field || tfIdea.field || intake.field || "Chưa cập nhật";
+  const targetCustomer = idea.target_customer || idea.targetCustomer || tfIdea.targetCustomer || tfIdea.target_customer || intake.target_customer || intake.targetCustomer || "Chưa cập nhật";
+  const problem = idea.problem || tfIdea.problem || intake.problem || "Chưa cập nhật";
+  const solution = idea.solution || tfIdea.solution || intake.solution || "Chưa cập nhật";
+  const mvp = idea.mvp || tfIdea.mvp || intake.mvp || "";
+
+  const teamGaps: string[] = Array.isArray(tfResult.teamGaps) ? tfResult.teamGaps : [];
+  const commercialGaps: string[] = Array.isArray(tfResult.commercialGaps) ? tfResult.commercialGaps : [];
+  const hasAiGaps = teamGaps.length > 0 || commercialGaps.length > 0;
 
   const rawPrimaryNeed = supportNeeds.primary_need || "";
   const primaryNeedText = rawPrimaryNeed ? PRIMARY_NEEDS_MAP[rawPrimaryNeed] || rawPrimaryNeed : "";
   const expectedOutputs = intake.expected_outputs || supportNeeds.expected_outputs || "";
   const extraNotes = supportNeeds.extra_notes || "";
-
   return (
     <div className="space-y-6 animate-fade-in font-body pb-8 text-sm text-text-app">
       {guidanceCard && <div className="shrink-0">{guidanceCard}</div>}
@@ -214,6 +223,64 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, guidanceCa
           </div>
         )}
       </div>
+      {/* ── 3.5. Kết quả Phân tích Team-Fit từ AI (nếu có) ── */}
+      {hasAiGaps && (
+        <div className="bg-surface-app border border-brand/20 rounded-xl p-6 space-y-4 shadow-xs">
+          <div className="flex items-center gap-2 pb-3 border-b border-border-app/60">
+            <Sparkles className="w-5 h-5 text-brand shrink-0" />
+            <h3 className="font-heading text-base font-bold text-text-app">Đánh giá sơ bộ từ AI (Team-Fit Analysis)</h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            {teamGaps.length > 0 && (
+              <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-lg space-y-2">
+                <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-bold text-xs">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>Khoảng trống đội ngũ cần lưu ý:</span>
+                </div>
+                <ul className="list-disc pl-5 space-y-1 text-xs text-text-app leading-relaxed">
+                  {teamGaps.map((gap, i) => (
+                    <li key={i}>{gap}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {commercialGaps.length > 0 && (
+              <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-lg space-y-2">
+                <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-bold text-xs">
+                  <Target className="w-4 h-4 shrink-0" />
+                  <span>Khoảng trống thương mại & thị trường:</span>
+                </div>
+                <ul className="list-disc pl-5 space-y-1 text-xs text-text-app leading-relaxed">
+                  {commercialGaps.map((gap, i) => (
+                    <li key={i}>{gap}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── 3.6. Thành viên nhóm từ Team-Fit (nếu có) ── */}
+      {tfTeam.length > 0 && (
+        <div className="bg-surface-app border border-border-app rounded-xl p-5.5 space-y-3.5 shadow-xs">
+          <div className="flex items-center gap-2 pb-3 border-b border-border-app/60">
+            <UserCheck className="w-5 h-5 text-brand shrink-0" />
+            <h3 className="font-heading text-base font-bold text-text-app">Thành viên đội ngũ ({tfTeam.length})</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {tfTeam.map((m: any, i: number) => (
+              <div key={i} className="p-3 bg-surface-soft/60 border border-border-app rounded-lg space-y-1 text-xs">
+                <p className="font-semibold text-text-app">{m.fullName || m.name || `Thành viên ${i + 1}`}</p>
+                <p className="text-text-muted">Chuyên môn: {m.major || m.role || "Chưa cập nhật"}</p>
+                {m.skills && <p className="text-text-subtle text-[11px] truncate">Kỹ năng: {m.skills}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── 4. Nhu cầu hỗ trợ chuyên môn & Kỳ vọng Supporter ── */}
       <div className="bg-surface-app border border-border-app rounded-xl p-6 space-y-4.5 shadow-xs">
