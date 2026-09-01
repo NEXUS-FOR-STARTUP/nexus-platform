@@ -37,9 +37,9 @@ export function evaluateChatAccess(params: {
   if (creditExhaustedAt) {
     const elapsed = Date.now() - creditExhaustedAt.getTime()
     if (elapsed < CHAT_LOCK_WINDOW_MS) {
-      return { ok: false, code: "CHAT_LOCKED", unlockInMs: CHAT_LOCK_WINDOW_MS - elapsed }
+      return { ok: true, code: "CHAT_OK" }
     }
   }
 
-  return { ok: true, code: "CHAT_OK" }
+  return { ok: false, code: "CHAT_LOCKED" }
 }
