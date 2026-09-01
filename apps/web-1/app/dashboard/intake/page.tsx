@@ -72,8 +72,7 @@ function IntakePageContent() {
   const caseId = searchParams.get("caseId") || null;
   const isUpdateMode = !!caseId;
 
-  // Fetch existing case data for UPDATE mode
-  const { data: existingCaseData, isLoading: isLoadingCase } = useQuery({
+  const { data: existingCaseData, isLoading: isLoadingCase, isError: isCaseError } = useQuery({
     queryKey: ["case-intake", caseId],
     queryFn: () => apiClient.get(`/cases/${caseId}`).then((r) => r.data),
     enabled: isUpdateMode,
@@ -88,26 +87,28 @@ function IntakePageContent() {
 
   const initialData: IntakeData | null = useMemo(() => {
     if (!existingCaseData) return null;
+    const caseRow = existingCaseData.case ?? existingCaseData;
+    const owner = caseRow.owner ?? existingCaseData.owner;
     const rawSnapshot = existingCaseData.intake_snapshot || {};
     return {
       ...rawSnapshot,
-      package_id: existingCaseData.package_id || rawSnapshot.package_id || "",
-      school: existingCaseData.school || rawSnapshot.school || rawSnapshot.team_context?.school || "Đại học FPT",
-      course_context: existingCaseData.course_context || rawSnapshot.course_context || rawSnapshot.team_context?.course_context || "EXE101",
+      package_id: caseRow.package_id || rawSnapshot.package_id || "",
+      school: caseRow.school || rawSnapshot.school || rawSnapshot.team_context?.school || "Đại học FPT",
+      course_context: caseRow.course_context || rawSnapshot.course_context || rawSnapshot.team_context?.course_context || "EXE101",
       current_blocker: rawSnapshot.current_blocker || "",
       current_situations: rawSnapshot.current_situations || [],
       case_summary: rawSnapshot.case_summary || "",
       contact: {
-        full_name: rawSnapshot.contact?.full_name || existingCaseData.owner?.name || "",
+        full_name: rawSnapshot.contact?.full_name || owner?.name || "",
         student_code: rawSnapshot.contact?.student_code || "",
         team_role: rawSnapshot.contact?.team_role || rawSnapshot.contact?.role || "Trưởng nhóm",
         zalo: rawSnapshot.contact?.zalo || rawSnapshot.contact?.phone || "",
-        email: rawSnapshot.contact?.email || existingCaseData.owner?.email || "",
+        email: rawSnapshot.contact?.email || owner?.email || "",
         telegram: rawSnapshot.contact?.telegram || "",
       },
       team_context: {
-        group_no: existingCaseData.group_no || rawSnapshot.team_context?.group_no || "",
-        project_name: existingCaseData.team_name || rawSnapshot.team_context?.project_name || "",
+        group_no: caseRow.group_no || rawSnapshot.team_context?.group_no || "",
+        project_name: caseRow.team_name || rawSnapshot.team_context?.project_name || "",
         team_status_summary: rawSnapshot.team_context?.team_status_summary || rawSnapshot.current_blocker || "",
       },
       support_needs: {
@@ -164,6 +165,23 @@ function IntakePageContent() {
   }
 
   const isLoadingForm = !isLoaded || (isUpdateMode && isLoadingCase) || (!isUpdateMode && isLoadingPackages);
+
+  if (isUpdateMode && isCaseError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] p-6">
+        <Alert
+          icon={<AlertCircle className="w-5 h-5" />}
+          title="Lỗi"
+          color="red"
+          radius="md"
+          variant="light"
+          className="max-w-md"
+        >
+          <p className="text-sm font-body">Không tải được hồ sơ. Vui lòng thử lại.</p>
+        </Alert>
+      </div>
+    );
+  }
 
   if (isLoadingForm) {
     return (

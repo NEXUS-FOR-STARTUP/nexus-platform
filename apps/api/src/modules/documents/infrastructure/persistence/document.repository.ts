@@ -158,8 +158,9 @@ export async function createDocumentRecord(
   input: CreateDocumentRecordInput,
   client: DocumentRecordClient = prisma,
 ) {
+  const id = buildDocumentRecordId(input);
   return await client.documentRecord.create({
-    data: input as unknown as Prisma.DocumentRecordCreateInput,
+    data: { id, ...(input as unknown as Prisma.DocumentRecordCreateInput) },
   });
 }
 
@@ -168,13 +169,7 @@ export async function createDocumentRecords(
   client: DocumentRecordClient = prisma,
 ) {
   if (inputs.length === 0) return [];
-  return await Promise.all(
-    inputs.map((input) =>
-      client.documentRecord.create({
-        data: input as unknown as Prisma.DocumentRecordCreateInput,
-      }),
-    ),
-  );
+  return await Promise.all(inputs.map((input) => createDocumentRecord(input, client)));
 }
 
 export async function upsertDocumentRecord(
@@ -182,10 +177,35 @@ export async function upsertDocumentRecord(
   client: DocumentRecordClient = prisma,
 ) {
   const id = buildDocumentRecordId(input);
+  const create = { id, ...(input as unknown as Prisma.DocumentRecordCreateInput) };
+  const update = {
+    ...(input as unknown as Prisma.DocumentRecordUpdateInput),
+    superseded_at: null,
+  };
+
+  // Partial unique index (WHERE lifecycle_unit_id IS NOT NULL) cannot be
+  // Prisma upsert ON CONFLICT target. Find then update/create instead.
+  if (input.lifecycle_unit_id) {
+    const existing = await client.documentRecord.findFirst({
+      where: {
+        lifecycle_unit_id: input.lifecycle_unit_id,
+        doc_type: String(input.doc_type),
+        seq: input.seq,
+      },
+    });
+    if (existing) {
+      return await client.documentRecord.update({
+        where: { id: existing.id },
+        data: update,
+      });
+    }
+    return await client.documentRecord.create({ data: create });
+  }
+
   return await client.documentRecord.upsert({
     where: { id },
-    create: { id, ...(input as unknown as Prisma.DocumentRecordCreateInput) },
-    update: input as unknown as Prisma.DocumentRecordUpdateInput,
+    create,
+    update,
   });
 }
 
