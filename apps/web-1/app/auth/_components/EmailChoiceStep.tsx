@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Stack, TextInput, UnstyledButton } from "@mantine/core";
+import { Button, Divider, Stack, TextInput, UnstyledButton } from "@mantine/core";
 
 interface EmailChoiceStepProps {
   email: string;
@@ -52,32 +52,42 @@ export function EmailChoiceStep({
           }}
         />
 
-        <Button
-          type="submit"
-          fullWidth
-          radius="md"
-          size="md"
-          color="brand"
-          className="h-10 cursor-pointer font-semibold mt-2"
-          disabled={!canAct}
-        >
-          Đăng nhập mật khẩu
-        </Button>
+        <div className="flex flex-col gap-1.5">
+          <Button
+            type="submit"
+            fullWidth
+            radius="md"
+            size="md"
+            color="brand"
+            className="h-10 cursor-pointer font-semibold"
+            disabled={!canAct}
+          >
+            Đăng nhập bằng Mật khẩu
+          </Button>
 
-        <Button
-          type="button"
-          fullWidth
-          radius="md"
-          size="md"
-          variant="default"
-          className="h-10 cursor-pointer font-medium border-border-app"
-          disabled={!canAct}
-          loading={otpBusy}
-          onClick={onOtpLogin}
-        >
-          Đăng nhập OTP
-        </Button>
+          <Divider
+            label="hoặc"
+            labelPosition="center"
+            className="opacity-50"
+            classNames={{
+              label: "text-[11px] font-normal text-text-subtle select-none px-2",
+            }}
+          />
 
+          <Button
+            type="button"
+            fullWidth
+            radius="md"
+            size="md"
+            variant="default"
+            className="h-10 cursor-pointer font-medium border-border-app hover:bg-surface-soft transition-colors"
+            disabled={!canAct}
+            loading={otpBusy}
+            onClick={onOtpLogin}
+          >
+            Đăng nhập bằng Mã OTP
+          </Button>
+        </div>
         <div className="text-center">
           <UnstyledButton
             type="button"
