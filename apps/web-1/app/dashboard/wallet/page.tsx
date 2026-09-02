@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button, Tabs } from "@mantine/core";
-import { Plus, History, Image as ImageIcon } from "lucide-react";
+import { Plus } from "lucide-react";
 import { WalletBalanceCard } from "./_components/WalletBalanceCard";
 import { WalletTransactionList } from "./_components/WalletTransactionList";
 import { WalletProofTable } from "./_components/WalletProofTable";
@@ -34,16 +34,7 @@ export default function WalletPage() {
 
       <WalletBalanceCard />
 
-      <Tabs defaultValue="history" variant="outline" radius="md">
-        <Tabs.List className="mb-4">
-          <Tabs.Tab value="history" leftSection={<History size={16} />}>
-            Lịch sử giao dịch
-          </Tabs.Tab>
-          <Tabs.Tab value="proofs" leftSection={<ImageIcon size={16} />}>
-            Ảnh minh chứng
-          </Tabs.Tab>
-        </Tabs.List>
-
+      <Tabs defaultValue="history" variant="pills" radius="md">
         <Tabs.Panel value="history">
           <WalletTransactionList />
         </Tabs.Panel>

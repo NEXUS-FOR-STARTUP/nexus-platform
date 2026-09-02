@@ -18,6 +18,7 @@ import { ExternalLink, Image as ImageIcon, FileText } from "lucide-react";
 import { useMyDeposits } from "../hooks/useWallet";
 import { depositDetailHref } from "@/lib/deposit-display";
 import { WalletRowDetailAction } from "./WalletRowDetailAction";
+import { WalletTabsList } from "./WalletTabsList";
 import { formatVND, formatDateTime } from "./wallet-transaction.types";
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -53,11 +54,12 @@ export function WalletProofTable() {
     <Paper withBorder radius="md" className="bg-surface-app overflow-hidden">
       {/* Filter and Action Bar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-b border-border-app bg-surface-app">
+        <WalletTabsList />
         <Group
           gap="sm"
           wrap="nowrap"
           justify="flex-end"
-          className="w-full sm:w-auto sm:ml-auto"
+          className="w-full sm:w-auto"
         >
           <Select
             data={STATUS_FILTER_OPTIONS}
