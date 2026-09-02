@@ -18,9 +18,8 @@ export function isFinalDepositStatus(s: string): boolean {
 }
 
 export function canAdminCreditDeposit(d: {
-  status: string;
+  status?: string;
   proof_file_url: string | null;
 }): boolean {
-  if (d.proof_file_url?.trim()) return true;
-  return d.status === "amount_mismatch";
+  return Boolean(d.proof_file_url?.trim());
 }

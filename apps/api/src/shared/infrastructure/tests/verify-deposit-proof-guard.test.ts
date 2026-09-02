@@ -16,9 +16,24 @@ test("canAdminCreditDeposit guard rules", async (t) => {
     );
   });
 
-  await t.test("amount_mismatch deposit can be credited even without proof URL", () => {
+  await t.test("amount_mismatch deposit without proof cannot be credited by admin", () => {
     assert.strictEqual(
       canAdminCreditDeposit({ status: "amount_mismatch", proof_file_url: null }),
+      false,
+    );
+    assert.strictEqual(
+      canAdminCreditDeposit({ status: "amount_mismatch", proof_file_url: "" }),
+      false,
+    );
+    assert.strictEqual(
+      canAdminCreditDeposit({ status: "amount_mismatch", proof_file_url: "   " }),
+      false,
+    );
+  });
+
+  await t.test("amount_mismatch deposit with proof can be credited by admin", () => {
+    assert.strictEqual(
+      canAdminCreditDeposit({ status: "amount_mismatch", proof_file_url: "https://proof.example/bill.png" }),
       true,
     );
   });
