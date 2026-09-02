@@ -227,4 +227,14 @@ export const auth = betterAuth({
       },
     }),
   ],
+  advanced: {
+    ipAddress: {
+      ipAddressHeaders: [
+        'cf-connecting-ip',
+        'true-client-ip',
+        'x-forwarded-for',
+        'x-real-ip',
+      ],
+    },
+  },
 })

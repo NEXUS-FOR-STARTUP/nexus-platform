@@ -3,11 +3,11 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import type { CaseMessage } from "@/types";
 
 const PRELOAD_THRESHOLD = 5;
-const DIVIDER_ESTIMATE = 36;
+const DIVIDER_ESTIMATE = 48;
 
-type ChatRow =
+export type ChatRow =
   | { kind: "divider"; label: string }
-  | { kind: "message"; msg: CaseMessage };
+  | { kind: "message"; msg: CaseMessage; isFirstInGroup: boolean };
 
 function formatDateLabel(dateStr: string) {
   const d = new Date(dateStr);
@@ -26,13 +26,22 @@ function formatDateLabel(dateStr: string) {
 function flattenRows(messages: CaseMessage[]): ChatRow[] {
   const result: ChatRow[] = [];
   let lastLabel: string | null = null;
+  let lastSenderId: string | null | undefined = undefined;
+
   for (const msg of messages) {
     const label = formatDateLabel(msg.created_at);
-    if (label !== lastLabel) {
+    const isNewDay = label !== lastLabel;
+
+    if (isNewDay) {
       result.push({ kind: "divider", label });
       lastLabel = label;
+      lastSenderId = undefined;
     }
-    result.push({ kind: "message", msg });
+
+    const isFirstInGroup = isNewDay || msg.sender_auth_user_id !== lastSenderId;
+    lastSenderId = msg.sender_auth_user_id;
+
+    result.push({ kind: "message", msg, isFirstInGroup });
   }
   return result;
 }
@@ -46,6 +55,7 @@ export interface UseCaseChatVirtualizerOptions {
 export function useCaseChatVirtualizer(
   messages: CaseMessage[],
   { hasPreviousPage, isFetchingPreviousPage, fetchPreviousPage }: UseCaseChatVirtualizerOptions,
+  currentUserId?: string,
 ) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -58,9 +68,10 @@ export function useCaseChatVirtualizer(
       const row = rows[index];
       if (row.kind === "divider") return DIVIDER_ESTIMATE;
       const lineCount = row.msg.content?.split("\n").length ?? 1;
-      return Math.max(72, 56 + lineCount * 18);
+      const isMe = currentUserId ? row.msg.sender_auth_user_id === currentUserId : false;
+      const headerH = row.isFirstInGroup && !isMe ? 20 : 0;
+      return Math.max(30, 26 + headerH + lineCount * 18);
     },
-    overscan: 8,
   });
 
   // Scroll xuống cuối khi tin cuối thay đổi hoặc khi khởi tạo
