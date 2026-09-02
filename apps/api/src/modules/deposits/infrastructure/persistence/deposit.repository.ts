@@ -68,7 +68,13 @@ export async function updateDepositStatus(
 
 export async function findDepositsByUser(userId: string, limit = 20, offset = 0) {
   return prisma.deposit.findMany({
-    where: { user_id: userId },
+    where: {
+      user_id: userId,
+      AND: [
+        { proof_file_url: { not: null } },
+        { proof_file_url: { not: "" } },
+      ],
+    },
     orderBy: { created_at: "desc" },
     take: limit,
     skip: offset,
@@ -76,7 +82,15 @@ export async function findDepositsByUser(userId: string, limit = 20, offset = 0)
 }
 
 export async function countDepositsByUser(userId: string): Promise<number> {
-  return prisma.deposit.count({ where: { user_id: userId } });
+  return prisma.deposit.count({
+    where: {
+      user_id: userId,
+      AND: [
+        { proof_file_url: { not: null } },
+        { proof_file_url: { not: "" } },
+      ],
+    },
+  });
 }
 
 export async function findDepositsAdmin(params: {

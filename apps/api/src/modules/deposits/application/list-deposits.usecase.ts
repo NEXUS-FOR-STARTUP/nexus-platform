@@ -17,6 +17,7 @@ export async function listDepositsUseCase(
     currency: d.currency,
     status: d.status,
     transfer_content: d.transfer_content,
+    proof_file_url: d.proof_file_url,
     verified_at: d.status === "verified" ? d.updated_at.toISOString() : null,
     bank_transaction_id: d.bank_transaction_id ?? null,
     created_at: d.created_at.toISOString(),

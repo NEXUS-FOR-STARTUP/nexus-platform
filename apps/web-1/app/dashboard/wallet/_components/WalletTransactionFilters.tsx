@@ -2,6 +2,7 @@
 
 import { Select, Group, Button } from "@mantine/core";
 import { TYPE_OPTIONS } from "./wallet-transaction.types";
+import { WalletTabsList } from "./WalletTabsList";
 
 interface Props {
   selectedType: string | null;
@@ -18,7 +19,8 @@ export function WalletTransactionFilters({
 }: Props) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-b border-border-app bg-surface-app">
-      <Group gap="sm" wrap="nowrap" justify="flex-end" className="w-full sm:w-auto sm:ml-auto">
+      <WalletTabsList />
+      <Group gap="sm" wrap="nowrap" justify="flex-end" className="w-full sm:w-auto">
         <Select
           data={TYPE_OPTIONS}
           value={selectedType}

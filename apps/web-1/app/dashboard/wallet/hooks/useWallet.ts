@@ -62,6 +62,7 @@ export interface WalletDeposit {
   currency: string;
   transfer_content: string;
   status: "pending" | "verified" | "rejected" | "amount_mismatch";
+  proof_file_url: string | null;
   verified_at: string | null;
   bank_transaction_id: string | null;
   created_at: string;

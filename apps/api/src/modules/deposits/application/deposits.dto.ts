@@ -32,6 +32,7 @@ export interface DepositHistoryItem {
   currency: string;
   status: string;
   transfer_content: string;
+  proof_file_url: string | null;
   verified_at: string | null;
   bank_transaction_id: string | null;
   created_at: string;
