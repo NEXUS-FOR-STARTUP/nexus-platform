@@ -92,7 +92,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
     hasPreviousPage,
     isFetchingPreviousPage,
     fetchPreviousPage,
-  });
+  }, session?.user?.id);
 
   const chatGate = useMemo(() => extractChatGateError(sendError), [sendError]);
   const isChatClosed =

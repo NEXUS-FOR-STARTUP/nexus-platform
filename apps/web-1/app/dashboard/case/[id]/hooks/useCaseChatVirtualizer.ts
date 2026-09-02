@@ -55,6 +55,7 @@ export interface UseCaseChatVirtualizerOptions {
 export function useCaseChatVirtualizer(
   messages: CaseMessage[],
   { hasPreviousPage, isFetchingPreviousPage, fetchPreviousPage }: UseCaseChatVirtualizerOptions,
+  currentUserId?: string,
 ) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -67,7 +68,8 @@ export function useCaseChatVirtualizer(
       const row = rows[index];
       if (row.kind === "divider") return DIVIDER_ESTIMATE;
       const lineCount = row.msg.content?.split("\n").length ?? 1;
-      const headerH = row.isFirstInGroup ? 20 : 0;
+      const isMe = currentUserId ? row.msg.sender_auth_user_id === currentUserId : false;
+      const headerH = row.isFirstInGroup && !isMe ? 20 : 0;
       return Math.max(30, 26 + headerH + lineCount * 18);
     },
   });

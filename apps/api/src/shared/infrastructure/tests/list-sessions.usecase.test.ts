@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { listSessionsUseCase } from "./list-sessions.usecase.js";
+import { listSessionsUseCase } from "../../../modules/profile/application/list-sessions.usecase.js";
 
 test("listSessionsUseCase - returns actual ip_address from DB (no fallback)", async () => {
   const fakeSessions = [
