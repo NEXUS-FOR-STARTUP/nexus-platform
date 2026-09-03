@@ -41,7 +41,7 @@ function normalizeIntakeSnapshot(rawContent: string | null) {
 
 /**
  * Base response shape — safe for all roles (student, supporter, admin).
- * VERIFY-001 fix: excludes internal_status and detailed payment_status.
+ * Internal status is excluded for student; payment_status is included so student can view case billing state.
  */
 function toBaseResponse(caseDetails: any) {
   return {
@@ -55,6 +55,7 @@ function toBaseResponse(caseDetails: any) {
     current_checkpoint: caseDetails.current_checkpoint,
     package_id: caseDetails.package_id,
     locked_price: caseDetails.locked_price,
+    payment_status: caseDetails.payment_status,
     assigned_supporter_auth_user_id: caseDetails.assigned_supporter_auth_user_id,
     user_facing_stage: caseDetails.user_facing_stage,
     deadline: caseDetails.deadline,
@@ -79,7 +80,7 @@ function toBaseResponse(caseDetails: any) {
 
 /**
  * Extend base response with internal fields for admin/supporter.
- * VERIFY-001 fix: internal_status and payment_status only for admin/supporter.
+ * internal_status only for admin/supporter.
  */
 function extendWithInternalFields(baseResponse: any, caseDetails: any) {
   return {

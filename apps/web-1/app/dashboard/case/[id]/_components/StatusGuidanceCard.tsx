@@ -14,7 +14,8 @@ import {
 import { Alert, Button } from "@mantine/core";
 import { STATUS_GUIDANCE_COPY, type GuidanceTone, type GuidanceIconKey } from "./statusCopyMap";
 import type { OpenInfoRequest } from "../hooks/useCaseDetails";
-import { isCaseFree } from "@/lib/pricing";
+import { isCaseFree, PACKAGE_KEYS, caseRequiresPayment } from "@/lib/pricing";
+import { usePackagePrice } from "@/lib/usePackagePrice";
 
 interface StatusGuidanceCardProps {
   caseData: Case;
@@ -58,6 +59,9 @@ export default function StatusGuidanceCard({
   onConfirmComplete,
   isConfirmingComplete,
 }: StatusGuidanceCardProps) {
+  const { data: auditPkg } = usePackagePrice(PACKAGE_KEYS.AUDIT);
+  const auditPriceLabel = auditPkg?.price != null ? `${auditPkg.price.toLocaleString("vi-VN")}đ` : "…đ";
+
   const stage = caseData.user_facing_stage;
   const hasInfoRequest = !!openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0;
 
@@ -194,7 +198,7 @@ export default function StatusGuidanceCard({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-brand/10 text-xs">
               <div className="bg-surface-app/70 p-2 rounded border border-brand/15 font-body">
                 <span className="font-semibold text-brand block mb-0.5">1. Mua credit (Hiện tại)</span>
-                <span className="text-text-muted text-[11px]">Mua credit đánh giá chuyên sâu (39.000đ / lượt).</span>
+                <span className="text-text-muted text-[11px]">Mua credit đánh giá chuyên sâu ({auditPriceLabel} / lượt).</span>
               </div>
               <div className="bg-surface-app/70 p-2 rounded border border-border-app font-body">
                 <span className="font-semibold text-text-app block mb-0.5">2. Nộp hồ sơ chi tiết</span>
@@ -210,7 +214,7 @@ export default function StatusGuidanceCard({
           <div className="flex flex-wrap items-center gap-3 pt-1">
             {onOpenPayment && (
               <Button size="sm" color="brand" leftSection={<Coins className="w-4 h-4" />} className="shrink-0 cursor-pointer font-semibold text-xs" onClick={onOpenPayment}>
-                {isFree ? "Mua credit đánh giá ngay (39.000đ)" : "Thanh toán ngay"}
+                {isFree ? `Mua credit đánh giá ngay (${auditPriceLabel})` : "Thanh toán ngay"}
               </Button>
             )}
             {onOpenIntake && canOpenIntake && (
@@ -343,6 +347,36 @@ export default function StatusGuidanceCard({
                 Xác nhận hoàn thành
               </Button>
             </div>
+          )}
+        </div>
+      </Alert>
+    );
+  }
+
+  if (stage === "submitted" && caseRequiresPayment(caseData)) {
+    return (
+      <Alert
+        variant="light"
+        color="yellow"
+        radius="md"
+        title="Hồ sơ đã nộp — chờ thanh toán"
+        icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
+        className={ALERT_CLASS}
+      >
+        <div className="space-y-3">
+          <p className="text-text-muted text-xs leading-relaxed">
+            Hồ sơ đã gửi thành công. Ban tổ chức chỉ duyệt và phân công Supporter sau khi thanh toán hoàn tất.
+          </p>
+          {onOpenPayment && (
+            <Button
+              size="sm"
+              color="brand"
+              leftSection={<Coins className="w-4 h-4" />}
+              className="shrink-0 cursor-pointer font-semibold text-xs"
+              onClick={onOpenPayment}
+            >
+              Thanh toán ngay
+            </Button>
           )}
         </div>
       </Alert>
