@@ -3,6 +3,8 @@
 import { Card, Group, Text, Button, List } from "@mantine/core";
 import { AlertTriangle, Info, Check } from "lucide-react";
 import type { TeamFitFreeReport } from "@repo/validation";
+import { PACKAGE_KEYS, formatPrice } from "@/lib/pricing";
+import { usePackagePrice } from "@/lib/usePackagePrice";
 
 interface TeamFitResultStepProps {
   result: TeamFitFreeReport | null;
@@ -29,6 +31,9 @@ export default function TeamFitResultStep({
   isUpgrading = false,
   hasSaved = false,
 }: TeamFitResultStepProps) {
+  const { data: auditPkg } = usePackagePrice(PACKAGE_KEYS.AUDIT);
+  const auditPriceLabel = formatPrice(auditPkg?.price ?? 39000);
+
   // Loading state
   if (isLoading) {
     return (
@@ -142,7 +147,7 @@ export default function TeamFitResultStep({
           Muốn được Supporter kiểm tra chuyên sâu?
         </Text>
         <Text size="xs" c="dimmed" mb="sm">
-          Nhận phản biện chi tiết từ Supporter giàu kinh nghiệm. Giá chỉ 39.000đ / lượt.
+          Nhận phản biện chi tiết từ Supporter giàu kinh nghiệm. Giá chỉ {auditPriceLabel} / lượt.
         </Text>
         <Button
           size="sm"

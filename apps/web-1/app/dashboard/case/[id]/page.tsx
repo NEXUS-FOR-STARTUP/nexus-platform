@@ -2,7 +2,7 @@
 
 import { useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { PACKAGE_KEYS } from "@/lib/pricing";
+import { PACKAGE_KEYS, caseRequiresPayment } from "@/lib/pricing";
 import { useSession } from "@/lib/auth-client";
 import { filterTransitions } from "@/_types/transitions";
 import { useCaseDetails } from "./hooks/useCaseDetails";
@@ -139,7 +139,11 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               openRequestsForMoreInfo={openRequestsForMoreInfo}
               allowedTransitions={filteredTransitions}
               onSelectTab={(tab) => setActiveTab(tab)}
-              onOpenPayment={isIntakePending || stage === "report_ready" ? () => setCreditBuyOpened(true) : undefined}
+              onOpenPayment={
+                isIntakePending || stage === "report_ready" || (stage === "submitted" && caseRequiresPayment(caseData))
+                  ? () => setCreditBuyOpened(true)
+                  : undefined
+              }
               onOpenIntake={canOpenIntake ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
               onSubmitRevision={() => setIsStudentUploadOpen(true)}
               onConfirmComplete={confirmComplete}

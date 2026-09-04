@@ -4,9 +4,14 @@ import React from "react";
 import Link from "next/link";
 import { Title, Text, Button, Container, Stack, Group, List, ThemeIcon } from "@mantine/core";
 import { ArrowRight, Check } from "lucide-react";
+import { PACKAGE_KEYS, formatPrice } from "@/lib/pricing";
+import { usePackagePrice } from "@/lib/usePackagePrice";
 import classes from "./HeroBullets.module.css";
 
 export default function LandingHero() {
+  const { data: auditPkg } = usePackagePrice(PACKAGE_KEYS.AUDIT);
+  const auditPriceLabel = formatPrice(auditPkg?.price ?? 39000);
+
   return (
     <section className="relative overflow-hidden bg-bg-app transition-colors duration-200">
       {/* Decorative background grid */}
@@ -72,7 +77,7 @@ export default function LandingHero() {
                   Mua kiểm tra chuyên sâu
                 </Button>
               </Group>
-              <Text size="xs" c="dimmed">39.000đ / lượt</Text>
+              <Text size="xs" c="dimmed">{auditPriceLabel} / lượt</Text>
             </Stack>
           </div>
         </div>
