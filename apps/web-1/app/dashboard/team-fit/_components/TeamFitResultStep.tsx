@@ -3,7 +3,7 @@
 import { Card, Group, Text, Button, List } from "@mantine/core";
 import { AlertTriangle, Info, Check } from "lucide-react";
 import type { TeamFitFreeReport } from "@repo/validation";
-import { PACKAGE_KEYS } from "@/lib/pricing";
+import { PACKAGE_KEYS, formatPrice } from "@/lib/pricing";
 import { usePackagePrice } from "@/lib/usePackagePrice";
 
 interface TeamFitResultStepProps {
@@ -32,7 +32,7 @@ export default function TeamFitResultStep({
   hasSaved = false,
 }: TeamFitResultStepProps) {
   const { data: auditPkg } = usePackagePrice(PACKAGE_KEYS.AUDIT);
-  const auditPriceLabel = auditPkg?.price != null ? `${auditPkg.price.toLocaleString("vi-VN")}đ` : "…đ";
+  const auditPriceLabel = formatPrice(auditPkg?.price ?? 39000);
 
   // Loading state
   if (isLoading) {

@@ -86,7 +86,6 @@ function extendWithInternalFields(baseResponse: any, caseDetails: any) {
   return {
     ...baseResponse,
     internal_status: caseDetails.internal_status,
-    payment_status: caseDetails.payment_status,
   };
 }
 

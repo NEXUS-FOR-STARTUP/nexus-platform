@@ -3,10 +3,11 @@
 import React, { useState } from "react";
 import { Modal, Button, NumberInput, Stack, Text, Group } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
-import { PACKAGE_KEYS } from "@/lib/pricing";
+import { PACKAGE_KEYS, formatPrice } from "@/lib/pricing";
+import { usePackagePrice } from "@/lib/usePackagePrice";
 
 interface CreditQuantityModalProps {
   caseId: string;
@@ -23,11 +24,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
   const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState<number>(1);
 
-  const { data: pkg } = useQuery({
-    queryKey: ["package", "price", packageId],
-    queryFn: () => apiClient.get(`/packages/${packageId}`).then((r) => r.data),
-    enabled: opened && !!packageId,
-  });
+  const { data: pkg } = usePackagePrice(packageId, opened);
 
   const unitPrice = pkg?.price ?? 0;
 
@@ -89,7 +86,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
               <Text size="sm">{message}</Text>
               <Text size="sm" c="dimmed">
                 Bạn chỉ cần nạp thêm tối thiểu{" "}
-                {suggestedTopup.toLocaleString("vi-VN")} VND để tiếp tục.
+                {formatPrice(suggestedTopup)} để tiếp tục.
               </Text>
               <Button
                 size="xs"
@@ -149,7 +146,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
         <div className="bg-surface-soft rounded-lg p-4 space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-text-muted">Đơn giá</span>
-            <span className="font-semibold">{unitPrice.toLocaleString("vi-VN")} VND</span>
+            <span className="font-semibold">{formatPrice(unitPrice)}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-text-muted">Số lượng</span>
@@ -158,7 +155,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
           <div className="border-t border-border-app pt-2 flex justify-between">
             <span className="font-semibold">Tổng cộng</span>
             <span className="font-semibold text-brand">
-              {(quantity * unitPrice).toLocaleString("vi-VN")} VND
+              {formatPrice(quantity * unitPrice)}
             </span>
           </div>
         </div>

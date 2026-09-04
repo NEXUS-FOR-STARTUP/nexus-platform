@@ -14,7 +14,7 @@ import {
 import { Alert, Button } from "@mantine/core";
 import { STATUS_GUIDANCE_COPY, type GuidanceTone, type GuidanceIconKey } from "./statusCopyMap";
 import type { OpenInfoRequest } from "../hooks/useCaseDetails";
-import { isCaseFree, PACKAGE_KEYS, caseRequiresPayment } from "@/lib/pricing";
+import { isCaseFree, PACKAGE_KEYS, caseRequiresPayment, formatPrice } from "@/lib/pricing";
 import { usePackagePrice } from "@/lib/usePackagePrice";
 
 interface StatusGuidanceCardProps {
@@ -60,7 +60,7 @@ export default function StatusGuidanceCard({
   isConfirmingComplete,
 }: StatusGuidanceCardProps) {
   const { data: auditPkg } = usePackagePrice(PACKAGE_KEYS.AUDIT);
-  const auditPriceLabel = auditPkg?.price != null ? `${auditPkg.price.toLocaleString("vi-VN")}đ` : "…đ";
+  const auditPriceLabel = formatPrice(auditPkg?.price ?? 39000);
 
   const stage = caseData.user_facing_stage;
   const hasInfoRequest = !!openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0;
