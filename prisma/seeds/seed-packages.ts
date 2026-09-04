@@ -37,8 +37,20 @@ const NEW_PACKAGES = [
   { id: "pkg_tf_free", name: "Team-fit Free", price: 0, features: {} },
   {
     id: "pkg_tf_audit",
-    name: "Audit 1 lượt",
+    name: "Audit 1 lượt (Legacy)",
     price: 39000,
+    features: {},
+  },
+  {
+    id: "pkg_ai_audit",
+    name: "Basic AI Audit",
+    price: 79000,
+    features: {},
+  },
+  {
+    id: "pkg_supporter_audit",
+    name: "Premium Mentor Audit",
+    price: 149000,
     features: {},
   },
 ] as const;

@@ -59,6 +59,37 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
       ],
       sla_hours: 48,
     },
+    is_active: false, // Deactivated in favor of new packages
+  },
+  {
+    id: "pkg_ai_audit",
+    name: "Basic AI Audit",
+    price: 79000,
+    features: {
+      items: [
+        "Đánh giá hoàn toàn tự động bằng AI",
+        "Phân tích theo Rubric chuẩn (5 tiêu chí)",
+        "Báo cáo chi tiết có ngay lập tức",
+      ],
+      sla_hours: 0,
+      mode: "ai_automated",
+      auto_delivery: true,
+    },
+    is_active: true,
+  },
+  {
+    id: "pkg_supporter_audit",
+    name: "Premium Mentor Audit",
+    price: 149000,
+    features: {
+      items: [
+        "Kiểm tra chuyên sâu có Mentor đối chiếu",
+        "Ưu tiên rà soát rủi ro và lỗi chặn (BLOCKER)",
+        "Định hướng sửa bài thực chiến",
+      ],
+      sla_hours: 48,
+      mode: "human_verified",
+    },
     is_active: true,
   },
 ];
