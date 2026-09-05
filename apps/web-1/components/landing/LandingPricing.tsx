@@ -23,18 +23,18 @@ export default function LandingPricing() {
           {/* Basic AI Audit */}
           <Card padding="xl" radius="md" withBorder className="border-border-app bg-surface-card flex flex-col">
             <div className="mb-6">
-              <Text className="font-display font-bold text-xl text-text-app mb-2">Basic AI Audit</Text>
+              <Text className="font-display font-semibold text-lg text-text-app mb-2">Basic AI Audit</Text>
               <Group align="flex-end" gap="xs">
                 <Text className="text-4xl font-display font-bold text-text-app">79.000</Text>
                 <Text className="font-body text-text-muted mb-1">VNĐ / lượt</Text>
               </Group>
-              <Text size="sm" c="dimmed" mt="sm" className="font-body leading-relaxed min-h-[48px]">
+              <Text size="sm" c="dimmed" mt="sm" className="font-body h-10">
                 Phù hợp cho các nhóm cần nộp bài gấp, rà soát khung sườn và sửa các lỗi logic cơ bản nhanh chóng.
               </Text>
             </div>
 
             <List
-              spacing="md"
+              spacing="sm"
               size="sm"
               className="font-body mb-8 flex-1"
               icon={
@@ -56,7 +56,7 @@ export default function LandingPricing() {
               size="md"
               variant="default"
               radius="md"
-              className="font-body font-semibold border-border-app text-text-app hover:bg-surface-app mt-auto"
+              className="font-body font-semibold border-border-app text-text-app hover:bg-surface-app"
             >
               Bắt đầu kiểm tra
             </Button>
@@ -74,18 +74,18 @@ export default function LandingPricing() {
             </Badge>
 
             <div className="mb-6">
-              <Text className="font-display font-bold text-xl text-brand mb-2">Premium Mentor Audit</Text>
+              <Text className="font-display font-semibold text-lg text-brand mb-2">Premium Mentor Audit</Text>
               <Group align="flex-end" gap="xs">
                 <Text className="text-4xl font-display font-bold text-text-app">149.000</Text>
                 <Text className="font-body text-text-muted mb-1">VNĐ / lượt</Text>
               </Group>
-              <Text size="sm" c="dimmed" mt="sm" className="font-body leading-relaxed min-h-[48px]">
+              <Text size="sm" c="dimmed" mt="sm" className="font-body h-10">
                 Dành cho dự án nhắm điểm 8-9, cần chuyên gia rà soát ảo giác và định hướng thực chiến.
               </Text>
             </div>
 
             <List
-              spacing="md"
+              spacing="sm"
               size="sm"
               className="font-body mb-8 flex-1"
               icon={
@@ -107,7 +107,7 @@ export default function LandingPricing() {
               size="md"
               color="blue"
               radius="md"
-              className="font-body font-semibold mt-auto"
+              className="font-body font-semibold"
             >
               Chọn gói Premium
             </Button>
