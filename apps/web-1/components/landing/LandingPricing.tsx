@@ -1,6 +1,6 @@
 "use client";
 
-import { Container, SimpleGrid, Card, Text, Badge, Button, Group, List, ThemeIcon, Title, Box } from "@mantine/core";
+import { Container, SimpleGrid, Card, Badge, Button, List, ThemeIcon, Box } from "@mantine/core";
 import { Check } from "lucide-react";
 import Link from "next/link";
 import { PACKAGE_KEYS } from "@/lib/pricing";
@@ -11,13 +11,13 @@ export default function LandingPricing() {
       <Container size="lg">
         {/* Section Header */}
         <div className="text-center mb-12 space-y-3">
-          <Title order={2} className="font-heading text-3xl md:text-4xl font-bold text-text-app">
+          <h2 className="font-heading text-3xl md:text-4xl font-bold text-text-app">
             Bảng Giá Dịch Vụ
-          </Title>
-          <Text className="font-body text-sm text-text-muted max-w-2xl mx-auto leading-relaxed">
+          </h2>
+          <p className="font-body text-sm text-text-muted max-w-2xl mx-auto leading-relaxed">
             Lựa chọn gói kiểm tra phù hợp với mục tiêu và tiến độ dự án của bạn. 
             Mọi gói đều được xây dựng dựa trên tiêu chuẩn khởi nghiệp thực chiến.
-          </Text>
+          </p>
         </div>
 
         {/* Pricing Cards */}
@@ -27,20 +27,20 @@ export default function LandingPricing() {
             <div>
               {/* Header */}
               <div className="mb-6">
-                <Text className="font-heading font-bold text-xl text-text-app mb-2">
+                <h3 className="font-heading font-bold text-xl text-text-app mb-2">
                   Basic AI Audit
-                </Text>
-                <Group align="flex-end" gap="xs">
-                  <Text className="text-4xl font-heading font-bold text-text-app">
+                </h3>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-heading font-bold text-text-app">
                     79,000
-                  </Text>
-                  <Text className="font-body text-sm text-text-muted mb-1">
+                  </span>
+                  <span className="font-body text-sm text-text-muted">
                     VND / lượt
-                  </Text>
-                </Group>
-                <Text className="font-body text-sm text-text-muted leading-relaxed mt-3 min-h-[44px]">
+                  </span>
+                </div>
+                <p className="font-body text-sm text-text-muted leading-relaxed mt-3 min-h-[44px]">
                   Phù hợp nhóm cần nộp gấp, rà soát khung sườn và sửa lỗi logic cơ bản nhanh chóng.
-                </Text>
+                </p>
               </div>
 
               {/* Checklist */}
@@ -88,20 +88,20 @@ export default function LandingPricing() {
             <div>
               {/* Header */}
               <div className="mb-6">
-                <Text className="font-heading font-bold text-xl text-brand mb-2">
+                <h3 className="font-heading font-bold text-xl text-brand mb-2">
                   Premium Mentor Audit
-                </Text>
-                <Group align="flex-end" gap="xs">
-                  <Text className="text-4xl font-heading font-bold text-text-app">
+                </h3>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-heading font-bold text-text-app">
                     149,000
-                  </Text>
-                  <Text className="font-body text-sm text-text-muted mb-1">
+                  </span>
+                  <span className="font-body text-sm text-text-muted">
                     VND / lượt
-                  </Text>
-                </Group>
-                <Text className="font-body text-sm text-text-muted leading-relaxed mt-3 min-h-[44px]">
+                  </span>
+                </div>
+                <p className="font-body text-sm text-text-muted leading-relaxed mt-3 min-h-[44px]">
                   Dành cho dự án nhắm điểm 8-9, cần chuyên gia rà soát ảo giác và định hướng thực chiến.
-                </Text>
+                </p>
               </div>
 
               {/* Checklist */}
