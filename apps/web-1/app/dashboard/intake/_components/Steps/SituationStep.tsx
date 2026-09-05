@@ -74,7 +74,7 @@ export default function SituationStep({ form, values }: SituationStepProps) {
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => field.handleChange(e.target.value)}
                 error={hasError ? field.state.meta.errors[0] : undefined}
                 description={
-                  <Text size="xs" c="dimmed" ta="right">
+                  <Text component="span" size="xs" c="dimmed" className="block text-right">
                     {(field.state.value || "").length}/{BLOCKER_MAX} ký tự
                   </Text>
                 }
