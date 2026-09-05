@@ -32,10 +32,10 @@ export default function LandingPricing() {
                 </Text>
                 <Group align="flex-end" gap="xs">
                   <Text className="text-4xl font-display font-bold text-text-app">
-                    79.000
+                    79,000
                   </Text>
                   <Text className="font-body text-sm text-text-muted mb-1">
-                    VNĐ / lượt
+                    VND / lượt
                   </Text>
                 </Group>
                 <Text className="font-body text-sm text-text-muted leading-relaxed mt-3">
@@ -57,7 +57,7 @@ export default function LandingPricing() {
                 <List.Item>Đánh giá hoàn toàn tự động bằng AI</List.Item>
                 <List.Item>Phân tích theo Rubric chuẩn (5 tiêu chí cốt lõi)</List.Item>
                 <List.Item>Nhận báo cáo chi tiết ngay lập tức (&lt; 1 phút)</List.Item>
-                <List.Item>Chỉ ~15.000đ/bạn khi chia theo nhóm 5 người</List.Item>
+                <List.Item>Chỉ ~15,000 VND/bạn khi chia theo nhóm 5 người</List.Item>
               </List>
             </div>
 
@@ -93,10 +93,10 @@ export default function LandingPricing() {
                 </Text>
                 <Group align="flex-end" gap="xs">
                   <Text className="text-4xl font-display font-bold text-text-app">
-                    149.000
+                    149,000
                   </Text>
                   <Text className="font-body text-sm text-text-muted mb-1">
-                    VNĐ / lượt
+                    VND / lượt
                   </Text>
                 </Group>
                 <Text className="font-body text-sm text-text-muted leading-relaxed mt-3">

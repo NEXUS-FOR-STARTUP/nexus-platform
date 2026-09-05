@@ -38,8 +38,8 @@ export function PackageSelectionModal({ opened, onClose }: PackageSelectionModal
             <div>
               <Text className="font-display font-semibold text-text-app mb-1">Basic AI Audit</Text>
               <Group align="flex-end" gap="xs" mb="md">
-                <Text className="text-2xl font-display font-bold text-text-app">79.000</Text>
-                <Text className="font-body text-text-muted text-sm pb-1">VNĐ</Text>
+                <Text className="text-2xl font-display font-bold text-text-app">79,000</Text>
+                <Text className="font-body text-text-muted text-sm pb-1">VND</Text>
               </Group>
               <Text size="sm" c="dimmed" className="font-body mb-4 min-h-[40px]">
                 Phân tích tự động bằng AI. Báo cáo trả về tức thì.
@@ -79,8 +79,8 @@ export function PackageSelectionModal({ opened, onClose }: PackageSelectionModal
             <div>
               <Text className="font-display font-semibold text-brand mb-1">Premium Mentor Audit</Text>
               <Group align="flex-end" gap="xs" mb="md">
-                <Text className="text-2xl font-display font-bold text-text-app">149.000</Text>
-                <Text className="font-body text-text-muted text-sm pb-1">VNĐ</Text>
+                <Text className="text-2xl font-display font-bold text-text-app">149,000</Text>
+                <Text className="font-body text-text-muted text-sm pb-1">VND</Text>
               </Group>
               <Text size="sm" c="dimmed" className="font-body mb-4 min-h-[40px]">
                 Mentor FPT trực tiếp review, sửa lỗi chặn và định hướng thực chiến.
