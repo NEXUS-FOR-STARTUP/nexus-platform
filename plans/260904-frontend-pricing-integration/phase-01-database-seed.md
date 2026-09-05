@@ -1,15 +1,19 @@
 # Phase 01: Database Seed Updates
 
 ## Target
-- `prisma/seeds/seed-20260904-pricing-tiers.ts` (Tạo mới, bảo toàn 100% các file seed cũ trong lịch sử)
+- `prisma/seeds/seed-active-packages.ts`
+
+## Nguyên lý kỹ thuật (Seed vs Migration)
+- **Migration**: Lưu trữ lịch sử tuần tự theo thời gian, tuyệt đối không sửa file cũ.
+- **Seed**: Lưu trữ **ảnh chụp trạng thái mong muốn mới nhất (Desired State Snapshot)** để khi bất kỳ dev nào chạy `make db-seed`, DB mới sẽ nhận ngay danh mục gói chuẩn nhất hiện tại mà không phải chạy hàng chục file seed mồ côi.
 
 ## Change
-1. Giữ nguyên trạng thái gốc của `seed-packages.ts` và `seed-active-packages.ts` để đảm bảo tính tái lập (reproducibility) của các đợt phát triển trước.
-2. Tạo file seed gia số mới: `prisma/seeds/seed-20260904-pricing-tiers.ts`:
-   - Tìm gói `pkg_tf_audit` (39k) và cập nhật `is_active: false` (ẩn đi đối với khách mới).
-   - Thực hiện `upsert` gói 1: `{ id: "pkg_ai_audit", name: "Basic AI Audit", price: 79000, features: { ... }, is_active: true }`
-   - Thực hiện `upsert` gói 2: `{ id: "pkg_supporter_audit", name: "Premium Mentor Audit", price: 149000, features: { ... }, is_active: true }`
-   - Đảm bảo tính lũy đẳng (idempotent) — có thể chạy lại nhiều lần mà không sinh lỗi hoặc nhân bản bản ghi.
+1. Mở file `prisma/seeds/seed-active-packages.ts`:
+   - Chuyển `pkg_tf_audit` (39k) sang `is_active: false` (giữ lại trong DB cho các liên kết cũ nhưng ẩn khỏi giao diện bán mới).
+   - Bổ sung 2 gói dịch vụ active mới vào mảng `ACTIVE_PACKAGES`:
+     - `pkg_ai_audit` (79.000 VNĐ / lượt)
+     - `pkg_supporter_audit` (149.000 VNĐ / lượt)
+
 ## Acceptance
-- Chạy lệnh `npx tsx prisma/seeds/seed-20260904-pricing-tiers.ts` không sinh ra lỗi.
-- Kiểm tra trực tiếp trên DB (hoặc qua logic `GET /packages`) chỉ còn 3 gói active: `pkg_tf_free`, `pkg_ai_audit`, `pkg_supporter_audit`. Gói `pkg_tf_audit` cũ đã được chuyển sang `is_active: false`.
+- Chạy lệnh `make db-seed` hoặc `npx tsx prisma/seeds/seed-active-packages.ts` không sinh ra lỗi.
+- API `GET /packages` chỉ trả về 3 gói active: `pkg_tf_free`, `pkg_ai_audit`, `pkg_supporter_audit`. Gói 39k cũ đã chuyển sang `is_active: false`.

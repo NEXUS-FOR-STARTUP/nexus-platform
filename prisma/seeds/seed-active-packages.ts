@@ -49,7 +49,7 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
   },
   {
     id: "pkg_tf_audit",
-    name: "Kiểm tra chuyên sâu",
+    name: "Kiểm tra chuyên sâu (Legacy)",
     price: 39000,
     features: {
       items: [
@@ -58,6 +58,39 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
         "Mua thêm lượt audit khi cần",
       ],
       sla_hours: 48,
+    },
+    is_active: false,
+  },
+  {
+    id: "pkg_ai_audit",
+    name: "Basic AI Audit",
+    price: 79000,
+    features: {
+      items: [
+        "Đánh giá hoàn toàn tự động bằng AI",
+        "Phân tích theo Rubric chuẩn (5 tiêu chí cốt lõi)",
+        "Nhận báo cáo chi tiết ngay lập tức (dưới 1 phút)",
+        "Chỉ ~15.000đ/bạn khi chia theo nhóm 5 người",
+      ],
+      sla_hours: 0,
+      mode: "ai_automated",
+      auto_delivery: true,
+    },
+    is_active: true,
+  },
+  {
+    id: "pkg_supporter_audit",
+    name: "Premium Mentor Audit",
+    price: 149000,
+    features: {
+      items: [
+        "Bao gồm toàn bộ tính năng của Basic AI",
+        "Mentor FPT trực tiếp review và đối chiếu",
+        "Ưu tiên chỉ ra các rủi ro chặn (BLOCKER)",
+        "Định hướng sửa bài thực chiến (SLA: 24h-48h)",
+      ],
+      sla_hours: 48,
+      mode: "human_verified",
     },
     is_active: true,
   },
