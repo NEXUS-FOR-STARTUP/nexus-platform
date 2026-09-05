@@ -58,7 +58,7 @@ export function DeleteAccountModal({
         <TextInput
           label="Xác nhận thao tác"
           description={
-            <Text size="xs" c="dimmed">
+            <Text component="span" size="xs" c="dimmed">
               Vui lòng nhập <strong className="text-red-500">XOA</strong> để xác nhận.
             </Text>
           }

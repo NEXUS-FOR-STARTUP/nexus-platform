@@ -5,7 +5,10 @@ export function getAuthRedirectUrl(searchParams: URLSearchParams): string {
   }
 
   const packageId = searchParams.get("packageId");
-  if (packageId === "pkg_tf_free") return "/dashboard/team-fit";
-  if (packageId === "pkg_tf_audit") return `/dashboard/intake?packageId=${packageId}`;
+  if (packageId) {
+    if (packageId === "pkg_tf_free") return "/dashboard/team-fit";
+    // Generic forward for any paid package (e.g. pkg_ai_audit, pkg_supporter_audit)
+    return `/dashboard/intake?packageId=${packageId}`;
+  }
   return "/dashboard";
 }
