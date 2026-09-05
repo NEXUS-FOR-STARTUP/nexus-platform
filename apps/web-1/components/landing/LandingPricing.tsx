@@ -68,7 +68,7 @@ export default function LandingPricing() {
               size="md"
               variant="default"
               radius="md"
-              className="font-body font-semibold text-sm h-11 border-border-app text-text-app hover:bg-surface-app"
+              className="font-body font-semibold text-sm h-11 mt-8 border-border-app text-text-app hover:bg-surface-app"
             >
               Bắt đầu kiểm tra
             </Button>
@@ -129,7 +129,7 @@ export default function LandingPricing() {
               size="md"
               color="blue"
               radius="md"
-              className="font-body font-semibold text-sm h-11"
+              className="font-body font-semibold text-sm h-11 mt-8"
             >
               Chọn gói Premium
             </Button>

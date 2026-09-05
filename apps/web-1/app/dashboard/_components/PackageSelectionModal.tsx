@@ -36,11 +36,11 @@ export function PackageSelectionModal({ opened, onClose }: PackageSelectionModal
         <Card withBorder radius="md" padding="lg" className="flex-1 bg-surface-card border-border-app">
           <Stack justify="space-between" className="h-full">
             <div>
-              <Text className="font-display font-semibold text-text-app mb-1">Basic AI Audit</Text>
-              <Group align="flex-end" gap="xs" mb="md">
-                <Text className="text-2xl font-display font-bold text-text-app">79,000</Text>
-                <Text className="font-body text-text-muted text-sm pb-1">VND</Text>
-              </Group>
+              <h4 className="font-heading font-bold text-lg text-text-app mb-1">Basic AI Audit</h4>
+              <div className="flex items-baseline gap-1.5 mb-3">
+                <span className="text-2xl font-heading font-bold text-text-app">79,000</span>
+                <span className="font-body text-text-muted text-sm">VND</span>
+              </div>
               <Text size="sm" c="dimmed" className="font-body mb-4 min-h-[40px]">
                 Phân tích tự động bằng AI. Báo cáo trả về tức thì.
               </Text>
@@ -63,7 +63,7 @@ export function PackageSelectionModal({ opened, onClose }: PackageSelectionModal
               variant="default"
               fullWidth
               onClick={() => handleSelect(PACKAGE_KEYS.AI_AUDIT)}
-              className="font-body text-text-app border-border-app"
+              className="font-body text-text-app border-border-app mt-4"
             >
               Chọn Basic
             </Button>
@@ -77,11 +77,11 @@ export function PackageSelectionModal({ opened, onClose }: PackageSelectionModal
           </Badge>
           <Stack justify="space-between" className="h-full">
             <div>
-              <Text className="font-display font-semibold text-brand mb-1">Premium Mentor Audit</Text>
-              <Group align="flex-end" gap="xs" mb="md">
-                <Text className="text-2xl font-display font-bold text-text-app">149,000</Text>
-                <Text className="font-body text-text-muted text-sm pb-1">VND</Text>
-              </Group>
+              <h4 className="font-heading font-bold text-lg text-brand mb-1">Premium Mentor Audit</h4>
+              <div className="flex items-baseline gap-1.5 mb-3">
+                <span className="text-2xl font-heading font-bold text-text-app">149,000</span>
+                <span className="font-body text-text-muted text-sm">VND</span>
+              </div>
               <Text size="sm" c="dimmed" className="font-body mb-4 min-h-[40px]">
                 Mentor FPT trực tiếp review, sửa lỗi chặn và định hướng thực chiến.
               </Text>
@@ -104,7 +104,7 @@ export function PackageSelectionModal({ opened, onClose }: PackageSelectionModal
               color="blue"
               fullWidth
               onClick={() => handleSelect(PACKAGE_KEYS.SUPPORTER_AUDIT)}
-              className="font-body font-semibold"
+              className="font-body font-semibold mt-4"
             >
               Chọn Premium
             </Button>
