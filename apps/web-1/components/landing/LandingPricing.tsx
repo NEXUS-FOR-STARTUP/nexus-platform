@@ -34,12 +34,12 @@ export default function LandingPricing() {
             </div>
 
             <List
-              spacing="sm"
-              size="sm"
-              className="font-body mb-8 flex-1"
+              spacing="xs"
+              size="xs"
+              className="font-body mb-8 flex-1 text-text-muted"
               icon={
-                <ThemeIcon color="green" size={20} radius="xl" variant="light">
-                  <Check size={12} strokeWidth={2.5} />
+                <ThemeIcon color="green" size={18} radius="xl" variant="light">
+                  <Check size={10} strokeWidth={2.5} />
                 </ThemeIcon>
               }
             >
@@ -85,12 +85,12 @@ export default function LandingPricing() {
             </div>
 
             <List
-              spacing="sm"
-              size="sm"
-              className="font-body mb-8 flex-1"
+              spacing="xs"
+              size="xs"
+              className="font-body mb-8 flex-1 text-text-muted"
               icon={
-                <ThemeIcon color="blue" size={20} radius="xl" variant="light">
-                  <Check size={12} strokeWidth={2.5} />
+                <ThemeIcon color="blue" size={18} radius="xl" variant="light">
+                  <Check size={10} strokeWidth={2.5} />
                 </ThemeIcon>
               }
             >
