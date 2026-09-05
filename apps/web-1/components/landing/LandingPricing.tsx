@@ -1,3 +1,5 @@
+"use client";
+
 import { Container, SimpleGrid, Card, Text, Badge, Button, Group, List, ThemeIcon, Title, Box } from "@mantine/core";
 import { Check } from "lucide-react";
 import Link from "next/link";
