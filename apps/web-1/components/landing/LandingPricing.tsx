@@ -23,12 +23,12 @@ export default function LandingPricing() {
           {/* Basic AI Audit */}
           <Card padding="xl" radius="md" withBorder className="border-border-app bg-surface-card flex flex-col">
             <div className="mb-6">
-              <Text className="font-display font-semibold text-lg text-text-app mb-2">Basic AI Audit</Text>
+              <Text className="font-display font-bold text-xl text-text-app mb-1">Basic AI Audit</Text>
               <Group align="flex-end" gap="xs">
                 <Text className="text-4xl font-display font-bold text-text-app">79.000</Text>
-                <Text className="font-body text-text-muted mb-1">VNĐ / lượt</Text>
+                <Text className="font-body text-text-muted mb-1 text-sm">VNĐ / lượt</Text>
               </Group>
-              <Text size="sm" c="dimmed" mt="sm" className="font-body h-10">
+              <Text size="sm" c="dimmed" mt="xs" className="font-body leading-relaxed min-h-[44px]">
                 Phù hợp cho các nhóm cần nộp bài gấp, rà soát khung sườn và sửa các lỗi logic cơ bản nhanh chóng.
               </Text>
             </div>
@@ -38,14 +38,14 @@ export default function LandingPricing() {
               size="sm"
               className="font-body mb-8 flex-1"
               icon={
-                <ThemeIcon color="green" size={24} radius="xl" variant="light">
-                  <Check size={14} strokeWidth={3} />
+                <ThemeIcon color="green" size={20} radius="xl" variant="light">
+                  <Check size={12} strokeWidth={2.5} />
                 </ThemeIcon>
               }
             >
               <List.Item>Đánh giá hoàn toàn tự động bằng AI</List.Item>
               <List.Item>Phân tích theo Rubric chuẩn (5 tiêu chí cốt lõi)</List.Item>
-              <List.Item>Nhận báo cáo chi tiết ngay lập tức (dưới 1 phút)</List.Item>
+              <List.Item>Nhận báo cáo chi tiết ngay lập tức (&lt; 1 phút)</List.Item>
               <List.Item>Chỉ ~15.000đ/bạn khi chia theo nhóm 5 người</List.Item>
             </List>
 
@@ -67,19 +67,19 @@ export default function LandingPricing() {
             <Badge 
               variant="filled" 
               color="blue" 
-              size="lg" 
-              className="absolute top-4 right-4"
+              size="md" 
+              className="absolute top-5 right-5 font-semibold"
             >
               Phổ biến nhất
             </Badge>
 
             <div className="mb-6">
-              <Text className="font-display font-semibold text-lg text-brand mb-2">Premium Mentor Audit</Text>
+              <Text className="font-display font-bold text-xl text-brand mb-1">Premium Mentor Audit</Text>
               <Group align="flex-end" gap="xs">
                 <Text className="text-4xl font-display font-bold text-text-app">149.000</Text>
-                <Text className="font-body text-text-muted mb-1">VNĐ / lượt</Text>
+                <Text className="font-body text-text-muted mb-1 text-sm">VNĐ / lượt</Text>
               </Group>
-              <Text size="sm" c="dimmed" mt="sm" className="font-body h-10">
+              <Text size="sm" c="dimmed" mt="xs" className="font-body leading-relaxed min-h-[44px]">
                 Dành cho dự án nhắm điểm 8-9, cần chuyên gia rà soát ảo giác và định hướng thực chiến.
               </Text>
             </div>
@@ -89,8 +89,8 @@ export default function LandingPricing() {
               size="sm"
               className="font-body mb-8 flex-1"
               icon={
-                <ThemeIcon color="blue" size={24} radius="xl" variant="light">
-                  <Check size={14} strokeWidth={3} />
+                <ThemeIcon color="blue" size={20} radius="xl" variant="light">
+                  <Check size={12} strokeWidth={2.5} />
                 </ThemeIcon>
               }
             >
