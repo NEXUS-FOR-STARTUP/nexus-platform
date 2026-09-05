@@ -1,6 +1,6 @@
 "use client";
 
-import { Modal, Card, Text, Group, Button, Stack, Badge, ThemeIcon, List } from "@mantine/core";
+import { Modal, Card, Text, Button, Stack, Badge, ThemeIcon, List, SimpleGrid } from "@mantine/core";
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { PACKAGE_KEYS } from "@/lib/pricing";
@@ -31,9 +31,9 @@ export function PackageSelectionModal({ opened, onClose }: PackageSelectionModal
         body: "bg-surface-app p-4 sm:p-6",
       }}
     >
-      <Stack gap="md" className="md:flex-row">
+      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
         {/* Basic AI Audit */}
-        <Card withBorder radius="md" padding="lg" className="flex-1 bg-surface-card border-border-app">
+        <Card withBorder radius="md" padding="lg" className="bg-surface-card border-border-app flex flex-col justify-between">
           <Stack justify="space-between" className="h-full">
             <div>
               <h4 className="font-heading font-bold text-lg text-text-app mb-1">Basic AI Audit</h4>
@@ -71,7 +71,7 @@ export function PackageSelectionModal({ opened, onClose }: PackageSelectionModal
         </Card>
 
         {/* Premium Mentor Audit */}
-        <Card withBorder radius="md" padding="lg" className="flex-1 bg-surface-card border-brand/40 relative">
+        <Card withBorder radius="md" padding="lg" className="bg-surface-card border-brand/40 relative flex flex-col justify-between">
           <Badge variant="filled" color="blue" className="absolute top-2 right-2">
             Khuyên dùng
           </Badge>
@@ -110,7 +110,7 @@ export function PackageSelectionModal({ opened, onClose }: PackageSelectionModal
             </Button>
           </Stack>
         </Card>
-      </Stack>
+      </SimpleGrid>
     </Modal>
   );
 }
