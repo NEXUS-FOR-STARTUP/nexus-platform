@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Download, ExternalLink, FileText, ChevronDown, ChevronUp } from "lucide-react";
-import { Button, Group, Stack, Tooltip, LoadingOverlay, Badge, Collapse } from "@mantine/core";
+import { Download, ExternalLink, FileText } from "lucide-react";
+import { Button, Group, Stack, Tooltip, LoadingOverlay, Badge } from "@mantine/core";
 import { useDownloadReportPdf, useDownloadReportPdfById } from "../hooks/useDownloadReportPdf";
 import type { RoundHistoryEntry, Report } from "@/types/case";
 
@@ -76,8 +76,7 @@ function formatDateShort(dateStr?: string | null): string {
   }
 }
 
-function RoundCard({ round, caseId, isFirst }: { round: RoundHistoryEntry; caseId: string; isFirst: boolean }) {
-  const [expanded, setExpanded] = useState(isFirst);
+function RoundCard({ round, caseId }: { round: RoundHistoryEntry; caseId: string }) {
   const [pdfLoading, setPdfLoading] = useState(true);
 
   const parsedReport = useMemo<RichReportData | null>(() => {
@@ -115,19 +114,8 @@ function RoundCard({ round, caseId, isFirst }: { round: RoundHistoryEntry; caseI
 
   return (
     <div className="border border-border-app rounded-xl overflow-hidden bg-surface-app animate-fade-in">
-      {/* Header — always visible */}
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={() => setExpanded(!expanded)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setExpanded(!expanded);
-          }
-        }}
-        className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface-soft/50 cursor-pointer transition-colors text-left"
-      >
+      {/* Header — content below always open */}
+      <div className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left">
         <div className="flex items-center gap-3 min-w-0">
           <Badge variant="light" color={typeColor} size="sm">
             {typeLabel}
@@ -139,7 +127,7 @@ function RoundCard({ round, caseId, isFirst }: { round: RoundHistoryEntry; caseI
             {formatDateShort(round.submitted_at)}
           </span>
         </div>
-        <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-2 shrink-0">
           <Button
             component="a"
             href={pdfViewUrl}
@@ -162,13 +150,11 @@ function RoundCard({ round, caseId, isFirst }: { round: RoundHistoryEntry; caseI
           >
             Tải PDF
           </Button>
-          {expanded ? <ChevronUp className="w-4 h-4 text-text-muted" /> : <ChevronDown className="w-4 h-4 text-text-muted" />}
         </div>
       </div>
 
-      {/* Collapsible content */}
-      <Collapse expanded={expanded}>
-        <div className="border-t border-border-app">
+      {/* Content — always open, no collapse */}
+      <div className="border-t border-border-app">
           {round.report ? (
             <div className="relative w-full h-[calc(100vh-440px)] min-h-[480px]">
               <LoadingOverlay visible={pdfLoading} />
@@ -185,8 +171,7 @@ function RoundCard({ round, caseId, isFirst }: { round: RoundHistoryEntry; caseI
               <p className="text-sm text-text-muted">Chưa có báo cáo cho phiên bản này.</p>
             </div>
           )}
-        </div>
-      </Collapse>
+      </div>
     </div>
   );
 }
@@ -237,12 +222,11 @@ export default function TabReportFindings({ report, caseId, roundHistory }: TabR
         </div>
 
         <Stack gap="sm">
-          {roundHistory.map((round, idx) => (
+          {roundHistory.map((round) => (
             <RoundCard
               key={round.report_id}
               round={round}
               caseId={caseId || ""}
-              isFirst={idx === 0}
             />
           ))}
         </Stack>
