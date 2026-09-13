@@ -26,6 +26,14 @@ export const redisPublisher = new Redis({
   lazyConnect: true,
 });
 
+export const redisSubscriber = new Redis({
+  host: REDIS_HOST,
+  port: REDIS_PORT,
+  password: REDIS_PASSWORD,
+  maxRetriesPerRequest: null,
+  lazyConnect: true,
+});
+
 export interface OmpJobPayload {
   jobId: string;
   documentPath: string;
@@ -41,9 +49,20 @@ export interface OmpJobPayload {
  * Dispatch an evaluation task into BullMQ omp-queue.
  */
 export async function dispatchOmpJob(payload: OmpJobPayload): Promise<void> {
+  const queueJobId = `omp-${payload.jobId}`;
   logger.info({ jobId: payload.jobId, title: payload.title }, "Dispatching task into BullMQ omp-queue");
+  try {
+    const existing = await ompQueue.getJob(queueJobId);
+    if (existing) {
+      await existing.remove();
+      logger.info({ jobId: payload.jobId }, "Removed existing stale job from BullMQ queue before dispatch");
+    }
+  } catch (err: any) {
+    logger.warn({ jobId: payload.jobId, err: err.message }, "Could not remove existing BullMQ job before dispatch");
+  }
+
   await ompQueue.add("evaluate-omp", payload, {
-    jobId: `omp-${payload.jobId}`,
+    jobId: queueJobId,
     removeOnComplete: 100,
     removeOnFail: 200,
   });

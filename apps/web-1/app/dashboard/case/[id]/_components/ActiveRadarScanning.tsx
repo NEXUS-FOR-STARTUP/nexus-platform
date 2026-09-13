@@ -31,8 +31,26 @@ export default function ActiveRadarScanning({
   const startedAt = aiStatusData?.startedAt;
 
   useEffect(() => {
-    if (aiStatusData?.logs && aiStatusData.logs.length > logs.length) {
-      setLogs(aiStatusData.logs);
+    setLogs(aiStatusData?.logs || []);
+  }, [startedAt]);
+
+  useEffect(() => {
+    const fetchedLogs = aiStatusData?.logs;
+    if (fetchedLogs && fetchedLogs.length > 0) {
+      setLogs((prev) => {
+        if (fetchedLogs.length < prev.length) return fetchedLogs;
+        const merged = [...prev];
+        for (const log of fetchedLogs) {
+          const isDup = merged.some(
+            (p) =>
+              (p.timestamp === log.timestamp && p.message === log.message) ||
+              (p.message === log.message &&
+                Math.abs(new Date(p.timestamp).getTime() - new Date(log.timestamp).getTime()) < 1500)
+          );
+          if (!isDup) merged.push(log);
+        }
+        return merged;
+      });
     }
   }, [aiStatusData?.logs]);
 
@@ -44,6 +62,7 @@ export default function ActiveRadarScanning({
     const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
   }, [startedAt, isTerminal]);
+
   useEffect(() => {
     if (status === "completed" || status === "failed" || status === "cancelled") {
       setIsStreaming(false);
@@ -56,7 +75,14 @@ export default function ActiveRadarScanning({
     eventSource.addEventListener("log", (e) => {
       try {
         const entry = JSON.parse(e.data) as LogEntry;
-        setLogs((prev) => prev.some((p) => p.timestamp === entry.timestamp && p.message === entry.message) ? prev : [...prev, entry]);
+        setLogs((prev) => {
+          const isDup = prev.some(
+            (p) =>
+              (p.timestamp === entry.timestamp && p.message === entry.message) ||
+              (p.message === entry.message && Math.abs(new Date(p.timestamp).getTime() - new Date(entry.timestamp).getTime()) < 1500)
+          );
+          return isDup ? prev : [...prev, entry];
+        });
       } catch {}
     });
     eventSource.addEventListener("job_state", (e) => {

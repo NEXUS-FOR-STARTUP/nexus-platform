@@ -39,10 +39,13 @@ function getLogColor(message: string): string {
 }
 
 export default function TerminalConsole({ logs, isStreaming = false }: TerminalConsoleProps) {
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = containerRef.current;
+    if (el) {
+      el.scrollTop = el.scrollHeight;
+    }
   }, [logs.length]);
 
   return (
@@ -76,7 +79,10 @@ export default function TerminalConsole({ logs, isStreaming = false }: TerminalC
       </div>
 
       {/* Log Screen */}
-      <div className="h-[460px] overflow-y-auto p-4 font-mono text-[11px] leading-relaxed select-text space-y-1 scrollbar-thin scrollbar-thumb-zinc-800">
+      <div
+        ref={containerRef}
+        className="h-[460px] overflow-y-auto p-4 font-mono text-[11px] leading-relaxed select-text space-y-1 scrollbar-thin scrollbar-thumb-zinc-800"
+      >
         {logs.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-zinc-500 italic space-y-2">
             <Radio className="w-6 h-6 animate-pulse text-zinc-600" />
@@ -104,7 +110,6 @@ export default function TerminalConsole({ logs, isStreaming = false }: TerminalC
             </div>
           ))
         )}
-        <div ref={bottomRef} />
       </div>
     </div>
   );

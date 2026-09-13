@@ -24,7 +24,7 @@ export interface ProcessRunResult {
 export async function spawnOmpProcess(options: SpawnOmpProcessOptions): Promise<ProcessRunResult> {
   const { jobId, jobDir, outputDir, runCmd, args } = options;
 
-  logJob(jobId, `Khởi chạy tiến trình sandbox: ${runCmd} ${args.join(" ")}`);
+  logJob(jobId, "Khởi chạy tiến trình sandbox AI (OMP Runner)...");
   let rawLogs = "";
   let tracker: ProcessResourceTracker | null = null;
 

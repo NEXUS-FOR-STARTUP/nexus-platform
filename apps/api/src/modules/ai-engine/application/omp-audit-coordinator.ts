@@ -352,45 +352,45 @@ export async function triggerOmpAuditForCase(
     throw txErr;
   }
 
-  // 7. Update case stage to under_review
-  await updateCaseAuditStage(caseId, "under_review", "supporter_working");
-
-  // 8. Cleanup old sandbox input/output before writing new files
-  const projectRoot = resolveRepoRoot();
-  const jobDir = resolve(projectRoot, "storage", "jobs", caseId);
-  cleanDirectory(resolve(jobDir, "input"));
-  cleanDirectory(resolve(jobDir, "output"));
-
-  // Optional local-dev mirror (e.g. a second checkout's storage). Unset = skip.
-  const sandboxStorage = process.env.OMP_SANDBOX_MIRROR_ROOT || "";
-  if (existsSync(sandboxStorage)) {
-    cleanDirectory(resolve(sandboxStorage, "jobs", caseId, "input"));
-    cleanDirectory(resolve(sandboxStorage, "jobs", caseId, "output"));
-  }
-
-  // 9. Assemble scoped input files per submission type
-  const { inputFiles, resolvedLifecycleUnitId } = await assembleScopedInputFiles(
-    caseId,
-    submissionType,
-    lifecycleUnitId ?? null,
-  );
-
-  // 10. Prepare sandbox
-  prepareSandbox(jobDir, inputFiles);
-
-  if (existsSync(sandboxStorage)) {
-    try {
-      prepareSandbox(resolve(sandboxStorage, "jobs", caseId), inputFiles);
-    } catch (err) {
-      logger.warn({ caseId, err }, "Failed to mirror sandbox to OMP_SANDBOX_MIRROR_ROOT");
-    }
-  }
-
-  const projectName = caseRecord.team_name || caseRecord.case_code || "Dự án khởi nghiệp";
-  const primaryFileName = inputFiles.find((f) => f.name.endsWith(".md") || f.name.endsWith(".pdf"))?.name || "document.md";
-
-  // 11. Dispatch job into BullMQ (with submissionType in payload)
   try {
+    // 7. Update case stage to under_review
+    await updateCaseAuditStage(caseId, "under_review", "supporter_working");
+
+    // 8. Cleanup old sandbox input/output before writing new files
+    const projectRoot = resolveRepoRoot();
+    const jobDir = resolve(projectRoot, "storage", "jobs", caseId);
+    cleanDirectory(resolve(jobDir, "input"));
+    cleanDirectory(resolve(jobDir, "output"));
+
+    // Optional local-dev mirror (e.g. a second checkout's storage). Unset = skip.
+    const sandboxStorage = process.env.OMP_SANDBOX_MIRROR_ROOT || "";
+    if (existsSync(sandboxStorage)) {
+      cleanDirectory(resolve(sandboxStorage, "jobs", caseId, "input"));
+      cleanDirectory(resolve(sandboxStorage, "jobs", caseId, "output"));
+    }
+
+    // 9. Assemble scoped input files per submission type
+    const { inputFiles, resolvedLifecycleUnitId } = await assembleScopedInputFiles(
+      caseId,
+      submissionType,
+      lifecycleUnitId ?? null,
+    );
+
+    // 10. Prepare sandbox
+    prepareSandbox(jobDir, inputFiles);
+
+    if (existsSync(sandboxStorage)) {
+      try {
+        prepareSandbox(resolve(sandboxStorage, "jobs", caseId), inputFiles);
+      } catch (err) {
+        logger.warn({ caseId, err }, "Failed to mirror sandbox to OMP_SANDBOX_MIRROR_ROOT");
+      }
+    }
+
+    const projectName = caseRecord.team_name || caseRecord.case_code || "Dự án khởi nghiệp";
+    const primaryFileName = inputFiles.find((f) => f.name.endsWith(".md") || f.name.endsWith(".pdf"))?.name || "document.md";
+
+    // 11. Dispatch job into BullMQ (with submissionType in payload)
     await dispatchOmpJob({
       jobId: caseId,
       documentPath: resolve(jobDir, "input", primaryFileName),
@@ -400,35 +400,34 @@ export async function triggerOmpAuditForCase(
       promptMode: "full",
       submissionType,
     });
-  } catch (dispatchErr) {
-    // Compensate: refund credit on dispatch failure (idempotent per trigger)
-    logger.error({ caseId, dispatchErr }, "Dispatch failed, refunding credit");
-    await refundAuditCreditIfNoReport(caseId, "dispatch-failure");
-    await updateAiJobStatus(caseId, "failed", { error: String(dispatchErr) });
-    throw dispatchErr;
+
+    // 12. Sync into jobStore for real-time SSE logs
+    jobStore.set({
+      id: caseId,
+      title: projectName,
+      documentPath: resolve(jobDir, "input", primaryFileName),
+      documentOriginalName: primaryFileName,
+      requestedAgent: "omp",
+      createdAt: startedAt,
+      status: "queued",
+      ompStatus: "queued",
+      results: {},
+      logs: [
+        {
+          timestamp: startedAt,
+          agent: "system",
+          message: `Khởi tạo job thẩm định [${submissionType}] ${caseId} cho case ${caseRecord.case_code}: ${projectName}`,
+        },
+      ],
+    });
+
+    logger.info({ caseId, projectName, submissionType, resolvedLifecycleUnitId }, "OMP audit job dispatched to BullMQ queue");
+  } catch (flowErr) {
+    logger.error({ caseId, flowErr }, "Preparation or dispatch failed, refunding credit");
+    await refundAuditCreditIfNoReport(caseId, "dispatch-failure").catch(() => {});
+    await updateAiJobStatus(caseId, "failed", { error: String(flowErr) }).catch(() => {});
+    throw flowErr;
   }
-
-  // 12. Sync into jobStore for real-time SSE logs
-  jobStore.set({
-    id: caseId,
-    title: projectName,
-    documentPath: resolve(jobDir, "input", primaryFileName),
-    documentOriginalName: primaryFileName,
-    requestedAgent: "omp",
-    createdAt: startedAt,
-    status: "queued",
-    ompStatus: "queued",
-    results: {},
-    logs: [
-      {
-        timestamp: startedAt,
-        agent: "system",
-        message: `Khởi tạo job thẩm định [${submissionType}] ${caseId} cho case ${caseRecord.case_code}: ${projectName}`,
-      },
-    ],
-  });
-
-  logger.info({ caseId, projectName, submissionType, resolvedLifecycleUnitId }, "OMP audit job dispatched to BullMQ queue");
 }
 
 /**
@@ -438,6 +437,7 @@ export async function cancelOmpAuditForCase(caseId: string) {
   const queueResult = await cancelOmpJob(caseId);
   const cancelledJob = jobStore.cancel(caseId);
   await updateAiJobStatus(caseId, "cancelled", { cancelledAt: new Date().toISOString() });
+  await refundAuditCreditIfNoReport(caseId, "cancelled-by-user").catch(() => {});
   logger.warn({ caseId, queueResult }, "OMP audit cancelled by user");
   return { success: true, message: "Đã hủy tiến trình thẩm định OMP", job: cancelledJob };
 }
