@@ -136,9 +136,9 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
   let pdfUrl: string | null = null;
   let pdfPublicId: string | null = null;
   if (pdfBuffer) {
+    const versionSuffix = versionNo != null ? `_v${String(versionNo).padStart(2, "0")}` : "";
+    const cloudinaryName = `audit_report${versionSuffix}`;
     try {
-      const versionSuffix = versionNo != null ? `_v${String(versionNo).padStart(2, "0")}` : "";
-      const cloudinaryName = `audit_report${versionSuffix}`;
       const uploadRes = await uploadFile(
         pdfBuffer,
         `nexus/reports/${caseId}`,
@@ -151,7 +151,22 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
         logger.info({ caseId, pdfUrl }, "Uploaded A4 PDF report to Cloudinary");
       }
     } catch (uploadErr) {
-      logger.warn({ caseId, uploadErr }, "Cloudinary upload failed during finalization, continuing with local PDF");
+      logger.warn({ caseId, uploadErr }, "Cloudinary upload failed during finalization, retrying once...");
+      try {
+        const retryRes = await uploadFile(
+          pdfBuffer,
+          `nexus/reports/${caseId}`,
+          cloudinaryName,
+          "raw",
+        );
+        if (retryRes?.fileUrl) {
+          pdfUrl = retryRes.fileUrl;
+          pdfPublicId = retryRes.publicId;
+          logger.info({ caseId, pdfUrl }, "Uploaded A4 PDF report to Cloudinary on retry");
+        }
+      } catch (retryErr) {
+        logger.error({ caseId, retryErr }, "Cloudinary retry also failed, continuing with local PDF");
+      }
     }
   }
 

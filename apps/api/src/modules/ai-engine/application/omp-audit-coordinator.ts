@@ -382,7 +382,7 @@ export async function triggerOmpAuditForCase(
     try {
       prepareSandbox(resolve(sandboxStorage, "jobs", caseId), inputFiles);
     } catch (err) {
-      logger.warn({ caseId, err }, "Failed to mirror sandbox to test-agent-sanbox-web/storage");
+      logger.warn({ caseId, err }, "Failed to mirror sandbox to OMP_SANDBOX_MIRROR_ROOT");
     }
   }
 

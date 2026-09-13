@@ -28,9 +28,9 @@ export interface OmpAuditResult {
  * Priority: direct cli.js under .bun (bypasses Windows cmd.exe argument mangling) -> global omp binary.
  */
 function resolveOmpCommand(): { command: string; baseArgs: string[] } {
-  const userProfile = process.env.USERPROFILE || "";
+  const homeDir = process.env.HOME || process.env.USERPROFILE || "/root";
   const directCli = resolve(
-    userProfile,
+    homeDir,
     ".bun/install/global/node_modules/@oh-my-pi/pi-coding-agent/dist/cli.js"
   );
 
@@ -42,6 +42,9 @@ function resolveOmpCommand(): { command: string; baseArgs: string[] } {
 }
 
 export function resolveRepoRoot(): string {
+  if (process.env.APP_ROOT && existsSync(process.env.APP_ROOT)) {
+    return resolve(process.env.APP_ROOT);
+  }
   let current = process.cwd();
   for (let i = 0; i < 4; i++) {
     if (existsSync(resolve(current, "data/knowledge/startup_knowledge.db"))) {
@@ -95,8 +98,8 @@ export function prepareSandbox(jobDir: string, inputFiles: OmpAuditInputFile[]):
 
   // 3. Setup models.json for OMP
   const providersPath = resolve(projectRoot, "data/providers.json");
-  const userProfile = process.env.USERPROFILE || "";
-  const globalModelsPath = resolve(userProfile, ".omp/agent/models.json");
+  const homeDir = process.env.HOME || process.env.USERPROFILE || "/root";
+  const globalModelsPath = resolve(homeDir, ".omp/agent/models.json");
   const sourceModelsPath = existsSync(providersPath)
     ? providersPath
     : existsSync(globalModelsPath)

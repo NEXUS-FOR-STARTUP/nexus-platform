@@ -1,44 +1,42 @@
 import { EventEmitter } from "node:events";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, unlinkSync } from "node:fs";
 import { resolve } from "node:path";
 import type { EvaluationJob } from "@app/shared";
 import { resolveRepoRoot } from "../../omp-audit.service.js";
 
 class JobStoreRepository extends EventEmitter {
   private primaryFile: string;
-  private sandboxFile: string;
 
   constructor() {
     super();
     const root = resolveRepoRoot();
     this.primaryFile = resolve(root, "storage", "jobs_db.json");
-    this.sandboxFile = "E:/Workspace/test-agent-sanbox-web/storage/jobs_db.json";
   }
 
   private readList(): EvaluationJob[] {
-    const candidateFiles = [this.sandboxFile, this.primaryFile];
-    for (const f of candidateFiles) {
-      if (existsSync(f)) {
-        try {
-          const raw = readFileSync(f, "utf-8");
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) return parsed;
-        } catch {}
-      }
+    if (existsSync(this.primaryFile)) {
+      try {
+        const raw = readFileSync(this.primaryFile, "utf-8");
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      } catch {}
     }
     return [];
   }
 
   private writeList(list: EvaluationJob[]): void {
     const raw = JSON.stringify(list, null, 2);
-    const candidateFiles = [this.primaryFile, this.sandboxFile];
-    for (const f of candidateFiles) {
-      try {
-        const dir = resolve(f, "..");
-        if (existsSync(dir)) {
-          writeFileSync(f, raw, "utf-8");
-        }
-      } catch {}
+    const dir = resolve(this.primaryFile, "..");
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true });
+    }
+    const tmpFile = resolve(dir, `.jobs_db.${Date.now()}.${Math.random().toString(36).slice(2)}.tmp`);
+    try {
+      writeFileSync(tmpFile, raw, "utf-8");
+      renameSync(tmpFile, this.primaryFile);
+    } catch (err) {
+      try { unlinkSync(tmpFile); } catch {}
+      throw err;
     }
   }
 

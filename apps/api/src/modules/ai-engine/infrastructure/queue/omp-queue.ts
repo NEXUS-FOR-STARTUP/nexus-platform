@@ -61,7 +61,6 @@ export function getJobMilestones(jobId: string): {
   const root = resolveRepoRoot();
   const candidateDirs = [
     resolve(root, "storage", "jobs", jobId),
-    "E:/Workspace/test-agent-sanbox-web/storage/jobs/" + jobId,
     resolve(root, "apps", "api", "storage", "jobs", jobId),
   ];
 
@@ -145,6 +144,9 @@ export async function cancelOmpJob(jobId: string): Promise<boolean> {
 }
 
 function resolveRepoRoot(): string {
+  if (process.env.APP_ROOT && existsSync(process.env.APP_ROOT)) {
+    return resolve(process.env.APP_ROOT);
+  }
   let current = process.cwd();
   for (let i = 0; i < 4; i++) {
     if (existsSync(resolve(current, "data/knowledge/startup_knowledge.db"))) {

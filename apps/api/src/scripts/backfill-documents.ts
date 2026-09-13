@@ -157,9 +157,10 @@ async function backfillCase(caseId: string, uploaderId: string) {
 async function writeQuarantineLog() {
   if (quarantine.length === 0) return;
   const fs = await import('node:fs/promises');
-  const path = 'E:\\FPT\\Semester_7\\EXE101\\product-workspace\\nexus-platform\\plans\\260630-1352-document-workspace-refactor\\reports\\backfill-quarantine.json';
-  await fs.writeFile(path, JSON.stringify(quarantine, null, 2));
-  console.warn('Quarantined ' + quarantine.length + ' rows; see ' + path);
+  const { resolve } = await import('node:path');
+  const filePath = resolve(process.cwd(), 'plans/260630-1352-document-workspace-refactor/reports/backfill-quarantine.json');
+  await fs.writeFile(filePath, JSON.stringify(quarantine, null, 2));
+  console.warn('Quarantined ' + quarantine.length + ' rows; see ' + filePath);
 }
 
 async function main() {
