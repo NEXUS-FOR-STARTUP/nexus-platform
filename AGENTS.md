@@ -45,6 +45,7 @@ root/
 | DB query (prod) | `docs/db-query-guide.md`                              | Read-only query via READONLY_DATABASE_URL, guest account     |
 | DB backup       | `docs/db-backup-guide.md`                             | pg_dump via Docker, safe SQL on VPS, restore                 |
 | Docker build    | `docs/docker-build-push-guide.md`                     | Build/push API & Web images, deploy to VPS                   |
+| VPS deploy      | `docs/vps-deployment-guide.md`                        | Safe VPS deployment checklist (Single Compose, OMP worker)    |
 
 ## CONVENTIONS
 
