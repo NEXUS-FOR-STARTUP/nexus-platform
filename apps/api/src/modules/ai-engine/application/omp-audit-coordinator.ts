@@ -105,10 +105,10 @@ export function initOmpQueueListener(): void {
       }
     } catch (err) {
       logger.error({ caseId, err }, "Failed to finalize OMP audit result on completed event");
-      await updateAiJobStatus(caseId, "failed", { error: String(err) }).catch(() => {});
       if (err instanceof AppError && err.status === 409) {
-        logger.info({ caseId }, "Duplicate report guard hit; user error, no refund");
+        logger.info({ caseId }, "Duplicate report guard hit; report already finalized, skipping error status");
       } else {
+        await updateAiJobStatus(caseId, "failed", { error: String(err) }).catch(() => {});
         await refundAuditCreditIfNoReport(caseId, "finalize-error");
       }
     }
@@ -396,7 +396,7 @@ export async function triggerOmpAuditForCase(
       documentPath: resolve(jobDir, "input", primaryFileName),
       documentOriginalName: primaryFileName,
       title: projectName,
-      ompModel: process.env.OMP_MODEL || "cheapkeyai/gemini-3.8-flash",
+      ompModel: process.env.OMP_MODEL || "mimo/mimo-v2.5",
       promptMode: "full",
       submissionType,
     });
@@ -416,7 +416,7 @@ export async function triggerOmpAuditForCase(
         {
           timestamp: startedAt,
           agent: "system",
-          message: `Khởi tạo job thẩm định [${submissionType}] ${caseId} cho case ${caseRecord.case_code}: ${projectName}`,
+          message: `Khởi tạo tiến trình thẩm định đề án ${projectName} - Mã case ${caseRecord.case_code}`,
         },
       ],
     });

@@ -401,7 +401,7 @@ export async function upsertReportArtifactDocumentRecord(
       file_url: fileUrl,
       download_url: downloadUrl,
       cloudinary_public_id: cloudinaryPublicId,
-      uploaded_by_auth_user_id: createdByUserId,
+      uploaded_by_auth_user_id: validUserId,
     },
   });
 }

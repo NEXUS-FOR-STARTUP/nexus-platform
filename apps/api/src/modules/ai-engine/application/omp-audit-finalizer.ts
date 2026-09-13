@@ -86,11 +86,13 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
         select: { id: true },
       });
       if (existingReport) {
-        throw new AppError(
-          409,
-          "RESUBMIT_REQUIRES_UPLOAD",
-          "Cần nộp tài liệu sửa trước khi audit lại.",
+        logger.info(
+          { caseId, reportId: existingReport.id },
+          "Report already finalized for this lifecycle unit, ensuring state and returning cleanly",
         );
+        await updateAiJobStatus(caseId, "completed", reportJson);
+        await updateCaseAuditStage(caseId, "report_ready", "report_ready_to_publish");
+        return true;
       }
       lifecycleUnitId = latestUnit.id;
     }
@@ -188,14 +190,13 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
     if (lifecycleUnitId) {
       const existing = await tx.report.findFirst({
         where: { lifecycle_unit_id: lifecycleUnitId },
-        select: { id: true },
       });
       if (existing) {
-        throw new AppError(
-          409,
-          "RESUBMIT_REQUIRES_UPLOAD",
-          "Cần nộp tài liệu sửa trước khi audit lại.",
+        logger.info(
+          { caseId, reportId: existing.id },
+          "Report already saved in database, returning existing record",
         );
+        return existing;
       }
     }
     return saveOmpAuditReport(
