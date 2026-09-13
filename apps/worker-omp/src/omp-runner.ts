@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { AgentExecutionResult, StartupReport } from "@app/shared";
-import { STORAGE_DIR, OMP_BIN, DEFAULT_MODEL, PROMPT_CONFIG } from "./config.js";
+import { STORAGE_DIR, DEFAULT_MODEL, PROMPT_CONFIG, resolveAgentRuntime } from "./config.js";
 import { logJob, updateJobInStorage } from "./storage.js";
 import {
   prepareJobDirectories,
@@ -40,13 +40,7 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
   const outputDir = resolve(jobDir, "output");
   prepareJobDirectories(jobDir, outputDir);
 
-  const OMP_CLI = resolve(
-    process.env.USERPROFILE || "",
-    ".bun/install/global/node_modules/@oh-my-pi/pi-coding-agent/dist/cli.js"
-  );
-  const isDirectCli = existsSync(OMP_CLI);
-  const runCmd = isDirectCli ? "bun" : OMP_BIN;
-  const baseArgs = isDirectCli ? [OMP_CLI] : [];
+  const { runCmd, baseArgs } = resolveAgentRuntime();
   const mode = data.promptMode === "lite" ? "lite" : "full";
   const submissionType = data.submissionType ?? "initial";
 
@@ -194,6 +188,12 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
     j.ompStatus = agentResult.status;
     j.results.omp = agentResult;
   });
+
+  if (!isSuccess) {
+    const failureMessage = executionResult.error || "Process failed to produce complete output";
+    logJob(jobId, `OMP thất bại: ${failureMessage}`);
+    throw new Error(failureMessage);
+  }
 
   logJob(jobId, `Hoàn thành đánh giá với OMP trong ${Math.round(durationMs / 1000)}s.`);
   return agentResult;
