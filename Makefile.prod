@@ -26,10 +26,11 @@
 # make clean              Stop + remove volumes (DESTROYS DATA!)
 # =============================================================================
 
-.PHONY: help setup deploy deploy-api deploy-web \
+.PHONY: help setup deploy deploy-api deploy-web deploy-worker \
 	start stop restart ps logs \
 	start-api stop-api restart-api api-logs \
 	start-web stop-web restart-web web-logs \
+	start-worker stop-worker restart-worker worker-logs \
 	start-db stop-db db-logs \
 	migrate migrate-status prune clean
 
@@ -48,8 +49,11 @@ help: ## Show this help
 # Setup (first time on VPS)
 # ──────────────────────────────────────────
 
-setup: ## Init: create proxy-net (first time)
+setup: ## Init: create proxy-net and persistent storage dirs (first time)
 	@docker network inspect proxy-net >/dev/null 2>&1 || docker network create proxy-net
+	@mkdir -p storage/jobs storage/auth/omp
+	@test -f storage/auth/omp/auth.json || echo "{}" > storage/auth/omp/auth.json
+	@chmod -R a+rwX storage
 
 # ──────────────────────────────────────────
 # Deploy
@@ -66,6 +70,10 @@ deploy-api: ## Pull latest API image + restart
 deploy-web: ## Pull latest Web image + restart
 	@$(DOCKER_COMPOSE) pull web
 	@$(DOCKER_COMPOSE) up -d --no-deps web
+
+deploy-worker: ## Pull latest Worker image + restart
+	@$(DOCKER_COMPOSE) pull worker-omp
+	@$(DOCKER_COMPOSE) up -d --no-deps worker-omp
 
 # ──────────────────────────────────────────
 # All services
@@ -115,6 +123,22 @@ restart-web: ## Restart Web container
 
 web-logs: ## Tail Web logs
 	@$(DOCKER_COMPOSE) logs -f -t web
+
+# ──────────────────────────────────────────
+# Worker OMP
+# ──────────────────────────────────────────
+
+start-worker: ## Start Worker container
+	@$(DOCKER_COMPOSE) up -d worker-omp
+
+stop-worker: ## Stop Worker container
+	@$(DOCKER_COMPOSE) stop worker-omp
+
+restart-worker: ## Restart Worker container
+	@$(DOCKER_COMPOSE) restart worker-omp
+
+worker-logs: ## Tail Worker logs
+	@$(DOCKER_COMPOSE) logs -f -t worker-omp
 
 # ──────────────────────────────────────────
 # Database
