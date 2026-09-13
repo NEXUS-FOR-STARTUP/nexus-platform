@@ -423,18 +423,7 @@ export default function StatusGuidanceCard({
               Supporter đã hoàn thành đánh giá chi tiết. Xem báo cáo ở tab Báo cáo; khi nhóm đã xem xong, hãy xác nhận hoàn thành hoặc gửi đánh giá mới.
             </p>
 
-            {!hasReportCredits ? (
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-danger-soft dark:bg-red-950/30 p-2.5 rounded border border-danger/10 dark:border-red-800/40">
-                <p className="text-danger dark:text-red-300 text-xs leading-relaxed">
-                  Bạn đã hết credit. Nếu muốn tiếp tục nộp bản sửa đổi mới ở vòng sau, vui lòng mua thêm credit.
-                </p>
-                {onOpenPayment && (
-                  <Button size="xs" color="red" variant="light" className="shrink-0 cursor-pointer" onClick={onOpenPayment}>
-                    Mua credit
-                  </Button>
-                )}
-              </div>
-            ) : (
+            {hasReportCredits && (
               <p className="text-text-muted text-xs leading-relaxed">
                 Muốn tiếp tục cải thiện? Chọn loại đánh giá bên dưới — mỗi lượt đánh giá mới = 1 credit.
               </p>
@@ -455,6 +444,33 @@ export default function StatusGuidanceCard({
             )}
           </div>
         </Alert>
+
+        {!hasReportCredits && (
+          <Alert
+            variant="light"
+            color="red"
+            radius="md"
+            icon={<AlertCircle className="w-4.5 h-4.5 shrink-0" />}
+            className={ALERT_CLASS}
+          >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 flex-grow">
+              <p className="text-xs leading-relaxed">
+                Bạn đã hết credit. Nếu muốn tiếp tục nộp bản sửa đổi mới ở vòng sau, vui lòng mua thêm credit.
+              </p>
+              {onOpenPayment && (
+                <Button
+                  size="xs"
+                  color="red"
+                  variant="filled"
+                  className="shrink-0 font-semibold cursor-pointer"
+                  onClick={onOpenPayment}
+                >
+                  Mua credit
+                </Button>
+              )}
+            </div>
+          </Alert>
+        )}
 
         {/* Audit trigger — shown when credits available and trigger handler provided */}
         {canTriggerAudit && (
