@@ -26,6 +26,7 @@ export default function ActiveRadarScanning({
   const [isStreaming, setIsStreaming] = useState(false);
 
   const status = aiStatusData?.status || "running";
+  const isTerminal = status === "completed" || status === "failed" || status === "cancelled";
   const jobId = aiStatusData?.jobId || caseId;
   const startedAt = aiStatusData?.startedAt;
 
@@ -36,14 +37,13 @@ export default function ActiveRadarScanning({
   }, [aiStatusData?.logs]);
 
   useEffect(() => {
-    if (!startedAt) return;
+    if (!startedAt || isTerminal) return;
     const startMs = new Date(startedAt).getTime();
     const tick = () => setElapsedSecs(Math.max(0, Math.floor((Date.now() - startMs) / 1000)));
     tick();
     const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
-  }, [startedAt]);
-
+  }, [startedAt, isTerminal]);
   useEffect(() => {
     if (status === "completed" || status === "failed" || status === "cancelled") {
       setIsStreaming(false);

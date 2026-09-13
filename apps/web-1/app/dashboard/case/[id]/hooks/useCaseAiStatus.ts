@@ -1,6 +1,6 @@
-"use client";
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
+import { notifications } from "@mantine/notifications";
 import { apiClient } from "@/lib/api-client";
 
 export interface LogEntry {
@@ -50,6 +50,13 @@ export function useCaseAiStatus(caseId: string, enabled = true) {
       queryClient.invalidateQueries({ queryKey: ["case-ai-status", caseId] });
       queryClient.invalidateQueries({ queryKey: ["case", caseId] });
     },
+    onError: () => {
+      notifications.show({
+        title: "Hủy thất bại",
+        message: "Không hủy được tiến trình. Vui lòng thử lại.",
+        color: "red",
+      });
+    },
   });
 
   const retryMutation = useMutation({
@@ -60,6 +67,33 @@ export function useCaseAiStatus(caseId: string, enabled = true) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["case-ai-status", caseId] });
       queryClient.invalidateQueries({ queryKey: ["case", caseId] });
+    },
+    onError: (error: unknown) => {
+      const errData = isAxiosError<{ code?: string; message?: string }>(error)
+        ? error.response?.data
+        : undefined;
+      const status = isAxiosError(error) ? error.response?.status : undefined;
+      if (status === 402 || errData?.code === "NO_CREDITS") {
+        notifications.show({
+          title: "Không đủ credit",
+          message: "Bạn đã hết credit đánh giá. Vui lòng mua thêm credit để tiếp tục.",
+          color: "orange",
+        });
+        return;
+      }
+      if (status === 409) {
+        notifications.show({
+          title: "Đánh giá đang diễn ra",
+          message: errData?.message || "Hệ thống đang thẩm định. Vui lòng chờ kết quả trước khi gửi lại.",
+          color: "blue",
+        });
+        return;
+      }
+      notifications.show({
+        title: "Chạy lại thất bại",
+        message: errData?.message || "Đã xảy ra lỗi. Vui lòng thử lại sau.",
+        color: "red",
+      });
     },
   });
 
