@@ -41,6 +41,52 @@ const TriggerOptsSchema = z.object({
 let queueEventsInitialized = false;
 
 /**
+ * Refund 1 credit when a trigger dies from a SYSTEM error (dispatch failure,
+ * worker crash, finalize failure) without producing a report. Idempotent per
+ * trigger via `audit-refund-<caseId>-<startedAt>`; skips when a report was
+ * already saved for the trigger or a refund was already recorded.
+ * Never called for user cancels or duplicate-report (user-error) paths.
+ */
+export async function refundAuditCreditIfNoReport(caseId: string, reason: string): Promise<boolean> {
+  try {
+    const job = await findLatestAiJobByCase(caseId);
+    const startedAt =
+      (job?.input_json as { startedAt?: string } | null)?.startedAt ?? null;
+    if (startedAt) {
+      const reportCount = await prisma.report.count({
+        where: { case_id: caseId, created_at: { gte: new Date(startedAt) } },
+      });
+      if (reportCount > 0) {
+        logger.info({ caseId, reason }, "Skipping audit refund: report already saved for this trigger");
+        return false;
+      }
+    }
+    const refundKey = `audit-refund-${caseId}-${startedAt ?? "unknown"}`;
+    await prisma.$transaction(async (tx) => {
+      const currentBalance = await getCreditBalanceForTx(tx, caseId);
+      await createCreditEntry(tx, {
+        caseId,
+        amount: 1,
+        balanceAfter: currentBalance + 1,
+        type: "refund",
+        referenceId: caseId,
+        idempotencyKey: refundKey,
+        metadataJson: { reason },
+      });
+    });
+    logger.warn({ caseId, reason }, "Refunded 1 audit credit after system failure");
+    return true;
+  } catch (err: unknown) {
+    if (typeof err === "object" && err !== null && "code" in err && err.code === "P2002") {
+      logger.info({ caseId, reason }, "Audit refund already recorded, skipping duplicate");
+      return false;
+    }
+    logger.error({ caseId, reason, err }, "CRITICAL: Failed to refund credit after system failure");
+    return false;
+  }
+}
+
+/**
  * Initialize QueueEvents listener to handle background job completions.
  */
 export function initOmpQueueListener(): void {
@@ -51,9 +97,20 @@ export function initOmpQueueListener(): void {
     const caseId = jobId.startsWith("omp-") ? jobId.replace("omp-", "") : jobId;
     logger.info({ caseId }, "BullMQ OMP job completed event received. Finalizing report...");
     try {
-      await finalizeOmpAuditResult(caseId);
+      const ok = await finalizeOmpAuditResult(caseId);
+      if (!ok) {
+        logger.error({ caseId }, "Finalize found no worker output; marking failed and refunding credit");
+        await updateAiJobStatus(caseId, "failed", { error: "worker produced no output" });
+        await refundAuditCreditIfNoReport(caseId, "finalize-no-output");
+      }
     } catch (err) {
       logger.error({ caseId, err }, "Failed to finalize OMP audit result on completed event");
+      await updateAiJobStatus(caseId, "failed", { error: String(err) }).catch(() => {});
+      if (err instanceof AppError && err.status === 409) {
+        logger.info({ caseId }, "Duplicate report guard hit; user error, no refund");
+      } else {
+        await refundAuditCreditIfNoReport(caseId, "finalize-error");
+      }
     }
   });
 
@@ -65,6 +122,7 @@ export function initOmpQueueListener(): void {
     } catch (err) {
       logger.warn({ caseId, err }, "Failed to update ai_jobs status to failed");
     }
+    await refundAuditCreditIfNoReport(caseId, "worker-failed");
   });
 
   logger.info("BullMQ OMP QueueEvents listener initialized");
@@ -205,7 +263,9 @@ async function assembleScopedInputFiles(
  * Prepare sandbox files and trigger OMP Audit via BullMQ Queue.
  *
  * Validates submission_type, lifecycle_unit_id, credit balance, and guards against double-trigger.
- * Deducts 1 credit per trigger with compensation refund on dispatch failure.
+ * Deducts 1 credit per trigger; system failures (dispatch, worker crash,
+ * finalize) auto-refund 1 credit when no report was produced. User cancels
+ * and duplicate-report (user-error) paths never refund.
  */
 export async function triggerOmpAuditForCase(
   caseId: string,
@@ -244,9 +304,8 @@ export async function triggerOmpAuditForCase(
   const startedAt = new Date().toISOString();
   const idempotencyKey = `audit-trigger-${caseId}-${startedAt}`;
 
-  let creditId: string;
   try {
-    creditId = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       const inTxBalance = await getCreditBalanceForTx(tx, caseId);
       if (inTxBalance < 1) {
         throw new AppError(402, "NO_CREDITS", "Hết credit. Vui lòng mua thêm credit để tiếp tục.");
@@ -284,7 +343,6 @@ export async function triggerOmpAuditForCase(
           updated_at: new Date(startedAt),
         },
       });
-      return entry.id as string;
     });
   } catch (txErr) {
     // Expected 402 is routine, not an infra failure — don't error-log it.
@@ -343,26 +401,9 @@ export async function triggerOmpAuditForCase(
       submissionType,
     });
   } catch (dispatchErr) {
-    // Compensate: refund credit on dispatch failure
+    // Compensate: refund credit on dispatch failure (idempotent per trigger)
     logger.error({ caseId, dispatchErr }, "Dispatch failed, refunding credit");
-    try {
-      const refundKey = `audit-refund-${caseId}-${startedAt}`;
-      // Derive the post-refund balance from a fresh in-tx read — the debit
-      // balance is stale by now and concurrent entries may have landed.
-      await prisma.$transaction(async (tx) => {
-        const currentBalance = await getCreditBalanceForTx(tx, caseId);
-        await createCreditEntry(tx, {
-          caseId,
-          amount: 1,
-          balanceAfter: currentBalance + 1,
-          type: "refund",
-          referenceId: creditId,
-          idempotencyKey: refundKey,
-        });
-      });
-    } catch (refundErr) {
-      logger.error({ caseId, refundErr }, "CRITICAL: Failed to refund credit after dispatch failure");
-    }
+    await refundAuditCreditIfNoReport(caseId, "dispatch-failure");
     await updateAiJobStatus(caseId, "failed", { error: String(dispatchErr) });
     throw dispatchErr;
   }
