@@ -334,9 +334,9 @@ test('getAvailableTransitions — done có T19 (không final)', () => {
   assert.deepEqual(getAvailableTransitions('done'), ['T19_REOPEN'])
 })
 
-test('getAvailableTransitions — report_ready_to_publish có T6 + T14 + T17 + T15', () => {
+test('getAvailableTransitions — report_ready_to_publish có T6 + T9 + T14 + T17 + T15', () => {
   const ts = getAvailableTransitions('report_ready_to_publish')
-  assert.deepEqual([...ts].sort(), ['T6_ASSIGN_SUPPORTER', 'T14_COMPLETE', 'T15_CANCEL', 'T17_USER_CONFIRM_COMPLETE'].sort())
+  assert.deepEqual([...ts].sort(), ['T6_ASSIGN_SUPPORTER', 'T9_SUBMIT_REVISION', 'T14_COMPLETE', 'T15_CANCEL', 'T17_USER_CONFIRM_COMPLETE'].sort())
 })
 
 test('getAvailableTransitions — status không hợp lệ → []', () => {
@@ -378,13 +378,13 @@ test('VALID_STATES — 8 states', () => {
   }
 })
 
-test('Machine — 8 state nodes, 26 transition edges', () => {
+test('Machine — 8 state nodes, 27 transition edges', () => {
   const snapshots: TransitionName[] = []
   for (const state of VALID_STATES) {
     const ts = getAvailableTransitions(state)
     ts.forEach(t => snapshots.push(t))
   }
-  assert.equal(snapshots.length, 26, '26 transition edges across 8 states')
+  assert.equal(snapshots.length, 27, '27 transition edges across 8 states')
 })
 
 test('Free case (lockedPrice=0) — hasCredit guard tự skip (Amendment #6)', () => {

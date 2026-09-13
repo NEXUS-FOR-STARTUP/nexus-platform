@@ -438,6 +438,23 @@ export async function cancelOmpAuditForCase(caseId: string) {
   const cancelledJob = jobStore.cancel(caseId);
   await updateAiJobStatus(caseId, "cancelled", { cancelledAt: new Date().toISOString() });
   await refundAuditCreditIfNoReport(caseId, "cancelled-by-user").catch(() => {});
+
+  // Rollback case stage sau cancel để tránh deadlock:
+  // - under_review → report_ready: nếu case đã có báo cáo trước đó → StatusGuidanceCard hiện form trigger
+  // - under_review → intake_ready: nếu chưa có báo cáo nào → user thấy form nộp hồ sơ
+  try {
+    const reportCount = await prisma.report.count({ where: { case_id: caseId } });
+    if (reportCount > 0) {
+      await updateCaseAuditStage(caseId, "report_ready", "report_ready_to_publish");
+      logger.info({ caseId }, "Cancelled job: rolled back stage to report_ready");
+    } else {
+      await updateCaseAuditStage(caseId, "intake_ready", "intake_submitted");
+      logger.info({ caseId }, "Cancelled job: rolled back stage to intake_ready");
+    }
+  } catch (stageErr) {
+    logger.warn({ caseId, stageErr }, "Failed to rollback case stage after cancel — non-fatal");
+  }
+
   logger.warn({ caseId, queueResult }, "OMP audit cancelled by user");
   return { success: true, message: "Đã hủy tiến trình thẩm định OMP", job: cancelledJob };
 }

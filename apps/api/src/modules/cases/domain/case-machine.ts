@@ -190,6 +190,11 @@ export const caseMachine = setup({
           guard: 'isAdmin',
           actions: ['emitStageChanged', 'resetSlaIfOverdue'],
         },
+        T9_SUBMIT_REVISION: {
+          target: 'supporter_working',
+          guard: 'isOwner',
+          actions: 'upsertDoc',
+        },
         T14_COMPLETE: {
           target: 'done',
           guard: 'isAdmin',
