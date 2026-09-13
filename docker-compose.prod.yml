@@ -199,7 +199,7 @@ services:
   worker-omp:
     build:
       context: .
-      dockerfile: Dockerfile.worker-omp
+      dockerfile: apps/worker-omp/Dockerfile
     image: lgdlong/nexus-worker-omp:latest
     container_name: nexus-worker-omp
     restart: unless-stopped

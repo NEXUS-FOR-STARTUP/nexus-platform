@@ -84,7 +84,7 @@ OMP_MODEL=cheapkeyai/gemini-3.8-flash
 ### Bước 5: Build và Khởi động Container
 
 #### Trường hợp A: Build trực tiếp Worker trên VPS (Khuyến nghị)
-Worker OMP build bằng `Dockerfile.worker-omp` rất nhẹ (dưới 2 phút) vì dùng base Bun:
+Worker OMP build bằng `apps/worker-omp/Dockerfile` rất nhẹ (dưới 2 phút) vì dùng base Bun:
 ```bash
 # 1. Pull các image prebuilt (API, Web) từ Docker Hub
 docker compose --env-file .env.prod -f docker-compose.prod.yml pull api web
