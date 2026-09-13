@@ -28,8 +28,8 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
   const startTime = Date.now();
   const startedAt = new Date().toISOString();
 
-  logJob(jobId, `Bắt đầu xử lý với Oh My Pi (OMP) cho tài liệu ${documentOriginalName}`);
-  logJob(jobId, `[MODEL] Sử dụng model: ${selectedModel}`);
+  logJob(jobId, `Bắt đầu thẩm định tài liệu đề án: ${documentOriginalName}`);
+  logJob(jobId, "Khởi chạy môi trường thẩm định AI chuyên sâu");
 
   updateJobInStorage(jobId, (j) => {
     j.ompStatus = "running";
@@ -162,11 +162,9 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
     : undefined;
 
   if (metrics) {
-    logJob(
-      jobId,
-      `[TÀI NGUYÊN] RAM Đỉnh: ${metrics.system.peakMemoryMb}MB | CPU TB: ${metrics.system.avgCpuPercent}% (Đỉnh: ${metrics.system.peakCpuPercent}%) | Dung lượng: ${metrics.system.workspaceSizeKb}KB`
+    console.log(
+      `[Worker-OMP][${jobId}][Metrics] RAM: ${metrics.system.peakMemoryMb}MB | CPU: ${metrics.system.avgCpuPercent}% | Disk: ${metrics.system.workspaceSizeKb}KB`
     );
-    logJob(jobId, `[VPS SIZING] ${metrics.system.vpsRecommendation}`);
   }
 
   const agentResult: AgentExecutionResult = {
@@ -191,10 +189,10 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
 
   if (!isSuccess) {
     const failureMessage = executionResult.error || "Process failed to produce complete output";
-    logJob(jobId, `OMP thất bại: ${failureMessage}`);
+    logJob(jobId, `Tiến trình thẩm định gián đoạn: ${failureMessage}`);
     throw new Error(failureMessage);
   }
 
-  logJob(jobId, `Hoàn thành đánh giá với OMP trong ${Math.round(durationMs / 1000)}s.`);
+  logJob(jobId, `Hoàn thành thẩm định đề án sau ${Math.round(durationMs / 1000)}s`);
   return agentResult;
 }

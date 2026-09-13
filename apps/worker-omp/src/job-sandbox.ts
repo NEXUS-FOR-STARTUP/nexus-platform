@@ -80,21 +80,25 @@ export function checkJobMilestones(
   milestoneSeen: Set<string>
 ): void {
   const targets = [
-    { file: "triad_handoff_packet.md", label: "Step 1: triad_handoff_packet.md" },
-    { file: "input_clarification_audit.md", label: "Step 2: input_clarification_audit.md" },
-    { file: "report.json", label: "Step 2: report.json" },
+    {
+      file: "triad_handoff_packet.md",
+      message: "📦 Cột mốc 1 - Hoàn thành xây dựng ma trận Vấn đề - Giải pháp - Khách hàng",
+    },
+    {
+      file: "input_clarification_audit.md",
+      message: "📦 Cột mốc 2 - Hoàn thành phản biện chuyên sâu các giả định và tiêu chí khởi nghiệp",
+    },
+    {
+      file: "report.json",
+      message: "📦 Cột mốc 3 - Hoàn thành tổng hợp điểm số và hoàn tất báo cáo thẩm định",
+    },
   ];
   for (const t of targets) {
     if (!milestoneSeen.has(t.file)) {
       const p = findOutputFile(jobDir, outputDir, t.file);
       if (p && existsSync(p)) {
         milestoneSeen.add(t.file);
-        try {
-          const kb = Math.round(statSync(p).size / 1024);
-          logJob(jobId, `📦 [Cột mốc] Đã phát hiện tệp ${t.label} (${kb} KB) trên đĩa`);
-        } catch {
-          // ignore stat race
-        }
+        logJob(jobId, t.message);
       }
     }
   }

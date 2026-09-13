@@ -23,7 +23,7 @@ export const STORAGE_DIR = process.env.STORAGE_DIR
   ? resolve(process.env.STORAGE_DIR)
   : resolve(ROOT_DIR, "storage");
 
-export const DEFAULT_MODEL = process.env.OMP_MODEL || "cheapkeyai/gemini-3.8-flash";
+export const DEFAULT_MODEL = process.env.OMP_MODEL || "mimo/mimo-v2.5";
 
 /**
  * Resolve the agent runtime for Linux container execution.
