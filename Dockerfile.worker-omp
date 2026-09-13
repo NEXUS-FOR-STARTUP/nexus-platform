@@ -30,6 +30,10 @@ ENV SAMPLES_DIR=/app/data/samples
 
 # Create worker directories for isolated execution and copy providers models.json
 RUN mkdir -p /root/.omp/agent /app/storage && \
-    cp /app/data/providers.json /root/.omp/agent/models.json
+    if [ -f /app/data/providers.json ]; then \
+      cp /app/data/providers.json /root/.omp/agent/models.json; \
+    elif [ -f /app/data/providers.example.json ]; then \
+      cp /app/data/providers.example.json /root/.omp/agent/models.json; \
+    fi
 
 CMD ["bun", "run", "apps/worker-omp/src/index.ts"]

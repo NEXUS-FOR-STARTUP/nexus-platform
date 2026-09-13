@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, unlinkSync } from "node:fs";
 import { resolve } from "node:path";
 import type { EvaluationJob } from "@app/shared";
 import { STORAGE_DIR } from "./config.js";
@@ -12,6 +12,24 @@ export interface PendingLog {
 
 const pendingLogs: PendingLog[] = [];
 let flushTimer: NodeJS.Timeout | null = null;
+
+function atomicWriteJson(filePath: string, data: unknown): void {
+  const dir = resolve(filePath, "..");
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
+  const tmpFile = resolve(
+    dir,
+    `.jobs_db_w.${Date.now()}.${Math.random().toString(36).slice(2)}.tmp`
+  );
+  try {
+    writeFileSync(tmpFile, JSON.stringify(data, null, 2), "utf-8");
+    renameSync(tmpFile, filePath);
+  } catch (err) {
+    try { unlinkSync(tmpFile); } catch {}
+    throw err;
+  }
+}
 
 export function flushLogsToStorage(): void {
   if (flushTimer) {
@@ -32,9 +50,14 @@ export function flushLogsToStorage(): void {
 
   const dbFile = resolve(STORAGE_DIR, "jobs_db.json");
   try {
-    if (!existsSync(dbFile)) return;
-    const raw = readFileSync(dbFile, "utf-8");
-    const list: EvaluationJob[] = JSON.parse(raw);
+    let list: EvaluationJob[] = [];
+    if (existsSync(dbFile)) {
+      try {
+        const raw = readFileSync(dbFile, "utf-8");
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) list = parsed;
+      } catch {}
+    }
     let updated = false;
     for (const [jid, newLogs] of byJob.entries()) {
       const j = list.find((job) => job.id === jid);
@@ -45,7 +68,7 @@ export function flushLogsToStorage(): void {
       }
     }
     if (updated) {
-      writeFileSync(dbFile, JSON.stringify(list, null, 2), "utf-8");
+      atomicWriteJson(dbFile, list);
     }
   } catch (err) {
     console.error(`[Worker-OMP] Storage flush error:`, err);
@@ -72,9 +95,14 @@ export function updateJobInStorage(
   flushLogsToStorage();
   const dbFile = resolve(STORAGE_DIR, "jobs_db.json");
   try {
-    if (!existsSync(dbFile)) return undefined;
-    const raw = readFileSync(dbFile, "utf-8");
-    const list: EvaluationJob[] = JSON.parse(raw);
+    let list: EvaluationJob[] = [];
+    if (existsSync(dbFile)) {
+      try {
+        const raw = readFileSync(dbFile, "utf-8");
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) list = parsed;
+      } catch {}
+    }
     const index = list.findIndex((j) => j.id === jobId);
     if (index === -1) return undefined;
 
@@ -86,7 +114,7 @@ export function updateJobInStorage(
       current.status = current.results.omp.status;
     }
 
-    writeFileSync(dbFile, JSON.stringify(list, null, 2), "utf-8");
+    atomicWriteJson(dbFile, list);
     return list[index];
   } catch (err) {
     console.error(`[Worker-OMP] Storage update error for job ${jobId}:`, err);
