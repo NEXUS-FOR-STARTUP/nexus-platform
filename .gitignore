@@ -71,3 +71,4 @@ note.txt
 storage/
 apps/api/storage/
 data/postgres/
+**/.bin/

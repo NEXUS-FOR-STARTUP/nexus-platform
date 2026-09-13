@@ -221,21 +221,41 @@ export async function downloadCaseReportPdfHandler(c: Context) {
       markdown: reportMarkdown,
     });
 
-    const pdfBuffer = await generateReportPdfBuffer({
-      markdown: reportMarkdown,
-      meta: {
-        projectName,
-        jobId: caseId,
-        agentName: "omp",
-        createdAt: report.created_at.toISOString(),
-        overallScore,
-        verdict,
-        categoryScores,
-        reportType,
-      },
-      storageDir,
-      force: true,
-    });
+    let pdfBuffer: Buffer;
+    try {
+      pdfBuffer = await generateReportPdfBuffer({
+        markdown: reportMarkdown,
+        meta: {
+          projectName,
+          jobId: caseId,
+          agentName: "omp",
+          createdAt: report.created_at.toISOString(),
+          overallScore,
+          verdict,
+          categoryScores,
+          reportType,
+        },
+        storageDir,
+        force: true,
+      });
+    } catch (pdfErr) {
+      logger.warn({ caseId, pdfErr }, "Typst compilation failed in downloadCaseReportPdfHandler, checking Cloudinary");
+      const cloudinaryUrl = (parsed?.pdfUrl as string | undefined) ?? null;
+      if (cloudinaryUrl) {
+        try {
+          const res = await fetch(cloudinaryUrl);
+          if (res.ok) {
+            pdfBuffer = Buffer.from(await res.arrayBuffer());
+          } else {
+            throw new AppError(500, "PDF_GENERATION_FAILED", "Không thể tạo file PDF báo cáo lúc này. Vui lòng thử lại sau.");
+          }
+        } catch {
+          throw new AppError(500, "PDF_GENERATION_FAILED", "Không thể tạo file PDF báo cáo lúc này. Vui lòng thử lại sau.");
+        }
+      } else {
+        throw new AppError(500, "PDF_GENERATION_FAILED", "Không thể tạo file PDF báo cáo lúc này. Vui lòng thử lại sau.");
+      }
+    }
 
     // Resolve version_no from lifecycle_unit for PDF filename
     let reportVersionNo: number | null = null;
@@ -421,21 +441,41 @@ export async function downloadReportPdfByIdHandler(c: Context) {
       markdown: reportMarkdown,
     });
 
-    const pdfBuffer = await generateReportPdfBuffer({
-      markdown: reportMarkdown,
-      meta: {
-        projectName,
-        jobId: caseId,
-        agentName: "omp",
-        createdAt: report.created_at.toISOString(),
-        overallScore,
-        verdict,
-        categoryScores,
-        reportType,
-      },
-      storageDir,
-      force: true,
-    });
+    let pdfBuffer: Buffer;
+    try {
+      pdfBuffer = await generateReportPdfBuffer({
+        markdown: reportMarkdown,
+        meta: {
+          projectName,
+          jobId: caseId,
+          agentName: "omp",
+          createdAt: report.created_at.toISOString(),
+          overallScore,
+          verdict,
+          categoryScores,
+          reportType,
+        },
+        storageDir,
+        force: true,
+      });
+    } catch (pdfErr) {
+      logger.warn({ caseId, pdfErr }, "Typst compilation failed in downloadReportPdfByIdHandler, checking Cloudinary");
+      const cloudinaryUrl = (parsed?.pdfUrl as string | undefined) ?? null;
+      if (cloudinaryUrl) {
+        try {
+          const res = await fetch(cloudinaryUrl);
+          if (res.ok) {
+            pdfBuffer = Buffer.from(await res.arrayBuffer());
+          } else {
+            throw new AppError(500, "PDF_GENERATION_FAILED", "Không thể tạo file PDF báo cáo lúc này. Vui lòng thử lại sau.");
+          }
+        } catch {
+          throw new AppError(500, "PDF_GENERATION_FAILED", "Không thể tạo file PDF báo cáo lúc này. Vui lòng thử lại sau.");
+        }
+      } else {
+        throw new AppError(500, "PDF_GENERATION_FAILED", "Không thể tạo file PDF báo cáo lúc này. Vui lòng thử lại sau.");
+      }
+    }
 
     const filename = buildReportPdfFilename({
       projectName,
