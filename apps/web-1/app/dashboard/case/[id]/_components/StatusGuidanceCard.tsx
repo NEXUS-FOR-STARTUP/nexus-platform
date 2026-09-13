@@ -12,11 +12,9 @@ import {
   ArrowRight,
   Zap,
   Upload,
-  Search,
 } from "lucide-react";
-import { Alert, Button, Select, Stack, Textarea, Group, Text, Loader } from "@mantine/core";
+import { Alert, Button, Select, Stack, Textarea, Group } from "@mantine/core";
 import { Dropzone, type FileRejection } from "@mantine/dropzone";
-import { notifications } from "@mantine/notifications";
 import { STATUS_GUIDANCE_COPY, type GuidanceTone, type GuidanceIconKey } from "./statusCopyMap";
 import type { OpenInfoRequest } from "../hooks/useCaseDetails";
 import { isCaseFree, PACKAGE_KEYS, caseRequiresPayment, formatPrice } from "@/lib/pricing";
@@ -420,12 +418,12 @@ export default function StatusGuidanceCard({
         >
           <div className="space-y-3 flex-grow mt-1">
             <p className="text-text-muted text-xs leading-relaxed">
-              Supporter đã hoàn thành đánh giá chi tiết. Xem báo cáo ở tab Báo cáo; khi nhóm đã xem xong, hãy xác nhận hoàn thành hoặc gửi đánh giá mới.
+              Đánh giá chi tiết đã hoàn thành. Khi nhóm đã xem xong kết quả, hãy xác nhận hoàn thành hoặc gửi đánh giá mới.
             </p>
 
             {hasReportCredits && (
               <p className="text-text-muted text-xs leading-relaxed">
-                Muốn tiếp tục cải thiện? Chọn loại đánh giá bên dưới — mỗi lượt đánh giá mới = 1 credit.
+                Muốn tiếp tục cải thiện? Hãy chọn loại đánh giá bên dưới. Mỗi lượt đánh giá mới tương ứng 1 credit.
               </p>
             )}
 

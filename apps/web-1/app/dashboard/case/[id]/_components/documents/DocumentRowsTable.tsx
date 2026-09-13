@@ -1,13 +1,9 @@
 "use client";
 
-import { Anchor, Badge, Group, Table, Text } from "@mantine/core";
-import {
-  DocumentRow,
-  WorkspaceTab,
-  formatDate,
-  getFormatColor,
-} from "./document-workspace.types";
+import { Badge, Group, Table, Text } from "@mantine/core";
+import { DocumentRow, WorkspaceTab } from "./document-workspace.types";
 import type { DocumentCategoryGroup } from "./document-groups";
+import DocumentTableRow from "./DocumentTableRow";
 
 interface DocumentRowsTableProps {
   activeTab: WorkspaceTab;
@@ -15,100 +11,11 @@ interface DocumentRowsTableProps {
   groups: DocumentCategoryGroup[];
 }
 
-function DocumentTableRow({ row, activeTab }: { row: DocumentRow; activeTab: WorkspaceTab }) {
-  const isSupporter =
-    row.uploaderRole === "supporter" || row.uploaderRole === "admin";
-  const isStudent = row.uploaderRole === "student";
-  const { date, time } = formatDate(row.createdAt);
-
-  return (
-    <Table.Tr className="transition-colors hover:bg-surface-soft/60">
-      <Table.Td className="py-3.5">
-        <Text className="text-base font-medium text-text-app">
-          {row.versionLabel}
-        </Text>
-      </Table.Td>
-
-      <Table.Td className="py-3.5">
-        <Badge
-          variant="light"
-          color={isSupporter ? "violet" : "blue"}
-          size="md"
-          radius="xl"
-          className="font-medium text-base whitespace-nowrap"
-        >
-          {row.contextLabel}
-        </Badge>
-      </Table.Td>
-
-      {activeTab === "documents" && (
-        <Table.Td className="py-3.5">
-          <Badge
-            variant="light"
-            color={isSupporter ? "violet" : isStudent ? "teal" : "gray"}
-            size="md"
-            radius="xl"
-            className="font-medium text-base whitespace-nowrap"
-          >
-            {row.uploaderLabel}
-          </Badge>
-        </Table.Td>
-      )}
-
-      <Table.Td className="py-3.5">
-        {row.hasAction && row.url ? (
-          <Anchor
-            href={row.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-base text-brand hover:underline font-normal break-words"
-          >
-            {row.displayName}
-          </Anchor>
-        ) : (
-          <Text className="text-base text-text-muted font-normal break-words">
-            {row.displayName}
-          </Text>
-        )}
-      </Table.Td>
-
-      <Table.Td className="py-3.5">
-        <Text className="font-normal text-text-app text-base leading-tight">
-          {date}
-        </Text>
-        {time && (
-          <Text c="dimmed" className="text-base mt-0.5 font-normal">
-            {time}
-          </Text>
-        )}
-      </Table.Td>
-
-      <Table.Td className="py-3.5">
-        <Text className="text-base text-text-app font-normal">
-          {row.sourceLabel}
-        </Text>
-      </Table.Td>
-
-      <Table.Td className="py-3.5">
-        <Badge
-          variant="light"
-          color={getFormatColor(row.formatLabel)}
-          size="md"
-          radius="xl"
-          className="font-medium text-base uppercase whitespace-nowrap"
-        >
-          {row.formatLabel}
-        </Badge>
-      </Table.Td>
-    </Table.Tr>
-  );
-}
-
 function GroupedDocumentRows({ group }: { group: DocumentCategoryGroup }) {
   return (
     <>
       <Table.Tr className="bg-surface-soft/40">
-        <Table.Td colSpan={7} className="py-2.5">
+        <Table.Td colSpan={8} className="py-2.5">
           <Group gap="xs" wrap="nowrap">
             <Text className="text-base font-semibold text-text-app">
               {group.label}
@@ -131,44 +38,57 @@ export default function DocumentRowsTable({
   rows,
   groups,
 }: DocumentRowsTableProps) {
+  const isReport = activeTab === "assessment-reports";
+
   return (
     <div className="overflow-x-auto w-full">
       <Table
         highlightOnHover
         verticalSpacing="sm"
         horizontalSpacing="md"
-        className="w-full min-w-[800px]"
+        className="w-full min-w-[920px]"
       >
         <Table.Thead className="bg-surface-soft/40 border-b border-border-app">
           <Table.Tr>
-            <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[100px]">
-              {activeTab === "documents" ? "Phiên bản" : "Đợt"}
-            </Table.Th>
-
-            <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[160px]">
-              {activeTab === "documents" ? "Phân loại" : "Liên kết bản nộp"}
-            </Table.Th>
-
-            {activeTab === "documents" && (
-              <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[130px]">
-                Người tải
-              </Table.Th>
-            )}
-
-            <Table.Th className="text-base font-medium text-text-muted py-3.5">
-              Tên tài liệu
-            </Table.Th>
-
-            <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[150px]">
-              Ngày tải
+            <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[85px]">
+              {activeTab === "external-feedback" ? "Đợt" : "Phiên bản"}
             </Table.Th>
 
             <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[130px]">
-              Nguồn
+              {activeTab === "documents"
+                ? "Phân loại"
+                : activeTab === "external-feedback"
+                  ? "Liên kết bản nộp"
+                  : "Loại nộp"}
             </Table.Th>
 
-            <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[100px]">
+            {(activeTab === "documents" || isReport) && (
+              <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[120px]">
+                {isReport ? "Nguồn tạo" : "Người tải"}
+              </Table.Th>
+            )}
+
+            {/* Filename column allocated maximum flexible width */}
+            <Table.Th className="text-base font-medium text-text-muted py-3.5 min-w-[320px]">
+              {isReport ? "Tên file báo cáo" : "Tên tài liệu"}
+            </Table.Th>
+
+            <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[130px] whitespace-nowrap">
+              Thời gian
+            </Table.Th>
+
+            {!isReport && (
+              <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[110px]">
+                Nguồn
+              </Table.Th>
+            )}
+
+            <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[90px]">
               Định dạng
+            </Table.Th>
+
+            <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[75px] text-right">
+              Thao tác
             </Table.Th>
           </Table.Tr>
         </Table.Thead>

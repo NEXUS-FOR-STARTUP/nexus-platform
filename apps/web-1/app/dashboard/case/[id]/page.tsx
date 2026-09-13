@@ -239,7 +239,13 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                   Tải đánh giá bên ngoài
                 </Button>
               </div>
-              <DocumentWorkspace workspace={documentWorkspace} roundHistory={(roundHistory as RoundHistoryEntry[]) || null} caseId={id} />
+              <DocumentWorkspace
+                workspace={documentWorkspace}
+                roundHistory={(roundHistory as RoundHistoryEntry[]) || null}
+                caseId={id}
+                projectName={caseData.team_name || undefined}
+                caseCode={caseData.case_code}
+              />
             </>
           )}
 
@@ -287,6 +293,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
             ? PACKAGE_KEYS.AI_AUDIT
             : caseData?.package_id || caseData?.package?.id || PACKAGE_KEYS.AI_AUDIT
         }
+        isManual={stage === "report_ready"}
       />
     </div>
   );
