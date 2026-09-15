@@ -55,8 +55,9 @@ export default function RoundCard({ round, caseId, defaultExpanded = false }: Ro
     downloadReportPdf({ reportId: round.report_id, caseShort: caseId, versionNo: round.version_no });
   };
 
-  const typeLabel = SUBMISSION_TYPE_LABELS[round.submission_type] || round.submission_type;
-  const typeColor = SUBMISSION_TYPE_COLORS[round.submission_type] || "gray";
+  const submissionType = round.submission_type || "initial";
+  const typeLabel = SUBMISSION_TYPE_LABELS[submissionType] || "Báo cáo";
+  const typeColor = SUBMISSION_TYPE_COLORS[submissionType] || "gray";
 
   return (
     <div className="border border-border-app rounded-xl overflow-hidden bg-surface-app animate-fade-in transition-all shadow-none">

@@ -125,7 +125,7 @@ export async function createOrderUseCase(
         }
 
         // Resolve credits granted from package features (default to item.quantity for backward compat).
-        // BUG FIX: Case free (pkg_tf_free) sẽ được upgrade lên pkg_tf_audit sau khi thanh toán.
+        // BUG FIX: Case free (pkg_tf_free) sẽ được upgrade lên pkg_ai_audit sau khi thanh toán.
         // Phải đọc credits_granted từ AUDIT_PACKAGE_KEY (package đích) chứ không phải pkg_tf_free
         // vì pkg_tf_free không có credits_granted = 2 → sẽ grant sai 1 credit thay vì 2.
         let creditsGranted = item.quantity;

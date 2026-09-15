@@ -121,7 +121,7 @@ export interface RoundHistoryEntry {
   report_id: string;
   version_no: number | null;
   submitted_at: string;
-  submission_type: "initial" | "resubmit" | "logic_check";
+  submission_type: "initial" | "resubmit" | "logic_check" | null;
   report: Report | null;
   pdfUrl?: string | null;
 }

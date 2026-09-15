@@ -335,7 +335,7 @@ export async function downloadCaseReportPdfHandler(c: Context) {
 }
 
 /**
- * GET /api/reports/:reportId/pdf — Download PDF for a specific report version.
+ * GET /api/reports/:reportId/download — Download PDF for a specific report version.
  * Ownership check via report.case_id → requireReportCaseAccess.
  */
 export async function downloadReportPdfByIdHandler(c: Context) {
