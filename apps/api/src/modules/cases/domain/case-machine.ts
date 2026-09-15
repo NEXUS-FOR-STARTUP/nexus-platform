@@ -47,6 +47,7 @@ export const caseMachine = setup({
     subtractCredit:    () => {},
     refundCredit:      () => {},
     refundRemainingCredit: () => {},
+    refundAll:         () => {},
     setSlaDeadline:    () => {},
     resetSlaIfOverdue: () => {},
     autoResumeWork:    () => {},
@@ -123,7 +124,7 @@ export const caseMachine = setup({
         T13_VETO: {
           target: 'cancelled',
           guard: and(['isAdmin', 'isWithin48h']),
-          actions: ['refundCredit', 'refundRemainingCredit'],
+          actions: ['refundAll'],
         },
         T15_CANCEL: {
           target: 'cancelled',
@@ -152,13 +153,13 @@ export const caseMachine = setup({
         },
         T11_SUBMIT_OUTPUT: {
           target: 'report_ready_to_publish',
-          guard: and(['isAssignedSupporter', 'hasCredit']),
-          actions: ['subtractCredit', 'lockPrice'],
+          guard: 'isAssignedSupporter',
+          actions: 'lockPrice',
         },
         T13_VETO: {
           target: 'cancelled',
           guard: and(['isAdmin', 'isWithin48h']),
-          actions: ['refundCredit', 'refundRemainingCredit'],
+          actions: ['refundAll'],
         },
         T15_CANCEL: {
           target: 'cancelled',

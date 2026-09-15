@@ -92,7 +92,7 @@ export async function createOrderUseCase(
       await walletService.withdraw(userId, totalAmount, idempotencyKey, {
         referenceType: "order",
         referenceId: order.id,
-      });
+      }, tx);
 
       await tx.order.update({
         where: { id: order.id },
@@ -219,9 +219,10 @@ export async function createOrderUseCase(
     if ((error as any)?.code === "P2002") {
       const existing = await prisma.order.findUnique({ where: { idempotency_key: idempotencyKey } });
       if (existing) {
-        if (existing.user_id !== userId) {
-          throw new AppError(409, "IDEMPOTENCY_CONFLICT", "Mã giao dịch đã tồn tại cho user khác");
+        if (existing.status === "paid") {
+          throw new AppError(409, "ORDER_ALREADY_PAID", "Bạn đã mua gói này rồi. Không thể mua trùng.");
         }
+        // Retry an unpaid order → return existing (idempotent resume)
         return {
           orderId: existing.id,
           totalAmount: existing.total_amount,
