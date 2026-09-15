@@ -55,16 +55,16 @@ Giữ signature `finalizeOmpAuditResult(caseId: string): Promise<boolean>` — c
 
 ## Todo
 
-- [ ] Guard phân nhánh theo submission_type trong tx
-- [ ] Filename Cloudinary unique theo startedAt
-- [ ] `metadataJson.triggerStartedAt` audit trail
+- [x] Guard phân nhánh theo submission_type trong tx
+- [x] Filename Cloudinary unique theo startedAt
+- [x] `metadataJson.triggerStartedAt` audit trail
 
 ## Success
 
-- [ ] Trigger `initial` 2 lần cùng `startedAt` → 1 report row, lần 2 return existing, job `completed`
-- [ ] `resubmit` cùng unit → luôn 2 rows khác nhau
-- [ ] 2 PDF cùng version có publicId/URL khác nhau trên Cloudinary
-- [ ] `check-types` + `node:test` finalizer-related pass
+- [x] Trigger `initial` 2 lần cùng `startedAt` → 1 report row, lần 2 return existing, job `completed`
+- [x] `resubmit` cùng unit → luôn 2 rows khác nhau
+- [x] 2 PDF cùng version có publicId/URL khác nhau trên Cloudinary
+- [x] `check-types` + `node:test` finalizer-related pass
 
 ## Risk
 

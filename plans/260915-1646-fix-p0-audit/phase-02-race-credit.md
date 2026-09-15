@@ -54,16 +54,16 @@ flowchart TD
 
 ## Todo
 
-- [ ] Lock cases + guard status trong tx
-- [ ] Reuse idempotencyKey khi retry
-- [ ] Xóa/biến guard ngoài tx thành fast-path
+- [x] Lock cases + guard status trong tx
+- [x] Reuse idempotencyKey khi retry
+- [x] Xóa/biến guard ngoài tx thành fast-path
 
 ## Success
 
-- [ ] 2 trigger đồng thời, balance=1 → 1 thành công, 1 nhận 409, balance_after = 0 (không âm)
-- [ ] Retry sau fail reuse key → không double-charge (P2002 → 409)
-- [ ] User-trigger mới sinh key mới, trừ đúng 1 credit
-- [ ] `check-types` + `node:test` coordinator-related pass
+- [x] 2 trigger đồng thời, balance=1 → 1 thành công, 1 nhận 409, balance_after = 0 (không âm)
+- [x] Retry sau fail reuse key → không double-charge (P2002 → skipCharge = free retry)
+- [x] User-trigger mới sinh key mới, trừ đúng 1 credit
+- [x] `check-types` + `node:test` coordinator-related pass
 
 ## Risk
 

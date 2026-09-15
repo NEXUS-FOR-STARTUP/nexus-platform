@@ -20,9 +20,9 @@ Branch feat/79k-dual-credit @ 073c5a2. Audit AI trừ 1 credit/trigger nhưng c�
 
 | # | Phase | Ticket | Status |
 |---|---|---|---|
-|| 01 | [Guard finalizer + filename Cloudinary](./phase-01-guard-finalizer.md) | T3+4 | ✅ Done (`545bdcb`) |
-|| 02 | [Race credit: guard vào tx + reuse key](./phase-02-race-credit.md) | T1 | ✅ Done (`545bdcb`) |
-|| 03 | [Persist unit: payload + finalizer ưu tiên job.data](./phase-03-persist-unit.md) | T2 | ✅ Done (`545bdcb`) |
+| 01 | [Guard finalizer + filename Cloudinary](./phase-01-guard-finalizer.md) | T3+4 | ✅ Done (`545bdcb`) |
+| 02 | [Race credit: guard vào tx + reuse key](./phase-02-race-credit.md) | T1 | ✅ Done (`545bdcb`) |
+| 03 | [Persist unit: payload + finalizer ưu tiên job.data](./phase-03-persist-unit.md) | T2 | ✅ Done (`545bdcb`) |
 
 ## Status
 

@@ -54,16 +54,16 @@ flowchart LR
 
 ## Todo
 
-- [ ] Persist resolved unit vào `input_json` trước dispatch
-- [ ] Payload + worker mirror `lifecycleUnitId`
-- [ ] Finalizer ưu tiên job.data, fallback có filter unit_type
+- [x] Persist resolved unit vào `input_json` trước dispatch
+- [x] Payload + worker mirror `lifecycleUnitId`
+- [x] Finalizer ưu tiên job.data, fallback có filter unit_type
 
 ## Success
 
-- [ ] Trigger resubmit với unit v01 → `input_json.lifecycle_unit_id` = v01, payload chứa v01
-- [ ] 2 trigger sát nhau (v01, v02) → 2 reports gắn đúng unit riêng
-- [ ] Worker restart mất job.data → fallback input_json vẫn đúng unit
-- [ ] `check-types` API + worker + `node:test` liên quan pass
+- [x] Trigger resubmit với unit v01 → `input_json.lifecycle_unit_id` = v01, payload chứa v01
+- [x] 2 trigger sát nhau (v01, v02) → 2 reports gắn đúng unit riêng
+- [x] Worker restart mất job.data → fallback input_json vẫn đúng unit
+- [x] `check-types` API + worker + `node:test` liên quan pass
 
 ## Risk
 
