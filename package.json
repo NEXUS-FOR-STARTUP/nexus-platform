@@ -3,13 +3,16 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev": "turbo run dev --filter='!@app/worker-omp'",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "prisma:generate": "prisma generate --schema prisma/schema.prisma",
     "prisma:migrate": "prisma migrate dev --schema prisma/schema.prisma",
-    "dev:worker-omp": "bun --filter @app/worker-omp dev",
+    "docker:dev": "docker compose -f docker-compose.prod.yml up -d db redis centrifugo worker-omp",
+    "docker:up": "docker compose -f docker-compose.prod.yml up -d",
+    "docker:down": "docker compose -f docker-compose.prod.yml down",
+    "docker:build-worker": "docker compose -f docker-compose.prod.yml build worker-omp",
     "knip": "knip"
   },
   "devDependencies": {

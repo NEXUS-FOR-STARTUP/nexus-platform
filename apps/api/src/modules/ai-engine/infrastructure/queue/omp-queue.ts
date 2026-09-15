@@ -26,6 +26,14 @@ export const redisPublisher = new Redis({
   lazyConnect: true,
 });
 
+export const redisSubscriber = new Redis({
+  host: REDIS_HOST,
+  port: REDIS_PORT,
+  password: REDIS_PASSWORD,
+  maxRetriesPerRequest: null,
+  lazyConnect: true,
+});
+
 export interface OmpJobPayload {
   jobId: string;
   documentPath: string;
@@ -34,15 +42,28 @@ export interface OmpJobPayload {
   model?: string;
   ompModel?: string;
   promptMode?: "full" | "lite";
+  submissionType?: "initial" | "resubmit" | "logic_check";
+  lifecycleUnitId?: string;
 }
 
 /**
  * Dispatch an evaluation task into BullMQ omp-queue.
  */
 export async function dispatchOmpJob(payload: OmpJobPayload): Promise<void> {
+  const queueJobId = `omp-${payload.jobId}`;
   logger.info({ jobId: payload.jobId, title: payload.title }, "Dispatching task into BullMQ omp-queue");
+  try {
+    const existing = await ompQueue.getJob(queueJobId);
+    if (existing) {
+      await existing.remove();
+      logger.info({ jobId: payload.jobId }, "Removed existing stale job from BullMQ queue before dispatch");
+    }
+  } catch (err: any) {
+    logger.warn({ jobId: payload.jobId, err: err.message }, "Could not remove existing BullMQ job before dispatch");
+  }
+
   await ompQueue.add("evaluate-omp", payload, {
-    jobId: `omp-${payload.jobId}`,
+    jobId: queueJobId,
     removeOnComplete: 100,
     removeOnFail: 200,
   });
@@ -60,7 +81,6 @@ export function getJobMilestones(jobId: string): {
   const root = resolveRepoRoot();
   const candidateDirs = [
     resolve(root, "storage", "jobs", jobId),
-    "E:/Workspace/test-agent-sanbox-web/storage/jobs/" + jobId,
     resolve(root, "apps", "api", "storage", "jobs", jobId),
   ];
 
@@ -144,6 +164,9 @@ export async function cancelOmpJob(jobId: string): Promise<boolean> {
 }
 
 function resolveRepoRoot(): string {
+  if (process.env.APP_ROOT && existsSync(process.env.APP_ROOT)) {
+    return resolve(process.env.APP_ROOT);
+  }
   let current = process.cwd();
   for (let i = 0; i < 4; i++) {
     if (existsSync(resolve(current, "data/knowledge/startup_knowledge.db"))) {

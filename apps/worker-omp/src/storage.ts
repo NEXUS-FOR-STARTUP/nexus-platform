@@ -1,7 +1,5 @@
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
 import type { EvaluationJob } from "@app/shared";
-import { STORAGE_DIR } from "./config.js";
+import { getWorkerRedis } from "./redis.js";
 
 export interface PendingLog {
   jobId: string;
@@ -10,86 +8,88 @@ export interface PendingLog {
   timestamp: string;
 }
 
-const pendingLogs: PendingLog[] = [];
-let flushTimer: NodeJS.Timeout | null = null;
-
-export function flushLogsToStorage(): void {
-  if (flushTimer) {
-    clearTimeout(flushTimer);
-    flushTimer = null;
-  }
-  if (pendingLogs.length === 0) return;
-  const batch = pendingLogs.splice(0, pendingLogs.length);
-  const byJob = new Map<string, Array<{ timestamp: string; agent: "omp"; message: string }>>();
-  for (const item of batch) {
-    if (!byJob.has(item.jobId)) byJob.set(item.jobId, []);
-    byJob.get(item.jobId)!.push({
-      timestamp: item.timestamp,
-      agent: item.agent,
-      message: item.message,
-    });
-  }
-
-  const dbFile = resolve(STORAGE_DIR, "jobs_db.json");
-  try {
-    if (!existsSync(dbFile)) return;
-    const raw = readFileSync(dbFile, "utf-8");
-    const list: EvaluationJob[] = JSON.parse(raw);
-    let updated = false;
-    for (const [jid, newLogs] of byJob.entries()) {
-      const j = list.find((job) => job.id === jid);
-      if (j) {
-        if (!j.logs) j.logs = [];
-        j.logs.push(...newLogs);
-        updated = true;
-      }
-    }
-    if (updated) {
-      writeFileSync(dbFile, JSON.stringify(list, null, 2), "utf-8");
-    }
-  } catch (err) {
-    console.error(`[Worker-OMP] Storage flush error:`, err);
-  }
-}
+const LOG_TTL_SECONDS = 86400; // 24 hours
 
 export function logJob(jobId: string, message: string): void {
+  // Never broadcast or leak confidential system prompts
+  if (
+    message.includes("# SYSTEM PROMPT") ||
+    message.includes("--- HƯỚNG DẪN BỔ SUNG") ||
+    message.includes("Fixed Two-Step Workflow")
+  ) {
+    return;
+  }
+
+  const timestamp = new Date().toISOString();
   console.log(`[Worker-OMP][${jobId}] ${message}`);
-  pendingLogs.push({
+
+  const logEntry: PendingLog = {
     jobId,
     agent: "omp",
     message,
-    timestamp: new Date().toISOString(),
-  });
-  if (!flushTimer) {
-    flushTimer = setTimeout(flushLogsToStorage, 600);
+    timestamp,
+  };
+
+  try {
+    const redis = getWorkerRedis();
+    const payload = JSON.stringify(logEntry);
+
+    // 1. Append to Redis list for history replay
+    redis
+      .rpush(`job:logs:${jobId}`, payload)
+      .then(() => redis.expire(`job:logs:${jobId}`, LOG_TTL_SECONDS))
+      .catch((err) => {
+        console.warn(`[Worker-OMP][Redis] Failed to push log for ${jobId}:`, err.message);
+      });
+
+    // 2. Publish to live channel for active SSE streams
+    redis.publish(`job:log:${jobId}`, payload).catch((err) => {
+      console.warn(`[Worker-OMP][Redis] Failed to publish log for ${jobId}:`, err.message);
+    });
+  } catch (err: any) {
+    console.warn(`[Worker-OMP][Redis] Logging error for ${jobId}:`, err.message);
   }
+}
+
+export function flushLogsToStorage(): void {
+  // No-op for Redis-backed real-time logging
 }
 
 export function updateJobInStorage(
   jobId: string,
   updater: (job: EvaluationJob) => void
 ): EvaluationJob | undefined {
-  flushLogsToStorage();
-  const dbFile = resolve(STORAGE_DIR, "jobs_db.json");
+  const jobState: EvaluationJob = {
+    id: jobId,
+    title: "",
+    documentPath: "",
+    documentOriginalName: "",
+    requestedAgent: "omp",
+    createdAt: new Date().toISOString(),
+    status: "running",
+    ompStatus: "running",
+    results: {},
+    logs: [],
+  };
+
+  updater(jobState);
+
   try {
-    if (!existsSync(dbFile)) return undefined;
-    const raw = readFileSync(dbFile, "utf-8");
-    const list: EvaluationJob[] = JSON.parse(raw);
-    const index = list.findIndex((j) => j.id === jobId);
-    if (index === -1) return undefined;
+    const redis = getWorkerRedis();
+    const statusPayload = JSON.stringify({
+      jobId,
+      status: jobState.status,
+      ompStatus: jobState.ompStatus,
+      results: jobState.results,
+      updatedAt: new Date().toISOString(),
+    });
 
-    updater(list[index]);
-
-    // Recalculate overall status
-    const current = list[index];
-    if (current.results.omp) {
-      current.status = current.results.omp.status;
-    }
-
-    writeFileSync(dbFile, JSON.stringify(list, null, 2), "utf-8");
-    return list[index];
-  } catch (err) {
-    console.error(`[Worker-OMP] Storage update error for job ${jobId}:`, err);
-    return undefined;
+    redis.publish(`job:status:${jobId}`, statusPayload).catch((err) => {
+      console.warn(`[Worker-OMP][Redis] Failed to publish status for ${jobId}:`, err.message);
+    });
+  } catch (err: any) {
+    console.warn(`[Worker-OMP][Redis] Status update error for ${jobId}:`, err.message);
   }
+
+  return jobState;
 }

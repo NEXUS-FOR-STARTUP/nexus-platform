@@ -23,6 +23,7 @@ Guide build và push Docker images cho Nexus Platform lên Docker Hub.
 |---------|------------|------------|
 | API | `lgdlong/nexus-api:latest` | `apps/api/Dockerfile` |
 | Web | `lgdlong/nexus-web:latest` | `apps/web-1/Dockerfile` |
+| Worker OMP | `lgdlong/nexus-worker-omp:latest` | `apps/worker-omp/Dockerfile` |
 
 ## Architecture
 

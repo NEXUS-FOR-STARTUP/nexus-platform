@@ -27,9 +27,18 @@ async function handleOrderPaidForAiAudit(event: DomainEvent): Promise<void> {
 
   const caseId = typeof payload["caseId"] === "string" ? (payload["caseId"] as string) : undefined;
   const orderId = typeof payload["orderId"] === "string" ? (payload["orderId"] as string) : undefined;
+  // Default về "credit_audit" để backward compat với các order cũ không có serviceType trong payload
+  const serviceType = typeof payload["serviceType"] === "string" ? payload["serviceType"] : "credit_audit";
 
   if (!caseId) {
     logger.debug({ orderId }, "ORDER_PAID event has no associated caseId, skipping AI audit");
+    return;
+  }
+
+  // credit_audit_manual = mua credit cho đánh giá lần 2+.
+  // Listener KHÔNG auto-trigger — user sẽ chọn loại đánh giá và trigger từ UI (StatusGuidanceCard).
+  if (serviceType === "credit_audit_manual") {
+    logger.info({ orderId, caseId }, "Manual credit purchase — skipping auto-trigger, user will trigger from UI");
     return;
   }
 
@@ -43,3 +52,4 @@ async function handleOrderPaidForAiAudit(event: DomainEvent): Promise<void> {
     logger.error({ caseId, errMsg }, "Failed to trigger OMP audit workflow for paid order");
   }
 }
+

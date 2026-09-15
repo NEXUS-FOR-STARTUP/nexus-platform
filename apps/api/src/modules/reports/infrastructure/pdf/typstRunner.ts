@@ -16,10 +16,20 @@ export function resolveTypstBinary(): string {
     return process.env.TYPST_PATH;
   }
 
-  // 2. Local .bin/ (postinstall auto-download)
-  const localBin = resolve(__dirname, "..", ".bin", process.platform === "win32" ? "typst.exe" : "typst");
-  if (existsSync(localBin)) {
-    return localBin;
+  const exeName = process.platform === "win32" ? "typst.exe" : "typst";
+
+  // 2. Candidate directories
+  const candidates = [
+    resolve(__dirname, "..", ".bin", exeName),
+    resolve(__dirname, "..", "..", "..", "..", ".bin", exeName),
+    resolve(process.cwd(), "apps", "api", ".bin", exeName),
+    resolve(process.cwd(), ".bin", exeName),
+  ];
+
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) {
+      return candidate;
+    }
   }
 
   // 3. System PATH lookup
@@ -38,7 +48,7 @@ export function resolveTypstBinary(): string {
     // not found in PATH
   }
 
-  // 3. Fallback — let caller handle the error
+  // 4. Fallback — let caller handle the error
   return "typst";
 }
 

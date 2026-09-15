@@ -25,7 +25,8 @@ import StudentDocumentUploadModal from "./_components/StudentDocumentUploadModal
 import StatusGuidanceCard from "./_components/StatusGuidanceCard";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Button } from "@mantine/core";
-import type { Report } from "@/types/case";
+import type { Report, RoundHistoryEntry } from "@/types/case";
+import { useTriggerAudit } from "./hooks/useTriggerAudit";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -45,6 +46,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     teamFitReport,
     documentWorkspace,
     latestReport,
+    roundHistory,
     isLoading,
     error,
     allowedTransitions,
@@ -53,6 +55,10 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     isConfirmingComplete,
     refetch,
   } = useCaseDetails(id);
+  const { triggerAudit: triggerAuditRaw, isTriggering } = useTriggerAudit(id);
+  const triggerAudit = async (submissionType: string, lifecycleUnitId?: string) => {
+    await triggerAuditRaw({ submission_type: submissionType as "initial" | "resubmit" | "logic_check", lifecycle_unit_id: lifecycleUnitId });
+  };
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("overview");
   const { unreadCount, markAsRead } = useCaseUnreadCount(id);
   useRealtimeChat(id, { activeTab, markAsRead });
@@ -170,6 +176,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               onSubmitRevision={() => setIsStudentUploadOpen(true)}
               onConfirmComplete={confirmComplete}
               isConfirmingComplete={isConfirmingComplete}
+              onTriggerAudit={triggerAudit}
+              isTriggeringAudit={isTriggering}
             />
           </>
         )}
@@ -231,7 +239,13 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                   Tải đánh giá bên ngoài
                 </Button>
               </div>
-              <DocumentWorkspace workspace={documentWorkspace} />
+              <DocumentWorkspace
+                workspace={documentWorkspace}
+                roundHistory={(roundHistory as RoundHistoryEntry[]) || null}
+                caseId={id}
+                projectName={caseData.team_name || undefined}
+                caseCode={caseData.case_code}
+              />
             </>
           )}
 
@@ -239,6 +253,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
             <TabReportFindings
               report={(latestReport as Report) || null}
               caseId={caseData.id}
+              roundHistory={(roundHistory as RoundHistoryEntry[]) || null}
             />
           )}
 
@@ -278,6 +293,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
             ? PACKAGE_KEYS.AI_AUDIT
             : caseData?.package_id || caseData?.package?.id || PACKAGE_KEYS.AI_AUDIT
         }
+        isManual={stage === "report_ready"}
       />
     </div>
   );

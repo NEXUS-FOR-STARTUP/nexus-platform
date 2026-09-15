@@ -47,6 +47,7 @@ export async function verifyDepositUseCase(
         "deposit",
         depositId,
         idempotencyKey,
+        tx,
       );
     }
 

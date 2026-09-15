@@ -13,7 +13,7 @@ import { emitEvent } from '../shared/infrastructure/event-bus.js'
 import { DOMAIN_EVENTS } from '../shared/domain/domain-events.js'
 import logger from '../shared/infrastructure/logger.js'
 import { walletService } from '../modules/wallet/application/wallet.service.js'
-import { refundRemainingCreditInTx } from './credit-refund.js'
+import { refundRemainingCreditInTx, refundCaseAllInTx } from './credit-refund.js'
 
 function targetStageFor(transition: TransitionName): CaseStage {
   const stage = TARGET_STAGE[transition]
@@ -144,6 +144,17 @@ async function executeAction(
         caseId,
         context.data?.caseOwnerId as string | undefined,
       )
+      break
+    }
+
+    case 'refundAll': {
+      const ownerId = context.data?.caseOwnerId as string | undefined
+      const lockedPrice = (context.data?.lockedPrice as number | undefined) ?? 0
+      if (!ownerId) {
+        logger.warn({ caseId }, 'refundAll skipped — caseOwnerId missing')
+        break
+      }
+      await refundCaseAllInTx(tx, caseId, ownerId, lockedPrice)
       break
     }
 

@@ -18,14 +18,18 @@ interface CreditQuantityModalProps {
   opened: boolean;
   onClose: () => void;
   packageId: string;
+  /** true = mua credit cho đánh giá lần 2+, listener sẽ không auto-trigger */
+  isManual?: boolean;
 }
 
 const MIN_TOPUP_AMOUNT = 2000;
 
-export default function CreditQuantityModal({ caseId, opened, onClose, packageId }: CreditQuantityModalProps) {
+export default function CreditQuantityModal({ caseId, opened, onClose, packageId, isManual = false }: CreditQuantityModalProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState<number>(1);
+
+  const serviceType = isManual ? "credit_audit_manual" : "credit_audit";
 
   const { startShortageDeposit, isPending: isShortagePending } = useShortageDepositRedirect(caseId);
   const { data: pkg } = usePackagePrice(packageId, opened);
@@ -43,7 +47,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
     mutationFn: async () => {
       const res = await apiClient.post("/orders", {
         idempotency_key: crypto.randomUUID(),
-        items: [{ service_type: "credit_audit", quantity: effectiveQuantity, metadata_json: { case_id: caseId } }],
+        items: [{ service_type: serviceType, quantity: effectiveQuantity, metadata_json: { case_id: caseId } }],
       });
       return res.data;
     },
@@ -52,7 +56,9 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
       queryClient.invalidateQueries({ queryKey: ["wallet"] });
       notifications.show({
         title: "Thanh toán thành công",
-        message: `Đơn hàng #${data.orderId} đã được thanh toán. AI đang tiến hành thẩm định.`,
+        message: isManual
+          ? `Đã mua ${isAiAudit ? 2 : effectiveQuantity} credit. Quay lại hồ sơ để chọn loại đánh giá và gửi.`
+          : `Đơn hàng #${data.orderId} đã được thanh toán. AI đang tiến hành thẩm định.`,
         color: "teal",
       });
       router.refresh();
@@ -66,7 +72,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
       if (errData?.code === "INSUFFICIENT_BALANCE") {
         const needed = errData.details ? Math.max(Number(errData.details.required) - Number(errData.details.current), 0) : totalAmount;
         const suggestedTopup = Math.max(needed, MIN_TOPUP_AMOUNT);
-        void startShortageDeposit({ quantity: effectiveQuantity, suggestedTopup }).finally(handleClose);
+        void startShortageDeposit({ quantity: effectiveQuantity, suggestedTopup, serviceType }).finally(handleClose);
         return;
       }
       notifications.show({
@@ -85,7 +91,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
       mutation.mutate();
     } else {
       const suggestedTopup = Math.max(shortage, MIN_TOPUP_AMOUNT);
-      void startShortageDeposit({ quantity: effectiveQuantity, suggestedTopup }).finally(handleClose);
+      void startShortageDeposit({ quantity: effectiveQuantity, suggestedTopup, serviceType }).finally(handleClose);
     }
   };
 
@@ -107,7 +113,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
         {isAiAudit ? (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Badge variant="light" color="blue" size="lg">Basic AI Audit ({formatPrice(unitPrice)} / Lượt)</Badge>
+              <Badge variant="light" color="blue" size="lg">Basic AI Audit ({formatPrice(unitPrice)} / 2 lượt)</Badge>
               <span className="text-xs text-text-muted">Hoàn thành dưới 2 phút</span>
             </div>
             <Paper p="sm" withBorder radius="md" className="bg-surface-app/50 border-border-app space-y-2 text-xs">
@@ -151,7 +157,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
             </div>
           )}
           <div className="border-t border-border-app pt-2 flex justify-between">
-            <span className="font-semibold">Tổng thanh toán</span>
+            <span className="font-semibold">{isAiAudit ? "Tổng thanh toán (2 lượt đánh giá)" : "Tổng thanh toán"}</span>
             <span className="font-semibold text-brand text-base">{formatPrice(totalAmount)}</span>
           </div>
         </div>
@@ -178,7 +184,11 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
             disabled={mutation.isPending || isShortagePending}
             rightSection={<ArrowRight className="w-4 h-4" />}
           >
-            {hasSufficientBalance ? `Thanh toán (${formatPrice(totalAmount)})` : `Nạp & Thanh toán qua VietQR`}
+            {hasSufficientBalance
+              ? isAiAudit
+                ? `Thanh toán ${formatPrice(totalAmount)} (2 lượt)`
+                : `Thanh toán (${formatPrice(totalAmount)})`
+              : `Nạp & Thanh toán qua VietQR`}
           </Button>
         </Group>
         {mutation.isError && (

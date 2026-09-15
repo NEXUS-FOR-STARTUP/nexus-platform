@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { AgentExecutionResult, StartupReport } from "@app/shared";
-import { STORAGE_DIR, OMP_BIN, DEFAULT_MODEL, PROMPT_CONFIG } from "./config.js";
+import { STORAGE_DIR, DEFAULT_MODEL, PROMPT_CONFIG, resolveAgentRuntime } from "./config.js";
 import { logJob, updateJobInStorage } from "./storage.js";
 import {
   prepareJobDirectories,
@@ -19,6 +19,8 @@ export interface OmpJobPayload {
   model?: string;
   ompModel?: string;
   promptMode?: "full" | "lite";
+  submissionType?: "initial" | "resubmit" | "logic_check";
+  lifecycleUnitId?: string;
 }
 
 export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecutionResult> {
@@ -27,31 +29,63 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
   const startTime = Date.now();
   const startedAt = new Date().toISOString();
 
-  logJob(jobId, `Bắt đầu xử lý với Oh My Pi (OMP) cho tài liệu ${documentOriginalName}`);
-  logJob(jobId, `[MODEL] Sử dụng model: ${selectedModel}`);
-
+  logJob(jobId, `Bắt đầu thẩm định tài liệu đề án: ${documentOriginalName}`);
+  logJob(jobId, "Khởi chạy môi trường thẩm định AI chuyên sâu");
   updateJobInStorage(jobId, (j) => {
     j.ompStatus = "running";
     j.status = "running";
   });
 
+  // Record the resolved unit in durable job storage (Redis-backed job logs)
+  // so finalizer/status can trace which unit this run belongs to even if
+  // BullMQ job.data is later lost (worker restart). The authoritative
+  // fallback remains aiJob.input_json.lifecycle_unit_id on the API side.
+  if (data.lifecycleUnitId) {
+    logJob(jobId, `Đơn vị vòng đời (lifecycle_unit_id): ${data.lifecycleUnitId}`);
+  }
+
   const jobDir = resolve(STORAGE_DIR, "jobs", jobId);
   const outputDir = resolve(jobDir, "output");
   prepareJobDirectories(jobDir, outputDir);
 
-  const OMP_CLI = resolve(
-    process.env.USERPROFILE || "",
-    ".bun/install/global/node_modules/@oh-my-pi/pi-coding-agent/dist/cli.js"
-  );
-  const isDirectCli = existsSync(OMP_CLI);
-  const runCmd = isDirectCli ? "bun" : OMP_BIN;
-  const baseArgs = isDirectCli ? [OMP_CLI] : [];
+  const { runCmd, baseArgs } = resolveAgentRuntime();
   const mode = data.promptMode === "lite" ? "lite" : "full";
+  const submissionType = data.submissionType ?? "initial";
+
+  // Select prompt file based on submissionType
+  let submissionPromptFile: string;
+  switch (submissionType) {
+    case "resubmit":
+      submissionPromptFile = "input_clarification_gate_v4_1_resubmit.md";
+      break;
+    case "logic_check":
+      submissionPromptFile = "input_clarification_gate_v4_1_logic.md";
+      break;
+    default:
+      submissionPromptFile = "input_clarification_gate_v4_1.md";
+      break;
+  }
+
   const promptFilesDesc = PROMPT_CONFIG[mode]
     .map((fileName) => `system_prompt/${fileName}`)
+    .concat(`system_prompt/${submissionPromptFile}`)
     .join(", ");
+
+  // Read submission-specific prompt instructions if available
+  const promptFilePath = resolve(jobDir, "system_prompt", submissionPromptFile);
+  let submissionInstructions = "";
+  if (existsSync(promptFilePath)) {
+    try {
+      submissionInstructions = readFileSync(promptFilePath, "utf-8").trim();
+    } catch { /* ignore */ }
+  }
+
   const prompt =
-    `Hãy đọc tệp AGENTS.md để nắm vững quy trình và tiêu chuẩn thẩm định 2 bước (Fixed Two-Step Workflow). Đọc kỹ các tài liệu chuẩn trong: ${promptFilesDesc}. Đọc toàn bộ tài liệu nhóm trong input/ (hỗ trợ đọc tài liệu .docx, .pdf, .md, .txt bao gồm cả các bản bóc tách văn bản .extracted.md), tra cứu đối chiếu kiến thức trong knowledge/ (startup_knowledge.db và startup_knowledge.json). Sau đó thực hiện chuẩn xác Step 1 xuất output/triad_handoff_packet.md, rồi Step 2 xuất output/input_clarification_audit.md và output/report.json theo đúng cấu trúc quy định.`;
+    `Hãy đọc tệp AGENTS.md để nắm vững quy trình và tiêu chuẩn thẩm định 2 bước (Fixed Two-Step Workflow). Đọc kỹ các tài liệu chuẩn trong: ${promptFilesDesc}. Đọc toàn bộ tài liệu nhóm trong input/ (hỗ trợ đọc tài liệu .docx, .pdf, .md, .txt bao gồm cả các bản bóc tách văn bản .extracted.md), tra cứu đối chiếu kiến thức trong knowledge/ (startup_knowledge.db và startup_knowledge.json).` +
+    (submissionInstructions
+      ? `\n\n--- HƯỚNG DẪN BỔ SUNG (${submissionType}) ---\n${submissionInstructions}\n--- KẾT THÚC HƯỚNG DẪN ---\n\n`
+      : "") +
+    ` Sau đó thực hiện chuẩn xác Step 1 xuất output/triad_handoff_packet.md, rồi Step 2 xuất output/input_clarification_audit.md và output/report.json theo đúng cấu trúc quy định.`;
   const args = [
     ...baseArgs,
     "--mode",
@@ -136,11 +170,9 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
     : undefined;
 
   if (metrics) {
-    logJob(
-      jobId,
-      `[TÀI NGUYÊN] RAM Đỉnh: ${metrics.system.peakMemoryMb}MB | CPU TB: ${metrics.system.avgCpuPercent}% (Đỉnh: ${metrics.system.peakCpuPercent}%) | Dung lượng: ${metrics.system.workspaceSizeKb}KB`
+    console.log(
+      `[Worker-OMP][${jobId}][Metrics] RAM: ${metrics.system.peakMemoryMb}MB | CPU: ${metrics.system.avgCpuPercent}% | Disk: ${metrics.system.workspaceSizeKb}KB`
     );
-    logJob(jobId, `[VPS SIZING] ${metrics.system.vpsRecommendation}`);
   }
 
   const agentResult: AgentExecutionResult = {
@@ -163,6 +195,12 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
     j.results.omp = agentResult;
   });
 
-  logJob(jobId, `Hoàn thành đánh giá với OMP trong ${Math.round(durationMs / 1000)}s.`);
+  if (!isSuccess) {
+    const failureMessage = executionResult.error || "Process failed to produce complete output";
+    logJob(jobId, `Tiến trình thẩm định gián đoạn: ${failureMessage}`);
+    throw new Error(failureMessage);
+  }
+
+  logJob(jobId, `Hoàn thành thẩm định đề án sau ${Math.round(durationMs / 1000)}s`);
   return agentResult;
 }

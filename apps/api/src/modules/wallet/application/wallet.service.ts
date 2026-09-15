@@ -22,14 +22,15 @@ export class WalletService {
     sourceType: string,
     sourceId: string,
     idempotencyKey: string,
+    tx?: Prisma.TransactionClient,
   ) {
-    return prisma.$transaction(async (tx) => {
-      const wallet = await getOrCreateWalletInTx(tx, userId)
+    const run = async (txClient: Prisma.TransactionClient) => {
+      const wallet = await getOrCreateWalletInTx(txClient, userId)
 
       const balanceBefore = wallet.balance
       const balanceAfter = balanceBefore + amountVnd
 
-      const txn = await createTransaction(tx, {
+      const txn = await createTransaction(txClient, {
         walletId: wallet.id,
         type: 'deposit',
         amount: amountVnd,
@@ -40,9 +41,9 @@ export class WalletService {
         idempotencyKey,
       })
 
-      await updateWalletBalance(tx, wallet.id, balanceAfter)
+      await updateWalletBalance(txClient, wallet.id, balanceAfter)
 
-      await insertOutboxEvent(tx, {
+      await insertOutboxEvent(txClient, {
         event_type: DOMAIN_EVENTS.WALLET_BALANCE_CHANGED,
         payload_json: {
           userId,
@@ -55,7 +56,9 @@ export class WalletService {
       })
 
       return txn
-    })
+    }
+
+    return tx ? run(tx) : prisma.$transaction(run)
   }
 
   async withdraw(
@@ -63,9 +66,10 @@ export class WalletService {
     amountVnd: number,
     idempotencyKey: string,
     opts?: { referenceType?: string; referenceId?: string },
+    tx?: Prisma.TransactionClient,
   ) {
-    return prisma.$transaction(async (tx) => {
-      const wallet = await getOrCreateWalletInTx(tx, userId)
+    const run = async (txClient: Prisma.TransactionClient) => {
+      const wallet = await getOrCreateWalletInTx(txClient, userId)
 
       if (wallet.balance < amountVnd) {
         throw new InsufficientBalanceError(wallet.balance, amountVnd)
@@ -73,7 +77,7 @@ export class WalletService {
 
       const balanceBefore = wallet.balance
       const balanceAfter = balanceBefore - amountVnd
-      const txn = await createTransaction(tx, {
+      const txn = await createTransaction(txClient, {
         walletId: wallet.id,
         type: 'withdrawal',
         amount: -amountVnd,
@@ -84,10 +88,12 @@ export class WalletService {
         idempotencyKey,
       })
 
-      await updateWalletBalance(tx, wallet.id, balanceAfter)
+      await updateWalletBalance(txClient, wallet.id, balanceAfter)
 
       return txn
-    })
+    }
+
+    return tx ? run(tx) : prisma.$transaction(run)
   }
 
   async refund(

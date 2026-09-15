@@ -118,11 +118,17 @@ export function useExternalFeedbackUpload(caseId: string) {
   };
 }
 
+export interface RevisionUploadResponse {
+  lifecycle_unit_id: string;
+  version_no: number;
+  [key: string]: unknown;
+}
+
 export function useStudentDocumentUpload(caseId: string) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async (payload: { note?: string; files: File[] }) => {
+    mutationFn: async (payload: { note?: string; changeSummary?: string; files: File[] }): Promise<RevisionUploadResponse> => {
       const documents = await Promise.all(
         payload.files.map(async (file) => {
           const uploaded = await uploadManagedDocument(file);
@@ -133,12 +139,13 @@ export function useStudentDocumentUpload(caseId: string) {
         }),
       );
 
-      const changeSummary = `Tải lên: ${payload.files.map(f => f.name).join(', ')}`;
+      const changeSummary = payload.changeSummary || `Tải lên: ${payload.files.map(f => f.name).join(', ')}`;
 
-      await apiClient.post(`/cases/${caseId}/revisions/upload`, {
+      const response = await apiClient.post(`/cases/${caseId}/revisions/upload`, {
         change_summary: changeSummary,
         documents,
       });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["case", caseId] });

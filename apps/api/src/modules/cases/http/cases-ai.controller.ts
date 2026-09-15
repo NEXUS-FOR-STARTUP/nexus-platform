@@ -1,7 +1,7 @@
 import type { Context } from "hono";
 import { streamSSE } from "hono/streaming";
 import { requireCaseAccess } from "../../../shared/infrastructure/authorization.js";
-import { handleError } from "../../../shared/infrastructure/http-helpers.js";
+import { handleError, readJsonBody } from "../../../shared/infrastructure/http-helpers.js";
 import { jobStore } from "../../ai-engine/infrastructure/persistence/job-store.repository.js";
 import { getCaseAiAuditStatus } from "../../ai-engine/application/omp-audit-status.js";
 import {
@@ -37,8 +37,6 @@ export async function streamCaseAiEventsHandler(c: Context) {
     return access.response;
   }
 
-  const job = jobStore.get(caseId);
-
   return streamSSE(c, async (stream) => {
     // 1. Initial status handshake
     const initialStatus = await getCaseAiAuditStatus(caseId);
@@ -47,31 +45,32 @@ export async function streamCaseAiEventsHandler(c: Context) {
       data: JSON.stringify(initialStatus),
     });
 
-    // 2. Initial existing logs replay
-    if (job?.logs?.length) {
-      for (const log of job.logs) {
-        await stream.writeSSE({
-          event: "log",
-          data: JSON.stringify(log),
-        });
-      }
+    // 2. Initial existing logs replay from Redis
+    const existingLogs = await jobStore.getLogs(caseId);
+    for (const log of existingLogs) {
+      await stream.writeSSE({
+        event: "log",
+        data: JSON.stringify(log),
+      });
     }
 
-    // 3. EventEmitter listeners
+    // 3. EventEmitter / Redis PubSub listeners
     const onJobUpdate = (updatedJob: any) => {
-      if (updatedJob.id === caseId) {
-        stream.writeSSE({
+      stream
+        .writeSSE({
           event: "job_state",
           data: JSON.stringify(updatedJob),
-        });
-      }
+        })
+        .catch(() => {});
     };
 
     const onLog = (logEntry: any) => {
-      stream.writeSSE({
-        event: "log",
-        data: JSON.stringify(logEntry),
-      });
+      stream
+        .writeSSE({
+          event: "log",
+          data: JSON.stringify(logEntry),
+        })
+        .catch(() => {});
     };
 
     jobStore.on(`job:${caseId}`, onJobUpdate);
@@ -82,35 +81,16 @@ export async function streamCaseAiEventsHandler(c: Context) {
       jobStore.off(`log:${caseId}`, onLog);
     });
 
-    // 4. File-sync polling fallback for cross-process worker logs
-    let lastStatus = initialStatus.status;
-    let lastLogCount = job?.logs?.length || 0;
-
+    // 4. SSE heartbeat loop to keep connection alive without disk polling
     while (!stream.aborted) {
-      await stream.sleep(1000);
-      const current = jobStore.get(caseId);
-      if (current) {
-        const curLogCount = current.logs?.length || 0;
-        if (curLogCount > lastLogCount) {
-          const newLogs = current.logs!.slice(lastLogCount);
-          lastLogCount = curLogCount;
-          for (const nl of newLogs) {
-            await stream.writeSSE({
-              event: "log",
-              data: JSON.stringify(nl),
-            });
-          }
-        }
-        if (current.status !== lastStatus) {
-          lastStatus = current.status as any;
-          await stream.writeSSE({
-            event: "job_state",
-            data: JSON.stringify(current),
-          });
-        }
-        if (current.status === "completed" || current.status === "failed" || current.status === "cancelled") {
-          break;
-        }
+      await stream.sleep(15000);
+      try {
+        await stream.writeSSE({
+          event: "ping",
+          data: "",
+        });
+      } catch {
+        break;
       }
     }
   });
@@ -136,6 +116,7 @@ export async function cancelCaseAiAuditHandler(c: Context) {
 
 /**
  * POST /api/cases/:id/ai-retry — Retry OMP Audit for case
+ * Body: { submission_type: 'initial' | 'resubmit' | 'logic_check', lifecycle_unit_id?: string }
  */
 export async function retryCaseAiAuditHandler(c: Context) {
   const caseId = c.req.param("id") || "";
@@ -145,8 +126,16 @@ export async function retryCaseAiAuditHandler(c: Context) {
   }
 
   try {
-    await triggerOmpAuditForCase(caseId);
-    return c.json({ success: true, message: "Đã kích hoạt lại thẩm định AI OMP" });
+    const body = await readJsonBody(c);
+    const submissionType = body?.submission_type;
+    const lifecycleUnitId = body?.lifecycle_unit_id;
+
+    await triggerOmpAuditForCase(caseId, {
+      submission_type: submissionType,
+      lifecycle_unit_id: lifecycleUnitId,
+    });
+
+    return c.json({ success: true, message: "Đã kích hoạt thẩm định AI OMP" });
   } catch (err) {
     return handleError(c, err);
   }

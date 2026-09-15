@@ -15,6 +15,8 @@ const BOUNDARY_RULES = [
   { id: "accurate_contact", label: "Chúng tôi cam kết cung cấp đúng thông tin liên hệ để Supporter trao đổi khi cần làm rõ hồ sơ." }
 ];
 
+export const BOUNDARY_RULE_IDS: string[] = BOUNDARY_RULES.map((rule) => rule.id);
+
 export default function BoundaryStep({ form, values }: BoundaryStepProps) {
   return (
     <div className="space-y-5 font-body">
@@ -45,7 +47,9 @@ export default function BoundaryStep({ form, values }: BoundaryStepProps) {
         name="boundary_confirmations"
         validators={{
           onChange: ({ value }: { value: string[] }) => {
-            if (!value || value.length < 3) {
+            const allChecked =
+              Array.isArray(value) && BOUNDARY_RULE_IDS.every((id) => value.includes(id));
+            if (!allChecked) {
               return "Bạn phải tích chọn tất cả cam kết để có thể gửi hồ sơ.";
             }
             return undefined;

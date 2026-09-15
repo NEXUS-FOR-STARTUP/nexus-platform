@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Case } from "@/types";
 import {
   Clock,
@@ -10,12 +10,35 @@ import {
   HelpCircle,
   Coins,
   ArrowRight,
+  Zap,
+  Upload,
 } from "lucide-react";
-import { Alert, Button } from "@mantine/core";
+import { Alert, Button, Select, Stack, Textarea, Group } from "@mantine/core";
+import { Dropzone, type FileRejection } from "@mantine/dropzone";
 import { STATUS_GUIDANCE_COPY, type GuidanceTone, type GuidanceIconKey } from "./statusCopyMap";
 import type { OpenInfoRequest } from "../hooks/useCaseDetails";
 import { isCaseFree, PACKAGE_KEYS, caseRequiresPayment, formatPrice } from "@/lib/pricing";
 import { usePackagePrice } from "@/lib/usePackagePrice";
+import type { SubmissionType } from "../hooks/useTriggerAudit";
+import { useStudentDocumentUpload, type RevisionUploadResponse } from "../hooks/useCaseDocumentUploads";
+
+const SUBMISSION_TYPE_OPTIONS = [
+  { value: "initial", label: "Lần đầu — Đánh giá tổng quát" },
+  { value: "resubmit", label: "Đã sửa — Đối chiếu với kết quả trước" },
+  { value: "logic_check", label: "Soi logic — Khả thi + khách hàng" },
+] as const;
+
+const MAX_FILES = 5;
+const MAX_FILE_SIZE_MB = 15;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const ACCEPTED_MIME_TYPES = {
+  "application/pdf": [".pdf"],
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation": [".pptx"],
+  "text/markdown": [".md"],
+  "text/plain": [".txt", ".md"],
+};
 
 interface StatusGuidanceCardProps {
   caseData: Case;
@@ -28,6 +51,8 @@ interface StatusGuidanceCardProps {
   onSubmitRevision?: () => void;
   onConfirmComplete?: () => void;
   isConfirmingComplete?: boolean;
+  onTriggerAudit?: (submissionType: SubmissionType, lifecycleUnitId?: string) => Promise<void>;
+  isTriggeringAudit?: boolean;
 }
 
 const ICON_BY_KEY: Record<GuidanceIconKey, React.ComponentType<{ className?: string }>> = {
@@ -58,7 +83,16 @@ export default function StatusGuidanceCard({
   onSubmitRevision,
   onConfirmComplete,
   isConfirmingComplete,
+  onTriggerAudit,
+  isTriggeringAudit,
 }: StatusGuidanceCardProps) {
+  const [submissionType, setSubmissionType] = useState<SubmissionType>("initial");
+  const [resubmitFiles, setResubmitFiles] = useState<File[]>([]);
+  const [resubmitChangeSummary, setResubmitChangeSummary] = useState("");
+  const [resubmitError, setResubmitError] = useState<string | null>(null);
+  const [isResubmitting, setIsResubmitting] = useState(false);
+  const { submitStudentUpload, isSubmitting: isUploading } = useStudentDocumentUpload(caseData.id);
+
   const isFree = isCaseFree(caseData);
   const targetPackageId = isFree
     ? PACKAGE_KEYS.AI_AUDIT
@@ -92,6 +126,69 @@ export default function StatusGuidanceCard({
     const metadata = rejectionEvent?.metadata_json as { reason?: string } | undefined;
     return metadata?.reason || null;
   })();
+
+  const hasCredits = (creditBalance ?? 0) >= 1;
+  const canTriggerAudit = !!onTriggerAudit && hasCredits;
+
+  const handleTriggerAudit = async () => {
+    if (!onTriggerAudit) return;
+
+    if (submissionType === "resubmit") {
+      // 2-step: upload first, then trigger
+      if (resubmitFiles.length === 0) {
+        setResubmitError("Vui lòng tải lên ít nhất 1 tài liệu đã sửa.");
+        return;
+      }
+      if (resubmitChangeSummary.trim().length < 10) {
+        setResubmitError("Tóm tắt thay đổi cần ít nhất 10 ký tự.");
+        return;
+      }
+
+      setResubmitError(null);
+      setIsResubmitting(true);
+      try {
+        const uploadResult: RevisionUploadResponse = await submitStudentUpload({
+          changeSummary: resubmitChangeSummary.trim(),
+          files: resubmitFiles,
+        });
+        await onTriggerAudit("resubmit", uploadResult.lifecycle_unit_id);
+        // Reset form on success
+        setResubmitFiles([]);
+        setResubmitChangeSummary("");
+      } catch {
+        setResubmitError("Tải tài liệu thất bại. Vui lòng thử lại.");
+      } finally {
+        setIsResubmitting(false);
+      }
+      return;
+    }
+
+    // initial or logic_check — direct trigger
+    await onTriggerAudit(submissionType);
+  };
+
+  const appendResubmitFiles = (selected: File[]) => {
+    const combined = [...resubmitFiles, ...selected];
+    if (combined.length > MAX_FILES) {
+      setResubmitError(`Chỉ được tải tối đa ${MAX_FILES} tài liệu.`);
+      return;
+    }
+    setResubmitError(null);
+    setResubmitFiles(combined);
+  };
+
+  const removeResubmitFile = (index: number) => {
+    setResubmitFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRejectedFiles = (rejections: FileRejection[]) => {
+    const firstErrorCode = rejections[0]?.errors[0]?.code;
+    if (firstErrorCode === "file-too-large") {
+      setResubmitError(`Mỗi tệp tối đa ${MAX_FILE_SIZE_MB}MB.`);
+      return;
+    }
+    setResubmitError("Định dạng tệp không được hỗ trợ.");
+  };
 
   if (hasInfoRequest) {
     const queryText =
@@ -203,7 +300,7 @@ export default function StatusGuidanceCard({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-brand/10 text-xs">
               <div className="bg-surface-app/70 p-2 rounded border border-brand/15 font-body">
                 <span className="font-semibold text-brand block mb-0.5">1. Mua credit (Hiện tại)</span>
-                <span className="text-text-muted text-[11px]">Mua credit đánh giá chuyên sâu ({auditPriceLabel} / lượt).</span>
+                <span className="text-text-muted text-[11px]">Mua credit đánh giá chuyên sâu ({auditPriceLabel} / 2 lượt).</span>
               </div>
               <div className="bg-surface-app/70 p-2 rounded border border-border-app font-body">
                 <span className="font-semibold text-text-app block mb-0.5">2. Nộp hồ sơ chi tiết</span>
@@ -219,7 +316,7 @@ export default function StatusGuidanceCard({
           <div className="flex flex-wrap items-center gap-3 pt-1">
             {onOpenPayment && (
               <Button size="sm" color="brand" leftSection={<Coins className="w-4 h-4" />} className="shrink-0 cursor-pointer font-semibold text-xs" onClick={onOpenPayment}>
-                {isFree ? `Mua lượt thẩm định ngay (${auditPriceLabel})` : `Thanh toán ngay (${auditPriceLabel})`}
+                {isFree ? `Mua ngay (${auditPriceLabel} / 2 lượt)` : `Thanh toán ngay (${auditPriceLabel} / 2 lượt)`}
               </Button>
             )}
             {onOpenIntake && canOpenIntake && (
@@ -305,56 +402,177 @@ export default function StatusGuidanceCard({
   }
 
   if (stage === "report_ready") {
-    const isFree = isCaseFree(caseData);
-    const hasCredits = isFree || (creditBalance ?? 0) > 0;
+    const isFreeReportReady = isCaseFree(caseData);
+    const hasReportCredits = isFreeReportReady || (creditBalance ?? 0) > 0;
     const canConfirmComplete = hasTransition("T17_USER_CONFIRM_COMPLETE");
 
     return (
-      <Alert
-        variant="light"
-        color="green"
-        radius="md"
-        title="Báo cáo phản biện đã sẵn sàng"
-        icon={<CheckCircle2 className="w-4.5 h-4.5 shrink-0" />}
-        className={ALERT_CLASS}
-      >
-        <div className="space-y-3 flex-grow mt-1">
-          <p className="text-text-muted text-xs leading-relaxed">
-            Supporter đã hoàn thành đánh giá chi tiết. Xem báo cáo ở tab Tài liệu; khi nhóm đã xem xong, hãy xác nhận hoàn thành để đóng quy trình phản biện.
-          </p>
+      <Stack gap="sm" className="animate-fade-in font-body">
+        <Alert
+          variant="light"
+          color="green"
+          radius="md"
+          title="Báo cáo phản biện đã sẵn sàng"
+          icon={<CheckCircle2 className="w-4.5 h-4.5 shrink-0" />}
+          className={ALERT_CLASS}
+        >
+          <div className="space-y-3 flex-grow mt-1">
+            <p className="text-text-muted text-xs leading-relaxed">
+              Đánh giá chi tiết đã hoàn thành. Khi nhóm đã xem xong kết quả, hãy xác nhận hoàn thành hoặc gửi đánh giá mới.
+            </p>
 
-          {!hasCredits ? (
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-danger-soft dark:bg-red-950/30 p-2.5 rounded border border-danger/10 dark:border-red-800/40">
-              <p className="text-danger dark:text-red-300 text-xs leading-relaxed">
+            {hasReportCredits && (
+              <p className="text-text-muted text-xs leading-relaxed">
+                Muốn tiếp tục cải thiện? Hãy chọn loại đánh giá bên dưới. Mỗi lượt đánh giá mới tương ứng 1 credit.
+              </p>
+            )}
+
+            {onConfirmComplete && canConfirmComplete && (
+              <div className="pt-1">
+                <Button
+                  size="sm"
+                  color="brand"
+                  className="shrink-0 cursor-pointer w-full sm:w-auto"
+                  loading={isConfirmingComplete}
+                  onClick={onConfirmComplete}
+                >
+                  Xác nhận hoàn thành
+                </Button>
+              </div>
+            )}
+          </div>
+        </Alert>
+
+        {!hasReportCredits && (
+          <Alert
+            variant="light"
+            color="red"
+            radius="md"
+            icon={<AlertCircle className="w-4.5 h-4.5 shrink-0" />}
+            className={ALERT_CLASS}
+          >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 flex-grow">
+              <p className="text-xs leading-relaxed">
                 Bạn đã hết credit. Nếu muốn tiếp tục nộp bản sửa đổi mới ở vòng sau, vui lòng mua thêm credit.
               </p>
               {onOpenPayment && (
-                <Button size="xs" color="red" variant="light" className="shrink-0 cursor-pointer" onClick={onOpenPayment}>
+                <Button
+                  size="xs"
+                  color="red"
+                  variant="filled"
+                  className="shrink-0 font-semibold cursor-pointer"
+                  onClick={onOpenPayment}
+                >
                   Mua credit
                 </Button>
               )}
             </div>
-          ) : (
-            <p className="text-text-muted text-xs leading-relaxed">
-              Muốn tiếp tục cải thiện? Sửa tài liệu rồi gửi lại — mỗi lượt đánh giá mới = 1 credit.
-            </p>
-          )}
+          </Alert>
+        )}
 
-          {onConfirmComplete && canConfirmComplete && (
-            <div className="pt-1">
-              <Button
+        {/* Audit trigger — shown when credits available and trigger handler provided */}
+        {canTriggerAudit && (
+          <Alert
+            variant="light"
+            color="blue"
+            radius="md"
+            title="Gửi đánh giá mới"
+            icon={<Zap className="w-4.5 h-4.5 shrink-0" />}
+            className={ALERT_CLASS}
+          >
+            <Stack gap="sm">
+              <Select
+                label="Loại đánh giá"
+                data={SUBMISSION_TYPE_OPTIONS}
+                value={submissionType}
+                onChange={(val) => {
+                  setSubmissionType((val as SubmissionType) || "initial");
+                  setResubmitError(null);
+                }}
                 size="sm"
-                color="brand"
-                className="shrink-0 cursor-pointer w-full sm:w-auto"
-                loading={isConfirmingComplete}
-                onClick={onConfirmComplete}
-              >
-                Xác nhận hoàn thành
-              </Button>
-            </div>
-          )}
-        </div>
-      </Alert>
+                radius="md"
+              />
+
+              {submissionType === "resubmit" && (
+                <Stack gap="xs">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-text-app">Tài liệu đã sửa</label>
+                    <Dropzone
+                      onDrop={appendResubmitFiles}
+                      onReject={handleRejectedFiles}
+                      accept={ACCEPTED_MIME_TYPES}
+                      maxSize={MAX_FILE_SIZE_BYTES}
+                      maxFiles={MAX_FILES}
+                      multiple
+                      disabled={isResubmitting || isUploading}
+                      className="border-2 border-dashed border-border-strong hover:border-brand/50 bg-surface-soft/30 rounded-xl p-4 text-center cursor-pointer transition-all"
+                    >
+                      <Dropzone.Idle>
+                        <div className="flex flex-col items-center justify-center gap-1.5">
+                          <Upload className="w-5 h-5 text-brand" />
+                          <p className="text-xs text-text-muted">
+                            Kéo thả hoặc <span className="text-brand underline">chọn tài liệu đã sửa</span>
+                          </p>
+                        </div>
+                      </Dropzone.Idle>
+                    </Dropzone>
+                  </div>
+
+                  {resubmitFiles.length > 0 && (
+                    <div className="space-y-1">
+                      {resubmitFiles.map((file, idx) => (
+                        <div key={`${file.name}-${idx}`} className="flex items-center justify-between text-xs bg-surface-app p-2 rounded border border-border-app">
+                          <span className="truncate">{file.name}</span>
+                          <button type="button" onClick={() => removeResubmitFile(idx)} className="text-text-subtle hover:text-danger cursor-pointer ml-2">✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <Textarea
+                    label="Tóm tắt thay đổi"
+                    placeholder="Mô tả các nội dung đã cập nhật (ít nhất 10 ký tự)..."
+                    value={resubmitChangeSummary}
+                    onChange={(e) => {
+                      setResubmitChangeSummary(e.currentTarget.value);
+                      setResubmitError(null);
+                    }}
+                    minRows={2}
+                    autosize
+                    size="sm"
+                    radius="md"
+                    error={resubmitError}
+                  />
+                </Stack>
+              )}
+
+              {submissionType === "logic_check" && (
+                <p className="text-xs text-text-muted">
+                  Hệ thống sẽ dùng tài liệu mới nhất để đánh giá khả thi và tính khách quan.
+                </p>
+              )}
+
+              <Group justify="flex-end">
+                <Button
+                  size="sm"
+                  color="brand"
+                  className="shrink-0 cursor-pointer font-semibold"
+                  loading={isTriggeringAudit || isResubmitting || isUploading}
+                  disabled={isTriggeringAudit || isResubmitting || isUploading}
+                  leftSection={submissionType === "resubmit" ? <Upload className="w-3.5 h-3.5" /> : <Zap className="w-3.5 h-3.5" />}
+                  onClick={handleTriggerAudit}
+                >
+                  {submissionType === "resubmit"
+                    ? "Tải lên & Gửi đánh giá"
+                    : submissionType === "logic_check"
+                      ? "Soi logic ngay"
+                      : "Gửi đánh giá"}
+                </Button>
+              </Group>
+            </Stack>
+          </Alert>
+        )}
+      </Stack>
     );
   }
 

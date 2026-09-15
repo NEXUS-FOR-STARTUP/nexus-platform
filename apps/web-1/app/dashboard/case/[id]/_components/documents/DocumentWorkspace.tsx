@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { Select } from "@mantine/core";
+import { useMemo, useState } from "react";
 import {
   DocumentWorkspaceProps,
   WorkspaceTab,
@@ -10,9 +9,24 @@ import {
   buildExternalFeedbackRows,
 } from "./document-workspace.types";
 import { buildCategoryGroups } from "./document-groups";
+import { buildAssessmentReportRows } from "./report-rows";
+import DocumentWorkspaceHeader from "./DocumentWorkspaceHeader";
 import DocumentRowsTable from "./DocumentRowsTable";
+import type { RoundHistoryEntry } from "@/types/case";
 
-export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps) {
+interface DocumentWorkspaceWithReportsProps extends DocumentWorkspaceProps {
+  roundHistory?: RoundHistoryEntry[] | null;
+  caseId?: string;
+  projectName?: string;
+  caseCode?: string;
+}
+
+export default function DocumentWorkspace({
+  workspace,
+  roundHistory,
+  projectName,
+  caseCode,
+}: DocumentWorkspaceWithReportsProps) {
   const [activeCheckpoint, setActiveCheckpoint] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("documents");
   const [filterRole, setFilterRole] = useState<FilterRole>("all");
@@ -22,7 +36,7 @@ export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps)
     return (
       workspace.checkpoints.find((cp) => cp.checkpoint_id === activeCheckpoint) ??
       workspace.checkpoints.find(
-        (cp) => cp.checkpoint_id === workspace.selected_checkpoint_id
+        (cp) => cp.checkpoint_id === workspace.selected_checkpoint_id,
       ) ??
       null
     );
@@ -35,14 +49,14 @@ export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps)
         const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
         const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
         return (isNaN(timeB) ? 0 : timeB) - (isNaN(timeA) ? 0 : timeA);
-      }
+      },
     );
   }, [selectedCheckpoint]);
 
   const feedbackRows = useMemo(() => {
     if (!selectedCheckpoint) return [];
     return buildExternalFeedbackRows(
-      selectedCheckpoint.external_feedback_documents
+      selectedCheckpoint.external_feedback_documents,
     ).sort((a, b) => {
       const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
@@ -50,36 +64,45 @@ export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps)
     });
   }, [selectedCheckpoint]);
 
+  const reportRows = useMemo(() => {
+    return buildAssessmentReportRows(roundHistory, projectName, caseCode).sort(
+      (a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return (isNaN(timeB) ? 0 : timeB) - (isNaN(timeA) ? 0 : timeA);
+      },
+    );
+  }, [roundHistory, projectName, caseCode]);
+
   const studentDocCount = useMemo(
     () => documentRows.filter((r) => r.uploaderRole === "student").length,
-    [documentRows]
+    [documentRows],
   );
   const supporterDocCount = useMemo(
     () =>
       documentRows.filter(
-        (r) => r.uploaderRole === "supporter" || r.uploaderRole === "admin"
+        (r) => r.uploaderRole === "supporter" || r.uploaderRole === "admin",
       ).length,
-    [documentRows]
+    [documentRows],
   );
 
   const displayedRows = useMemo(() => {
-    if (activeTab === "external-feedback") {
-      return feedbackRows;
-    }
+    if (activeTab === "assessment-reports") return reportRows;
+    if (activeTab === "external-feedback") return feedbackRows;
     if (filterRole === "student") {
       return documentRows.filter((r) => r.uploaderRole === "student");
     }
     if (filterRole === "supporter") {
       return documentRows.filter(
-        (r) => r.uploaderRole === "supporter" || r.uploaderRole === "admin"
+        (r) => r.uploaderRole === "supporter" || r.uploaderRole === "admin",
       );
     }
     return documentRows;
-  }, [activeTab, documentRows, feedbackRows, filterRole]);
+  }, [activeTab, documentRows, feedbackRows, filterRole, reportRows]);
 
   const displayedGroups = useMemo(
     () => (activeTab === "documents" ? buildCategoryGroups(displayedRows) : []),
-    [activeTab, displayedRows]
+    [activeTab, displayedRows],
   );
 
   if (!workspace || workspace.checkpoints.length === 0 || !selectedCheckpoint) {
@@ -95,95 +118,29 @@ export default function DocumentWorkspace({ workspace }: DocumentWorkspaceProps)
 
   return (
     <div className="bg-surface-app border border-border-app rounded-xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-border-app flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-surface-app">
-        <div className="flex items-center gap-2 overflow-x-auto">
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab("documents");
-              setFilterRole("all");
-            }}
-            className={`px-3.5 py-1.5 text-base font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-              activeTab === "documents"
-                ? "bg-brand text-white font-semibold"
-                : "text-text-muted hover:text-text-app hover:bg-surface-soft"
-            }`}
-          >
-            <span>Tài liệu bài nộp</span>
-            <span
-              className={`text-[11px] font-semibold px-1.5 py-0.2 rounded-full leading-tight ${
-                activeTab === "documents"
-                  ? "bg-white/20 text-white"
-                  : "bg-surface-soft text-text-muted"
-              }`}
-            >
-              {documentRows.length}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab("external-feedback");
-              setFilterRole("all");
-            }}
-            className={`px-3.5 py-1.5 text-base font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-              activeTab === "external-feedback"
-                ? "bg-brand text-white font-semibold"
-                : "text-text-muted hover:text-text-app hover:bg-surface-soft"
-            }`}
-          >
-            <span>Đánh giá bên ngoài</span>
-            <span
-              className={`text-[11px] font-semibold px-1.5 py-0.2 rounded-full leading-tight ${
-                activeTab === "external-feedback"
-                  ? "bg-white/20 text-white"
-                  : "bg-surface-soft text-text-muted"
-              }`}
-            >
-              {feedbackRows.length}
-            </span>
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0">
-          {activeTab === "documents" && (
-            <Select
-              value={filterRole}
-              onChange={(val) => setFilterRole((val as FilterRole) || "all")}
-              size="sm"
-              radius="md"
-              w={175}
-              data={[
-                { label: `Tất cả (${documentRows.length})`, value: "all" },
-                { label: `Sinh viên (${studentDocCount})`, value: "student" },
-                { label: `Supporter (${supporterDocCount})`, value: "supporter" },
-              ]}
-            />
-          )}
-
-          {workspace.checkpoints.length > 1 && (
-            <Select
-              value={selectedCheckpoint.checkpoint_id}
-              onChange={(val) => val && setActiveCheckpoint(val)}
-              size="sm"
-              radius="md"
-              w={150}
-              data={workspace.checkpoints.map((cp) => ({
-                label: cp.checkpoint_code,
-                value: cp.checkpoint_id,
-              }))}
-            />
-          )}
-        </div>
-      </div>
+      <DocumentWorkspaceHeader
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        filterRole={filterRole}
+        setFilterRole={setFilterRole}
+        documentCount={documentRows.length}
+        feedbackCount={feedbackRows.length}
+        reportCount={roundHistory ? roundHistory.length : 0}
+        studentDocCount={studentDocCount}
+        supporterDocCount={supporterDocCount}
+        checkpoints={workspace.checkpoints}
+        selectedCheckpointId={selectedCheckpoint.checkpoint_id}
+        onSelectCheckpoint={setActiveCheckpoint}
+      />
 
       {displayedRows.length === 0 ? (
         <div className="p-8 text-center">
           <p className="text-base font-medium text-text-muted">
             {activeTab === "documents"
               ? "Không có tài liệu nào thuộc bộ lọc này."
-              : "Chưa có tài liệu đánh giá bên ngoài trong checkpoint này."}
+              : activeTab === "assessment-reports"
+                ? "Chưa có báo cáo phản biện nào được lưu."
+                : "Chưa có tài liệu đánh giá bên ngoài trong checkpoint này."}
           </p>
         </div>
       ) : (

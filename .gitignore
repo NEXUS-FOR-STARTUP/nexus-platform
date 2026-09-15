@@ -70,3 +70,5 @@ note.txt
 # Storage & Sandbox jobs
 storage/
 apps/api/storage/
+data/postgres/
+**/.bin/

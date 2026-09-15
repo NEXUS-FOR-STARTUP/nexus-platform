@@ -27,6 +27,7 @@ export async function getCaseAiAuditStatus(caseId: string) {
   const aiJob = await findLatestAiJobByCase(caseId);
   const queueStatus = await getOmpJobStatus(caseId);
   const storedJob = jobStore.get(caseId);
+  const logs = await jobStore.getLogs(caseId);
 
   const startedAt =
     (aiJob?.input_json as any)?.startedAt ||
@@ -59,7 +60,7 @@ export async function getCaseAiAuditStatus(caseId: string) {
     status: finalStatus,
     startedAt,
     elapsedSeconds,
-    logs: storedJob?.logs || [],
+    logs: logs.length > 0 ? logs : storedJob?.logs || [],
     error: queueStatus.failedReason || null,
   };
 }

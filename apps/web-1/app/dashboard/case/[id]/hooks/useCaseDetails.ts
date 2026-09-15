@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { notifications } from "@mantine/notifications";
 import { apiClient } from "@/lib/api-client";
-import type { Case, DocumentWorkspace } from "@/types";
+import type { Case, DocumentWorkspace, RoundHistoryEntry } from "@/types";
 
 /** Open request-more-info / close-case event surfaced for the student workspace. */
 export interface OpenInfoRequest {
@@ -17,7 +17,7 @@ interface CaseDetailsResponse {
   latest_report?: unknown;
   latest_user_action?: unknown;
   document_board_sections?: unknown;
-  round_history?: unknown;
+  round_history?: RoundHistoryEntry[];
   open_requests_for_more_info?: OpenInfoRequest[] | null;
   document_workspace?: DocumentWorkspace | null;
 }
@@ -118,7 +118,7 @@ export function useCaseDetails(id: string) {
     teamFitReport: caseQuery.data?.case?.team_fit_report || null,
     latestUserAction: caseQuery.data?.latest_user_action || null,
     documentBoardSections: caseQuery.data?.document_board_sections || null,
-    roundHistory: caseQuery.data?.round_history || null,
+    roundHistory: (caseQuery.data?.round_history as RoundHistoryEntry[] | undefined) ?? null,
     openRequestsForMoreInfo: caseQuery.data?.open_requests_for_more_info || null,
     documentWorkspace: caseQuery.data?.document_workspace || null,
     isLoading: caseQuery.isLoading,

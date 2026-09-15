@@ -5,7 +5,7 @@ import { useStore } from "@tanstack/react-form";
 import { IntakeStep, IntakeData } from "../_types/intake.types";
 import { Button } from "@mantine/core";
 import { ArrowLeft, ArrowRight, Bot, Send } from "lucide-react";
-
+import { BOUNDARY_RULE_IDS } from "./Steps/BoundaryStep";
 // Import step components
 import SituationStep from "./Steps/SituationStep";
 import ContactStep from "./Steps/ContactStep";
@@ -70,7 +70,7 @@ export const checkStepValidity = (step: IntakeStep, values: any): boolean => {
         )
       );
     case IntakeStep.BOUNDARY:
-      return Array.isArray(values.boundary_confirmations) && values.boundary_confirmations.length >= 3;
+      return Array.isArray(values.boundary_confirmations) && BOUNDARY_RULE_IDS.every((id: string) => values.boundary_confirmations.includes(id));
     case IntakeStep.REVIEW:
       return true;
     default:

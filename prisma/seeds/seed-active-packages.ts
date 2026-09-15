@@ -75,6 +75,7 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
       sla_hours: 0,
       mode: "ai_automated",
       auto_delivery: true,
+      credits_granted: 2,
     },
     is_active: true,
   },

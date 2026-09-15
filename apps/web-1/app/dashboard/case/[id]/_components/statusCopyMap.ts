@@ -31,16 +31,16 @@ export const STATUS_GUIDANCE_COPY: Record<string, StatusGuidanceCopy> = {
     icon: "activity",
   },
   report_ready: {
-    title: "Báo cáo phản biện đã sẵn sàng — Nhóm có thể nộp bản sửa đổi",
+    title: "Báo cáo phản biện đã sẵn sàng",
     description:
-      "Supporter đã hoàn thành đánh giá chi tiết. Nhóm có thể xem kết quả phản biện bên dưới, tiến hành sửa đổi bài làm và nộp bản mới (v02, v03...) để Supporter thẩm định vòng tiếp theo.",
+      "Đánh giá chi tiết đã hoàn thành. Khi nhóm đã xem xong kết quả, hãy xác nhận hoàn thành hoặc gửi đánh giá mới.",
     tone: "success",
     icon: "check",
   },
   waiting_for_revision: {
-    title: "Báo cáo phản biện đã sẵn sàng — Nhóm có thể nộp bản sửa đổi",
+    title: "Báo cáo phản biện đã sẵn sàng",
     description:
-      "Supporter đã hoàn thành đánh giá chi tiết. Nhóm có thể xem kết quả phản biện bên dưới, tiến hành sửa đổi bài làm và nộp bản mới (v02, v03...) để Supporter thẩm định vòng tiếp theo.",
+      "Đánh giá chi tiết đã hoàn thành. Khi nhóm đã xem xong kết quả, hãy xác nhận hoàn thành hoặc gửi đánh giá mới.",
     tone: "success",
     icon: "check",
   },

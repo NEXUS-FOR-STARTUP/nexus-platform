@@ -135,6 +135,7 @@ export function buildReportPdfFilename(opts: {
   reportType?: string;
   markdown?: string;
   createdAt?: Date | string | null;
+  versionNo?: number | null;
 }): string {
   const slug = makeDownloadSlug(opts.projectName);
   const type = resolveReportType({
@@ -145,7 +146,8 @@ export function buildReportPdfFilename(opts: {
   const validDate = isNaN(d.getTime()) ? new Date() : d;
   const pad = (n: number) => String(n).padStart(2, "0");
   const timestamp = `${validDate.getFullYear()}${pad(validDate.getMonth() + 1)}${pad(validDate.getDate())}${pad(validDate.getHours())}${pad(validDate.getMinutes())}${pad(validDate.getSeconds())}`;
-  return `${slug}_${type}_${timestamp}.pdf`;
+  const versionSuffix = opts.versionNo != null ? `_v${String(opts.versionNo).padStart(2, "0")}` : "";
+  return `${slug}_${type}_${timestamp}${versionSuffix}.pdf`;
 }
 
 /**
