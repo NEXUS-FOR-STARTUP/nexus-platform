@@ -292,32 +292,89 @@ export async function triggerOmpAuditForCase(
     throw new AppError(404, "CASE_NOT_FOUND", `Case ${caseId} not found`);
   }
 
-  // 4. Guard: already queued/processing → 409 AUDIT_IN_PROGRESS
+  // 4. Fast-path guard: already queued/processing → 409 AUDIT_IN_PROGRESS.
+  // Routine early-exit only; the in-transaction guard below is the source of
+  // truth for concurrent triggers that both pass this check.
   const latestJob = await findLatestAiJobByCase(caseId);
   if (latestJob && (latestJob.status === "queued" || latestJob.status === "processing")) {
     throw new AppError(409, "AUDIT_IN_PROGRESS", "Đã có tiến trình thẩm định đang chạy. Vui lòng đợi hoàn thành.");
   }
 
+  // 4b. Initial report already exists for intake unit → reject upfront.
+  // Report has no submission_type column; saveOmpAuditReport always writes
+  // report_type 'input_clarification', so query by that invariant.
+  // If the first initial FAILED (no report saved), the guard finds nothing
+  // and the trigger proceeds — P2002 skipCharge below handles free retry.
+  if (submissionType === "initial") {
+    const intakeUnit = await findFirstIntakeUnit(caseId);
+    if (intakeUnit) {
+      const existingInitial = await prisma.report.findFirst({
+        where: {
+          lifecycle_unit_id: intakeUnit.id,
+          report_type: "input_clarification",
+          created_at: { lt: new Date() },
+        },
+        orderBy: { created_at: "asc" },
+      });
+      if (existingInitial) {
+        throw new AppError(409, "AUDIT_IN_PROGRESS", "Báo cáo Ban đầu đã tồn tại. Vui lòng sử dụng Tạo lại (resubmit) nếu cần gửi tài liệu sửa đổi.");
+      }
+    }
+  }
+
   // 5-6. Balance check + deduct 1 credit + register job atomically. The
   // balance is read INSIDE the transaction so concurrent triggers cannot
   // both pass the check on a single remaining credit (TOCTOU).
-  const startedAt = new Date().toISOString();
+  // Key policy: reuse previous idempotency key only when the trigger intent
+  // is identical (same submission_type + lifecycle_unit_id). A distinct fresh
+  // user submission always mints a new key to avoid suppressing a legitimate
+  // new trigger via P2002.
+  const previousStartedAt =
+    latestJob && (latestJob.status === "failed" || latestJob.status === "cancelled")
+      ? (latestJob.input_json as { startedAt?: string } | null)?.startedAt ?? null
+      : null;
+  const previousSubmissionType =
+    latestJob ? ((latestJob.input_json as { submission_type?: string } | null)?.submission_type ?? null) : null;
+  const previousLifecycleUnitId =
+    latestJob ? ((latestJob.input_json as { lifecycle_unit_id?: string | null } | null)?.lifecycle_unit_id ?? null) : null;
+  const sameTriggerIntent =
+    previousStartedAt !== null &&
+    previousSubmissionType === submissionType &&
+    previousLifecycleUnitId === (lifecycleUnitId ?? null);
+  const startedAt = sameTriggerIntent ? previousStartedAt! : new Date().toISOString();
   const idempotencyKey = `audit-trigger-${caseId}-${startedAt}`;
 
   try {
     await prisma.$transaction(async (tx) => {
+      // Serialize concurrent triggers for the same case; the in-tx guard
+      // below is the source of truth, the pre-tx check is fast-path only.
+      await tx.$queryRaw`SELECT id FROM "cases" WHERE id = ${caseId} FOR UPDATE`;
+      const inTxJob = await tx.aiJob.findFirst({ where: { case_id: caseId, job_type: "omp_audit" }, orderBy: { created_at: "desc" } });
+      if (inTxJob && (inTxJob.status === "queued" || inTxJob.status === "processing")) {
+        throw new AppError(409, "AUDIT_IN_PROGRESS", "Đã có tiến trình thẩm định đang chạy. Vui lòng đợi hoàn thành.");
+      }
       const inTxBalance = await getCreditBalanceForTx(tx, caseId);
       if (inTxBalance < 1) {
         throw new AppError(402, "NO_CREDITS", "Hết credit. Vui lòng mua thêm credit để tiếp tục.");
       }
-      const entry = await createCreditEntry(tx, {
-        caseId,
-        amount: -1,
-        balanceAfter: inTxBalance - 1,
-        type: "consumption",
-        referenceId: caseId,
-        idempotencyKey,
-      });
+      let skipCharge = false;
+      try {
+        await createCreditEntry(tx, {
+          caseId,
+          amount: -1,
+          balanceAfter: inTxBalance - 1,
+          type: "consumption",
+          referenceId: caseId,
+          idempotencyKey,
+        });
+      } catch (err: unknown) {
+        if (typeof err === "object" && err !== null && "code" in err && err.code === "P2002") {
+          // Same trigger already charged — free retry, skip deduction.
+          skipCharge = true;
+        } else {
+          throw err;
+        }
+      }
 
       // Register in ai_jobs table
       await tx.aiJob.upsert({
@@ -343,10 +400,14 @@ export async function triggerOmpAuditForCase(
           updated_at: new Date(startedAt),
         },
       });
+
+      if (skipCharge) {
+        logger.info({ caseId, idempotencyKey }, "Existing consumption row found — free retry, skipped deduction");
+      }
     });
   } catch (txErr) {
-    // Expected 402 is routine, not an infra failure — don't error-log it.
-    if (!(txErr instanceof AppError && txErr.status === 402)) {
+    // Expected 402/409 are routine, not infra failures — don't error-log them.
+    if (!(txErr instanceof AppError && (txErr.status === 402 || txErr.status === 409))) {
       logger.error({ caseId, txErr }, "Failed to deduct credit or register AI job");
     }
     throw txErr;
@@ -376,6 +437,26 @@ export async function triggerOmpAuditForCase(
       lifecycleUnitId ?? null,
     );
 
+    // 9b. Persist resolved unit into aiJob.input_json so the guard (phase-01)
+    // and finalizer read the true identity, not the pre-resolve request value.
+    // Best-effort: on failure the finalizer falls back to latest version unit.
+    if (resolvedLifecycleUnitId && resolvedLifecycleUnitId !== (lifecycleUnitId ?? null)) {
+      try {
+        await prisma.aiJob.update({
+          where: { id: `ai-job-${caseId}` },
+          data: {
+            input_json: {
+              submission_type: submissionType,
+              lifecycle_unit_id: resolvedLifecycleUnitId,
+              startedAt,
+            },
+          },
+        });
+      } catch (persistErr) {
+        logger.warn({ caseId, persistErr }, "Failed to persist resolved lifecycle_unit_id into aiJob.input_json");
+      }
+    }
+
     // 10. Prepare sandbox
     prepareSandbox(jobDir, inputFiles);
 
@@ -399,6 +480,7 @@ export async function triggerOmpAuditForCase(
       ompModel: process.env.OMP_MODEL || "mimo/mimo-v2.5",
       promptMode: "full",
       submissionType,
+      lifecycleUnitId: resolvedLifecycleUnitId ?? undefined,
     });
 
     // 12. Sync into jobStore for real-time SSE logs
@@ -458,3 +540,4 @@ export async function cancelOmpAuditForCase(caseId: string) {
   logger.warn({ caseId, queueResult }, "OMP audit cancelled by user");
   return { success: true, message: "Đã hủy tiến trình thẩm định OMP", job: cancelledJob };
 }
+

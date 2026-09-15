@@ -20,6 +20,7 @@ export interface OmpJobPayload {
   ompModel?: string;
   promptMode?: "full" | "lite";
   submissionType?: "initial" | "resubmit" | "logic_check";
+  lifecycleUnitId?: string;
 }
 
 export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecutionResult> {
@@ -30,11 +31,18 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
 
   logJob(jobId, `Bắt đầu thẩm định tài liệu đề án: ${documentOriginalName}`);
   logJob(jobId, "Khởi chạy môi trường thẩm định AI chuyên sâu");
-
   updateJobInStorage(jobId, (j) => {
     j.ompStatus = "running";
     j.status = "running";
   });
+
+  // Record the resolved unit in durable job storage (Redis-backed job logs)
+  // so finalizer/status can trace which unit this run belongs to even if
+  // BullMQ job.data is later lost (worker restart). The authoritative
+  // fallback remains aiJob.input_json.lifecycle_unit_id on the API side.
+  if (data.lifecycleUnitId) {
+    logJob(jobId, `Đơn vị vòng đời (lifecycle_unit_id): ${data.lifecycleUnitId}`);
+  }
 
   const jobDir = resolve(STORAGE_DIR, "jobs", jobId);
   const outputDir = resolve(jobDir, "output");

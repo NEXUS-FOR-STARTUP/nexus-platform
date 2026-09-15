@@ -43,6 +43,7 @@ export interface OmpJobPayload {
   ompModel?: string;
   promptMode?: "full" | "lite";
   submissionType?: "initial" | "resubmit" | "logic_check";
+  lifecycleUnitId?: string;
 }
 
 /**
