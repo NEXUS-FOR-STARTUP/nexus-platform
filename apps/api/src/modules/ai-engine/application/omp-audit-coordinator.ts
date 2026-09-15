@@ -41,11 +41,10 @@ const TriggerOptsSchema = z.object({
 let queueEventsInitialized = false;
 
 /**
- * Refund 1 credit when a trigger dies from a SYSTEM error (dispatch failure,
- * worker crash, finalize failure) without producing a report. Idempotent per
- * trigger via `audit-refund-<caseId>-<startedAt>`; skips when a report was
- * already saved for the trigger or a refund was already recorded.
- * Never called for user cancels or duplicate-report (user-error) paths.
+ * Refund 1 credit when a trigger dies (system error OR user cancel) without
+ * producing a report. Skips when a report was already saved for this trigger
+ * (value received) or a refund was already recorded. Idempotent per trigger
+ * via `audit-refund-<caseId>-<startedAt>`.
  */
 export async function refundAuditCreditIfNoReport(caseId: string, reason: string): Promise<boolean> {
   try {
