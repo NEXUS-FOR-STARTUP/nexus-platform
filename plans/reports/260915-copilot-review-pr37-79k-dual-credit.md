@@ -4,41 +4,35 @@
 - **Review:** @copilot-pull-request-reviewer, 2026-09-12T13:57:09Z, tại commit `cf4778d`
 - **Đối chiếu HEAD:** `1c164dc` (local in-sync origin, 2026-09-15)
 - **Kết quả:** 1/10 stale (false positive), 9/10 còn hiệu lực
-- **Status sau commit `a0ba854` (2026-09-15):** Thread 10 FIXED (docstring → `:reportId/download`); Thread 6 FIXED FE-only (`RoundCard.tsx:58-60` fallback `|| "initial"`, `types/case.ts:124` union `| null`, BE giữ null truthful). Còn mở: T1, T2, T3+4, 7/8/9, A, B, C.
+- **Status sau commit `545bdcb` (2026-09-15):** T1 FIXED (FOR UPDATE + in-tx guard + free retry P2002 + key reuse gate); T2 FIXED (persist resolved unit + payload lifecycleUnitId + case-ownership validation); T3+4 FIXED (2-layer dedupe: trigger identity + per-type initial invariant + filename timestamped); T6 FIXED FE-only; T10 FIXED (docstring). Còn mở: 7/8/9 (test), A (cancel-refund policy), B (FE debounce), C (required CI).
 - **Lưu ý stack:** #37 merge vào base `feat/pricing-package-tiers-ui` (nhánh của PR #33 draft).
   Base-draft KHÔNG phải điều kiện merge #37 — #33 → `dev` là nấc downstream riêng.
 
 ---
 
-## Thread 1 — Race khi trừ credit (coordinator.ts:261)
+## Thread 1 — Race khi trừ credit (coordinator.ts:261) — ✅ FIXED (`545bdcb`)
 
 - **Copilot nói:** check balance rồi insert debit không lock — 2 trigger đồng thời cùng đọc 1 balance, cùng trừ, số dư âm / double-dispatch.
-- **HEAD:** đã đưa vào 1 `prisma.$transaction` (`omp-audit-coordinator.ts:308-346`) nhưng `getCreditBalanceForTx` vẫn là `SUM` không lock, không `SELECT FOR UPDATE` row case. Guard `AUDIT_IN_PROGRESS` (296-299) nằm ngoài tx nên cũng race.
-- **Trạng thái:** CÒN ĐÚNG (giảm nhẹ, chưa hết). **Severity: cao.**
-- **Hướng fix:** `SELECT ... FOR UPDATE` row `cases` cùng caseId TRƯỚC khi đọc balance (pattern finalizer đã dùng `tx.$queryRaw`). Lưu ý: `SUM` trên ledger là aggregate-only, `FOR UPDATE` phải đặt trên row case, không phải bảng ledger.
-- **Liên quan:** `idempotencyKey = audit-trigger-${caseId}-${startedAt}` sinh `startedAt` mới mỗi lần → retry hợp lệ của cùng 1 trigger bị tính debit 2 lần. Retry phải reuse key của trigger gốc, chỉ user-trigger mới sinh key mới.
+- **Fix:** `SELECT ... FOR UPDATE` cases đầu tx + guard `queued/processing` trong tx (source of truth, fast-path ngoài tx giữ làm early-exit). P2002 → `skipCharge = true` (free retry, không throw 409). Key reuse gate: identical `submission_type` + `lifecycle_unit_id` only — mint mới nếu intent khác.
+- **Trạng thái:** FIXED. **Severity: cao.**
 
-## Thread 2 — `resolvedLifecycleUnitId` không persist (coordinator.ts:334)
+## Thread 2 — `resolvedLifecycleUnitId` không persist (coordinator.ts:334) — ✅ FIXED (`545bdcb`)
 
 - **Copilot nói:** `initial`/`logic_check` resolve unit lúc assemble nhưng chỉ lưu `lifecycle_unit_id` gốc (thường null) vào `ai_jobs.input_json`; finalizer fallback "latest unit lúc finalize" → drift + lệch guard trùng.
-- **HEAD:** vẫn chỉ lưu `lifecycleUnitId ?? null` (dòng 330-344). Unit resolve thực tế tính ở bước 9 (dòng 373) chỉ log (dòng 424), không write-back, không đưa vào queue payload (`dispatchOmpJob` chỉ có `submissionType`, không có unit id). Finalizer đọc lại latest unit khi null (finalizer.ts:75-82).
-- **Trạng thái:** CÒN ĐÚNG. **Severity: trung bình-cao** (gắn nhầm report sang version mới upload chen giữa trigger→finalize).
-- **Hướng fix:** sau assemble, persist resolved id về `aiJob.input_json` (update) trước khi dispatch; kèm unit id trong queue payload để finalize dùng đúng bản lúc trigger.
+- **Fix:** persist `resolvedLifecycleUnitId` vào `aiJob.input_json` trước dispatch (id-targeted update, không `updateMany` blanket). `lifecycleUnitId` thêm vào `OmpJobPayload` + worker mirror. Finalizer ưu tiên `job.data.lifecycleUnitId` (validate `unit.case_id === caseId`) → `input_json` → `latestUnit` fallback (filter `unit_type='version'`).
+- **Trạng thái:** FIXED. **Severity: trung bình-cao.**
 
-## Thread 3 — Guard "1 report / lifecycle_unit" ở fallback path (finalizer.ts:99)
+## Thread 3 — Guard "1 report / lifecycle_unit" ở fallback path (finalizer.ts:99) — ✅ FIXED (`545bdcb`)
 
 - **Copilot nói:** guard chặn tạo nhiều report cho cùng `lifecycle_unit_id` → phá intent `logic_check` tạo report mới trên cùng unit với `initial`.
-- **HEAD:** dòng 84-96 giữ nguyên — không có `lifecycleUnitId` → tìm latest unit → có report → return `completed` không tạo mới.
-- **Trạng thái:** CÒN ĐÚNG. **Severity: cao (blocker chức năng).**
-- **Hướng fix:** thu hẹp guard — chỉ chặn `initial` trùng (trả report cũ), `resubmit`/`logic_check` luôn cho qua tạo mới. Guard thay thế phải key theo trigger identity (`startedAt`/`jobId` trong `input_json`), KHÔNG key theo `submission_type` (kẻo BullMQ retry / completed event fire 2 lần → double-insert).
+- **Fix:** 2-layer dedupe trong tx: (1) **Global** `lifecycle_unit_id` + `metadata_json.triggerStartedAt` → return existing nếu BullMQ fire `completed×2` (bất kể type), (2) **Per-type** `lifecycle_unit_id` + `metadata_json.submission_type = 'initial'` → mỗi unit chỉ 1 initial report. Finalizer fallback: ưu tiên `job.data.lifecycleUnitId` (case-ownership validated) → `input_json` → `latestUnit` (filter `unit_type='version'`). Filename `_startedAtMs` chống trùng Cloudinary.
+- **Trạng thái:** FIXED. **Severity: cao (blocker chức năng).**
 
-## Thread 4 — Check trùng trong transaction (finalizer.ts:201)
+## Thread 4 — Check trùng trong transaction (finalizer.ts:201) — ✅ FIXED (`545bdcb`)
 
 - **Copilot nói:** cùng gốc thread 3 — check `findFirst({lifecycle_unit_id})` trong tx làm cho >1 report/unit là không thể, mâu thuẫn versioning.
-- **HEAD:** dòng 190-201 giữ nguyên (có lock case row là tốt, nhưng guard vẫn blanket theo unit).
-- **Trạng thái:** CÒN ĐÚNG. **Severity: cao (cùng blocker với thread 3).**
-- **Hướng fix:** cùng hướng thread 3 — guard chống double-finalize của CÙNG trigger (idempotency theo trigger identity), không chặn blanket theo unit.
-- **Liên quan:** 2 report cùng `version_no` sẽ trùng tên Cloudinary `audit_report_vNN` → thêm reportId ngắn/timestamp vào filename khi cho phép nhiều report/unit.
+- **Fix:** cùng pass với thread 3 — guard now key theo trigger identity (`metadata_json.triggerStartedAt`), không blanket theo unit. `SELECT FOR UPDATE cases` giữ nguyên.
+- **Trạng thái:** FIXED. **Severity: cao (cùng blocker với thread 3).**
 
 ## Thread 5 — Seed ghi `metadata_json`, code đọc `features` (create-order.usecase.ts:131) — STALE
 
@@ -74,10 +68,12 @@
 
 ---
 
-## Thứ tự xử lý đề xuất
+## Thứ tự xử lý (đã thực hiện)
 
-1. Thread 3+4 (guard finalizer theo trigger identity + filename chống trùng Cloudinary) — blocker chức năng.
-2. Thread 1 (lock case row + reuse idempotency key khi retry) — blocker tiền.
-3. Thread 2 (persist resolved unit id) — đúng dữ liệu version.
-4. Phụ lục A (chốt policy cancel-refund) — tránh tranh chấp với khách.
-5. Thread 6, 10 (1 dòng mỗi cái) + thread 7/8/9 (test) — gọn trong cùng lượt.
+1. ~~Thread 3+4~~ ✅ `545bdcb` — guard finalizer theo trigger identity + filename chống trùng Cloudinary.
+2. ~~Thread 1~~ ✅ `545bdcb` — FOR UPDATE + in-tx guard + free retry + key reuse gate.
+3. ~~Thread 2~~ ✅ `545bdcb` — persist resolved unit + payload lifecycleUnitId + case-ownership validation.
+4. ~~Thread 6, 10~~ ✅ `a0ba854` — FE null fallback + docstring route.
+5. ~~Q1-Q6~~ ✅ `a0ba854` — legacy 39k cutover.
+6. Phụ lục A (chốt policy cancel-refund) — còn mở, tránh tranh chấp với khách.
+7. Thread 7/8/9 (test) + B (FE debounce) + C (required CI) — còn mở.

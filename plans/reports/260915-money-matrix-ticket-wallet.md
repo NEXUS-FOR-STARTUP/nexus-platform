@@ -3,7 +3,7 @@
 - **Ngày:** 2026-09-15. **Phạm vi:** thanh toán/gói/ví/order/deposit/credit trên HEAD.
 - **Kết luận 1 dòng:** Bug T1/A/T3-4 không phải lỗi logic đơn lẻ mà là rác lịch sử của 3 kiến trúc sống chung: K1 mua-gói, K2 credit-lẻ, K3 ví+order. Quyết định: giữ model **vé + ví** (ví VND là source of truth của TIỀN, ledger là source of truth của LƯỢT).
 - **Scout:** LedgerWriters, WalletWriters, KeyFormats, ArchLayers (4/4 xong, file:line đã kiểm chứng).
-- **Status sau commit `a0ba854` (2026-09-15, `chore: cutover legacy 39k Q1-Q6`):** Q1-Q6 FIXED (xem report PR37 Thread 6+10). Còn mở theo body report này: 7 đường ghi ledger W1-W7 (§2), ví gãy 4/4 caller + hoàn kép (§3), 12 format key 4 đỏ/2 vàng (§4), giá 3 đời + `package_id` đơn trị (§5), 6 luật vé+ví (§6). §7 dependency PR37 giữ nguyên.
+- **Status sau commit `545bdcb` (2026-09-15):** Q1-Q6 FIXED. T1 FIXED (FOR UPDATE + in-tx guard + free retry). T2 FIXED (persist resolved unit + payload). T3+4 FIXED (2-layer dedupe + filename). T6/T10 FIXED. Còn mở: W1-W7 (§2), ví gãy 4/4 caller + hoàn kép (§3), key 4 đỏ/2 vàng (§4), giá 3 đời + `package_id` đơn trị (§5), 6 luật vé+ví (§6). §7 dependency PR37: T1/T2/T3+4 đã đóng, A/B/C còn mở.
 
 ## 0. Định nghĩa (cho người chưa biết gì)
 
