@@ -3,6 +3,7 @@
 - **Ngày:** 2026-09-15. **Phạm vi:** thanh toán/gói/ví/order/deposit/credit trên HEAD.
 - **Kết luận 1 dòng:** Bug T1/A/T3-4 không phải lỗi logic đơn lẻ mà là rác lịch sử của 3 kiến trúc sống chung: K1 mua-gói, K2 credit-lẻ, K3 ví+order. Quyết định: giữ model **vé + ví** (ví VND là source of truth của TIỀN, ledger là source of truth của LƯỢT).
 - **Scout:** LedgerWriters, WalletWriters, KeyFormats, ArchLayers (4/4 xong, file:line đã kiểm chứng).
+- **Status sau commit `a0ba854` (2026-09-15, `chore: cutover legacy 39k Q1-Q6`):** Q1 FIXED (xóa `LEGACY_AUDIT_PACKAGE_KEY`); Q2 FIXED (xóa `AUDIT`/`LEGACY_AUDIT` ở `web-1/lib/pricing.ts`); Q3 FIXED (comment → `pkg_ai_audit`); Q4 FIXED (docstring → `:reportId/download`); Q5 FIXED FE-only (`RoundCard.tsx:58-60` fallback `|| "initial"`, `types/case.ts:124` union `| null`, BE giữ null truthful — xem report PR37 Thread 6); Q6 FIXED (docs → 79k = 2 credits). Còn mở toàn bộ ma trận: M1-M5, U1-U5, R1, D1-D3 + 6 luật vé+ví (§6). §5 vẫn đúng (hardcode 39k ở `payment.repo:184`, tests, seeds chưa đụng).
 
 ## 0. Định nghĩa (cho người chưa biết gì)
 

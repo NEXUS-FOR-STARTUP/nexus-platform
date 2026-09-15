@@ -4,6 +4,7 @@
 - **Review:** @copilot-pull-request-reviewer, 2026-09-12T13:57:09Z, tại commit `cf4778d`
 - **Đối chiếu HEAD:** `1c164dc` (local in-sync origin, 2026-09-15)
 - **Kết quả:** 1/10 stale (false positive), 9/10 còn hiệu lực
+- **Status sau commit `a0ba854` (2026-09-15):** Thread 10 FIXED (docstring → `:reportId/download`); Thread 6 FIXED FE-only (`RoundCard.tsx:58-60` fallback `|| "initial"`, `types/case.ts:124` union `| null`, BE giữ null truthful). Còn mở: T1, T2, T3+4, 7/8/9, A, B, C.
 - **Lưu ý stack:** #37 merge vào base `feat/pricing-package-tiers-ui` (nhánh của PR #33 draft).
   Base-draft KHÔNG phải điều kiện merge #37 — #33 → `dev` là nấc downstream riêng.
 
@@ -45,11 +46,11 @@
 - **Kiểm chứng:** premise sai ngay tại thời điểm review — `git show cf4778d:...seed-active-packages.ts` đã có `credits_granted: 2` trong `features` (dòng 78), code `cf4778d` đã đọc `pkg.features`. HEAD còn cứng hơn: đọc `features.credits_granted * qty` (137-139) + fallback `pkg_ai_audit → 2*qty` (140-142) + ghi ledger `metadata_json` (157).
 - **Trạng thái:** STALE, false positive. Xóa khỏi blocker.
 
-## Thread 6 — `submission_type: string | null` vs FE union strict (get-case-detail.usecase.ts:136)
+## Thread 6 — `submission_type: string | null` vs FE union strict (get-case-detail.usecase.ts:136) — ✅ FIXED (`a0ba854`, FE-only)
 
 - **Copilot nói:** API trả `null` khi thiếu, FE type union 3 giá trị → label lookup rớt / hiện thiếu.
-- **HEAD:** dòng 125-127 vẫn trả `null`.
-- **Trạng thái:** CÒN ĐÚNG. **Severity: thấp.** Fix 1 dòng: default `"initial"` + coerce unknown về `"initial"`.
+- **Fix:** KHÔNG coerce ở BE (giữ null truthful cho legacy reports) — `RoundCard.tsx:58-60` mirror fallback `report-rows.ts:20` (`|| "initial"`, label fallback `"Báo cáo"`), `types/case.ts:124` widen union `| null`.
+- **Trạng thái:** FIXED. **Severity: thấp.**
 
 ## Thread 7+8+9 — Thiếu test cho `lifecycle_unit_id` + `version_no` (submit-revision.usecase.ts:171/180/191)
 
@@ -57,11 +58,11 @@
 - **HEAD:** `deprecate-revision.test.ts` bị gut (+0/-46), không có test mới.
 - **Trạng thái:** CÒN ĐÚNG. **Severity: thấp** (test-only, không chặn merge trừ khi team giữ gate test).
 
-## Thread 10 — Docstring sai route (reports.controller.ts:338)
+## Thread 10 — Docstring sai route (reports.controller.ts:338) — ✅ FIXED (`a0ba854`)
 
 - **Copilot nói:** docstring ghi `/api/reports/:reportId/pdf`, route thực + FE gọi là `/:reportId/download`.
-- **HEAD:** dòng 338 vẫn ghi sai.
-- **Trạng thái:** CÒN ĐÚNG. **Severity: trivial.** Sửa docstring 1 dòng.
+- **Fix:** docstring → `:reportId/download` (khớp `reports.routes.ts:17`). 1 dòng.
+- **Trạng thái:** FIXED. **Severity: trivial.**
 
 ---
 
