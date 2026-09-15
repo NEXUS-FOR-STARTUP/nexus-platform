@@ -69,4 +69,4 @@ Hoàn kép: `refundRemainingCredit` (C5, `refund-credit-${caseId}`, ví+ledger F
 
 ## 7. Dependency với PR37
 
-T1 race, A refund mù, T3/4 guard blanket đều là triệu chứng của ma trận trên. Fix thread lẻ trên nền chưa dọn = vá 1 trong 7 đường ghi. Thứ tự: dọn nền (mục 8 trong plan nháp) rồi mới fix P0 trên nền sạch.
+T1/T3+4 đã fixed (`545bdcb`). A (refund policy mâu thuẫn) và W1-W7 (7 đường ghi ledger) còn mở — triệu chứng trực tiếp của ma trận 3 kiến trúc. Fix thread lẻ trên nền chưa dọn = vá 1 trong 7 đường ghi. Thứ tự: dọn nền (mục 8 trong plan nháp) rồi mới fix tiếp.
