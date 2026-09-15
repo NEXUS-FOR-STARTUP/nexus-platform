@@ -4,7 +4,7 @@
 - **Review:** @copilot-pull-request-reviewer, 2026-09-12T13:57:09Z, tại commit `cf4778d`
 - **Đối chiếu HEAD:** `1c164dc` (local in-sync origin, 2026-09-15)
 - **Kết quả:** 1/10 stale (false positive), 9/10 còn hiệu lực
-- **Status sau commit `545bdcb` (2026-09-15):** T1 FIXED (FOR UPDATE + in-tx guard + free retry P2002 + key reuse gate); T2 FIXED (persist resolved unit + payload lifecycleUnitId + case-ownership validation); T3+4 FIXED (2-layer dedupe: trigger identity + per-type initial invariant + filename timestamped); T6 FIXED FE-only; T10 FIXED (docstring). Còn mở: 7/8/9 (test), A (cancel-refund policy), B (FE debounce), C (required CI).
+- **Status sau commit `dc3b0d0` (2026-09-15):** T1-T4, T6, T10 FIXED. A FIXED (docstring khớp behavior). B đã implement (button loading+disabled). Bỏ 7/8/9 (test-only, non-blocking). C không phải bug (GitHub config). Còn mở: §4 vàng (key namespace merge), §5 (giá 3 đời non-blocking), §6 partially done.
 - **Lưu ý stack:** #37 merge vào base `feat/pricing-package-tiers-ui` (nhánh của PR #33 draft).
   Base-draft KHÔNG phải điều kiện merge #37 — #33 → `dev` là nấc downstream riêng.
 
@@ -75,5 +75,6 @@
 3. ~~Thread 2~~ ✅ `545bdcb` — persist resolved unit + payload lifecycleUnitId + case-ownership validation.
 4. ~~Thread 6, 10~~ ✅ `a0ba854` — FE null fallback + docstring route.
 5. ~~Q1-Q6~~ ✅ `a0ba854` — legacy 39k cutover.
-6. Phụ lục A (chốt policy cancel-refund) — còn mở, tránh tranh chấp với khách.
-7. Thread 7/8/9 (test) + B (FE debounce) + C (required CI) — còn mở.
+6. ~~Phụ lục A~~ ✅ `dc3b0d0` — docstring khớp behavior (code đúng từ đầu).
+7. ~~B~~ ✅ Đã implement (`StatusGuidanceCard.tsx:560-561` — button loading+disabled).
+8. Bỏ 7/8/9 (test-only, non-blocking). C không phải bug (GitHub config).

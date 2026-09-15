@@ -3,7 +3,7 @@
 - **Ngày:** 2026-09-15. **Phạm vi:** thanh toán/gói/ví/order/deposit/credit trên HEAD.
 - **Kết luận 1 dòng:** Bug T1/A/T3-4 không phải lỗi logic đơn lẻ mà là rác lịch sử của 3 kiến trúc sống chung: K1 mua-gói, K2 credit-lẻ, K3 ví+order. Quyết định: giữ model **vé + ví** (ví VND là source of truth của TIỀN, ledger là source of truth của LƯỢT).
 - **Scout:** LedgerWriters, WalletWriters, KeyFormats, ArchLayers (4/4 xong, file:line đã kiểm chứng).
-- **Status sau commit `8a69964` (2026-09-15):** Q1-Q6 FIXED. T1-T4 FIXED. B1 FIXED (deposit+withdraw tx ambient). B2 FIXED (refundCaseAllInTx gộp lockedPrice+fifoVnd). B3 FIXED (T11 bỏ subtractCredit, credit gating ở service level). B4 FIXED (P2002 paid → 409). Còn mở: W1/W5 key dedup (B3 đã xóa W5, chỉ còn W1), key namespace merge (§4 vàng), giá 3 đời + package_id đơn trị (§5), 6 luật vé+ví (§6) partially addressed. A/B/C còn mở.
+- **Status sau commit `dc3b0d0` (2026-09-15):** Q1-Q6 FIXED. T1-T4 FIXED. B1-B4 FIXED. A FIXED (docstring). B đã implement. Không còn blocker nào mở. Còn lại non-blocking: key namespace merge (§4 vàng), giá 3 đời (§5), 6 luật vé+ví (§6) partially done.
 
 ## 0. Định nghĩa (cho người chưa biết gì)
 
@@ -69,4 +69,4 @@ Hoàn kép: `refundRemainingCredit` (C5, `refund-credit-${caseId}`, ví+ledger F
 
 ## 7. Dependency với PR37
 
-T1-T4 + B1-B4 đã fixed (`8a69964`). A (refund policy mâu thuẫn) còn mở. W1-W7 phần lớn đã address: W5 xóa (B3), ví gãy fix tx ambient (B1), hoàn kép fix refundAll (B2), key 409 (B4). Còn lại: key namespace merge (§4 vàng), giá 3 đời + package_id đơn trị (§5 non-blocking), 6 luật vé+ví (§6) partially done.
+T1-T4 + B1-B4 đã fixed (`dc3b0d0`). A docstring đã khớp behavior. B đã implement (button debounce). W1-W7 phần lớn đã address: W5 xóa (B3), ví gãy fix tx ambient (B1), hoàn kép fix refundAll (B2), key 409 (B4). Còn lại non-blocking: key namespace merge (§4 vàng), giá 3 đời + package_id đơn trị (§5), 6 luật vé+ví (§6) partially done. Không còn blocker nào mở.
