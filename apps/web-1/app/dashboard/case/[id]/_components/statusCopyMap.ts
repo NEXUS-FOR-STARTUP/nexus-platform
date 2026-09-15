@@ -19,7 +19,7 @@ export const STATUS_GUIDANCE_COPY: Record<string, StatusGuidanceCopy> = {
   submitted: {
     title: "Hồ sơ đã gửi thành công — Chờ xét duyệt",
     description:
-      "Đội ngũ Nexus đang kiểm tra hồ sơ và phân công Supporter chuyên môn phụ trách dự án (thường mất 12-24 giờ). Hiện tại bạn không cần làm gì thêm.",
+      "Đội ngũ Nexus đang kiểm tra hồ sơ và phân công Supporter chuyên môn phụ trách dự án trong 12 đến 24 giờ. Hiện tại bạn không cần làm gì thêm.",
     tone: "info",
     icon: "clock",
   },

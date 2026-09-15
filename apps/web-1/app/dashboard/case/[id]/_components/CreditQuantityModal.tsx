@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Modal, Button, NumberInput, Stack, Text, Group, Badge, Paper } from "@mantine/core";
+import { Modal, Button, NumberInput, Stack, Text, Group, Paper } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
-import { Sparkles, CheckCircle2, Wallet, ArrowRight } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { formatPrice, PACKAGE_KEYS } from "@/lib/pricing";
 import { usePackagePrice } from "@/lib/usePackagePrice";
@@ -58,7 +57,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
         title: "Thanh toán thành công",
         message: isManual
           ? `Đã mua ${isAiAudit ? 2 : effectiveQuantity} credit. Quay lại hồ sơ để chọn loại đánh giá và gửi.`
-          : `Đơn hàng #${data.orderId} đã được thanh toán. AI đang tiến hành thẩm định.`,
+          : `Đơn hàng #${data.orderId} đã được thanh toán thành công.`,
         color: "teal",
       });
       router.refresh();
@@ -82,10 +81,12 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
       });
     },
   });
+
   const handleClose = () => {
     mutation.reset();
     onClose();
   };
+
   const handleAction = () => {
     if (hasSufficientBalance) {
       mutation.mutate();
@@ -99,50 +100,23 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={
-        <div className="flex items-center gap-2">
-          {isAiAudit && <Sparkles className="w-4 h-4 text-brand" />}
-          <Text fw={700} size="sm">{isAiAudit ? "Thanh toán Gói Basic AI Audit" : "Mua credit đánh giá"}</Text>
-        </div>
-      }
-      size={isAiAudit ? "lg" : "md"}
+      title={<Text fw={700} size="sm">Thanh toán gói đánh giá</Text>}
+      size="md"
       radius="md"
       centered
     >
       <Stack gap="md" className="pt-3">
-        {isAiAudit ? (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Badge variant="light" color="blue" size="lg">Basic AI Audit ({formatPrice(unitPrice)} / 2 lượt)</Badge>
-              <span className="text-xs text-text-muted">Hoàn thành dưới 2 phút</span>
-            </div>
-            <Paper p="sm" withBorder radius="md" className="bg-surface-app/50 border-border-app space-y-2 text-xs">
-              {[
-                "Thẩm định 14 tiêu chí chuẩn theo rubric FPTU",
-                "Đối chiếu 29 bẫy lỗi thực tế từ 12 nhóm sinh viên FPT",
-                "Xuất báo cáo PDF A4 Vector chuẩn mực dưới 2 phút",
-              ].map((text) => (
-                <div key={text} className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-brand shrink-0 mt-0.5" />
-                  <span>{text}</span>
-                </div>
-              ))}
-            </Paper>
-          </div>
-        ) : (
-          <>
-            <Text size="sm" c="dimmed">Chọn số lượng credit muốn mua. Mỗi credit tương ứng với một lượt đánh giá từ Supporter.</Text>
-            <NumberInput
-              label="Số lượng credit"
-              description="Từ 1 đến 50 credit"
-              value={quantity}
-              onChange={(val) => setQuantity(Number(val) || 1)}
-              min={1}
-              max={50}
-              allowDecimal={false}
-              allowNegative={false}
-            />
-          </>
+        {!isAiAudit && (
+          <NumberInput
+            label="Số lượng credit"
+            description="Từ 1 đến 50 credit"
+            value={quantity}
+            onChange={(val) => setQuantity(Number(val) || 1)}
+            min={1}
+            max={50}
+            allowDecimal={false}
+            allowNegative={false}
+          />
         )}
 
         <div className="bg-surface-soft rounded-lg p-4 space-y-2 border border-border-app text-sm">
@@ -157,22 +131,18 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
             </div>
           )}
           <div className="border-t border-border-app pt-2 flex justify-between">
-            <span className="font-semibold">{isAiAudit ? "Tổng thanh toán (2 lượt đánh giá)" : "Tổng thanh toán"}</span>
+            <span className="font-semibold">Tổng thanh toán</span>
             <span className="font-semibold text-brand text-base">{formatPrice(totalAmount)}</span>
           </div>
         </div>
+
         <Paper p="sm" withBorder radius="md" className="bg-surface-app border-border-app flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <Wallet className="w-4 h-4 text-text-muted" />
-            <span className="text-text-muted">Số dư ví hiện tại:</span>
-            <span className="font-semibold text-text-app">{formatPrice(walletBalance)}</span>
-          </div>
-          {hasSufficientBalance ? (
-            <Badge variant="light" color="teal" size="sm">Đủ số dư ví</Badge>
-          ) : (
-            <Badge variant="light" color="orange" size="sm">Thiếu {formatPrice(shortage)}</Badge>
-          )}
+          <span className="text-text-muted">Số dư ví hiện tại: <strong className="text-text-app">{formatPrice(walletBalance)}</strong></span>
+          <span className={hasSufficientBalance ? "text-teal-600 font-semibold" : "text-amber-600 font-semibold"}>
+            {hasSufficientBalance ? "Đủ số dư ví" : `Thiếu ${formatPrice(shortage)}`}
+          </span>
         </Paper>
+
         <Group justify="flex-end" mt="sm">
           <Button variant="default" onClick={handleClose} disabled={mutation.isPending || isShortagePending}>
             Hủy
@@ -182,15 +152,11 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
             onClick={handleAction}
             loading={mutation.isPending || isShortagePending}
             disabled={mutation.isPending || isShortagePending}
-            rightSection={<ArrowRight className="w-4 h-4" />}
           >
-            {hasSufficientBalance
-              ? isAiAudit
-                ? `Thanh toán ${formatPrice(totalAmount)} (2 lượt)`
-                : `Thanh toán (${formatPrice(totalAmount)})`
-              : `Nạp & Thanh toán qua VietQR`}
+            {hasSufficientBalance ? `Thanh toán ${formatPrice(totalAmount)}` : "Nạp & Thanh toán qua VietQR"}
           </Button>
         </Group>
+
         {mutation.isError && (
           <Text c="red" size="xs">
             {isAxiosError<{ message?: string }>(mutation.error)

@@ -18,6 +18,7 @@ import TabCaseSettings from "./_components/TabCaseSettings";
 import CreditPanel from "./_components/CreditPanel";
 import CaseOverviewPanel from "./_components/CaseOverviewPanel";
 import CreditQuantityModal from "./_components/CreditQuantityModal";
+import { PackageSelectionModal } from "@/app/dashboard/_components/PackageSelectionModal";
 import TabReportFindings from "./_components/TabReportFindings";
 import ActiveRadarScanning from "./_components/ActiveRadarScanning";
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
@@ -65,6 +66,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const [isStudentUploadOpen, setIsStudentUploadOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [creditBuyOpened, setCreditBuyOpened] = useState(false);
+  const [packageSelectOpened, setPackageSelectOpened] = useState(false);
+  const [selectedPackageId, setSelectedPackageId] = useState<string>(PACKAGE_KEYS.AI_AUDIT);
 
   const stage = caseData?.user_facing_stage;
   const creditBalance = caseData?.credit_balance ?? null;
@@ -169,7 +172,13 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               onSelectTab={(tab) => setActiveTab(tab)}
               onOpenPayment={
                 isIntakePending || stage === "report_ready" || (stage === "submitted" && caseRequiresPayment(caseData))
-                  ? () => setCreditBuyOpened(true)
+                  ? () => {
+                      if (isCaseFree(caseData)) {
+                        setPackageSelectOpened(true);
+                      } else {
+                        setCreditBuyOpened(true);
+                      }
+                    }
                   : undefined
               }
               onOpenIntake={canOpenIntake ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
@@ -284,13 +293,22 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         latestVersionNo={documentWorkspace?.checkpoints?.[0]?.latest_version_no || 1}
       />
 
+      <PackageSelectionModal
+        opened={packageSelectOpened}
+        onClose={() => setPackageSelectOpened(false)}
+        onSelectPackage={(pkgId) => {
+          setSelectedPackageId(pkgId);
+          setCreditBuyOpened(true);
+        }}
+      />
+
       <CreditQuantityModal
         caseId={id}
         opened={creditBuyOpened}
         onClose={() => setCreditBuyOpened(false)}
         packageId={
           isCaseFree(caseData)
-            ? PACKAGE_KEYS.AI_AUDIT
+            ? selectedPackageId
             : caseData?.package_id || caseData?.package?.id || PACKAGE_KEYS.AI_AUDIT
         }
         isManual={stage === "report_ready"}

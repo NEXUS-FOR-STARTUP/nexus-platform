@@ -8,7 +8,6 @@ import {
   AlertCircle,
   CheckCircle2,
   HelpCircle,
-  Coins,
   ArrowRight,
   Zap,
   Upload,
@@ -285,43 +284,21 @@ export default function StatusGuidanceCard({
         variant="light"
         color={isFree ? "blue" : "yellow"}
         radius="md"
-        title={isFree ? "Kích hoạt quy trình phản biện chuyên sâu từ Supporter" : "Hồ sơ chưa hoàn tất thanh toán"}
-        icon={isFree ? <Coins className="w-4.5 h-4.5 shrink-0" /> : <Clock className="w-4.5 h-4.5 shrink-0" />}
+        title={isFree ? "Kích hoạt quy trình phản biện chuyên sâu" : "Hồ sơ chưa hoàn tất thanh toán"}
+        icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
       >
         <div className="space-y-3">
           <p className="text-text-muted text-xs leading-relaxed">
             {isFree
-              ? "Hồ sơ hiện tại đang ở gói đánh giá AI miễn phí. Để Supporter chuyên môn đọc tài liệu và viết báo cáo phản biện chi tiết, nhóm cần mua credit đánh giá chuyên sâu."
+              ? "Hồ sơ hiện tại thuộc gói đánh giá AI miễn phí. Quy trình phản biện chuyên sâu bao gồm việc chọn gói đánh giá, điền thông tin và nộp tài liệu dự án để chuyên gia tiếp nhận, chấm điểm và trả báo cáo chi tiết."
               : "Hồ sơ chưa được thanh toán. Bạn có thể nộp trước hồ sơ, quy trình phản biện chính thức sẽ bắt đầu ngay khi thanh toán hoàn tất."}
           </p>
 
-          {isFree && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-brand/10 text-xs">
-              <div className="bg-surface-app/70 p-2 rounded border border-brand/15 font-body">
-                <span className="font-semibold text-brand block mb-0.5">1. Mua credit (Hiện tại)</span>
-                <span className="text-text-muted text-[11px]">Mua credit đánh giá chuyên sâu ({auditPriceLabel} / 2 lượt).</span>
-              </div>
-              <div className="bg-surface-app/70 p-2 rounded border border-border-app font-body">
-                <span className="font-semibold text-text-app block mb-0.5">2. Nộp hồ sơ chi tiết</span>
-                <span className="text-text-muted text-[11px]">Điền thông tin và tải lên tài liệu dự án (Intake).</span>
-              </div>
-              <div className="bg-surface-app/70 p-2 rounded border border-border-app font-body">
-                <span className="font-semibold text-text-app block mb-0.5">3. Nhận phản biện</span>
-                <span className="text-text-muted text-[11px]">Supporter tiếp nhận, chấm điểm và giao báo cáo.</span>
-              </div>
-            </div>
-          )}
-
           <div className="flex flex-wrap items-center gap-3 pt-1">
             {onOpenPayment && (
-              <Button size="sm" color="brand" leftSection={<Coins className="w-4 h-4" />} className="shrink-0 cursor-pointer font-semibold text-xs" onClick={onOpenPayment}>
-                {isFree ? `Mua ngay (${auditPriceLabel} / 2 lượt)` : `Thanh toán ngay (${auditPriceLabel} / 2 lượt)`}
-              </Button>
-            )}
-            {onOpenIntake && canOpenIntake && (
-              <Button size="sm" variant="default" className="shrink-0 cursor-pointer text-xs" onClick={onOpenIntake}>
-                Cập nhật thông tin hồ sơ
+              <Button size="sm" color="brand" className="shrink-0 cursor-pointer font-semibold text-xs" onClick={onOpenPayment}>
+                {isFree ? "Chọn gói đánh giá" : "Thanh toán dịch vụ"}
               </Button>
             )}
           </div>
@@ -594,11 +571,10 @@ export default function StatusGuidanceCard({
             <Button
               size="sm"
               color="brand"
-              leftSection={<Coins className="w-4 h-4" />}
               className="shrink-0 cursor-pointer font-semibold text-xs"
               onClick={onOpenPayment}
             >
-              Thanh toán ngay
+              Thanh toán dịch vụ
             </Button>
           )}
         </div>

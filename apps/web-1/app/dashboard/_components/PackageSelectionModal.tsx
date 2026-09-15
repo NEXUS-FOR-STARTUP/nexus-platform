@@ -8,13 +8,18 @@ import { PACKAGE_KEYS } from "@/lib/pricing";
 interface PackageSelectionModalProps {
   opened: boolean;
   onClose: () => void;
+  onSelectPackage?: (packageId: string) => void;
 }
 
-export function PackageSelectionModal({ opened, onClose }: PackageSelectionModalProps) {
+export function PackageSelectionModal({ opened, onClose, onSelectPackage }: PackageSelectionModalProps) {
   const router = useRouter();
 
   const handleSelect = (packageId: string) => {
-    router.push(`/dashboard/intake?packageId=${packageId}`);
+    if (onSelectPackage) {
+      onSelectPackage(packageId);
+    } else {
+      router.push(`/dashboard/intake?packageId=${packageId}`);
+    }
     onClose();
   };
 
