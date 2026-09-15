@@ -1,0 +1,17 @@
+{
+  "name": "@app/worker-omp",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts"
+  },
+  "dependencies": {
+    "@app/shared": "workspace:*",
+    "bullmq": "^5.41.0",
+    "ioredis": "^5.6.0",
+    "pidusage": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0"
+  }
+}

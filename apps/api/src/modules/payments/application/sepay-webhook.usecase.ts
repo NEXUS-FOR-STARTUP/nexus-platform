@@ -73,7 +73,7 @@ export async function sepayWebhookUseCase(
     const idempotencyKey = `sepay-deposit-${deposit.transfer_content}-${txnId}`;
 
     await prisma.$transaction(async (tx) => {
-      await walletService.deposit(deposit.user_id, deposit.amount, "deposit", deposit.id, idempotencyKey);
+      await walletService.deposit(deposit.user_id, deposit.amount, "deposit", deposit.id, idempotencyKey, tx);
 
       await tx.deposit.update({
         where: { id: deposit.id },

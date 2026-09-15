@@ -4,6 +4,8 @@ export interface BuyCreditAfterDepositIntent {
   caseId: string;
   quantity: number;
   orderIdempotencyKey: string;
+  /** "credit_audit" = auto-trigger sau khi mua. "credit_audit_manual" = user tự trigger từ UI. Default: "credit_audit" */
+  serviceType?: "credit_audit" | "credit_audit_manual";
 }
 
 function getKey(depositId: string): string {

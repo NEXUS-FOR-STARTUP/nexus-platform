@@ -28,5 +28,5 @@
 ## Rule 5: Cleanup checklist
 
 - Delete file → grep importers → if 0, safe delete
-- After delete → run `npm run knip` → verify warnings
+- After delete → run `bun run knip` → verify warnings
 - After schema migration → run `check-types` + `build` as gate

@@ -203,6 +203,74 @@ const EVENT_MAP: Record<string, EventDetails> = {
     icon: ArrowUpRight,
     colorClass: "bg-brand-soft text-brand border-brand/20",
   },
+
+  // ── Transition-name events (stored by case-transition.service.ts) ──
+  T14_COMPLETE: {
+    label: "Hồ sơ hoàn thành (Admin)",
+    desc: "Quản trị viên đã đóng và hoàn thành hồ sơ phản biện.",
+    icon: CheckCircle,
+    colorClass: "bg-success-soft text-success border-success/20",
+  },
+  T17_USER_CONFIRM_COMPLETE: {
+    label: "Xác nhận hoàn thành",
+    desc: "Sinh viên xác nhận hồ sơ đã hoàn tất và đóng quy trình đánh giá.",
+    icon: CheckCircle,
+    colorClass: "bg-success-soft text-success border-success/20",
+  },
+  T19_REOPEN: {
+    label: "Mở lại hồ sơ",
+    desc: "Hồ sơ đã được mở lại để tiếp tục quy trình phản biện.",
+    icon: ArrowUpRight,
+    colorClass: "bg-info-soft text-info border-info/20",
+  },
+  T15_CANCEL: {
+    label: "Hồ sơ đã hủy",
+    desc: "Sinh viên đã hủy hồ sơ phản biện.",
+    icon: XCircle,
+    colorClass: "bg-danger-soft text-danger border-danger/20",
+  },
+  T12_REJECT: {
+    label: "Hồ sơ bị từ chối",
+    desc: "Hồ sơ không đạt yêu cầu và bị từ chối bởi quản trị viên.",
+    icon: XCircle,
+    colorClass: "bg-danger-soft text-danger border-danger/20",
+  },
+  T8_REQUEST_INFO: {
+    label: "Yêu cầu bổ sung thông tin",
+    desc: "Yêu cầu cập nhật hoặc làm rõ thêm thông tin hồ sơ.",
+    icon: HelpCircle,
+    colorClass: "bg-warning-soft text-warning border-warning/20",
+  },
+  T6_ASSIGN_SUPPORTER: {
+    label: "Đã phân công người hỗ trợ",
+    desc: "Người hỗ trợ đã được phân công để đánh giá và phản biện hồ sơ.",
+    icon: UserCheck,
+    colorClass: "bg-info-soft text-info border-info/20",
+  },
+  T5_ACCEPT: {
+    label: "Hồ sơ được duyệt",
+    desc: "Hồ sơ đã được quản trị viên duyệt và chấp nhận.",
+    icon: CheckCircle,
+    colorClass: "bg-success-soft text-success border-success/20",
+  },
+  T9_SUBMIT_REVISION: {
+    label: "Đã nộp bản sửa đổi",
+    desc: "Bản sửa đổi hồ sơ đã được nộp thành công.",
+    icon: Upload,
+    colorClass: "bg-info-soft text-info border-info/20",
+  },
+  T11_SUBMIT_OUTPUT: {
+    label: "Tải lên tài liệu hỗ trợ",
+    desc: "Tài liệu đầu ra hỗ trợ (supporter output) đã được tải lên.",
+    icon: FileCheck,
+    colorClass: "bg-success-soft text-success border-success/20",
+  },
+  T13_VETO: {
+    label: "Hồ sơ bị từ chối",
+    desc: "Hồ sơ đã bị quản trị viên từ chối và đóng lại.",
+    icon: XCircle,
+    colorClass: "bg-danger-soft text-danger border-danger/20",
+  },
 };
 
 const FALLBACK: EventDetails = {

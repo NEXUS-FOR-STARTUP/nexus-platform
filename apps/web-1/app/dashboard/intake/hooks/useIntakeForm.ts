@@ -113,7 +113,7 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
       const response = await apiClient.post("/cases", data);
       return response.data;
     },
-    onSuccess: (result) => {
+    onSuccess: (result, variables) => {
       if (typeof window !== "undefined") {
         localStorage.removeItem(LOCAL_STORAGE_KEY);
       }
@@ -121,7 +121,9 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
       const redirectId = caseId || result.id;
       queryClient.invalidateQueries({ queryKey: ["case", redirectId] });
       queryClient.invalidateQueries({ queryKey: ["case-intake", redirectId] });
-      router.push(`/dashboard/case/${redirectId}`);
+      const targetPackage = variables.package_id || packageId;
+      const shouldCheckout = !caseId && targetPackage && targetPackage !== "pkg_tf_free";
+      router.push(`/dashboard/case/${redirectId}${shouldCheckout ? "?checkout=true" : ""}`);
     },
   });
 

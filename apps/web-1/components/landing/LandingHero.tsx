@@ -4,13 +4,10 @@ import React from "react";
 import Link from "next/link";
 import { Title, Text, Button, Container, Stack, Group, List, ThemeIcon } from "@mantine/core";
 import { ArrowRight, Check } from "lucide-react";
-import { PACKAGE_KEYS, formatPrice } from "@/lib/pricing";
-import { usePackagePrice } from "@/lib/usePackagePrice";
 import classes from "./HeroBullets.module.css";
 
 export default function LandingHero() {
-  const { data: auditPkg } = usePackagePrice(PACKAGE_KEYS.AUDIT);
-  const auditPriceLabel = formatPrice(auditPkg?.price ?? 39000);
+  // Pricing state removed as LandingPricing component handles generic prices
 
   return (
     <section className="relative overflow-hidden bg-bg-app transition-colors duration-200">
@@ -66,18 +63,17 @@ export default function LandingHero() {
                   Kiểm tra miễn phí
                 </Button>
                 <Button
-                  component={Link}
-                  href="/dashboard/intake?packageId=pkg_tf_audit"
+                  component="a"
+                  href="#pricing"
                   size="lg"
                   variant="outline"
                   radius="md"
                   data-cta="paid"
                   className={`${classes.control} font-semibold font-body border-border-strong`}
                 >
-                  Mua kiểm tra chuyên sâu
+                  Xem bảng giá
                 </Button>
               </Group>
-              <Text size="xs" c="dimmed">{auditPriceLabel} / lượt</Text>
             </Stack>
           </div>
         </div>

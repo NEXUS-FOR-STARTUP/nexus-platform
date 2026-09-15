@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "category": "problem_solution",
+    "errorName": "Giải pháp tìm vấn đề (Solution in search of a problem)",
+    "description": "Ý tưởng xuất phát từ công nghệ muốn áp dụng thay vì nỗi đau thực tế của khách hàng trả tiền.",
+    "frequencyPercent": 74,
+    "typicalSymptom": "Khách hàng khảo sát nói 'thú vị' nhưng không ai cam kết trả tiền hoặc dùng thử.",
+    "recommendedFix": "Phỏng vấn ít nhất 20 khách hàng mục tiêu để xác định họ đang giải quyết việc đó bằng cách nào và mất bao nhiêu tiền/thời gian hiện tại."
+  },
+  {
+    "id": 2,
+    "category": "market_sizing",
+    "errorName": "Ảo tưởng thị trường 1% (Top-Down TAM fallacy)",
+    "description": "Tính dung lượng thị trường bằng cách lấy 1% toàn bộ dân số hoặc thị trường khổng lồ rồi nhân đơn giá.",
+    "frequencyPercent": 82,
+    "typicalSymptom": "Khẳng định thị trường 10 tỷ USD, chỉ cần 1% là đạt 100 triệu USD doanh thu mà không có mô hình Bottom-Up.",
+    "recommendedFix": "Xác định rõ ràng SOM (Serviceable Obtainable Market) bằng Bottom-Up: Số lượng khách hàng tiếp cận được trong 12 tháng x Giá bán thực tế."
+  },
+  {
+    "id": 3,
+    "category": "unit_economics",
+    "errorName": "Unit Economics âm nhưng che giấu bằng tăng trưởng",
+    "description": "Chi phí phục vụ mỗi đơn hàng (COGS + CAC) cao hơn doanh thu biên, càng bán càng lỗ nhưng kỳ vọng 'sau này scale sẽ có lãi'.",
+    "frequencyPercent": 65,
+    "typicalSymptom": "LTV/CAC < 1 hoặc thời gian hoàn vốn CAC (Payback period) > 18 tháng đối với B2C.",
+    "recommendedFix": "Bóc tách đầy đủ chi phí biến đổi (logistics, payment fee, hoàn hàng, khấu hao, khuyến mãi) vào Unit Economics trước khi kêu gọi vốn."
+  },
+  {
+    "id": 4,
+    "category": "competitive_moat",
+    "errorName": "Ảo tưởng 'Chúng tôi không có đối thủ cạnh tranh'",
+    "description": "Tuyên bố sản phẩm là duy nhất và không ai làm tương tự, bỏ qua đối thủ gián tiếp hoặc hành vi hiện tại của người dùng.",
+    "frequencyPercent": 68,
+    "typicalSymptom": "Bảng so sánh đối thủ vẽ toàn dấu tick xanh cho mình và dấu gạch chéo đỏ cho tất cả ông lớn.",
+    "recommendedFix": "Xác định rõ đối thủ là thói quen hiện tại của khách hàng. Chứng minh Moat (lợi thế phòng thủ) qua Network Effect, Data, Switch Cost hoặc IP thay vì tính năng."
+  },
+  {
+    "id": 5,
+    "category": "business_model",
+    "errorName": "Mô hình doanh thu quảng cáo không tưởng",
+    "description": "Cung cấp dịch vụ miễn phí và dự tính kiếm tiền từ quảng cáo dù lượng traffic dự kiến ở mức sơ khai.",
+    "frequencyPercent": 53,
+    "typicalSymptom": "CPM tính ở mức $5-$10 trong khi MAU dưới 50,000.",
+    "recommendedFix": "Chuyển sang mô hình Freemium B2B, Take-rate (phí giao dịch), hoặc Subscription với giá trị rõ ràng."
+  },
+  {
+    "id": 6,
+    "category": "execution_risk",
+    "errorName": "Thiếu Founder-Market Fit & Kỹ năng then chốt",
+    "description": "Đội ngũ không có chuyên môn ngành trong lĩnh vực dự định làm, thiếu năng lực kỹ thuật hoặc bán hàng cốt lõi.",
+    "frequencyPercent": 48,
+    "typicalSymptom": "Làm MedTech nhưng không ai có background y tế/dược, hoặc làm AI platform nhưng outsource toàn bộ dev.",
+    "recommendedFix": "Bổ sung Co-founder kỹ thuật hoặc Advisor chiến lược có thâm niên trong ngành, chứng minh bằng các dự án tương đương."
+  }
+]

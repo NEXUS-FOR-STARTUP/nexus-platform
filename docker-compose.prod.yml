@@ -48,9 +48,18 @@ services:
       PORT: "8000"
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable
       BETTER_AUTH_URL: https://${DOMAIN}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      APP_ROOT: /app
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - /var/log/nexus:/app/logs
+      - ./storage:/app/storage
+      - ./data:/app/data:ro
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8000/health || exit 1"]
       interval: 30s
@@ -81,12 +90,14 @@ services:
       - "traefik.http.routers.nexus-api.tls=true"
       - "traefik.http.routers.nexus-api.tls.certresolver=letsencrypt"
       - "traefik.http.routers.nexus-api.middlewares=compress,security-headers"
+      - "traefik.http.routers.nexus-api.service=nexus-api"
       - "traefik.http.services.nexus-api.loadbalancer.server.port=8000"
       - "traefik.http.routers.nexus-api-stream.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/notifications/stream`)"
       - "traefik.http.routers.nexus-api-stream.entrypoints=websecure"
       - "traefik.http.routers.nexus-api-stream.tls=true"
       - "traefik.http.routers.nexus-api-stream.tls.certresolver=letsencrypt"
       - "traefik.http.routers.nexus-api-stream.middlewares=security-headers"
+      - "traefik.http.routers.nexus-api-stream.service=nexus-api-stream"
       - "traefik.http.services.nexus-api-stream.loadbalancer.server.port=8000"
 
   web:
@@ -164,6 +175,59 @@ services:
       - "traefik.http.routers.nexus-centrifugo.tls.certresolver=letsencrypt"
       - "traefik.http.routers.nexus-centrifugo.middlewares=security-headers"
       - "traefik.http.services.nexus-centrifugo.loadbalancer.server.port=8000"
+
+  redis:
+    image: redis:7-alpine
+    container_name: nexus-redis
+    restart: unless-stopped
+    stop_grace_period: 10s
+    ports:
+      - "127.0.0.1:${REDIS_HOST_PORT:-6390}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+    networks:
+      - nexus-network
+
+  worker-omp:
+    build:
+      context: .
+      dockerfile: apps/worker-omp/Dockerfile
+    image: lgdlong/nexus-worker-omp:latest
+    container_name: nexus-worker-omp
+    restart: unless-stopped
+    stop_grace_period: 30s
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - STORAGE_DIR=/app/storage
+      - NODE_ENV=production
+      - OMP_MODEL=${OMP_MODEL:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+    volumes:
+      - ./storage:/app/storage
+      - ./data:/app/data:ro
+      - ${HOST_OMP_AUTH_FILE:-./storage/auth/omp/auth.json}:/root/.omp/agent/auth.json:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+    networks:
+      - nexus-network
 
 volumes:
   postgres_data:

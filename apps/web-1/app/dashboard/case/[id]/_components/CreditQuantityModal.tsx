@@ -1,13 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
-import { Modal, Button, NumberInput, Stack, Text, Group } from "@mantine/core";
+import { useState } from "react";
+import { Modal, Button, NumberInput, Stack, Text, Group, Paper } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { isAxiosError } from "axios";
 import { apiClient } from "@/lib/api-client";
-import { formatPrice } from "@/lib/pricing";
+import { formatPrice, PACKAGE_KEYS } from "@/lib/pricing";
 import { usePackagePrice } from "@/lib/usePackagePrice";
+import { useWalletBalance } from "@/app/dashboard/wallet/hooks/useWallet";
 import { useShortageDepositRedirect } from "./use-shortage-deposit-redirect";
 
 interface CreditQuantityModalProps {
@@ -15,31 +17,36 @@ interface CreditQuantityModalProps {
   opened: boolean;
   onClose: () => void;
   packageId: string;
+  /** true = mua credit cho đánh giá lần 2+, listener sẽ không auto-trigger */
+  isManual?: boolean;
 }
 
 const MIN_TOPUP_AMOUNT = 2000;
 
-export default function CreditQuantityModal({ caseId, opened, onClose, packageId }: CreditQuantityModalProps) {
+export default function CreditQuantityModal({ caseId, opened, onClose, packageId, isManual = false }: CreditQuantityModalProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState<number>(1);
 
+  const serviceType = isManual ? "credit_audit_manual" : "credit_audit";
+
   const { startShortageDeposit, isPending: isShortagePending } = useShortageDepositRedirect(caseId);
   const { data: pkg } = usePackagePrice(packageId, opened);
+  const { data: walletData } = useWalletBalance();
 
-  const unitPrice = pkg?.price ?? 0;
+  const walletBalance = walletData?.balance ?? 0;
+  const isAiAudit = packageId === PACKAGE_KEYS.AI_AUDIT || pkg?.id === PACKAGE_KEYS.AI_AUDIT || pkg?.price === 79000;
+  const effectiveQuantity = isAiAudit ? 1 : quantity;
+  const unitPrice = pkg?.price ?? (isAiAudit ? 79000 : 0);
+  const totalAmount = effectiveQuantity * unitPrice;
+  const shortage = Math.max(totalAmount - walletBalance, 0);
+  const hasSufficientBalance = shortage === 0;
 
-    const mutation = useMutation({
+  const mutation = useMutation({
     mutationFn: async () => {
       const res = await apiClient.post("/orders", {
         idempotency_key: crypto.randomUUID(),
-        items: [
-          {
-            service_type: "credit_audit",
-            quantity,
-            metadata_json: { case_id: caseId },
-          },
-        ],
+        items: [{ service_type: serviceType, quantity: effectiveQuantity, metadata_json: { case_id: caseId } }],
       });
       return res.data;
     },
@@ -47,43 +54,29 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
       queryClient.invalidateQueries({ queryKey: ["case", caseId] });
       queryClient.invalidateQueries({ queryKey: ["wallet"] });
       notifications.show({
-        title: "Tạo đơn hàng thành công",
-        message: `Đơn hàng #${data.orderId} đã được tạo.`,
+        title: "Thanh toán thành công",
+        message: isManual
+          ? `Đã mua ${isAiAudit ? 2 : effectiveQuantity} credit. Quay lại hồ sơ để chọn loại đánh giá và gửi.`
+          : `Đơn hàng #${data.orderId} đã được thanh toán thành công.`,
         color: "teal",
       });
       router.refresh();
       handleClose();
     },
-    onError: (error: Error) => {
-      const responseData = (
-        error as {
-          response?: {
-            data?: {
-              code?: string;
-              message?: string;
-              details?: { current?: number; required?: number };
-            };
-          };
-        }
-      ).response?.data;
-      const code = responseData?.code;
-      const message = responseData?.message;
+    onError: (error: unknown) => {
+      const errData = isAxiosError<{ code?: string; message?: string; details?: { current?: number; required?: number } }>(error)
+        ? error.response?.data
+        : undefined;
 
-      if (code === "INSUFFICIENT_BALANCE") {
-        const details = responseData?.details;
-        const shortage = details
-          ? Math.max(Number(details.required) - Number(details.current), 0)
-          : quantity * unitPrice;
-        const suggestedTopup = Math.max(shortage, MIN_TOPUP_AMOUNT);
-        void startShortageDeposit({ quantity, suggestedTopup }).finally(() => {
-          handleClose();
-        });
+      if (errData?.code === "INSUFFICIENT_BALANCE") {
+        const needed = errData.details ? Math.max(Number(errData.details.required) - Number(errData.details.current), 0) : totalAmount;
+        const suggestedTopup = Math.max(needed, MIN_TOPUP_AMOUNT);
+        void startShortageDeposit({ quantity: effectiveQuantity, suggestedTopup, serviceType }).finally(handleClose);
         return;
       }
-
       notifications.show({
         title: "Tạo đơn hàng thất bại",
-        message: message || "Vui lòng thử lại sau.",
+        message: errData?.message || "Vui lòng thử lại sau.",
         color: "red",
       });
     },
@@ -94,68 +87,81 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
     onClose();
   };
 
+  const handleAction = () => {
+    if (hasSufficientBalance) {
+      mutation.mutate();
+    } else {
+      const suggestedTopup = Math.max(shortage, MIN_TOPUP_AMOUNT);
+      void startShortageDeposit({ quantity: effectiveQuantity, suggestedTopup, serviceType }).finally(handleClose);
+    }
+  };
+
   return (
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={<Text fw={700} size="sm">Mua credit</Text>}
+      title={<Text fw={700} size="sm">Thanh toán gói đánh giá</Text>}
       size="md"
       radius="md"
       centered
     >
-      <Stack gap="md">
-        <Text size="sm" c="dimmed">
-          Chọn số lượng credit muốn mua. Mỗi credit tương ứng với một lượt đánh giá từ Supporter.
-        </Text>
+      <Stack gap="md" className="pt-3">
+        {!isAiAudit && (
+          <NumberInput
+            label="Số lượng credit"
+            description="Từ 1 đến 50 credit"
+            value={quantity}
+            onChange={(val) => setQuantity(Number(val) || 1)}
+            min={1}
+            max={50}
+            allowDecimal={false}
+            allowNegative={false}
+          />
+        )}
 
-        <NumberInput
-          label="Số lượng credit"
-          description="Từ 1 đến 50 credit"
-          value={quantity}
-          onChange={(val) => setQuantity(Number(val) || 1)}
-          min={1}
-          max={50}
-          allowDecimal={false}
-          allowNegative={false}
-        />
-
-        <div className="bg-surface-soft rounded-lg p-4 space-y-2">
-          <div className="flex justify-between text-sm">
+        <div className="bg-surface-soft rounded-lg p-4 space-y-2 border border-border-app text-sm">
+          <div className="flex justify-between">
             <span className="text-text-muted">Đơn giá</span>
             <span className="font-semibold">{formatPrice(unitPrice)}</span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-text-muted">Số lượng</span>
-            <span className="font-semibold">{quantity}</span>
-          </div>
+          {!isAiAudit && (
+            <div className="flex justify-between">
+              <span className="text-text-muted">Số lượng</span>
+              <span className="font-semibold">{effectiveQuantity}</span>
+            </div>
+          )}
           <div className="border-t border-border-app pt-2 flex justify-between">
-            <span className="font-semibold">Tổng cộng</span>
-            <span className="font-semibold text-brand">
-              {formatPrice(quantity * unitPrice)}
-            </span>
+            <span className="font-semibold">Tổng thanh toán</span>
+            <span className="font-semibold text-brand text-base">{formatPrice(totalAmount)}</span>
           </div>
         </div>
 
+        <Paper p="sm" withBorder radius="md" className="bg-surface-app border-border-app flex items-center justify-between text-xs">
+          <span className="text-text-muted">Số dư ví hiện tại: <strong className="text-text-app">{formatPrice(walletBalance)}</strong></span>
+          <span className={hasSufficientBalance ? "text-teal-600 font-semibold" : "text-amber-600 font-semibold"}>
+            {hasSufficientBalance ? "Đủ số dư ví" : `Thiếu ${formatPrice(shortage)}`}
+          </span>
+        </Paper>
+
         <Group justify="flex-end" mt="sm">
-          <Button
-            variant="default"
-            onClick={handleClose}
-            disabled={mutation.isPending || isShortagePending}
-          >
+          <Button variant="default" onClick={handleClose} disabled={mutation.isPending || isShortagePending}>
             Hủy
           </Button>
           <Button
-            onClick={() => mutation.mutate()}
+            color="brand"
+            onClick={handleAction}
             loading={mutation.isPending || isShortagePending}
             disabled={mutation.isPending || isShortagePending}
           >
-            Xác nhận mua
+            {hasSufficientBalance ? `Thanh toán ${formatPrice(totalAmount)}` : "Nạp & Thanh toán qua VietQR"}
           </Button>
         </Group>
 
         {mutation.isError && (
           <Text c="red" size="xs">
-            {(mutation.error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Đã xảy ra lỗi."}
+            {isAxiosError<{ message?: string }>(mutation.error)
+              ? mutation.error.response?.data?.message || "Đã xảy ra lỗi khi tạo đơn hàng."
+              : "Đã xảy ra lỗi khi tạo đơn hàng."}
           </Text>
         )}
       </Stack>

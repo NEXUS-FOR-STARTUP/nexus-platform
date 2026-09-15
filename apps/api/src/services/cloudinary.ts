@@ -59,6 +59,7 @@ export async function uploadFile(
   folder: string,
   publicId: string,
   resourceType: string = 'raw',
+  overwrite: boolean = true,
 ): Promise<UploadResult> {
   ensureConfig();
   const t0 = Date.now();
@@ -68,7 +69,7 @@ export async function uploadFile(
       folder,
       public_id: publicId,
       resource_type: resourceType,
-      overwrite: false,
+      overwrite,
     });
 
     const fileUrl = result?.secure_url || result?.url;

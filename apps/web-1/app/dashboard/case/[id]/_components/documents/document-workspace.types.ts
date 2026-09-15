@@ -11,7 +11,7 @@ export interface DocumentWorkspaceProps {
   workspace: DocumentWorkspaceType | null;
 }
 
-export type WorkspaceTab = "documents" | "external-feedback";
+export type WorkspaceTab = "documents" | "external-feedback" | "assessment-reports";
 export type FilterRole = "all" | "student" | "supporter";
 
 export type DocumentRow = {
