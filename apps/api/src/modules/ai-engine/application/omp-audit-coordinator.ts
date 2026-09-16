@@ -163,6 +163,37 @@ async function assembleScopedInputFiles(
     if (intakeUnit?.content) {
       inputFiles.push({ name: "intake_submission.md", content: intakeUnit.content });
     }
+
+    // Include Team Fit Report if available (for cases originating from Team Fit flow)
+    const teamFit = await prisma.teamFitReport.findUnique({ where: { case_id: caseId } });
+    if (teamFit) {
+      const idea = (teamFit.idea_snapshot as Record<string, unknown>) || {};
+      const team = (teamFit.team_snapshot as Record<string, unknown>) || {};
+      const result = (teamFit.result_snapshot as Record<string, unknown>) || {};
+
+      const teamFitMd = `# Báo cáo phân tích Team Fit ban đầu (Team Fit Report)
+
+## 1. Thông tin ý tưởng (Idea Snapshot)
+- **Tên dự án:** ${String(idea["projectName"] || "Chưa cập nhật")}
+- **Lĩnh vực:** ${String(idea["field"] || "Chưa cập nhật")}
+- **Vấn đề:** ${String(idea["problem"] || "Chưa cập nhật")}
+- **Giải pháp:** ${String(idea["solution"] || "Chưa cập nhật")}
+- **Khách hàng mục tiêu:** ${String(idea["targetCustomer"] || "Chưa cập nhật")}
+- **MVP / Thử nghiệm:** ${String(idea["mvp"] || "Chưa cập nhật")}
+
+## 2. Kết quả đánh giá sơ bộ (Team Fit Analysis Result)
+\`\`\`json
+${JSON.stringify(result, null, 2)}
+\`\`\`
+
+## 3. Khảo sát Đội ngũ (Team Snapshot)
+\`\`\`json
+${JSON.stringify(team, null, 2)}
+\`\`\`
+`;
+      inputFiles.push({ name: "team_fit_report.md", content: teamFitMd });
+    }
+
     const documents = await findDocumentRecordsByCaseId(caseId);
     for (const doc of documents) {
       if (doc.download_url) {
