@@ -3,8 +3,8 @@
 import React from "react";
 import { useStore } from "@tanstack/react-form";
 import { IntakeStep, IntakeData } from "../_types/intake.types";
-import { Button } from "@mantine/core";
-import { ArrowLeft, ArrowRight, Bot, Send } from "lucide-react";
+import { Button, Modal } from "@mantine/core";
+import { ArrowLeft, ArrowRight, Bot, Send, CheckCircle2 } from "lucide-react";
 import { BOUNDARY_RULE_IDS } from "./Steps/BoundaryStep";
 // Import step components
 import SituationStep from "./Steps/SituationStep";
@@ -139,6 +139,7 @@ export default function IntakeChatFlow({
   stepsList,
   isAiOnlyPackage,
 }: IntakeChatFlowProps) {
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = React.useState(false);
   const values = useStore(form.store, (state: any) => state.values);
 
   const activeSteps =
@@ -234,13 +235,13 @@ export default function IntakeChatFlow({
 
           {currentStep === IntakeStep.REVIEW ? (
             <Button
-              onClick={() => form.handleSubmit()}
+              onClick={() => setIsConfirmModalOpen(true)}
               disabled={isSubmitting}
               color="brand"
               rightSection={<Send className="w-4 h-4" />}
               className="font-body font-semibold cursor-pointer h-9 px-4 text-xs"
             >
-              <span>{isSubmitting ? "Đang gửi hồ sơ..." : "Xác nhận & Nộp hồ sơ"}</span>
+              <span>Nộp hồ sơ</span>
             </Button>
           ) : (
             <Button
@@ -255,6 +256,52 @@ export default function IntakeChatFlow({
           )}
         </div>
       </div>
+
+      {/* Submit Confirmation Modal */}
+      <Modal
+        opened={isConfirmModalOpen}
+        onClose={() => {
+          if (!isSubmitting) setIsConfirmModalOpen(false);
+        }}
+        title={
+          <div className="flex items-center gap-2 text-text-app">
+            <CheckCircle2 className="w-5 h-5 text-brand shrink-0" />
+            <span className="font-heading font-semibold text-lg leading-snug">
+              Xác nhận nộp hồ sơ
+            </span>
+          </div>
+        }
+        centered
+        radius="md"
+      >
+        <div className="space-y-4 font-body">
+          <p className="text-sm text-text-muted leading-relaxed">
+            Bạn có chắc chắn muốn nộp hồ sơ này? Sau khi nộp, hệ thống sẽ tiếp nhận thông tin và tiến hành quy trình thẩm định.
+          </p>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-border-app">
+            <Button
+              onClick={() => setIsConfirmModalOpen(false)}
+              disabled={isSubmitting}
+              variant="default"
+              className="font-body font-semibold cursor-pointer h-9 px-4 text-xs"
+            >
+              Kiểm tra lại
+            </Button>
+            <Button
+              onClick={() => {
+                setIsConfirmModalOpen(false);
+                form.handleSubmit();
+              }}
+              loading={isSubmitting}
+              color="brand"
+              className="font-body font-semibold cursor-pointer h-9 px-4 text-xs"
+            >
+              Xác nhận
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
