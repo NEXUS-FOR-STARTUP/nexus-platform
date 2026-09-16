@@ -155,7 +155,7 @@ export default function ReviewSubmitStep({
                   <div className="font-semibold text-text-app">
                     {docCategoryLabel(doc.document_type || "") || "Tài liệu"}:
                   </div>
-                  <div className="space-y-1">
+                  <div>
                     <a
                       href={doc.file_url}
                       target="_blank"
@@ -164,11 +164,6 @@ export default function ReviewSubmitStep({
                     >
                       {doc.original_name || doc.file_url}
                     </a>
-                    {doc.extension && (
-                      <span className="text-xs bg-surface-hover rounded px-1.5 py-0.5 text-text-muted font-mono">
-                        .{doc.extension}
-                      </span>
-                    )}
                   </div>
                 </React.Fragment>
               ))
