@@ -136,11 +136,23 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
           </div>
         </div>
 
-        <Paper p="sm" withBorder radius="md" className="bg-surface-app border-border-app flex items-center justify-between text-xs">
-          <span className="text-text-muted">Số dư ví hiện tại: <strong className="text-text-app">{formatPrice(walletBalance)}</strong></span>
-          <span className={hasSufficientBalance ? "text-teal-600 font-semibold" : "text-amber-600 font-semibold"}>
-            {hasSufficientBalance ? "Đủ số dư ví" : `Thiếu ${formatPrice(shortage)}`}
-          </span>
+        <Paper p="sm" withBorder radius="md" className="bg-surface-app border-border-app text-xs">
+          <Stack gap="xs">
+            <Group justify="space-between">
+              <span className="text-text-muted">Số dư ví hiện tại</span>
+              <strong className="text-text-app">{formatPrice(walletBalance)}</strong>
+            </Group>
+            <Group justify="space-between">
+              <span className="text-text-muted">Số dư sau thanh toán</span>
+              <strong className="text-text-app">{formatPrice(walletBalance - totalAmount)}</strong>
+            </Group>
+            <div className="pt-1 border-t border-border-app flex justify-between items-center">
+              <span className="text-text-muted">Tình trạng ví</span>
+              <span className={hasSufficientBalance ? "text-teal-600 font-semibold" : "text-red-600 font-semibold"}>
+                {hasSufficientBalance ? "Đủ số dư ví" : `Số dư không đủ — thiếu ${formatPrice(shortage)}`}
+              </span>
+            </div>
+          </Stack>
         </Paper>
 
         <Group justify="flex-end" mt="sm">
