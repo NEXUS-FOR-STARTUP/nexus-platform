@@ -4,7 +4,7 @@ import React from "react";
 import { useStore } from "@tanstack/react-form";
 import { IntakeStep, IntakeData } from "../_types/intake.types";
 import { Button, Modal } from "@mantine/core";
-import { ArrowLeft, ArrowRight, Bot, Send, CheckCircle2 } from "lucide-react";
+import { Bot, CheckCircle2 } from "lucide-react";
 import { BOUNDARY_RULE_IDS } from "./Steps/BoundaryStep";
 // Import step components
 import SituationStep from "./Steps/SituationStep";
@@ -227,7 +227,6 @@ export default function IntakeChatFlow({
             onClick={handleBack}
             disabled={currentIdx <= 0 || isSubmitting}
             variant="default"
-            leftSection={<ArrowLeft className="w-4 h-4" />}
             className="text-text-muted hover:text-text-app font-body font-semibold cursor-pointer h-9 px-4 text-xs"
           >
             <span>Quay lại</span>
@@ -238,7 +237,6 @@ export default function IntakeChatFlow({
               onClick={() => setIsConfirmModalOpen(true)}
               disabled={isSubmitting}
               color="brand"
-              rightSection={<Send className="w-4 h-4" />}
               className="font-body font-semibold cursor-pointer h-9 px-4 text-xs"
             >
               <span>Nộp hồ sơ</span>
@@ -248,7 +246,6 @@ export default function IntakeChatFlow({
               onClick={handleNext}
               disabled={!isStepValid()}
               color="brand"
-              rightSection={<ArrowRight className="w-4 h-4" />}
               className="font-body font-semibold cursor-pointer disabled:opacity-50 h-9 px-4 text-xs"
             >
               <span>Tiếp tục</span>
