@@ -332,15 +332,17 @@ export const Cp1IntakeSchema = z.object({
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Cần mô tả ngắn điểm kẹt hiện tại của nhóm", path: ["current_blocker"] });
   }
 
-  // 3. Support needs validation
+  // 3. Support needs validation (tùy chọn, không bắt buộc)
   const supportNeeds = data.support_needs;
-  const hasPrimaryNeed = supportNeeds
-    && typeof supportNeeds === 'object'
-    && typeof (supportNeeds as Record<string, unknown>).primary_need === 'string'
-    && ((supportNeeds as Record<string, unknown>).primary_need as string).trim().length >= 5;
-
-  if (!hasPrimaryNeed) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Cần chọn nhu cầu hỗ trợ chính", path: ["support_needs"] });
+  if (supportNeeds && typeof supportNeeds === 'object') {
+    const primaryNeed = (supportNeeds as Record<string, unknown>).primary_need;
+    if (typeof primaryNeed === 'string' && primaryNeed.trim().length > 0 && primaryNeed.trim().length < 5) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Nhu cầu hỗ trợ chính nếu có phải từ 5 ký tự trở lên",
+        path: ["support_needs", "primary_need"],
+      });
+    }
   }
 
   // 4. Documents validation
@@ -389,25 +391,45 @@ export const Cp1IntakeCaps = z.object({
 export const DOCUMENT_CATEGORY_CODES = [
   "idea_report",
   "pitch_deck",
-  "competitor_analysis",
-  "customer_research",
-  "task_assignment",
+  "market_research",
+  "financial_plan",
   "other",
 ] as const;
 
 export type DocumentCategoryCode = (typeof DOCUMENT_CATEGORY_CODES)[number];
 
-const DOCUMENT_CATEGORY_LABELS: Record<DocumentCategoryCode, string> = {
-  idea_report: "Báo cáo ý tưởng",
+export const DOCUMENT_CATEGORY_LABELS: Record<DocumentCategoryCode, string> = {
+  idea_report: "Thuyết minh ý tưởng",
   pitch_deck: "Slide thuyết trình",
-  competitor_analysis: "Phân tích đối thủ",
-  customer_research: "Khảo sát khách hàng",
-  task_assignment: "Đề cương phân công",
+  market_research: "Nghiên cứu thị trường",
+  financial_plan: "Kế hoạch tài chính",
   other: "Tài liệu bổ sung",
 };
 
+export const LEGACY_CATEGORY_CANONICAL_MAP: Record<string, DocumentCategoryCode> = {
+  competitor_analysis: "market_research",
+  customer_research: "market_research",
+};
+
+export const LEGACY_DOCUMENT_CATEGORY_LABELS: Record<string, string> = {
+  competitor_analysis: "Nghiên cứu thị trường",
+  customer_research: "Nghiên cứu thị trường",
+  task_assignment: "Đề cương phân công",
+};
+
+export function canonicalizeDocCategory(code: string | null | undefined): string {
+  if (!code) return "other";
+  return LEGACY_CATEGORY_CANONICAL_MAP[code] ?? code;
+}
+
 export function docCategoryLabel(code: string): string {
-  return DOCUMENT_CATEGORY_LABELS[code as DocumentCategoryCode] ?? code;
+  if (code in DOCUMENT_CATEGORY_LABELS) {
+    return DOCUMENT_CATEGORY_LABELS[code as DocumentCategoryCode];
+  }
+  if (code in LEGACY_DOCUMENT_CATEGORY_LABELS) {
+    return LEGACY_DOCUMENT_CATEGORY_LABELS[code];
+  }
+  return code;
 }
 
 // ---------------------------------------------------------------------------
