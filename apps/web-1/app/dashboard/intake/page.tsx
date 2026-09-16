@@ -11,7 +11,7 @@ import { IntakeStep, IntakeData } from "./_types/intake.types";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import Link from "next/link";
 import { Modal, Button, Alert } from "@mantine/core";
-import { Trash2, AlertTriangle, Clock, AlertCircle, Zap } from "lucide-react";
+import { Trash2, AlertTriangle, Clock, AlertCircle } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import DemoDataFAB from "@/components/ui/DemoDataFAB";
 import { DEMO_PRESETS } from "./_data/demo-presets";
@@ -270,25 +270,18 @@ function IntakePageContent() {
             : "Cấu trúc ý tưởng và thông tin minh chứng để bắt đầu chạy phản biện."}
         </p>
 
-        {/* Dynamic SLA Banner */}
-        <div className="max-w-lg mx-auto">
-          <Alert
-            variant="light"
-            color={isAiOnlyPackage ? "teal" : "blue"}
-            icon={
-              isAiOnlyPackage ? (
-                <Zap className="w-4 h-4 text-teal-600" />
-              ) : (
-                <Clock className="w-4 h-4 text-blue-600" />
-              )
-            }
-            className="text-left text-xs font-body"
-          >
-            {isAiOnlyPackage
-              ? "⚡ Thời gian xử lý: Kết quả thẩm định tự động hoàn tất trong khoảng 10 phút sau khi gửi"
-              : "⏱ Thời gian phản biện: 24h–48h có Mentor chuyên môn đồng hành và phản hồi"}
-          </Alert>
-        </div>
+        {!isAiOnlyPackage && (
+          <div className="max-w-lg mx-auto">
+            <Alert
+              variant="light"
+              color="blue"
+              icon={<Clock className="w-4 h-4 text-blue-600" />}
+              className="text-left text-xs font-body"
+            >
+              ⏱ Thời gian phản biện: 24h–48h có Mentor chuyên môn đồng hành và phản hồi
+            </Alert>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
