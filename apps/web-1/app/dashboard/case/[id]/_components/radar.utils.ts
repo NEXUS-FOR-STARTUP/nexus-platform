@@ -32,6 +32,7 @@ export const DIRTY_LOG_KEYWORDS = [
   "[gọi tool]", "🔧", "[xong tool]", "✅", "[vòng lặp]", "🔄",
   "[lượt hoàn thành]", "⏱️", "tokens", "system_prompt", "read path:",
   "glob path:", "[model]", "sandbox runner", "todo", "omp-session",
+  "omp runner", "omp process", "omp",
 ];
 
 export const BADGE_CONFIG: Record<string, { cls: string; label: string; dot: boolean }> = {

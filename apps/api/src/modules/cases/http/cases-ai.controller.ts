@@ -135,7 +135,7 @@ export async function retryCaseAiAuditHandler(c: Context) {
       lifecycle_unit_id: lifecycleUnitId,
     });
 
-    return c.json({ success: true, message: "Đã kích hoạt thẩm định AI OMP" });
+    return c.json({ success: true, message: "Đã kích hoạt thẩm định Nexus AI Engine" });
   } catch (err) {
     return handleError(c, err);
   }

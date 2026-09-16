@@ -80,7 +80,7 @@ export default function ReviewSubmitStep({
         <h2 className="text-xl font-semibold text-text-app">Xác nhận thông tin hồ sơ</h2>
         <p className="text-sm text-text-muted">
           {isAiOnly
-            ? "Đây là hồ sơ bàn giao để OMP Engine bắt đầu thẩm định. Kiểm tra lại trước khi xác nhận."
+            ? "Đây là hồ sơ bàn giao để Nexus AI Engine bắt đầu thẩm định. Kiểm tra lại trước khi xác nhận."
             : "Đây là gói bàn giao để Supporter bắt đầu xử lý. Kiểm tra lại trước khi xác nhận."}
         </p>
       </div>
@@ -117,7 +117,7 @@ export default function ReviewSubmitStep({
                       Hình thức thẩm định: Đánh giá tự động bằng AI
                     </span>
                     <Badge color="brand" variant="filled" size="sm">
-                      OMP Engine - 5 Tiêu chí Rubric
+                      Nexus AI Engine - 5 Tiêu chí Rubric
                     </Badge>
                   </div>
                 }
@@ -204,7 +204,7 @@ export default function ReviewSubmitStep({
               {selectedPackage
                 ? `${selectedPackage.name} (${formatPrice(selectedPackage.price)})`
                 : (isAiOnly
-                  ? "Đánh giá ý tưởng tự động bằng AI (OMP Engine)"
+                  ? "Đánh giá ý tưởng tự động bằng AI (Nexus AI Engine)"
                   : "Gói phản biện tiêu chuẩn")}
             </div>
 
