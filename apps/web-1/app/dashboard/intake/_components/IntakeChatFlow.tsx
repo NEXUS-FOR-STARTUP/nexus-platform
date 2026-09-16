@@ -4,7 +4,7 @@ import React from "react";
 import { useStore } from "@tanstack/react-form";
 import { IntakeStep, IntakeData } from "../_types/intake.types";
 import { Button, Modal } from "@mantine/core";
-import { Bot, CheckCircle2 } from "lucide-react";
+import { Bot } from "lucide-react";
 import { BOUNDARY_RULE_IDS } from "./Steps/BoundaryStep";
 // Import step components
 import SituationStep from "./Steps/SituationStep";
@@ -261,12 +261,9 @@ export default function IntakeChatFlow({
           if (!isSubmitting) setIsConfirmModalOpen(false);
         }}
         title={
-          <div className="flex items-center gap-2 text-text-app">
-            <CheckCircle2 className="w-5 h-5 text-brand shrink-0" />
-            <span className="font-heading font-semibold text-lg leading-snug">
-              Xác nhận nộp hồ sơ
-            </span>
-          </div>
+          <span className="font-heading font-semibold text-lg leading-snug text-text-app">
+            Xác nhận nộp hồ sơ
+          </span>
         }
         centered
         radius="md"
