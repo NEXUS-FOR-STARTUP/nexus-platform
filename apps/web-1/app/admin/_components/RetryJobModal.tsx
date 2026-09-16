@@ -29,8 +29,11 @@ export default function RetryJobModal({ job, isOpen, onClose, onConfirm, isSubmi
 
   if (!job) return null;
 
+  const isCustomEmpty = selectedModel === "custom" && !customModel.trim();
+
   const handleSubmit = async () => {
-    const finalModel = selectedModel === "custom" ? customModel.trim() || undefined : selectedModel;
+    if (isCustomEmpty) return;
+    const finalModel = selectedModel === "custom" ? customModel.trim() : selectedModel;
     await onConfirm(job.id, {
       model: finalModel,
       promptMode,
@@ -74,6 +77,8 @@ export default function RetryJobModal({ job, isOpen, onClose, onConfirm, isSubmi
               value={customModel}
               onChange={(e) => setCustomModel(e.currentTarget.value)}
               size="xs"
+              error={customModel.length > 0 && !customModel.trim() ? "Tên model không được để trống" : undefined}
+              required
             />
           )}
         </div>
@@ -105,6 +110,7 @@ export default function RetryJobModal({ job, isOpen, onClose, onConfirm, isSubmi
             leftSection={<RotateCcw className="w-3.5 h-3.5" />}
             onClick={handleSubmit}
             loading={isSubmitting}
+            disabled={isCustomEmpty || isSubmitting}
           >
             Kích hoạt chạy lại
           </Button>

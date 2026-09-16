@@ -30,6 +30,9 @@ const TEN_MINUTES_MS = 10 * 60 * 1000;
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 
 function getSandboxFiles(caseId: string, subFolder: "input" | "output"): JobSandboxFileInfo[] {
+  if (!/^[a-zA-Z0-9_-]+$/.test(caseId)) {
+    return [];
+  }
   const root = resolveRepoRoot();
   const candidateDirs = [
     resolve(root, "storage", "jobs", caseId, subFolder),
@@ -37,7 +40,6 @@ function getSandboxFiles(caseId: string, subFolder: "input" | "output"): JobSand
   ];
   const targetDir = candidateDirs.find((d) => existsSync(d));
   if (!targetDir) return [];
-
   try {
     const entries = readdirSync(targetDir, { withFileTypes: true });
     return entries
@@ -460,6 +462,18 @@ export async function healStuckAdminWorkerJob(
     throw new AppError(404, "CASE_NOT_FOUND", `Hồ sơ ${caseId} không tồn tại`);
   }
 
+  const activeJob = await prisma.aiJob.findFirst({
+    where: { case_id: caseId, job_type: "omp_audit" },
+    orderBy: { created_at: "desc" },
+  });
+  if (!activeJob || !["queued", "processing"].includes(activeJob.status)) {
+    throw new AppError(
+      400,
+      "INVALID_JOB_STATE",
+      `Tiến trình hiện tại ở trạng thái '${activeJob?.status || "không xác định"}', không thể giải phóng kẹt.`,
+    );
+  }
+
   // 1. Hủy job trên BullMQ
   await cancelOmpJob(caseId).catch((err) => {
     logger.warn({ caseId, err }, "Failed to cancel BullMQ job during heal-stuck");
@@ -540,6 +554,18 @@ export async function cancelAdminWorkerJob(
   const caseRecord = await prisma.case.findUnique({ where: { id: caseId } });
   if (!caseRecord) {
     throw new AppError(404, "CASE_NOT_FOUND", `Hồ sơ ${caseId} không tồn tại`);
+  }
+
+  const activeJob = await prisma.aiJob.findFirst({
+    where: { case_id: caseId, job_type: "omp_audit" },
+    orderBy: { created_at: "desc" },
+  });
+  if (!activeJob || !["queued", "processing"].includes(activeJob.status)) {
+    throw new AppError(
+      400,
+      "INVALID_JOB_STATE",
+      `Tiến trình hiện tại ở trạng thái '${activeJob?.status || "không xác định"}', không thể hủy.`,
+    );
   }
 
   // 1. Gọi cancel coordinator

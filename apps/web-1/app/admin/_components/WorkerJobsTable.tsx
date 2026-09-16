@@ -21,15 +21,38 @@ interface WorkerJobsTableProps {
 }
 
 function LiveRunningTimer({ startedAt }: { startedAt: string }) {
-  const [elapsed, setElapsed] = useState(() => Math.max(0, Date.now() - new Date(startedAt).getTime()));
+  const [mounted, setMounted] = useState(false);
+  const startTime = new Date(startedAt).getTime();
+  const [elapsed, setElapsed] = useState(() => (!isNaN(startTime) ? Math.max(0, Date.now() - startTime) : 0));
+
   useEffect(() => {
-    const t = setInterval(() => setElapsed(Math.max(0, Date.now() - new Date(startedAt).getTime())), 1000);
+    setMounted(true);
+    if (isNaN(startTime)) return;
+    const t = setInterval(() => setElapsed(Math.max(0, Date.now() - startTime)), 1000);
     return () => clearInterval(t);
-  }, [startedAt]);
+  }, [startTime]);
+
+  if (!mounted || isNaN(startTime)) {
+    return <span className="font-mono text-blue-600 dark:text-blue-400 font-semibold">-</span>;
+  }
   const sec = Math.floor(elapsed / 1000);
-  return <span className="font-mono text-blue-600 dark:text-blue-400 font-semibold">{Math.floor(sec / 60)}m {sec % 60}s</span>;
+  return (
+    <span className="font-mono text-blue-600 dark:text-blue-400 font-semibold" suppressHydrationWarning>
+      {Math.floor(sec / 60)}m {sec % 60}s
+    </span>
+  );
 }
 
+function SafeTimeText({ isoString }: { isoString: string }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  if (!mounted) return <Text size="xs" c="dimmed">-</Text>;
+  const d = new Date(isoString);
+  if (isNaN(d.getTime())) return <Text size="xs" c="dimmed">-</Text>;
+  return <Text size="xs" c="dimmed" suppressHydrationWarning>{d.toLocaleTimeString("vi-VN")}</Text>;
+}
 function formatDuration(ms: number) {
   if (!ms || ms <= 0) return "-";
   const sec = Math.floor(ms / 1000);
@@ -109,7 +132,7 @@ export default function WorkerJobsTable({
                     </Table.Td>
                     <Table.Td>
                       {isRunning ? <LiveRunningTimer startedAt={job.startedAt} /> : <span>{formatDuration(job.durationMs)}</span>}
-                      <Text size="xs" c="dimmed">{new Date(job.startedAt).toLocaleTimeString("vi-VN")}</Text>
+                      <SafeTimeText isoString={job.startedAt} />
                     </Table.Td>
                     <Table.Td><StatusBadge job={job} /></Table.Td>
                     <Table.Td>

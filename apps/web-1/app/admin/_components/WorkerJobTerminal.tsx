@@ -12,11 +12,10 @@ interface WorkerJobTerminalProps {
 }
 
 export default function WorkerJobTerminal({ jobId, isRunning }: WorkerJobTerminalProps) {
-  const { data, isLoading } = useAdminWorkerLogs(jobId, true);
+  const { data, isLoading } = useAdminWorkerLogs(jobId, isRunning);
   const [autoScroll, setAutoScroll] = useState(true);
   const [copied, setCopied] = useState(false);
   const terminalRef = useRef<HTMLPreElement>(null);
-
   const rawLogs = data?.logs;
   const logText = Array.isArray(rawLogs)
     ? rawLogs.join("\n")

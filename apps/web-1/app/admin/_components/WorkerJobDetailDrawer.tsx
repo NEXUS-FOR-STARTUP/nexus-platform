@@ -65,10 +65,10 @@ export default function WorkerJobDetailDrawer({ jobId, isOpen, onClose }: Worker
               <SimpleGrid cols={2} spacing="xs">
                 <div><Text size="xs" c="dimmed">Mã hồ sơ:</Text><Text size="xs" fw={600} className="font-mono text-brand">{job.caseCode}</Text></div>
                 <div><Text size="xs" c="dimmed">Trạng thái:</Text><Badge size="xs" color={job.status === "completed" ? "green" : job.status === "processing" ? "blue" : job.status === "failed" ? "red" : "gray"}>{job.status}</Badge></div>
-                <div><Text size="xs" c="dimmed">Sinh viên:</Text><Text size="xs" fw={500}>{job.student?.name} ({job.student?.email})</Text></div>
+                <div><Text size="xs" c="dimmed">Sinh viên:</Text><Text size="xs" fw={500}>{job.student?.name ? `${job.student.name} (${job.student.email})` : "Chưa có thông tin"}</Text></div>
                 <div><Text size="xs" c="dimmed">Model & Prompt:</Text><Text size="xs" className="font-mono">{job.model} ({job.promptMode})</Text></div>
-                <div><Text size="xs" c="dimmed">Bắt đầu lúc:</Text><Text size="xs">{new Date(job.startedAt).toLocaleString("vi-VN")}</Text></div>
-                <div><Text size="xs" c="dimmed">Thời lượng:</Text><Text size="xs" fw={600}>{(job.durationMs / 1000).toFixed(1)}s</Text></div>
+                <div><Text size="xs" c="dimmed">Bắt đầu lúc:</Text><Text size="xs" suppressHydrationWarning>{job.startedAt ? new Date(job.startedAt).toLocaleString("vi-VN") : "-"}</Text></div>
+                <div><Text size="xs" c="dimmed">Thời lượng:</Text><Text size="xs" fw={600}>{typeof job.durationMs === "number" && !isNaN(job.durationMs) ? `${(job.durationMs / 1000).toFixed(1)}s` : "-"}</Text></div>
               </SimpleGrid>
             </Paper>
 

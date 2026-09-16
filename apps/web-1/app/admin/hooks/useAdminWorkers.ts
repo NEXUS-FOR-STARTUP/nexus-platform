@@ -75,15 +75,16 @@ export function useAdminWorkerJobDetail(jobId: string | null) {
   });
 }
 
-export function useAdminWorkerLogs(jobId: string | null, enabled: boolean = false) {
+export function useAdminWorkerLogs(jobId: string | null, isRunning: boolean = false) {
   return useQuery<{ logs: string[] | string }>({
     queryKey: ["admin-worker-logs", jobId],
     queryFn: async () => {
       if (!jobId) throw new Error("jobId is required");
       return (await apiClient.get<{ logs: string[] | string }>(`/admin/workers/jobs/${jobId}/logs`)).data;
     },
-    enabled: Boolean(jobId) && enabled,
-    refetchInterval: enabled ? 3000 : false,
+    enabled: Boolean(jobId),
+    refetchInterval: isRunning ? 3000 : false,
+    staleTime: isRunning ? 0 : 60000,
   });
 }
 

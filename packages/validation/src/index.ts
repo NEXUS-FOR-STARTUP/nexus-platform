@@ -685,7 +685,7 @@ export const AdminWorkerJobListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   status: z.enum(ADMIN_WORKER_JOB_STATUSES).default("all"),
-  search: z.string().trim().optional(),
+  search: z.string().trim().max(100).optional(),
 });
 export type AdminWorkerJobListQuery = z.infer<typeof AdminWorkerJobListQuerySchema>;
 
