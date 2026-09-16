@@ -48,6 +48,9 @@ RUN bun run --filter nexus-platform-api build
 # -----------------------------------------------------------------------------
 FROM oven/bun:1.4.0-alpine AS runner
 WORKDIR /app
+# Install Typst CLI for A4 PDF report generation
+RUN apk add --no-cache typst
+
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nexus && \
@@ -74,6 +77,9 @@ COPY --from=builder --chown=nexus:nodejs /app/node_modules/@prisma/client ./node
 # ── Changing layers (rebuilt every source change) ──
 # Compiled output — only this changes most builds
 COPY --from=builder --chown=nexus:nodejs /app/apps/api/dist ./apps/api/dist
+# PDF templates & fonts for Typst runtime compilation
+COPY --from=builder --chown=nexus:nodejs /app/apps/api/src/modules/reports/infrastructure/pdf/templates ./apps/api/dist/modules/reports/infrastructure/pdf/templates
+COPY --from=builder --chown=nexus:nodejs /app/apps/api/src/modules/reports/infrastructure/pdf/fonts ./apps/api/dist/modules/reports/infrastructure/pdf/fonts
 # Package.json for workspace context
 COPY --from=builder --chown=nexus:nodejs /app/apps/api/package.json ./apps/api/package.json
 
