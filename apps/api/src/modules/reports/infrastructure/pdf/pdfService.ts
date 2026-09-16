@@ -11,8 +11,38 @@ import { resolveTypstBinary } from "./typstRunner.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const TEMPLATES_DIR = resolve(__dirname, "templates");
-const FONTS_DIR = resolve(__dirname, "fonts");
+function resolveTemplatesDir(): string {
+  const candidates = [
+    resolve(__dirname, "templates"),
+    resolve(__dirname, "..", "..", "..", "..", "..", "src", "modules", "reports", "infrastructure", "pdf", "templates"),
+    resolve(process.cwd(), "apps", "api", "src", "modules", "reports", "infrastructure", "pdf", "templates"),
+    resolve(process.cwd(), "src", "modules", "reports", "infrastructure", "pdf", "templates"),
+  ];
+  for (const dir of candidates) {
+    if (existsSync(join(dir, "report.typ"))) {
+      return dir;
+    }
+  }
+  return resolve(__dirname, "templates");
+}
+
+function resolveFontsDir(): string {
+  const candidates = [
+    resolve(__dirname, "fonts"),
+    resolve(__dirname, "..", "..", "..", "..", "..", "src", "modules", "reports", "infrastructure", "pdf", "fonts"),
+    resolve(process.cwd(), "apps", "api", "src", "modules", "reports", "infrastructure", "pdf", "fonts"),
+    resolve(process.cwd(), "src", "modules", "reports", "infrastructure", "pdf", "fonts"),
+  ];
+  for (const dir of candidates) {
+    if (existsSync(join(dir, "Merriweather", "Merriweather-Regular.ttf"))) {
+      return dir;
+    }
+  }
+  return resolve(__dirname, "fonts");
+}
+
+const TEMPLATES_DIR = resolveTemplatesDir();
+const FONTS_DIR = resolveFontsDir();
 
 export interface EvaluationJob {
   id: string;

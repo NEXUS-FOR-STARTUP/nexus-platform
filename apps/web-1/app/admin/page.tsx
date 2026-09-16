@@ -1,7 +1,7 @@
 "use client";
 
 import React, { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useAdminDeposits } from "./hooks/useAdminDeposits";
 import { useAdminCases } from "./hooks/useAdminCases";
 import { useAdminDocuments } from "./hooks/useAdminDocuments";
@@ -11,13 +11,15 @@ import AdminCaseAssignmentTable from "./_components/AdminCaseAssignmentTable";
 import AdminDocumentsTable from "./_components/AdminDocumentsTable";
 import AdminPackagesSettings from "./_components/AdminPackagesSettings";
 import AdminUsersTable from "./_components/AdminUsersTable";
+import AdminWorkerMonitoring, { type WorkerFilter } from "./_components/AdminWorkerMonitoring";
 import StatsDashboard from "./_components/StatsDashboard";
 import RejectionReasonModal from "./_components/RejectionReasonModal";
 import ApprovePaymentModal from "./_components/ApprovePaymentModal";
 import AdminExportMenu from "./_components/AdminExportMenu";
 import { useAdminStats } from "./hooks/useAdminStats";
+import { useAdminWorkerStats } from "./hooks/useAdminWorkers";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, FolderKanban, Activity, Users, Clock } from "lucide-react";
+import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, FolderKanban, Activity, Users, Clock, Bot } from "lucide-react";
 import { Tooltip, UnstyledButton, Title, Text, Badge, Divider } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import classes from "../../components/layout/DoubleNavbar.module.css";
@@ -32,6 +34,7 @@ export default function AdminHubPage() {
 
 function AdminHubPageInner() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "intake" | "unassigned" | "assigned" | "crud">("all");
   const {
     deposits,
@@ -83,12 +86,16 @@ function AdminHubPageInner() {
 
   const [rejectingDepositId, setRejectingDepositId] = useState<string | null>(null);
   const [approvingDepositId, setApprovingDepositId] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages" | "stats" | "users">("stats");
+  const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages" | "stats" | "users" | "workers">("stats");
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
+  const [workerFilter, setWorkerFilter] = useState<WorkerFilter>("all");
+
+  const { data: workerStats } = useAdminWorkerStats();
+  const activeWorkersCount = workerStats?.activeCount ?? 0;
 
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab === "payments" || tab === "cases" || tab === "documents" || tab === "packages" || tab === "stats" || tab === "users") {
+    if (tab === "payments" || tab === "cases" || tab === "documents" || tab === "packages" || tab === "stats" || tab === "users" || tab === "workers") {
       setActiveSection(tab);
     }
   }, [searchParams]);
@@ -316,6 +323,13 @@ function AdminHubPageInner() {
         icon: Users,
       };
     }
+    if (activeSection === "workers") {
+      return {
+        title: "Giám sát tiến trình AI (OMP Worker)",
+        description: "Theo dõi hàng đợi, trạng thái thực thi mô hình AI và xử lý các ca thẩm định kẹt.",
+        icon: Bot,
+      };
+    }
     return {
       title: "Thiết lập gói dịch vụ",
       description: "Bật/tắt hiển thị với khách hàng mới và cập nhật đơn giá các gói trên hệ thống.",
@@ -402,13 +416,31 @@ function AdminHubPageInner() {
                   <Users className="w-6 h-6" />
                 </UnstyledButton>
               </Tooltip>
+
+              <Tooltip label="Tiến trình AI" position="right" withArrow>
+                <UnstyledButton
+                  onClick={() => {
+                    setActiveSection("workers");
+                    router.push("/admin?tab=workers");
+                  }}
+                  className={classes.mainLink}
+                  data-active={activeSection === "workers" || undefined}
+                >
+                  <Bot className="w-6 h-6" />
+                  {activeWorkersCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-xs font-semibold bg-blue-600 text-white flex items-center justify-center border-2 border-surface-app">
+                      {activeWorkersCount}
+                    </span>
+                  )}
+                </UnstyledButton>
+              </Tooltip>
             </aside>
 
           {/* Secondary Panel (Details / Submenu) */}
           <div className={classes.main}>
             <div className="mb-4">
               <Title order={4} className="font-heading font-semibold text-text-app">
-                {activeSection === "stats" ? "Thống kê" : activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : activeSection === "documents" ? "Quản lý tài liệu" : activeSection === "users" ? "Người dùng" : "Cài đặt gói"}
+                {activeSection === "stats" ? "Thống kê" : activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : activeSection === "documents" ? "Quản lý tài liệu" : activeSection === "users" ? "Người dùng" : activeSection === "workers" ? "Tiến trình AI" : "Cài đặt gói"}
               </Title>
               <Text size="xs" className="text-text-muted font-body mt-0.5">
                 {activeSection === "stats"
@@ -421,6 +453,8 @@ function AdminHubPageInner() {
                   ? "Danh mục tài liệu trên hệ thống."
                   : activeSection === "users"
                   ? "Quản lý tài khoản & phân quyền."
+                  : activeSection === "workers"
+                  ? "Giám sát máy ảo OMP & hàng đợi."
                   : "Cài đặt đơn giá gói dịch vụ."}
               </Text>
             </div>
@@ -531,6 +565,72 @@ function AdminHubPageInner() {
                   <span>Quản lý người dùng</span>
                 </UnstyledButton>
               </div>
+            ) : activeSection === "workers" ? (
+              <div className="flex flex-col gap-1">
+                <UnstyledButton
+                  onClick={() => setWorkerFilter("all")}
+                  className={classes.link}
+                  data-active={workerFilter === "all" || undefined}
+                >
+                  <span>Tất cả</span>
+                </UnstyledButton>
+                <UnstyledButton
+                  onClick={() => setWorkerFilter("active")}
+                  className={classes.link}
+                  data-active={workerFilter === "active" || undefined}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span>Đang chạy</span>
+                    {workerStats && workerStats.activeCount > 0 && (
+                      <Badge color="blue" size="sm" variant="light">
+                        {workerStats.activeCount}
+                      </Badge>
+                    )}
+                  </div>
+                </UnstyledButton>
+                <UnstyledButton
+                  onClick={() => setWorkerFilter("waiting")}
+                  className={classes.link}
+                  data-active={workerFilter === "waiting" || undefined}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span>Trong hàng đợi</span>
+                    {workerStats && workerStats.waitingCount > 0 && (
+                      <Badge color="yellow" size="sm" variant="light">
+                        {workerStats.waitingCount}
+                      </Badge>
+                    )}
+                  </div>
+                </UnstyledButton>
+                <UnstyledButton
+                  onClick={() => setWorkerFilter("stuck")}
+                  className={classes.link}
+                  data-active={workerFilter === "stuck" || undefined}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span>Nghi kẹt</span>
+                    {workerStats && workerStats.stuckCount > 0 && (
+                      <Badge color="grape" size="sm" variant="light">
+                        {workerStats.stuckCount}
+                      </Badge>
+                    )}
+                  </div>
+                </UnstyledButton>
+                <UnstyledButton
+                  onClick={() => setWorkerFilter("failed")}
+                  className={classes.link}
+                  data-active={workerFilter === "failed" || undefined}
+                >
+                  <span>Thất bại</span>
+                </UnstyledButton>
+                <UnstyledButton
+                  onClick={() => setWorkerFilter("completed")}
+                  className={classes.link}
+                  data-active={workerFilter === "completed" || undefined}
+                >
+                  <span>Đã hoàn thành</span>
+                </UnstyledButton>
+              </div>
             ) : (
               <div className="flex flex-col gap-1">
                 <UnstyledButton
@@ -636,6 +736,10 @@ function AdminHubPageInner() {
             ) : activeSection === "users" ? (
               <div>
                 <AdminUsersTable />
+              </div>
+            ) : activeSection === "workers" ? (
+              <div>
+                <AdminWorkerMonitoring filter={workerFilter} />
               </div>
             ) : (
               <div>

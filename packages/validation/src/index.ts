@@ -666,3 +666,118 @@ export function formatIpAddress(ip?: string | null): string {
   }
   return ip.replace(/^::ffff:/, ""); // Bỏ prefix IPv4-mapped IPv6
 }
+
+// ---------------------------------------------------------------------------
+// Admin OMP Worker Monitoring — shared schemas & contracts (FE + BE)
+// ---------------------------------------------------------------------------
+
+export const ADMIN_WORKER_JOB_STATUSES = [
+  "all",
+  "active",
+  "waiting",
+  "completed",
+  "failed",
+  "stuck",
+] as const;
+export type AdminWorkerJobStatusFilter = (typeof ADMIN_WORKER_JOB_STATUSES)[number];
+
+export const AdminWorkerJobListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  status: z.enum(ADMIN_WORKER_JOB_STATUSES).default("all"),
+  search: z.string().trim().max(100).optional(),
+});
+export type AdminWorkerJobListQuery = z.infer<typeof AdminWorkerJobListQuerySchema>;
+
+export const AdminRetryJobBodySchema = z.object({
+  model: z.string().trim().min(1).optional(),
+  promptMode: z.enum(["full", "lite"]).default("full"),
+  clearOldSandbox: z.boolean().default(true),
+});
+export type AdminRetryJobBody = z.infer<typeof AdminRetryJobBodySchema>;
+
+export const AdminHealStuckBodySchema = z.object({
+  reason: z.string().trim().optional(),
+});
+export type AdminHealStuckBody = z.infer<typeof AdminHealStuckBodySchema>;
+
+export interface AdminWorkerStatsResponse {
+  concurrencyLimit: number;
+  activeCount: number;
+  waitingCount: number;
+  completed24hCount: number;
+  failed24hCount: number;
+  stuckCount: number;
+  avgDurationMs24h: number;
+}
+
+export interface AdminWorkerJobListItem {
+  id: string;
+  caseId: string;
+  caseCode: string;
+  projectName: string;
+  studentName: string;
+  studentEmail: string;
+  status: string;
+  isStuck: boolean;
+  submissionType: string;
+  model: string;
+  startedAt: string;
+  updatedAt: string;
+  durationMs: number;
+}
+
+export interface AdminWorkerJobListResponse {
+  items: AdminWorkerJobListItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface JobSandboxFileInfo {
+  name: string;
+  sizeBytes: number;
+  extension: string;
+  downloadPath?: string;
+}
+
+export interface AdminWorkerJobDetailResponse {
+  id: string;
+  caseId: string;
+  caseCode: string;
+  projectName: string;
+  student: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  status: string;
+  isStuck: boolean;
+  submissionType: string;
+  model: string;
+  promptMode: "full" | "lite";
+  startedAt: string;
+  updatedAt: string;
+  durationMs: number;
+  milestones: {
+    sandboxReady: boolean;
+    triadPacket: boolean;
+    auditReport: boolean;
+    reportJson: boolean;
+  };
+  inputFiles: JobSandboxFileInfo[];
+  outputFiles: JobSandboxFileInfo[];
+  reportSummary?: {
+    id: string;
+    overallScore: number | null;
+    scores: Record<string, number> | null;
+    pdfUrl: string | null;
+    createdAt: string;
+  } | null;
+  failedReason?: string | null;
+  inputSnapshot?: {
+    idea?: Record<string, unknown>;
+    team?: Record<string, unknown>;
+  } | null;
+}
