@@ -4,8 +4,6 @@ import React from "react";
 import { ServicePackage } from "@/types";
 import dayjs from "dayjs";
 import { formatPrice } from "@/lib/pricing";
-import { Alert, Badge } from "@mantine/core";
-import { Bot } from "lucide-react";
 import { docCategoryLabel } from "@repo/validation";
 import { IntakeData } from "../../_types/intake.types";
 
@@ -80,7 +78,7 @@ export default function ReviewSubmitStep({
         <h2 className="text-xl font-semibold text-text-app">Xác nhận thông tin hồ sơ</h2>
         <p className="text-sm text-text-muted">
           {isAiOnly
-            ? "Đây là hồ sơ bàn giao để Nexus AI Engine bắt đầu thẩm định. Kiểm tra lại trước khi xác nhận."
+            ? "Đây là hồ sơ bàn giao để Nexus Engine bắt đầu thẩm định. Kiểm tra lại trước khi xác nhận."
             : "Đây là gói bàn giao để Supporter bắt đầu xử lý. Kiểm tra lại trước khi xác nhận."}
         </p>
       </div>
@@ -106,27 +104,14 @@ export default function ReviewSubmitStep({
           </h3>
           <div className="space-y-4 pl-4 text-sm">
             {isAiOnly ? (
-              <Alert
-                variant="light"
-                color="indigo"
-                radius="md"
-                icon={<Bot className="w-5 h-5 text-brand" />}
-                title={
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-brand">
-                      Hình thức thẩm định: Đánh giá tự động bằng AI
-                    </span>
-                    <Badge color="brand" variant="filled" size="sm">
-                      Nexus AI Engine - 5 Tiêu chí Rubric
-                    </Badge>
-                  </div>
-                }
-                className="border border-brand/20 bg-brand-soft/20"
-              >
-                <p className="text-xs text-text-muted mt-1 leading-relaxed">
-                  Hồ sơ sẽ được chấm điểm và phân tích tự động dựa trên 5 tiêu chí: Problem-Solution Fit, Market Opportunity, Financial Logic, Feasibility và Executive Summary. Kết quả sẵn sàng trong vòng 1 phút.
+              <div className="rounded-lg border border-border-app bg-surface-muted/40 p-4 space-y-1.5">
+                <div className="font-semibold text-text-app text-sm">
+                  Đánh giá tự động qua Nexus Engine
+                </div>
+                <p className="text-xs text-text-muted leading-relaxed">
+                  Hồ sơ được phân tích tự động về khách hàng mục tiêu, vấn đề cốt lõi, giải pháp và tính khả thi của mô hình. Kết quả thẩm định chi tiết sẵn sàng trong vòng 1 phút sau khi gửi.
                 </p>
-              </Alert>
+              </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6">
                 <div className="font-semibold text-text-app">Nhu cầu hỗ trợ chính:</div>
@@ -204,7 +189,7 @@ export default function ReviewSubmitStep({
               {selectedPackage
                 ? `${selectedPackage.name} (${formatPrice(selectedPackage.price)})`
                 : (isAiOnly
-                  ? "Đánh giá ý tưởng tự động bằng AI (Nexus AI Engine)"
+                  ? "Đánh giá ý tưởng tự động bằng AI (Nexus Engine)"
                   : "Gói phản biện tiêu chuẩn")}
             </div>
 
