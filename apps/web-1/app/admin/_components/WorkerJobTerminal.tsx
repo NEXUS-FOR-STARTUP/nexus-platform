@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ActionIcon, Button, Group, Text, Tooltip } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { Copy, Terminal, ArrowDown, Check } from "lucide-react";
-import { useAdminWorkerLogs } from "../hooks/useAdminWorkers";
+import { useAdminWorkerLogs, type AdminWorkerLogEntry } from "../hooks/useAdminWorkers";
 
 interface WorkerJobTerminalProps {
   jobId: string;
@@ -18,7 +18,21 @@ export default function WorkerJobTerminal({ jobId, isRunning }: WorkerJobTermina
   const terminalRef = useRef<HTMLPreElement>(null);
   const rawLogs = data?.logs;
   const logText = Array.isArray(rawLogs)
-    ? rawLogs.join("\n")
+    ? rawLogs
+        .map((entry: AdminWorkerLogEntry | string) => {
+          if (typeof entry === "string") return entry;
+          if (entry && typeof entry === "object") {
+            const time = entry.timestamp
+              ? new Date(entry.timestamp).toLocaleTimeString("vi-VN")
+              : "";
+            const agent = entry.agent ? `[${entry.agent.toUpperCase()}]` : "";
+            const msg = entry.message || "";
+            const prefix = [time, agent].filter(Boolean).join(" ");
+            return prefix ? `${prefix} ${msg}` : msg || JSON.stringify(entry);
+          }
+          return String(entry ?? "");
+        })
+        .join("\n")
     : typeof rawLogs === "string"
     ? rawLogs
     : "";

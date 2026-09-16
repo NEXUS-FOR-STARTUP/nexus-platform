@@ -24,6 +24,12 @@ export type {
   JobSandboxFileInfo,
 };
 
+export interface AdminWorkerLogEntry {
+  timestamp?: string;
+  agent?: string;
+  message?: string;
+}
+
 export interface WorkerJobsParams {
   page?: number;
   limit?: number;
@@ -76,11 +82,11 @@ export function useAdminWorkerJobDetail(jobId: string | null) {
 }
 
 export function useAdminWorkerLogs(jobId: string | null, isRunning: boolean = false) {
-  return useQuery<{ logs: string[] | string }>({
+  return useQuery<{ logs: Array<AdminWorkerLogEntry | string> | string }>({
     queryKey: ["admin-worker-logs", jobId],
     queryFn: async () => {
       if (!jobId) throw new Error("jobId is required");
-      return (await apiClient.get<{ logs: string[] | string }>(`/admin/workers/jobs/${jobId}/logs`)).data;
+      return (await apiClient.get<{ logs: Array<AdminWorkerLogEntry | string> | string }>(`/admin/workers/jobs/${jobId}/logs`)).data;
     },
     enabled: Boolean(jobId),
     refetchInterval: isRunning ? 3000 : false,
