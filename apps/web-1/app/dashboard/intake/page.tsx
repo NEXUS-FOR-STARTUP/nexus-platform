@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, Suspense } from "react";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
 import { useStore } from "@tanstack/react-form";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -11,7 +11,7 @@ import { IntakeStep, IntakeData } from "./_types/intake.types";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import Link from "next/link";
 import { Modal, Button, Alert } from "@mantine/core";
-import { Trash2, AlertTriangle, Clock, AlertCircle } from "lucide-react";
+import { Trash2, AlertTriangle, Clock, AlertCircle, Zap } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import DemoDataFAB from "@/components/ui/DemoDataFAB";
 import { DEMO_PRESETS } from "./_data/demo-presets";
@@ -30,20 +30,27 @@ function IntakePageContent() {
   });
 
   // Fetch active packages for packageId validation (CREATE mode only)
-  const { data: packagesData, isLoading: isLoadingPackages } = useQuery({
+  const { data: packagesData, isLoading: isLoadingPackages, isError: isPackagesError } = useQuery({
     queryKey: ["active-packages"],
     queryFn: () => apiClient.get("/packages").then((r) => r.data),
     enabled: !isUpdateMode,
   });
+
+  const effectivePackageId = isUpdateMode
+    ? (existingCaseData?.case?.package_id || existingCaseData?.package_id || "")
+    : packageId;
+  const isAiOnlyPackage = effectivePackageId === "pkg_ai_audit";
 
   const initialData: IntakeData | null = useMemo(() => {
     if (!existingCaseData) return null;
     const caseRow = existingCaseData.case ?? existingCaseData;
     const owner = caseRow.owner ?? existingCaseData.owner;
     const rawSnapshot = existingCaseData.intake_snapshot || {};
+    const pkgId = caseRow.package_id || rawSnapshot.package_id || "";
+    const isAi = pkgId === "pkg_ai_audit";
     return {
       ...rawSnapshot,
-      package_id: caseRow.package_id || rawSnapshot.package_id || "",
+      package_id: pkgId,
       school: caseRow.school || rawSnapshot.school || rawSnapshot.team_context?.school || "Đại học FPT",
       course_context: caseRow.course_context || rawSnapshot.course_context || rawSnapshot.team_context?.course_context || "EXE101",
       current_blocker: rawSnapshot.current_blocker || "",
@@ -62,19 +69,26 @@ function IntakePageContent() {
         project_name: caseRow.team_name || rawSnapshot.team_context?.project_name || "",
         team_status_summary: rawSnapshot.team_context?.team_status_summary || rawSnapshot.current_blocker || "",
       },
-      support_needs: {
-        primary_need: rawSnapshot.support_needs?.primary_need || "clarify_customer_pain",
-        extra_notes: rawSnapshot.support_needs?.extra_notes || "",
-      },
+      support_needs: isAi
+        ? { primary_need: "", extra_notes: "" }
+        : {
+            primary_need: rawSnapshot.support_needs?.primary_need || "clarify_customer_pain",
+            extra_notes: rawSnapshot.support_needs?.extra_notes || "",
+          },
       documents: rawSnapshot.documents || [],
       lecturer_feedback: rawSnapshot.lecturer_feedback || "",
-      expected_outputs: rawSnapshot.expected_outputs || "",
+      expected_outputs: isAi ? "" : (rawSnapshot.expected_outputs || ""),
       boundary_confirmations: rawSnapshot.boundary_confirmations || ["originality", "advisory_only", "accurate_contact"],
     };
   }, [existingCaseData]);
 
   const { form, isLoaded, saveDraft, clearDraft, isSubmitting, error } =
-    useIntakeForm({ packageId, caseId, initialData });
+    useIntakeForm({
+      packageId: effectivePackageId || packageId,
+      caseId,
+      initialData,
+      isAiOnlyPackage,
+    });
 
   const [currentStep, setCurrentStep] = useState<IntakeStep>(
     IntakeStep.SITUATION,
@@ -84,39 +98,68 @@ function IntakePageContent() {
   // Hook up store value retrieval for validation
   const values = useStore(form.store, (state: any) => state.values);
 
-  // Steps definition — PACKAGE & DEADLINE removed
-  const stepsList = [
-    IntakeStep.SITUATION,
-    IntakeStep.CONTACT,
-    IntakeStep.PROJECT_CONTEXT,
-    IntakeStep.SUPPORT_NEEDS,
-    IntakeStep.DOCUMENTS,
-    IntakeStep.BOUNDARY,
-    IntakeStep.REVIEW,
-  ];
+  // Dynamic stepsList based on package
+  const stepsList = useMemo(() => {
+    if (isAiOnlyPackage) {
+      return [
+        IntakeStep.SITUATION,
+        IntakeStep.CONTACT,
+        IntakeStep.PROJECT_CONTEXT,
+        IntakeStep.DOCUMENTS,
+        IntakeStep.BOUNDARY,
+        IntakeStep.REVIEW,
+      ];
+    }
+    return [
+      IntakeStep.SITUATION,
+      IntakeStep.CONTACT,
+      IntakeStep.PROJECT_CONTEXT,
+      IntakeStep.SUPPORT_NEEDS,
+      IntakeStep.DOCUMENTS,
+      IntakeStep.BOUNDARY,
+      IntakeStep.REVIEW,
+    ];
+  }, [isAiOnlyPackage]);
+
+  // Guard against invalid currentStep when in AI-only package mode
+  useEffect(() => {
+    if (isAiOnlyPackage && currentStep === IntakeStep.SUPPORT_NEEDS) {
+      setCurrentStep(IntakeStep.DOCUMENTS);
+    }
+  }, [isAiOnlyPackage, currentStep]);
 
   // Calculate selectable steps where all preceding steps are valid
-  const selectableSteps: IntakeStep[] = [];
-  for (let i = 0; i < stepsList.length; i++) {
-    const stepVal = stepsList[i];
-    if (i === 0) {
-      selectableSteps.push(stepVal);
-    } else {
-      let allPrevValid = true;
-      for (let j = 0; j < i; j++) {
-        if (!checkStepValidity(stepsList[j], values)) {
-          allPrevValid = false;
-          break;
+  const selectableSteps: IntakeStep[] = useMemo(() => {
+    const selectable: IntakeStep[] = [];
+    for (let i = 0; i < stepsList.length; i++) {
+      const stepVal = stepsList[i];
+      if (i === 0) {
+        selectable.push(stepVal);
+      } else {
+        let allPrevValid = true;
+        for (let j = 0; j < i; j++) {
+          const prevStep = stepsList[j];
+          const isPrevValid =
+            prevStep === IntakeStep.SUPPORT_NEEDS && !stepsList.includes(IntakeStep.SUPPORT_NEEDS)
+              ? true
+              : checkStepValidity(prevStep, values);
+          if (!isPrevValid) {
+            allPrevValid = false;
+            break;
+          }
+        }
+        if (allPrevValid) {
+          selectable.push(stepVal);
         }
       }
-      if (allPrevValid) {
-        selectableSteps.push(stepVal);
-      }
     }
-  }
+    return selectable;
+  }, [stepsList, values]);
 
-  const isLoadingForm = !isLoaded || (isUpdateMode && isLoadingCase) || (!isUpdateMode && isLoadingPackages);
-
+  const isLoadingForm =
+    !isLoaded ||
+    (isUpdateMode && isLoadingCase) ||
+    (!isUpdateMode && isLoadingPackages);
   if (isUpdateMode && isCaseError) {
     return (
       <div className="flex items-center justify-center min-h-[400px] p-6">
@@ -129,6 +172,36 @@ function IntakePageContent() {
           className="max-w-md"
         >
           <p className="text-sm font-body">Không tải được hồ sơ. Vui lòng thử lại.</p>
+        </Alert>
+      </div>
+    );
+  }
+  if (!isUpdateMode && isPackagesError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] p-6">
+        <Alert
+          icon={<AlertCircle className="w-5 h-5" />}
+          title="Lỗi kết nối"
+          color="red"
+          radius="md"
+          variant="light"
+          className="max-w-md"
+        >
+          <div className="space-y-4">
+            <p className="text-sm font-body">
+              Không thể tải danh sách gói dịch vụ. Vui lòng kiểm tra kết nối mạng và thử lại.
+            </p>
+            <Button
+              component={Link}
+              href="/"
+              color="red"
+              variant="outline"
+              fullWidth
+              className="font-body font-semibold cursor-pointer"
+            >
+              Quay lại trang chủ
+            </Button>
+          </div>
         </Alert>
       </div>
     );
@@ -197,16 +270,23 @@ function IntakePageContent() {
             : "Cấu trúc ý tưởng và thông tin minh chứng để bắt đầu chạy phản biện."}
         </p>
 
-        {/* SLA 48h Banner */}
+        {/* Dynamic SLA Banner */}
         <div className="max-w-lg mx-auto">
           <Alert
             variant="light"
-            color="blue"
-            icon={<Clock className="w-4 h-4" />}
+            color={isAiOnlyPackage ? "teal" : "blue"}
+            icon={
+              isAiOnlyPackage ? (
+                <Zap className="w-4 h-4 text-teal-600" />
+              ) : (
+                <Clock className="w-4 h-4 text-blue-600" />
+              )
+            }
             className="text-left text-xs font-body"
           >
-            ⏱ Thời gian phản biện: 48h kể từ khi thanh toán và có Supporter phân
-            công
+            {isAiOnlyPackage
+              ? "⚡ Thời gian xử lý: Kết quả thẩm định tự động hoàn tất trong vòng 1 phút sau khi gửi"
+              : "⏱ Thời gian phản biện: 24h–48h có Mentor chuyên môn đồng hành và phản hồi"}
           </Alert>
         </div>
       </div>
@@ -215,6 +295,7 @@ function IntakePageContent() {
         {/* Progress Stepper Sidebar */}
         <div className="lg:col-span-1 lg:sticky lg:top-6 flex flex-col gap-3">
           <IntakeProgressStepper
+            stepsList={stepsList}
             currentStep={currentStep}
             selectableSteps={selectableSteps}
             onStepClick={(step) => {
@@ -236,6 +317,8 @@ function IntakePageContent() {
         {/* Main Content Area */}
         <div className="lg:col-span-3">
           <IntakeChatFlow
+            stepsList={stepsList}
+            isAiOnlyPackage={isAiOnlyPackage}
             form={form}
             saveDraft={saveDraft}
             isSubmitting={isSubmitting}
@@ -245,7 +328,6 @@ function IntakePageContent() {
           />
         </div>
       </div>
-
       {/* Reset Confirmation Modal */}
       <Modal
         opened={isResetOpen}
@@ -309,12 +391,16 @@ function IntakePageContent() {
           form.setFieldValue("team_context.group_no", preset.team_context.group_no);
           form.setFieldValue("team_context.project_name", preset.team_context.project_name);
           form.setFieldValue("team_context.team_status_summary", preset.team_context.team_status_summary);
-          // Support needs
-          form.setFieldValue("support_needs.primary_need", preset.support_needs.primary_need);
-          form.setFieldValue("support_needs.extra_notes", preset.support_needs.extra_notes);
-          // Other
-          form.setFieldValue("lecturer_feedback", preset.lecturer_feedback);
-          form.setFieldValue("expected_outputs", preset.expected_outputs);
+          // Support needs & outputs
+          if (isAiOnlyPackage) {
+            form.setFieldValue("support_needs.primary_need", "");
+            form.setFieldValue("support_needs.extra_notes", "");
+            form.setFieldValue("expected_outputs", "");
+          } else {
+            form.setFieldValue("support_needs.primary_need", preset.support_needs?.primary_need || "clarify_customer_pain");
+            form.setFieldValue("support_needs.extra_notes", preset.support_needs?.extra_notes || "");
+            form.setFieldValue("expected_outputs", preset.expected_outputs || "");
+          }
           form.setFieldValue("boundary_confirmations", preset.boundary_confirmations);
           form.setFieldValue("school", preset.school);
           form.setFieldValue("course_context", preset.course_context);

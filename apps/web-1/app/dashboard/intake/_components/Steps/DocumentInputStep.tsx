@@ -141,10 +141,9 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
   // --- Change document type ---
 
   const handleTypeChange = (index: number, type: string | null, parentField: any) => {
-    if (!type) return;
     const currentDocs: any[] = parentField.state.value || [];
     const nextDocs = currentDocs.map((doc: any, i: number) =>
-      i === index ? { ...doc, document_type: type } : doc,
+      i === index ? { ...doc, document_type: type ?? "" } : doc,
     );
     parentField.handleChange(nextDocs);
     parentField.handleBlur();
@@ -321,7 +320,15 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                           <Select
                             placeholder="Chọn loại tài liệu"
                             data={DOCUMENT_TYPE_OPTIONS}
-                            value={doc.document_type || null}
+                            value={
+                              doc.document_type
+                                ? doc.document_type === "task_assignment"
+                                  ? "other"
+                                  : (DOCUMENT_CATEGORY_CODES as readonly string[]).includes(doc.document_type)
+                                    ? doc.document_type
+                                    : "other"
+                                : null
+                            }
                             onChange={(val) => handleTypeChange(index, val, parentField)}
                             size="xs"
                             clearable
