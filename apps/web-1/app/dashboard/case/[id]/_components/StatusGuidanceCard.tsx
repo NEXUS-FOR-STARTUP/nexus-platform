@@ -541,7 +541,6 @@ export default function StatusGuidanceCard({
                   className="shrink-0 cursor-pointer font-semibold"
                   loading={isTriggeringAudit || isResubmitting || isUploading}
                   disabled={isTriggeringAudit || isResubmitting || isUploading}
-                  leftSection={submissionType === "resubmit" ? <Upload className="w-3.5 h-3.5" /> : <Zap className="w-3.5 h-3.5" />}
                   onClick={handleTriggerAudit}
                 >
                   {submissionType === "resubmit"
