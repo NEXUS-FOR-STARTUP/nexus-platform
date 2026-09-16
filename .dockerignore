@@ -45,3 +45,10 @@ docker-compose*
 Makefile*
 .dockerignore
 docker-example
+
+# Storage, Backups & Local Data
+storage
+**/storage
+backup
+**/backup
+data/postgres
