@@ -141,9 +141,44 @@ export async function listAdminWorkerJobs(
   };
 
   if (query.status === "active") {
-    where.status = "processing";
+    try {
+      const activeJobs = await ompQueue.getActive();
+      const activeCaseIds = activeJobs
+        .map((j) => (j.id ? (j.id.startsWith("omp-") ? j.id.replace("omp-", "") : j.id) : null))
+        .filter(Boolean) as string[];
+
+      if (activeCaseIds.length > 0) {
+        await prisma.aiJob
+          .updateMany({
+            where: {
+              case_id: { in: activeCaseIds },
+              status: "queued",
+              job_type: "omp_audit",
+            },
+            data: { status: "processing" },
+          })
+          .catch(() => {});
+
+        where.OR = [{ status: "processing" }, { case_id: { in: activeCaseIds } }];
+      } else {
+        where.status = "processing";
+      }
+    } catch {
+      where.status = "processing";
+    }
   } else if (query.status === "waiting") {
     where.status = "queued";
+    try {
+      const activeJobs = await ompQueue.getActive();
+      const activeCaseIds = activeJobs
+        .map((j) => (j.id ? (j.id.startsWith("omp-") ? j.id.replace("omp-", "") : j.id) : null))
+        .filter(Boolean) as string[];
+      if (activeCaseIds.length > 0) {
+        where.case_id = { notIn: activeCaseIds };
+      }
+    } catch {
+      // ignore
+    }
   } else if (query.status === "completed") {
     where.status = "completed";
   } else if (query.status === "failed") {

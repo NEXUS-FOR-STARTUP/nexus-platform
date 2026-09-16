@@ -109,6 +109,16 @@ export function initOmpQueueListener(): void {
   if (queueEventsInitialized) return;
   queueEventsInitialized = true;
 
+  ompQueueEvents.on("active", async ({ jobId }) => {
+    const caseId = jobId.startsWith("omp-") ? jobId.replace("omp-", "") : jobId;
+    logger.info({ caseId }, "BullMQ OMP job active event received. Updating ai_jobs status to processing...");
+    try {
+      await updateAiJobStatus(caseId, "processing");
+    } catch (err) {
+      logger.warn({ caseId, err }, "Failed to update ai_jobs status to processing on active event");
+    }
+  });
+
   ompQueueEvents.on("completed", async ({ jobId }) => {
     const caseId = jobId.startsWith("omp-") ? jobId.replace("omp-", "") : jobId;
     logger.info({ caseId }, "BullMQ OMP job completed event received. Finalizing report...");
