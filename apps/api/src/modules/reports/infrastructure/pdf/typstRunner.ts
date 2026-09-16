@@ -5,15 +5,26 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+let cachedTypstBin: string | null = null;
+
+export function _resetTypstBinaryCache(): void {
+  cachedTypstBin = null;
+}
+
 /**
  * Resolve the path to the Typst CLI binary.
  * Priority: TYPST_PATH env → .bin/typst (postinstall) → system PATH → raw "typst" fallback.
  * Throws a clear error message with install instructions if not found.
  */
 export function resolveTypstBinary(): string {
+  if (cachedTypstBin) {
+    return cachedTypstBin;
+  }
+
   // 1. Explicit env override
   if (process.env.TYPST_PATH && existsSync(process.env.TYPST_PATH)) {
-    return process.env.TYPST_PATH;
+    cachedTypstBin = process.env.TYPST_PATH;
+    return cachedTypstBin;
   }
 
   const exeName = process.platform === "win32" ? "typst.exe" : "typst";
@@ -28,7 +39,8 @@ export function resolveTypstBinary(): string {
 
   for (const candidate of candidates) {
     if (existsSync(candidate)) {
-      return candidate;
+      cachedTypstBin = candidate;
+      return cachedTypstBin;
     }
   }
 
@@ -43,13 +55,17 @@ export function resolveTypstBinary(): string {
       .toString()
       .trim()
       .split(/\r?\n/)[0];
-    if (out && existsSync(out)) return out;
+    if (out && existsSync(out)) {
+      cachedTypstBin = out;
+      return cachedTypstBin;
+    }
   } catch {
     // not found in PATH
   }
 
   // 4. Fallback — let caller handle the error
-  return "typst";
+  cachedTypstBin = "typst";
+  return cachedTypstBin;
 }
 
 /**

@@ -34,7 +34,7 @@ function resolveFontsDir(): string {
     resolve(process.cwd(), "src", "modules", "reports", "infrastructure", "pdf", "fonts"),
   ];
   for (const dir of candidates) {
-    if (existsSync(dir)) {
+    if (existsSync(join(dir, "Merriweather", "Merriweather-Regular.ttf"))) {
       return dir;
     }
   }
