@@ -112,17 +112,29 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
   const team_revisions = lifecycleUnits.filter((u: any) => u.unit_type === "version" && u.unit_code !== "v00");
   const nexus_reports = reports;
 
-  const round_history = lifecycleUnits
-    .map((unit: any) => {
-      const report = reports.find((r: any) => r.lifecycle_unit_id === unit.id);
-      return {
-        round_no: unit.version_no,
-        submitted_at: unit.created_at,
-        submission: unit,
-        report: report || null,
-      };
-    })
-    .sort((a: any, b: any) => b.round_no - a.round_no);
+  // Build round_history from REPORTS desc — each report is a round entry
+  const round_history = reports.map((report: any) => {
+    const unit = lifecycleUnits.find((u: any) => u.id === report.lifecycle_unit_id);
+    const reportMeta = (report.metadata_json && typeof report.metadata_json === "object")
+      ? report.metadata_json as Record<string, unknown>
+      : null;
+    // View via API (inline disposition + versioned .pdf filename). Never expose raw
+    // Cloudinary URLs: raw assets have no .pdf suffix and serve octet-stream,
+    // which makes browsers auto-download with a wrong name instead of viewing.
+    const pdfUrl = `/api/reports/${report.id}/download?view=inline`;
+    const submissionType = reportMeta && typeof reportMeta["submission_type"] === "string"
+      ? reportMeta["submission_type"] as string
+      : null;
+
+    return {
+      report_id: report.id,
+      version_no: unit?.version_no ?? null,
+      submitted_at: report.created_at,
+      submission_type: submissionType,
+      report,
+      pdfUrl,
+    };
+  });
 
   const open_requests_for_more_info = await findOpenRequestsForMoreInfo(caseId);
 

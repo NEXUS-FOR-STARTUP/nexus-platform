@@ -31,8 +31,8 @@ export default function TeamFitResultStep({
   isUpgrading = false,
   hasSaved = false,
 }: TeamFitResultStepProps) {
-  const { data: auditPkg } = usePackagePrice(PACKAGE_KEYS.AUDIT);
-  const auditPriceLabel = formatPrice(auditPkg?.price ?? 39000);
+  const { data: auditPkg } = usePackagePrice(PACKAGE_KEYS.AI_AUDIT);
+  const auditPriceLabel = formatPrice(auditPkg?.price ?? 79000);
 
   // Loading state
   if (isLoading) {

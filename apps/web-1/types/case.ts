@@ -104,6 +104,7 @@ export interface Report {
   lifecycle_unit_id?: string | null;
   report_type: string;
   content_md: string;
+  metadata_json?: Record<string, unknown> | null;
   status: "draft" | "sent" | "APPROVED" | string;
   created_by: string;
   approved_by_auth_user_id?: string | null;
@@ -114,6 +115,15 @@ export interface Report {
 
   approved_by?: User | null;
   case?: Case;
+}
+
+export interface RoundHistoryEntry {
+  report_id: string;
+  version_no: number | null;
+  submitted_at: string;
+  submission_type: "initial" | "resubmit" | "logic_check" | null;
+  report: Report | null;
+  pdfUrl?: string | null;
 }
 
 export interface CaseMessage {

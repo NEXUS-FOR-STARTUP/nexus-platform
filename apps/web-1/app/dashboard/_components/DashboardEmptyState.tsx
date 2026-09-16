@@ -1,7 +1,12 @@
+"use client";
+
 import Link from "next/link";
-import { Users, CreditCard } from "lucide-react";
+import { Users } from "lucide-react";
+import { useDisclosure } from "@mantine/hooks";
+import { PackageSelectionModal } from "./PackageSelectionModal";
 
 export default function DashboardEmptyState() {
+  const [opened, { open, close }] = useDisclosure(false);
   return (
     <div className="flex flex-col items-center justify-center p-8 md:p-16 text-center border-2 border-dashed border-border-strong rounded-2xl bg-surface-app transition-colors duration-200">
       <div className="w-16 h-16 rounded-2xl bg-brand-soft text-brand flex items-center justify-center mb-6">
@@ -20,13 +25,14 @@ export default function DashboardEmptyState() {
         >
           <span>Đánh giá đội ngũ miễn phí</span>
         </Link>
-        <Link
-          href="/dashboard/intake?packageId=pkg_tf_audit"
+        <button
+          onClick={open}
           className="inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-surface-app border border-border-app hover:border-brand/40 text-text-app px-6 py-3 rounded-lg transition-colors cursor-pointer"
         >
-          <span>Mua kiểm tra chuyên sâu</span>
-        </Link>
+          <span>Bắt đầu kiểm tra dự án</span>
+        </button>
       </div>
+      <PackageSelectionModal opened={opened} onClose={close} />
     </div>
   );
 }

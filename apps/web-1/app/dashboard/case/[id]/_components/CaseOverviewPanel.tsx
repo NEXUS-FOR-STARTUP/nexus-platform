@@ -6,15 +6,12 @@ import {
   Building2,
   Target,
   Lightbulb,
-  Mail,
-  Phone,
   CheckCircle2,
   AlertTriangle,
   Sparkles,
   UserCheck,
   Layers,
   MessageSquareCode,
-  Send,
   HelpCircle,
   FileText,
 } from "lucide-react";
@@ -85,24 +82,24 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, teamFitRep
         <div className="bg-surface-app border border-border-app rounded-xl p-5.5 space-y-4 shadow-xs">
           <div className="flex items-center gap-2 pb-3 border-b border-border-app/60">
             <Building2 className="w-5 h-5 text-brand shrink-0" />
-            <h3 className="font-heading text-base font-bold text-text-app">Thông tin Đội ngũ & Trường học</h3>
+            <h3 className="font-heading text-base font-bold text-text-app">Đội ngũ & Trường học</h3>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4.5 text-sm">
             <div>
-              <span className="text-text-muted text-xs font-medium block">Tên nhóm / Tên đề tài:</span>
+              <span className="text-text-muted text-xs font-medium block">Tên đề tài:</span>
               <p className="font-semibold text-text-app mt-1">{groupName}</p>
             </div>
             <div>
-              <span className="text-text-muted text-xs font-medium block">Số thứ tự nhóm (Group No):</span>
+              <span className="text-text-muted text-xs font-medium block">Nhóm số:</span>
               <p className="font-semibold text-text-app mt-1">{groupNo || "Chưa cập nhật"}</p>
             </div>
             <div>
-              <span className="text-text-muted text-xs font-medium block">Trường đại học / Viện đào tạo:</span>
+              <span className="text-text-muted text-xs font-medium block">Trường:</span>
               <p className="font-semibold text-text-app mt-1">{schoolName}</p>
             </div>
             <div>
-              <span className="text-text-muted text-xs font-medium block">Lớp học / Môn học / Cuộc thi:</span>
+              <span className="text-text-muted text-xs font-medium block">Môn học:</span>
               <p className="font-semibold text-text-app mt-1">{courseContext}</p>
             </div>
           </div>
@@ -112,7 +109,7 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, teamFitRep
         <div className="bg-surface-app border border-border-app rounded-xl p-5.5 space-y-4 shadow-xs">
           <div className="flex items-center gap-2 pb-3 border-b border-border-app/60">
             <UserCheck className="w-5 h-5 text-brand shrink-0" />
-            <h3 className="font-heading text-base font-bold text-text-app">Thông tin Người đại diện / Trưởng nhóm</h3>
+            <h3 className="font-heading text-base font-bold text-text-app">Người liên hệ</h3>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4.5 text-sm">
@@ -121,33 +118,24 @@ export default function CaseOverviewPanel({ caseData, intakeSnapshot, teamFitRep
               <p className="font-semibold text-text-app mt-1">{contactName}</p>
             </div>
             <div>
-              <span className="text-text-muted text-xs font-medium block">Mã số sinh viên (MSSV):</span>
+              <span className="text-text-muted text-xs font-medium block">Mã số sinh viên:</span>
               <p className="font-semibold text-text-app mt-1">{studentCode}</p>
             </div>
             <div>
-              <span className="text-text-muted text-xs font-medium block">Email liên hệ:</span>
-              <p className="font-semibold text-text-app mt-1 flex items-center gap-1.5 truncate">
-                <Mail className="w-4 h-4 text-text-muted shrink-0" />
-                <span className="truncate">{contactEmail}</span>
-              </p>
+              <span className="text-text-muted text-xs font-medium block">Email:</span>
+              <p className="font-semibold text-text-app mt-1 truncate">{contactEmail}</p>
             </div>
             <div>
-              <span className="text-text-muted text-xs font-medium block">Số điện thoại / Zalo:</span>
-              <p className="font-semibold text-text-app mt-1 flex items-center gap-1.5">
-                <Phone className="w-4 h-4 text-text-muted shrink-0" />
-                <span>{contactPhone}</span>
-              </p>
+              <span className="text-text-muted text-xs font-medium block">Số điện thoại:</span>
+              <p className="font-semibold text-text-app mt-1">{contactPhone}</p>
             </div>
             <div>
-              <span className="text-text-muted text-xs font-medium block">Vai trò trong nhóm:</span>
+              <span className="text-text-muted text-xs font-medium block">Vai trò:</span>
               <p className="font-semibold text-text-app mt-1">{teamRole}</p>
             </div>
             <div>
-              <span className="text-text-muted text-xs font-medium block">Telegram Username:</span>
-              <p className="font-semibold text-text-app mt-1 flex items-center gap-1.5">
-                <Send className="w-4 h-4 text-brand shrink-0" />
-                <span>{contactTelegram || "Chưa cập nhật"}</span>
-              </p>
+              <span className="text-text-muted text-xs font-medium block">Telegram:</span>
+              <p className="font-semibold text-text-app mt-1">{contactTelegram || "Chưa cập nhật"}</p>
             </div>
           </div>
         </div>

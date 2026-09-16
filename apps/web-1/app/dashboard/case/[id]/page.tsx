@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, use } from "react";
-import { useRouter } from "next/navigation";
-import { PACKAGE_KEYS, caseRequiresPayment } from "@/lib/pricing";
+import { useState, useEffect, useRef, use } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { PACKAGE_KEYS, caseRequiresPayment, isCaseFree } from "@/lib/pricing";
 import { useSession } from "@/lib/auth-client";
 import { filterTransitions } from "@/_types/transitions";
 import { useCaseDetails } from "./hooks/useCaseDetails";
@@ -18,13 +18,16 @@ import TabCaseSettings from "./_components/TabCaseSettings";
 import CreditPanel from "./_components/CreditPanel";
 import CaseOverviewPanel from "./_components/CaseOverviewPanel";
 import CreditQuantityModal from "./_components/CreditQuantityModal";
-
-
+import { PackageSelectionModal } from "@/app/dashboard/_components/PackageSelectionModal";
+import TabReportFindings from "./_components/TabReportFindings";
+import ActiveRadarScanning from "./_components/ActiveRadarScanning";
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
 import StudentDocumentUploadModal from "./_components/StudentDocumentUploadModal";
 import StatusGuidanceCard from "./_components/StatusGuidanceCard";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Button } from "@mantine/core";
+import type { Report, RoundHistoryEntry } from "@/types/case";
+import { useTriggerAudit } from "./hooks/useTriggerAudit";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -33,31 +36,59 @@ interface PageProps {
 export default function CaseWorkspacePage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
+  const checkoutParam = searchParams.get("checkout") === "true";
+  const checkoutHandledRef = useRef(false);
 
   const {
     caseData,
     intakeSnapshot,
     teamFitReport,
     documentWorkspace,
+    latestReport,
+    roundHistory,
     isLoading,
     error,
     allowedTransitions,
     openRequestsForMoreInfo,
     confirmComplete,
     isConfirmingComplete,
+    refetch,
   } = useCaseDetails(id);
+  const { triggerAudit: triggerAuditRaw, isTriggering } = useTriggerAudit(id);
+  const triggerAudit = async (submissionType: string, lifecycleUnitId?: string) => {
+    await triggerAuditRaw({ submission_type: submissionType as "initial" | "resubmit" | "logic_check", lifecycle_unit_id: lifecycleUnitId });
+  };
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("overview");
   const { unreadCount, markAsRead } = useCaseUnreadCount(id);
   useRealtimeChat(id, { activeTab, markAsRead });
   const [isStudentUploadOpen, setIsStudentUploadOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [creditBuyOpened, setCreditBuyOpened] = useState(false);
+  const [packageSelectOpened, setPackageSelectOpened] = useState(false);
+  const [selectedPackageId, setSelectedPackageId] = useState<string>(PACKAGE_KEYS.AI_AUDIT);
 
+  const stage = caseData?.user_facing_stage;
   const creditBalance = caseData?.credit_balance ?? null;
   const creditLedger = caseData?.credit_ledger ?? undefined;
   const packageName = caseData?.package?.name ?? undefined;
   const pricePerCredit = caseData?.package?.price ?? undefined;
+
+  useEffect(() => {
+    if (checkoutParam && caseData && caseData.payment_status === "unpaid" && !checkoutHandledRef.current) {
+      checkoutHandledRef.current = true;
+      setCreditBuyOpened(true);
+    }
+  }, [checkoutParam, caseData]);
+
+  const prevStageRef = useRef(stage);
+  useEffect(() => {
+    if (prevStageRef.current === "under_review" && stage === "report_ready") {
+      setActiveTab("report");
+    }
+    prevStageRef.current = stage;
+  }, [stage]);
 
   if (isLoading) {
     return (
@@ -78,7 +109,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     );
   }
 
-  const stage = caseData.user_facing_stage;
+
   const isPreSubmission = stage === "intake_pending" || stage === "intake_ready";
   const isIntakePending = stage === "intake_pending";
 
@@ -141,26 +172,47 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               onSelectTab={(tab) => setActiveTab(tab)}
               onOpenPayment={
                 isIntakePending || stage === "report_ready" || (stage === "submitted" && caseRequiresPayment(caseData))
-                  ? () => setCreditBuyOpened(true)
+                  ? () => {
+                      if (isCaseFree(caseData)) {
+                        setPackageSelectOpened(true);
+                      } else {
+                        setCreditBuyOpened(true);
+                      }
+                    }
                   : undefined
               }
               onOpenIntake={canOpenIntake ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
               onSubmitRevision={() => setIsStudentUploadOpen(true)}
               onConfirmComplete={confirmComplete}
               isConfirmingComplete={isConfirmingComplete}
+              onTriggerAudit={triggerAudit}
+              isTriggeringAudit={isTriggering}
             />
           </>
         )}
 
         <div className={`w-full flex flex-col ${activeTab === "discussion" ? "flex-1 min-h-0 h-full" : "pb-8"}`}>
           {activeTab === "overview" && (
-            <CaseOverviewPanel
-              caseData={caseData}
-              intakeSnapshot={intakeSnapshot}
-              teamFitReport={teamFitReport}
-              onSelectTab={(tab) => setActiveTab(tab)}
-              onEditIntake={canEditIntake ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
-            />
+            <div className="space-y-6">
+              {stage === "under_review" && caseData?.package_id === "pkg_ai_audit" && (
+                <ActiveRadarScanning
+                  caseId={id}
+                  caseCode={caseData.case_code}
+                  projectName={caseData.team_name || undefined}
+                  onAuditCompleted={() => {
+                    refetch();
+                    setActiveTab("report");
+                  }}
+                />
+              )}
+              <CaseOverviewPanel
+                caseData={caseData}
+                intakeSnapshot={intakeSnapshot}
+                teamFitReport={teamFitReport}
+                onSelectTab={(tab) => setActiveTab(tab)}
+                onEditIntake={canEditIntake ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
+              />
+            </div>
           )}
 
           {activeTab === "documents" && (
@@ -196,8 +248,22 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                   Tải đánh giá bên ngoài
                 </Button>
               </div>
-              <DocumentWorkspace workspace={documentWorkspace} />
+              <DocumentWorkspace
+                workspace={documentWorkspace}
+                roundHistory={(roundHistory as RoundHistoryEntry[]) || null}
+                caseId={id}
+                projectName={caseData.team_name || undefined}
+                caseCode={caseData.case_code}
+              />
             </>
+          )}
+
+          {activeTab === "report" && (
+            <TabReportFindings
+              report={(latestReport as Report) || null}
+              caseId={caseData.id}
+              roundHistory={(roundHistory as RoundHistoryEntry[]) || null}
+            />
           )}
 
           {activeTab === "discussion" && <TabDiscussionChat caseId={caseData.id} />}
@@ -227,11 +293,25 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         latestVersionNo={documentWorkspace?.checkpoints?.[0]?.latest_version_no || 1}
       />
 
+      <PackageSelectionModal
+        opened={packageSelectOpened}
+        onClose={() => setPackageSelectOpened(false)}
+        onSelectPackage={(pkgId) => {
+          setSelectedPackageId(pkgId);
+          setCreditBuyOpened(true);
+        }}
+      />
+
       <CreditQuantityModal
         caseId={id}
         opened={creditBuyOpened}
         onClose={() => setCreditBuyOpened(false)}
-        packageId={PACKAGE_KEYS.AUDIT}
+        packageId={
+          isCaseFree(caseData)
+            ? selectedPackageId
+            : caseData?.package_id || caseData?.package?.id || PACKAGE_KEYS.AI_AUDIT
+        }
+        isManual={stage === "report_ready"}
       />
     </div>
   );

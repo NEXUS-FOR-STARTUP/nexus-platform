@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Pagination } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
+import { useDisclosure } from "@mantine/hooks";
 import { useCasesList } from "./hooks/useCasesList";
+import { PackageSelectionModal } from "./_components/PackageSelectionModal";
 import CaseCard from "./_components/CaseCard";
 import CaseListFilters from "./_components/CaseListFilters";
 import DashboardEmptyState from "./_components/DashboardEmptyState";
@@ -23,7 +25,7 @@ export default function StudentDashboard() {
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch, stage, sortBy, sortOrder]);
-
+  const [opened, { open, close }] = useDisclosure(false);
   const { data, isLoading, error } = useCasesList({
     page,
     limit: PAGE_SIZE,
@@ -56,12 +58,12 @@ export default function StudentDashboard() {
             >
               <span>Đánh giá đội ngũ</span>
             </Link>
-            <Link
-              href="/dashboard/intake?packageId=pkg_tf_audit"
+            <button
+              onClick={open}
               className="inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-surface-app border border-border-app hover:border-brand/40 text-text-app px-4 py-2 h-10 rounded-lg transition-colors cursor-pointer"
             >
-              <span>Mua kiểm tra chuyên sâu</span>
-            </Link>
+              <span>Mua gói kiểm tra</span>
+            </button>
           </div>
         )}
       </div>
@@ -110,6 +112,7 @@ export default function StudentDashboard() {
           )}
         </>
       )}
+      <PackageSelectionModal opened={opened} onClose={close} />
     </div>
   );
 }

@@ -44,3 +44,4 @@ Sau khi xác minh, ghi 1 dòng theo format trên (ví dụ: `2026-08-03 HH:MM | 
 | 2026-09-01 10:58 | 71cb29a | dev | Merge pull request #27 from NEXUS-FOR-STARTUP/fix/ux-credit-block | 🔵 api 🟢 web |
 | 2026-09-02 19:45 | e4f1ab0 | staging | Merge pull request #31 from NEXUS-FOR-STARTUP/fix/usecase-payment-flow | 🔵 api 🟢 web |
 | 2026-09-10 14:30 | 0520d4f | staging | Merge pull request #36 from NEXUS-FOR-STARTUP/refactor/migrate-npm-to-bun | 🔵 api 🟢 web |
+| 2026-09-13 14:52 | d25b30d | feat/79k-dual-credit | refactor(worker-omp): move Dockerfile into apps/worker-omp | 🟠 worker |

@@ -4,7 +4,7 @@ import { prisma } from "../../../db.js";
 import type { Prisma } from "@prisma/client";
 import type { CreateOrderItem } from "../domain/order.types.js";
 export const FREE_PACKAGE_KEY = "pkg_tf_free";
-export const AUDIT_PACKAGE_KEY = "pkg_tf_audit";
+export const AUDIT_PACKAGE_KEY = "pkg_ai_audit";
 
 export interface CaseCreditRecord {
   owner_auth_user_id: string;

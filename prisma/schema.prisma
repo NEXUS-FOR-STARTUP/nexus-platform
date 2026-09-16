@@ -480,6 +480,7 @@ model Report {
   lifecycle_unit_id        String?
   report_type              String
   content_md               String    @db.Text
+  metadata_json            Json?
   status                   String    @default("draft")
   created_by               String
   approved_by_auth_user_id String?

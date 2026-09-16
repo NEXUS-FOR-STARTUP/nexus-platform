@@ -71,7 +71,7 @@ export type GuardName =
   | 'isWithin48h' | 'isBeforeSubmission'
   | 'reasonMinLength'
 export type ActionName =
-  | 'upsertDoc' | 'subtractCredit' | 'refundCredit' | 'refundRemainingCredit'
+  | 'upsertDoc' | 'subtractCredit' | 'refundCredit' | 'refundRemainingCredit' | 'refundAll'
   | 'setSlaDeadline' | 'resetSlaIfOverdue' | 'emitStageChanged' | 'notifyUser'
   | 'resetStatus' | 'autoResumeWork' | 'lockPrice'
 

@@ -1,0 +1,60 @@
+{
+  "providers": {
+    "cheapkeyai": {
+      "name": "CheapkeyAI Gemini",
+      "baseUrl": "https://cheapkeyai.shop/v1beta",
+      "api": "google-generative-ai",
+      "apiKey": "YOUR_CHEAPKEYAI_API_KEY_HERE",
+      "models": [
+        {
+          "id": "gemini-3.8-flash",
+          "name": "Gemini 3.8 Flash",
+          "reasoning": true,
+          "input": ["text", "image"],
+          "contextWindow": 1048576,
+          "maxTokens": 65536
+        }
+      ]
+    },
+    "mimo": {
+      "name": "Xiaomi MiMo Token Plan (SGP OpenAI)",
+      "baseUrl": "https://token-plan-sgp.xiaomimimo.com/v1",
+      "api": "openai-completions",
+      "apiKey": "YOUR_MIMO_API_KEY_HERE",
+      "models": [
+        {
+          "id": "mimo-v2.5",
+          "name": "MiMo v2.5",
+          "reasoning": true,
+          "input": ["text"],
+          "contextWindow": 262144,
+          "maxTokens": 32768
+        },
+        {
+          "id": "mimo-v2.5-pro",
+          "name": "MiMo v2.5 Pro",
+          "reasoning": true,
+          "input": ["text"],
+          "contextWindow": 262144,
+          "maxTokens": 32768
+        }
+      ]
+    },
+    "mimo-anthropic": {
+      "name": "Xiaomi MiMo Token Plan (SGP Anthropic)",
+      "baseUrl": "https://token-plan-sgp.xiaomimimo.com/anthropic",
+      "api": "anthropic-messages",
+      "apiKey": "YOUR_MIMO_API_KEY_HERE",
+      "models": [
+        {
+          "id": "mimo-v2.5",
+          "name": "MiMo v2.5 (Anthropic protocol)",
+          "reasoning": true,
+          "input": ["text"],
+          "contextWindow": 262144,
+          "maxTokens": 32768
+        }
+      ]
+    }
+  }
+}

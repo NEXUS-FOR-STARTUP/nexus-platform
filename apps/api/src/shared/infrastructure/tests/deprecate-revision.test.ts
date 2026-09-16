@@ -46,27 +46,6 @@ const STALE_MOCK = (async () => {
 // submitRevisionUseCase
 // ---------------------------------------------------------------------------
 
-test("submitRevisionUseCase - pkg_tf_audit throws FEATURE_DEPRECATED", async () => {
-  const { submitRevisionUseCase } = await import(
-    "../../../modules/cases/application/submit-revision.usecase.js"
-  );
-  const { AppError } = await import("../../domain/app-error.js");
-
-  try {
-    await submitRevisionUseCase("user-1", "case-1", validRevisionBody() as any, {
-      findCaseByIdWithMembersAndCheckpoints: async () =>
-        mockCase({ package_id: "pkg_tf_audit" }),
-      submitCaseRevisionInTx: STALE_MOCK,
-    });
-    assert.fail("Should throw FEATURE_DEPRECATED");
-  } catch (err: any) {
-    assert.ok(err instanceof AppError);
-    assert.strictEqual(err.status, 400);
-    assert.strictEqual(err.code, "FEATURE_DEPRECATED");
-    assert.match(err.message, /mua thêm lượt/);
-  }
-});
-
 test("submitRevisionUseCase - old package passes guard (triggers next check)", async () => {
   const { submitRevisionUseCase } = await import(
     "../../../modules/cases/application/submit-revision.usecase.js"
@@ -112,31 +91,6 @@ test("submitRevisionUseCase - empty string package_id passes guard", async () =>
     assert.ok(err instanceof AppError);
     assert.strictEqual(err.code, "FORBIDDEN");
     assert.notStrictEqual(err.code, "FEATURE_DEPRECATED");
-  }
-});
-
-// ---------------------------------------------------------------------------
-// submitRevisionUploadUseCase
-// ---------------------------------------------------------------------------
-
-test("submitRevisionUploadUseCase - pkg_tf_audit throws FEATURE_DEPRECATED", async () => {
-  const { submitRevisionUploadUseCase } = await import(
-    "../../../modules/cases/application/submit-revision.usecase.js"
-  );
-  const { AppError } = await import("../../domain/app-error.js");
-
-  try {
-    await submitRevisionUploadUseCase("user-1", "case-1", validUploadBody() as any, {
-      findCaseByIdWithMembersAndCheckpoints: async () =>
-        mockCase({ package_id: "pkg_tf_audit" }),
-      submitCaseRevisionInTx: STALE_MOCK,
-    });
-    assert.fail("Should throw FEATURE_DEPRECATED");
-  } catch (err: any) {
-    assert.ok(err instanceof AppError);
-    assert.strictEqual(err.status, 400);
-    assert.strictEqual(err.code, "FEATURE_DEPRECATED");
-    assert.match(err.message, /mua thêm lượt/);
   }
 });
 

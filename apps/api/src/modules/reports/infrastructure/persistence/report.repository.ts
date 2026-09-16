@@ -1,4 +1,5 @@
 import { prisma } from "../../../../db.js";
+import type { Prisma } from "@prisma/client";
 import { upsertReportArtifactDocumentRecord } from "../../../documents/infrastructure/persistence/document.repository.js";
 
 export async function findDraftReportByCaseId(caseId: string) {
@@ -130,5 +131,54 @@ export async function findApprovedReports(caseId: string) {
   return await prisma.report.findMany({
     where: { case_id: caseId, status: "APPROVED" },
     orderBy: { created_at: "desc" },
+  });
+}
+
+/**
+ * Create a new OMP automated audit report row. Always inserts — never upserts.
+ * Each AI audit run produces a distinct report linked to its lifecycle_unit.
+ * Accepts an optional tx client so the caller's duplicate-report check and
+ * the insert can commit atomically (code-level race guard, no DB migration).
+ */
+export async function saveOmpAuditReport(
+  params: {
+    caseId: string;
+    lifecycleUnitId?: string | null;
+    contentMd: string;
+    metadataJson?: Record<string, unknown> | null;
+  },
+  db: Pick<typeof prisma, "checkpoint" | "report"> = prisma,
+) {
+  const { caseId, lifecycleUnitId, contentMd, metadataJson } = params;
+
+  // Find checkpoint for this case
+  let checkpoint = await db.checkpoint.findFirst({
+    where: { case_id: caseId },
+    orderBy: { created_at: "asc" },
+  });
+
+  if (!checkpoint) {
+    checkpoint = await db.checkpoint.create({
+      data: {
+        case_id: caseId,
+        checkpoint_code: "CP1",
+        checkpoint_status: "submitted",
+        latest_version_no: 1,
+      },
+    });
+  }
+
+  return await db.report.create({
+    data: {
+      case_id: caseId,
+      checkpoint_id: checkpoint.id,
+      report_type: "input_clarification",
+      lifecycle_unit_id: lifecycleUnitId ?? null,
+      content_md: contentMd,
+      metadata_json: (metadataJson as Prisma.InputJsonValue) ?? undefined,
+      status: "APPROVED",
+      created_by: "omp_worker",
+      sent_at: new Date(),
+    },
   });
 }

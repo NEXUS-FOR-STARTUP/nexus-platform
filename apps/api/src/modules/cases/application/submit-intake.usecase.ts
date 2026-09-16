@@ -9,7 +9,7 @@ import type { IntakeRequest } from "./cases.dto.js";
 import { transitionInTx } from "../../../services/case-transition.service.js";
 import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
-
+import { triggerOmpAuditForCase } from "../../ai-engine/application/omp-audit-coordinator.js";
 type DbClient = Prisma.TransactionClient | typeof prisma
 
 export function buildSupersedeUpdateArgs(
@@ -242,8 +242,29 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
         transition,
       },
     });
-
     logger.info({ caseId, transition, actorId: userId, duration_ms: Date.now() - startTime }, 'intake submitted');
+
+    // Auto-trigger OMP audit if case is paid and has available credits
+    try {
+      await triggerOmpAuditForCase(caseId, { submission_type: "initial" });
+      logger.info({ caseId }, "Auto-triggered OMP audit after intake submission");
+    } catch (triggerErr: unknown) {
+      const isExpected =
+        triggerErr instanceof AppError && (triggerErr.status === 402 || triggerErr.status === 409);
+      const errMsg = triggerErr instanceof Error ? triggerErr.message : String(triggerErr);
+      if (isExpected) {
+        logger.info(
+          { caseId, err: errMsg, status: (triggerErr as AppError).status },
+          "OMP audit not triggered on intake submission (no credit, unpaid, or already in progress)"
+        );
+      } else {
+        logger.error(
+          { caseId, err: triggerErr },
+          "Failed to auto-trigger OMP audit on intake submission due to unexpected error"
+        );
+      }
+    }
+
     return { success: true, case_id: caseId, stage: result.stage, status: result.status };
   } catch (error) {
     logger.error({ err: error, caseId, duration_ms: Date.now() - startTime }, 'intake submission failed');

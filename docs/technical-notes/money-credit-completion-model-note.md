@@ -23,8 +23,8 @@ Tiền thật (VND) ──nạp──▶ UserWallet (VND) ──mua──▶ Cre
 
 - Entity: `CreditLedger` (`prisma/schema.prisma:606-622`): **`case_id` bắt buộc — credit theo case, không theo user**; `amount ±1`; type `purchase | consumption | refund`
 - Mua qua Orders: `create-order.usecase.ts` — `service_type: "credit_audit"`, giá server-side từ package (client KHÔNG set được giá, chống fraud), withdraw VND từ ví (`:123-126`) → `creditLedger.create(amount: +quantity, type: 'purchase')` (`:141-152`)
-- Giá chuẩn: **39,000 VND/credit** (`prisma/seeds/seed-packages.ts:39-42`)
-- **Nâng cấp gói Case miễn phí khi mua credit (2026-09-06):** Với case thuộc gói miễn phí (`pkg_tf_free` hoặc `locked_price === 0`), `resolveCreditAuditPrice` (`credit-audit-order.helpers.ts`) tự động resolve giá từ gói `pkg_tf_audit`. Frontend không gọi pre-upgrade. Sau khi `walletService.withdraw` trừ ví VND thành công trong transaction, `applyPaidCreditCaseUpdate` mới nâng cấp case sang `pkg_tf_audit`, set `locked_price = unitPrice`, dán tem `payment_status: "paid"`, và tạo event `package_upgraded`. Nếu ví không đủ số dư, order throw lỗi và case giữ nguyên gói miễn phí ban đầu.
+- Giá chuẩn: **79,000 VND = 2 credits** (`pkg_ai_audit`, `prisma/seeds/seed-active-packages.ts:64-80`)
+- **Nâng cấp gói Case miễn phí khi mua credit (2026-09-06):** Với case thuộc gói miễn phí (`pkg_tf_free` hoặc `locked_price === 0`), `resolveCreditAuditPrice` (`credit-audit-order.helpers.ts`) tự động resolve giá từ gói `pkg_ai_audit`. Frontend không gọi pre-upgrade. Sau khi `walletService.withdraw` trừ ví VND thành công trong transaction, `applyPaidCreditCaseUpdate` mới nâng cấp case sang `pkg_ai_audit`, set `locked_price = unitPrice`, dán tem `payment_status: "paid"`, và tạo event `package_upgraded`. Nếu ví không đủ số dư, order throw lỗi và case giữ nguyên gói miễn phí ban đầu.
 - Legacy: `purchase-credits.usecase.ts` deprecated; dual-write ẩn sau flag `USE_ORDER_DOMAIN`/`DUAL_WRITE_*` — cleanup phase-09 pending
 
 ## 2. Credit tiêu thụ — khi nào, bao nhiêu

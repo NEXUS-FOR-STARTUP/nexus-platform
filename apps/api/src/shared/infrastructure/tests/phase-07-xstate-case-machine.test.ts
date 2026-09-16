@@ -105,13 +105,13 @@ test('T7_START_WORK — isAssignedSupporter → supporter_working, setSlaDeadlin
   assert.ok(!r!.actions.some(a => a.type === 'resetSlaIfOverdue'))
 })
 
-test('T13_VETO — isAdmin + within 48h → cancelled, refundCredit', () => {
+test('T13_VETO — isAdmin + within 48h → cancelled, refundAll', () => {
   const r = tryTransition('assigned', adminEvent('T13_VETO', {
     caseCreatedAt: new Date(Date.now() - 1 * 3600_000).toISOString(),
   }))
   assert.ok(r)
   assert.equal(r!.to, 'cancelled')
-  assert.ok(r!.actions.some(a => a.type === 'refundCredit'))
+  assert.ok(r!.actions.some(a => a.type === 'refundAll'))
 })
 
 test('T8_REQUEST_INFO — isAssignedSupporter → waiting_user, notifyUser', () => {
@@ -127,13 +127,10 @@ test('T10_START_REVIEW_REVISION — isAssignedSupporter → self-loop', () => {
   assert.equal(r!.to, 'supporter_working')
 })
 
-test('T11_SUBMIT_OUTPUT — isAssignedSupporter + hasCredit → report_ready_to_publish', () => {
-  const r = tryTransition('supporter_working', supporterEvent('T11_SUBMIT_OUTPUT', {
-    creditBalance: 1,
-  }))
+test('T11_SUBMIT_OUTPUT — isAssignedSupporter → report_ready_to_publish, lockPrice', () => {
+  const r = tryTransition('supporter_working', supporterEvent('T11_SUBMIT_OUTPUT'))
   assert.ok(r)
   assert.equal(r!.to, 'report_ready_to_publish')
-  assert.ok(r!.actions.some(a => a.type === 'subtractCredit'))
   assert.ok(r!.actions.some(a => a.type === 'lockPrice'))
 })
 
@@ -279,11 +276,12 @@ test('T14_COMPLETE — guard fail khi supporter (không phải admin)', () => {
   assert.equal(r, null)
 })
 
-test('T11_SUBMIT_OUTPUT — guard fail khi creditBalance=0 (fix #2)', () => {
+test('T11_SUBMIT_OUTPUT — machine guard cho phép (credit gating ở service level)', () => {
   const r = tryTransition('supporter_working', supporterEvent('T11_SUBMIT_OUTPUT', {
     creditBalance: 0,
   }))
-  assert.equal(r, null)
+  assert.notEqual(r, null)
+  assert.equal(r!.to, 'report_ready_to_publish')
 })
 
 test('T3_RESUBMIT_AFTER_REJECT — guard fail khi creditBalance=0', () => {
@@ -334,9 +332,9 @@ test('getAvailableTransitions — done có T19 (không final)', () => {
   assert.deepEqual(getAvailableTransitions('done'), ['T19_REOPEN'])
 })
 
-test('getAvailableTransitions — report_ready_to_publish có T6 + T14 + T17 + T15', () => {
+test('getAvailableTransitions — report_ready_to_publish có T6 + T9 + T14 + T17 + T15', () => {
   const ts = getAvailableTransitions('report_ready_to_publish')
-  assert.deepEqual([...ts].sort(), ['T6_ASSIGN_SUPPORTER', 'T14_COMPLETE', 'T15_CANCEL', 'T17_USER_CONFIRM_COMPLETE'].sort())
+  assert.deepEqual([...ts].sort(), ['T6_ASSIGN_SUPPORTER', 'T9_SUBMIT_REVISION', 'T14_COMPLETE', 'T15_CANCEL', 'T17_USER_CONFIRM_COMPLETE'].sort())
 })
 
 test('getAvailableTransitions — status không hợp lệ → []', () => {
@@ -378,13 +376,13 @@ test('VALID_STATES — 8 states', () => {
   }
 })
 
-test('Machine — 8 state nodes, 26 transition edges', () => {
+test('Machine — 8 state nodes, 27 transition edges', () => {
   const snapshots: TransitionName[] = []
   for (const state of VALID_STATES) {
     const ts = getAvailableTransitions(state)
     ts.forEach(t => snapshots.push(t))
   }
-  assert.equal(snapshots.length, 26, '26 transition edges across 8 states')
+  assert.equal(snapshots.length, 27, '27 transition edges across 8 states')
 })
 
 test('Free case (lockedPrice=0) — hasCredit guard tự skip (Amendment #6)', () => {

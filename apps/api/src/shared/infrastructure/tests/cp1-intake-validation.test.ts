@@ -7,11 +7,11 @@ import {
   CP1_LONG_MAX,
   CP1_MAX_DOCUMENTS,
   CP1_SHORT_MAX,
+  canonicalizeDocCategory,
+  docCategoryLabel,
 } from "@repo/validation";
-
-const { validateCp1Intake } = await import(
-  "../../../modules/cases/http/cases.schema.js"
-);
+import { validateCp1Intake } from "../../../modules/cases/http/cases.schema.js";
+import { completenessFromIntake } from "../../../modules/admin/application/list-admin-cases.usecase.js";
 
 const EMPTY = {};
 
@@ -43,7 +43,7 @@ const VALID_BODY = {
 
 interface TestCase {
   name: string;
-  body: any;
+  body: unknown;
   expectedErrors: string[];
 }
 
@@ -65,7 +65,6 @@ const CASES: TestCase[] = [
     expectedErrors: [
       "Thiếu thông tin liên hệ",
       "Cần mô tả ngắn điểm kẹt hiện tại của nhóm",
-      "Cần chọn nhu cầu hỗ trợ chính",
       "Thư mục tài liệu là bắt buộc",
       "Phải xác nhận đầy đủ ít nhất 3 cam kết ranh giới",
     ],
@@ -167,14 +166,19 @@ const CASES: TestCase[] = [
 
   // --- 3. SUPPORT NEEDS ---
   {
-    name: "support_needs missing primary_need",
+    name: "support_needs missing primary_need (valid when empty)",
     body: { ...VALID_BODY, support_needs: { primary_need: "" } },
-    expectedErrors: ["Cần chọn nhu cầu hỗ trợ chính"],
+    expectedErrors: [],
   },
   {
     name: "support_needs primary_need too short (2 chars)",
     body: { ...VALID_BODY, support_needs: { primary_need: "AB" } },
-    expectedErrors: ["Cần chọn nhu cầu hỗ trợ chính"],
+    expectedErrors: ["Nhu cầu hỗ trợ chính nếu có phải từ 5 ký tự trở lên"],
+  },
+  {
+    name: "support_needs primary_need too short (4 chars)",
+    body: { ...VALID_BODY, support_needs: { primary_need: "ABCD" } },
+    expectedErrors: ["Nhu cầu hỗ trợ chính nếu có phải từ 5 ký tự trở lên"],
   },
   {
     name: "support_needs primary_need exactly 5 chars (valid)",
@@ -182,14 +186,19 @@ const CASES: TestCase[] = [
     expectedErrors: [],
   },
   {
-    name: "support_needs missing entirely",
+    name: "support_needs missing entirely (valid)",
     body: { ...VALID_BODY, support_needs: undefined },
-    expectedErrors: ["Cần chọn nhu cầu hỗ trợ chính"],
+    expectedErrors: [],
   },
   {
-    name: "support_needs without primary_need",
+    name: "support_needs without primary_need (valid)",
     body: { ...VALID_BODY, support_needs: { other: "irrelevant" } },
-    expectedErrors: ["Cần chọn nhu cầu hỗ trợ chính"],
+    expectedErrors: [],
+  },
+  {
+    name: "support_needs empty object (valid)",
+    body: { ...VALID_BODY, support_needs: {} },
+    expectedErrors: [],
   },
 
   // --- 4. DOCUMENTS ---
@@ -251,6 +260,14 @@ const CASES: TestCase[] = [
     body: VALID_BODY,
     expectedErrors: [],
   },
+  {
+    name: "fully valid body without support_needs",
+    body: (() => {
+      const { support_needs: _sn, ...rest } = VALID_BODY;
+      return rest;
+    })(),
+    expectedErrors: [],
+  },
 
   // --- 7. MULTI-FIELD ERRORS ---
   {
@@ -258,7 +275,7 @@ const CASES: TestCase[] = [
     body: {
       contact: { full_name: "", student_code: "", team_role: "", zalo: "", email: "" },
       current_blocker: "",
-      support_needs: {},
+      support_needs: { primary_need: "AB" },
       documents: [],
       boundary_confirmations: [],
     },
@@ -269,7 +286,7 @@ const CASES: TestCase[] = [
       "Số điện thoại Zalo không hợp lệ (phải bao gồm chính xác 10 chữ số)",
       "Email liên hệ không hợp lệ",
       "Cần mô tả ngắn điểm kẹt hiện tại của nhóm",
-      "Cần chọn nhu cầu hỗ trợ chính",
+      "Nhu cầu hỗ trợ chính nếu có phải từ 5 ký tự trở lên",
       "Thư mục tài liệu là bắt buộc",
       "Phải xác nhận đầy đủ ít nhất 3 cam kết ranh giới",
     ],
@@ -441,4 +458,78 @@ test("Cp1IntakeCaps — lean schema enforces max only, no min", async () => {
 
   const fullValid = Cp1IntakeSchema.safeParse(VALID_BODY);
   assert.strictEqual(fullValid.success, true);
+});
+
+test("Document category canonicalization and labels", async (t) => {
+  await t.test("canonicalizeDocCategory with new codes", () => {
+    assert.strictEqual(canonicalizeDocCategory("idea_report"), "idea_report");
+    assert.strictEqual(canonicalizeDocCategory("pitch_deck"), "pitch_deck");
+    assert.strictEqual(canonicalizeDocCategory("market_research"), "market_research");
+    assert.strictEqual(canonicalizeDocCategory("financial_plan"), "financial_plan");
+    assert.strictEqual(canonicalizeDocCategory("other"), "other");
+  });
+
+  await t.test("canonicalizeDocCategory with legacy codes", () => {
+    assert.strictEqual(canonicalizeDocCategory("competitor_analysis"), "market_research");
+    assert.strictEqual(canonicalizeDocCategory("customer_research"), "market_research");
+    assert.strictEqual(canonicalizeDocCategory("task_assignment"), "task_assignment");
+  });
+
+  await t.test("canonicalizeDocCategory with null/undefined/empty", () => {
+    assert.strictEqual(canonicalizeDocCategory(null), "other");
+    assert.strictEqual(canonicalizeDocCategory(undefined), "other");
+    assert.strictEqual(canonicalizeDocCategory(""), "other");
+    assert.strictEqual(canonicalizeDocCategory("unknown_category"), "unknown_category");
+  });
+
+  await t.test("docCategoryLabel with new codes", () => {
+    assert.strictEqual(docCategoryLabel("idea_report"), "Thuyết minh ý tưởng");
+    assert.strictEqual(docCategoryLabel("pitch_deck"), "Slide thuyết trình");
+    assert.strictEqual(docCategoryLabel("market_research"), "Nghiên cứu thị trường");
+    assert.strictEqual(docCategoryLabel("financial_plan"), "Kế hoạch tài chính");
+    assert.strictEqual(docCategoryLabel("other"), "Tài liệu bổ sung");
+  });
+
+  await t.test("docCategoryLabel with legacy codes", () => {
+    assert.strictEqual(docCategoryLabel("competitor_analysis"), "Nghiên cứu thị trường");
+    assert.strictEqual(docCategoryLabel("customer_research"), "Nghiên cứu thị trường");
+    assert.strictEqual(docCategoryLabel("task_assignment"), "Đề cương phân công");
+  });
+
+  await t.test("docCategoryLabel with unknown code falls back to code", () => {
+    assert.strictEqual(docCategoryLabel("custom_code"), "custom_code");
+  });
+});
+
+test("completenessFromIntake — package adaptation", async (t) => {
+  const fullPayload = JSON.stringify(VALID_BODY);
+  const noSupportNeedsPayload = JSON.stringify((() => {
+    const { support_needs: _sn, ...rest } = VALID_BODY;
+    return rest;
+  })());
+
+  await t.test("null/undefined/empty returns 0", () => {
+    assert.strictEqual(completenessFromIntake(null), 0);
+    assert.strictEqual(completenessFromIntake(undefined), 0);
+    assert.strictEqual(completenessFromIntake(""), 0);
+    assert.strictEqual(completenessFromIntake("invalid-json"), 0);
+  });
+
+  await t.test("pkg_ai_audit: 4 core criteria at 25% each (100% total without support_needs)", () => {
+    assert.strictEqual(completenessFromIntake(fullPayload, "pkg_ai_audit"), 100);
+    assert.strictEqual(completenessFromIntake(noSupportNeedsPayload, "pkg_ai_audit"), 100);
+
+    const halfPayload = JSON.stringify({
+      contact: VALID_BODY.contact,
+      current_blocker: VALID_BODY.current_blocker,
+      documents: [],
+      boundary_confirmations: [],
+    });
+    assert.strictEqual(completenessFromIntake(halfPayload, "pkg_ai_audit"), 50);
+  });
+
+  await t.test("standard package: 5 criteria at 20% each", () => {
+    assert.strictEqual(completenessFromIntake(fullPayload, "pkg_full"), 100);
+    assert.strictEqual(completenessFromIntake(noSupportNeedsPayload, "pkg_full"), 80);
+  });
 });

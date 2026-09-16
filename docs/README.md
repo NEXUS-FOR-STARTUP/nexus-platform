@@ -56,6 +56,7 @@ Giá trị chính:
 - [`db-backup-guide.md`](./db-backup-guide.md): hướng dẫn backup DB (pg_dump via Docker)
 - [`db-migration-guide.md`](./db-migration-guide.md): hướng dẫn migration Prisma
 - [`docker-build-push-guide.md`](./docker-build-push-guide.md): hướng dẫn build/push Docker image
+- [`vps-deployment-guide.md`](./vps-deployment-guide.md): checklist triển khai an toàn lên Linux VPS (Single Compose, OMP worker)
 - [`ci-guide.md`](./ci-guide.md): hướng dẫn CI/CD với GitHub Actions
 - [`realtime-centrifugo-guide.md`](./realtime-centrifugo-guide.md): vận hành & troubleshooting realtime chat Centrifugo
 - [`deploy-log.md`](./deploy-log.md): log các lần deploy image lên Docker Hub (commit/branch/message)

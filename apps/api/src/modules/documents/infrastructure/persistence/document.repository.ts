@@ -328,8 +328,44 @@ export async function upsertReportArtifactDocumentRecord(
   reportId: string,
   createdByUserId: string,
   client: DocumentRecordClient = prisma,
+  options?: {
+    fileUrl?: string | null;
+    downloadUrl?: string | null;
+    cloudinaryPublicId?: string | null;
+    originalName?: string | null;
+    extension?: string;
+    mimeType?: string;
+  },
 ) {
   const id = buildReportArtifactDocumentRecordId(reportId);
+  const ext = options?.extension ?? "md";
+  const mime = options?.mimeType ?? (ext === "pdf" ? "application/pdf" : "text/markdown");
+  const fileUrl = options?.fileUrl ?? null;
+  const downloadUrl = options?.downloadUrl ?? fileUrl;
+  const cloudinaryPublicId = options?.cloudinaryPublicId ?? null;
+  const originalName = options?.originalName ?? `Báo cáo phản biện ${reportId.slice(-6)}`;
+  const sourceKind = cloudinaryPublicId ? "cloudinary" : "generated";
+
+  let validUserId = createdByUserId;
+  const userExists = await client.user.findUnique({
+    where: { id: createdByUserId },
+    select: { id: true },
+  });
+  if (!userExists) {
+    const caseRecord = await client.case.findUnique({
+      where: { id: caseId },
+      select: { owner_auth_user_id: true, assigned_supporter_auth_user_id: true },
+    });
+    validUserId = caseRecord?.assigned_supporter_auth_user_id || caseRecord?.owner_auth_user_id || "";
+    if (!validUserId) {
+      const firstAdmin = await client.user.findFirst({
+        where: { role: "admin" },
+        select: { id: true },
+      });
+      validUserId = firstAdmin?.id || "";
+    }
+  }
+
   return await client.documentRecord.upsert({
     where: { id },
     create: {
@@ -342,15 +378,15 @@ export async function upsertReportArtifactDocumentRecord(
       doc_type: "assessment_report",
       seq: 0,
       is_primary: true,
-      source_kind: "generated",
+      source_kind: sourceKind,
       canonical_name: `report-${reportId}`,
-      original_name: `Báo cáo phản biện ${reportId.slice(-6)}`,
-      extension: "md",
-      mime_type: "text/markdown",
-      file_url: null,
-      download_url: null,
-      cloudinary_public_id: null,
-      uploaded_by_auth_user_id: createdByUserId,
+      original_name: originalName,
+      extension: ext,
+      mime_type: mime,
+      file_url: fileUrl,
+      download_url: downloadUrl,
+      cloudinary_public_id: cloudinaryPublicId,
+      uploaded_by_auth_user_id: validUserId,
     },
     update: {
       case_id: caseId,
@@ -358,8 +394,14 @@ export async function upsertReportArtifactDocumentRecord(
       lifecycle_unit_id: lifecycleUnitId,
       unit_code: unitCode,
       doc_type: "assessment_report",
-      source_kind: "generated",
-      uploaded_by_auth_user_id: createdByUserId,
+      source_kind: sourceKind,
+      original_name: originalName,
+      extension: ext,
+      mime_type: mime,
+      file_url: fileUrl,
+      download_url: downloadUrl,
+      cloudinary_public_id: cloudinaryPublicId,
+      uploaded_by_auth_user_id: validUserId,
     },
   });
 }

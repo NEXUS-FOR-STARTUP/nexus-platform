@@ -168,7 +168,7 @@ export async function submitRevisionUploadUseCase(
 
   try {
     const result = await prisma.$transaction(async (tx) => {
-      await submitCaseRevisionInTx(tx, {
+      const revisionUnit = await submitCaseRevisionInTx(tx, {
         caseId,
         checkpointId: checkpoint.id,
         nextVersion,
@@ -177,13 +177,18 @@ export async function submitRevisionUploadUseCase(
         documents: uploadedDocuments,
         remainingBlockers: body.remaining_blockers,
       });
-      return transitionInTx(tx, {
+      const transitionResult = await transitionInTx(tx, {
         transition: "T9_SUBMIT_REVISION",
         caseId,
         actorId: userId,
         roleVerified: "CUSTOMER",
         data: { reason: body.change_summary },
       });
+      return {
+        ...transitionResult,
+        lifecycle_unit_id: revisionUnit.id,
+        version_no: revisionUnit.version_no,
+      };
     });
     // Emit sau commit — supporter nhận noti đã nộp bản sửa (case.stage_changed)
     emitEvent({

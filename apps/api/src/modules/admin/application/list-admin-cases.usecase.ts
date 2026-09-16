@@ -5,7 +5,7 @@ const hasText = (value: unknown, minLength = 1) => {
   return typeof value === "string" && value.trim().length >= minLength;
 };
 
-function completenessFromIntake(contentRaw: string | null | undefined): number {
+export function completenessFromIntake(contentRaw: string | null | undefined, packageId?: string | null): number {
   if (!contentRaw) {
     return 0;
   }
@@ -15,6 +15,17 @@ function completenessFromIntake(contentRaw: string | null | undefined): number {
       hasText(content.case_summary, 20) ||
       (Array.isArray(content.current_situations) &&
         content.current_situations.some((entry: unknown) => hasText(entry, 1)));
+
+    if (packageId === "pkg_ai_audit") {
+      const aiChecks = [
+        hasText(content.contact?.full_name, 2) && hasText(content.contact?.email, 1),
+        hasText(content.current_blocker, 10) || hasLegacyContext,
+        Array.isArray(content.documents) && content.documents.length > 0,
+        Array.isArray(content.boundary_confirmations) && content.boundary_confirmations.length > 0,
+      ];
+      return aiChecks.filter(Boolean).length * 25;
+    }
+
     const checks = [
       hasText(content.contact?.full_name, 2) && hasText(content.contact?.email, 1),
       hasText(content.support_needs?.primary_need, 5),
@@ -43,7 +54,7 @@ export async function listAdminCasesUseCase(query: Record<string, string | undef
       internal_status: item.internal_status,
       payment_status: item.payment_status,
       package_name: item.package?.name || "N/A",
-      completeness: completenessFromIntake(item.lifecycle_units?.[0]?.content),
+      completeness: completenessFromIntake(item.lifecycle_units?.[0]?.content, item.package?.id || item.package_id),
       owner_name: item.owner?.name || "N/A",
       assigned_supporter: item.assigned_supporter
         ? { id: item.assigned_supporter.id, name: item.assigned_supporter.name }

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { IntakeStep } from "../_types/intake.types";
 import { Check } from "lucide-react";
 
@@ -8,6 +8,7 @@ interface IntakeProgressStepperProps {
   currentStep: IntakeStep;
   onStepClick?: (step: IntakeStep) => void;
   selectableSteps?: IntakeStep[];
+  stepsList?: IntakeStep[];
 }
 
 const steps = [
@@ -24,15 +25,26 @@ export default function IntakeProgressStepper({
   currentStep,
   onStepClick,
   selectableSteps = [],
+  stepsList,
 }: IntakeProgressStepperProps) {
+  const effectiveSteps = useMemo(() => {
+    if (!stepsList || stepsList.length === 0) {
+      return steps;
+    }
+    return stepsList
+      .map((step) => steps.find((s) => s.step === step))
+      .filter((s): s is { step: IntakeStep; label: string } => Boolean(s));
+  }, [stepsList]);
+
+  const currentStepIdx = effectiveSteps.findIndex((item) => item.step === currentStep);
+
   return (
     <>
       <div className="hidden lg:flex flex-col gap-2 w-full">
-        {steps.map((s, idx) => {
+        {effectiveSteps.map((s, idx) => {
           const isActive = s.step === currentStep;
-          const isCompleted = s.step < currentStep;
+          const isCompleted = currentStepIdx !== -1 ? idx < currentStepIdx : s.step < currentStep;
           const isSelectable = selectableSteps.includes(s.step);
-
           return (
             <button
               key={idx}
@@ -72,9 +84,9 @@ export default function IntakeProgressStepper({
 
       <div className="lg:hidden w-full py-3 border-b border-border-app bg-surface-app px-4 mb-4">
         <div className="flex items-center justify-between gap-1 overflow-x-auto scrollbar-none py-1">
-          {steps.map((s, idx) => {
+          {effectiveSteps.map((s, idx) => {
             const isActive = s.step === currentStep;
-            const isCompleted = s.step < currentStep;
+            const isCompleted = currentStepIdx !== -1 ? idx < currentStepIdx : s.step < currentStep;
             const isSelectable = selectableSteps.includes(s.step);
 
             return (
@@ -102,7 +114,7 @@ export default function IntakeProgressStepper({
                 >
                   {s.label}
                 </span>
-                {idx < steps.length - 1 && <span className="text-text-subtle/30 mx-1 text-base">/</span>}
+                {idx < effectiveSteps.length - 1 && <span className="text-text-subtle/30 mx-1 text-base">/</span>}
               </button>
             );
           })}

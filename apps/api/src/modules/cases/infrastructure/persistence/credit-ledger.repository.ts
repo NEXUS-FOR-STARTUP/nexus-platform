@@ -33,7 +33,9 @@ export async function getCreditLedgerByCaseId(caseId: string) {
   });
 }
 
-export async function createCreditEntry(data: {
+// First param accepts the global client or a $transaction client so callers
+// can join an ambient transaction (credit must never commit without its job).
+export async function createCreditEntry(tx: Pick<typeof prisma, "creditLedger">, data: {
   caseId: string;
   amount: number;
   balanceAfter: number;
@@ -42,7 +44,7 @@ export async function createCreditEntry(data: {
   idempotencyKey: string;
   metadataJson?: any;
 }): Promise<any> {
-  return await prisma.creditLedger.create({
+  return await tx.creditLedger.create({
     data: {
       case_id: data.caseId,
       amount: data.amount,

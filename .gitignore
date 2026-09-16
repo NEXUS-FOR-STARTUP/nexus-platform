@@ -45,7 +45,6 @@ __pycache__
 apps-web-repomix.xml
 cookie.txt
 temp/
-data/system-prompts/
 docs/case-documents/
 docker-example
 prisma/backup
@@ -60,3 +59,16 @@ nul
 .claude/worktrees/
 # Scratch file
 note.txt
+
+# SQLite temporary files
+*.db-wal
+*.db-shm
+
+# Provider secrets
+**/data/providers.json
+
+# Storage & Sandbox jobs
+storage/
+apps/api/storage/
+data/postgres/
+**/.bin/
