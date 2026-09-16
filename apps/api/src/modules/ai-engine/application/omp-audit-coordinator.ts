@@ -355,23 +355,11 @@ export async function triggerOmpAuditForCase(
   // 5-6. Balance check + deduct 1 credit + register job atomically. The
   // balance is read INSIDE the transaction so concurrent triggers cannot
   // both pass the check on a single remaining credit (TOCTOU).
-  // Key policy: reuse previous idempotency key only when the trigger intent
-  // is identical (same submission_type + lifecycle_unit_id). A distinct fresh
-  // user submission always mints a new key to avoid suppressing a legitimate
-  // new trigger via P2002.
-  const previousStartedAt =
-    latestJob && (latestJob.status === "failed" || latestJob.status === "cancelled")
-      ? (latestJob.input_json as { startedAt?: string } | null)?.startedAt ?? null
-      : null;
-  const previousSubmissionType =
-    latestJob ? ((latestJob.input_json as { submission_type?: string } | null)?.submission_type ?? null) : null;
-  const previousLifecycleUnitId =
-    latestJob ? ((latestJob.input_json as { lifecycle_unit_id?: string | null } | null)?.lifecycle_unit_id ?? null) : null;
-  const sameTriggerIntent =
-    previousStartedAt !== null &&
-    previousSubmissionType === submissionType &&
-    previousLifecycleUnitId === (lifecycleUnitId ?? null);
-  const startedAt = sameTriggerIntent ? previousStartedAt! : new Date().toISOString();
+  // Key policy: Every audit trigger (initial submission, user retry, or resubmit)
+  // mints a fresh timestamp and idempotency key. Failed/cancelled jobs have already
+  // been refunded to the case ledger via refundAuditCreditIfNoReport, so retries
+  // cleanly consume 1 credit from the restored balance without P2002 collision.
+  const startedAt = new Date().toISOString();
   const idempotencyKey = `audit-trigger-${caseId}-${startedAt}`;
 
   try {
@@ -387,24 +375,15 @@ export async function triggerOmpAuditForCase(
       if (inTxBalance < 1) {
         throw new AppError(402, "NO_CREDITS", "Hết credit. Vui lòng mua thêm credit để tiếp tục.");
       }
-      let skipCharge = false;
-      try {
-        await createCreditEntry(tx, {
-          caseId,
-          amount: -1,
-          balanceAfter: inTxBalance - 1,
-          type: "consumption",
-          referenceId: caseId,
-          idempotencyKey,
-        });
-      } catch (err: unknown) {
-        if (typeof err === "object" && err !== null && "code" in err && err.code === "P2002") {
-          // Same trigger already charged — free retry, skip deduction.
-          skipCharge = true;
-        } else {
-          throw err;
-        }
-      }
+
+      await createCreditEntry(tx, {
+        caseId,
+        amount: -1,
+        balanceAfter: inTxBalance - 1,
+        type: "consumption",
+        referenceId: caseId,
+        idempotencyKey,
+      });
 
       // Register in ai_jobs table
       await tx.aiJob.upsert({
@@ -431,9 +410,6 @@ export async function triggerOmpAuditForCase(
         },
       });
 
-      if (skipCharge) {
-        logger.info({ caseId, idempotencyKey }, "Existing consumption row found — free retry, skipped deduction");
-      }
     });
   } catch (txErr) {
     // Expected 402/409 are routine, not infra failures — don't error-log them.

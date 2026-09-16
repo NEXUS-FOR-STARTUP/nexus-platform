@@ -15,6 +15,16 @@ export interface StatusGuidanceCopy {
   icon: GuidanceIconKey;
 }
 
+export const AI_STATUS_GUIDANCE_COPY: Record<string, StatusGuidanceCopy> = {
+  submitted: {
+    title: "Hồ sơ đang chờ xử lý bởi Nexus AI",
+    description:
+      "Hệ thống đã tiếp nhận hồ sơ và đang khởi động tiến trình thẩm định tự động qua Nexus AI Engine. Kết quả phản biện chi tiết sẽ có trong ít phút.",
+    tone: "info",
+    icon: "activity",
+  },
+};
+
 export const STATUS_GUIDANCE_COPY: Record<string, StatusGuidanceCopy> = {
   submitted: {
     title: "Hồ sơ đã gửi thành công — Chờ xét duyệt",

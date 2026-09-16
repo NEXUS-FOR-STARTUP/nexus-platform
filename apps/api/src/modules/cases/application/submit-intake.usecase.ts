@@ -249,12 +249,20 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
       await triggerOmpAuditForCase(caseId, { submission_type: "initial" });
       logger.info({ caseId }, "Auto-triggered OMP audit after intake submission");
     } catch (triggerErr: unknown) {
-      // 402 = NO_CREDITS (unpaid or no credit), 409 = AUDIT_IN_PROGRESS — normal flow
+      const isExpected =
+        triggerErr instanceof AppError && (triggerErr.status === 402 || triggerErr.status === 409);
       const errMsg = triggerErr instanceof Error ? triggerErr.message : String(triggerErr);
-      logger.info(
-        { caseId, err: errMsg },
-        "OMP audit not triggered on intake submission (no credit, unpaid, or already in progress)"
-      );
+      if (isExpected) {
+        logger.info(
+          { caseId, err: errMsg, status: (triggerErr as AppError).status },
+          "OMP audit not triggered on intake submission (no credit, unpaid, or already in progress)"
+        );
+      } else {
+        logger.error(
+          { caseId, err: triggerErr },
+          "Failed to auto-trigger OMP audit on intake submission due to unexpected error"
+        );
+      }
     }
 
     return { success: true, case_id: caseId, stage: result.stage, status: result.status };

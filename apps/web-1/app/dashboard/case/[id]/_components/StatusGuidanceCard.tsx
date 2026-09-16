@@ -14,7 +14,12 @@ import {
 } from "lucide-react";
 import { Alert, Button, Select, Stack, Textarea, Group } from "@mantine/core";
 import { Dropzone, type FileRejection } from "@mantine/dropzone";
-import { STATUS_GUIDANCE_COPY, type GuidanceTone, type GuidanceIconKey } from "./statusCopyMap";
+import {
+  STATUS_GUIDANCE_COPY,
+  AI_STATUS_GUIDANCE_COPY,
+  type GuidanceTone,
+  type GuidanceIconKey,
+} from "./statusCopyMap";
 import type { OpenInfoRequest } from "../hooks/useCaseDetails";
 import { isCaseFree, PACKAGE_KEYS, caseRequiresPayment, formatPrice } from "@/lib/pricing";
 import { usePackagePrice } from "@/lib/usePackagePrice";
@@ -581,8 +586,8 @@ export default function StatusGuidanceCard({
       </Alert>
     );
   }
-
-  const copy = STATUS_GUIDANCE_COPY[stage];
+  const isAiPackage = caseData.package_id === PACKAGE_KEYS.AI_AUDIT;
+  const copy = (isAiPackage && AI_STATUS_GUIDANCE_COPY[stage]) || STATUS_GUIDANCE_COPY[stage];
   if (copy) {
     const Icon = ICON_BY_KEY[copy.icon];
     return (
