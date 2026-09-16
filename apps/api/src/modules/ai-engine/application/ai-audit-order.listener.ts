@@ -5,6 +5,7 @@ import {
   initOmpQueueListener,
   triggerOmpAuditForCase,
 } from "./omp-audit-coordinator.js";
+import { findFirstIntakeUnit } from "../../cases/infrastructure/persistence/case.repository.js";
 
 /**
  * Initialize listener for ORDER_PAID domain event.
@@ -39,6 +40,17 @@ async function handleOrderPaidForAiAudit(event: DomainEvent): Promise<void> {
   // Listener KHÔNG auto-trigger — user sẽ chọn loại đánh giá và trigger từ UI (StatusGuidanceCard).
   if (serviceType === "credit_audit_manual") {
     logger.info({ orderId, caseId }, "Manual credit purchase — skipping auto-trigger, user will trigger from UI");
+    return;
+  }
+
+  // Guard: If student hasn't submitted intake form yet (e.g. upgraded package right after Team Fit),
+  // skip auto-trigger. The audit will trigger automatically when student submits intake.
+  const intakeUnit = await findFirstIntakeUnit(caseId);
+  if (!intakeUnit) {
+    logger.info(
+      { orderId, caseId },
+      "Case has no intake submission yet — skipping auto-trigger on ORDER_PAID. Audit will trigger when student submits intake."
+    );
     return;
   }
 
