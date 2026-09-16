@@ -109,7 +109,7 @@ export default function ReviewSubmitStep({
                   Đánh giá tự động qua Nexus Engine
                 </div>
                 <p className="text-xs text-text-muted leading-relaxed">
-                  Hồ sơ được phân tích tự động về khách hàng mục tiêu, vấn đề cốt lõi, giải pháp và tính khả thi của mô hình. Kết quả thẩm định chi tiết sẵn sàng trong vòng 1 phút sau khi gửi.
+                  Hồ sơ được phân tích tự động về khách hàng mục tiêu, vấn đề cốt lõi, giải pháp và tính khả thi của mô hình. Kết quả thẩm định chi tiết sẵn sàng trong <span className="font-semibold text-brand">khoảng 10 phút</span> sau khi gửi.
                 </p>
               </div>
             ) : (
@@ -199,7 +199,7 @@ export default function ReviewSubmitStep({
             <div className="font-semibold text-text-app">Mức độ ưu tiên xử lý:</div>
             <div className="text-text-app">
               {isAiOnly
-                ? "Tự động phản hồi tức thì (trong 1 phút)"
+                ? "Tự động phản hồi (trong khoảng 10 phút)"
                 : (values.urgency === "urgent" ? "Gấp (trong 24h)" : "Bình thường")}
             </div>
           </div>

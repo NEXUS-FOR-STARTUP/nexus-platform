@@ -285,7 +285,7 @@ function IntakePageContent() {
             className="text-left text-xs font-body"
           >
             {isAiOnlyPackage
-              ? "⚡ Thời gian xử lý: Kết quả thẩm định tự động hoàn tất trong vòng 1 phút sau khi gửi"
+              ? "⚡ Thời gian xử lý: Kết quả thẩm định tự động hoàn tất trong khoảng 10 phút sau khi gửi"
               : "⏱ Thời gian phản biện: 24h–48h có Mentor chuyên môn đồng hành và phản hồi"}
           </Alert>
         </div>
