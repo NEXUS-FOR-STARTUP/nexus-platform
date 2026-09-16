@@ -23,6 +23,13 @@ export const AI_STATUS_GUIDANCE_COPY: Record<string, StatusGuidanceCopy> = {
     tone: "info",
     icon: "activity",
   },
+  under_review: {
+    title: "Nexus AI đang tiến hành thẩm định dự án",
+    description:
+      "Nexus AI Engine đang phân tích tài liệu và đánh giá hồ sơ theo tiêu chuẩn phản biện. Báo cáo chi tiết sẽ sẵn sàng trong ít phút.",
+    tone: "info",
+    icon: "activity",
+  },
 };
 
 export const STATUS_GUIDANCE_COPY: Record<string, StatusGuidanceCopy> = {
