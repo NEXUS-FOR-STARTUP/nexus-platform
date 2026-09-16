@@ -36,7 +36,14 @@ type SubmissionType = z.infer<typeof SubmissionTypeSchema>;
 const TriggerOptsSchema = z.object({
   submission_type: SubmissionTypeSchema.default("initial"),
   lifecycle_unit_id: z.string().uuid().optional(),
+  model: z.string().optional(),
+  prompt_mode: z.enum(["full", "lite"]).optional(),
+  skip_credit_check: z.boolean().optional(),
+  admin_triggered: z.boolean().optional(),
+  force_supersede: z.boolean().optional(),
 });
+
+export type TriggerAuditOpts = z.infer<typeof TriggerOptsSchema>;
 
 let queueEventsInitialized = false;
 
@@ -49,8 +56,18 @@ let queueEventsInitialized = false;
 export async function refundAuditCreditIfNoReport(caseId: string, reason: string): Promise<boolean> {
   try {
     const job = await findLatestAiJobByCase(caseId);
-    const startedAt =
-      (job?.input_json as { startedAt?: string } | null)?.startedAt ?? null;
+    const inputJson = job?.input_json as {
+      startedAt?: string;
+      admin_triggered?: boolean;
+      skip_credit_check?: boolean;
+    } | null;
+
+    if (inputJson?.skip_credit_check === true || inputJson?.admin_triggered === true) {
+      logger.info({ caseId, reason }, "Skipping refund: this job was triggered by admin with credit check bypassed");
+      return false;
+    }
+
+    const startedAt = inputJson?.startedAt ?? null;
     if (startedAt) {
       const reportCount = await prisma.report.count({
         where: { case_id: caseId, created_at: { gte: new Date(startedAt) } },
@@ -299,15 +316,22 @@ ${JSON.stringify(team, null, 2)}
  */
 export async function triggerOmpAuditForCase(
   caseId: string,
-  opts?: { submission_type?: string; lifecycle_unit_id?: string },
+  opts?: z.input<typeof TriggerOptsSchema>,
 ): Promise<void> {
   // 1. Zod-validate opts
   const parsed = TriggerOptsSchema.safeParse(opts ?? {});
   if (!parsed.success) {
     throw new AppError(400, "INVALID_INPUT", "Tham số không hợp lệ", parsed.error.flatten());
   }
-  const { submission_type: submissionType, lifecycle_unit_id: lifecycleUnitId } = parsed.data;
-
+  const {
+    submission_type: submissionType,
+    lifecycle_unit_id: lifecycleUnitId,
+    model,
+    prompt_mode: promptMode = "full",
+    skip_credit_check: skipCreditCheck = false,
+    admin_triggered: adminTriggered = false,
+    force_supersede: forceSupersede = false,
+  } = parsed.data;
   // 2. Validate lifecycle_unit belongs to case (if provided)
   if (lifecycleUnitId) {
     const unit = await prisma.lifecycleUnit.findUnique({ where: { id: lifecycleUnitId } });
@@ -327,7 +351,9 @@ export async function triggerOmpAuditForCase(
   // truth for concurrent triggers that both pass this check.
   const latestJob = await findLatestAiJobByCase(caseId);
   if (latestJob && (latestJob.status === "queued" || latestJob.status === "processing")) {
-    throw new AppError(409, "AUDIT_IN_PROGRESS", "Đã có tiến trình thẩm định đang chạy. Vui lòng đợi hoàn thành.");
+    if (!forceSupersede && !adminTriggered) {
+      throw new AppError(409, "AUDIT_IN_PROGRESS", "Đã có tiến trình thẩm định đang chạy. Vui lòng đợi hoàn thành.");
+    }
   }
 
   // 4b. Initial report already exists for intake unit → reject upfront.
@@ -346,7 +372,7 @@ export async function triggerOmpAuditForCase(
         },
         orderBy: { created_at: "asc" },
       });
-      if (existingInitial) {
+      if (existingInitial && !forceSupersede && !adminTriggered) {
         throw new AppError(409, "AUDIT_IN_PROGRESS", "Báo cáo Ban đầu đã tồn tại. Vui lòng sử dụng Tạo lại (resubmit) nếu cần gửi tài liệu sửa đổi.");
       }
     }
@@ -369,21 +395,34 @@ export async function triggerOmpAuditForCase(
       await tx.$queryRaw`SELECT id FROM "cases" WHERE id = ${caseId} FOR UPDATE`;
       const inTxJob = await tx.aiJob.findFirst({ where: { case_id: caseId, job_type: "omp_audit" }, orderBy: { created_at: "desc" } });
       if (inTxJob && (inTxJob.status === "queued" || inTxJob.status === "processing")) {
-        throw new AppError(409, "AUDIT_IN_PROGRESS", "Đã có tiến trình thẩm định đang chạy. Vui lòng đợi hoàn thành.");
-      }
-      const inTxBalance = await getCreditBalanceForTx(tx, caseId);
-      if (inTxBalance < 1) {
-        throw new AppError(402, "NO_CREDITS", "Hết credit. Vui lòng mua thêm credit để tiếp tục.");
+        if (forceSupersede || adminTriggered) {
+          await tx.aiJob.update({
+            where: { id: inTxJob.id },
+            data: {
+              status: "cancelled",
+              output_json: { reason: "Superseded by admin retry", cancelledAt: new Date().toISOString() },
+            },
+          });
+        } else {
+          throw new AppError(409, "AUDIT_IN_PROGRESS", "Đã có tiến trình thẩm định đang chạy. Vui lòng đợi hoàn thành.");
+        }
       }
 
-      await createCreditEntry(tx, {
-        caseId,
-        amount: -1,
-        balanceAfter: inTxBalance - 1,
-        type: "consumption",
-        referenceId: caseId,
-        idempotencyKey,
-      });
+      if (!skipCreditCheck) {
+        const inTxBalance = await getCreditBalanceForTx(tx, caseId);
+        if (inTxBalance < 1) {
+          throw new AppError(402, "NO_CREDITS", "Hết credit. Vui lòng mua thêm credit để tiếp tục.");
+        }
+
+        await createCreditEntry(tx, {
+          caseId,
+          amount: -1,
+          balanceAfter: inTxBalance - 1,
+          type: "consumption",
+          referenceId: caseId,
+          idempotencyKey,
+        });
+      }
 
       // Register in ai_jobs table
       await tx.aiJob.upsert({
@@ -397,6 +436,10 @@ export async function triggerOmpAuditForCase(
             submission_type: submissionType,
             lifecycle_unit_id: lifecycleUnitId ?? null,
             startedAt,
+            model,
+            prompt_mode: promptMode,
+            skip_credit_check: skipCreditCheck,
+            admin_triggered: adminTriggered,
           },
         },
         update: {
@@ -405,11 +448,14 @@ export async function triggerOmpAuditForCase(
             submission_type: submissionType,
             lifecycle_unit_id: lifecycleUnitId ?? null,
             startedAt,
+            model,
+            prompt_mode: promptMode,
+            skip_credit_check: skipCreditCheck,
+            admin_triggered: adminTriggered,
           },
           updated_at: new Date(startedAt),
         },
       });
-
     });
   } catch (txErr) {
     // Expected 402/409 are routine, not infra failures — don't error-log them.
@@ -455,6 +501,10 @@ export async function triggerOmpAuditForCase(
               submission_type: submissionType,
               lifecycle_unit_id: resolvedLifecycleUnitId,
               startedAt,
+              model,
+              prompt_mode: promptMode,
+              skip_credit_check: skipCreditCheck,
+              admin_triggered: adminTriggered,
             },
           },
         });
@@ -483,8 +533,8 @@ export async function triggerOmpAuditForCase(
       documentPath: resolve(jobDir, "input", primaryFileName),
       documentOriginalName: primaryFileName,
       title: projectName,
-      ompModel: process.env.OMP_MODEL || "mimo/mimo-v2.5",
-      promptMode: "full",
+      ompModel: model || process.env.OMP_MODEL || "mimo/mimo-v2.5",
+      promptMode: promptMode,
       submissionType,
       lifecycleUnitId: resolvedLifecycleUnitId ?? undefined,
     });
@@ -504,7 +554,9 @@ export async function triggerOmpAuditForCase(
         {
           timestamp: startedAt,
           agent: "system",
-          message: `Khởi tạo tiến trình thẩm định đề án ${projectName} - Mã case ${caseRecord.case_code}`,
+          message: adminTriggered
+            ? `[Quản trị viên] Bắt đầu chạy lại thẩm định với mô hình ${model || "mặc định"}`
+            : `Khởi tạo tiến trình thẩm định đề án ${projectName} - Mã case ${caseRecord.case_code}`,
         },
       ],
     });

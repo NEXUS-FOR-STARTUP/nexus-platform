@@ -21,6 +21,15 @@ import {
   unbanUserHandler,
   exportAdminDataHandler,
 } from "./admin.controller.js";
+import {
+  getAdminWorkerStatsHandler,
+  listAdminWorkerJobsHandler,
+  getAdminWorkerJobDetailHandler,
+  getAdminWorkerJobLogsHandler,
+  retryAdminWorkerJobHandler,
+  healStuckAdminWorkerJobHandler,
+  cancelAdminWorkerJobHandler,
+} from "./admin-workers.controller.js";
 
 
 export const adminRouter = new Hono();
@@ -52,3 +61,12 @@ adminRouter.post("/packages/:id/pricing", setPricingHandler);
 adminRouter.post("/users", createAdminUserHandler);
 adminRouter.post("/users/:id/ban", banUserHandler);
 adminRouter.post("/users/:id/unban", unbanUserHandler);
+
+// Worker & Queue Monitoring
+adminRouter.get("/workers/stats", getAdminWorkerStatsHandler);
+adminRouter.get("/workers/jobs", listAdminWorkerJobsHandler);
+adminRouter.get("/workers/jobs/:id", getAdminWorkerJobDetailHandler);
+adminRouter.get("/workers/jobs/:id/logs", getAdminWorkerJobLogsHandler);
+adminRouter.post("/workers/jobs/:id/retry", retryAdminWorkerJobHandler);
+adminRouter.post("/workers/jobs/:id/heal-stuck", healStuckAdminWorkerJobHandler);
+adminRouter.post("/workers/jobs/:id/cancel", cancelAdminWorkerJobHandler);
