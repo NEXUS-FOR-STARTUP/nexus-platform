@@ -5,7 +5,7 @@ import type {
   ExternalFeedbackMetadata,
   ExternalFeedbackUnit,
 } from "@/types/case";
-import { docCategoryLabel } from "@repo/validation";
+import { canonicalizeDocCategory, docCategoryLabel } from "@repo/validation";
 
 export interface DocumentWorkspaceProps {
   workspace: DocumentWorkspaceType | null;
@@ -53,13 +53,14 @@ export function buildSupportFlowRows(units: DocumentUnit[]): DocumentRow[] {
   return units.flatMap((unit, uIdx) =>
     unit.files.map((file, fIdx) => {
       const uniqueKey = `flow-v${unit.version_no || 0}-u${unit.unit_code || uIdx}-f${file.id || file.seq || fIdx}-${fIdx}`;
+      const categoryKey = file.category ? canonicalizeDocCategory(file.category) : null;
       return {
         ...buildCommonRow(unit, file, uniqueKey),
         versionLabel: `v${String(unit.version_no).padStart(2, "0")}`,
-        contextLabel: file.category
-          ? docCategoryLabel(file.category)
+        contextLabel: categoryKey
+          ? docCategoryLabel(categoryKey)
           : (file.doc_type_label ?? "Tài liệu"),
-        categoryKey: file.category ?? null,
+        categoryKey,
       };
     }),
   );

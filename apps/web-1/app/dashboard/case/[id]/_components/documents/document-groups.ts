@@ -1,4 +1,8 @@
-import { DOCUMENT_CATEGORY_CODES } from "@repo/validation";
+import {
+  canonicalizeDocCategory,
+  docCategoryLabel,
+  DOCUMENT_CATEGORY_CODES,
+} from "@repo/validation";
 import type { DocumentRow } from "./document-workspace.types";
 
 export interface DocumentCategoryGroup {
@@ -14,8 +18,9 @@ export function buildCategoryGroups(rows: DocumentRow[]): DocumentCategoryGroup[
   const groups = new Map<string, DocumentCategoryGroup>();
 
   for (const row of rows) {
-    const label = row.contextLabel || "Tài liệu";
-    const key = row.categoryKey ?? `type:${label}`;
+    const canonicalKey = row.categoryKey ? canonicalizeDocCategory(row.categoryKey) : null;
+    const key = canonicalKey ?? (row.contextLabel ? `type:${row.contextLabel}` : "type:Tài liệu");
+    const label = canonicalKey ? docCategoryLabel(canonicalKey) : (row.contextLabel || "Tài liệu");
     const existing = groups.get(key);
     if (existing) {
       existing.rows.push(row);
@@ -25,14 +30,8 @@ export function buildCategoryGroups(rows: DocumentRow[]): DocumentCategoryGroup[
   }
 
   return Array.from(groups.values()).sort((a, b) => {
-    const firstA = a.rows[0];
-    const firstB = b.rows[0];
-    const orderA = firstA?.categoryKey
-      ? (categoryOrder.get(firstA.categoryKey) ?? Number.MAX_SAFE_INTEGER)
-      : Number.MAX_SAFE_INTEGER;
-    const orderB = firstB?.categoryKey
-      ? (categoryOrder.get(firstB.categoryKey) ?? Number.MAX_SAFE_INTEGER)
-      : Number.MAX_SAFE_INTEGER;
+    const orderA = categoryOrder.get(a.key) ?? Number.MAX_SAFE_INTEGER;
+    const orderB = categoryOrder.get(b.key) ?? Number.MAX_SAFE_INTEGER;
     if (orderA !== orderB) return orderA - orderB;
     return a.label.localeCompare(b.label);
   });
