@@ -2,7 +2,6 @@
 
 import React from "react";
 import { ServicePackage } from "@/types";
-import dayjs from "dayjs";
 import { formatPrice } from "@/lib/pricing";
 import { docCategoryLabel } from "@repo/validation";
 import { IntakeData } from "../../_types/intake.types";
@@ -65,12 +64,6 @@ export default function ReviewSubmitStep({
   const isAiOnly = Boolean(isAiOnlyPackage ?? (values?.package_id === "pkg_ai_audit"));
   const selectedPackage = packages?.find((p) => p.id === values.package_id);
 
-
-  const formatDate = (dateVal: any) => {
-    if (!dateVal) return "Chưa chọn";
-    const d = dayjs(dateVal);
-    return d.isValid() ? d.format("DD/MM/YYYY") : "Chưa chọn";
-  };
 
   return (
     <div className="font-body text-text-app max-w-3xl mx-auto space-y-10">
@@ -187,9 +180,6 @@ export default function ReviewSubmitStep({
                   ? "Đánh giá ý tưởng tự động bằng AI (Nexus Engine)"
                   : "Gói phản biện tiêu chuẩn")}
             </div>
-
-            <div className="font-semibold text-text-app">Hạn nộp bài mong muốn:</div>
-            <div className="text-text-app">{formatDate(values.deadline)}</div>
 
             <div className="font-semibold text-text-app">Mức độ ưu tiên xử lý:</div>
             <div className="text-text-app">

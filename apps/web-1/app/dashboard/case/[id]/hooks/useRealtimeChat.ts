@@ -15,8 +15,8 @@ const TOKEN_API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 interface UseRealtimeChatOptions {
   activeTab?: string;
   markAsRead?: (lastReadMessageId?: string) => Promise<void> | void;
+  enabled?: boolean;
 }
-
 export function useRealtimeChat(caseId: string, options: UseRealtimeChatOptions = {}) {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -28,11 +28,13 @@ export function useRealtimeChat(caseId: string, options: UseRealtimeChatOptions 
 
   const markAsReadRef = useRef(options.markAsRead);
   markAsReadRef.current = options.markAsRead;
+
+  const isEnabled = options.enabled ?? true;
+
   useEffect(() => {
-    if (!caseId) return;
+    if (!caseId || !isEnabled) return;
     const client = getCentrifugeClient();
     const channel = `chat:${caseId}`;
-
     // Guard: StrictMode double-effect + tab switch → no duplicate sub crash
     const existing = client.getSubscription(channel);
     if (existing) {
@@ -132,5 +134,5 @@ export function useRealtimeChat(caseId: string, options: UseRealtimeChatOptions 
       client.removeSubscription(sub);
       subRef.current = null;
     };
-  }, [caseId, queryClient, router, session?.user?.id]);
+  }, [caseId, isEnabled, queryClient, router, session?.user?.id]);
 }

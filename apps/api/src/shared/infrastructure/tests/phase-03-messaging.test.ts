@@ -37,4 +37,18 @@ test("Phase 03 - Messaging & reports", async (t) => {
     const result = parseReportDraftContent("invalid json");
     assert.strictEqual(result, null);
   });
+
+  await t.test("chat access - block pkg_ai_audit", async () => {
+    const { evaluateChatAccess } = await import("../../../modules/cases/application/chat-access.js");
+    const result = evaluateChatAccess({
+      lockedPrice: 79000,
+      stage: "under_review",
+      creditBalance: 2,
+      completedAt: null,
+      creditExhaustedAt: null,
+      packageId: "pkg_ai_audit",
+    });
+    assert.strictEqual(result.ok, false);
+    assert.strictEqual(result.code, "CHAT_AI_TIER");
+  });
 });
