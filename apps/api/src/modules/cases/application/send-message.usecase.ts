@@ -47,11 +47,13 @@ export async function sendMessageUseCase(
     creditBalance,
     completedAt: completedEvent?.created_at ?? null,
     creditExhaustedAt: exhaustedEntry?.created_at ?? null,
+    packageId: caseItem.package_id,
   });
 
   if (!access.ok) {
     const messageByCode: Record<string, string> = {
       CHAT_FREE_TIER: "Chat là đặc quyền cho dự án trả phí. Vui lòng liên hệ admin qua email hoặc điện thoại.",
+      CHAT_AI_TIER: "Gói Basic AI Audit được xử lý tự động bằng AI, không bao gồm tính năng trao đổi với Supporter.",
       CHAT_REJECTED: "Dự án đang ở trạng thái từ chối. Vui lòng chỉnh sửa hồ sơ và nộp lại, hoặc liên hệ admin.",
       CHAT_CLOSED: "Hồ sơ đã đóng, không thể gửi tin nhắn. Vui lòng liên hệ admin qua email hoặc điện thoại.",
       CHAT_LOCKED: "Hết lượt kiểm tra và đã qua thời gian ân hạn. Vui lòng nạp thêm credit để tiếp tục chat.",

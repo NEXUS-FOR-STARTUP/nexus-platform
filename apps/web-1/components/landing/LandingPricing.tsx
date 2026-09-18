@@ -23,7 +23,15 @@ export default function LandingPricing() {
         {/* Pricing Cards */}
         <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xl" className="max-w-4xl mx-auto items-stretch">
           {/* Basic AI Audit */}
-          <Card padding="xl" radius="md" withBorder className="border-border-app bg-surface-card flex flex-col justify-between">
+          <Card padding="xl" radius="md" withBorder className="border-brand/40 bg-surface-card flex flex-col justify-between relative">
+            <Badge 
+              variant="filled" 
+              color="blue" 
+              size="md" 
+              className="absolute top-5 right-5 font-body font-semibold"
+            >
+              Khuyên dùng
+            </Badge>
             <div>
               {/* Header */}
               <div className="mb-6">
@@ -66,23 +74,23 @@ export default function LandingPricing() {
               href={`/dashboard/intake?packageId=${PACKAGE_KEYS.AI_AUDIT}`}
               fullWidth
               size="md"
-              variant="default"
+              color="blue"
               radius="md"
-              className="font-body font-semibold text-sm h-11 mt-8 border-border-app text-text-app hover:bg-surface-app"
+              className="font-body font-semibold text-sm h-11 mt-8"
             >
               Bắt đầu kiểm tra
             </Button>
           </Card>
 
           {/* Premium Mentor Audit */}
-          <Card padding="xl" radius="md" withBorder className="border-brand/40 bg-surface-card flex flex-col justify-between relative">
+          <Card padding="xl" radius="md" withBorder className="border-border-app bg-surface-card flex flex-col justify-between relative opacity-85">
             <Badge 
-              variant="filled" 
-              color="blue" 
+              variant="light" 
+              color="gray" 
               size="md" 
               className="absolute top-5 right-5 font-body font-semibold"
             >
-              Phổ biến nhất
+              Sắp ra mắt
             </Badge>
 
             <div>
@@ -123,15 +131,15 @@ export default function LandingPricing() {
             </div>
 
             <Button
-              component={Link}
-              href={`/dashboard/intake?packageId=${PACKAGE_KEYS.SUPPORTER_AUDIT}`}
+              disabled
               fullWidth
               size="md"
-              color="blue"
+              variant="light"
+              color="gray"
               radius="md"
-              className="font-body font-semibold text-sm h-11 mt-8"
+              className="font-body font-semibold text-sm h-11 mt-8 cursor-not-allowed"
             >
-              Chọn gói Premium
+              Sắp ra mắt
             </Button>
           </Card>
         </SimpleGrid>

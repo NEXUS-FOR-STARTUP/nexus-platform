@@ -60,9 +60,10 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const triggerAudit = async (submissionType: string, lifecycleUnitId?: string) => {
     await triggerAuditRaw({ submission_type: submissionType as "initial" | "resubmit" | "logic_check", lifecycle_unit_id: lifecycleUnitId });
   };
+  const isAiPackage = caseData?.package_id === "pkg_ai_audit";
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("overview");
-  const { unreadCount, markAsRead } = useCaseUnreadCount(id);
-  useRealtimeChat(id, { activeTab, markAsRead });
+  const { unreadCount, markAsRead } = useCaseUnreadCount(id, { enabled: Boolean(caseData && !isAiPackage) });
+  useRealtimeChat(id, { activeTab, markAsRead, enabled: Boolean(caseData && !isAiPackage) });
   const [isStudentUploadOpen, setIsStudentUploadOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [creditBuyOpened, setCreditBuyOpened] = useState(false);
@@ -90,6 +91,11 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     prevStageRef.current = stage;
   }, [stage]);
 
+  useEffect(() => {
+    if (isAiPackage && activeTab === "discussion") {
+      setActiveTab("overview");
+    }
+  }, [isAiPackage, activeTab]);
   if (isLoading) {
     return (
       <div className="space-y-6 w-full pb-12">
@@ -129,6 +135,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   ].some((t) => filteredTransitions.includes(t));
 
   const isTabAvailable = (tab: WorkspaceTab): boolean => {
+    if (isAiPackage && tab === "discussion") return false;
     if (!isPreSubmission) return true;
     if (stage === "intake_pending") return tab === "overview" || tab === "timeline" || tab === "settings" || tab === "credits";
     if (stage === "intake_ready") return tab === "overview" || tab === "documents" || tab === "timeline" || tab === "settings" || tab === "credits";
@@ -152,6 +159,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         unreadCount={unreadCount}
         creditBalance={creditBalance ?? undefined}
         stage={stage}
+        isAiPackage={isAiPackage}
       />
 
       <div className={`flex-grow flex flex-col h-full min-w-0 p-6 ${activeTab === "discussion" ? "overflow-hidden" : "space-y-6 overflow-y-auto"}`}>
@@ -266,7 +274,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
             />
           )}
 
-          {activeTab === "discussion" && <TabDiscussionChat caseId={caseData.id} />}
+{activeTab === "discussion" && !isAiPackage && <TabDiscussionChat caseId={caseData.id} />}
 
           {activeTab === "credits" && (
             <CreditPanel

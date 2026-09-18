@@ -28,6 +28,15 @@ export async function subscriptionTokenHandler(c: Context<AuthEnv>) {
   const caseId = c.req.param("caseId") ?? "";
   const access = await requireCaseAccess(c, caseId);
   if (!access.ok) return access.response;
+  if (access.caseRecord.package_id === "pkg_ai_audit") {
+    return c.json(
+      {
+        error: "Gói Basic AI Audit được xử lý tự động bằng AI, không bao gồm tính năng trao đổi với Supporter.",
+        code: "CHAT_AI_TIER",
+      },
+      409,
+    );
+  }
   if (!hasCentrifugoSecret()) {
     logger.error("CENTRIFUGO_TOKEN_SECRET missing — realtime disabled");
     return c.json({ error: "Dịch vụ realtime chưa cấu hình" }, 503);

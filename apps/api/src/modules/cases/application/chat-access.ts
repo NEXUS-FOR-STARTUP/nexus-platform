@@ -2,11 +2,11 @@ export const CHAT_LOCK_WINDOW_MS = 24 * 3600_000
 
 export type ChatAccessCode =
   | "CHAT_FREE_TIER"
+  | "CHAT_AI_TIER"
   | "CHAT_REJECTED"
   | "CHAT_CLOSED"
   | "CHAT_LOCKED"
   | "CHAT_OK"
-
 export interface ChatAccessResult {
   ok: boolean
   code: ChatAccessCode
@@ -19,9 +19,11 @@ export function evaluateChatAccess(params: {
   creditBalance: number
   completedAt: Date | null
   creditExhaustedAt: Date | null
+  packageId?: string | null
 }): ChatAccessResult {
-  const { lockedPrice, stage, creditBalance, completedAt, creditExhaustedAt } = params
+  const { lockedPrice, stage, creditBalance, completedAt, creditExhaustedAt, packageId } = params
 
+  if (packageId === "pkg_ai_audit") return { ok: false, code: "CHAT_AI_TIER" }
   if (lockedPrice === 0) return { ok: false, code: "CHAT_FREE_TIER" }
   if (stage === "rejected") return { ok: false, code: "CHAT_REJECTED" }
   if (stage === "closed") return { ok: false, code: "CHAT_CLOSED" }

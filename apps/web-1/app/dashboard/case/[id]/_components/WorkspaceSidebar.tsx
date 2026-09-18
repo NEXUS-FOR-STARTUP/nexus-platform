@@ -16,8 +16,8 @@ interface WorkspaceSidebarProps {
   hideSettings?: boolean;
   hideCredits?: boolean;
   stage?: string;
+  isAiPackage?: boolean;
 }
-
 export default function WorkspaceSidebar({
   activeTab,
   onTabChange,
@@ -27,6 +27,7 @@ export default function WorkspaceSidebar({
   hideSettings = false,
   hideCredits = false,
   stage,
+  isAiPackage = false,
 }: WorkspaceSidebarProps) {
   const isPreSubmission = stage === "intake_pending" || stage === "intake_ready";
   const isIntakePending = stage === "intake_pending";
@@ -55,7 +56,7 @@ export default function WorkspaceSidebar({
           },
         ]
       : []),
-    ...(!isPreSubmission
+    ...(!isPreSubmission && !isAiPackage
       ? [
           {
             id: "discussion" as const,

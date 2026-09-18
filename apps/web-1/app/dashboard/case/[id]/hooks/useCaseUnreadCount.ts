@@ -4,24 +4,28 @@ import { useEffect, useRef, useCallback } from "react";
 import { getCentrifugeClient } from "@/lib/realtime/centrifuge-client";
 import type { CaseUnreadCountResponse, MarkChatReadResponse } from "@repo/validation";
 
-export function useCaseUnreadCount(caseId: string) {
+interface UseCaseUnreadCountOptions {
+  enabled?: boolean;
+}
+
+export function useCaseUnreadCount(caseId: string, options: UseCaseUnreadCountOptions = {}) {
+  const isEnabled = options.enabled ?? true;
   const queryClient = useQueryClient();
   const lastMarkedMessageIdRef = useRef<string | null>(null);
-
   const query = useQuery<CaseUnreadCountResponse>({
     queryKey: ["cases", caseId, "unread-count"],
     queryFn: async () => {
       const res = await apiClient.get<CaseUnreadCountResponse>(`/cases/${caseId}/chat/unread`);
       return res.data;
     },
-    enabled: Boolean(caseId),
+    enabled: Boolean(caseId) && isEnabled,
     staleTime: Infinity, // Realtime push updates the count directly
-    refetchOnWindowFocus: true, // Item 4: Sync on window focus
+    refetchOnWindowFocus: isEnabled, // Sync on window focus only when enabled
   });
 
   // Item 4: Listen for Centrifugo reconnect to sync any missed messages
   useEffect(() => {
-    if (!caseId) return;
+    if (!caseId || !isEnabled) return;
     const client = getCentrifugeClient();
 
     const handleConnected = () => {
@@ -32,7 +36,7 @@ export function useCaseUnreadCount(caseId: string) {
     return () => {
       client.removeListener("connected", handleConnected);
     };
-  }, [caseId, queryClient]);
+  }, [caseId, isEnabled, queryClient]);
 
   const markAsReadMutation = useMutation({
     mutationFn: async (lastReadMessageId?: string) => {

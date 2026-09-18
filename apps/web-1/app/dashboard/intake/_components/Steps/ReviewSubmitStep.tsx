@@ -2,7 +2,6 @@
 
 import React from "react";
 import { ServicePackage } from "@/types";
-import dayjs from "dayjs";
 import { formatPrice } from "@/lib/pricing";
 import { docCategoryLabel } from "@repo/validation";
 import { IntakeData } from "../../_types/intake.types";
@@ -65,12 +64,6 @@ export default function ReviewSubmitStep({
   const isAiOnly = Boolean(isAiOnlyPackage ?? (values?.package_id === "pkg_ai_audit"));
   const selectedPackage = packages?.find((p) => p.id === values.package_id);
 
-
-  const formatDate = (dateVal: any) => {
-    if (!dateVal) return "Chưa chọn";
-    const d = dayjs(dateVal);
-    return d.isValid() ? d.format("DD/MM/YYYY") : "Chưa chọn";
-  };
 
   return (
     <div className="font-body text-text-app max-w-3xl mx-auto space-y-10">
@@ -177,7 +170,7 @@ export default function ReviewSubmitStep({
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-base font-semibold text-brand uppercase tracking-wider">4. Hạn chót & gói dịch vụ</h3>
+          <h3 className="text-base font-semibold text-brand uppercase tracking-wider">4. Gói dịch vụ & Thời gian xử lý</h3>
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm pl-4">
             <div className="font-semibold text-text-app">Gói phản biện đã chọn:</div>
             <div className="text-text-app">
@@ -187,9 +180,6 @@ export default function ReviewSubmitStep({
                   ? "Đánh giá ý tưởng tự động bằng AI (Nexus Engine)"
                   : "Gói phản biện tiêu chuẩn")}
             </div>
-
-            <div className="font-semibold text-text-app">Hạn nộp bài mong muốn:</div>
-            <div className="text-text-app">{formatDate(values.deadline)}</div>
 
             <div className="font-semibold text-text-app">Mức độ ưu tiên xử lý:</div>
             <div className="text-text-app">

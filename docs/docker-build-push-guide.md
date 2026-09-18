@@ -142,11 +142,11 @@ Từ phase notifications, `docker-compose.prod.yml` có **router Traefik riêng*
 ```yaml
 # SSE stream router — KHÔNG compress (compress + SSE rủi ro buffer/treo connection)
 - "traefik.http.routers.nexus-api-stream.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/notifications/stream`)"
-- "traefik.http.routers.nexus-api-stream.middlewares=security-headers"
+- "traefik.http.routers.nexus-api-stream.middlewares=security-headers-api"
 - "traefik.http.services.nexus-api-stream.loadbalancer.server.port=8000"
 ```
 
-- Router `nexus-api` (middleware `compress`) **không** match `/api/notifications/stream` — route stream qua `nexus-api-stream` (chỉ `security-headers`, **bỏ compress**).
+- Router `nexus-api` (middleware `compress`) **không** match `/api/notifications/stream` — route stream qua `nexus-api-stream` (chỉ `security-headers-api`, **bỏ compress**).
 - Cả 2 router trỏ cùng service port `8000`.
 - Sau khi sửa labels: chạy lại `docker compose -f docker-compose.prod.yml up -d` để Traefik nhận label mới.
 
