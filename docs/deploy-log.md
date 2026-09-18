@@ -47,3 +47,4 @@ Sau khi xác minh, ghi 1 dòng theo format trên (ví dụ: `2026-08-03 HH:MM | 
 | 2026-09-13 14:52 | d25b30d | feat/79k-dual-credit | refactor(worker-omp): move Dockerfile into apps/worker-omp | 🟠 worker |
 | 2026-09-16 17:25 | 0c62c1e | staging | Merge pull request #33 from NEXUS-FOR-STARTUP/feat/pricing-package-tiers-ui | 🔵 api 🟢 web 🟠 worker |
 | 2026-09-16 23:36 | 8b080c1 | staging | Merge remote-tracking branch 'origin/dev' into staging | 🔵 api 🟢 web |
+| 2026-09-18 18:32 | d032e50 | staging | Merge pull request #39 from NEXUS-FOR-STARTUP/fix/pricing-chat-intake-quickfixes | 🔵 api 🟢 web |
