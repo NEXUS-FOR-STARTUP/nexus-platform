@@ -62,7 +62,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   };
   const isAiPackage = caseData?.package_id === "pkg_ai_audit";
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("overview");
-  const { unreadCount, markAsRead } = useCaseUnreadCount(id);
+  const { unreadCount, markAsRead } = useCaseUnreadCount(id, { enabled: Boolean(caseData && !isAiPackage) });
   useRealtimeChat(id, { activeTab, markAsRead, enabled: Boolean(caseData && !isAiPackage) });
   const [isStudentUploadOpen, setIsStudentUploadOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);

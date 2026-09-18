@@ -51,4 +51,29 @@ test("Phase 03 - Messaging & reports", async (t) => {
     assert.strictEqual(result.ok, false);
     assert.strictEqual(result.code, "CHAT_AI_TIER");
   });
+
+  await t.test("chat access - allow pkg_supporter_audit and legacy paid cases", async () => {
+    const { evaluateChatAccess } = await import("../../../modules/cases/application/chat-access.js");
+    const supporterResult = evaluateChatAccess({
+      lockedPrice: 149000,
+      stage: "under_review",
+      creditBalance: 2,
+      completedAt: null,
+      creditExhaustedAt: null,
+      packageId: "pkg_supporter_audit",
+    });
+    assert.strictEqual(supporterResult.ok, true);
+    assert.strictEqual(supporterResult.code, "CHAT_OK");
+
+    const legacyResult = evaluateChatAccess({
+      lockedPrice: 39000,
+      stage: "under_review",
+      creditBalance: 1,
+      completedAt: null,
+      creditExhaustedAt: null,
+      packageId: null,
+    });
+    assert.strictEqual(legacyResult.ok, true);
+    assert.strictEqual(legacyResult.code, "CHAT_OK");
+  });
 });

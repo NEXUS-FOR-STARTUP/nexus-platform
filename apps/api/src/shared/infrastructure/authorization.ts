@@ -12,6 +12,7 @@ type CaseAccessRecord = {
   id: string;
   owner_auth_user_id: string;
   assigned_supporter_auth_user_id: string | null;
+  package_id?: string | null;
   user_facing_stage?: string;
   internal_status?: string;
   members: Array<{ auth_user_id: string }>;
@@ -75,6 +76,7 @@ export async function requireCaseAccess(
         id: true,
         owner_auth_user_id: true,
         assigned_supporter_auth_user_id: true,
+        package_id: true,
         user_facing_stage: true,
         internal_status: true,
         members: {

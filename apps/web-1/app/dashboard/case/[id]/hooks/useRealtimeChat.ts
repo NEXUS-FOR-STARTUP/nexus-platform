@@ -39,7 +39,12 @@ export function useRealtimeChat(caseId: string, options: UseRealtimeChatOptions 
     const existing = client.getSubscription(channel);
     if (existing) {
       subRef.current = existing;
-      return;
+      return () => {
+        existing.removeAllListeners();
+        existing.unsubscribe();
+        client.removeSubscription(existing);
+        subRef.current = null;
+      };
     }
 
     const sub = client.newSubscription(channel, {

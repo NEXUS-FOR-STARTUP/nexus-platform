@@ -48,7 +48,10 @@ export function PackageSelectionModal({ opened, onClose, onSelectPackage }: Pack
     >
       <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
         {/* Basic AI Audit */}
-        <Card withBorder radius="md" padding="lg" className="bg-surface-card border-border-app flex flex-col justify-between">
+        <Card withBorder radius="md" padding="lg" className="bg-surface-card border-brand/40 relative flex flex-col justify-between">
+          <Badge variant="filled" color="blue" className="absolute top-2 right-2">
+            Khuyên dùng
+          </Badge>
           <Stack justify="space-between" className="h-full">
             <div>
               <h4 className="font-heading font-bold text-lg text-text-app mb-1">Basic AI Audit</h4>
@@ -75,20 +78,20 @@ export function PackageSelectionModal({ opened, onClose, onSelectPackage }: Pack
               </List>
             </div>
             <Button
-              variant="default"
+              color="blue"
               fullWidth
               onClick={() => handleSelect(PACKAGE_KEYS.AI_AUDIT)}
-              className="font-body text-text-app border-border-app mt-4"
+              className="font-body font-semibold mt-4"
             >
-              Chọn Basic
+              Chọn Basic AI
             </Button>
           </Stack>
         </Card>
 
         {/* Premium Mentor Audit */}
-        <Card withBorder radius="md" padding="lg" className="bg-surface-card border-brand/40 relative flex flex-col justify-between">
-          <Badge variant="filled" color="blue" className="absolute top-2 right-2">
-            Khuyên dùng
+        <Card withBorder radius="md" padding="lg" className="bg-surface-card border-border-app relative flex flex-col justify-between opacity-80">
+          <Badge variant="light" color="gray" className="absolute top-2 right-2">
+            Sắp ra mắt
           </Badge>
           <Stack justify="space-between" className="h-full">
             <div>
@@ -116,12 +119,13 @@ export function PackageSelectionModal({ opened, onClose, onSelectPackage }: Pack
               </List>
             </div>
             <Button
-              color="blue"
+              variant="light"
+              color="gray"
               fullWidth
-              onClick={() => handleSelect(PACKAGE_KEYS.SUPPORTER_AUDIT)}
-              className="font-body font-semibold mt-4"
+              disabled
+              className="font-body font-semibold mt-4 cursor-not-allowed"
             >
-              Chọn Premium
+              Sắp ra mắt
             </Button>
           </Stack>
         </Card>

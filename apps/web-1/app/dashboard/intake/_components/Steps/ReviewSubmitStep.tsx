@@ -170,7 +170,7 @@ export default function ReviewSubmitStep({
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-base font-semibold text-brand uppercase tracking-wider">4. Hạn chót & gói dịch vụ</h3>
+          <h3 className="text-base font-semibold text-brand uppercase tracking-wider">4. Gói dịch vụ & Thời gian xử lý</h3>
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm pl-4">
             <div className="font-semibold text-text-app">Gói phản biện đã chọn:</div>
             <div className="text-text-app">
