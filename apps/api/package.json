@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "prisma:generate": "prisma generate --schema ../../prisma/schema.prisma",
-    "build": "bun run prisma:generate && tsc && bun -e \"const { cpSync } = require('node:fs'); cpSync('src/modules/reports/infrastructure/pdf/templates', 'dist/modules/reports/infrastructure/pdf/templates', { recursive: true }); cpSync('src/modules/reports/infrastructure/pdf/fonts', 'dist/modules/reports/infrastructure/pdf/fonts', { recursive: true });\"",
+    "build": "bun run prisma:generate && tsc -p tsconfig.build.json && bun -e \"const { cpSync } = require('node:fs'); cpSync('src/modules/reports/infrastructure/pdf/templates', 'dist/modules/reports/infrastructure/pdf/templates', { recursive: true }); cpSync('src/modules/reports/infrastructure/pdf/fonts', 'dist/modules/reports/infrastructure/pdf/fonts', { recursive: true });\"",
     "check-types": "bun run prisma:generate && tsc --noEmit",
     "start": "bun dist/index.js",
     "test": "tsx --test src/shared/infrastructure/tests/*.test.ts",

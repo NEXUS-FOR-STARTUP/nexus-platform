@@ -26,7 +26,14 @@ COPY --from=turbo /app/out/json/ .
 RUN bun install --frozen-lockfile && mkdir -p /app/apps/api/node_modules
 
 # -----------------------------------------------------------------------------
-# Stage 4: Build
+# Stage 4: Production Dependencies (only runtime deps, no dev/peer-dev)
+# -----------------------------------------------------------------------------
+FROM base AS prod-deps
+COPY --from=turbo /app/out/json/ .
+RUN bun install --production --omit=peer --frozen-lockfile && mkdir -p /app/apps/api/node_modules
+
+# -----------------------------------------------------------------------------
+# Stage 5: Build
 # -----------------------------------------------------------------------------
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
@@ -40,11 +47,11 @@ COPY prisma.config.ts ./prisma.config.ts
 # Copy workspace-level node_modules (ensured by mkdir -p in deps)
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 
-# Build the API (includes devDeps needed for prisma migrate in migrate service)
+# Build the API (generates prisma client and compiles via tsconfig.build.json without tests)
 RUN bun run --filter nexus-platform-api build
 
 # -----------------------------------------------------------------------------
-# Stage 5: Runner
+# Stage 6: Runner
 # -----------------------------------------------------------------------------
 FROM oven/bun:1.4.0-alpine AS runner
 WORKDIR /app
@@ -60,29 +67,28 @@ RUN addgroup --system --gid 1001 nodejs && \
 USER nexus
 
 # ── Stable layers (cached unless deps change) ──
-# Root node_modules — copy from deps stage (cached when lockfile unchanged)
-COPY --from=deps --chown=nexus:nodejs /app/node_modules ./node_modules
+# Root node_modules — copy from prod-deps stage (no devDependencies, minimal size)
+COPY --from=prod-deps --chown=nexus:nodejs /app/node_modules ./node_modules
 # Workspace-level node_modules
-COPY --from=deps --chown=nexus:nodejs /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=prod-deps --chown=nexus:nodejs /app/apps/api/node_modules ./apps/api/node_modules
 # Shared packages needed at runtime (exports raw TS, referenced via symlink)
 COPY --from=builder --chown=nexus:nodejs /app/packages ./packages
-# Prisma schema + migrations + config for prisma migrate at runtime
-COPY --from=builder --chown=nexus:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nexus:nodejs /app/prisma.config.ts ./prisma.config.ts
 
 # ── Prisma generated client (generated during build; overlay from builder) ──
 COPY --from=builder --chown=nexus:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nexus:nodejs /app/node_modules/@prisma/client ./node_modules/@prisma/client
 
+# ── Prisma CLI & Schema (enables 'docker compose exec api bun x prisma migrate deploy') ──
+COPY --from=deps --chown=nexus:nodejs /app/node_modules/prisma ./node_modules/prisma
+COPY --from=deps --chown=nexus:nodejs /app/node_modules/@prisma/engines ./node_modules/@prisma/engines
+COPY --from=builder --chown=nexus:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nexus:nodejs /app/prisma.config.ts ./prisma.config.ts
+
 # ── Changing layers (rebuilt every source change) ──
-# Compiled output — only this changes most builds
+# Compiled output — includes pdf templates & fonts (copied by build script, no test files)
 COPY --from=builder --chown=nexus:nodejs /app/apps/api/dist ./apps/api/dist
-# PDF templates & fonts for Typst runtime compilation
-COPY --from=builder --chown=nexus:nodejs /app/apps/api/src/modules/reports/infrastructure/pdf/templates ./apps/api/dist/modules/reports/infrastructure/pdf/templates
-COPY --from=builder --chown=nexus:nodejs /app/apps/api/src/modules/reports/infrastructure/pdf/fonts ./apps/api/dist/modules/reports/infrastructure/pdf/fonts
 # Package.json for workspace context
 COPY --from=builder --chown=nexus:nodejs /app/apps/api/package.json ./apps/api/package.json
-
 EXPOSE 8000
 
 ENV NODE_ENV=production

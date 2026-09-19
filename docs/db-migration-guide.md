@@ -22,20 +22,22 @@ _Cập nhật: 2026-08-24. Hiện có 23 migration folders trong `prisma/migrati
 ## Lệnh Migration
 
 ```bash
+# Cách 1: Dùng Makefile (khuyến nghị)
+make migrate
+
+# Cách 2: Dùng docker compose trực tiếp qua container api đang chạy
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec api \
-  npx prisma migrate deploy --schema prisma/schema.prisma
+  bun x prisma migrate deploy --schema prisma/schema.prisma
 ```
 
 ### Giải thích
 
 | Phần | Ý nghĩa |
 |------|---------|
-| `docker compose -f docker-compose.prod.yml` | Dùng compose file production |
-| `--env-file .env.prod` | Load biến môi trường từ file `.env.prod` (chứa `DATABASE_URL`) |
-| `exec api` | Chạy lệnh trong container API đang chạy (không tạo container mới) |
-| `npx prisma migrate deploy` | Áp dụng migration chưa chạy vào database (chỉ chạy migration mới, không reset) |
+| `make migrate` | Lệnh rút gọn chạy `docker compose exec api bun x prisma migrate deploy ...` |
+| `exec api` | Chạy lệnh trực tiếp trong container `nexus-api` đang hoạt động |
+| `bun x prisma migrate deploy` | Áp dụng migration chưa chạy vào database (an toàn, không reset) |
 | `--schema prisma/schema.prisma` | Đường dẫn schema file trong container |
-
 ## Workflow Chuẩn
 
 ### 1. Local — Tạo Migration File
@@ -71,10 +73,11 @@ docker compose -f docker-compose.prod.yml up -d api
 ### 5. Chạy Migration
 
 ```bash
+make migrate
+# hoặc:
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec api \
-  npx prisma migrate deploy --schema prisma/schema.prisma
+  bun x prisma migrate deploy --schema prisma/schema.prisma
 ```
-
 Output kỳ vọng:
 ```
 Prisma Migrate deployed the following migration(s):
@@ -88,10 +91,11 @@ Prisma Migrate deployed the following migration(s):
 ### Kiểm tra migration đã áp dụng
 
 ```bash
+make migrate-status
+# hoặc:
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec api \
-  npx prisma migrate status --schema prisma/schema.prisma
+  bun x prisma migrate status --schema prisma/schema.prisma
 ```
-
 Output kỳ vọng:
 ```
 Prisma Migrate status:
@@ -111,8 +115,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod exec api \
 # Pull, restart, migrate
 docker compose -f docker-compose.prod.yml pull api && \
   docker compose -f docker-compose.prod.yml up -d api && \
-  docker compose -f docker-compose.prod.yml --env-file .env.prod exec api \
-    npx prisma migrate deploy --schema prisma/schema.prisma
+  make migrate
 ```
 
 ## Troubleshooting

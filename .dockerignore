@@ -9,6 +9,7 @@
 .agents
 .codegraph
 .playwright-mcp
+.omo
 
 # Dependencies
 node_modules
@@ -52,4 +53,7 @@ storage
 **/storage
 backup
 **/backup
+
+# Docs
+docs
 data/postgres

@@ -165,12 +165,10 @@ logs: ## Tail all logs
 # ──────────────────────────────────────────
 
 migrate: ## Run pending Prisma migrations
-	@$(DOCKER_COMPOSE) run --rm migrate
+	@$(DOCKER_COMPOSE) exec api bun x prisma migrate deploy --schema prisma/schema.prisma
 
 migrate-status: ## Dry-run migration check
-	@$(DOCKER_COMPOSE) run --rm migrate \
-		sh -c "npx prisma migrate deploy --schema ./prisma/schema.prisma --preview-feature"
-
+	@$(DOCKER_COMPOSE) exec api bun x prisma migrate status --schema prisma/schema.prisma
 # ──────────────────────────────────────────
 # Maintenance
 # ──────────────────────────────────────────

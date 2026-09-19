@@ -17,7 +17,7 @@ COPY package.json bun.lock* ./
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/worker-omp/package.json ./apps/worker-omp/
 
-RUN bun install --frozen-lockfile || bun install
+RUN bun install --production --frozen-lockfile || bun install --production
 
 COPY packages/shared ./packages/shared
 COPY apps/worker-omp ./apps/worker-omp
