@@ -5,8 +5,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sqlite3 git ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Oh My Pi globally with Bun (pure Bun package manager)
-RUN bun add -g @oh-my-pi/pi-coding-agent
+# Install Oh My Pi globally with Bun (pass --build-arg OMP_CACHEBUST=$(date +%s) to force latest)
+ARG OMP_CACHEBUST=1
+RUN bun add -g @oh-my-pi/pi-coding-agent@latest
 
 ENV PATH="/root/.bun/bin:${PATH}"
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
