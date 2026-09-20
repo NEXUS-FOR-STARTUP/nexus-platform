@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, use } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { useCaseDetails } from "../../../dashboard/case/[id]/hooks/useCaseDetails";
 import { caseRequiresPayment } from "@/lib/pricing";
@@ -34,7 +34,17 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
   const { data: session, isPending: isAuthPending } = useSession();
   const { caseData, intakeSnapshot, documentWorkspace, isLoading, error, allowedTransitions } =
     useCaseDetails(id);
-  const [activeTab, setActiveTab] = useState<WorkspaceTab>("overview");
+  const searchParams = useSearchParams();
+  const VALID_WORKSPACE_TABS: WorkspaceTab[] = ["overview", "documents", "report", "discussion", "timeline", "settings", "credits"];
+  const rawTabParam = searchParams.get("tab") as WorkspaceTab | null;
+  const initialTab: WorkspaceTab = rawTabParam && VALID_WORKSPACE_TABS.includes(rawTabParam) ? rawTabParam : "overview";
+  const [activeTab, setActiveTabState] = useState<WorkspaceTab>(initialTab);
+  const setActiveTab = (tab: WorkspaceTab) => {
+    setActiveTabState(tab);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tab);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
   const [isOutputUploadOpen, setIsOutputUploadOpen] = useState(false);
   const [isRequestInfoOpen, setIsRequestInfoOpen] = useState(false);
 

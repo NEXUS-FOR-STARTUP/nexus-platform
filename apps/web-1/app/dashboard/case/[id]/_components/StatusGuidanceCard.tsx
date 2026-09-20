@@ -191,6 +191,10 @@ export default function StatusGuidanceCard({
       setResubmitError(`Mỗi tệp tối đa ${MAX_FILE_SIZE_MB}MB.`);
       return;
     }
+    if (firstErrorCode === "too-many-files") {
+      setResubmitError(`Chỉ được tải tối đa ${MAX_FILES} file.`);
+      return;
+    }
     setResubmitError("Định dạng tệp không được hỗ trợ.");
   };
 
@@ -478,6 +482,185 @@ export default function StatusGuidanceCard({
               {submissionType === "resubmit" && (
                 <Stack gap="xs">
                   <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold text-text-app">Tài liệu đã sửa</label>
+                      <span className="text-xs text-text-subtle">Tối đa {MAX_FILES} file</span>
+                    </div>
+                    <Dropzone
+                      onDrop={appendResubmitFiles}
+                      onReject={handleRejectedFiles}
+                      accept={ACCEPTED_MIME_TYPES}
+                      maxSize={MAX_FILE_SIZE_BYTES}
+                      maxFiles={MAX_FILES}
+                      multiple
+                      disabled={isResubmitting || isUploading}
+                      className="border-2 border-dashed border-border-strong hover:border-brand/50 bg-surface-soft/30 rounded-xl p-4 text-center cursor-pointer transition-all"
+                    >
+                      <Dropzone.Idle>
+                        <div className="flex flex-col items-center justify-center gap-1.5">
+                          <Upload className="w-5 h-5 text-brand" />
+                          <p className="text-xs text-text-muted">
+                            Kéo thả hoặc <span className="text-brand underline">chọn tài liệu đã sửa</span>
+                          </p>
+                        </div>
+                      </Dropzone.Idle>
+                    </Dropzone>
+                  </div>
+
+                  {resubmitError && (
+                    <div className="flex items-center gap-1.5 text-xs text-danger font-semibold px-1">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{resubmitError}</span>
+                    </div>
+                  )}
+
+                  {resubmitFiles.length > 0 && (
+                    <div className="space-y-1">
+                      {resubmitFiles.map((file, idx) => (
+                        <div key={`${file.name}-${idx}`} className="flex items-center justify-between text-xs bg-surface-app p-2 rounded border border-border-app">
+                          <span className="truncate">{file.name}</span>
+                          <button type="button" onClick={() => removeResubmitFile(idx)} className="text-text-subtle hover:text-danger cursor-pointer ml-2">✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <Textarea
+                    label="Tóm tắt thay đổi"
+                    placeholder="Mô tả các nội dung đã cập nhật (ít nhất 10 ký tự)..."
+                    value={resubmitChangeSummary}
+                    onChange={(e) => {
+                      setResubmitChangeSummary(e.currentTarget.value);
+                      setResubmitError(null);
+                    }}
+                    minRows={2}
+                    autosize
+                    size="sm"
+                    radius="md"
+                    error={undefined}
+                  />
+                </Stack>
+              )}
+
+              {submissionType === "logic_check" && (
+                <p className="text-xs text-text-muted">
+                  Hệ thống sẽ dùng tài liệu mới nhất để đánh giá khả thi và tính khách quan.
+                </p>
+              )}
+
+              <Group justify="flex-end">
+                <Button
+                  size="sm"
+                  color="brand"
+                  className="shrink-0 cursor-pointer font-semibold"
+                  loading={isTriggeringAudit || isResubmitting || isUploading}
+                  disabled={isTriggeringAudit || isResubmitting || isUploading}
+                  onClick={handleTriggerAudit}
+                >
+                  {submissionType === "resubmit"
+                    ? "Tải lên & Gửi đánh giá"
+                    : submissionType === "logic_check"
+                      ? "Soi logic ngay"
+                      : "Gửi đánh giá"}
+                </Button>
+              </Group>
+            </Stack>
+          </Alert>
+        )}
+      </Stack>
+    );
+  }
+
+  if (stage === "submitted" && caseRequiresPayment(caseData)) {
+    return (
+      <Alert
+        variant="light"
+        color="yellow"
+        radius="md"
+        title="Hồ sơ đã nộp — chờ thanh toán"
+        icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
+        className={ALERT_CLASS}
+      >
+        <div className="space-y-3">
+          <p className="text-text-muted text-xs leading-relaxed">
+            Hồ sơ đã gửi thành công. Đội ngũ Nexus chỉ duyệt và phân công Supporter sau khi thanh toán hoàn tất.
+          </p>
+          {onOpenPayment && (
+            <Button
+              size="sm"
+              color="brand"
+              className="shrink-0 cursor-pointer font-semibold text-xs"
+              onClick={onOpenPayment}
+            >
+              Thanh toán dịch vụ
+            </Button>
+          )}
+        </div>
+      </Alert>
+    );
+  }
+  const isAiPackage = caseData.package_id === PACKAGE_KEYS.AI_AUDIT;
+
+  // AI package, submitted + paid: show AI processing banner + retry button if credits available.
+  // Handles the case where audit failed and rolled back to "submitted" — user can trigger again.
+  if (stage === "submitted" && isAiPackage && !caseRequiresPayment(caseData)) {
+    const lastJobFailed = caseData.latest_ai_job_status === "failed";
+    return (
+      <Stack gap="sm" className="animate-fade-in font-body">
+        {lastJobFailed ? (
+          <Alert
+            variant="light"
+            color="orange"
+            radius="md"
+            title="Tiến trình thẩm định bị gián đoạn"
+            icon={<AlertCircle className="w-4.5 h-4.5 shrink-0" />}
+            className={ALERT_CLASS}
+          >
+            <p className="text-text-muted text-xs leading-relaxed">
+              Tiến trình thẩm định AI trước đó không hoàn thành. Credit đã được hoàn trả. Nhấn <strong>Gửi đánh giá</strong> để kích hoạt lại.
+            </p>
+          </Alert>
+        ) : (
+          <Alert
+            variant="light"
+            color="blue"
+            radius="md"
+            title="Hồ sơ đã nộp — AI sẵn sàng thẩm định"
+            icon={<Activity className="w-4.5 h-4.5 shrink-0" />}
+            className={ALERT_CLASS}
+          >
+            <p className="text-text-muted text-xs leading-relaxed">
+              Hệ thống đã tiếp nhận hồ sơ và đang chuẩn bị thẩm định tự động. Kết quả sẽ có trong ít phút.
+            </p>
+          </Alert>
+        )}
+
+        {/* Audit trigger — y chang report_ready: Select loại đánh giá + resubmit form */}
+        {canTriggerAudit && (
+          <Alert
+            variant="light"
+            color="blue"
+            radius="md"
+            title="Gửi đánh giá mới"
+            icon={<Zap className="w-4.5 h-4.5 shrink-0" />}
+            className={ALERT_CLASS}
+          >
+            <Stack gap="sm">
+              <Select
+                label="Loại đánh giá"
+                data={SUBMISSION_TYPE_OPTIONS}
+                value={submissionType}
+                onChange={(val) => {
+                  setSubmissionType((val as SubmissionType) || "initial");
+                  setResubmitError(null);
+                }}
+                size="sm"
+                radius="md"
+              />
+
+              {submissionType === "resubmit" && (
+                <Stack gap="xs">
+                  <div className="space-y-1">
                     <label className="text-xs font-semibold text-text-app">Tài liệu đã sửa</label>
                     <Dropzone
                       onDrop={appendResubmitFiles}
@@ -557,35 +740,6 @@ export default function StatusGuidanceCard({
     );
   }
 
-  if (stage === "submitted" && caseRequiresPayment(caseData)) {
-    return (
-      <Alert
-        variant="light"
-        color="yellow"
-        radius="md"
-        title="Hồ sơ đã nộp — chờ thanh toán"
-        icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
-        className={ALERT_CLASS}
-      >
-        <div className="space-y-3">
-          <p className="text-text-muted text-xs leading-relaxed">
-            Hồ sơ đã gửi thành công. Đội ngũ Nexus chỉ duyệt và phân công Supporter sau khi thanh toán hoàn tất.
-          </p>
-          {onOpenPayment && (
-            <Button
-              size="sm"
-              color="brand"
-              className="shrink-0 cursor-pointer font-semibold text-xs"
-              onClick={onOpenPayment}
-            >
-              Thanh toán dịch vụ
-            </Button>
-          )}
-        </div>
-      </Alert>
-    );
-  }
-  const isAiPackage = caseData.package_id === PACKAGE_KEYS.AI_AUDIT;
   const copy = (isAiPackage && AI_STATUS_GUIDANCE_COPY[stage]) || STATUS_GUIDANCE_COPY[stage];
   if (copy) {
     const Icon = ICON_BY_KEY[copy.icon];

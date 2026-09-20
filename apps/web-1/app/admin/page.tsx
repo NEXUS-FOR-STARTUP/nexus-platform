@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAdminDeposits } from "./hooks/useAdminDeposits";
 import { useAdminCases } from "./hooks/useAdminCases";
@@ -86,19 +86,17 @@ function AdminHubPageInner() {
 
   const [rejectingDepositId, setRejectingDepositId] = useState<string | null>(null);
   const [approvingDepositId, setApprovingDepositId] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<"payments" | "cases" | "documents" | "packages" | "stats" | "users" | "workers">("stats");
+  const VALID_TABS = ["payments", "cases", "documents", "packages", "stats", "users", "workers"] as const;
+  type AdminTab = typeof VALID_TABS[number];
+  const rawTab = searchParams.get("tab");
+  const activeSection: AdminTab = (VALID_TABS as readonly string[]).includes(rawTab ?? "") ? (rawTab as AdminTab) : "stats";
+  const setActiveSection = (tab: AdminTab) => router.replace(`/admin?tab=${tab}`);
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
   const [workerFilter, setWorkerFilter] = useState<WorkerFilter>("all");
 
   const { data: workerStats } = useAdminWorkerStats();
   const activeWorkersCount = workerStats?.activeCount ?? 0;
 
-  useEffect(() => {
-    const tab = searchParams.get("tab");
-    if (tab === "payments" || tab === "cases" || tab === "documents" || tab === "packages" || tab === "stats" || tab === "users" || tab === "workers") {
-      setActiveSection(tab);
-    }
-  }, [searchParams]);
 
   const handleApproveClick = (depositId: string) => {
     setApprovingDepositId(depositId);
@@ -419,10 +417,7 @@ function AdminHubPageInner() {
 
               <Tooltip label="Tiến trình AI" position="right" withArrow>
                 <UnstyledButton
-                  onClick={() => {
-                    setActiveSection("workers");
-                    router.push("/admin?tab=workers");
-                  }}
+                  onClick={() => setActiveSection("workers")}
                   className={classes.mainLink}
                   data-active={activeSection === "workers" || undefined}
                 >

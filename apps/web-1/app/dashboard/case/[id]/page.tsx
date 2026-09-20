@@ -61,7 +61,16 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     await triggerAuditRaw({ submission_type: submissionType as "initial" | "resubmit" | "logic_check", lifecycle_unit_id: lifecycleUnitId });
   };
   const isAiPackage = caseData?.package_id === "pkg_ai_audit";
-  const [activeTab, setActiveTab] = useState<WorkspaceTab>("overview");
+  const VALID_WORKSPACE_TABS: WorkspaceTab[] = ["overview", "documents", "report", "discussion", "timeline", "settings", "credits"];
+  const rawTabParam = searchParams.get("tab") as WorkspaceTab | null;
+  const initialTab: WorkspaceTab = rawTabParam && VALID_WORKSPACE_TABS.includes(rawTabParam) ? rawTabParam : "overview";
+  const [activeTab, setActiveTabState] = useState<WorkspaceTab>(initialTab);
+  const setActiveTab = (tab: WorkspaceTab) => {
+    setActiveTabState(tab);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tab);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
   const { unreadCount, markAsRead } = useCaseUnreadCount(id, { enabled: Boolean(caseData && !isAiPackage) });
   useRealtimeChat(id, { activeTab, markAsRead, enabled: Boolean(caseData && !isAiPackage) });
   const [isStudentUploadOpen, setIsStudentUploadOpen] = useState(false);
