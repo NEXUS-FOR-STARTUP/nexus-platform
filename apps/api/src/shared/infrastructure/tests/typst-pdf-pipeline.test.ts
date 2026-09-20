@@ -73,3 +73,48 @@ Dự án PodCycle giải quyết bài toán tái chế bã cà phê tại các c
   const magic = buf.subarray(0, 5).toString();
   assert.strictEqual(magic, "%PDF-", "PDF header magic bytes must be %PDF-");
 });
+test("typst-pdf-pipeline: mdToTypst escapes plain text backticks to avoid Typst unclosed raw text errors", () => {
+  const mdWithBackticks = `
+(LƯU Ý: Trình bày trực tiếp dưới dạng văn bản danh sách Markdown thông thường,
+TUYỆT ĐỐI KHÔNG dùng khối codeblock  \`\`\` để tránh làm hỏng định dạng in trang A4)
+  `.trim();
+
+  const typst = markdownToTypst(mdWithBackticks);
+  assert.ok(typst.includes("\\`\\`\\`"), "Plain text triple backticks must be escaped as \\`\\`\\`");
+  assert.ok(!typst.includes("```"), "Typst markup must not contain unescaped raw block delimiter");
+});
+
+test("typst-pdf-pipeline: generateReportPdfBuffer successfully compiles markdown containing unescaped raw backticks", async () => {
+  const mdProblematic = `
+## 7. Mẫu văn bản viết lại chuẩn cho nhóm
+(LƯU Ý: Trình bày trực tiếp dưới dạng văn bản danh sách Markdown thông thường,
+TUYỆT ĐỐI KHÔNG dùng khối codeblock  \`\`\` để tránh làm hỏng định dạng in trang A4)
+
+Kế hoạch \`thu phí\` từ gói nâng cao dựa trên căn cứ thực tế.
+  `.trim();
+
+  const buf = await generateReportPdfBuffer({
+    markdown: mdProblematic,
+    meta: {
+      projectName: "Test Unclosed Raw Text Fix",
+      jobId: "test-backtick-fix",
+      agentName: "omp",
+      createdAt: new Date().toISOString(),
+      overallScore: 75,
+      verdict: "READY",
+      categoryScores: {
+        problemClarity: 75,
+        marketViability: 75,
+        businessModel: 75,
+        competitiveMoat: 75,
+        executionFeasibility: 75,
+      },
+    },
+    storageDir: resolve(process.cwd(), "storage"),
+    force: true,
+  });
+
+  assert.ok(buf instanceof Buffer, "Should return a Buffer");
+  const magic = buf.subarray(0, 5).toString();
+  assert.strictEqual(magic, "%PDF-", "PDF header magic bytes must be %PDF-");
+});

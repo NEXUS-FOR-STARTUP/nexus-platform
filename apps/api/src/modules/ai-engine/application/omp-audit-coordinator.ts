@@ -15,6 +15,7 @@ import {
   dispatchOmpJob,
   cancelOmpJob,
   ompQueueEvents,
+  ompQueue,
 } from "../infrastructure/queue/omp-queue.js";
 import {
   findCaseForAudit,
@@ -102,6 +103,27 @@ export async function refundAuditCreditIfNoReport(caseId: string, reason: string
     return false;
   }
 }
+/**
+ * Rollback case audit stage on failure or cancellation:
+ * - If case already has an approved report → rollback to report_ready (supporter/admin can re-review/re-trigger)
+ * - If no report yet → rollback to intake_ready (user sees submit card)
+ * Prevents case from getting permanently stuck in under_review / supporter_working.
+ */
+export async function rollbackCaseStageOnFailure(caseId: string, reason: string): Promise<void> {
+  try {
+    const reportCount = await prisma.report.count({ where: { case_id: caseId } });
+    if (reportCount > 0) {
+      await updateCaseAuditStage(caseId, "report_ready", "report_ready_to_publish");
+      logger.info({ caseId, reason }, "Rolled back case stage to report_ready");
+    } else {
+      await updateCaseAuditStage(caseId, "intake_ready", "intake_submitted");
+      logger.info({ caseId, reason }, "Rolled back case stage to intake_ready");
+    }
+  } catch (stageErr: unknown) {
+    const err = stageErr as Error;
+    logger.warn({ caseId, err: err?.message, reason }, "Failed to rollback case stage on failure — non-fatal");
+  }
+}
 
 /**
  * Initialize QueueEvents listener to handle background job completions.
@@ -129,6 +151,7 @@ export function initOmpQueueListener(): void {
         logger.error({ caseId }, "Finalize found no worker output; marking failed and refunding credit");
         await updateAiJobStatus(caseId, "failed", { error: "worker produced no output" });
         await refundAuditCreditIfNoReport(caseId, "finalize-no-output");
+        await rollbackCaseStageOnFailure(caseId, "finalize-no-output");
       }
     } catch (err) {
       logger.error({ caseId, err }, "Failed to finalize OMP audit result on completed event");
@@ -137,6 +160,7 @@ export function initOmpQueueListener(): void {
       } else {
         await updateAiJobStatus(caseId, "failed", { error: String(err) }).catch(() => {});
         await refundAuditCreditIfNoReport(caseId, "finalize-error");
+        await rollbackCaseStageOnFailure(caseId, "finalize-error");
       }
     }
   });
@@ -150,6 +174,7 @@ export function initOmpQueueListener(): void {
       logger.warn({ caseId, err }, "Failed to update ai_jobs status to failed");
     }
     await refundAuditCreditIfNoReport(caseId, "worker-failed");
+    await rollbackCaseStageOnFailure(caseId, "worker-failed");
   });
 
   logger.info("BullMQ OMP QueueEvents listener initialized");
@@ -359,12 +384,52 @@ export async function triggerOmpAuditForCase(
   }
 
   // 4. Fast-path guard: already queued/processing → 409 AUDIT_IN_PROGRESS.
-  // Routine early-exit only; the in-transaction guard below is the source of
-  // truth for concurrent triggers that both pass this check.
+  // Verify with BullMQ directly so dropped events or stale jobs don't block forever.
   const latestJob = await findLatestAiJobByCase(caseId);
   if (latestJob && (latestJob.status === "queued" || latestJob.status === "processing")) {
     if (!forceSupersede && !adminTriggered) {
-      throw new AppError(409, "AUDIT_IN_PROGRESS", "Đã có tiến trình thẩm định đang chạy. Vui lòng đợi hoàn thành.");
+      const TEN_MINUTES_MS = 10 * 60 * 1000;
+      const timeSinceUpdate = Date.now() - latestJob.updated_at.getTime();
+      let isStale = false;
+
+      try {
+        const queueJobId = `omp-${caseId}`;
+        const bullJob = await ompQueue.getJob(queueJobId);
+        if (!bullJob) {
+          // Not in BullMQ queue at all
+          isStale = true;
+        } else {
+          const state = await bullJob.getState();
+          if (state === "completed" || state === "failed") {
+            isStale = true;
+          } else if (timeSinceUpdate > TEN_MINUTES_MS) {
+            isStale = true;
+          }
+        }
+      } catch (queueErr: unknown) {
+        const qErr = queueErr as Error;
+        logger.warn({ caseId, err: qErr?.message }, "Failed to verify BullMQ job state; checking timestamp");
+        if (timeSinceUpdate > TEN_MINUTES_MS) {
+          isStale = true;
+        }
+      }
+
+      if (isStale) {
+        logger.warn({ caseId, previousStatus: latestJob.status, timeSinceUpdate }, "Detected stale ai_job in fast-path guard; auto-healing status to failed");
+        try {
+          await updateAiJobStatus(caseId, "failed", {
+            error: "Stale job auto-recovered: task was no longer active in worker queue",
+            autoRecoveredAt: new Date().toISOString(),
+          });
+          await refundAuditCreditIfNoReport(caseId, "stale-job-cleanup");
+          await rollbackCaseStageOnFailure(caseId, "stale-job-cleanup");
+        } catch (healErr: unknown) {
+          const hErr = healErr as Error;
+          logger.warn({ caseId, err: hErr?.message }, "Failed to persist auto-healed stale ai_job status");
+        }
+      } else {
+        throw new AppError(409, "AUDIT_IN_PROGRESS", "Đã có tiến trình thẩm định đang chạy. Vui lòng đợi hoàn thành.");
+      }
     }
   }
 
@@ -416,7 +481,19 @@ export async function triggerOmpAuditForCase(
             },
           });
         } else {
-          throw new AppError(409, "AUDIT_IN_PROGRESS", "Đã có tiến trình thẩm định đang chạy. Vui lòng đợi hoàn thành.");
+          const TEN_MINUTES_MS = 10 * 60 * 1000;
+          if (Date.now() - inTxJob.updated_at.getTime() > TEN_MINUTES_MS) {
+            logger.warn({ caseId, inTxJobId: inTxJob.id }, "In-tx guard detected stale ai_job (>10m); auto-cancelling to allow fresh trigger");
+            await tx.aiJob.update({
+              where: { id: inTxJob.id },
+              data: {
+                status: "failed",
+                output_json: { reason: "Stale job timeout auto-cleared in transaction", cancelledAt: new Date().toISOString() },
+              },
+            });
+          } else {
+            throw new AppError(409, "AUDIT_IN_PROGRESS", "Đã có tiến trình thẩm định đang chạy. Vui lòng đợi hoàn thành.");
+          }
         }
       }
 
@@ -579,7 +656,7 @@ export async function triggerOmpAuditForCase(
     logger.error({ caseId, flowErr }, "Preparation or dispatch failed, refunding credit");
     await refundAuditCreditIfNoReport(caseId, "dispatch-failure").catch(() => {});
     await updateAiJobStatus(caseId, "failed", { error: String(flowErr) }).catch(() => {});
-    throw flowErr;
+    await rollbackCaseStageOnFailure(caseId, "dispatch-failure").catch(() => {});
   }
 }
 
@@ -592,23 +669,82 @@ export async function cancelOmpAuditForCase(caseId: string) {
   await updateAiJobStatus(caseId, "cancelled", { cancelledAt: new Date().toISOString() });
   await refundAuditCreditIfNoReport(caseId, "cancelled-by-user").catch(() => {});
 
-  // Rollback case stage sau cancel để tránh deadlock:
-  // - under_review → report_ready: nếu case đã có báo cáo trước đó → StatusGuidanceCard hiện form trigger
-  // - under_review → intake_ready: nếu chưa có báo cáo nào → user thấy form nộp hồ sơ
-  try {
-    const reportCount = await prisma.report.count({ where: { case_id: caseId } });
-    if (reportCount > 0) {
-      await updateCaseAuditStage(caseId, "report_ready", "report_ready_to_publish");
-      logger.info({ caseId }, "Cancelled job: rolled back stage to report_ready");
-    } else {
-      await updateCaseAuditStage(caseId, "intake_ready", "intake_submitted");
-      logger.info({ caseId }, "Cancelled job: rolled back stage to intake_ready");
-    }
-  } catch (stageErr) {
-    logger.warn({ caseId, stageErr }, "Failed to rollback case stage after cancel — non-fatal");
-  }
+  await rollbackCaseStageOnFailure(caseId, "cancelled-by-user");
 
   logger.warn({ caseId, queueResult }, "OMP audit cancelled by user");
   return { success: true, message: "Đã hủy tiến trình thẩm định OMP", job: cancelledJob };
 }
 
+/**
+ * Periodic watchdog for stale AI jobs across all cases.
+ * Heals jobs stuck in 'queued' or 'processing' for > 15 minutes when BullMQ is inactive.
+ */
+export async function cleanupStaleAiJobs(): Promise<number> {
+  const FIFTEEN_MINUTES_MS = 15 * 60 * 1000;
+  const staleThreshold = new Date(Date.now() - FIFTEEN_MINUTES_MS);
+  try {
+    const staleJobs = await prisma.aiJob.findMany({
+      where: {
+        job_type: "omp_audit",
+        status: { in: ["queued", "processing"] },
+        updated_at: { lt: staleThreshold },
+      },
+      select: {
+        id: true,
+        case_id: true,
+        status: true,
+        updated_at: true,
+      },
+      take: 50,
+    });
+
+    let healedCount = 0;
+    for (const job of staleJobs) {
+      const caseId = job.case_id;
+      let shouldHeal = false;
+      try {
+        const queueJobId = `omp-${caseId}`;
+        const bullJob = await ompQueue.getJob(queueJobId);
+        if (!bullJob) {
+          shouldHeal = true;
+        } else {
+          const state = await bullJob.getState();
+          if (state === "completed" || state === "failed") {
+            shouldHeal = true;
+          } else if (Date.now() - job.updated_at.getTime() > 20 * 60 * 1000) {
+            shouldHeal = true;
+          }
+        }
+      } catch {
+        shouldHeal = true;
+      }
+
+      if (shouldHeal) {
+        logger.warn({ caseId, jobId: job.id, status: job.status }, "Periodic watchdog healing stale ai_job");
+        await updateAiJobStatus(caseId, "failed", {
+          error: "Stale job timeout: automatically cleared by background watchdog",
+          clearedAt: new Date().toISOString(),
+        });
+        await refundAuditCreditIfNoReport(caseId, "stale-watchdog-cleanup");
+        await rollbackCaseStageOnFailure(caseId, "stale-watchdog-cleanup");
+        healedCount++;
+      }
+    }
+    return healedCount;
+  } catch (err: unknown) {
+    const error = err as Error;
+    logger.warn({ err: error?.message }, "Failed to run cleanupStaleAiJobs pass");
+    return 0;
+  }
+}
+
+// Start watchdog only in non-test runtime
+if (process.env.NODE_ENV !== "test") {
+  const WATCHDOG_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+  setInterval(() => {
+    cleanupStaleAiJobs().catch((err: unknown) => {
+      const error = err as Error;
+      logger.warn({ err: error?.message }, "Background stale AI job watchdog error");
+    });
+  }, WATCHDOG_INTERVAL_MS).unref();
+}

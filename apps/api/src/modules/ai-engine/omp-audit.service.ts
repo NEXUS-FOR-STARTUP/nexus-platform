@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, copyFileSync, writeFileSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, copyFileSync, writeFileSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
 import logger from "../../shared/infrastructure/logger.js";
 import { generateReportPdfBuffer } from "../reports/infrastructure/pdf/pdfService.js";
@@ -56,6 +56,57 @@ export function resolveRepoRoot(): string {
   }
   return process.cwd();
 }
+function safeCopyFileSync(src: string, dest: string): void {
+  try {
+    copyFileSync(src, dest);
+  } catch (err: unknown) {
+    const error = err as NodeJS.ErrnoException;
+    if (error?.code === "EACCES" || error?.code === "EPERM") {
+      try {
+        if (existsSync(dest)) {
+          rmSync(dest, { force: true });
+          copyFileSync(src, dest);
+          return;
+        }
+      } catch (rmErr: unknown) {
+        const rmError = rmErr as NodeJS.ErrnoException;
+        logger.warn({ src, dest, err: error?.message, rmErr: rmError?.message }, "Could not overwrite sandbox file due to permissions; proceeding with existing file");
+        return;
+      }
+    }
+    logger.warn({ src, dest, err: error?.message }, "safeCopyFileSync skipped file copy due to error");
+  }
+}
+
+function safeWriteFileSync(dest: string, content: string | Buffer): void {
+  try {
+    if (Buffer.isBuffer(content)) {
+      writeFileSync(dest, content);
+    } else {
+      writeFileSync(dest, content, "utf-8");
+    }
+  } catch (err: unknown) {
+    const error = err as NodeJS.ErrnoException;
+    if (error?.code === "EACCES" || error?.code === "EPERM") {
+      try {
+        if (existsSync(dest)) {
+          rmSync(dest, { force: true });
+          if (Buffer.isBuffer(content)) {
+            writeFileSync(dest, content);
+          } else {
+            writeFileSync(dest, content, "utf-8");
+          }
+          return;
+        }
+      } catch (rmErr: unknown) {
+        const rmError = rmErr as NodeJS.ErrnoException;
+        logger.error({ dest, err: error?.message, rmErr: rmError?.message }, "Failed to write input file to sandbox due to permissions");
+        throw error;
+      }
+    }
+    throw error;
+  }
+}
 
 /**
  * Prepare job sandbox directory layout and copy SQLite DB + Prompts + Input files.
@@ -78,13 +129,13 @@ export function prepareSandbox(jobDir: string, inputFiles: OmpAuditInputFile[]):
   const masterJson = resolve(projectRoot, "data/knowledge/startup_knowledge.json");
 
   if (existsSync(masterDb)) {
-    copyFileSync(masterDb, resolve(knowledgeDir, "startup_knowledge.db"));
+    safeCopyFileSync(masterDb, resolve(knowledgeDir, "startup_knowledge.db"));
   }
   if (existsSync(agentsMd)) {
-    copyFileSync(agentsMd, resolve(jobDir, "AGENTS.md"));
+    safeCopyFileSync(agentsMd, resolve(jobDir, "AGENTS.md"));
   }
   if (existsSync(masterJson)) {
-    copyFileSync(masterJson, resolve(knowledgeDir, "startup_knowledge.json"));
+    safeCopyFileSync(masterJson, resolve(knowledgeDir, "startup_knowledge.json"));
   }
 
   // 2. Copy System Prompts
@@ -92,7 +143,7 @@ export function prepareSandbox(jobDir: string, inputFiles: OmpAuditInputFile[]):
   if (existsSync(promptsSourceDir)) {
     const promptFiles = readdirSync(promptsSourceDir);
     for (const file of promptFiles) {
-      copyFileSync(resolve(promptsSourceDir, file), resolve(promptDir, file));
+      safeCopyFileSync(resolve(promptsSourceDir, file), resolve(promptDir, file));
     }
   }
 
@@ -107,18 +158,14 @@ export function prepareSandbox(jobDir: string, inputFiles: OmpAuditInputFile[]):
       : null;
 
   if (sourceModelsPath) {
-    copyFileSync(sourceModelsPath, resolve(jobDir, "models.json"));
-    copyFileSync(sourceModelsPath, resolve(agentDir, "models.json"));
+    safeCopyFileSync(sourceModelsPath, resolve(jobDir, "models.json"));
+    safeCopyFileSync(sourceModelsPath, resolve(agentDir, "models.json"));
   }
 
   // 4. Write input files
   for (const file of inputFiles) {
     const dest = resolve(inputDir, file.name);
-    if (Buffer.isBuffer(file.content)) {
-      writeFileSync(dest, file.content);
-    } else {
-      writeFileSync(dest, file.content, "utf-8");
-    }
+    safeWriteFileSync(dest, file.content);
   }
 }
 
