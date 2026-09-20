@@ -13,6 +13,7 @@ import {
   findApprovedReports,
 } from "../../reports/infrastructure/persistence/report.repository.js";
 import { getCreditBalance, getCreditLedgerByCaseId } from "../infrastructure/persistence/credit-ledger.repository.js";
+import { findLatestAiJobByCase } from "../../ai-engine/infrastructure/persistence/ai-job.repository.js";
 import { getAvailableTransitions } from "../domain/case-machine.js";
 import { prisma } from "../../../db.js";
 
@@ -161,11 +162,13 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
     getCreditBalance(caseId),
     getCreditLedgerByCaseId(caseId),
   ]);
+  const latestAiJob = await findLatestAiJobByCase(caseId);
   const allowed_transitions = getAvailableTransitions(caseDetails.internal_status);
 
   (caseResponse as Record<string, unknown>).credit_balance = credit_balance;
   (caseResponse as Record<string, unknown>).credit_ledger = credit_ledger;
   (caseResponse as Record<string, unknown>).allowed_transitions = allowed_transitions;
+  (caseResponse as Record<string, unknown>).latest_ai_job_status = latestAiJob?.status ?? null;
 
   return {
     case: caseResponse,

@@ -37,6 +37,7 @@ export interface Case {
   messages?: CaseMessage[];
   events?: CaseEvent[];
   team_fit_report?: TeamFitReport | null;
+  latest_ai_job_status?: string | null;
 }
 
 export interface TeamFitReport {
