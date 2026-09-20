@@ -1,6 +1,6 @@
 import { existsSync, rmSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
-import { Prisma } from "@prisma/client";
+import { Prisma, type AiJob } from "@prisma/client";
 import { z } from "zod";
 import logger from "../../../shared/infrastructure/logger.js";
 import { prisma } from "../../../db.js";
@@ -16,12 +16,17 @@ import {
   cancelOmpJob,
   ompQueueEvents,
   ompQueue,
+  buildOmpQueueJobId,
+  parseOmpQueueJobId,
 } from "../infrastructure/queue/omp-queue.js";
 import {
   findCaseForAudit,
   updateCaseAuditStage,
   upsertAiJobQueued,
+  createAiJobQueued,
   updateAiJobStatus,
+  updateAiJobStatusById,
+  countAiJobsByCase,
   findLatestAiJobByCase,
 } from "../infrastructure/persistence/ai-job.repository.js";
 import { jobStore } from "../infrastructure/persistence/job-store.repository.js";
@@ -133,32 +138,48 @@ export function initOmpQueueListener(): void {
   queueEventsInitialized = true;
 
   ompQueueEvents.on("active", async ({ jobId }) => {
-    const caseId = jobId.startsWith("omp-") ? jobId.replace("omp-", "") : jobId;
-    logger.info({ caseId }, "BullMQ OMP job active event received. Updating ai_jobs status to processing...");
+    const { caseId, aiJobId } = parseOmpQueueJobId(jobId);
+    logger.info(
+      { caseId, aiJobId, jobId },
+      "BullMQ OMP job active event received. Updating ai_jobs status to processing..."
+    );
     try {
-      await updateAiJobStatus(caseId, "processing");
-    } catch (err) {
-      logger.warn({ caseId, err }, "Failed to update ai_jobs status to processing on active event");
+      if (aiJobId) {
+        await updateAiJobStatusById(aiJobId, "processing");
+      } else {
+        await updateAiJobStatus(caseId, "processing");
+      }
+    } catch (err: unknown) {
+      logger.warn({ caseId, aiJobId, err }, "Failed to update ai_jobs status to processing on active event");
     }
   });
 
   ompQueueEvents.on("completed", async ({ jobId }) => {
-    const caseId = jobId.startsWith("omp-") ? jobId.replace("omp-", "") : jobId;
-    logger.info({ caseId }, "BullMQ OMP job completed event received. Finalizing report...");
+    const { caseId, aiJobId } = parseOmpQueueJobId(jobId);
+    logger.info({ caseId, aiJobId, jobId }, "BullMQ OMP job completed event received. Finalizing report...");
     try {
-      const ok = await finalizeOmpAuditResult(caseId);
+      const ok = await finalizeOmpAuditResult(caseId, aiJobId);
       if (!ok) {
-        logger.error({ caseId }, "Finalize found no worker output; marking failed and refunding credit");
-        await updateAiJobStatus(caseId, "failed", { error: "worker produced no output" });
+        logger.error({ caseId, aiJobId }, "Finalize found no worker output; marking failed and refunding credit");
+        if (aiJobId) {
+          await updateAiJobStatusById(aiJobId, "failed", { error: "worker produced no output" });
+        } else {
+          await updateAiJobStatus(caseId, "failed", { error: "worker produced no output" });
+        }
         await refundAuditCreditIfNoReport(caseId, "finalize-no-output");
         await rollbackCaseStageOnFailure(caseId, "finalize-no-output");
       }
-    } catch (err) {
-      logger.error({ caseId, err }, "Failed to finalize OMP audit result on completed event");
+    } catch (err: unknown) {
+      logger.error({ caseId, aiJobId, err }, "Failed to finalize OMP audit result on completed event");
       if (err instanceof AppError && err.status === 409) {
-        logger.info({ caseId }, "Duplicate report guard hit; report already finalized, skipping error status");
+        logger.info({ caseId, aiJobId }, "Duplicate report guard hit; report already finalized, skipping error status");
       } else {
-        await updateAiJobStatus(caseId, "failed", { error: String(err) }).catch(() => {});
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        if (aiJobId) {
+          await updateAiJobStatusById(aiJobId, "failed", { error: errorMsg }).catch(() => {});
+        } else {
+          await updateAiJobStatus(caseId, "failed", { error: errorMsg }).catch(() => {});
+        }
         await refundAuditCreditIfNoReport(caseId, "finalize-error");
         await rollbackCaseStageOnFailure(caseId, "finalize-error");
       }
@@ -166,12 +187,16 @@ export function initOmpQueueListener(): void {
   });
 
   ompQueueEvents.on("failed", async ({ jobId, failedReason }) => {
-    const caseId = jobId.startsWith("omp-") ? jobId.replace("omp-", "") : jobId;
-    logger.error({ caseId, failedReason }, "BullMQ OMP job failed event received");
+    const { caseId, aiJobId } = parseOmpQueueJobId(jobId);
+    logger.error({ caseId, aiJobId, failedReason, jobId }, "BullMQ OMP job failed event received");
     try {
-      await updateAiJobStatus(caseId, "failed", { error: failedReason });
-    } catch (err) {
-      logger.warn({ caseId, err }, "Failed to update ai_jobs status to failed");
+      if (aiJobId) {
+        await updateAiJobStatusById(aiJobId, "failed", { error: failedReason });
+      } else {
+        await updateAiJobStatus(caseId, "failed", { error: failedReason });
+      }
+    } catch (err: unknown) {
+      logger.warn({ caseId, aiJobId, err }, "Failed to update ai_jobs status to failed");
     }
     await refundAuditCreditIfNoReport(caseId, "worker-failed");
     await rollbackCaseStageOnFailure(caseId, "worker-failed");
@@ -393,8 +418,11 @@ export async function triggerOmpAuditForCase(
       let isStale = false;
 
       try {
-        const queueJobId = `omp-${caseId}`;
-        const bullJob = await ompQueue.getJob(queueJobId);
+        const queueJobId = buildOmpQueueJobId(caseId, latestJob.id);
+        let bullJob = await ompQueue.getJob(queueJobId);
+        if (!bullJob) {
+          bullJob = await ompQueue.getJob(`omp-${caseId}`);
+        }
         if (!bullJob) {
           // Not in BullMQ queue at all
           isStale = true;
@@ -417,6 +445,10 @@ export async function triggerOmpAuditForCase(
       if (isStale) {
         logger.warn({ caseId, previousStatus: latestJob.status, timeSinceUpdate }, "Detected stale ai_job in fast-path guard; auto-healing status to failed");
         try {
+          await updateAiJobStatusById(latestJob.id, "failed", {
+            error: "Stale job auto-recovered: task was no longer active in worker queue",
+            autoRecoveredAt: new Date().toISOString(),
+          }).catch(() => {});
           await updateAiJobStatus(caseId, "failed", {
             error: "Stale job auto-recovered: task was no longer active in worker queue",
             autoRecoveredAt: new Date().toISOString(),
@@ -464,6 +496,7 @@ export async function triggerOmpAuditForCase(
   // cleanly consume 1 credit from the restored balance without P2002 collision.
   const startedAt = new Date().toISOString();
   const idempotencyKey = `audit-trigger-${caseId}-${startedAt}`;
+  let newAiJob!: AiJob;
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -513,39 +546,25 @@ export async function triggerOmpAuditForCase(
         });
       }
 
-      // Register in ai_jobs table
-      await tx.aiJob.upsert({
-        where: { id: `ai-job-${caseId}` },
-        create: {
-          id: `ai-job-${caseId}`,
-          case_id: caseId,
-          job_type: "omp_audit",
-          status: "queued",
-          input_json: {
-            submission_type: submissionType,
-            lifecycle_unit_id: lifecycleUnitId ?? null,
-            startedAt,
-            model: resolvedModel,
-            prompt_mode: promptMode,
-            skip_credit_check: skipCreditCheck,
-            admin_triggered: adminTriggered,
-          },
+      // Count existing jobs for this case to set attempt_no = existingCount + 1
+      const existingCount = await countAiJobsByCase(caseId, "omp_audit");
+      const attemptNo = existingCount + 1;
+
+      // Register in ai_jobs table with auto-generated UUID
+      newAiJob = await createAiJobQueued(
+        caseId,
+        {
+          submission_type: submissionType,
+          lifecycle_unit_id: lifecycleUnitId ?? null,
+          startedAt,
+          model: resolvedModel,
+          prompt_mode: promptMode,
+          skip_credit_check: skipCreditCheck,
+          admin_triggered: adminTriggered,
+          attempt_no: attemptNo,
         },
-        update: {
-          status: "queued",
-          output_json: Prisma.DbNull,
-          input_json: {
-            submission_type: submissionType,
-            lifecycle_unit_id: lifecycleUnitId ?? null,
-            startedAt,
-            model: resolvedModel,
-            prompt_mode: promptMode,
-            skip_credit_check: skipCreditCheck,
-            admin_triggered: adminTriggered,
-          },
-          updated_at: new Date(startedAt),
-        },
-      });
+        tx
+      );
     });
   } catch (txErr) {
     // Expected 402/409 are routine, not infra failures — don't error-log them.
@@ -561,17 +580,16 @@ export async function triggerOmpAuditForCase(
 
     // 8. Cleanup old sandbox input/output before writing new files
     const projectRoot = resolveRepoRoot();
-    const jobDir = resolve(projectRoot, "storage", "jobs", caseId);
+    const jobDir = resolve(projectRoot, "storage", "jobs", caseId, newAiJob.id);
     cleanDirectory(resolve(jobDir, "input"));
     cleanDirectory(resolve(jobDir, "output"));
 
     // Optional local-dev mirror (e.g. a second checkout's storage). Unset = skip.
     const sandboxStorage = process.env.OMP_SANDBOX_MIRROR_ROOT || "";
     if (existsSync(sandboxStorage)) {
-      cleanDirectory(resolve(sandboxStorage, "jobs", caseId, "input"));
-      cleanDirectory(resolve(sandboxStorage, "jobs", caseId, "output"));
+      cleanDirectory(resolve(sandboxStorage, "jobs", caseId, newAiJob.id, "input"));
+      cleanDirectory(resolve(sandboxStorage, "jobs", caseId, newAiJob.id, "output"));
     }
-
     // 9. Assemble scoped input files per submission type
     const { inputFiles, resolvedLifecycleUnitId } = await assembleScopedInputFiles(
       caseId,
@@ -585,7 +603,7 @@ export async function triggerOmpAuditForCase(
     if (resolvedLifecycleUnitId && resolvedLifecycleUnitId !== (lifecycleUnitId ?? null)) {
       try {
         await prisma.aiJob.update({
-          where: { id: `ai-job-${caseId}` },
+          where: { id: newAiJob.id },
           data: {
             input_json: {
               submission_type: submissionType,
@@ -595,11 +613,12 @@ export async function triggerOmpAuditForCase(
               prompt_mode: promptMode,
               skip_credit_check: skipCreditCheck,
               admin_triggered: adminTriggered,
+              attempt_no: newAiJob.attempt_count,
             },
           },
         });
       } catch (persistErr) {
-        logger.warn({ caseId, persistErr }, "Failed to persist resolved lifecycle_unit_id into aiJob.input_json");
+        logger.warn({ caseId, jobId: newAiJob.id, persistErr }, "Failed to persist resolved lifecycle_unit_id into aiJob.input_json");
       }
     }
 
@@ -608,7 +627,7 @@ export async function triggerOmpAuditForCase(
 
     if (existsSync(sandboxStorage)) {
       try {
-        prepareSandbox(resolve(sandboxStorage, "jobs", caseId), inputFiles);
+        prepareSandbox(resolve(sandboxStorage, "jobs", caseId, newAiJob.id), inputFiles);
       } catch (err) {
         logger.warn({ caseId, err }, "Failed to mirror sandbox to OMP_SANDBOX_MIRROR_ROOT");
       }
@@ -619,7 +638,8 @@ export async function triggerOmpAuditForCase(
 
     // 11. Dispatch job into BullMQ (with submissionType in payload)
     await dispatchOmpJob({
-      jobId: caseId,
+      jobId: newAiJob.id,
+      caseId,
       documentPath: resolve(jobDir, "input", primaryFileName),
       documentOriginalName: primaryFileName,
       title: projectName,
@@ -651,10 +671,37 @@ export async function triggerOmpAuditForCase(
       ],
     });
 
-    logger.info({ caseId, projectName, submissionType, resolvedLifecycleUnitId }, "OMP audit job dispatched to BullMQ queue");
+    jobStore.set({
+      id: newAiJob.id,
+      title: projectName,
+      documentPath: resolve(jobDir, "input", primaryFileName),
+      documentOriginalName: primaryFileName,
+      requestedAgent: "omp",
+      createdAt: startedAt,
+      status: "queued",
+      ompStatus: "queued",
+      results: {},
+      logs: [
+        {
+          timestamp: startedAt,
+          agent: "system",
+          message: adminTriggered
+            ? `[Quản trị viên] Bắt đầu chạy lại thẩm định với mô hình ${resolvedModel}`
+            : `Khởi tạo tiến trình thẩm định đề án ${projectName} - Mã case ${caseRecord.case_code} (${resolvedModel})`,
+        },
+      ],
+    });
+
+    logger.info(
+      { caseId, aiJobId: newAiJob.id, projectName, submissionType, resolvedLifecycleUnitId },
+      "OMP audit job dispatched to BullMQ queue"
+    );
   } catch (flowErr) {
     logger.error({ caseId, flowErr }, "Preparation or dispatch failed, refunding credit");
     await refundAuditCreditIfNoReport(caseId, "dispatch-failure").catch(() => {});
+    if (newAiJob?.id) {
+      await updateAiJobStatusById(newAiJob.id, "failed", { error: String(flowErr) }).catch(() => {});
+    }
     await updateAiJobStatus(caseId, "failed", { error: String(flowErr) }).catch(() => {});
     await rollbackCaseStageOnFailure(caseId, "dispatch-failure").catch(() => {});
     throw flowErr;
@@ -665,8 +712,13 @@ export async function triggerOmpAuditForCase(
  * Cancel running/queued OMP audit job.
  */
 export async function cancelOmpAuditForCase(caseId: string) {
-  const queueResult = await cancelOmpJob(caseId);
+  const latestJob = await findLatestAiJobByCase(caseId);
+  const queueResult = await cancelOmpJob(caseId, latestJob?.id);
   const cancelledJob = jobStore.cancel(caseId);
+  if (latestJob?.id) {
+    jobStore.cancel(latestJob.id);
+    await updateAiJobStatusById(latestJob.id, "cancelled", { cancelledAt: new Date().toISOString() }).catch(() => {});
+  }
   await updateAiJobStatus(caseId, "cancelled", { cancelledAt: new Date().toISOString() });
   await refundAuditCreditIfNoReport(caseId, "cancelled-by-user").catch(() => {});
 
@@ -704,8 +756,11 @@ export async function cleanupStaleAiJobs(): Promise<number> {
       const caseId = job.case_id;
       let shouldHeal = false;
       try {
-        const queueJobId = `omp-${caseId}`;
-        const bullJob = await ompQueue.getJob(queueJobId);
+        const queueJobId = buildOmpQueueJobId(caseId, job.id);
+        let bullJob = await ompQueue.getJob(queueJobId);
+        if (!bullJob) {
+          bullJob = await ompQueue.getJob(`omp-${caseId}`);
+        }
         if (!bullJob) {
           shouldHeal = true;
         } else {
@@ -722,6 +777,10 @@ export async function cleanupStaleAiJobs(): Promise<number> {
 
       if (shouldHeal) {
         logger.warn({ caseId, jobId: job.id, status: job.status }, "Periodic watchdog healing stale ai_job");
+        await updateAiJobStatusById(job.id, "failed", {
+          error: "Stale job timeout: automatically cleared by background watchdog",
+          clearedAt: new Date().toISOString(),
+        }).catch(() => {});
         await updateAiJobStatus(caseId, "failed", {
           error: "Stale job timeout: automatically cleared by background watchdog",
           clearedAt: new Date().toISOString(),

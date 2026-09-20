@@ -1,7 +1,7 @@
 "use client";
 
-import { Drawer, Tabs, Stepper, Text, Badge, Group, Paper, Stack, Button, SimpleGrid } from "@mantine/core";
-import { Bot, FileText, Download, AlertCircle, ExternalLink, Activity, Info, Code2 } from "lucide-react";
+import { Drawer, Tabs, Stepper, Text, Badge, Group, Paper, Stack, Button, SimpleGrid, CopyButton, ActionIcon, Tooltip } from "@mantine/core";
+import { Bot, FileText, Download, AlertCircle, ExternalLink, Activity, Info, Code2, Copy, Check } from "lucide-react";
 import { useAdminWorkerJobDetail } from "../hooks/useAdminWorkers";
 import WorkerJobTerminal from "./WorkerJobTerminal";
 
@@ -33,10 +33,49 @@ export default function WorkerJobDetailDrawer({ jobId, isOpen, onClose }: Worker
       position="right"
       size="xl"
       title={
-        <Group gap="xs">
-          <Bot className="w-5 h-5 text-brand" />
-          <Text fw={600} className="font-heading text-sm">Chi tiết tiến trình AI: {job?.caseCode ?? "..."}</Text>
-        </Group>
+        <div className="w-full pr-4 space-y-1.5">
+          <Group gap="xs" wrap="wrap" align="center">
+            <Bot className="w-5 h-5 text-brand shrink-0" />
+            <Text fw={600} className="font-heading text-sm">
+              Tiến trình AI: {job?.caseCode ?? "..."}
+            </Text>
+            <Badge size="xs" color="cyan" variant="light" className="font-mono">
+              Lần chạy thứ {job?.attemptNo || 1}
+            </Badge>
+          </Group>
+          {job?.id && (
+            <Group gap={6} align="center">
+              <Text size="xs" c="dimmed">Job ID:</Text>
+              <Text
+                size="xs"
+                fw={600}
+                className="font-mono text-text-app select-all cursor-pointer hover:text-brand transition-colors"
+                title="Click để copy Job ID"
+                onClick={() => {
+                  if (typeof navigator !== "undefined" && navigator.clipboard) {
+                    navigator.clipboard.writeText(job.id);
+                  }
+                }}
+              >
+                {job.id}
+              </Text>
+              <CopyButton value={job.id} timeout={2000}>
+                {({ copied, copy }) => (
+                  <Tooltip label={copied ? "Đã copy Job ID!" : "Copy Job ID"} withArrow position="top">
+                    <ActionIcon
+                      size="xs"
+                      variant="subtle"
+                      color={copied ? "teal" : "gray"}
+                      onClick={copy}
+                    >
+                      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    </ActionIcon>
+                  </Tooltip>
+                )}
+              </CopyButton>
+            </Group>
+          )}
+        </div>
       }
     >
       {isLoading || !job ? (
@@ -63,6 +102,23 @@ export default function WorkerJobDetailDrawer({ jobId, isOpen, onClose }: Worker
 
             <Paper p="sm" radius="md" withBorder className="border-border-app bg-surface-app">
               <SimpleGrid cols={2} spacing="xs">
+                <div>
+                  <Text size="xs" c="dimmed">Mã Job (ID):</Text>
+                  <Text size="xs" fw={600} className="font-mono text-text-app truncate" title={job.id}>
+                    {job.id}
+                  </Text>
+                </div>
+                <div>
+                  <Text size="xs" c="dimmed">Lần chạy & Loại nộp:</Text>
+                  <Group gap={4} mt={2}>
+                    <Badge size="xs" color="cyan" variant="light" className="font-mono">
+                      Lần chạy thứ {job.attemptNo || 1}
+                    </Badge>
+                    <Text size="xs" c="dimmed" className="capitalize">
+                      {job.submissionType}
+                    </Text>
+                  </Group>
+                </div>
                 <div><Text size="xs" c="dimmed">Mã hồ sơ:</Text><Text size="xs" fw={600} className="font-mono text-brand">{job.caseCode}</Text></div>
                 <div><Text size="xs" c="dimmed">Trạng thái:</Text><Badge size="xs" color={job.status === "completed" ? "green" : job.status === "processing" ? "blue" : job.status === "failed" ? "red" : "gray"}>{job.status}</Badge></div>
                 <div><Text size="xs" c="dimmed">Sinh viên:</Text><Text size="xs" fw={500}>{job.student?.name ? `${job.student.name} (${job.student.email})` : "Chưa có thông tin"}</Text></div>

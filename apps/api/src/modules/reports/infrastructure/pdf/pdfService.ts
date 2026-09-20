@@ -5,6 +5,7 @@ import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
 import { marked } from "marked";
+import { buildStandardReportPdfFilename } from "@repo/validation";
 import { localizeAndCleanMarkdown } from "./mdNormalizer.js";
 import { markdownToTypst } from "./mdToTypst.js";
 import { resolveTypstBinary } from "./typstRunner.js";
@@ -157,27 +158,24 @@ export function resolveReportType(opts?: {
 }
 
 /**
- * Tạo tên file PDF chuẩn hóa: {slug}_{report_type}_{timestamp}.pdf
- * Ví dụ: "wayvee_input_clarification_20260912143124.pdf"
+ * Tạo tên file PDF chuẩn hóa: {slug}_{submission_type}_{timestamp}_v{version}.pdf
+ * Ủy quyền trực tiếp cho buildStandardReportPdfFilename từ @repo/validation.
  */
 export function buildReportPdfFilename(opts: {
   projectName: string;
   reportType?: string;
+  submissionType?: string | null;
   markdown?: string;
   createdAt?: Date | string | null;
   versionNo?: number | null;
 }): string {
-  const slug = makeDownloadSlug(opts.projectName);
-  const type = resolveReportType({
-    reportType: opts.reportType,
-    markdown: opts.markdown,
+  return buildStandardReportPdfFilename({
+    projectName: opts.projectName,
+    submissionType: opts.submissionType,
+    createdAt: opts.createdAt,
+    versionNo: opts.versionNo,
+    customTypeSlug: opts.reportType,
   });
-  const d = opts.createdAt ? new Date(opts.createdAt) : new Date();
-  const validDate = isNaN(d.getTime()) ? new Date() : d;
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const timestamp = `${validDate.getFullYear()}${pad(validDate.getMonth() + 1)}${pad(validDate.getDate())}${pad(validDate.getHours())}${pad(validDate.getMinutes())}${pad(validDate.getSeconds())}`;
-  const versionSuffix = opts.versionNo != null ? `_v${String(opts.versionNo).padStart(2, "0")}` : "";
-  return `${slug}_${type}_${timestamp}${versionSuffix}.pdf`;
 }
 
 /**

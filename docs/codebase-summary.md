@@ -1,6 +1,6 @@
 # Tóm tắt codebase
 
-_Cập nhật: 2026-08-28. Tổng hợp từ codebase hiện tại và docs canonical trong `docs/`._
+_Cập nhật: 2026-09-20. Tổng hợp từ codebase hiện tại và docs canonical trong `docs/`._
 
 ## Repo này là gì
 
@@ -34,14 +34,21 @@ Next.js 16.2.0 product app với:
 - UI: Mantine UI v9, Lucide React, Recharts, TipTap, Tailwind CSS v4
 - Port: 3001
 
+### `apps/worker-omp`
+
+Worker daemon độc lập xử lý tác vụ thẩm định AI chuyên sâu:
+- Nhận job từ BullMQ queue `omp-queue` (concurrency 2, lock duration 10 phút)
+- Thực thi mô hình AI trong môi trường sandbox cô lập `storage/jobs/${caseId}/${jobId}/`
+- Ghi log real-time và lịch sử qua hợp đồng Dual-publish Redis (`job:log:${jobId}` & `job:log:${caseId}`)
+- Tích hợp bộ lắng nghe hủy tiến trình (cancellation listener) qua Redis Pub/Sub
+
 ### `packages/` (3 packages)
 
 | Package | Mô tả |
 |---------|-------|
-| `validation` | Zod schemas (IdeaInput, TeamMemberInput, TeamFitInput, Cp1IntakeSchema, …) — shared giữa api và web-1 |
+| `validation` | Zod schemas & shared report naming helpers (`report-naming.ts` — `buildStandardReportPdfFilename`) — shared giữa api và web-1 |
 | `eslint-config` | 3 ESLint 9 flat configs (base, next.js, react-internal) |
 | `typescript-config` | 3 tsconfig presets (base, nextjs, react-library) |
-
 ### `prisma/schema.prisma`
 
 30 models: 5 auth (User, Session, Account, Verification, TwoFactor) + 25 business (ServicePackage, ServiceType, ServicePricing, UserWallet, WalletTransaction, WalletTopup [deprecated], Deposit, Order, OrderItem, DomainEventOutbox, Case, CaseMember, Checkpoint, LifecycleUnit, DocumentRecord, DocumentType, Report, Payment [deprecated], CaseMessage, CaseEvent, AiJob, TeamFitReport, CreditLedger, Notification, NotificationOutbox). 23 migrations (mới nhất: `20260819171456_case_messages_pagination_index`).
@@ -86,6 +93,12 @@ Next.js 16.2.0 product app với:
 - Pricing logic tập trung: `getCaseEffectivePrice`, `formatPrice`, `caseRequiresPayment`, `validatePaymentProof` trong `@/lib/pricing.ts`.
 - Wallet VND (2026-08-11): backend `apps/api/src/modules/wallet/` — `GET /api/wallet/balance`, `GET /api/wallet/history` là live; `POST /api/wallet/topups` → **410 GONE** ("Tạo mã nạp tiền tại POST /api/deposits"); `POST /api/wallet/purchase-credits` **deprecated 2026-08-12**. Top-up thuộc module **deposits** (5 routes: `GET /api/deposits/admin/all`, `GET /api/deposits`, `POST /api/deposits`, `GET /api/deposits/:id`, `POST /api/deposits/:id/verify`); mua credit/order thuộc module **orders** (3 routes). Prisma `UserWallet` (cached `balance`, currency VND) + `WalletTransaction` (immutable ledger, `balance_before`/`balance_after`); `WalletTopup` `@deprecated`. Frontend: trang `/dashboard/wallet` (`WalletBalanceCard`, `WalletTransactionList`, `WalletTransactionItem`, `WalletTopupModal` — nay tạo deposit); nav item "Ví của tôi" (icon Wallet) trong `DashboardShell` cho student; hooks `useWalletBalance`/`useWalletHistory`/`useCreateDeposit` (`app/dashboard/wallet/hooks/useWallet.ts`, query key `["wallet", ...]`).
 - Settings, Profile, Session Management & UserMenu modal (2026-08-13, spec F07 `docs/requirements/settings-sidebar-and-profile.md`, cập nhật GA05 & GA06 2026-08-28): khu vực `/dashboard/settings` và `/supporter/settings` — nested layout sidebar (pattern Facebook): `/dashboard/settings` → redirect profile, `/dashboard/settings/profile` (Thông tin cơ bản: tên hiển thị + email là `TextInput disabled` + avatar "Đổi ảnh" upload Cloudinary `nexus-platform/avatars`, giới hạn 2MB/MIME validation, rollback khi lỗi DB, refetch session tức thì trên Settings & Navbar UserMenu), `/dashboard/settings/password` (Đổi mật khẩu, `revokeOtherSessions: true`; ghi chú dài → Tooltip), `/dashboard/settings/sessions` và `/supporter/settings/sessions` (GA-06: Quản lý thiết bị & phiên đăng nhập — hiển thị danh sách thiết bị kèm OS/Trình duyệt/IP, badge "Phiên hiện tại" bất biến theo `session.id`, thu hồi từng phiên với scoped loading, thu hồi tất cả phiên khác kèm modal xác nhận an toàn theo chuẩn OWASP Session Management). Route cũ `/dashboard/profile` → redirect stub. Backend module `profile` (`POST /api/profile/avatar`, `DELETE /api/profile/account`, `GET /api/profile/sessions`, `DELETE /api/profile/sessions/:id`, `POST /api/profile/sessions/revoke-others`). Avatar & Session status đồng bộ trong `DashboardShell` / `UserMenu`.
+- OMP Worker, Độc lập Job Run & Báo cáo PDF Chuẩn hóa (2026-09-20):
+  - **Run-based AI Job:** Mỗi lần chạy thẩm định tạo bản ghi `AiJob` mới với UUID riêng và `attempt_count`, trạng thái cập nhật theo primary key (`updateAiJobStatusById`), bảo toàn toàn bộ lịch sử chạy và model AI thực tế.
+  - **BullMQ Dual-Key Queue:** Job ID trong hàng đợi định dạng kép `omp-${caseId}--${aiJobId}`, bóc tách qua `parseOmpQueueJobId`, hỗ trợ fallback cho job cũ `omp-${caseId}`.
+  - **Phân cấp Sandbox Storage:** Thư mục sandbox `storage/jobs/${caseId}/${jobId}/` chứa `input/`, `output/`, `models.json`, `system_prompt/`. Helper `resolveJobSandboxDir` hỗ trợ fallback 3 cấp (`caseId/jobId` -> `jobId` -> legacy `caseId`).
+  - **Dual-Publish Redis Logging:** Worker phát log đồng thời lên `job:log:${jobId}` / `job:logs:${jobId}` (Admin Worker Monitoring Drawer) và `job:log:${caseId}` / `job:logs:${caseId}` (Student Realtime SSE `/api/cases/:id/ai-events`), TTL 24h, bảo vệ chống rò rỉ prompt.
+  - **Chuẩn hóa Tên Báo cáo PDF:** Pattern duy nhất `${slug}_${submission_type}_${timestamp}_v${version}.pdf` từ `@repo/validation` (`buildStandardReportPdfFilename`), đồng bộ giữa Backend Typst PDF, API download, Tab Tài liệu và Tab Phản biện.
 
 ## Ràng buộc vận hành
 

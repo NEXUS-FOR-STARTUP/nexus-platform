@@ -12,6 +12,7 @@ import {
   Trash2,
   Coins,
   ArrowUpRight,
+  RotateCcw,
   type LucideIcon,
 } from "lucide-react";
 
@@ -205,6 +206,48 @@ const EVENT_MAP: Record<string, EventDetails> = {
   },
 
   // ── Transition-name events (stored by case-transition.service.ts) ──
+  T1_CREATE_CASE: {
+    label: "Khởi tạo hồ sơ",
+    desc: "Hồ sơ đề án phản biện đã được khởi tạo trên hệ thống.",
+    icon: FolderPlus,
+    colorClass: "bg-brand-soft text-brand border-brand/20",
+  },
+  T2_SUBMIT_INTAKE: {
+    label: "Nộp hồ sơ đề án",
+    desc: "Sinh viên đã hoàn thành và gửi hồ sơ đề án lên hệ thống.",
+    icon: Upload,
+    colorClass: "bg-brand-soft text-brand border-brand/20",
+  },
+  T3_RESUBMIT_AFTER_REJECT: {
+    label: "Nộp lại hồ sơ sau từ chối",
+    desc: "Hồ sơ đã được chỉnh sửa và nộp lại sau khi bị từ chối.",
+    icon: Upload,
+    colorClass: "bg-brand-soft text-brand border-brand/20",
+  },
+  T4_RESUBMIT_AFTER_VETO: {
+    label: "Nộp lại hồ sơ sau xem xét",
+    desc: "Hồ sơ đã được cập nhật và nộp lại sau khi xem xét yêu cầu.",
+    icon: Upload,
+    colorClass: "bg-brand-soft text-brand border-brand/20",
+  },
+  T7_START_WORK: {
+    label: "Bắt đầu phản biện",
+    desc: "Người hỗ trợ đã tiếp nhận và bắt đầu xem xét, phản biện hồ sơ.",
+    icon: FileEdit,
+    colorClass: "bg-info-soft text-info border-info/20",
+  },
+  T10_START_REVIEW_REVISION: {
+    label: "Bắt đầu xem xét bản sửa đổi",
+    desc: "Người hỗ trợ đang tiến hành xem xét và đánh giá bản sửa đổi hồ sơ.",
+    icon: FileEdit,
+    colorClass: "bg-info-soft text-info border-info/20",
+  },
+  T16_EDIT_INTAKE: {
+    label: "Chỉnh sửa hồ sơ đề án",
+    desc: "Thông tin hồ sơ đề án đã được cập nhật.",
+    icon: FileEdit,
+    colorClass: "bg-brand-soft text-brand border-brand/20",
+  },
   T14_COMPLETE: {
     label: "Hồ sơ hoàn thành (Admin)",
     desc: "Quản trị viên đã đóng và hoàn thành hồ sơ phản biện.",
@@ -271,6 +314,26 @@ const EVENT_MAP: Record<string, EventDetails> = {
     icon: XCircle,
     colorClass: "bg-danger-soft text-danger border-danger/20",
   },
+
+  // ── Admin Worker Actions ──
+  ADMIN_RETRY_AI_JOB: {
+    label: "Kích hoạt chạy lại AI (Admin)",
+    desc: "Quản trị viên đã kích hoạt chạy lại tiến trình thẩm định AI cho hồ sơ.",
+    icon: RotateCcw,
+    colorClass: "bg-brand-soft text-brand border-brand/20",
+  },
+  ADMIN_HEALED_STUCK_JOB: {
+    label: "Giải cứu tiến trình AI kẹt (Admin)",
+    desc: "Quản trị viên đã giải phóng tiến trình AI bị kẹt và chuyển hồ sơ về trạng thái an toàn.",
+    icon: CheckCircle,
+    colorClass: "bg-warning-soft text-warning border-warning/20",
+  },
+  ADMIN_CANCEL_AI_JOB: {
+    label: "Hủy tiến trình AI (Admin)",
+    desc: "Quản trị viên đã hủy tiến trình thẩm định AI đang chạy.",
+    icon: XCircle,
+    colorClass: "bg-danger-soft text-danger border-danger/20",
+  },
 };
 
 const FALLBACK: EventDetails = {
@@ -281,8 +344,14 @@ const FALLBACK: EventDetails = {
 };
 
 export function getEventDetails(type: string): EventDetails {
-  return EVENT_MAP[type] ?? {
-    ...FALLBACK,
-    label: type.replace(/_/g, " "),
-  };
+  return (
+    EVENT_MAP[type] ?? {
+      ...FALLBACK,
+      label: type
+        .replace(/^T\d+_/, "")
+        .replace(/_/g, " ")
+        .toLowerCase()
+        .replace(/^\w/, (c) => c.toUpperCase()),
+    }
+  );
 }

@@ -8,6 +8,7 @@ import {
   ompQueue,
   getJobMilestones,
   cancelOmpJob,
+  parseOmpQueueJobId,
 } from "../../ai-engine/infrastructure/queue/omp-queue.js";
 import {
   triggerOmpAuditForCase,
@@ -29,15 +30,23 @@ import type {
 const TEN_MINUTES_MS = 10 * 60 * 1000;
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 
-function getSandboxFiles(caseId: string, subFolder: "input" | "output"): JobSandboxFileInfo[] {
+function getSandboxFiles(caseId: string, subFolder: "input" | "output", jobId?: string): JobSandboxFileInfo[] {
   if (!/^[a-zA-Z0-9_-]+$/.test(caseId)) {
     return [];
   }
   const root = resolveRepoRoot();
-  const candidateDirs = [
+  const candidateDirs: string[] = [];
+  if (jobId && /^[a-zA-Z0-9_-]+$/.test(jobId)) {
+    candidateDirs.push(
+      resolve(root, "storage", "jobs", caseId, jobId, subFolder),
+      resolve(root, "apps", "api", "storage", "jobs", caseId, jobId, subFolder),
+      resolve(root, "storage", "jobs", jobId, subFolder),
+    );
+  }
+  candidateDirs.push(
     resolve(root, "storage", "jobs", caseId, subFolder),
     resolve(root, "apps", "api", "storage", "jobs", caseId, subFolder),
-  ];
+  );
   const targetDir = candidateDirs.find((d) => existsSync(d));
   if (!targetDir) return [];
   try {
@@ -143,10 +152,20 @@ export async function listAdminWorkerJobs(
   if (query.status === "active") {
     try {
       const activeJobs = await ompQueue.getActive();
-      const activeCaseIds = activeJobs
-        .map((j) => (j.id ? (j.id.startsWith("omp-") ? j.id.replace("omp-", "") : j.id) : null))
-        .filter(Boolean) as string[];
-
+      const activePairs = activeJobs
+        .map((j) => {
+          const dataCaseId = (j.data as any)?.caseId;
+          const dataJobId = (j.data as any)?.jobId;
+          if (dataCaseId) return { caseId: dataCaseId, jobId: dataJobId };
+          if (j.id) {
+            const parsed = parseOmpQueueJobId(j.id);
+            return { caseId: parsed.caseId, jobId: parsed.aiJobId };
+          }
+          return null;
+        })
+        .filter(Boolean) as Array<{ caseId: string; jobId?: string }>;
+      const activeCaseIds = activePairs.map((p) => p.caseId);
+      const activeJobIds = activePairs.map((p) => p.jobId).filter(Boolean) as string[];
       if (activeCaseIds.length > 0) {
         await prisma.aiJob
           .updateMany({
@@ -159,7 +178,11 @@ export async function listAdminWorkerJobs(
           })
           .catch(() => {});
 
-        where.OR = [{ status: "processing" }, { case_id: { in: activeCaseIds } }];
+        where.OR = [
+          { status: "processing" },
+          ...(activeJobIds.length > 0 ? [{ id: { in: activeJobIds } }] : []),
+          { case_id: { in: activeCaseIds } },
+        ];
       } else {
         where.status = "processing";
       }
@@ -170,9 +193,23 @@ export async function listAdminWorkerJobs(
     where.status = "queued";
     try {
       const activeJobs = await ompQueue.getActive();
-      const activeCaseIds = activeJobs
-        .map((j) => (j.id ? (j.id.startsWith("omp-") ? j.id.replace("omp-", "") : j.id) : null))
-        .filter(Boolean) as string[];
+      const activePairs = activeJobs
+        .map((j) => {
+          const dataCaseId = (j.data as any)?.caseId;
+          const dataJobId = (j.data as any)?.jobId;
+          if (dataCaseId) return { caseId: dataCaseId, jobId: dataJobId };
+          if (j.id) {
+            const parsed = parseOmpQueueJobId(j.id);
+            return { caseId: parsed.caseId, jobId: parsed.aiJobId };
+          }
+          return null;
+        })
+        .filter(Boolean) as Array<{ caseId: string; jobId?: string }>;
+      const activeCaseIds = activePairs.map((p) => p.caseId);
+      const activeJobIds = activePairs.map((p) => p.jobId).filter(Boolean) as string[];
+      if (activeJobIds.length > 0) {
+        where.id = { notIn: activeJobIds };
+      }
       if (activeCaseIds.length > 0) {
         where.case_id = { notIn: activeCaseIds };
       }
@@ -189,15 +226,27 @@ export async function listAdminWorkerJobs(
   }
 
   if (query.search && query.search.trim()) {
-    const s = query.search.trim();
-    where.case = {
-      OR: [
-        { case_code: { contains: s, mode: "insensitive" } },
-        { team_name: { contains: s, mode: "insensitive" } },
-        { owner: { name: { contains: s, mode: "insensitive" } } },
-        { owner: { email: { contains: s, mode: "insensitive" } } },
-      ],
-    };
+    const term = query.search.trim();
+    const searchConditions: Prisma.AiJobWhereInput[] = [
+      { id: { contains: term, mode: "insensitive" } },
+      {
+        case: {
+          OR: [
+            { case_code: { contains: term, mode: "insensitive" } },
+            { team_name: { contains: term, mode: "insensitive" } },
+            { owner: { name: { contains: term, mode: "insensitive" } } },
+            { owner: { email: { contains: term, mode: "insensitive" } } },
+          ],
+        },
+      },
+    ];
+
+    if (where.OR) {
+      where.AND = [{ OR: where.OR }, { OR: searchConditions }];
+      delete where.OR;
+    } else {
+      where.OR = searchConditions;
+    }
   }
 
   const [total, jobs] = await Promise.all([
@@ -244,6 +293,10 @@ export async function listAdminWorkerJobs(
       (job.status === "queued" || job.status === "processing") &&
       job.updated_at.getTime() < tenMinutesAgo.getTime();
 
+    const rawAttempt =
+      (inputJson.attempt_no as number | undefined) ?? (inputJson.attemptNo as number | undefined);
+    const attemptNo = typeof rawAttempt === "number" && rawAttempt > 0 ? rawAttempt : 1;
+
     return {
       id: job.id,
       caseId: job.case_id,
@@ -254,6 +307,7 @@ export async function listAdminWorkerJobs(
       status: job.status,
       isStuck,
       submissionType: (inputJson.submission_type as string) || "initial",
+      attemptNo,
       model:
         (inputJson.model as string | undefined)?.trim() ||
         (job.created_at < new Date("2026-09-20T00:00:00Z") ? "mimo/mimo-v2.5" : process.env.OMP_MODEL || "mimo/mimo-v2.5"),
@@ -318,9 +372,9 @@ export async function getAdminWorkerJobDetail(
     (job.status === "queued" || job.status === "processing") &&
     job.updated_at.getTime() < tenMinutesAgo.getTime();
 
-  const milestones = getJobMilestones(caseId);
-  const inputFiles = getSandboxFiles(caseId, "input");
-  const outputFiles = getSandboxFiles(caseId, "output");
+  const milestones = getJobMilestones(caseId, job.id);
+  const inputFiles = getSandboxFiles(caseId, "input", job.id);
+  const outputFiles = getSandboxFiles(caseId, "output", job.id);
 
   const [teamFit, latestReport] = await Promise.all([
     prisma.teamFitReport.findUnique({ where: { case_id: caseId } }),
@@ -371,6 +425,10 @@ export async function getAdminWorkerJobDetail(
     (outputJson.failedReason as string) ||
     null;
 
+  const rawAttempt =
+    (inputJson.attempt_no as number | undefined) ?? (inputJson.attemptNo as number | undefined);
+  const attemptNo = typeof rawAttempt === "number" && rawAttempt > 0 ? rawAttempt : 1;
+
   return {
     id: job.id,
     caseId: job.case_id,
@@ -384,6 +442,7 @@ export async function getAdminWorkerJobDetail(
     status: job.status,
     isStuck,
     submissionType: (inputJson.submission_type as string) || "initial",
+    attemptNo,
     model:
       (inputJson.model as string | undefined)?.trim() ||
       (job.created_at < new Date("2026-09-20T00:00:00Z") ? "mimo/mimo-v2.5" : process.env.OMP_MODEL || "mimo/mimo-v2.5"),

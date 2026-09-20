@@ -34,8 +34,35 @@ export const redisSubscriber = new Redis({
   lazyConnect: true,
 });
 
+/**
+ * Build dual-key BullMQ queue job id: omp-${caseId}--${aiJobId}
+ */
+export function buildOmpQueueJobId(caseId: string, aiJobId: string): string {
+  return `omp-${caseId}--${aiJobId}`;
+}
+
+/**
+ * Parse dual-key BullMQ queue job id.
+ * Format: omp-${caseId}--${aiJobId}
+ * Legacy fallback: omp-${caseId} or ${caseId} -> { caseId: raw, aiJobId: undefined }
+ */
+export function parseOmpQueueJobId(queueJobId: string): { caseId: string; aiJobId?: string } {
+  const raw = queueJobId.startsWith("omp-") ? queueJobId.slice(4) : queueJobId;
+  const separatorIndex = raw.indexOf("--");
+  if (separatorIndex !== -1) {
+    const caseId = raw.slice(0, separatorIndex);
+    const aiJobId = raw.slice(separatorIndex + 2);
+    return {
+      caseId,
+      aiJobId: aiJobId || undefined,
+    };
+  }
+  return { caseId: raw, aiJobId: undefined };
+}
+
 export interface OmpJobPayload {
   jobId: string;
+  caseId: string;
   documentPath: string;
   documentOriginalName: string;
   title: string;
@@ -50,16 +77,28 @@ export interface OmpJobPayload {
  * Dispatch an evaluation task into BullMQ omp-queue.
  */
 export async function dispatchOmpJob(payload: OmpJobPayload): Promise<void> {
-  const queueJobId = `omp-${payload.jobId}`;
-  logger.info({ jobId: payload.jobId, title: payload.title }, "Dispatching task into BullMQ omp-queue");
+  const queueJobId = payload.caseId
+    ? buildOmpQueueJobId(payload.caseId, payload.jobId)
+    : `omp-${payload.jobId}`;
+  logger.info(
+    { jobId: payload.jobId, caseId: payload.caseId, queueJobId, title: payload.title },
+    "Dispatching task into BullMQ omp-queue"
+  );
   try {
     const existing = await ompQueue.getJob(queueJobId);
     if (existing) {
       await existing.remove();
-      logger.info({ jobId: payload.jobId }, "Removed existing stale job from BullMQ queue before dispatch");
+      logger.info(
+        { jobId: payload.jobId, caseId: payload.caseId, queueJobId },
+        "Removed existing stale job from BullMQ queue before dispatch"
+      );
     }
-  } catch (err: any) {
-    logger.warn({ jobId: payload.jobId, err: err.message }, "Could not remove existing BullMQ job before dispatch");
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.warn(
+      { jobId: payload.jobId, caseId: payload.caseId, queueJobId, err: message },
+      "Could not remove existing BullMQ job before dispatch"
+    );
   }
 
   await ompQueue.add("evaluate-omp", payload, {
@@ -72,45 +111,87 @@ export async function dispatchOmpJob(payload: OmpJobPayload): Promise<void> {
 /**
  * Check real-time milestone files on disk for a job.
  */
-export function getJobMilestones(jobId: string): {
+export interface OmpJobMilestones {
   sandboxReady: boolean;
   triadPacket: boolean;
   auditReport: boolean;
   reportJson: boolean;
-} {
+}
+
+export function getJobMilestones(jobId: string, aiJobId?: string): OmpJobMilestones {
   const root = resolveRepoRoot();
-  const candidateDirs = [
+  const candidateDirs: string[] = [];
+
+  if (aiJobId) {
+    candidateDirs.push(
+      resolve(root, "storage", "jobs", jobId, aiJobId),
+      resolve(root, "apps", "api", "storage", "jobs", jobId, aiJobId)
+    );
+  }
+
+  const baseDirs = [
     resolve(root, "storage", "jobs", jobId),
     resolve(root, "apps", "api", "storage", "jobs", jobId),
   ];
 
-  const checkExists = (subPath: string): boolean => {
-    return candidateDirs.some((dir) => existsSync(resolve(dir, subPath)));
-  };
+  for (const base of baseDirs) {
+    if (existsSync(base)) {
+      try {
+        const subdirs = readdirSync(base, { withFileTypes: true })
+          .filter((d) => d.isDirectory() && d.name !== "input" && d.name !== "output");
+        for (const d of subdirs) {
+          candidateDirs.push(resolve(base, d.name));
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  candidateDirs.push(...baseDirs);
 
   const sandboxReady = candidateDirs.some((dir) => {
     const inputDir = resolve(dir, "input");
     return existsSync(inputDir) && readdirSync(inputDir).length > 0;
   });
 
-  const triadPacket = checkExists("output/triad_handoff_packet.md");
-  const auditReport = checkExists("output/input_clarification_audit.md");
-  const reportJson = checkExists("output/report.json");
-
+  const triadPacket = candidateDirs.some((dir) => existsSync(resolve(dir, "output/triad_handoff_packet.md")));
+  const auditReport = candidateDirs.some((dir) => existsSync(resolve(dir, "output/input_clarification_audit.md")));
+  const reportJson = candidateDirs.some((dir) => existsSync(resolve(dir, "output/report.json")));
   return { sandboxReady, triadPacket, auditReport, reportJson };
 }
 
 /**
  * Retrieve real status of a job from BullMQ and filesystem.
  */
-export async function getOmpJobStatus(jobId: string): Promise<{
+export async function getOmpJobStatus(jobId: string, aiJobId?: string): Promise<{
   state: "waiting" | "active" | "completed" | "failed" | "unknown";
-  milestones: ReturnType<typeof getJobMilestones>;
+  milestones: OmpJobMilestones;
   failedReason?: string;
 }> {
-  const milestones = getJobMilestones(jobId);
+  const milestones = getJobMilestones(jobId, aiJobId);
   try {
-    const job = await ompQueue.getJob(`omp-${jobId}`);
+    let job = await ompQueue.getJob(jobId);
+    if (!job && aiJobId) {
+      job = await ompQueue.getJob(buildOmpQueueJobId(jobId, aiJobId));
+    }
+    if (!job && !jobId.startsWith("omp-")) {
+      job = await ompQueue.getJob(`omp-${jobId}`);
+    }
+    if (!job) {
+      const activeJobs = await ompQueue.getJobs(["active", "waiting", "delayed"]);
+      const found = activeJobs.find(
+        (j) =>
+          j.id === jobId ||
+          j.id === `omp-${jobId}` ||
+          (j.id && j.id.startsWith(`omp-${jobId}--`)) ||
+          (j.data && (j.data.caseId === jobId || j.data.jobId === jobId))
+      );
+      if (found) {
+        job = found;
+      }
+    }
+
     if (!job) {
       if (milestones.reportJson) {
         return { state: "completed", milestones };
@@ -134,7 +215,7 @@ export async function getOmpJobStatus(jobId: string): Promise<{
       failedReason: job.failedReason,
     };
   } catch (err) {
-    logger.warn({ jobId, err }, "Failed to get job state from BullMQ");
+    logger.warn({ jobId, aiJobId, err }, "Failed to get job state from BullMQ");
     return {
       state: milestones.reportJson ? "completed" : "unknown",
       milestones,
@@ -145,9 +226,29 @@ export async function getOmpJobStatus(jobId: string): Promise<{
 /**
  * Cancel an ongoing job by sending cancellation event to Redis.
  */
-export async function cancelOmpJob(jobId: string): Promise<boolean> {
+export async function cancelOmpJob(jobId: string, aiJobId?: string): Promise<boolean> {
   try {
-    const job = await ompQueue.getJob(`omp-${jobId}`);
+    let job = await ompQueue.getJob(jobId);
+    if (!job && aiJobId) {
+      job = await ompQueue.getJob(buildOmpQueueJobId(jobId, aiJobId));
+    }
+    if (!job && !jobId.startsWith("omp-")) {
+      job = await ompQueue.getJob(`omp-${jobId}`);
+    }
+    if (!job) {
+      const activeJobs = await ompQueue.getJobs(["active", "waiting", "delayed"]);
+      const found = activeJobs.find(
+        (j) =>
+          j.id === jobId ||
+          j.id === `omp-${jobId}` ||
+          (j.id && j.id.startsWith(`omp-${jobId}--`)) ||
+          (j.data && (j.data.caseId === jobId || j.data.jobId === jobId))
+      );
+      if (found) {
+        job = found;
+      }
+    }
+
     if (job && !(await job.isActive())) {
       await job.remove();
     }
@@ -155,10 +256,12 @@ export async function cancelOmpJob(jobId: string): Promise<boolean> {
     if (redisPublisher.status !== "ready") {
       await redisPublisher.connect().catch(() => {});
     }
-    await redisPublisher.publish("job-cancellation", JSON.stringify({ jobId }));
+    const targetJobId = job?.data?.jobId || aiJobId || jobId;
+    const targetCaseId = job?.data?.caseId || (jobId !== targetJobId ? jobId : undefined);
+    await redisPublisher.publish("job-cancellation", JSON.stringify({ jobId: targetJobId, caseId: targetCaseId }));
     return true;
   } catch (err) {
-    logger.error({ jobId, err }, "Failed to cancel OMP job");
+    logger.error({ jobId, aiJobId, err }, "Failed to cancel OMP job");
     return false;
   }
 }

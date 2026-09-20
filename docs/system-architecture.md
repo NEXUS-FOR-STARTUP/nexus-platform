@@ -1,6 +1,6 @@
 # System Architecture
 
-_Cập nhật: 2026-08-24. Bám codebase hiện tại._
+_Cập nhật: 2026-09-20. Bám codebase hiện tại._
 
 ## 1. Mục tiêu tài liệu
 
@@ -8,11 +8,12 @@ Tài liệu này mô tả architecture hiện trạng phục vụ MVP demo Nexus
 
 ## 2. Kiến trúc tổng quan
 
-Nexus hiện là monorepo Turborepo với 3 vùng chính:
-- `apps/web-1`: product frontend Next.js 16
+Nexus hiện là monorepo Turborepo với 4 vùng chính:
+- `apps/web-1`: product frontend Next.js 16 + Mantine UI v9
 - `apps/api`: backend Hono + Better Auth + Prisma
-- `packages/validation`: Zod schemas dùng chung (FE↔BE)
-- Mantine UI v9: design system chính cho web-1
+- `apps/worker-omp`: worker container xử lý tác vụ AI nặng (OMP agent runner)
+- `packages/validation`: Zod schemas & naming helpers dùng chung (FE↔BE)
+- Redis: Message broker cho BullMQ (`omp-queue`) và Pub/Sub real-time logs
 
 Data model trung tâm nằm ở `prisma/schema.prisma` (30 models), với auth, case, checkpoint, lifecycle unit, document record, report, payment, event, AI job, team-fit report, credit ledger, notification (Notification + NotificationOutbox), service catalog (ServiceType + ServicePricing), wallet (UserWallet + WalletTransaction + WalletTopup [deprecated]), deposit/order (Deposit + Order + OrderItem), và domain event outbox (DomainEventOutbox).
 
@@ -177,6 +178,20 @@ Tham chiếu:
   - Form Cài đặt `/dashboard/settings/profile` (`ProfileInfoForm`), mutation `useProfileMutations`, đồng bộ tức thì qua Better Auth `refetch()` cập nhật đồng thời form profile và Popover `UserMenu` trên Navbar Header.
   - Trang Quản lý thiết bị `/dashboard/settings/sessions` & `/supporter/settings/sessions` (`SessionsList`, `SessionItem`, `RevokeOthersModal`): phân tích User-Agent (OS, Browser, Device Type) với regex ưu tiên chính xác, hiển thị IP rút gọn (`formatIpAddress`), badge "Phiên hiện tại", scoped loading spinner theo `sessionId`, và `onSettled` cache invalidation.
 - Test: `apps/api/src/shared/infrastructure/tests/avatar-upload.test.ts` (9/9 pass), `apps/api/src/shared/infrastructure/tests/session-management.test.ts` (16/16 pass).
+
+### 4.9 AI Engine, OMP Worker execution architecture & Report generation — ship 2026-09-20
+Module `apps/api/src/modules/ai-engine/` kết hợp cùng service độc lập `apps/worker-omp/` và package `@repo/validation` tạo thành pipeline thẩm định AI và phát hành báo cáo chuẩn hóa:
+- **Độc lập Job Run (Run-based Lifecycle):** Mỗi lần chạy thẩm định tạo một bản ghi `AiJob` mới với UUID riêng và `attempt_count` (lần chạy 1, 2...). Trạng thái cập nhật theo primary key qua `updateAiJobStatusById`, không ghi đè dữ liệu lịch sử của case.
+- **BullMQ Dual-Key Queue:** Hàng đợi `omp-queue` sử dụng định danh kép `omp-${caseId}--${aiJobId}` qua `buildOmpQueueJobId`. Hàm `parseOmpQueueJobId` phân tách chính xác `caseId` và `aiJobId` đồng thời hỗ trợ fallback tương thích ngược với các job cũ (`omp-${caseId}`).
+- **Phân cấp Sandbox Storage:** Môi trường thực thi của worker được lưu tại `storage/jobs/${caseId}/${jobId}/` (chứa `input/`, `output/`, `models.json`, `system_prompt/`). Hàm `resolveJobSandboxDir` hỗ trợ fallback an toàn 3 cấp: phân cấp `caseId/jobId` $\rightarrow$ phẳng `jobId` $\rightarrow$ legacy `caseId`.
+- **Dual-Publish Redis Logging:** Worker (`logJob`) phát hành log đồng thời:
+  - Kênh Job (`job:log:${jobId}`) + Danh sách (`job:logs:${jobId}`, TTL 24h) phục vụ Admin Worker Monitoring drawer.
+  - Kênh Case (`job:log:${caseId}`) + Danh sách (`job:logs:${caseId}`, TTL 24h) phục vụ SSE stream cho sinh viên (`/api/cases/:id/ai-events`).
+  - Tích hợp bộ lọc bảo mật tự động loại bỏ prompt nhạy cảm trước khi phát tán lên Redis.
+- **Chuẩn hóa Tên File Báo cáo PDF:** Quy ước đặt tên file báo cáo tập trung duy nhất tại `packages/validation/src/report-naming.ts` (`buildStandardReportPdfFilename`):
+  $$\text{Tên file} = \texttt{\$\{slug\}\_\$\{submission\_type\}\_\$\{timestamp\}\_v\$\{version\}.pdf}$$
+  Được tái sử dụng đồng nhất tại backend Typst compiler (`pdfService.ts`), API download (`reports.controller.ts`), Tab Tài liệu (`report-rows.ts`), và Tab Phản biện (`RoundCard.tsx`).
+- Chi tiết kỹ thuật: xem [`docs/technical-notes/ai-worker-execution-and-report-naming.md`](./technical-notes/ai-worker-execution-and-report-naming.md).
 ## 5. Case workspace data flow
 
 ### 5.1 Case details

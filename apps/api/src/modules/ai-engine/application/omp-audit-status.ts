@@ -17,35 +17,56 @@ export async function getCaseAiAuditStatus(caseId: string) {
   }
 
   const isAiPackage = caseRecord.package_id === "pkg_ai_audit";
-  const milestones = getJobMilestones(caseId);
+  const latestJob = await findLatestAiJobByCase(caseId);
+  const targetJobId = latestJob?.id;
+
+  let milestones = getJobMilestones(caseId, targetJobId);
+  // Fallback to targetJobId directly if checked by jobId alone, or fallback to caseId
+  if (!milestones.reportJson && targetJobId) {
+    const fallbackByJob = getJobMilestones(targetJobId);
+    if (fallbackByJob.reportJson || fallbackByJob.triadPacket || fallbackByJob.auditReport) {
+      milestones = fallbackByJob;
+    }
+  }
 
   // Self-heal: If report.json is on disk but case is still under_review, finalize now
   if (milestones.reportJson && caseRecord.user_facing_stage === "under_review") {
-    await finalizeOmpAuditResult(caseId).catch(() => {});
+    await finalizeOmpAuditResult(caseId, targetJobId).catch(() => {});
   }
 
-  const aiJob = await findLatestAiJobByCase(caseId);
-  const queueStatus = await getOmpJobStatus(caseId);
-  const storedJob = jobStore.get(caseId);
-  const logs = await jobStore.getLogs(caseId);
+  const queueStatus = await getOmpJobStatus(caseId, targetJobId);
+  const storedJob = (targetJobId ? jobStore.get(targetJobId) : null) || jobStore.get(caseId);
+  const targetLogs = targetJobId ? await jobStore.getLogs(targetJobId) : [];
+  const caseLogs = await jobStore.getLogs(caseId);
+  const logs = targetLogs.length > 0 ? targetLogs : caseLogs;
+
+  const aiJobInput =
+    latestJob?.input_json && typeof latestJob.input_json === "object"
+      ? (latestJob.input_json as Record<string, unknown>)
+      : null;
 
   const startedAt =
-    (aiJob?.input_json as any)?.startedAt ||
+    (typeof aiJobInput?.startedAt === "string" ? aiJobInput.startedAt : undefined) ||
     storedJob?.createdAt ||
-    aiJob?.created_at?.toISOString() ||
+    latestJob?.created_at?.toISOString() ||
     caseRecord.updated_at?.toISOString() ||
     new Date().toISOString();
 
   const elapsedSeconds = Math.max(0, Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000));
 
   let finalStatus: "queued" | "running" | "completed" | "failed" | "cancelled" = "running";
-  if (caseRecord.user_facing_stage === "report_ready" || milestones.reportJson || storedJob?.status === "completed") {
+  if (
+    caseRecord.user_facing_stage === "report_ready" ||
+    milestones.reportJson ||
+    storedJob?.status === "completed" ||
+    latestJob?.status === "completed"
+  ) {
     finalStatus = "completed";
-  } else if (storedJob?.status === "cancelled" || aiJob?.status === "cancelled") {
+  } else if (storedJob?.status === "cancelled" || latestJob?.status === "cancelled") {
     finalStatus = "cancelled";
-  } else if (aiJob?.status === "failed" || queueStatus.state === "failed" || storedJob?.status === "failed") {
+  } else if (latestJob?.status === "failed" || queueStatus.state === "failed" || storedJob?.status === "failed") {
     finalStatus = "failed";
-  } else if (queueStatus.state === "waiting" || storedJob?.status === "queued") {
+  } else if (queueStatus.state === "waiting" || storedJob?.status === "queued" || latestJob?.status === "queued") {
     finalStatus = "queued";
   } else {
     finalStatus = "running";
@@ -53,7 +74,7 @@ export async function getCaseAiAuditStatus(caseId: string) {
 
   return {
     isAiPackage,
-    jobId: aiJob?.id || caseId,
+    jobId: targetJobId || caseId,
     caseId,
     caseCode: caseRecord.case_code,
     projectName: caseRecord.team_name,

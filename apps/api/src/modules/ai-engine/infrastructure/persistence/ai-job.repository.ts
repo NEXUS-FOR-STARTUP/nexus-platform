@@ -1,10 +1,24 @@
 import { prisma } from "../../../../db.js";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 export interface UpsertAiJobData {
   projectName: string;
   inputFilesCount: number;
   startedAt: string;
+  [key: string]: unknown;
+}
+
+export interface CreateAiJobData {
+  projectName?: string;
+  inputFilesCount?: number;
+  startedAt?: string;
+  attempt_no?: number;
+  submission_type?: string;
+  lifecycle_unit_id?: string | null;
+  model?: string;
+  prompt_mode?: string;
+  skip_credit_check?: boolean;
+  admin_triggered?: boolean;
   [key: string]: unknown;
 }
 
@@ -32,6 +46,64 @@ export async function upsertAiJobQueued(caseId: string, data: UpsertAiJobData) {
 }
 
 /**
+ * Create a new AI Job record in queued status with auto-generated UUID id.
+ */
+export async function createAiJobQueued(
+  caseId: string,
+  data: CreateAiJobData,
+  client: Prisma.TransactionClient | typeof prisma = prisma
+) {
+  const jsonPayload = data as unknown as Prisma.InputJsonValue;
+  return await client.aiJob.create({
+    data: {
+      ...(typeof data.id === "string" ? { id: data.id } : {}),
+      case_id: caseId,
+      job_type: (data.job_type as string) || "omp_audit",
+      status: "queued",
+      attempt_count: typeof data.attempt_no === "number" ? data.attempt_no : 0,
+      input_json: jsonPayload,
+    },
+  });
+}
+
+/**
+ * Update AI Job status and output JSON by primary key ID.
+ */
+export async function updateAiJobStatusById(
+  jobId: string,
+  status: string,
+  outputJson?: unknown
+) {
+  return await prisma.aiJob.update({
+    where: { id: jobId },
+    data: {
+      status,
+      ...(outputJson !== undefined
+        ? { output_json: outputJson === null ? Prisma.DbNull : (outputJson as Prisma.InputJsonValue) }
+        : {}),
+    },
+  });
+}
+
+/**
+ * Count existing AI Jobs for a case.
+ */
+export async function countAiJobsByCase(caseId: string, jobType = "omp_audit"): Promise<number> {
+  return await prisma.aiJob.count({
+    where: { case_id: caseId, job_type: jobType },
+  });
+}
+
+/**
+ * Find AI Job by ID.
+ */
+export async function findAiJobById(jobId: string) {
+  return await prisma.aiJob.findUnique({
+    where: { id: jobId },
+  });
+}
+
+/**
  * Update AI Job status and output JSON for a case.
  */
 export async function updateAiJobStatus(
@@ -44,7 +116,9 @@ export async function updateAiJobStatus(
     where: { case_id: caseId, job_type: jobType },
     data: {
       status,
-      output_json: outputJson as any,
+      ...(outputJson !== undefined
+        ? { output_json: outputJson === null ? Prisma.DbNull : (outputJson as Prisma.InputJsonValue) }
+        : {}),
     },
   });
 }

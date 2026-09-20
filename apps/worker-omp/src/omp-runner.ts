@@ -13,6 +13,7 @@ import { spawnOmpProcess } from "./process-spawner.js";
 
 export interface OmpJobPayload {
   jobId: string;
+  caseId?: string;
   documentPath: string;
   documentOriginalName: string;
   title: string;
@@ -24,27 +25,29 @@ export interface OmpJobPayload {
 }
 
 export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecutionResult> {
-  const { jobId, documentOriginalName } = data;
+  const { jobId, caseId, documentOriginalName } = data;
   const selectedModel = data.ompModel || data.model || DEFAULT_MODEL;
   const startTime = Date.now();
   const startedAt = new Date().toISOString();
 
-  logJob(jobId, `Bắt đầu thẩm định tài liệu đề án: ${documentOriginalName}`);
-  logJob(jobId, "Khởi chạy môi trường thẩm định AI chuyên sâu");
+  logJob(jobId, `Bắt đầu thẩm định tài liệu đề án: ${documentOriginalName}`, caseId);
+  logJob(jobId, "Khởi chạy môi trường thẩm định AI chuyên sâu", caseId);
   updateJobInStorage(jobId, (j) => {
     j.ompStatus = "running";
     j.status = "running";
-  });
+  }, caseId);
 
   // Record the resolved unit in durable job storage (Redis-backed job logs)
   // so finalizer/status can trace which unit this run belongs to even if
   // BullMQ job.data is later lost (worker restart). The authoritative
   // fallback remains aiJob.input_json.lifecycle_unit_id on the API side.
   if (data.lifecycleUnitId) {
-    logJob(jobId, `Đơn vị vòng đời (lifecycle_unit_id): ${data.lifecycleUnitId}`);
+    logJob(jobId, `Đơn vị vòng đời (lifecycle_unit_id): ${data.lifecycleUnitId}`, caseId);
   }
 
-  const jobDir = resolve(STORAGE_DIR, "jobs", jobId);
+  const jobDir = data.caseId
+    ? resolve(STORAGE_DIR, "jobs", data.caseId, data.jobId)
+    : resolve(STORAGE_DIR, "jobs", data.jobId);
   const outputDir = resolve(jobDir, "output");
   prepareJobDirectories(jobDir, outputDir);
 
@@ -111,7 +114,7 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
   });
 
   if (executionResult.error === "CANCELLED") {
-    logJob(jobId, "🛑 [HỦY] Hoàn tất hủy job OMP theo yêu cầu.");
+    logJob(jobId, "🛑 [HỦY] Hoàn tất hủy job OMP theo yêu cầu.", caseId);
     const cancelledResult: AgentExecutionResult = {
       agent: "omp",
       modelUsed: selectedModel,
@@ -126,7 +129,7 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
       j.ompStatus = "cancelled";
       j.status = "cancelled";
       j.results.omp = cancelledResult;
-    });
+    }, caseId);
     return cancelledResult;
   }
 
@@ -154,7 +157,7 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
     try {
       reportJson = JSON.parse(readFileSync(jsonFile, "utf-8"));
     } catch (err) {
-      logJob(jobId, `Cảnh báo: Parse report.json thất bại: ${err}`);
+      logJob(jobId, `Cảnh báo: Parse report.json thất bại: ${err}`, caseId);
     }
   }
 
@@ -193,14 +196,14 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
   updateJobInStorage(jobId, (j) => {
     j.ompStatus = agentResult.status;
     j.results.omp = agentResult;
-  });
+  }, caseId);
 
   if (!isSuccess) {
     const failureMessage = executionResult.error || "Process failed to produce complete output";
-    logJob(jobId, `Tiến trình thẩm định gián đoạn: ${failureMessage}`);
+    logJob(jobId, `Tiến trình thẩm định gián đoạn: ${failureMessage}`, caseId);
     throw new Error(failureMessage);
   }
 
-  logJob(jobId, `Hoàn thành thẩm định đề án sau ${Math.round(durationMs / 1000)}s`);
+  logJob(jobId, `Hoàn thành thẩm định đề án sau ${Math.round(durationMs / 1000)}s`, caseId);
   return agentResult;
 }

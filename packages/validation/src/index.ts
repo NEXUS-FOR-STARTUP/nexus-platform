@@ -721,6 +721,7 @@ export interface AdminWorkerJobListItem {
   status: string;
   isStuck: boolean;
   submissionType: string;
+  attemptNo?: number;
   model: string;
   startedAt: string;
   updatedAt: string;
@@ -755,6 +756,7 @@ export interface AdminWorkerJobDetailResponse {
   status: string;
   isStuck: boolean;
   submissionType: string;
+  attemptNo?: number;
   model: string;
   promptMode: "full" | "lite";
   startedAt: string;
@@ -780,4 +782,70 @@ export interface AdminWorkerJobDetailResponse {
     idea?: Record<string, unknown>;
     team?: Record<string, unknown>;
   } | null;
+}
+
+// ---------------------------------------------------------------------------
+// Standard Report PDF Naming (Shared between API & Web)
+// ---------------------------------------------------------------------------
+
+export const SUBMISSION_TYPE_FILE_SLUGS: Record<string, string> = {
+  initial: "lan_dau",
+  resubmit: "da_sua",
+  logic_check: "soi_logic",
+};
+
+export const SUBMISSION_TYPE_DISPLAY_LABELS: Record<string, string> = {
+  initial: "Lần đầu",
+  resubmit: "Đã sửa",
+  logic_check: "Soi logic",
+};
+
+export function makeDownloadSlug(name: string): string {
+  if (!name || typeof name !== "string") {
+    return "de_an";
+  }
+
+  return (
+    name
+      .replace(/[đĐ]/g, "d")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .slice(0, 50) || "de_an"
+  );
+}
+
+export function formatReportTimestamp(date?: Date | string | null): string {
+  const d = date ? new Date(date) : new Date();
+  const validDate = isNaN(d.getTime()) ? new Date() : d;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${validDate.getFullYear()}${pad(validDate.getMonth() + 1)}${pad(validDate.getDate())}${pad(validDate.getHours())}${pad(validDate.getMinutes())}${pad(validDate.getSeconds())}`;
+}
+
+export function getSubmissionTypeFileSlug(submissionType?: string | null): string {
+  if (!submissionType) return "phan_bien";
+  return SUBMISSION_TYPE_FILE_SLUGS[submissionType] || "phan_bien";
+}
+
+export interface BuildReportPdfFilenameOptions {
+  projectName: string;
+  submissionType?: string | null;
+  createdAt?: Date | string | null;
+  versionNo?: number | null;
+  customTypeSlug?: string;
+}
+
+export function buildStandardReportPdfFilename(opts: BuildReportPdfFilenameOptions): string {
+  const slug = makeDownloadSlug(opts.projectName);
+  const typeSlug = opts.customTypeSlug
+    ? makeDownloadSlug(opts.customTypeSlug)
+    : getSubmissionTypeFileSlug(opts.submissionType);
+  const timestamp = formatReportTimestamp(opts.createdAt);
+  const versionSuffix =
+    opts.versionNo != null && !isNaN(opts.versionNo)
+      ? `_v${String(opts.versionNo).padStart(2, "0")}`
+      : "";
+  return `${slug}_${typeSlug}_${timestamp}${versionSuffix}.pdf`;
 }

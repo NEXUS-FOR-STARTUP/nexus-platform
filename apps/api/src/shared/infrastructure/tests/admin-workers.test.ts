@@ -309,4 +309,106 @@ describe("Admin OMP Worker Monitoring - Smoke & Integration Tests", () => {
       prisma.report.findFirst = origFindFirstReport;
     }
   });
+  test("5. Independent Runs - Tra cứu theo Job ID (UUID) và hiển thị attemptNo riêng biệt", async () => {
+    const origFindFirstAiJob = prisma.aiJob.findFirst;
+    const origFindManyAiJob = prisma.aiJob.findMany;
+    const origCountAiJob = prisma.aiJob.count;
+
+    const now = new Date();
+    const firstRunTime = new Date(Date.now() - 3600_000);
+    const secondRunTime = new Date(Date.now() - 1800_000);
+
+    prisma.aiJob.count = (async () => 2) as unknown as typeof prisma.aiJob.count;
+    prisma.aiJob.findMany = (async () => [
+      {
+        id: "550e8400-e29b-41d4-a716-446655440002",
+        case_id: "case-dual-run",
+        status: "completed",
+        created_at: secondRunTime,
+        updated_at: secondRunTime,
+        input_json: {
+          attempt_no: 2,
+          submission_type: "logic_check",
+          model: "google/gemini-2.5-flash",
+        },
+        case: {
+          id: "case-dual-run",
+          case_code: "NX-DUAL",
+          team_name: "Đội Chạy Kép",
+          owner: { name: "Sinh viên Kép", email: "kep@test.com" },
+        },
+      },
+      {
+        id: "550e8400-e29b-41d4-a716-446655440001",
+        case_id: "case-dual-run",
+        status: "completed",
+        created_at: firstRunTime,
+        updated_at: firstRunTime,
+        input_json: {
+          attempt_no: 1,
+          submission_type: "initial",
+          model: "mimo/mimo-v2.5",
+        },
+        case: {
+          id: "case-dual-run",
+          case_code: "NX-DUAL",
+          team_name: "Đội Chạy Kép",
+          owner: { name: "Sinh viên Kép", email: "kep@test.com" },
+        },
+      },
+    ]) as unknown as typeof prisma.aiJob.findMany;
+
+    prisma.aiJob.findFirst = (async ({ where }: { where?: { OR?: Array<{ id?: string; case_id?: string }> } } = {}) => {
+      const searchedId = where?.OR?.[0]?.id;
+      if (searchedId === "550e8400-e29b-41d4-a716-446655440002") {
+        return {
+          id: "550e8400-e29b-41d4-a716-446655440002",
+          case_id: "case-dual-run",
+          status: "completed",
+          created_at: secondRunTime,
+          updated_at: secondRunTime,
+          input_json: {
+            attempt_no: 2,
+            submission_type: "logic_check",
+            model: "google/gemini-2.5-flash",
+          },
+          case: {
+            id: "case-dual-run",
+            case_code: "NX-DUAL",
+            team_name: "Đội Chạy Kép",
+            owner: { id: "user-kep", name: "Sinh viên Kép", email: "kep@test.com" },
+          },
+        };
+      }
+      return null;
+    }) as unknown as typeof prisma.aiJob.findFirst;
+
+    try {
+      // 1. Kiểm tra list trả về 2 job riêng biệt cho cùng 1 case với attemptNo 1 và 2
+      const listResult = await listAdminWorkerJobs({
+        page: 1,
+        limit: 10,
+        status: "all",
+        search: "550e8400-e29b-41d4-a716-446655440002",
+      });
+      assert.strictEqual(listResult.items.length, 2);
+      assert.strictEqual(listResult.items[0].id, "550e8400-e29b-41d4-a716-446655440002");
+      assert.strictEqual(listResult.items[0].attemptNo, 2);
+      assert.strictEqual(listResult.items[0].submissionType, "logic_check");
+      assert.strictEqual(listResult.items[1].id, "550e8400-e29b-41d4-a716-446655440001");
+      assert.strictEqual(listResult.items[1].attemptNo, 1);
+      assert.strictEqual(listResult.items[1].submissionType, "initial");
+
+      // 2. Tra cứu chi tiết theo đúng Job ID UUID
+      const detail = await getAdminWorkerJobDetail("550e8400-e29b-41d4-a716-446655440002");
+      assert.strictEqual(detail.id, "550e8400-e29b-41d4-a716-446655440002");
+      assert.strictEqual(detail.attemptNo, 2);
+      assert.strictEqual(detail.submissionType, "logic_check");
+      assert.strictEqual(detail.model, "google/gemini-2.5-flash");
+    } finally {
+      prisma.aiJob.findFirst = origFindFirstAiJob;
+      prisma.aiJob.findMany = origFindManyAiJob;
+      prisma.aiJob.count = origCountAiJob;
+    }
+  });
 });

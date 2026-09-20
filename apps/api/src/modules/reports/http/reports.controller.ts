@@ -267,9 +267,15 @@ export async function downloadCaseReportPdfHandler(c: Context) {
       reportVersionNo = unit?.version_no ?? null;
     }
 
+    const submissionType =
+      ((report.metadata_json as Record<string, unknown> | null)?.submission_type as string | undefined) ??
+      (parsed?.submission_type as string | undefined) ??
+      (parsed?.submissionType as string | undefined) ??
+      null;
+
     const filename = buildReportPdfFilename({
       projectName,
-      reportType,
+      submissionType,
       createdAt: report.created_at,
       versionNo: reportVersionNo,
     });
@@ -477,9 +483,15 @@ export async function downloadReportPdfByIdHandler(c: Context) {
       }
     }
 
+    const submissionType =
+      ((report.metadata_json as Record<string, unknown> | null)?.submission_type as string | undefined) ??
+      (parsed?.submission_type as string | undefined) ??
+      (parsed?.submissionType as string | undefined) ??
+      null;
+
     const filename = buildReportPdfFilename({
       projectName,
-      reportType,
+      submissionType,
       createdAt: report.created_at,
       versionNo,
     });

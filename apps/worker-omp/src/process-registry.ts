@@ -40,8 +40,9 @@ export function initCancellationListener(redisConfig: {
     if (channel === "job-cancellation") {
       try {
         const data = JSON.parse(message);
-        if (data?.jobId) {
-          const entry = activeProcesses.get(data.jobId);
+        if (data?.jobId || data?.caseId) {
+          const entry = (data.jobId ? activeProcesses.get(data.jobId) : undefined) ||
+                        (data.caseId ? activeProcesses.get(data.caseId) : undefined);
           if (entry) {
             entry.cancel();
           }

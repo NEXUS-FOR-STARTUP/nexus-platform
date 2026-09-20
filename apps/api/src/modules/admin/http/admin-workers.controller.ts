@@ -104,22 +104,19 @@ export async function getAdminWorkerJobLogsHandler(c: Context) {
     return c.json({ code: "BAD_REQUEST", message: "Thiếu ID tiến trình hoặc hồ sơ" }, 400);
   }
   try {
-    let targetId = id;
-    if (id.startsWith("ai-job-")) {
-      targetId = id.replace("ai-job-", "");
-    } else {
-      const job = await prisma.aiJob.findFirst({
-        where: { OR: [{ id }, { case_id: id }] },
-        select: { case_id: true },
-      });
-      if (job) {
-        targetId = job.case_id;
+    let logs = await jobStore.getLogs(id);
+    if (!logs || logs.length === 0) {
+      const targetCaseId = id.startsWith("ai-job-") ? id.replace("ai-job-", "") : id;
+      logs = await jobStore.getLogs(targetCaseId);
+      if (!logs || logs.length === 0) {
+        const job = await prisma.aiJob.findFirst({
+          where: { OR: [{ id }, { case_id: id }] },
+          select: { case_id: true },
+        });
+        if (job?.case_id && job.case_id !== id) {
+          logs = await jobStore.getLogs(job.case_id);
+        }
       }
-    }
-
-    let logs = await jobStore.getLogs(targetId);
-    if ((!logs || logs.length === 0) && targetId !== id) {
-      logs = await jobStore.getLogs(id);
     }
     return c.json({ logs: logs || [] });
   } catch (error: unknown) {

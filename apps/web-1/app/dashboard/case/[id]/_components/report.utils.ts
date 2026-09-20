@@ -1,3 +1,4 @@
+import { buildStandardReportPdfFilename } from "@repo/validation";
 export interface RichReportData {
   projectName?: string;
   overallScore?: number;
@@ -31,13 +32,18 @@ export function makeDownloadSlug(name: string): string {
   );
 }
 
-export function getReportPdfFilename(projectName: string, createdAt?: string | Date | null): string {
-  const slug = makeDownloadSlug(projectName);
-  const d = createdAt ? new Date(createdAt) : new Date();
-  const validDate = isNaN(d.getTime()) ? new Date() : d;
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const timestamp = `${validDate.getFullYear()}${pad(validDate.getMonth() + 1)}${pad(validDate.getDate())}${pad(validDate.getHours())}${pad(validDate.getMinutes())}${pad(validDate.getSeconds())}`;
-  return `${slug}_input_clarification_${timestamp}.pdf`;
+export function getReportPdfFilename(
+  projectName: string,
+  createdAt?: string | Date | null,
+  submissionType?: string | null,
+  versionNo?: number | null,
+): string {
+  return buildStandardReportPdfFilename({
+    projectName,
+    createdAt,
+    submissionType,
+    versionNo,
+  });
 }
 
 export function formatDateShort(dateStr?: string | null): string {

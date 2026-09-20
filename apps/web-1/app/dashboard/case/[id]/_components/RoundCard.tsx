@@ -41,8 +41,20 @@ export default function RoundCard({ round, caseId, defaultExpanded = false }: Ro
 
   const projectName = parsedReport?.projectName || "Dự án khởi nghiệp";
   const reportFilename = useMemo(
-    () => getReportPdfFilename(projectName, round.report?.created_at),
-    [projectName, round.report?.created_at],
+    () =>
+      getReportPdfFilename(
+        projectName,
+        round.report?.created_at || round.submitted_at,
+        round.submission_type,
+        round.version_no,
+      ),
+    [
+      projectName,
+      round.report?.created_at,
+      round.submitted_at,
+      round.submission_type,
+      round.version_no,
+    ],
   );
 
   const pdfViewUrl =

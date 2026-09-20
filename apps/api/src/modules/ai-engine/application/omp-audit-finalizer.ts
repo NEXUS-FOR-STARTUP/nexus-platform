@@ -9,6 +9,7 @@ import {
   findCaseDetailForPdf,
   findLatestAiJobByCase,
   updateAiJobStatus,
+  updateAiJobStatusById,
   updateCaseAuditStage,
 } from "../infrastructure/persistence/ai-job.repository.js";
 import { saveOmpAuditReport } from "../../reports/infrastructure/persistence/report.repository.js";
@@ -19,17 +20,63 @@ import { prisma } from "../../../db.js";
 import { ompQueue } from "../infrastructure/queue/omp-queue.js";
 
 /**
+ * Resolve the sandbox directory on disk for a job.
+ * Checks nested `storage/jobs/${caseId}/${aiJobId}` first when aiJobId is provided,
+ * with fallbacks to flat storage paths for backward compatibility.
+ */
+export function resolveJobSandboxDir(caseId: string, aiJobId?: string): string {
+  const projectRoot = resolveRepoRoot();
+
+  if (aiJobId) {
+    // 1. Nested: storage/jobs/{caseId}/{aiJobId}
+    const nested = resolve(projectRoot, "storage", "jobs", caseId, aiJobId);
+    if (existsSync(nested)) return nested;
+
+    const apiNested = resolve(projectRoot, "apps", "api", "storage", "jobs", caseId, aiJobId);
+    if (existsSync(apiNested)) return apiNested;
+
+    // 2. Flat fallback: storage/jobs/{aiJobId}
+    const flatJob = resolve(projectRoot, "storage", "jobs", aiJobId);
+    if (existsSync(flatJob)) return flatJob;
+
+    const apiFlatJob = resolve(projectRoot, "apps", "api", "storage", "jobs", aiJobId);
+    if (existsSync(apiFlatJob)) return apiFlatJob;
+  }
+
+  // 3. Fallback: storage/jobs/{caseId} (legacy runs)
+  const legacyCaseDir = resolve(projectRoot, "storage", "jobs", caseId);
+  if (existsSync(legacyCaseDir)) return legacyCaseDir;
+
+  const apiLegacyCaseDir = resolve(projectRoot, "apps", "api", "storage", "jobs", caseId);
+  if (existsSync(apiLegacyCaseDir)) return apiLegacyCaseDir;
+
+  // Default target path
+  return aiJobId
+    ? resolve(projectRoot, "storage", "jobs", caseId, aiJobId)
+    : resolve(projectRoot, "storage", "jobs", caseId);
+}
+
+/**
  * Read OMP outputs from sandbox disk, compile Typst PDF, and persist report in Postgres.
  */
-export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
+export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): Promise<boolean> {
   const projectRoot = resolveRepoRoot();
-  const jobDir = resolve(projectRoot, "storage", "jobs", caseId);
+  const jobDir = resolveJobSandboxDir(caseId, aiJobId);
   const outputDir = resolve(jobDir, "output");
   mkdirSync(outputDir, { recursive: true });
 
   const candidateDirs = [
     jobDir,
+    resolve(projectRoot, "storage", "jobs", caseId),
     resolve(projectRoot, "apps", "api", "storage", "jobs", caseId),
+    ...(aiJobId
+      ? [
+          resolve(projectRoot, "storage", "jobs", caseId, aiJobId),
+          resolve(projectRoot, "apps", "api", "storage", "jobs", caseId, aiJobId),
+          resolve(projectRoot, "storage", "jobs", aiJobId),
+          resolve(projectRoot, "apps", "api", "storage", "jobs", aiJobId),
+        ]
+      : []),
   ];
 
   for (const dir of candidateDirs) {
@@ -55,10 +102,9 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
   const reportMdPath = resolve(outputDir, "input_clarification_audit.md");
 
   if (!existsSync(reportJsonPath) || !existsSync(reportMdPath)) {
-    logger.error({ caseId }, "OMP output files missing, cannot finalize report");
+    logger.error({ caseId, aiJobId, jobDir }, "OMP output files missing, cannot finalize report");
     return false;
   }
-
   const reportJsonRaw = readFileSync(reportJsonPath, "utf-8");
   const reportMd = readFileSync(reportMdPath, "utf-8");
   const reportJson = JSON.parse(reportJsonRaw) as Record<string, any>;
@@ -68,9 +114,10 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
   const projectName = reportJson.projectName || caseRecord?.team_name || caseRecord?.case_code || "Dự án khởi nghiệp";
 
   // Read submission metadata from AiJob.input_json
-  const aiJob = await findLatestAiJobByCase(caseId);
+  const aiJob = aiJobId
+    ? (await prisma.aiJob.findUnique({ where: { id: aiJobId } })) || (await findLatestAiJobByCase(caseId))
+    : await findLatestAiJobByCase(caseId);
   const aiJobInput = (aiJob?.input_json ?? null) as Record<string, unknown> | null;
-  // Trigger identity: coordinator writes `startedAt` + `submission_type` into input_json.
   // `initial` with the same trigger reuses the existing report; `resubmit`/`logic_check`
   // always insert a new row. Old jobs without startedAt fall back to Date.now() (guard loose, no crash).
   const submissionType = (aiJobInput?.submission_type as string | undefined) ?? "initial";
@@ -87,7 +134,9 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
   // survives worker restart when job.data is lost) > latest version unit.
   let jobDataLifecycleUnitId: string | null = null;
   try {
-    const bullJob = await ompQueue.getJob(`omp-${caseId}`);
+    const bullJob = aiJobId
+      ? (await ompQueue.getJob(`omp-${caseId}--${aiJobId}`)) || (await ompQueue.getJob(`omp-${caseId}`))
+      : await ompQueue.getJob(`omp-${caseId}`);
     const bullData = (bullJob?.data as { lifecycleUnitId?: string } | undefined) ?? null;
     if (bullData?.lifecycleUnitId) {
       const unit = await prisma.lifecycleUnit.findUnique({ where: { id: bullData.lifecycleUnitId }, select: { id: true, case_id: true } });
@@ -118,7 +167,11 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
           { caseId, reportId: existingReport.id },
           "Report already finalized for this lifecycle unit, ensuring state and returning cleanly",
         );
-        await updateAiJobStatus(caseId, "completed", reportJson);
+        if (aiJobId) {
+          await updateAiJobStatusById(aiJobId, "completed", reportJson);
+        } else {
+          await updateAiJobStatus(caseId, "completed", reportJson);
+        }
         await updateCaseAuditStage(caseId, "report_ready", "report_ready_to_publish");
         return true;
       }
@@ -272,6 +325,7 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
   try {
     const reportFilename = buildReportPdfFilename({
       projectName,
+      submissionType,
       createdAt: savedReport.created_at,
       versionNo,
     });
@@ -297,7 +351,11 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
   }
 
   // Update AI Job status via repository
-  await updateAiJobStatus(caseId, "completed", reportJson);
+  if (aiJobId) {
+    await updateAiJobStatusById(aiJobId, "completed", reportJson);
+  } else {
+    await updateAiJobStatus(caseId, "completed", reportJson);
+  }
 
   // Transition case to report_ready via repository
   await updateCaseAuditStage(caseId, "report_ready", "report_ready_to_publish");

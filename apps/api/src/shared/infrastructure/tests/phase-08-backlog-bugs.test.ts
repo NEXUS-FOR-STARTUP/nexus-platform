@@ -1,5 +1,18 @@
-import { test } from "node:test";
+import { test, after } from "node:test";
 import assert from "node:assert/strict";
+import {
+  ompQueue,
+  ompQueueEvents,
+  redisSubscriber,
+  redisPublisher,
+} from "../../../modules/ai-engine/infrastructure/queue/omp-queue.js";
+
+after(async () => {
+  await ompQueue.close().catch(() => {});
+  await ompQueueEvents.close().catch(() => {});
+  redisSubscriber.disconnect();
+  redisPublisher.disconnect();
+});
 
 test("phase-08 auto-done — anchor logic neo latest T11 (7 ngày)", async (t) => {
   const { isAutoDoneDue, AUTO_DONE_AFTER_MS } = await import(

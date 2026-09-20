@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Table, Badge, ActionIcon, Tooltip, TextInput, Pagination, Group, Text, Paper } from "@mantine/core";
-import { Eye, RotateCcw, Wrench, Square, Search, AlertTriangle } from "lucide-react";
+import { Table, Badge, ActionIcon, Tooltip, TextInput, Pagination, Group, Text, Paper, CopyButton } from "@mantine/core";
+import { Eye, RotateCcw, Wrench, Square, Search, AlertTriangle, Copy, Check } from "lucide-react";
 import type { AdminWorkerJobListItem } from "../hooks/useAdminWorkers";
+import { SUBMISSION_TYPE_DISPLAY_LABELS } from "@repo/validation";
 
 interface WorkerJobsTableProps {
   items: AdminWorkerJobListItem[];
@@ -58,6 +60,20 @@ function formatDuration(ms: number) {
   const sec = Math.floor(ms / 1000);
   return sec < 60 ? `${sec}s` : `${Math.floor(sec / 60)}m ${sec % 60}s`;
 }
+const SUBMISSION_TYPE_LABELS: Record<string, string> = {
+  initial: "Lần đầu",
+  resubmit: "Đã sửa",
+  revision: "Đã sửa",
+  logic_check: "Soi logic",
+  logic_review: "Soi logic",
+  logic: "Soi logic",
+};
+
+function formatSubmissionType(type?: string): string {
+  if (!type) return "Lần đầu";
+  return SUBMISSION_TYPE_DISPLAY_LABELS[type] || SUBMISSION_TYPE_LABELS[type] || type;
+}
+
 
 function StatusBadge({ job }: { job: AdminWorkerJobListItem }) {
   if (job.isStuck) {
@@ -86,7 +102,7 @@ export default function WorkerJobsTable({
     <Paper p="md" radius="md" withBorder className="border-border-app bg-surface-app space-y-4">
       <Group justify="space-between">
         <TextInput
-          placeholder="Tìm mã case, tên đề tài, sinh viên..."
+          placeholder="Tìm Job ID, mã case, đề tài, sinh viên..."
           leftSection={<Search className="w-4 h-4 text-text-muted" />}
           value={search}
           onChange={(e) => onSearchChange(e.currentTarget.value)}
@@ -100,8 +116,9 @@ export default function WorkerJobsTable({
         <Table verticalSpacing="sm" horizontalSpacing="md" className="font-body text-xs text-text-app">
           <Table.Thead className="bg-surface-app-soft/50 border-b border-border-app">
             <Table.Tr>
-              <Table.Th>Mã Case</Table.Th>
-              <Table.Th>Đề tài & Sinh viên</Table.Th>
+              <Table.Th>Job ID</Table.Th>
+              <Table.Th>Mã Case & Đề tài</Table.Th>
+              <Table.Th>Sinh viên</Table.Th>
               <Table.Th>Model AI</Table.Th>
               <Table.Th>Thời gian</Table.Th>
               <Table.Th>Trạng thái</Table.Th>
@@ -110,9 +127,9 @@ export default function WorkerJobsTable({
           </Table.Thead>
           <Table.Tbody>
             {isLoading ? (
-              <Table.Tr><Table.Td colSpan={6} className="text-center py-8 text-text-muted">Đang tải danh sách tiến trình...</Table.Td></Table.Tr>
+              <Table.Tr><Table.Td colSpan={7} className="text-center py-8 text-text-muted">Đang tải danh sách tiến trình...</Table.Td></Table.Tr>
             ) : items.length === 0 ? (
-              <Table.Tr><Table.Td colSpan={6} className="text-center py-8 text-text-muted">Không tìm thấy tiến trình nào phù hợp</Table.Td></Table.Tr>
+              <Table.Tr><Table.Td colSpan={7} className="text-center py-8 text-text-muted">Không tìm thấy tiến trình nào phù hợp</Table.Td></Table.Tr>
             ) : (
               items.map((job) => {
                 const isRunning = job.status === "processing";
@@ -120,12 +137,66 @@ export default function WorkerJobsTable({
                 return (
                   <Table.Tr key={job.id} className="hover:bg-surface-app-soft/40 transition-colors border-b border-border-app/40">
                     <Table.Td>
-                      <Text fw={600} className="font-mono text-xs text-brand">{job.caseCode}</Text>
-                      <Text size="xs" c="dimmed" className="capitalize">{job.submissionType}</Text>
+                      <Group gap={4} wrap="nowrap" align="center">
+                        <Text
+                          fw={600}
+                          className="font-mono text-xs text-text-app cursor-pointer hover:text-brand transition-colors"
+                          title={`Click để copy Job ID: ${job.id}`}
+                          onClick={() => {
+                            if (typeof navigator !== "undefined" && navigator.clipboard) {
+                              navigator.clipboard.writeText(job.id);
+                            }
+                          }}
+                        >
+                          {job.id ? `${job.id.slice(0, 8)}...` : "-"}
+                        </Text>
+                        {job.id && (
+                          <CopyButton value={job.id} timeout={2000}>
+                            {({ copied, copy }) => (
+                              <Tooltip label={copied ? "Đã copy Job ID!" : "Copy Job ID"} withArrow position="top">
+                                <ActionIcon
+                                  size="xs"
+                                  variant="subtle"
+                                  color={copied ? "teal" : "gray"}
+                                  onClick={copy}
+                                >
+                                  {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                                </ActionIcon>
+                              </Tooltip>
+                            )}
+                          </CopyButton>
+                        )}
+                      </Group>
+                      <Group gap={4} mt={2} align="center">
+                        <Badge size="xs" variant="light" color="cyan" className="font-mono">
+                          Lần {job.attemptNo || 1}
+                        </Badge>
+                        <Text size="xs" c="dimmed">
+                          {formatSubmissionType(job.submissionType)}
+                        </Text>
+                      </Group>
                     </Table.Td>
-                    <Table.Td className="max-w-xs">
-                      <Text fw={500} className="truncate">{job.projectName}</Text>
-                      <Text size="xs" c="dimmed" className="truncate">{job.studentName} ({job.studentEmail})</Text>
+                    <Table.Td className="max-w-[220px]">
+                      <div>
+                        <Link
+                          href={job.caseId ? `/cases/${job.caseId}` : "#"}
+                          className="font-mono text-xs font-semibold text-brand hover:underline"
+                          title={`Xem case: ${job.caseCode}`}
+                        >
+                          {job.caseCode || "-"}
+                        </Link>
+                      </div>
+                      <Text size="xs" c="dimmed" className="truncate" title={job.projectName}>
+                        {job.projectName}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td className="max-w-[180px]">
+                      <Text fw={500} size="xs" className="truncate" title={job.studentName}>
+                        {job.studentName || "Chưa có tên"}
+                      </Text>
+                      <Text size="xs" c="dimmed" className="truncate" title={job.studentEmail}>
+                        {job.studentEmail ? `(${job.studentEmail})` : "-"}
+                      </Text>
                     </Table.Td>
                     <Table.Td>
                       <Badge variant="outline" color="gray" size="xs" className="font-mono">{job.model || "default"}</Badge>
