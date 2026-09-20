@@ -54,7 +54,6 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     openRequestsForMoreInfo,
     confirmComplete,
     isConfirmingComplete,
-    refetch,
   } = useCaseDetails(id);
   const { triggerAudit: triggerAuditRaw, isTriggering } = useTriggerAudit(id);
   const triggerAudit = async (submissionType: string, lifecycleUnitId?: string) => {
@@ -200,12 +199,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               {stage === "under_review" && caseData?.package_id === "pkg_ai_audit" && (
                 <ActiveRadarScanning
                   caseId={id}
-                  caseCode={caseData.case_code}
                   projectName={caseData.team_name || undefined}
-                  onAuditCompleted={() => {
-                    refetch();
-                    setActiveTab("report");
-                  }}
                 />
               )}
               <CaseOverviewPanel

@@ -14,15 +14,12 @@ import {
 
 interface ActiveRadarScanningProps {
   caseId: string;
-  caseCode?: string;
   projectName?: string;
-  onAuditCompleted?: () => void;
 }
 
 export default function ActiveRadarScanning({
   caseId,
   projectName,
-  onAuditCompleted,
 }: ActiveRadarScanningProps) {
   const { aiStatusData, cancel, isCancelling, retry, isRetrying } =
     useCaseAiStatus(caseId);
@@ -62,17 +59,8 @@ export default function ActiveRadarScanning({
         );
       } catch {}
     });
-    es.addEventListener("job_state", (e) => {
-      try {
-        if (JSON.parse(e.data).status === "completed") onAuditCompleted?.();
-      } catch {}
-    });
     return () => es.close();
-  }, [caseId, isTerminal, onAuditCompleted]);
-
-  useEffect(() => {
-    if (status === "completed") onAuditCompleted?.();
-  }, [status, onAuditCompleted]);
+  }, [caseId, isTerminal]);
 
   const logs = useMemo(() => {
     const base = aiStatusData?.logs || [];
