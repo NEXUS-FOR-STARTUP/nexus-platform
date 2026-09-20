@@ -657,6 +657,7 @@ export async function triggerOmpAuditForCase(
     await refundAuditCreditIfNoReport(caseId, "dispatch-failure").catch(() => {});
     await updateAiJobStatus(caseId, "failed", { error: String(flowErr) }).catch(() => {});
     await rollbackCaseStageOnFailure(caseId, "dispatch-failure").catch(() => {});
+    throw flowErr;
   }
 }
 
