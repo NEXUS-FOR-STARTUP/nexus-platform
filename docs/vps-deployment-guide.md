@@ -39,23 +39,31 @@ make setup
 ```
 Lệnh này thực hiện tự động trong 1 giây các tác vụ bắt buộc sau:
 1. Tạo Docker network `proxy-net` (nếu chưa có).
-2. Tạo các thư mục lưu trữ: `storage/jobs`, `storage/auth/omp`.
-3. Khởi tạo file rỗng `storage/auth/omp/auth.json` (ngăn Docker tạo nhầm thư mục khi mount volume).
-4. Phân quyền `chmod -R a+rwX storage` (đảm bảo container `nexus-api` chạy user UID 1001 và container `nexus-worker-omp` chạy user `root` đều có quyền đọc/ghi không bị lỗi `EACCES: permission denied`).
+2. Tạo các thư mục lưu trữ: `storage/jobs`, `storage/auth/omp/agent`.
+3. Phân quyền `chmod -R a+rwX storage` (đảm bảo container `nexus-api` chạy user UID 1001 và container `nexus-worker-omp` chạy user `root` đều có quyền đọc/ghi không bị lỗi `EACCES: permission denied`, bao gồm cả quyền cập nhật SQLite token `agent.db`).
 
 ---
 
-### Bước 3: Cấu hình AI Provider Models (`providers.json`)
-File `providers.json` chứa API key và cấu hình kết nối của các model ngoài (CheapKeyAI, MiMo, v.v.):
-```bash
-# Nếu trên VPS chưa có data/providers.json:
-cp data/providers.example.json data/providers.json
+### Bước 3: Cấu hình ChatGPT Plus OAuth cho Worker OMP (`agent.db`)
+Để Worker sử dụng gói ChatGPT Plus qua mô hình `openai-codex/gpt-5.6-sol`:
 
-# Chỉnh sửa file để điền API key thực tế:
-nano data/providers.json
-```
-*(Nếu sử dụng các model trực tiếp qua biến môi trường như `GEMINI_API_KEY`, bạn có thể bỏ qua bước điền key vào JSON).*
+1. **Đăng nhập trên máy cá nhân:**
+   Trên máy tính cá nhân (đã cài OMP CLI), mở terminal chạy `omp` rồi gõ:
+   ```text
+   /login openai-codex
+   ```
+   Đăng nhập tài khoản ChatGPT Plus trên trình duyệt. OMP sẽ lưu token OAuth vào `~/.omp/agent/agent.db`.
 
+2. **Copy file `agent.db` lên VPS:**
+   ```bash
+   scp ~/.omp/agent/agent.db user@vps_ip:/opt/nexus/nexus-platform/storage/auth/omp/agent/agent.db
+   ```
+
+3. **Phân quyền ghi:**
+   ```bash
+   chmod -R a+rwX /opt/nexus/nexus-platform/storage/auth/omp
+   ```
+   *(Container `nexus-worker-omp` mount `./storage/auth/omp:/root/.omp` ở chế độ Read-Write nên OMP sẽ tự động refresh token trong `agent.db` mỗi khi hết hạn mà không cần bất kỳ container phụ nào).*
 ---
 
 ### Bước 4: Kiểm tra và hoàn thiện file cấu hình `.env.prod`
@@ -74,9 +82,8 @@ CENTRIFUGO_TOKEN_SECRET="<chuoi-hex-32-byte>"
 CENTRIFUGO_API_KEY="<chuoi-hex-32-byte>"
 NEXT_PUBLIC_CENTRIFUGO_URL=wss://${DOMAIN}/connection/websocket
 
-# Cấu hình AI Keys cho Worker OMP (nếu có)
-GEMINI_API_KEY=your-gemini-api-key
-OMP_MODEL=cheapkeyai/gemini-3.8-flash
+# Cấu hình OMP Model (ChatGPT Plus OAuth hoặc MiMo fallback)
+OMP_MODEL=openai-codex/gpt-5.6-sol
 ```
 
 ---
@@ -155,15 +162,16 @@ docker compose -f docker-compose.prod.yml logs -f api
   chmod -R a+rwX /opt/nexus/nexus-platform/storage
   ```
 
-### C. Lỗi OMP crash do mount nhầm thư mục `auth.json`
-* **Nguyên nhân:** File `storage/auth/omp/auth.json` không tồn tại trước khi chạy `docker compose up`, dẫn đến Docker tự động tạo thư mục rỗng có tên `auth.json`.
-* **Cách sửa:**
-  ```bash
-  rm -rf storage/auth/omp/auth.json
-  echo "{}" > storage/auth/omp/auth.json
-  docker compose -f docker-compose.prod.yml restart worker-omp
-  ```
-
+### C. Rollback về MiMo AI nếu cần
+* **Cách rollback nhanh:**
+  1. Sửa file `.env.prod`:
+     ```ini
+     OMP_MODEL=mimo/mimo-v2.5
+     ```
+  2. Restart Worker:
+     ```bash
+     docker compose --env-file .env.prod -f docker-compose.prod.yml restart worker-omp
+     ```
 ### D. Kiểm tra dung lượng file `storage/jobs_db.json`
 * Nếu file `storage/jobs_db.json` phình to quá mức, dùng script dọn dẹp đã được tối ưu để lưu trữ log vào disk thay vì nhồi toàn bộ string vào DB:
   ```bash

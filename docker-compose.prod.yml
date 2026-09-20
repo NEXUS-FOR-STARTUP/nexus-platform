@@ -51,6 +51,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: "6379"
       APP_ROOT: /app
+      OMP_MODEL: ${OMP_MODEL:-openai-codex/gpt-5.6-sol}
     depends_on:
       db:
         condition: service_healthy
@@ -218,7 +219,7 @@ services:
       - REDIS_PORT=6379
       - STORAGE_DIR=/app/storage
       - NODE_ENV=production
-      - OMP_MODEL=${OMP_MODEL:-}
+      - OMP_MODEL=${OMP_MODEL:-openai-codex/gpt-5.6-sol}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
@@ -226,7 +227,7 @@ services:
     volumes:
       - ./storage:/app/storage
       - ./data:/app/data:ro
-      - ${HOST_OMP_AUTH_FILE:-./storage/auth/omp/auth.json}:/root/.omp/agent/auth.json:ro
+      - ${HOST_OMP_DIR:-./storage/auth/omp}:/root/.omp
     depends_on:
       redis:
         condition: service_healthy
