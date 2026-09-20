@@ -65,19 +65,11 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const rawTabParam = searchParams.get("tab") as WorkspaceTab | null;
   const initialTab: WorkspaceTab = rawTabParam && VALID_WORKSPACE_TABS.includes(rawTabParam) ? rawTabParam : "overview";
   const [activeTab, setActiveTabState] = useState<WorkspaceTab>(initialTab);
-  const userClickedRef = useRef(false);
-  /** User click: update state + URL */
   const setActiveTab = (tab: WorkspaceTab) => {
-    userClickedRef.current = true;
     setActiveTabState(tab);
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", tab);
     router.replace(`?${params.toString()}`, { scroll: false });
-  };
-  /** Auto-switch (stage transition): update state only, don't override user's URL choice */
-  const setAutoTab = (tab: WorkspaceTab) => {
-    if (userClickedRef.current) return;
-    setActiveTabState(tab);
   };
   const { unreadCount, markAsRead } = useCaseUnreadCount(id, { enabled: Boolean(caseData && !isAiPackage) });
   useRealtimeChat(id, { activeTab, markAsRead, enabled: Boolean(caseData && !isAiPackage) });
@@ -99,20 +91,6 @@ export default function CaseWorkspacePage({ params }: PageProps) {
       setCreditBuyOpened(true);
     }
   }, [checkoutParam, caseData]);
-
-  const prevStageRef = useRef(stage);
-  useEffect(() => {
-    if (prevStageRef.current === "under_review" && stage === "report_ready") {
-      setAutoTab("report");
-    }
-    prevStageRef.current = stage;
-  }, [stage]);
-
-  useEffect(() => {
-    if (isAiPackage && activeTab === "discussion") {
-      setAutoTab("overview");
-    }
-  }, [isAiPackage, activeTab]);
   if (isLoading) {
     return (
       <div className="space-y-6 w-full pb-12">
