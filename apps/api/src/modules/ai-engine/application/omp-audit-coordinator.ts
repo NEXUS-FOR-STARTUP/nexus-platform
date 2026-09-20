@@ -1,5 +1,6 @@
 import { existsSync, rmSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import logger from "../../../shared/infrastructure/logger.js";
 import { prisma } from "../../../db.js";
@@ -342,6 +343,7 @@ export async function triggerOmpAuditForCase(
     admin_triggered: adminTriggered = false,
     force_supersede: forceSupersede = false,
   } = parsed.data;
+  const resolvedModel = model?.trim() || process.env.OMP_MODEL || "mimo/mimo-v2.5";
   // 2. Validate lifecycle_unit belongs to case (if provided)
   if (lifecycleUnitId) {
     const unit = await prisma.lifecycleUnit.findUnique({ where: { id: lifecycleUnitId } });
@@ -446,7 +448,7 @@ export async function triggerOmpAuditForCase(
             submission_type: submissionType,
             lifecycle_unit_id: lifecycleUnitId ?? null,
             startedAt,
-            model,
+            model: resolvedModel,
             prompt_mode: promptMode,
             skip_credit_check: skipCreditCheck,
             admin_triggered: adminTriggered,
@@ -454,11 +456,12 @@ export async function triggerOmpAuditForCase(
         },
         update: {
           status: "queued",
+          output_json: Prisma.DbNull,
           input_json: {
             submission_type: submissionType,
             lifecycle_unit_id: lifecycleUnitId ?? null,
             startedAt,
-            model,
+            model: resolvedModel,
             prompt_mode: promptMode,
             skip_credit_check: skipCreditCheck,
             admin_triggered: adminTriggered,
@@ -511,7 +514,7 @@ export async function triggerOmpAuditForCase(
               submission_type: submissionType,
               lifecycle_unit_id: resolvedLifecycleUnitId,
               startedAt,
-              model,
+              model: resolvedModel,
               prompt_mode: promptMode,
               skip_credit_check: skipCreditCheck,
               admin_triggered: adminTriggered,
@@ -543,7 +546,7 @@ export async function triggerOmpAuditForCase(
       documentPath: resolve(jobDir, "input", primaryFileName),
       documentOriginalName: primaryFileName,
       title: projectName,
-      ompModel: model || process.env.OMP_MODEL || "mimo/mimo-v2.5",
+      ompModel: resolvedModel,
       promptMode: promptMode,
       submissionType,
       lifecycleUnitId: resolvedLifecycleUnitId ?? undefined,
@@ -565,8 +568,8 @@ export async function triggerOmpAuditForCase(
           timestamp: startedAt,
           agent: "system",
           message: adminTriggered
-            ? `[Quản trị viên] Bắt đầu chạy lại thẩm định với mô hình ${model || "mặc định"}`
-            : `Khởi tạo tiến trình thẩm định đề án ${projectName} - Mã case ${caseRecord.case_code}`,
+            ? `[Quản trị viên] Bắt đầu chạy lại thẩm định với mô hình ${resolvedModel}`
+            : `Khởi tạo tiến trình thẩm định đề án ${projectName} - Mã case ${caseRecord.case_code} (${resolvedModel})`,
         },
       ],
     });

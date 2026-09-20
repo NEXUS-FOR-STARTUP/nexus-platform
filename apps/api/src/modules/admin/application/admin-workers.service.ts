@@ -254,7 +254,9 @@ export async function listAdminWorkerJobs(
       status: job.status,
       isStuck,
       submissionType: (inputJson.submission_type as string) || "initial",
-      model: (inputJson.model as string) || process.env.OMP_MODEL || "mimo/mimo-v2.5",
+      model:
+        (inputJson.model as string | undefined)?.trim() ||
+        (job.created_at < new Date("2026-09-20T00:00:00Z") ? "mimo/mimo-v2.5" : process.env.OMP_MODEL || "mimo/mimo-v2.5"),
       startedAt,
       updatedAt: job.updated_at.toISOString(),
       durationMs,
@@ -349,7 +351,10 @@ export async function getAdminWorkerJobDetail(
       (meta.categoryScores as Record<string, number>) ||
       (meta.scores as Record<string, number>) ||
       null;
-    const pdfUrl = (meta.pdfUrl as string) || null;
+    // View via API (inline disposition + versioned .pdf filename). Never expose raw
+    // Cloudinary URLs: raw assets have no .pdf suffix and serve octet-stream,
+    // which makes browsers auto-download with a wrong name instead of viewing.
+    const pdfUrl = `/api/reports/${latestReport.id}/download?view=inline`;
 
     reportSummary = {
       id: latestReport.id,
@@ -379,7 +384,9 @@ export async function getAdminWorkerJobDetail(
     status: job.status,
     isStuck,
     submissionType: (inputJson.submission_type as string) || "initial",
-    model: (inputJson.model as string) || process.env.OMP_MODEL || "mimo/mimo-v2.5",
+    model:
+      (inputJson.model as string | undefined)?.trim() ||
+      (job.created_at < new Date("2026-09-20T00:00:00Z") ? "mimo/mimo-v2.5" : process.env.OMP_MODEL || "mimo/mimo-v2.5"),
     promptMode: inputJson.prompt_mode === "lite" ? "lite" : "full",
     startedAt,
     updatedAt: job.updated_at.toISOString(),

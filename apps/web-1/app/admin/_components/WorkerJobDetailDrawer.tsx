@@ -117,8 +117,20 @@ export default function WorkerJobDetailDrawer({ jobId, isOpen, onClose }: Worker
                     <Text size="xs" c="dimmed">Điểm đánh giá tổng hợp</Text>
                     <Text size="xl" fw={700} className="font-heading text-brand">{job.reportSummary.overallScore ?? "Chưa có"}/100</Text>
                   </div>
-                  {job.reportSummary.pdfUrl && (
-                    <Button size="xs" variant="light" color="blue" leftSection={<ExternalLink className="w-3.5 h-3.5" />} component="a" href={job.reportSummary.pdfUrl} target="_blank">
+                  {(job.reportSummary.pdfUrl || job.reportSummary.id) && (
+                    <Button
+                      size="xs"
+                      variant="light"
+                      color="blue"
+                      leftSection={<ExternalLink className="w-3.5 h-3.5" />}
+                      component="a"
+                      href={
+                        job.reportSummary.id
+                          ? `/api/reports/${job.reportSummary.id}/download?view=inline`
+                          : job.reportSummary.pdfUrl || ""
+                      }
+                      target="_blank"
+                    >
                       Mở Báo cáo PDF A4
                     </Button>
                   )}

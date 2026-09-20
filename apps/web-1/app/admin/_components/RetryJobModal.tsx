@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Modal, Button, Select, TextInput, Radio, Group, Stack, Text, Switch, Alert } from "@mantine/core";
 import { RotateCcw, ShieldCheck, Sparkles } from "lucide-react";
 import type { AdminWorkerJobListItem, RetryJobPayload } from "../hooks/useAdminWorkers";
@@ -14,19 +14,35 @@ interface RetryJobModalProps {
 }
 
 const MODEL_OPTIONS = [
-  { value: "gemini-2.5-flash", label: "Google Gemini 2.5 Flash (Mặc định)" },
-  { value: "claude-3-5-sonnet", label: "Claude 3.5 Sonnet (Phân tích sâu)" },
-  { value: "gpt-4o", label: "OpenAI GPT-4o (Dự phòng quota)" },
-  { value: "mimo-v2.5", label: "Mimo v2.5 (Tiết kiệm)" },
+  { value: "openai-codex/gpt-5.6-sol", label: "ChatGPT Plus (GPT-5.6 Sol - Khuyên dùng)" },
+  { value: "mimo/mimo-v2.5", label: "Xiaomi MiMo v2.5 (Tiết kiệm)" },
+  { value: "google-antigravity/gemini-3.8-flash", label: "Google Gemini 3.8 Flash" },
   { value: "custom", label: "Tùy chỉnh model khác..." },
 ];
 
 export default function RetryJobModal({ job, isOpen, onClose, onConfirm, isSubmitting }: RetryJobModalProps) {
-  const [selectedModel, setSelectedModel] = useState("gemini-2.5-flash");
+  const [selectedModel, setSelectedModel] = useState("openai-codex/gpt-5.6-sol");
   const [customModel, setCustomModel] = useState("");
   const [promptMode, setPromptMode] = useState<"full" | "lite">("full");
   const [clearSandbox, setClearSandbox] = useState(true);
 
+  useEffect(() => {
+    if (!job || !isOpen) return;
+    const currentModel = job.model?.trim();
+    if (!currentModel) {
+      setSelectedModel("openai-codex/gpt-5.6-sol");
+      setCustomModel("");
+      return;
+    }
+    const isKnownOption = MODEL_OPTIONS.some((opt) => opt.value === currentModel);
+    if (isKnownOption) {
+      setSelectedModel(currentModel);
+      setCustomModel("");
+    } else {
+      setSelectedModel("custom");
+      setCustomModel(currentModel);
+    }
+  }, [job, isOpen]);
   if (!job) return null;
 
   const isCustomEmpty = selectedModel === "custom" && !customModel.trim();

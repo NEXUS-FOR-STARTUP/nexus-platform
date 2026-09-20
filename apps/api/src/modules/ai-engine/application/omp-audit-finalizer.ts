@@ -167,7 +167,7 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
   let pdfPublicId: string | null = null;
   if (pdfBuffer) {
     const versionSuffix = versionNo != null ? `_v${String(versionNo).padStart(2, "0")}` : "";
-    const cloudinaryName = `audit_report${versionSuffix}_${startedAtMs}`;
+    const cloudinaryName = `audit_report${versionSuffix}_${startedAtMs}.pdf`;
     try {
       const uploadRes = await uploadFile(
         pdfBuffer,
@@ -206,6 +206,7 @@ export async function finalizeOmpAuditResult(caseId: string): Promise<boolean> {
     pdfPublicId,
     submission_type: submissionType,
     triggerStartedAt,
+    model: (aiJobInput?.model as string | undefined) ?? process.env.OMP_MODEL ?? "mimo/mimo-v2.5",
   };
   delete metadataJson.reportMarkdown;
 

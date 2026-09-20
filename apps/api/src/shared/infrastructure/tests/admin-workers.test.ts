@@ -13,6 +13,7 @@ import {
 import {
   getAdminWorkerStats,
   listAdminWorkerJobs,
+  getAdminWorkerJobDetail,
 } from "../../../modules/admin/application/admin-workers.service.js";
 
 describe("Admin OMP Worker Monitoring - Smoke & Integration Tests", () => {
@@ -237,6 +238,75 @@ describe("Admin OMP Worker Monitoring - Smoke & Integration Tests", () => {
     } finally {
       prisma.aiJob.count = origCount;
       prisma.aiJob.findMany = origFindMany;
+    }
+  });
+
+  test("4. Detail - getAdminWorkerJobDetail trả về reportSummary với pdfUrl inline endpoint có đuôi .pdf", async () => {
+    const origFindFirstAiJob = prisma.aiJob.findFirst;
+    const origFindUniqueTeamFit = prisma.teamFitReport.findUnique;
+    const origFindFirstReport = prisma.report.findFirst;
+
+    const now = new Date();
+    prisma.aiJob.findFirst = (async () => ({
+      id: "job-completed-1",
+      case_id: "case-completed-1",
+      status: "completed",
+      job_type: "omp_audit",
+      created_at: now,
+      updated_at: now,
+      input_json: {
+        startedAt: now.toISOString(),
+        model: "mimo/mimo-v2.5",
+        promptMode: "full",
+        submission_type: "initial",
+      },
+      output_json: {},
+      case: {
+        id: "case-completed-1",
+        case_code: "NX-295951",
+        team_name: "Startup AI Test",
+        owner: {
+          id: "user-test",
+          name: "Sinh viên Test",
+          email: "student@test.com",
+        },
+      },
+    })) as unknown as typeof prisma.aiJob.findFirst;
+
+    prisma.teamFitReport.findUnique = (async () => null) as unknown as typeof prisma.teamFitReport.findUnique;
+    prisma.report.findFirst = (async () => ({
+      id: "report-123",
+      metadata_json: {
+        overallScore: 65,
+        categoryScores: {
+          problemClarity: 70,
+          marketViability: 55,
+          businessModel: 55,
+          competitiveMoat: 50,
+          executionFeasibility: 75,
+        },
+        pdfUrl: "https://res.cloudinary.com/demo/raw/upload/nexus/reports/case-completed-1/audit_report_123456",
+      },
+      created_at: now,
+    })) as unknown as typeof prisma.report.findFirst;
+
+    try {
+      const detail = await getAdminWorkerJobDetail("job-completed-1");
+      assert.strictEqual(detail.id, "job-completed-1");
+      assert.strictEqual(detail.caseCode, "NX-295951");
+      assert.ok(detail.reportSummary, "Phải có reportSummary khi report tồn tại");
+      assert.strictEqual(detail.reportSummary.id, "report-123");
+      assert.strictEqual(detail.reportSummary.overallScore, 65);
+      // Invariant: pdfUrl phải trỏ về endpoint API inline download để trình duyệt mở được PDF và tải về có đuôi .pdf
+      assert.strictEqual(
+        detail.reportSummary.pdfUrl,
+        "/api/reports/report-123/download?view=inline",
+        "pdfUrl phải là route API inline download, không được là raw Cloudinary URL",
+      );
+    } finally {
+      prisma.aiJob.findFirst = origFindFirstAiJob;
+      prisma.teamFitReport.findUnique = origFindUniqueTeamFit;
+      prisma.report.findFirst = origFindFirstReport;
     }
   });
 });
