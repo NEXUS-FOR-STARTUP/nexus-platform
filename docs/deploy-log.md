@@ -49,3 +49,4 @@ Sau khi xác minh, ghi 1 dòng theo format trên (ví dụ: `2026-08-03 HH:MM | 
 | 2026-09-16 23:36 | 8b080c1 | staging | Merge remote-tracking branch 'origin/dev' into staging | 🔵 api 🟢 web |
 | 2026-09-18 18:32 | d032e50 | staging | Merge pull request #39 from NEXUS-FOR-STARTUP/fix/pricing-chat-intake-quickfixes | 🔵 api 🟢 web |
 | 2026-09-19 18:50 | 7cb0d6e | staging | perf(docker): optimize api and worker images and exclude tests from build | 🔵 api 🟢 web 🟠 worker |
+| 2026-09-20 16:45 | 9355368 | staging | fix(ai-engine): resolve stale audit job deadlock and typst unclosed raw text | 🔵 api 🟢 web |
