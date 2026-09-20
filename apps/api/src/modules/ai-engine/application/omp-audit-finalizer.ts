@@ -259,7 +259,7 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
     pdfPublicId,
     submission_type: submissionType,
     triggerStartedAt,
-    model: (aiJobInput?.model as string | undefined) ?? process.env.OMP_MODEL ?? "mimo/mimo-v2.5",
+    model: (aiJobInput?.model as string | undefined) ?? process.env.OMP_MODEL ?? "mimo/mimo-v2.5-pro",
   };
   delete metadataJson.reportMarkdown;
 

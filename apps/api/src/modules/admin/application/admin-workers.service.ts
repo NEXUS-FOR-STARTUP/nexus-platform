@@ -14,8 +14,8 @@ import {
   triggerOmpAuditForCase,
   cancelOmpAuditForCase,
   refundAuditCreditIfNoReport,
+  rollbackCaseStageOnFailure,
 } from "../../ai-engine/application/omp-audit-coordinator.js";
-import { updateCaseAuditStage } from "../../ai-engine/infrastructure/persistence/ai-job.repository.js";
 import { resolveRepoRoot } from "../../ai-engine/omp-audit.service.js";
 import type {
   AdminWorkerStatsResponse,
@@ -310,7 +310,7 @@ export async function listAdminWorkerJobs(
       attemptNo,
       model:
         (inputJson.model as string | undefined)?.trim() ||
-        (job.created_at < new Date("2026-09-20T00:00:00Z") ? "mimo/mimo-v2.5" : process.env.OMP_MODEL || "mimo/mimo-v2.5"),
+        (job.created_at < new Date("2026-09-20T00:00:00Z") ? "mimo/mimo-v2.5" : process.env.OMP_MODEL || "mimo/mimo-v2.5-pro"),
       startedAt,
       updatedAt: job.updated_at.toISOString(),
       durationMs,
@@ -445,7 +445,7 @@ export async function getAdminWorkerJobDetail(
     attemptNo,
     model:
       (inputJson.model as string | undefined)?.trim() ||
-      (job.created_at < new Date("2026-09-20T00:00:00Z") ? "mimo/mimo-v2.5" : process.env.OMP_MODEL || "mimo/mimo-v2.5"),
+      (job.created_at < new Date("2026-09-20T00:00:00Z") ? "mimo/mimo-v2.5" : process.env.OMP_MODEL || "mimo/mimo-v2.5-pro"),
     promptMode: inputJson.prompt_mode === "lite" ? "lite" : "full",
     startedAt,
     updatedAt: job.updated_at.toISOString(),
@@ -602,17 +602,10 @@ export async function healStuckAdminWorkerJob(
     logger.warn({ caseId, err }, "Failed to refund credit during heal-stuck");
   });
 
-  // 4. Rollback stage case
-  try {
-    const reportCount = await prisma.report.count({ where: { case_id: caseId } });
-    if (reportCount > 0) {
-      await updateCaseAuditStage(caseId, "report_ready", "report_ready_to_publish");
-    } else {
-      await updateCaseAuditStage(caseId, "intake_ready", "intake_submitted");
-    }
-  } catch (stageErr) {
-    logger.warn({ caseId, stageErr }, "Failed to rollback case stage during heal-stuck");
-  }
+  // 4. Rollback stage case (uses shared logic: valid states, intake check)
+  await rollbackCaseStageOnFailure(caseId, reason || "admin-healed-stuck").catch((err) => {
+    logger.warn({ caseId, err }, "Failed to rollback case stage during heal-stuck");
+  });
 
   // 5. Ghi nhận sự kiện CaseEvent
   await prisma.caseEvent.create({

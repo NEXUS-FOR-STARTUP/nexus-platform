@@ -110,8 +110,10 @@ export async function refundAuditCreditIfNoReport(caseId: string, reason: string
 }
 /**
  * Rollback case audit stage on failure or cancellation:
- * - If case already has an approved report → rollback to report_ready (supporter/admin can re-review/re-trigger)
- * - If no report yet → rollback to intake_ready (user sees submit card)
+ * - Has approved report → report_ready / report_ready_to_publish
+ * - No report, intake already submitted → submitted / triage_pending (user retries AI from UI)
+ * - No report, no intake yet → intake_ready / triage_pending (user submits intake first)
+ * internal_status MUST always be a valid VALID_STATES entry; never use event names like "intake_submitted".
  * Prevents case from getting permanently stuck in under_review / supporter_working.
  */
 export async function rollbackCaseStageOnFailure(caseId: string, reason: string): Promise<void> {
@@ -121,8 +123,14 @@ export async function rollbackCaseStageOnFailure(caseId: string, reason: string)
       await updateCaseAuditStage(caseId, "report_ready", "report_ready_to_publish");
       logger.info({ caseId, reason }, "Rolled back case stage to report_ready");
     } else {
-      await updateCaseAuditStage(caseId, "intake_ready", "intake_submitted");
-      logger.info({ caseId, reason }, "Rolled back case stage to intake_ready");
+      const intakeUnit = await findFirstIntakeUnit(caseId);
+      if (intakeUnit) {
+        await updateCaseAuditStage(caseId, "submitted", "triage_pending");
+        logger.info({ caseId, reason }, "Rolled back case stage to submitted (intake exists)");
+      } else {
+        await updateCaseAuditStage(caseId, "intake_ready", "triage_pending");
+        logger.info({ caseId, reason }, "Rolled back case stage to intake_ready (no intake yet)");
+      }
     }
   } catch (stageErr: unknown) {
     const err = stageErr as Error;
@@ -393,7 +401,7 @@ export async function triggerOmpAuditForCase(
     admin_triggered: adminTriggered = false,
     force_supersede: forceSupersede = false,
   } = parsed.data;
-  const resolvedModel = model?.trim() || process.env.OMP_MODEL || "mimo/mimo-v2.5";
+  const resolvedModel = model?.trim() || process.env.OMP_MODEL || "mimo/mimo-v2.5-pro";
   // 2. Validate lifecycle_unit belongs to case (if provided)
   if (lifecycleUnitId) {
     const unit = await prisma.lifecycleUnit.findUnique({ where: { id: lifecycleUnitId } });

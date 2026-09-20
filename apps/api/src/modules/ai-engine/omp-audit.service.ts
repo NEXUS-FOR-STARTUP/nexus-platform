@@ -180,7 +180,7 @@ export async function runOmpAudit(opts: OmpAuditOptions): Promise<OmpAuditResult
   prepareSandbox(jobDir, opts.inputFiles);
 
   const { command, baseArgs } = resolveOmpCommand();
-  const selectedModel = opts.model || process.env.OMP_MODEL || "mimo/mimo-v2.5";
+  const selectedModel = opts.model || process.env.OMP_MODEL || "mimo/mimo-v2.5-pro";
   const promptFilesDir = resolve(projectRoot, "data/system-prompts");
   const submissionType = opts.submissionType ?? "initial";
 
