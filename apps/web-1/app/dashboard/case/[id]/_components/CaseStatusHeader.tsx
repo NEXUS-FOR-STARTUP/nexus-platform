@@ -6,13 +6,14 @@ import { studentStatusThemeMap } from "@/types";
 import { Clock, Users, Calendar, AlertCircle } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { Tooltip } from "@mantine/core";
+import type { WorkspaceTab } from "./WorkspaceSidebar";
 
 interface CaseStatusHeaderProps {
   caseData: Case;
   versions: number[];
   selectedVersion: number;
   onVersionChange: (version: number) => void;
-  onSelectTab?: (tab: any) => void;
+  onSelectTab?: (tab: WorkspaceTab) => void;
 }
 
 export default function CaseStatusHeader({
@@ -135,8 +136,8 @@ export default function CaseStatusHeader({
     <div className="bg-surface-app border border-border-app rounded-lg p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
       {/* Case Basic Info */}
       <div className="space-y-3">
-        <div className="space-y-1">
-          <span className="text-base font-semibold uppercase tracking-wider text-text-subtle">
+        <div className="space-y-0.5">
+          <span className="text-xs font-medium text-text-muted block">
             Hồ sơ phản biện
           </span>
           <div className="flex flex-wrap items-center gap-3">
@@ -174,19 +175,19 @@ export default function CaseStatusHeader({
           {caseData.team_name && (
             <div className="flex items-center gap-1.5">
               <Users className="w-4 h-4 text-text-subtle" />
-              <span>Nhóm: <strong>{caseData.team_name}</strong></span>
+              <span>Nhóm: <span className="text-text-app font-medium">{caseData.team_name}</span></span>
             </div>
           )}
           {caseData.school && (
             <div className="flex items-center gap-1.5">
               <span className="text-text-subtle">|</span>
-              <span>Trường: <strong>{caseData.school}</strong></span>
+              <span>Trường: <span className="text-text-app font-medium">{caseData.school}</span></span>
             </div>
           )}
           {caseData.course_context && (
             <div className="flex items-center gap-1.5">
               <span className="text-text-subtle">|</span>
-              <span>Lớp/Môn: <strong>{caseData.course_context}</strong></span>
+              <span>Lớp/Môn: <span className="text-text-app font-medium">{caseData.course_context}</span></span>
             </div>
           )}
         </div>

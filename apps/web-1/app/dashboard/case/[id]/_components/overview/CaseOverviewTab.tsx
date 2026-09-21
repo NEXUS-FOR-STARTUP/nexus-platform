@@ -1,7 +1,6 @@
 "use client";
 
 import { Badge, Button, Card, SimpleGrid } from "@mantine/core";
-import { AlertTriangle, ArrowRight, ClipboardList, FileText, Lightbulb, Target, Users } from "lucide-react";
 import type { Case, TeamFitReport } from "@/types";
 import { studentStatusThemeMap } from "@/types";
 import { buildCaseOverviewModel, type OverviewField, type OverviewMember } from "./caseOverviewModel";
@@ -31,13 +30,10 @@ function FieldList({ fields }: { fields: OverviewField[] }) {
   );
 }
 
-function SectionCard({ title, icon: Icon, children }: { title: string; icon: typeof Users; children: React.ReactNode }) {
+function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Card withBorder radius="lg" className="border-border-subtle bg-surface-panel shadow-none">
-      <div className="flex items-center gap-2 mb-4">
-        <span className="w-8 h-8 rounded-lg bg-brand-soft/40 text-brand flex items-center justify-center">
-          <Icon className="w-4 h-4" />
-        </span>
+      <div className="pb-2.5 border-b border-border-subtle/60 mb-4">
         <h3 className="font-heading text-base font-semibold text-text-primary">{title}</h3>
       </div>
       {children}
@@ -49,7 +45,7 @@ function MemberList({ members }: { members: OverviewMember[] }) {
   if (members.length === 0) return null;
 
   return (
-    <SectionCard title="Thành viên" icon={Users}>
+    <SectionCard title="Thành viên">
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {members.map((member, index) => (
           <div key={`${member.name}-${index}`} className="rounded-xl border border-border-subtle bg-surface-app p-4">
@@ -71,8 +67,8 @@ function GapList({ title, items }: { title: string; items: string[] }) {
       <h4 className="text-sm font-semibold text-text-primary font-heading mb-2">{title}</h4>
       <ul className="space-y-2">
         {items.map((item, index) => (
-          <li key={`${title}-${index}`} className="flex gap-2 text-sm text-text-primary font-body leading-relaxed">
-            <AlertTriangle className="w-4 h-4 text-warning mt-0.5 shrink-0" />
+          <li key={`${title}-${index}`} className="flex items-start gap-2 text-sm text-text-primary font-body leading-relaxed">
+            <span className="text-text-muted mt-0.5 shrink-0">•</span>
             <span>{item}</span>
           </li>
         ))}
@@ -115,16 +111,16 @@ export default function CaseOverviewTab({ caseData, intakeSnapshot, teamFitRepor
       </Card>
 
       <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-        <SectionCard title="Nhóm" icon={Users}>
+        <SectionCard title="Nhóm">
           <FieldList fields={model.teamFields} />
         </SectionCard>
-        <SectionCard title="Liên hệ" icon={ClipboardList}>
+        <SectionCard title="Liên hệ">
           <FieldList fields={model.contactFields} />
         </SectionCard>
       </SimpleGrid>
 
       {model.ideaFields.length > 0 && (
-        <SectionCard title="Ý tưởng" icon={Lightbulb}>
+        <SectionCard title="Ý tưởng">
           <FieldList fields={model.ideaFields} />
         </SectionCard>
       )}
@@ -132,7 +128,7 @@ export default function CaseOverviewTab({ caseData, intakeSnapshot, teamFitRepor
       <MemberList members={model.members} />
 
       {(model.hasFreeAnalysis || model.currentBlocker || model.supportNeeds.length > 0 || model.expectedOutputs) && (
-        <SectionCard title="Điểm cần chú ý" icon={Target}>
+        <SectionCard title="Điểm cần chú ý">
           <div className="grid gap-5 lg:grid-cols-2">
             <GapList title="Khoảng trống đội ngũ" items={model.teamGaps} />
             <GapList title="Khoảng trống thương mại" items={model.commercialGaps} />
@@ -170,12 +166,12 @@ export default function CaseOverviewTab({ caseData, intakeSnapshot, teamFitRepor
           </div>
           <div className="flex flex-wrap gap-2">
             {onOpenDocuments && (
-              <Button size="sm" variant="light" color="brand" onClick={onOpenDocuments} rightSection={<ArrowRight className="w-3.5 h-3.5" />}>
+              <Button size="sm" variant="light" color="brand" onClick={onOpenDocuments}>
                 Tài liệu
               </Button>
             )}
             {onOpenTimeline && (
-              <Button size="sm" variant="subtle" color="gray" onClick={onOpenTimeline} leftSection={<FileText className="w-3.5 h-3.5" />}>
+              <Button size="sm" variant="subtle" color="gray" onClick={onOpenTimeline}>
                 Lịch sử
               </Button>
             )}
