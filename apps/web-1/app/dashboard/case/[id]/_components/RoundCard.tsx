@@ -70,7 +70,7 @@ export default function RoundCard({ round, caseId, defaultExpanded = false }: Ro
   const submissionType = round.submission_type || "initial";
   const typeLabel = SUBMISSION_TYPE_LABELS[submissionType] || "Báo cáo";
   const typeColor = SUBMISSION_TYPE_COLORS[submissionType] || "gray";
-
+  const displayVersion = typeof round.version_no === "number" ? round.version_no + 1 : 1;
   return (
     <div className="border border-border-app rounded-xl overflow-hidden bg-surface-app animate-fade-in transition-all shadow-none">
       {/* Header bar */}
@@ -83,7 +83,7 @@ export default function RoundCard({ round, caseId, defaultExpanded = false }: Ro
             {typeLabel}
           </Badge>
           <span className="text-base font-bold text-text-app tracking-tight">
-            {round.version_no ? `Phiên bản ${round.version_no}` : "Phiên bản —"}
+            Phiên bản {displayVersion}
           </span>
           <span className="text-xs text-text-muted">
             {formatDateShort(round.submitted_at)}
@@ -103,7 +103,7 @@ export default function RoundCard({ round, caseId, defaultExpanded = false }: Ro
                 leftSection={<ExternalLink size={15} />}
                 className="font-medium"
               >
-                Mở tab mới
+                Mở xem toàn màn hình
               </Button>
               <Button
                 leftSection={<Download size={15} />}
@@ -113,7 +113,7 @@ export default function RoundCard({ round, caseId, defaultExpanded = false }: Ro
                 onClick={handleDownload}
                 className="font-semibold cursor-pointer"
               >
-                Tải PDF
+                Tải báo cáo (PDF)
               </Button>
             </>
           )}

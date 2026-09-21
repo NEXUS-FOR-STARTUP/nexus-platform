@@ -305,26 +305,13 @@ function IntakePageContent() {
     <div className="space-y-8 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="text-center space-y-2">
         <h1 className="font-heading text-2xl sm:text-3xl font-bold text-text-app">
-          {isUpdateMode ? "Cập nhật hồ sơ" : "Tạo hồ sơ mới"}
+          {isUpdateMode ? "Cập nhật thông tin dự án" : "Đăng ký đánh giá dự án"}
         </h1>
         <p className="font-body text-sm text-text-muted max-w-lg mx-auto">
           {isUpdateMode
-            ? "Điều chỉnh thông tin hồ sơ hiện tại."
-            : "Cấu trúc ý tưởng và thông tin minh chứng để bắt đầu chạy phản biện."}
+            ? "Điều chỉnh thông tin dự án hiện tại."
+            : "Cung cấp thông tin dự án và tải lên tài liệu để bắt đầu quy trình đánh giá."}
         </p>
-
-        {!isAiOnlyPackage && (
-          <div className="max-w-lg mx-auto">
-            <Alert
-              variant="light"
-              color="blue"
-              icon={<Clock className="w-4 h-4 text-blue-600" />}
-              className="text-left text-xs font-body"
-            >
-              ⏱ Thời gian phản biện: 24h–48h có Mentor chuyên môn đồng hành và phản hồi
-            </Alert>
-          </div>
-        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">

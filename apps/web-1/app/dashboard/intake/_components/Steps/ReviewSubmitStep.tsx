@@ -17,7 +17,7 @@ const PRIMARY_NEEDS_MAP: Record<string, string> = {
   filter_select_idea: "Cần hỗ trợ chọn hướng ý tưởng phù hợp để phát triển tiếp",
   clarify_customer_pain: "Cần phản biện để làm rõ khách hàng mục tiêu và vấn đề cốt lõi",
   critique_feasibility: "Cần phản biện để đánh giá giải pháp hiện tại có hợp lý và khả thi không",
-  audit_cp1_draft: "Cần rà soát báo cáo Checkpoint 1 và chỉ ra điểm cần chỉnh sửa",
+  audit_cp1_draft: "Cần rà soát tài liệu dự án và chỉ ra điểm cần chỉnh sửa",
   improve_rejected_idea: "Cần góp ý để cải thiện ý tưởng sau phản hồi chưa tốt từ giảng viên",
 };
 
@@ -35,7 +35,7 @@ const getPrimaryNeedLabel = (needCode?: string): string => {
   const fallbackMap: Record<string, string> = {
     general_feedback: "Góp ý chung cho ý tưởng và dự án",
     pitching_practice: "Luyện tập thuyết trình và phản biện",
-    market_validation: "Thẩm định thị trường và đối thủ",
+    market_validation: "Đánh giá thị trường và đối thủ",
     financial_model: "Hỗ trợ xây dựng kế hoạch tài chính",
     other: "Nhu cầu hỗ trợ khác",
   };
@@ -68,11 +68,9 @@ export default function ReviewSubmitStep({
   return (
     <div className="font-body text-text-app max-w-3xl mx-auto space-y-10">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold text-text-app">Xác nhận thông tin hồ sơ</h2>
+        <h2 className="text-xl font-semibold text-text-app">Kiểm tra thông tin trước khi gửi</h2>
         <p className="text-sm text-text-muted">
-          {isAiOnly
-            ? "Đây là hồ sơ bàn giao để Nexus Engine bắt đầu thẩm định. Kiểm tra lại trước khi xác nhận."
-            : "Đây là gói bàn giao để Supporter bắt đầu xử lý. Kiểm tra lại trước khi xác nhận."}
+          Kiểm tra lại toàn bộ thông tin dự án và tài liệu đính kèm trước khi bắt đầu quy trình đánh giá.
         </p>
       </div>
 
@@ -93,16 +91,16 @@ export default function ReviewSubmitStep({
 
         <div className="space-y-4">
           <h3 className="text-base font-semibold text-brand uppercase tracking-wider">
-            {isAiOnly ? "2. Hình thức & Kỳ vọng thẩm định" : "2. Nhu cầu hỗ trợ"}
+            {isAiOnly ? "2. Hình thức & Kỳ vọng đánh giá" : "2. Nhu cầu hỗ trợ"}
           </h3>
           <div className="space-y-4 pl-4 text-sm">
             {isAiOnly ? (
               <div className="rounded-lg border border-border-app bg-surface-muted/40 p-4 space-y-1.5">
                 <div className="font-semibold text-text-app text-sm">
-                  Đánh giá tự động qua Nexus Engine
+                  Đánh giá tự động qua Nexus AI
                 </div>
                 <p className="text-xs text-text-muted leading-relaxed">
-                  Hồ sơ được phân tích tự động về khách hàng mục tiêu, vấn đề cốt lõi, giải pháp và tính khả thi của mô hình. Kết quả thẩm định chi tiết sẵn sàng trong <span className="font-semibold text-brand">khoảng 10 phút</span> sau khi gửi.
+                  Tài liệu được phân tích tự động theo 5 nhóm tiêu chí cốt lõi (vấn đề, thị trường, mô hình kinh doanh, lợi thế cạnh tranh và khả năng triển khai). Kết quả đánh giá chi tiết sẵn sàng trong <span className="font-semibold text-brand">khoảng 10 phút</span> sau khi gửi.
                 </p>
               </div>
             ) : (
@@ -172,12 +170,12 @@ export default function ReviewSubmitStep({
         <div className="space-y-4">
           <h3 className="text-base font-semibold text-brand uppercase tracking-wider">4. Gói dịch vụ & Thời gian xử lý</h3>
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-y-4 gap-x-6 text-sm pl-4">
-            <div className="font-semibold text-text-app">Gói phản biện đã chọn:</div>
+            <div className="font-semibold text-text-app">Gói đánh giá đã chọn:</div>
             <div className="text-text-app">
               {selectedPackage
                 ? `${selectedPackage.name} (${formatPrice(selectedPackage.price)})`
                 : (isAiOnly
-                  ? "Đánh giá ý tưởng tự động bằng AI (Nexus Engine)"
+                  ? "Gói Đánh giá Dự án Tự động (79.000đ / 2 lượt)"
                   : "Gói phản biện tiêu chuẩn")}
             </div>
 

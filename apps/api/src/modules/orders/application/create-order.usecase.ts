@@ -208,11 +208,13 @@ export async function createOrderUseCase(
 
       logger.info({ orderId: order.id, userId, totalAmount, items: request.items.length }, "order created and paid");
 
+      const totalCredits = grantedByItem.reduce((sum, g) => sum + g, 0);
       return {
         orderId: order.id,
         totalAmount,
         status: "paid",
         paidAt: new Date().toISOString(),
+        totalCredits,
       };
     });
   } catch (error) {
@@ -228,6 +230,7 @@ export async function createOrderUseCase(
           totalAmount: existing.total_amount,
           status: existing.status,
           paidAt: existing.updated_at.toISOString() ?? null,
+          totalCredits: 0,
         };
       }
     }

@@ -27,7 +27,7 @@ export default function CreditBalanceCard({
           {/* Balance */}
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <p className="text-base text-text-muted">Số dư credit</p>
+              <p className="text-base text-text-muted">Lượt đánh giá khả dụng</p>
               {isZero && (
                 <Badge
                   size="md"
@@ -36,7 +36,7 @@ export default function CreditBalanceCard({
                   radius="md"
                   className="font-medium text-base"
                 >
-                  Hết credit
+                  Hết lượt đánh giá
                 </Badge>
               )}
             </div>
@@ -44,7 +44,7 @@ export default function CreditBalanceCard({
               <span className="text-3xl font-bold tracking-tight text-text-app tabular-nums">
                 {creditBalance}
               </span>
-              <span className="text-base font-medium text-text-muted">credit</span>
+              <span className="text-base font-medium text-text-muted">lượt</span>
             </div>
           </div>
 
@@ -82,7 +82,7 @@ export default function CreditBalanceCard({
             size="md"
             className="font-semibold cursor-pointer h-10 px-5 text-base w-full md:w-auto"
           >
-            {hasCredits ? "Mua thêm credit" : "Mua credit"}
+            {hasCredits ? "Mua thêm lượt đánh giá" : "Mua lượt đánh giá"}
           </Button>
         </div>
       </div>

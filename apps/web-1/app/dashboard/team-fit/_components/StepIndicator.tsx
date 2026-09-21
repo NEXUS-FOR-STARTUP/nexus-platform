@@ -2,7 +2,7 @@
 
 import { Check, Circle } from 'lucide-react';
 
-const STEPS = ['Mô tả ý tưởng', 'Đội ngũ', 'Kết quả'];
+const STEPS = ['Ý tưởng cốt lõi', 'Thành viên nhóm', 'Kết quả sơ bộ'];
 
 interface StepIndicatorProps {
   currentStep: 0 | 1 | 2;

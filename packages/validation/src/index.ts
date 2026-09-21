@@ -201,7 +201,7 @@ export type Case = z.infer<typeof CaseSchema>;
 // CP1 Intake — shared validation schema (FE + BE)
 // ---------------------------------------------------------------------------
 
-export const CP1_MAX_DOCUMENTS = 10;
+export const CP1_MAX_DOCUMENTS = 5;
 export const CP1_SHORT_MAX = 100;
 export const CP1_EMAIL_MAX = 254;
 export const CP1_LONG_MAX = 20000;

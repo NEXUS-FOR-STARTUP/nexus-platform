@@ -27,7 +27,7 @@ export const TYPE_LABELS: Record<string, string> = {
   refund: "Hoàn tiền",
   adjustment: "Điều chỉnh",
   migration: "Chuyển đổi",
-  service_payment: "Mua dịch vụ",
+  service_payment: "Mua gói đánh giá",
 };
 
 export const TYPE_COLORS: Record<string, string> = {

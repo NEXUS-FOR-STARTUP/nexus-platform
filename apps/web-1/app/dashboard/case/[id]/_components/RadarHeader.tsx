@@ -59,7 +59,7 @@ export default function RadarHeader({
               {badge.label}
             </span>
             <h3 className="text-base sm:text-lg font-bold text-text-app truncate">
-              {projectName || "Đề án thẩm định"}
+              {projectName || "Dự án đánh giá"}
             </h3>
           </div>
 
@@ -82,7 +82,7 @@ export default function RadarHeader({
                 loading={isCancelling}
                 onClick={() => setConfirmModalOpen(true)}
               >
-                Dừng thẩm định
+                Dừng đánh giá
               </Button>
             )}
 
@@ -94,7 +94,7 @@ export default function RadarHeader({
                 loading={isRetrying}
                 onClick={onRetry}
               >
-                Chạy lại Thẩm định AI
+                Chạy lại đánh giá
               </Button>
             )}
           </div>
@@ -131,7 +131,7 @@ export default function RadarHeader({
         title={
           <div className="flex items-center gap-2 font-bold text-sm text-text-app">
             <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
-            <span>Xác nhận dừng thẩm định</span>
+            <span>Xác nhận dừng đánh giá</span>
           </div>
         }
         centered
@@ -140,7 +140,7 @@ export default function RadarHeader({
       >
         <Stack gap="md">
           <Text size="sm" className="text-text-muted leading-relaxed">
-            Bạn có chắc chắn muốn dừng tiến trình thẩm định AI cho đề án{" "}
+            Bạn có chắc chắn muốn dừng tiến trình đánh giá cho dự án{" "}
             <strong className="text-text-app">{projectName || "này"}</strong>?
             Tiến trình đang chạy sẽ bị dừng lại và bạn có thể khởi chạy lại bất cứ lúc nào.
           </Text>

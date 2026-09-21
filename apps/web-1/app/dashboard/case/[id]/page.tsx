@@ -235,6 +235,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                     Tải tài liệu
                   </Button>
                 )}
+                {/* Ẩn nút tải đánh giá bên ngoài theo yêu cầu
                 <Button
                   size="sm"
                   color="brand"
@@ -244,6 +245,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                 >
                   Tải đánh giá bên ngoài
                 </Button>
+                */}
               </div>
               <DocumentWorkspace
                 workspace={documentWorkspace}

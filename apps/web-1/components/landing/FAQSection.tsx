@@ -1,27 +1,37 @@
 "use client";
 
 import { Accordion } from "@mantine/core";
+import Link from "next/link";
+import type { ReactNode } from "react";
 
-const faqItems = [
+const faqItems: Array<{ question: string; answer: ReactNode }> = [
   {
-    question: "Nexus phản biện ý tưởng như thế nào?",
-    answer: "Nexus sử dụng AI phân tích tài liệu (link Drive của bạn) đối chiếu với các tiêu chí đánh giá checkpoint. Kết quả là bản báo cáo chi tiết chỉ ra các lỗ hổng lập luận, bằng chứng thiếu sót, và gợi ý giải pháp cải thiện.",
+    question: "Nexus đánh giá và phản biện dự án như thế nào?",
+    answer: "Nexus phân tích tài liệu slide hoặc đề cương do bạn tải lên trực tiếp, đối chiếu qua 5 nhóm tiêu chí đánh giá trọng yếu. Kết quả là bản báo cáo chi tiết chỉ ra các lỗ hổng lập luận, giả định thiếu căn cứ và gợi ý hướng hoàn thiện cụ thể.",
   },
   {
-    question: "Báo cáo của Nexus có đảm bảo tôi sẽ pass checkpoint không?",
-    answer: "Không. Nexus là công cụ phản biện và hỗ trợ hoàn thiện tài liệu, giúp bạn chuẩn bị tốt nhất. Kết quả cuối cùng phụ thuộc vào hội đồng đánh giá và khả năng thuyết trình của đội ngũ.",
+    question: "Báo cáo của Nexus có đảm bảo dự án sẽ đạt kết quả tốt khi bảo vệ không?",
+    answer: "Không. Nexus là hệ thống phản biện hỗ trợ hoàn thiện tài liệu dự án trước khi trình bày. Kết quả bảo vệ thực tế phụ thuộc vào việc triển khai và năng lực thuyết trình của nhóm.",
   },
   {
-    question: "Vai trò của Supporter trên hệ thống là gì?",
-    answer: "Supporter là các chuyên gia, giảng viên hoặc mentor có kinh nghiệm. Họ sẽ xem xét bản draft phản biện của AI, điều chỉnh, bổ sung ý kiến thực tế để xuất bản báo cáo chất lượng nhất cho hồ sơ của bạn.",
+    question: "Gói 79.000đ bao gồm những gì và được sử dụng như thế nào?",
+    answer: "Mỗi gói cung cấp 2 lượt đánh giá cho dự án. Lượt 1 giúp nhóm phát hiện các điểm thiếu logic và lỗ hổng ban đầu. Sau khi chỉnh sửa tài liệu, nhóm sử dụng lượt 2 để đánh giá lại phiên bản mới xem đã khắc phục triệt để chưa.",
   },
   {
-    question: "Tôi có thể chỉnh sửa ý tưởng sau khi nhận phản biện không?",
-    answer: "Có. Hệ thống hỗ trợ quy trình cập nhật phiên bản (v00, v01, v02...). Bạn có thể nộp bản chỉnh sửa dựa trên phản biện để chạy đánh giá vòng tiếp theo.",
+    question: "Tôi có thể chỉnh sửa dự án sau khi nhận báo cáo phản biện không?",
+    answer: "Có. Hệ thống hỗ trợ lưu trữ theo từng phiên bản (Phiên bản 1, Phiên bản 2, Phiên bản 3...). Bạn có thể tải lên tài liệu mới để thực hiện lần đánh giá tiếp theo.",
   },
   {
-    question: "Nexus bảo mật thông tin ý tưởng của tôi như thế nào?",
-    answer: "Mọi thông tin ý tưởng và tài liệu Drive của bạn đều được bảo mật nghiêm ngặt. Chúng tôi chỉ sử dụng dữ liệu này cho mục đích phản biện và không chia sẻ cho bên thứ ba.",
+    question: "Tài liệu dự án của tôi được xử lý như thế nào?",
+    answer: (
+      <span>
+        Nexus sử dụng tài liệu nhóm cung cấp để thực hiện đánh giá. Trong quá trình xử lý, nội dung có thể được truyền tới các nhà cung cấp công nghệ hỗ trợ việc phân tích. Xem chi tiết tại{" "}
+        <Link href="/privacy" className="text-brand hover:underline font-medium">
+          Chính sách bảo mật
+        </Link>
+        .
+      </span>
+    ),
   },
 ];
 
@@ -32,11 +42,11 @@ export default function FAQSection() {
         <div className="text-center mb-12 space-y-4">
           <h2 className="font-heading text-3xl font-semibold text-text-app">Câu hỏi thường gặp (FAQ)</h2>
           <p className="font-body text-text-muted">
-            Giải đáp các thắc mắc phổ biến về quy trình phản biện ý tưởng trên Nexus.
+            Giải đáp các thắc mắc phổ biến về quy trình đánh giá và phản biện dự án trên Nexus.
           </p>
         </div>
 
-        <div className="bg-surface-app border border-border-app rounded-2xl p-6 md:p-8 shadow-sm">
+        <div className="bg-surface-app border border-border-app rounded-2xl p-6 md:p-8">
           <Accordion multiple variant="separated" radius="md">
             {faqItems.map((item, index) => (
               <Accordion.Item key={index} value={`faq-${index}`}>

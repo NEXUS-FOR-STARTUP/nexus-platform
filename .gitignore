@@ -69,6 +69,7 @@ note.txt
 
 # Storage & Sandbox jobs
 storage/
+!storage/auth/omp/agent/config.yml
 apps/api/storage/
 data/postgres/
 **/.bin/

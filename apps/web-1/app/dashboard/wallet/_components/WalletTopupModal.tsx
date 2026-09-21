@@ -64,7 +64,7 @@ export function WalletTopupModal({ opened, onClose, initialAmount }: Props) {
       <Stack gap="md">
         <NumberInput
           label="Số tiền (VND)"
-          description="Tối thiểu 2,000 VND"
+          description="Tối thiểu 2,000 VND · Gợi ý nạp 79.000đ để mua gói 2 lượt đánh giá dự án."
           value={amount}
           onChange={(val) => setAmount(Number(val) || 0)}
           min={MIN_TOPUP_AMOUNT}

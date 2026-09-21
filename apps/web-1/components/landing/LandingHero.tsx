@@ -18,12 +18,12 @@ export default function LandingHero() {
         <div className={classes.inner}>
           <div className={classes.content}>
             <Title className={classes.title}>
-              Kiểm định Ý tưởng & Đánh giá <br />
-              <span className={classes.highlight}>Checkpoint 1</span>
+              Đánh giá và phản biện <br />
+              <span className={classes.highlight}>dự án khởi nghiệp</span>
             </Title>
             
             <Text c="dimmed" mt="md" className="font-body leading-relaxed">
-              Nexus giúp các nhóm sinh viên kiểm định nội dung Checkpoint 1 (CP1) theo đúng tiêu chí chấm điểm học thuật, phát hiện lỗi logic lập luận bằng AI và nhận phản biện thực tế từ Supporter giàu kinh nghiệm.
+              Nexus đưa dự án của nhóm bạn qua quy trình đánh giá có cấu trúc — phát hiện điểm thiếu logic, nhận diện các giả định chưa kiểm chứng và gợi ý hướng hoàn thiện trước khi trình bày.
             </Text>
 
             <List
@@ -38,13 +38,13 @@ export default function LandingHero() {
               className="font-body text-text-muted"
             >
               <List.Item>
-                <b>Đánh giá tiêu chí Checkpoint</b> – Báo cáo chi tiết chỉ ra lỗ hổng lập luận và lỗi logic.
+                <b>Đánh giá có cấu trúc</b> – Báo cáo chi tiết chỉ ra các lỗ hổng lập luận và khoảng trống dữ liệu.
               </List.Item>
               <List.Item>
-                <b>Minh chứng thuyết phục</b> – Định vị bằng chứng cụ thể trong slide/tài liệu của bạn.
+                <b>Định vị minh chứng</b> – Đối chiếu trực tiếp nhận xét với các phần nội dung liên quan trong tài liệu.
               </List.Item>
               <List.Item>
-                <b>Đồng hành cùng Supporter</b> – Báo cáo được chỉnh sửa, hoàn thiện bởi giảng viên/mentor.
+                <b>Ưu tiên hành động</b> – Phân loại rõ vấn đề cần xử lý trước và các gợi ý hoàn thiện thêm.
               </List.Item>
             </List>
 
@@ -60,7 +60,7 @@ export default function LandingHero() {
                   rightSection={<ArrowRight className="w-4 h-4" />}
                   className={`${classes.control} font-semibold font-body shadow-md shadow-brand/10 transition-transform hover:-translate-y-0.5`}
                 >
-                  Kiểm tra miễn phí
+                  Kiểm tra nhanh ý tưởng
                 </Button>
                 <Button
                   component="a"

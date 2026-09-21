@@ -18,9 +18,9 @@ export default function UnpaidAlertBanner({ creditBalance, onBuyCredits }: Unpai
       <div className="flex items-start gap-3">
         <AlertCircle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
         <div className="space-y-0.5">
-          <h4 className="font-heading font-semibold text-sm text-text-app">Chưa có credit</h4>
+          <h4 className="font-heading font-semibold text-sm text-text-app">Chưa có lượt đánh giá</h4>
           <p className="font-body text-xs text-text-muted leading-relaxed">
-            Bạn cần mua credit để kích hoạt quy trình phản biện từ Supporter. Mỗi credit tương ứng với một lượt đánh giá.
+            Dự án chưa có lượt đánh giá. Nhóm cần mua gói đánh giá (79.000đ / 2 lượt) để bắt đầu phân tích tài liệu.
           </p>
         </div>
       </div>
@@ -30,7 +30,7 @@ export default function UnpaidAlertBanner({ creditBalance, onBuyCredits }: Unpai
         leftSection={<Coins className="w-4 h-4" />}
         className="font-body font-semibold text-xs h-9 px-4 shrink-0 cursor-pointer"
       >
-        Mua credit
+        Mua lượt đánh giá ngay
       </Button>
     </div>
   );

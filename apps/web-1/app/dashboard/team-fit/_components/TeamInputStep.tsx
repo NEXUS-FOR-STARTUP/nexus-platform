@@ -28,13 +28,21 @@ export default function TeamInputStep({ members, onChange }: TeamInputStepProps)
 
   return (
     <div className="flex flex-col gap-6">
+      <div className="space-y-1">
+        <h3 className="text-text-app text-base font-semibold">
+          Các thành viên tham gia thực hiện dự án
+        </h3>
+        <p className="text-text-muted text-xs">
+          Nexus sử dụng thông tin kỹ năng để chỉ ra những năng lực nhóm có thể đang thiếu.
+        </p>
+      </div>
       {members.length === 0 ? (
         <div className="text-center py-10 px-4 border-2 border-dashed border-border-app/70 rounded-xl space-y-3">
           <p className="text-text-app text-sm font-semibold">
             Chưa có thông tin thành viên nào
           </p>
           <p className="text-text-muted text-xs max-w-sm mx-auto">
-            Thêm thông tin các thành viên trong đội ngũ để AI phân tích mức độ phù hợp với ý tưởng dự án.
+            Thêm thông tin các thành viên trong đội ngũ để nhận diện sớm các khoảng trống kỹ năng so với bài toán dự án.
           </p>
           <button
             type="button"

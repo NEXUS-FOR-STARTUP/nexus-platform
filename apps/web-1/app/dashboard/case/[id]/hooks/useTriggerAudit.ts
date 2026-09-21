@@ -31,7 +31,7 @@ export function useTriggerAudit(caseId: string) {
       queryClient.invalidateQueries({ queryKey: ["case-ai-status", caseId] });
       notifications.show({
         title: "Đã gửi đánh giá",
-        message: "Hệ thống đang tiến hành thẩm định. Kết quả sẽ có trong vài phút.",
+        message: "Hệ thống đang tiến hành đánh giá. Kết quả sẽ có sau khoảng 10 phút.",
         color: "teal",
       });
     },
@@ -43,8 +43,8 @@ export function useTriggerAudit(caseId: string) {
 
       if (status === 402 || errData?.code === "NO_CREDITS") {
         notifications.show({
-          title: "Không đủ credit",
-          message: "Bạn đã hết credit đánh giá. Vui lòng mua thêm credit để tiếp tục.",
+          title: "Hết lượt đánh giá",
+          message: "Bạn đã hết lượt đánh giá. Vui lòng mua thêm gói đánh giá để tiếp tục.",
           color: "orange",
         });
         return;
@@ -62,7 +62,7 @@ export function useTriggerAudit(caseId: string) {
       if (status === 409 && errData?.code === "AUDIT_IN_PROGRESS") {
         notifications.show({
           title: "Đánh giá đang diễn ra",
-          message: "Hệ thống đang thẩm định. Vui lòng chờ kết quả trước khi gửi lại.",
+          message: "Hệ thống đang tiến hành đánh giá. Vui lòng chờ kết quả trước khi gửi lại.",
           color: "blue",
         });
         return;

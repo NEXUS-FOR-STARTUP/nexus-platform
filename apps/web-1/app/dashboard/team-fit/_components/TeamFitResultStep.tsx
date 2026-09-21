@@ -66,7 +66,7 @@ export default function TeamFitResultStep({
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
         <Text size="sm" c="dimmed">
-          Nhấn &quot;Đánh giá&quot; để AI phân tích đội ngũ của bạn
+          Nhấn &quot;Kiểm tra sơ bộ&quot; để hệ thống chỉ ra các điểm còn chưa rõ hoặc năng lực nhóm có thể đang thiếu
         </Text>
       </div>
     );
@@ -75,12 +75,19 @@ export default function TeamFitResultStep({
   // ── Result state ──
   return (
     <div className="space-y-4">
+      {/* Result context banner */}
+      <div className="p-3 bg-surface-soft/80 border border-border-app rounded-xl text-center">
+        <Text size="xs" c="dimmed">
+          Đây là kết quả kiểm tra sơ bộ dựa trên thông tin mô tả ngắn của nhóm.
+        </Text>
+      </div>
+
       {/* Card 1: team gaps */}
       <Card shadow="sm" padding="lg" radius="md" withBorder>
         <Group gap="sm" mb="sm">
           <AlertTriangle className="h-5 w-5 text-amber-500" />
           <Text fw={600} size="sm">
-            Nhóm bạn có thể thiếu...
+            Nhóm có thể đang thiếu...
           </Text>
         </Group>
         <List spacing="xs" size="sm">
@@ -95,7 +102,7 @@ export default function TeamFitResultStep({
         <Group gap="sm" mb="sm">
           <Info className="h-5 w-5 text-blue-500" />
           <Text fw={600} size="sm">
-            Dự án có thể chưa rõ ở...
+            Ý tưởng dự án cần làm rõ thêm ở...
           </Text>
         </Group>
         <List spacing="xs" size="sm">
@@ -104,11 +111,10 @@ export default function TeamFitResultStep({
           ))}
         </List>
       </Card>
-
       {/* Buttons row */}
       <Group justify="center" gap="sm">
         <Button variant="outline" color="red" onClick={onReset}>
-          Làm lại
+          Kiểm tra lại
         </Button>
 
         {hasSaved ? (
@@ -119,14 +125,14 @@ export default function TeamFitResultStep({
               disabled
               rightSection={<Check className="h-4 w-4" />}
             >
-              Đã lưu
+              Đã lưu vào dự án
             </Button>
             <Button
               variant="filled"
               color="brand"
               onClick={onXemCase}
             >
-              Xem case →
+              Xem dự án →
             </Button>
           </>
         ) : (
@@ -136,18 +142,18 @@ export default function TeamFitResultStep({
             onClick={onSave}
             loading={isSaving}
           >
-            Lưu kết quả
+            Lưu kết quả & Tạo dự án
           </Button>
         )}
       </Group>
 
       {/* Upsell banner */}
-      <div className="mt-6 p-4 bg-brand-soft/10 border border-brand/20 rounded-lg">
+      <div className="mt-6 p-4 bg-brand/10 border border-brand/20 rounded-lg">
         <Text size="sm" fw={600} mb="xs">
-          Muốn được Supporter kiểm tra chuyên sâu?
+          Cần đánh giá kỹ hơn từ tài liệu của dự án?
         </Text>
         <Text size="xs" c="dimmed" mb="sm">
-          Nhận phản biện chi tiết từ Supporter giàu kinh nghiệm. Giá chỉ {auditPriceLabel} / lượt.
+          Tải lên slide hoặc đề cương hoàn chỉnh để nhận báo cáo phản biện chi tiết qua 5 nhóm tiêu chí. Gói {auditPriceLabel} bao gồm 2 lượt đánh giá.
         </Text>
         <Button
           size="sm"
@@ -155,7 +161,7 @@ export default function TeamFitResultStep({
           onClick={onUpgrade}
           loading={isUpgrading}
         >
-          Mua kiểm tra chuyên sâu
+          Đánh giá dự án
         </Button>
       </div>
     </div>
