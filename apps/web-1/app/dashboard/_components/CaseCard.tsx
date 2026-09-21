@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Case } from "@/types";
-import { studentStatusThemeMap } from "@/types";
+import { studentStatusThemeMap, paymentStatusThemeMap } from "@/types";
 import { Card, Badge } from "@mantine/core";
 
 interface CaseCardProps {
@@ -11,20 +11,26 @@ interface CaseCardProps {
 }
 
 export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseCardProps) {
-  const getBadgeProps = (status: string) => {
-    const mapped = studentStatusThemeMap[status] || { label: status, color: "default" as const };
-    let color = "gray";
-    
-    if (mapped.color === "success") color = "teal";
-    else if (mapped.color === "warning") color = "yellow";
-    else if (mapped.color === "danger") color = "red";
-    else if (mapped.color === "primary") color = "brand";
-    
-    return { label: mapped.label, color };
+  const mapBadgeColor = (color: string) => {
+    if (color === "success") return "teal";
+    if (color === "warning") return "yellow";
+    if (color === "danger") return "red";
+    if (color === "primary") return "brand";
+    return "gray";
   };
 
-  const paymentBadge = getBadgeProps(item.payment_status);
-  const userFacingStatusBadge = getBadgeProps(item.user_facing_stage);
+  const getStageBadgeProps = (stage: string) => {
+    const mapped = studentStatusThemeMap[stage] || { label: stage, color: "default" as const };
+    return { label: mapped.label, color: mapBadgeColor(mapped.color) };
+  };
+
+  const getPaymentBadgeProps = (paymentStatus: string) => {
+    const mapped = paymentStatusThemeMap[paymentStatus] || studentStatusThemeMap[paymentStatus] || { label: paymentStatus, color: "default" as const };
+    return { label: mapped.label, color: mapBadgeColor(mapped.color) };
+  };
+
+  const paymentBadge = getPaymentBadgeProps(item.payment_status);
+  const userFacingStatusBadge = getStageBadgeProps(item.user_facing_stage);
   const hasCredits = (item.credit_balance ?? 0) > 0;
 
   const formatDate = (dateStr: string) => {
