@@ -60,30 +60,6 @@ export default function DocumentWorkspaceHeader({
           </span>
         </button>
 
-        <button
-          type="button"
-          onClick={() => {
-            setActiveTab("external-feedback");
-            setFilterRole("all");
-          }}
-          className={`px-3.5 py-1.5 text-base font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-            activeTab === "external-feedback"
-              ? "bg-brand text-white font-semibold"
-              : "text-text-muted hover:text-text-app hover:bg-surface-soft"
-          }`}
-        >
-          <span>Đánh giá bên ngoài</span>
-          <span
-            className={`text-[11px] font-semibold px-1.5 py-0.2 rounded-full leading-tight ${
-              activeTab === "external-feedback"
-                ? "bg-white/20 text-white"
-                : "bg-surface-soft text-text-muted"
-            }`}
-          >
-            {feedbackCount}
-          </span>
-        </button>
-
         {reportCount > 0 && (
           <button
             type="button"
@@ -109,6 +85,32 @@ export default function DocumentWorkspaceHeader({
             </span>
           </button>
         )}
+
+        {/* Ẩn tab Đánh giá bên ngoài theo yêu cầu
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab("external-feedback");
+            setFilterRole("all");
+          }}
+          className={`px-3.5 py-1.5 text-base font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === "external-feedback"
+              ? "bg-brand text-white font-semibold"
+              : "text-text-muted hover:text-text-app hover:bg-surface-soft"
+          }`}
+        >
+          <span>Đánh giá bên ngoài</span>
+          <span
+            className={`text-[11px] font-semibold px-1.5 py-0.2 rounded-full leading-tight ${
+              activeTab === "external-feedback"
+                ? "bg-white/20 text-white"
+                : "bg-surface-soft text-text-muted"
+            }`}
+          >
+            {feedbackCount}
+          </span>
+        </button>
+        */}
       </div>
 
       <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0">
