@@ -5,12 +5,12 @@ export const NEXUS_PRESET = {
     projectName: "Nexus",
     field: "EdTech - Hỗ trợ khởi nghiệp",
     targetCustomer:
-      "team sinh viên FPT học EXE101 gặp khó khăn ở Checkpoint 1 (chưa có idea, idea mơ hồ, hoặc đã rớt CP1)",
+      "nhóm sinh viên khởi nghiệp cần hoàn thiện tài liệu đề án để chuẩn bị thuyết trình",
     problem:
-      "không biết lỗi gốc của ý tưởng nằm ở đâu và không biết sửa phần nào trước — ChatGPT chung chung, bạn bè thiếu nhất quán, giảng viên quá bận",
+      "không biết lỗi logic của ý tưởng nằm ở đâu và không biết sửa phần nào trước — các công cụ chung chung, bạn bè thiếu góc nhìn phản biện, giảng viên quá bận",
     solution:
-      "dịch vụ audit ý tưởng có cấu trúc: nhận tài liệu, chỉ ra lỗi gốc và thứ tự ưu tiên sửa, re-audit sau mỗi lần team chỉnh sửa — không làm bài hộ, không chọn idea thay",
-    mvp: "Concierge MVP (Google Form + Sheet + Zalo + AI prompt nội bộ) — đã test 9 team, điểm CP1 từ ~3.5 lên >=8/10",
+      "dịch vụ đánh giá dự án có cấu trúc: nhận tài liệu, chỉ ra lỗi logic và thứ tự ưu tiên sửa, đánh giá lại sau mỗi lần nhóm chỉnh sửa",
+    mvp: "Quy trình thử nghiệm đánh giá ý tưởng — đã thử nghiệm với các nhóm dự án sinh viên",
   },
   members: [
     {

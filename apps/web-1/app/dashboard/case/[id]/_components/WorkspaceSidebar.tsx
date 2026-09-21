@@ -35,7 +35,7 @@ export default function WorkspaceSidebar({
   const tabs = [
     {
       id: "overview" as const,
-      label: "Tổng quan",
+      label: "Tổng quan dự án",
       icon: Info,
     },
     ...(!isIntakePending
@@ -51,7 +51,7 @@ export default function WorkspaceSidebar({
       ? [
           {
             id: "report" as const,
-            label: "Báo cáo phản biện",
+      label: "Báo cáo đánh giá",
             icon: Award,
           },
         ]
@@ -60,7 +60,7 @@ export default function WorkspaceSidebar({
       ? [
           {
             id: "discussion" as const,
-            label: "Chat với Supporter",
+            label: "Thảo luận",
             icon: MessageCircle,
             count: unreadCount ?? messageCount,
           },
@@ -75,7 +75,7 @@ export default function WorkspaceSidebar({
       ? [
           {
             id: "credits" as const,
-            label: "Quản lý số dư credit",
+            label: "Lượt đánh giá",
             icon: CreditCard,
             count: creditBalance,
           },

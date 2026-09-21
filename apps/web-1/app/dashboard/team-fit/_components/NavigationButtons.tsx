@@ -66,7 +66,7 @@ export default function NavigationButtons({
             rightSection={<Sparkles className="w-4 h-4" />}
             className="font-body font-semibold cursor-pointer h-10 px-4 rounded-xl text-xs"
           >
-            Đánh giá
+            Kiểm tra sơ bộ
           </Button>
         )}
       </div>

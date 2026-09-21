@@ -12,12 +12,12 @@ type IdeaMadLibsStepProps = {
 };
 
 const MADLIBS_TEMPLATE = [
-  { text: 'Dự án của chúng tôi tên là', blank: 'projectName', placeholder: 'tên dự án' },
-  { text: ', thuộc lĩnh vực', blank: 'field', placeholder: 'lĩnh vực' },
-  { text: '. Chúng tôi giúp', blank: 'targetCustomer', placeholder: 'khách hàng mục tiêu' },
-  { text: 'giải quyết', blank: 'problem', placeholder: 'vấn đề / nhu cầu' },
-  { text: 'bằng cách', blank: 'solution', placeholder: 'giải pháp / sản phẩm' },
-  { text: '. Sản phẩm khả dụng đầu tiên (MVP) sẽ là', blank: 'mvp', placeholder: 'mô tả MVP' },
+  { text: 'Dự án của chúng tôi tên là', blank: 'projectName', placeholder: 'Ví dụ: Nền tảng tìm bạn cùng phòng' },
+  { text: ', thuộc lĩnh vực', blank: 'field', placeholder: 'Ví dụ: EdTech, Thương mại điện tử...' },
+  { text: '. Chúng tôi giúp', blank: 'targetCustomer', placeholder: 'Ví dụ: Sinh viên đại học năm nhất' },
+  { text: 'giải quyết', blank: 'problem', placeholder: 'Ví dụ: Khó khăn trong việc tìm người ở ghép phù hợp lối sống' },
+  { text: 'bằng cách', blank: 'solution', placeholder: 'Ví dụ: Ứng dụng gợi ý ghép phòng theo thói quen sinh hoạt' },
+  { text: '. Sản phẩm khả dụng đầu tiên (MVP) sẽ là', blank: 'mvp', placeholder: 'Ví dụ: Landing page và nhóm kết nối thủ công' },
   { text: '.' },
 ];
 
@@ -33,6 +33,9 @@ const FIELD_LABELS: Record<string, string> = {
 export default function IdeaMadLibsStep({ blanks, onChange, errors = {}, onBlur }: IdeaMadLibsStepProps) {
   return (
     <div className="space-y-4 py-1 sm:py-2">
+      <p className="font-body text-xs sm:text-sm text-text-muted">
+        Hoàn thành các câu bên dưới để định hình nhanh bài toán dự án đang giải quyết.
+      </p>
       {/* Main Pitch MadLibs paragraph */}
       <p className="font-body text-base sm:text-lg leading-relaxed sm:leading-loose text-text-app select-text break-words">
         {MADLIBS_TEMPLATE.map((item, idx) => {
@@ -67,7 +70,7 @@ export default function IdeaMadLibsStep({ blanks, onChange, errors = {}, onBlur 
         <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl space-y-2">
           <div className="flex items-center gap-2 text-red-700 dark:text-red-400 font-semibold text-xs sm:text-sm">
             <AlertTriangle className="w-4 h-4 shrink-0" />
-            <span>Vui lòng bổ sung hoặc chỉnh sửa các thông tin sau:</span>
+            <span>Thông tin cần hoàn thiện:</span>
           </div>
           <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm pl-1">
             {Object.entries(errors).map(([key, msg]) => (

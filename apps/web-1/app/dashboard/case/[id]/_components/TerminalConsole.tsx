@@ -68,7 +68,7 @@ export default function TerminalConsole({ logs, isStreaming = false }: TerminalC
         <div className="flex items-center gap-2">
           <Terminal className="w-4 h-4 text-emerald-400" />
           <span className="font-mono text-xs font-semibold text-zinc-200">
-            Nhật ký Hoạt động Thẩm định
+            Nhật ký Hoạt động Đánh giá
           </span>
           <span className="text-[11px] font-mono text-zinc-500">
             · {logs.length} bản ghi
@@ -100,7 +100,7 @@ export default function TerminalConsole({ logs, isStreaming = false }: TerminalC
           <div className="flex flex-col items-center justify-center h-full text-zinc-500 italic space-y-2">
             <Radio className="w-6 h-6 animate-pulse text-zinc-600" />
             <Text size="xs" c="dimmed">
-              Đang kết nối luồng trực tiếp... Tiến trình thẩm định AI sẽ cập nhật hoạt động tại đây.
+              Đang kết nối luồng trực tiếp... Tiến trình đánh giá AI sẽ cập nhật hoạt động tại đây.
             </Text>
           </div>
         ) : (

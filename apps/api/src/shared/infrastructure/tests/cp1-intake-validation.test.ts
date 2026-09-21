@@ -304,7 +304,7 @@ test("Cp1Intake validation snapshot — old imperative validator", async (t) => 
 
 const CAP_ERRORS: TestCase[] = [
   {
-    name: "cap: 11 documents rejected",
+    name: "cap: 6 documents rejected",
     body: {
       ...VALID_BODY,
       documents: Array.from({ length: CP1_MAX_DOCUMENTS + 1 }, (_, i) => ({
@@ -315,7 +315,7 @@ const CAP_ERRORS: TestCase[] = [
     expectedErrors: [`Thư mục tài liệu không được vượt quá ${CP1_MAX_DOCUMENTS} tài liệu`],
   },
   {
-    name: "cap: exactly 10 documents valid",
+    name: "cap: exactly 5 documents valid",
     body: {
       ...VALID_BODY,
       documents: Array.from({ length: CP1_MAX_DOCUMENTS }, (_, i) => ({

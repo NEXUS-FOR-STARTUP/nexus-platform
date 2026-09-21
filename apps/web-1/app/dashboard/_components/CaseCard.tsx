@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Case } from "@/types";
-import { statusThemeMap } from "@/types";
+import { studentStatusThemeMap } from "@/types";
 import { Card, Badge } from "@mantine/core";
 
 interface CaseCardProps {
@@ -12,7 +12,7 @@ interface CaseCardProps {
 
 export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseCardProps) {
   const getBadgeProps = (status: string) => {
-    const mapped = statusThemeMap[status] || { label: status, color: "default" as const };
+    const mapped = studentStatusThemeMap[status] || { label: status, color: "default" as const };
     let color = "gray";
     
     if (mapped.color === "success") color = "teal";
@@ -45,7 +45,7 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
           </span>
           {/* Row 2: team name */}
           <h3 className="font-heading text-lg font-semibold text-text-app group-hover:text-brand transition-colors">
-            {item.team_name || "Hồ sơ chưa đặt tên nhóm"}
+            {item.team_name || "Dự án chưa đặt tên nhóm"}
           </h3>
           {/* Row 3: status badges */}
           <div className="flex flex-col gap-2 items-start">
@@ -59,7 +59,7 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
             )}
             {hasCredits && (
               <Badge size="md" variant="light" color="teal" className="font-body text-sm whitespace-nowrap">
-                Có {item.credit_balance} credit
+                Có {item.credit_balance} lượt
               </Badge>
             )}
           </div>
@@ -70,7 +70,7 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
             <span>{item.package?.name || "Gói dịch vụ"}</span>
           </div>
           <div>
-            <span>Ngày nộp hồ sơ: {formatDate(item.created_at)}</span>
+            <span>Ngày tạo dự án: {formatDate(item.created_at)}</span>
           </div>
           <div className="min-h-[20px]">
             {item.school ? (

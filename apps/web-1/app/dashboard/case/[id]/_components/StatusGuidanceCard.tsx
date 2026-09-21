@@ -238,21 +238,21 @@ export default function StatusGuidanceCard({
         variant="light"
         color="red"
         radius="md"
-        title="Hồ sơ bị từ chối xét duyệt"
+        title="Yêu cầu chưa được duyệt"
         icon={<AlertCircle className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
       >
         <div className="space-y-2 flex-grow">
-          {rejectionReason && <p className="font-semibold text-danger">Lý do từ chối:</p>}
+          {rejectionReason && <p className="font-semibold text-danger">Lý do chưa được duyệt:</p>}
           <p className="text-text-muted text-xs leading-relaxed">
             {rejectionReason
               ? rejectionReason
-              : "Yêu cầu phản biện dự án của bạn không được duyệt. Vui lòng liên hệ với Đội ngũ Nexus hoặc gửi thắc mắc qua phần Thảo luận."}
+              : "Tài liệu dự án của bạn chưa đáp ứng yêu cầu để tiến hành đánh giá. Hãy cập nhật lại tài liệu theo phản hồi."}
           </p>
           {onOpenIntake && canResubmit && (
             <div className="pt-1">
               <Button size="sm" color="brand" className="shrink-0 cursor-pointer" onClick={onOpenIntake}>
-                Chỉnh sửa hồ sơ để nộp lại
+                Cập nhật thông tin dự án
               </Button>
             </div>
           )}
@@ -269,17 +269,17 @@ export default function StatusGuidanceCard({
           variant="light"
           color="teal"
           radius="md"
-          title={`Đã có ${creditBalance} credit — Hãy nộp hồ sơ để bắt đầu phản biện`}
+          title={`Đã có ${creditBalance} lượt — Sẵn sàng đánh giá dự án`}
           icon={<CheckCircle2 className="w-4.5 h-4.5 shrink-0" />}
           className={ALERT_CLASS}
         >
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <p className="text-text-muted text-xs leading-relaxed">
-              Bạn đã có sẵn credit đánh giá chuyên sâu. Vui lòng nộp hồ sơ khởi nghiệp để Supporter chuyên môn tiếp nhận và bắt đầu phản biện dự án.
+              Dự án của bạn đã có lượt đánh giá. Hãy kiểm tra thông tin và tải lên tài liệu để bắt đầu phân tích.
             </p>
             {onOpenIntake && canOpenIntake && (
               <Button size="sm" color="brand" className="shrink-0 cursor-pointer" onClick={onOpenIntake} rightSection={<ArrowRight className="w-3.5 h-3.5" />}>
-                Nộp hồ sơ ngay
+                Bắt đầu đánh giá ngay
               </Button>
             )}
           </div>
@@ -293,21 +293,21 @@ export default function StatusGuidanceCard({
         variant="light"
         color={isFree ? "blue" : "yellow"}
         radius="md"
-        title={isFree ? "Kích hoạt quy trình phản biện chuyên sâu" : "Hồ sơ chưa hoàn tất thanh toán"}
+        title={isFree ? "Kích hoạt quy trình đánh giá dự án" : "Chưa kích hoạt lượt đánh giá"}
         icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
       >
         <div className="space-y-3">
           <p className="text-text-muted text-xs leading-relaxed">
             {isFree
-              ? "Hồ sơ hiện tại thuộc gói đánh giá AI miễn phí. Quy trình phản biện chuyên sâu bao gồm việc chọn gói đánh giá, điền thông tin và nộp tài liệu dự án để chuyên gia tiếp nhận, chấm điểm và trả báo cáo chi tiết."
-              : "Hồ sơ chưa được thanh toán. Bạn có thể nộp trước hồ sơ, quy trình phản biện chính thức sẽ bắt đầu ngay khi thanh toán hoàn tất."}
+              ? "Dự án hiện tại thuộc gói xem trước miễn phí. Hãy chọn gói Đánh giá Dự án Tự động để tải lên slide hoặc đề cương hoàn chỉnh và nhận báo cáo phân tích chi tiết."
+              : "Dự án chưa có lượt đánh giá. Hãy nạp tiền vào ví và mua gói đánh giá (79.000đ / 2 lượt) để bắt đầu phân tích tài liệu."}
           </p>
 
           <div className="flex flex-wrap items-center gap-3 pt-1">
             {onOpenPayment && (
               <Button size="sm" color="brand" className="shrink-0 cursor-pointer font-semibold text-xs" onClick={onOpenPayment}>
-                {isFree ? "Chọn gói đánh giá" : "Thanh toán dịch vụ"}
+                {isFree ? "Chọn gói đánh giá" : "Mua lượt đánh giá"}
               </Button>
             )}
           </div>
@@ -328,14 +328,14 @@ export default function StatusGuidanceCard({
       >
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-0.5">
-            <div className="mantine-Alert-title mb-0.5">Nộp hồ sơ khởi nghiệp</div>
+            <div className="mantine-Alert-title mb-0.5">Sẵn sàng đánh giá</div>
             <p className="text-text-muted text-xs leading-relaxed">
-              Vui lòng nộp hồ sơ khởi nghiệp để Supporter có thể đánh giá chính xác.
+              Cung cấp thông tin dự án và tải lên tài liệu để hệ thống tiến hành đánh giá.
             </p>
           </div>
           {onOpenIntake && canOpenIntake && (
             <Button size="sm" color="brand" className="shrink-0 cursor-pointer" onClick={onOpenIntake}>
-              Nộp hồ sơ
+              Tải tài liệu &amp; Bắt đầu
             </Button>
           )}
         </div>
@@ -350,14 +350,12 @@ export default function StatusGuidanceCard({
         variant="light"
         color="blue"
         radius="md"
-        title={hasSupporter ? "Bản sửa đổi đã gửi thành công — Chờ thẩm định" : "Bản sửa đổi đã gửi thành công — Chờ Admin phân công"}
+        title="Đã tải lên phiên bản mới — Sẵn sàng đánh giá lại"
         icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
       >
         <p className="text-text-muted text-xs leading-relaxed">
-          {hasSupporter
-            ? "Supporter đang tiến hành thẩm định bản sửa đổi mới nhất của bạn."
-            : "Bản sửa đổi đã được ghi nhận. Đội ngũ Nexus đang phân công Supporter chuyên môn thẩm định bản mới này."}
+          Hệ thống đã ghi nhận phiên bản tài liệu mới của nhóm bạn và sẵn sàng cho lần đánh giá tiếp theo.
         </p>
       </Alert>
     );
@@ -369,17 +367,17 @@ export default function StatusGuidanceCard({
         variant="light"
         color="orange"
         radius="md"
-        title="Yêu cầu bổ sung thông tin từ Supporter"
+        title="Cần bổ sung thông tin"
         icon={<HelpCircle className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
       >
         <div className="space-y-2 flex-grow">
           <p className="text-text-muted text-xs leading-relaxed">
-            Vui lòng kiểm tra lại tài liệu đã tải lên và bổ sung theo yêu cầu của Supporter.
+            Hãy kiểm tra lại tài liệu đã tải lên và bổ sung thông tin cần thiết.
           </p>
           {canSubmitRevision && onSubmitRevision && (
             <Button size="sm" color="brand" className="shrink-0 cursor-pointer" onClick={onSubmitRevision}>
-              Nộp tài liệu bổ sung
+              Cập nhật tài liệu
             </Button>
           )}
         </div>
@@ -398,7 +396,7 @@ export default function StatusGuidanceCard({
           variant="light"
           color="green"
           radius="md"
-          title="Báo cáo phản biện đã sẵn sàng"
+          title="Báo cáo đánh giá đã sẵn sàng"
           icon={<CheckCircle2 className="w-4.5 h-4.5 shrink-0" />}
           className={ALERT_CLASS}
         >
@@ -612,12 +610,12 @@ export default function StatusGuidanceCard({
             variant="light"
             color="orange"
             radius="md"
-            title="Tiến trình thẩm định bị gián đoạn"
+            title="Đánh giá chưa hoàn tất"
             icon={<AlertCircle className="w-4.5 h-4.5 shrink-0" />}
             className={ALERT_CLASS}
           >
             <p className="text-text-muted text-xs leading-relaxed">
-              Tiến trình thẩm định AI trước đó không hoàn thành. Credit đã được hoàn trả. Nhấn <strong>Gửi đánh giá</strong> để kích hoạt lại.
+              Tiến trình đánh giá trước đó gặp sự cố. Lượt đánh giá đã được bảo lưu. Nhấn <strong>Gửi đánh giá</strong> để thử lại.
             </p>
           </Alert>
         ) : (
@@ -625,12 +623,12 @@ export default function StatusGuidanceCard({
             variant="light"
             color="blue"
             radius="md"
-            title="Hồ sơ đã nộp — AI sẵn sàng thẩm định"
+            title="Dự án đã nộp — Sẵn sàng đánh giá"
             icon={<Activity className="w-4.5 h-4.5 shrink-0" />}
             className={ALERT_CLASS}
           >
             <p className="text-text-muted text-xs leading-relaxed">
-              Hệ thống đã tiếp nhận hồ sơ và đang chuẩn bị thẩm định tự động. Kết quả sẽ có trong ít phút.
+              Hệ thống đã tiếp nhận tài liệu và đang khởi động quy trình đánh giá tự động. Kết quả sẽ có sau khoảng 10 phút.
             </p>
           </Alert>
         )}

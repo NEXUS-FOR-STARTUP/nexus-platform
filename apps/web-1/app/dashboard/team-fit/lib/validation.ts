@@ -22,7 +22,7 @@ const FIELD_LABELS: Record<string, string> = {
 
 const TEAM_LABELS: Record<string, string> = {
   major: "Chuyên ngành",
-  strengths: "Sở trường",
+  strengths: "Thế mạnh / kỹ năng nổi bật",
   experience: "Kinh nghiệm",
 };
 

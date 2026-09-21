@@ -14,17 +14,17 @@ export default function WorkspaceTabs({ activeTab, onTabChange, messageCount, hi
   const tabs = [
     {
       id: "idea" as const,
-      label: "Ý tưởng nộp",
+      label: "Ý tưởng",
       icon: FileSpreadsheet,
     },
     {
       id: "report" as const,
-      label: "Báo cáo phản biện",
+      label: "Báo cáo đánh giá",
       icon: FileText,
     },
     {
       id: "discussion" as const,
-      label: "Trao đổi & Phản hồi",
+      label: "Thảo luận",
       icon: MessageCircle,
       count: messageCount,
     },

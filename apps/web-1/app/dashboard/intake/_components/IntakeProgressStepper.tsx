@@ -12,13 +12,13 @@ interface IntakeProgressStepperProps {
 }
 
 const steps = [
-  { step: IntakeStep.SITUATION, label: "Tình huống" },
-  { step: IntakeStep.CONTACT, label: "Liên hệ" },
-  { step: IntakeStep.PROJECT_CONTEXT, label: "Bối cảnh dự án" },
+  { step: IntakeStep.SITUATION, label: "Tình trạng hiện tại" },
+  { step: IntakeStep.CONTACT, label: "Thông tin liên hệ" },
+  { step: IntakeStep.PROJECT_CONTEXT, label: "Thông tin dự án" },
   { step: IntakeStep.SUPPORT_NEEDS, label: "Nhu cầu hỗ trợ" },
-  { step: IntakeStep.DOCUMENTS, label: "Tài liệu" },
+  { step: IntakeStep.DOCUMENTS, label: "Tải tài liệu" },
   { step: IntakeStep.BOUNDARY, label: "Phạm vi" },
-  { step: IntakeStep.REVIEW, label: "Xác nhận" },
+  { step: IntakeStep.REVIEW, label: "Xác nhận & Nộp" },
 ];
 
 export default function IntakeProgressStepper({

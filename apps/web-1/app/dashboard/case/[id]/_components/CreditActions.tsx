@@ -20,7 +20,7 @@ export default function CreditActions({ onBuyCredits, onViewHistory, hasCredits 
           leftSection={<CreditCard className="w-4 h-4" />}
           className="font-semibold text-xs h-9 cursor-pointer"
         >
-          {hasCredits ? "Mua thêm credit" : "Mua credit"}
+          {hasCredits ? "Mua thêm lượt đánh giá" : "Mua lượt đánh giá"}
         </Button>
 
         {onViewHistory && (
@@ -37,7 +37,7 @@ export default function CreditActions({ onBuyCredits, onViewHistory, hasCredits 
         {/* Future actions slot — add more buttons here without layout break */}
         <div className="flex-1" />
         <p className="text-base text-text-muted hidden sm:block">
-          Mỗi credit tương ứng một lượt đánh giá từ Supporter
+          Gói 79.000đ bao gồm 2 lượt đánh giá dự án
         </p>
       </div>
     </div>

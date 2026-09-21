@@ -339,3 +339,17 @@ export const statusThemeMap: Record<string, StatusThemeDetails> = {
     color: "danger",
   },
 };
+
+export const studentStatusThemeMap: Record<string, StatusThemeDetails> = {
+  intake_pending: { label: "Chưa kích hoạt — Cần mua lượt đánh giá", color: "primary" },
+  intake_ready: { label: "Sẵn sàng đánh giá", color: "primary" },
+  submitted: { label: "Đang chuẩn bị đánh giá", color: "primary" },
+  need_more_information: { label: "Cần bổ sung tài liệu", color: "warning" },
+  under_review: { label: "Đang đánh giá", color: "primary" },
+  report_ready: { label: "Báo cáo đã sẵn sàng", color: "success" },
+  waiting_for_revision: { label: "Đang chờ tài liệu chỉnh sửa", color: "warning" },
+  revision_submitted: { label: "Đã tải lên phiên bản mới — Sẵn sàng đánh giá lại", color: "primary" },
+  completed: { label: "Đã hoàn tất đánh giá", color: "success" },
+  rejected: { label: "Yêu cầu chưa được duyệt", color: "danger" },
+  closed: { label: "Đã đóng", color: "default" },
+};

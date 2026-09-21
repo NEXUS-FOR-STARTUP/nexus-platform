@@ -23,8 +23,11 @@ export function WalletBalanceCard() {
       <div className="relative space-y-3">
         <div className="flex items-center gap-2 opacity-80">
           <Wallet className="w-4 h-4" />
-          <span className="text-sm font-medium">Số dư ví</span>
+          <span className="text-sm font-medium">Số dư ví Nexus</span>
         </div>
+        <p className="text-xs text-white/80">
+          Dùng để thanh toán các gói đánh giá dự án
+        </p>
 
         {isLoading ? (
           <Skeleton height={48} radius="sm" className="opacity-30" />

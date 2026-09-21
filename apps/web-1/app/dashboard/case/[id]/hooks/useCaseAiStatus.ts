@@ -75,8 +75,8 @@ export function useCaseAiStatus(caseId: string, enabled = true) {
       const status = isAxiosError(error) ? error.response?.status : undefined;
       if (status === 402 || errData?.code === "NO_CREDITS") {
         notifications.show({
-          title: "Không đủ credit",
-          message: "Bạn đã hết credit đánh giá. Vui lòng mua thêm credit để tiếp tục.",
+          title: "Hết lượt đánh giá",
+          message: "Bạn đã hết lượt đánh giá. Vui lòng mua thêm gói đánh giá để tiếp tục.",
           color: "orange",
         });
         return;
@@ -84,7 +84,7 @@ export function useCaseAiStatus(caseId: string, enabled = true) {
       if (status === 409) {
         notifications.show({
           title: "Đánh giá đang diễn ra",
-          message: errData?.message || "Hệ thống đang thẩm định. Vui lòng chờ kết quả trước khi gửi lại.",
+          message: errData?.message || "Hệ thống đang tiến hành đánh giá. Vui lòng chờ kết quả trước khi gửi lại.",
           color: "blue",
         });
         return;

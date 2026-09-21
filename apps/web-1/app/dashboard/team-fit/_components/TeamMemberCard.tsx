@@ -73,10 +73,10 @@ export default function TeamMemberCard({
           />
         </div>
 
-        {/* Sở trường */}
+        {/* Thế mạnh / kỹ năng nổi bật */}
         <TagsInput
-          label={<>Sở trường <span className="text-red-500">*</span></>}
-          placeholder="Nhập sở trường và nhấn Enter"
+          label={<>Thế mạnh / kỹ năng nổi bật <span className="text-red-500">*</span></>}
+          placeholder="Nhập kỹ năng nổi bật và nhấn Enter"
           value={member.strengths}
           onChange={(val) => onUpdate(index, { strengths: val })}
           maxTags={10}

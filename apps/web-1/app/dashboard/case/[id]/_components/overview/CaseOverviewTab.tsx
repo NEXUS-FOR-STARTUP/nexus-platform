@@ -3,7 +3,7 @@
 import { Badge, Button, Card, SimpleGrid } from "@mantine/core";
 import { AlertTriangle, ArrowRight, ClipboardList, FileText, Lightbulb, Target, Users } from "lucide-react";
 import type { Case, TeamFitReport } from "@/types";
-import { statusThemeMap } from "@/types";
+import { studentStatusThemeMap } from "@/types";
 import { buildCaseOverviewModel, type OverviewField, type OverviewMember } from "./caseOverviewModel";
 
 interface CaseOverviewTabProps {
@@ -83,7 +83,7 @@ function GapList({ title, items }: { title: string; items: string[] }) {
 
 export default function CaseOverviewTab({ caseData, intakeSnapshot, teamFitReport, onOpenDocuments, onOpenTimeline }: CaseOverviewTabProps) {
   const model = buildCaseOverviewModel(caseData, intakeSnapshot, teamFitReport);
-  const stage = statusThemeMap[model.summary.stage];
+  const stage = studentStatusThemeMap[model.summary.stage];
 
   return (
     <div className="space-y-5 pb-10">
@@ -107,7 +107,7 @@ export default function CaseOverviewTab({ caseData, intakeSnapshot, teamFitRepor
               <p className="mt-1 font-semibold">{model.summary.packageName}</p>
             </div>
             <div className="rounded-xl bg-surface-app/80 border border-border-subtle px-4 py-3">
-              <p className="text-base uppercase tracking-[0.16em] text-text-muted font-semibold">SLA / Deadline</p>
+              <p className="text-base uppercase tracking-[0.16em] text-text-muted font-semibold">Thời hạn mong muốn</p>
               <p className="mt-1 font-semibold">{model.summary.deadline}</p>
             </div>
           </div>

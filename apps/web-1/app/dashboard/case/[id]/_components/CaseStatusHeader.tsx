@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Case } from "@/types";
-import { statusThemeMap } from "@/types";
+import { studentStatusThemeMap } from "@/types";
 import { Clock, Users, Calendar, AlertCircle } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { Tooltip } from "@mantine/core";
@@ -105,17 +105,17 @@ export default function CaseStatusHeader({
       case "payment":
         return "Thanh toán dịch vụ";
       case "checkpoint_1":
-        return "Checkpoint 1";
+        return "Đánh giá lần 1";
       case "checkpoint_2":
-        return "Checkpoint 2";
+        return "Đánh giá lần 2";
       case "checkpoint_3":
-        return "Checkpoint 3";
+        return "Đánh giá lần 3";
       default:
         return stage;
       }
     };
 
-  const statusTheme = statusThemeMap[caseData.user_facing_stage] || {
+  const statusTheme = studentStatusThemeMap[caseData.user_facing_stage] || {
     label: caseData.user_facing_stage,
     color: "default",
   };
@@ -129,7 +129,7 @@ export default function CaseStatusHeader({
     default: "bg-surface-muted text-text-muted border border-border-app",
   }[statusTheme.color as "primary" | "secondary" | "success" | "warning" | "danger" | "default"] || "bg-surface-muted text-text-muted border border-border-app";
 
-  const slaLabel = caseData.sla_deadline_at ? "Cam kết SLA:" : caseData.deadline ? "Hạn mong muốn:" : "";
+  const slaLabel = caseData.deadline ? "Hạn mong muốn:" : "";
 
   return (
     <div className="bg-surface-app border border-border-app rounded-lg p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">

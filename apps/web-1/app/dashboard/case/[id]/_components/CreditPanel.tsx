@@ -38,10 +38,10 @@ export default function CreditPanel({
         <div className="bg-surface-app border border-border-app rounded-xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
           <div>
             <h2 className="text-base font-semibold text-text-app">
-              Quản lý số dư & Credit
+              Quản lý lượt đánh giá
             </h2>
             <p className="text-xs text-text-muted mt-1 max-w-lg">
-              Mua credit để mở khoá tính năng đánh giá chuyên sâu từ Supporter. Mỗi credit tương ứng với một lượt đánh giá chi tiết.
+              Mua gói đánh giá để phân tích tài liệu và nhận báo cáo chi tiết. Gói 79.000đ bao gồm 2 lượt đánh giá dự án.
             </p>
           </div>
           <Button
@@ -50,7 +50,7 @@ export default function CreditPanel({
             size="sm"
             className="font-semibold shrink-0 cursor-pointer h-9 px-4 text-xs"
           >
-            Mua credit
+            Mua lượt đánh giá
           </Button>
         </div>
       </div>

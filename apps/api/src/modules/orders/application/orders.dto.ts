@@ -3,6 +3,7 @@ export interface CreateOrderResponse {
   totalAmount: number;
   status: string;
   paidAt: string | null;
+  totalCredits: number;
 }
 
 export interface OrderItemDto {

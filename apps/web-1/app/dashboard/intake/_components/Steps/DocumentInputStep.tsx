@@ -21,7 +21,7 @@ interface DocumentInputStepProps {
 // ---------------------------------------------------------------------------
 
 const MAX_DOCUMENT_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15MB
-const MAX_DOCUMENT_COUNT = 10;
+const MAX_DOCUMENT_COUNT = 5;
 const ACCEPT_EXTENSIONS = ".pdf,.docx,.xlsx,.pptx,.md,.txt";
 
 const DOCUMENT_TYPE_OPTIONS = DOCUMENT_CATEGORY_CODES.map((code) => ({
@@ -158,10 +158,10 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
       {/* ─── Template Reference Alert ─── */}
       <div className="flex items-center gap-1.5 pb-1">
         <h3 className="font-heading text-base font-semibold text-text-app">
-          Hồ sơ của nhóm đã có sẵn chưa?
+          Tài liệu dự án của nhóm
         </h3>
         <Tooltip
-          label="Tải file tài liệu nhóm đã chuẩn bị. Supporter sẽ đọc trực tiếp từ đây, nên bạn không cần viết lại toàn bộ ý tưởng."
+          label="Tải file tài liệu nhóm đã chuẩn bị. Hệ thống sẽ phân tích trực tiếp từ đây, nên bạn không cần viết lại toàn bộ ý tưởng."
           position="top"
           multiline
           w={260}
@@ -177,12 +177,12 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
         variant="light"
         color="blue"
         radius="md"
-        title="Chưa có hồ sơ hoặc ý tưởng còn mơ hồ?"
+        title="Chưa có tài liệu hoàn chỉnh hoặc ý tưởng còn sơ lược?"
         icon={<CheckCircle2 className="w-4 h-4" />}
       >
         <div className="space-y-3 text-sm leading-relaxed">
           <p>
-            Nếu nhóm chưa có proposal đủ rõ, hãy dùng template có sẵn để điền nhanh
+            Nếu nhóm chưa có đề cương hay slide hoàn chỉnh, hãy dùng template có sẵn để hoàn thiện nhanh
             các phần cốt lõi. Sau khi hoàn tất, tải file lên ở bên dưới.
           </p>
           <div className="flex flex-wrap gap-2.5 pt-1">
@@ -231,7 +231,7 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                     Tải lên tài liệu <span className="text-danger">*</span>
                   </label>
                   <Tooltip
-                    label="Hỗ trợ PDF, DOCX, XLSX, PPTX, MD, TXT. Dung lượng tối đa 15MB mỗi file."
+                    label="Hỗ trợ PDF, PPTX, DOCX, XLSX, MD, TXT (slide thuyết trình hoặc đề cương dự án). Dung lượng tối đa 15MB mỗi tệp."
                     multiline
                     w={260}
                     withArrow
@@ -263,7 +263,7 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                 </Button>
 
                 <Text size="xs" c="dimmed">
-                  .pdf, .docx, .xlsx, .pptx, .md, .txt &bull; tối đa 15MB &bull; {docs.length}/{MAX_DOCUMENT_COUNT} tài liệu
+                  .pdf, .docx, .xlsx, .pptx, .md, .txt &bull; tối đa 15MB mỗi tệp &bull; {docs.length}/{MAX_DOCUMENT_COUNT} tài liệu
                 </Text>
 
                 {/* Upload error banner */}

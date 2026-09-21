@@ -16,7 +16,7 @@ const NEXUS_INTAKE_PRESET: IntakeData = {
     "Chưa có doanh thu",
   ],
   case_summary:
-    "Nexus là dịch vụ audit và refine ý tưởng khởi nghiệp cho sinh viên EXE101. Khách hàng: team FPT gặp khó ở CP1. Pain: không biết lỗi gốc, không biết sửa gì trước. Giải pháp: audit có cấu trúc → report lỗi + hướng sửa → re-audit. Bằng chứng: 9 team cải thiện từ ~3.5 lên >=8/10. Mô hình KD: 3 gói 149K-599K, bootstrapping. Tech: Next.js 16 + Hono + Prisma + AI SDK.",
+    "Nexus là dịch vụ đánh giá và phản biện ý tưởng khởi nghiệp cho sinh viên. Giúp nhóm nhận diện lỗi logic, giả định thiếu căn cứ và hướng hoàn thiện tài liệu dự án trước khi bảo vệ.",
   contact: {
     full_name: "Phùng Lưu Hoàng Long",
     student_code: "SE190377",
@@ -29,7 +29,7 @@ const NEXUS_INTAKE_PRESET: IntakeData = {
     group_no: "13",
     project_name: "Nexus",
     team_status_summary:
-      "Nhóm 6 người (3 CNPM + 3 Truyền thông ĐPT). Đã hoàn thành CP1-CP4 môn EXE101 kỳ Summer 2026. Đã hỗ trợ 9 team EXE101 cải thiện điểm CP1 từ ~3.5 lên >=8.0. Đang chuyển từ Concierge MVP sang Web App MVP.",
+      "Nhóm 6 người (3 CNPM + 3 Truyền thông ĐPT). Đang hoàn thiện sản phẩm công nghệ hỗ trợ sinh viên khởi nghiệp.",
   },
   support_needs: {
     primary_need: "critique_feasibility",

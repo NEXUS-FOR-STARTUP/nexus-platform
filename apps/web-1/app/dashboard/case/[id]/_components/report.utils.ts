@@ -8,9 +8,16 @@ export interface RichReportData {
 }
 
 export const SUBMISSION_TYPE_LABELS: Record<string, string> = {
-  initial: "Lần đầu",
-  resubmit: "Đã sửa",
-  logic_check: "Soi logic",
+  initial: "Đánh giá lần đầu",
+  resubmit: "Đánh giá lại",
+  logic_check: "Kiểm tra lập luận",
+};
+
+export const SEVERITY_LABELS: Record<string, string> = {
+  BLOCKER: "Cần giải quyết ngay",
+  CRITICAL: "Quan trọng",
+  MAJOR: "Cần lưu ý",
+  MINOR: "Gợi ý hoàn thiện",
 };
 
 export const SUBMISSION_TYPE_COLORS: Record<string, string> = {

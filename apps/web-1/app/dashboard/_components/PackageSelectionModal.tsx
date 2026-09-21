@@ -37,8 +37,8 @@ export function PackageSelectionModal({ opened, onClose, onSelectPackage }: Pack
     <Modal
       opened={opened}
       onClose={onClose}
-      title={<Text className="font-display font-semibold text-lg">Chọn gói kiểm tra</Text>}
-      size="xl"
+      title={<Text className="font-heading font-semibold text-lg text-text-app">Chọn gói đánh giá cho dự án</Text>}
+      size="md"
       centered
       radius="md"
       classNames={{
@@ -46,21 +46,23 @@ export function PackageSelectionModal({ opened, onClose, onSelectPackage }: Pack
         body: "bg-surface-app p-4 sm:p-6",
       }}
     >
-      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-        {/* Basic AI Audit */}
+      <div className="max-w-md mx-auto">
+        {/* Đánh giá Dự án Tự động */}
         <Card withBorder radius="md" padding="lg" className="bg-surface-card border-brand/40 relative flex flex-col justify-between">
-          <Badge variant="filled" color="blue" className="absolute top-2 right-2">
+          <Badge variant="filled" color="brand" className="absolute top-2 right-2">
             Khuyên dùng
           </Badge>
           <Stack justify="space-between" className="h-full">
             <div>
-              <h4 className="font-heading font-bold text-lg text-text-app mb-1">Basic AI Audit</h4>
+              <h4 className="font-heading font-bold text-lg text-text-app mb-1">
+                Đánh giá Dự án Tự động
+              </h4>
               <div className="flex items-baseline gap-1.5 mb-3">
-                <span className="text-2xl font-heading font-bold text-text-app">79,000</span>
-                <span className="font-body text-text-muted text-sm">VND</span>
+                <span className="text-2xl font-heading font-bold text-text-app">79.000đ</span>
+                <span className="font-body text-text-muted text-sm">/ Gói 2 lượt đánh giá</span>
               </div>
               <Text size="sm" c="dimmed" className="font-body mb-4 min-h-[40px]">
-                Phân tích tự động bằng AI. Báo cáo trả về tức thì.
+                Đánh giá tài liệu qua 5 nhóm tiêu chí cốt lõi. Bao gồm 2 lượt (đánh giá ban đầu và đánh giá lại sau khi sửa).
               </Text>
               <List
                 spacing="xs"
@@ -72,64 +74,22 @@ export function PackageSelectionModal({ opened, onClose, onSelectPackage }: Pack
                   </ThemeIcon>
                 }
               >
-                <List.Item>Chấm điểm theo Rubric</List.Item>
-                <List.Item>Xác định lỗi Logic cơ bản</List.Item>
-                <List.Item>Trả kết quả tức thì</List.Item>
+                <List.Item>Đánh giá qua 5 nhóm tiêu chí</List.Item>
+                <List.Item>Phân loại vấn đề theo mức độ ưu tiên</List.Item>
+                <List.Item>Kết quả thường có sau khoảng 10 phút</List.Item>
               </List>
             </div>
             <Button
-              color="blue"
+              color="brand"
               fullWidth
               onClick={() => handleSelect(PACKAGE_KEYS.AI_AUDIT)}
               className="font-body font-semibold mt-4"
             >
-              Chọn Basic AI
+              Chọn gói này
             </Button>
           </Stack>
         </Card>
-
-        {/* Premium Mentor Audit */}
-        <Card withBorder radius="md" padding="lg" className="bg-surface-card border-border-app relative flex flex-col justify-between opacity-80">
-          <Badge variant="light" color="gray" className="absolute top-2 right-2">
-            Sắp ra mắt
-          </Badge>
-          <Stack justify="space-between" className="h-full">
-            <div>
-              <h4 className="font-heading font-bold text-lg text-brand mb-1">Premium Mentor Audit</h4>
-              <div className="flex items-baseline gap-1.5 mb-3">
-                <span className="text-2xl font-heading font-bold text-text-app">149,000</span>
-                <span className="font-body text-text-muted text-sm">VND</span>
-              </div>
-              <Text size="sm" c="dimmed" className="font-body mb-4 min-h-[40px]">
-                Mentor FPT trực tiếp review, sửa lỗi chặn và định hướng thực chiến.
-              </Text>
-              <List
-                spacing="xs"
-                size="sm"
-                className="font-body mb-6"
-                icon={
-                  <ThemeIcon color="blue" size={20} radius="xl" variant="light">
-                    <Check size={12} strokeWidth={3} />
-                  </ThemeIcon>
-                }
-              >
-                <List.Item>Bao gồm tính năng của Basic AI</List.Item>
-                <List.Item>Định hướng sửa bài thực chiến</List.Item>
-                <List.Item>Nhận báo cáo sau 24h-48h</List.Item>
-              </List>
-            </div>
-            <Button
-              variant="light"
-              color="gray"
-              fullWidth
-              disabled
-              className="font-body font-semibold mt-4 cursor-not-allowed"
-            >
-              Sắp ra mắt
-            </Button>
-          </Stack>
-        </Card>
-      </SimpleGrid>
+      </div>
     </Modal>
   );
 }

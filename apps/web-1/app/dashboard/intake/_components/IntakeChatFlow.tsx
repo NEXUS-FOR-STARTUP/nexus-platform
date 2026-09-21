@@ -188,12 +188,12 @@ export default function IntakeChatFlow({
           <Bot className="w-5 h-5" />
         </div>
         <div className="space-y-1">
-          <h4 className="font-heading font-semibold text-brand text-sm">Trợ lý tạo Hồ sơ Phản biện</h4>
+          <h4 className="font-heading font-semibold text-brand text-sm">Trợ lý Đăng ký Đánh giá</h4>
           <p className="font-body text-xs text-text-muted leading-relaxed">
-            Xin chào! Mình sẽ hướng dẫn bạn hoàn thiện hồ sơ phản biện. Hãy điền thông tin qua từng bước để{" "}
+            Xin chào! Mình sẽ hướng dẫn bạn cung cấp thông tin dự án. Hãy điền thông tin qua từng bước để{" "}
             {isAiOnlyPackage
-              ? "hệ thống AI thẩm định toàn diện dự án của bạn."
-              : "Supporter có đủ bối cảnh cần thiết."}
+              ? "hệ thống Nexus AI có đủ bối cảnh để đánh giá dự án của nhóm bạn."
+              : "hệ thống có đủ bối cảnh cần thiết để tiến hành đánh giá."}
           </p>
         </div>
       </div>
@@ -239,7 +239,7 @@ export default function IntakeChatFlow({
               color="brand"
               className="font-body font-semibold cursor-pointer h-9 px-4 text-xs"
             >
-              <span>Nộp hồ sơ</span>
+              <span>Tạo dự án &amp; Tiếp tục thanh toán</span>
             </Button>
           ) : (
             <Button
@@ -262,7 +262,7 @@ export default function IntakeChatFlow({
         }}
         title={
           <span className="font-heading font-semibold text-lg leading-snug text-text-app">
-            Xác nhận nộp hồ sơ
+            Xác nhận đăng ký đánh giá
           </span>
         }
         centered
@@ -270,7 +270,7 @@ export default function IntakeChatFlow({
       >
         <div className="space-y-4 font-body">
           <p className="text-sm text-text-muted leading-relaxed">
-            Bạn có chắc chắn muốn nộp hồ sơ này? Sau khi nộp, hệ thống sẽ tiếp nhận thông tin và tiến hành quy trình thẩm định.
+            Bạn có chắc chắn muốn gửi thông tin dự án này? Sau khi gửi, bạn sẽ tiến hành chọn gói và bắt đầu quy trình đánh giá.
           </p>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-border-app">
@@ -291,7 +291,7 @@ export default function IntakeChatFlow({
               color="brand"
               className="font-body font-semibold cursor-pointer h-9 px-4 text-xs"
             >
-              Xác nhận
+              Xác nhận gửi thông tin
             </Button>
           </div>
         </div>

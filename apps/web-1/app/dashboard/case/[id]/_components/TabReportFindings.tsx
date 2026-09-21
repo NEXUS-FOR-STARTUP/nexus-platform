@@ -46,9 +46,9 @@ export default function TabReportFindings({ report, caseId, roundHistory }: TabR
           <FileText className="w-6 h-6" />
         </div>
         <div className="space-y-1.5 max-w-sm">
-          <h4 className="font-heading font-semibold text-sm text-text-app">Chưa có báo cáo phản biện</h4>
+          <h4 className="font-heading font-semibold text-sm text-text-app">Chưa có báo cáo đánh giá</h4>
           <p className="font-body text-xs text-text-muted leading-relaxed">
-            Báo cáo phản biện chính thức sẽ hiển thị ở đây sau khi hệ thống hoàn tất thẩm định ý tưởng khởi nghiệp.
+            Báo cáo đánh giá chi tiết sẽ xuất hiện tại đây sau khi hệ thống hoàn tất quá trình phân tích tài liệu của nhóm.
           </p>
         </div>
       </div>
@@ -61,7 +61,7 @@ export default function TabReportFindings({ report, caseId, roundHistory }: TabR
       <Stack gap="md" className="animate-fade-in font-body pb-8">
         <div className="flex items-center justify-between">
           <h3 className="font-heading font-semibold text-sm text-text-app">
-            Lịch sử đánh giá ({roundHistory.length} lượt)
+            Lịch sử các lần đánh giá ({roundHistory.length} phiên bản)
           </h3>
         </div>
 
@@ -115,7 +115,7 @@ export default function TabReportFindings({ report, caseId, roundHistory }: TabR
                   leftSection={<ExternalLink size={15} />}
                   className="font-medium"
                 >
-                  Mở tab mới
+                  Mở xem toàn màn hình
                 </Button>
               </Tooltip>
 
@@ -127,7 +127,7 @@ export default function TabReportFindings({ report, caseId, roundHistory }: TabR
                 onClick={handleDownloadPdf}
                 className="font-semibold cursor-pointer"
               >
-                Tải Báo Cáo PDF
+                Tải báo cáo (PDF)
               </Button>
             </>
           )}
@@ -152,7 +152,7 @@ export default function TabReportFindings({ report, caseId, roundHistory }: TabR
           <iframe
             src={pdfViewUrl}
             className="w-full h-full border-0"
-            title={`Báo cáo phản biện - ${projectName}`}
+            title={`Báo cáo đánh giá - ${projectName}`}
             onLoad={() => setPdfLoading(false)}
           />
         </div>

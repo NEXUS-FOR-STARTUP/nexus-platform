@@ -156,8 +156,8 @@ export default function TeamFitPage() {
       setHasSaved(true);
       setSavedCaseId(data.caseId);
       router.push(`/dashboard/case/${data.caseId}`);
-    } catch (err) {
-      setSaveError(err instanceof Error ? err.message : "Lưu kết quả thất bại");
+    } catch {
+      setSaveError(FRIENDLY_ERROR_MESSAGE);
     }
   };
 
@@ -194,19 +194,21 @@ export default function TeamFitPage() {
       setHasSaved(true);
       setSavedCaseId(data.caseId);
       router.push(`/dashboard/case/${data.caseId}`);
-    } catch (err) {
-      setSaveError(err instanceof Error ? err.message : "Lưu kết quả thất bại");
+    } catch {
+      setSaveError(FRIENDLY_ERROR_MESSAGE);
     }
   };
 
+  const FRIENDLY_ERROR_MESSAGE =
+    "Hệ thống đang bận hoặc gián đoạn kết nối. Nhóm bạn vui lòng thử lại sau ít phút.";
+
   const displayErrors = saveError
-    ? [saveError]
+    ? [FRIENDLY_ERROR_MESSAGE]
     : validationErrors.length > 0
       ? validationErrors
       : mutation.error
-        ? [mutation.error.message]
+        ? [FRIENDLY_ERROR_MESSAGE]
         : [];
-
   // ── Render ──
 
   return (
@@ -214,10 +216,10 @@ export default function TeamFitPage() {
       {/* Page header */}
       <div className="text-center space-y-2">
         <h1 className="font-heading text-2xl font-bold text-text-app">
-          Đánh giá Team-Idea Fit
+          Kiểm tra nhanh ý tưởng & đội ngũ
         </h1>
         <p className="font-body text-sm text-text-muted">
-          Điền thông tin dự án và đội ngũ để AI phân tích sự phù hợp
+          Mô tả ngắn ý tưởng và các thành viên trong nhóm. Nexus sẽ chỉ ra những điểm còn chưa rõ và năng lực nhóm có thể đang thiếu.
         </p>
       </div>
 
@@ -245,7 +247,7 @@ export default function TeamFitPage() {
           <TeamFitResultStep
             result={mutation.data ?? null}
             isLoading={mutation.isPending}
-            error={mutation.error?.message ?? null}
+            error={mutation.error ? FRIENDLY_ERROR_MESSAGE : null}
             onReset={handleReset}
             onSave={handleSave}
             onXemCase={handleXemCase}
