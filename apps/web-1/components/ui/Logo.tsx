@@ -20,12 +20,19 @@ export default function Logo({ className, height = 52 }: LogoProps) {
   const isDark = mounted && theme === "dark";
   const logoSrc = isDark ? "/logo/White_Colored.svg" : "/logo/Black_Colored.svg";
 
+  // When height is 62 (header logo), scale down to 42px on mobile (< md) and retain 62px on desktop
+  const isHeaderSize = height === 62;
+
   return (
     <img
       src={logoSrc}
       alt="Nexus Logo"
-      style={{ height }}
-      className={className}
+      style={isHeaderSize ? undefined : { height }}
+      className={
+        isHeaderSize
+          ? `h-[52px] md:h-[62px] w-auto object-contain ${className ?? ""}`.trim()
+          : `w-auto object-contain ${className ?? ""}`.trim()
+      }
     />
   );
 }
