@@ -73,7 +73,7 @@ export default function RadarHeader({
               <span>{formatElapsedTime(elapsedSecs)}</span>
             </div>
 
-            {(status === "running" || status === "queued") && (
+            {/* {(status === "running" || status === "queued") && (
               <Button
                 size="xs"
                 color="red"
@@ -84,7 +84,7 @@ export default function RadarHeader({
               >
                 Dừng đánh giá
               </Button>
-            )}
+            )} */}
 
             {status === "failed" && (
               <Button
