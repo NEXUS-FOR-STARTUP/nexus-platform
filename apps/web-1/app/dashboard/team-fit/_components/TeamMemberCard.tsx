@@ -1,18 +1,27 @@
-import { TextInput, TagsInput } from '@mantine/core';
+import { TextInput, TagsInput, Select } from '@mantine/core';
 import { Trash2 } from 'lucide-react';
-
-interface TeamMember {
-  major: string;
-  strengths: string[];
-  experience: string[];
-}
+import {
+  ROLE_TRACK_CODES,
+  ROLE_TRACK_LABELS,
+  type RoleTrackCode,
+} from '@repo/validation';
+import type { TeamMemberInput } from '../hooks/useTeamFitMutation';
 
 interface TeamMemberCardProps {
-  member: TeamMember;
+  member: TeamMemberInput;
   index: number;
-  onUpdate: (index: number, partial: Partial<TeamMember>) => void;
+  onUpdate: (index: number, partial: Partial<TeamMemberInput>) => void;
   onRemove: (index: number) => void;
 }
+
+const ROLE_TRACK_OPTIONS = ROLE_TRACK_CODES.map((code) => ({
+  value: code,
+  label: ROLE_TRACK_LABELS[code],
+}));
+
+// Dữ liệu nháp (kể cả draft cũ trong localStorage) có thể chưa chọn mảng nghề:
+// giữ rỗng để người dùng chọn lại, schema chặn lúc nộp kèm lỗi tiếng Việt.
+const EMPTY_ROLE_TRACK = '' as RoleTrackCode;
 
 const ACCENT_COLORS = [
   { border: 'border-l-emerald-500', bg: 'bg-emerald-500/5', badge: 'bg-emerald-500' },
@@ -57,13 +66,32 @@ export default function TeamMemberCard({
 
       {/* Inputs */}
       <div className="space-y-4">
-        {/* Chuyên ngành */}
+        {/* Mảng nghề */}
+        <Select
+          label={<>Mảng nghề <span className="text-red-500">*</span></>}
+          placeholder="Chọn mảng nghề chính của thành viên"
+          data={ROLE_TRACK_OPTIONS}
+          value={member.roleTrack ?? EMPTY_ROLE_TRACK}
+          onChange={(value) => {
+            if (!value) return; // bắt buộc chọn — không cho bỏ trống
+            onUpdate(index, { roleTrack: value });
+          }}
+          allowDeselect={false}
+          size="sm"
+          classNames={{
+            input:
+              'border-border-app bg-white dark:bg-surface-app min-h-[42px] py-1 rounded-lg text-sm',
+            label: 'text-text-app text-sm font-medium mb-1.5',
+          }}
+        />
+
+        {/* Chuyên ngành đào tạo */}
         <div>
           <label className="text-text-app text-sm font-medium mb-1.5 block">
-            Chuyên ngành <span className="text-red-500">*</span>
+            Chuyên ngành đào tạo <span className="text-red-500">*</span>
           </label>
           <TextInput
-            placeholder="Ví dụ: Fullstack Developer, Product Manager..."
+            placeholder="Ví dụ: Kỹ thuật phần mềm, Quản trị kinh doanh"
             value={member.major}
             onChange={(e) => onUpdate(index, { major: e.currentTarget.value })}
             classNames={{

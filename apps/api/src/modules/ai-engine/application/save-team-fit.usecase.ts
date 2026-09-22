@@ -1,10 +1,11 @@
 import { AppError } from '../../../shared/domain/app-error.js'
 import logger from '../../../shared/infrastructure/logger.js'
-import type { IdeaInput, TeamMemberInput, TeamFitFreeReport } from '@repo/validation'
+import { computeMachineStats } from './evaluate-team-fit.usecase.js'
 import {
   findPackageById as defaultFindPackageById,
 } from '../../packages/infrastructure/persistence/package.repository.js'
-
+import { isTeamFitFreeReportV2 } from '@repo/validation'
+import type { IdeaInput, TeamMemberInput, TeamFitSavedResult } from '@repo/validation'
 // ---------------------------------------------------------------------------
 // Dependency interfaces for testability
 // ---------------------------------------------------------------------------
@@ -28,14 +29,14 @@ export interface SaveTeamFitDeps {
     isFree: boolean
     idea: IdeaInput
     team: TeamMemberInput[]
-    result: TeamFitFreeReport
+    result: TeamFitSavedResult
   }) => Promise<{ id: string; case_code: string }>
 }
 
 export interface SaveTeamFitInput {
   idea: IdeaInput
   team: TeamMemberInput[]
-  result: TeamFitFreeReport
+  result: TeamFitSavedResult
   packageId?: string
   userId: string
 }
@@ -102,6 +103,11 @@ export async function saveTeamFitUseCase(
     // Generate unique case code (retry on P2002)
     const caseCode = await generateUniqueCaseCode(findCaseByCode)
 
+    // machineStats do server tính lại từ idea+team đã validate — client không bịa được số.
+    const storedResult: TeamFitSavedResult = isTeamFitFreeReportV2(result)
+      ? { ...result, machineStats: computeMachineStats({ idea, team }) }
+      : result
+
     const created = await createCaseAndReport({
       caseCode,
       ownerId: userId,
@@ -111,9 +117,8 @@ export async function saveTeamFitUseCase(
       isFree: pkg.price === 0,
       idea,
       team,
-      result,
+      result: storedResult,
     })
-    caseId = created.id
 
     logger.info({ caseId, analysisId: caseId, duration_ms: Date.now() - t0 }, 'AI result saved')
     return { caseId: created.id, caseCode: created.case_code, isNew: true }

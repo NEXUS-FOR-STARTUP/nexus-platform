@@ -255,7 +255,6 @@ async function assembleScopedInputFiles(
     if (teamFit) {
       const idea = (teamFit.idea_snapshot as Record<string, unknown>) || {};
       const team = (teamFit.team_snapshot as Record<string, unknown>) || {};
-      const result = (teamFit.result_snapshot as Record<string, unknown>) || {};
 
       const teamFitMd = `# Báo cáo phân tích Team Fit ban đầu (Team Fit Report)
 
@@ -267,12 +266,7 @@ async function assembleScopedInputFiles(
 - **Khách hàng mục tiêu:** ${String(idea["targetCustomer"] || "Chưa cập nhật")}
 - **MVP / Thử nghiệm:** ${String(idea["mvp"] || "Chưa cập nhật")}
 
-## 2. Kết quả đánh giá sơ bộ (Team Fit Analysis Result)
-\`\`\`json
-${JSON.stringify(result, null, 2)}
-\`\`\`
-
-## 3. Khảo sát Đội ngũ (Team Snapshot)
+## 2. Khảo sát Đội ngũ (Team Snapshot)
 \`\`\`json
 ${JSON.stringify(team, null, 2)}
 \`\`\`

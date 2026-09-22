@@ -1,10 +1,13 @@
 "use client";
 
+import { ROLE_TRACK_LABELS, type RoleTrackCode } from "@repo/validation";
+
 interface TeamMemberItem {
   fullName?: string;
   name?: string;
   major?: string;
   role?: string;
+  roleTrack?: RoleTrackCode;
   skills?: string;
   strengths?: string[];
   experience?: string[] | string;
@@ -46,6 +49,9 @@ export default function OverviewMembersSection({ members }: OverviewMembersSecti
                   Kỹ năng: {m.skills}
                 </p>
               )}
+              <p className="text-text-muted text-xs leading-relaxed">
+                Mảng nghề: {m.roleTrack ? ROLE_TRACK_LABELS[m.roleTrack] : "Chưa xác định"}
+              </p>
               {strengthsText && (
                 <p className="text-text-muted text-xs leading-relaxed">
                   Thế mạnh: {strengthsText}

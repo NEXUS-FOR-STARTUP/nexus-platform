@@ -1,6 +1,24 @@
 import { z } from 'zod';
 
 // ---------------------------------------------------------------------------
+// Team role tracks — shared code ↔ label map (FE + BE)
+// ---------------------------------------------------------------------------
+
+export const ROLE_TRACK_CODES = [
+  "ky_thuat",
+  "marketing",
+  "kinh_doanh_tai_chinh",
+] as const;
+
+export type RoleTrackCode = (typeof ROLE_TRACK_CODES)[number];
+
+export const ROLE_TRACK_LABELS: Record<RoleTrackCode, string> = {
+  ky_thuat: "Kỹ thuật",
+  marketing: "Marketing",
+  kinh_doanh_tai_chinh: "Kinh doanh – Tài chính",
+};
+
+// ---------------------------------------------------------------------------
 // Team-Idea Fit — input schemas shared between frontend + API
 // ---------------------------------------------------------------------------
 
@@ -16,6 +34,7 @@ export const IdeaInputSchema = z.object({
 export type IdeaInput = z.infer<typeof IdeaInputSchema>;
 
 export const TeamMemberInputSchema = z.object({
+  roleTrack: z.enum(ROLE_TRACK_CODES),
   major: z.string().min(2).max(100),
   strengths: z
     .array(z.string().min(2).max(200))
@@ -36,15 +55,127 @@ export const TeamFitInputSchema = z.object({
 export type TeamFitInput = z.infer<typeof TeamFitInputSchema>;
 
 // ---------------------------------------------------------------------------
-// Team-Idea Fit Free — lightweight report schema (no structured fields)
+// Team-Idea Fit Free — AI judgement (AI generates ONLY these 4 fields)
+// Codes are stable machine values; Vietnamese labels live in the maps below so
+// the AI never invents wording the UI has to trust.
 // ---------------------------------------------------------------------------
 
+export const TEAM_FIT_VERDICTS = ["san_sang", "can_can_nhac"] as const;
+
+export type TeamFitVerdict = (typeof TEAM_FIT_VERDICTS)[number];
+
+export const TEAM_FIT_VERDICT_LABELS: Record<TeamFitVerdict, string> = {
+  san_sang: "Sẵn sàng đi tiếp",
+  can_can_nhac: "Cần cân nhắc",
+};
+
+export const TEAM_FIT_AREA_STATES = ["on", "yeu"] as const;
+
+export type TeamFitAreaState = (typeof TEAM_FIT_AREA_STATES)[number];
+
+export const TEAM_FIT_AREA_STATE_LABELS: Record<TeamFitAreaState, string> = {
+  on: "Ổn",
+  yeu: "Yếu",
+};
+
+export const TEAM_FIT_LEVELS = ["cao", "vua", "thap"] as const;
+
+export type TeamFitLevel = (typeof TEAM_FIT_LEVELS)[number];
+
+export const TEAM_FIT_LEVEL_LABELS: Record<TeamFitLevel, string> = {
+  cao: "Cao",
+  vua: "Vừa",
+  thap: "Thấp",
+};
+
+export const TeamFitAiOutputSchema = z.object({
+  verdict: z
+    .enum(TEAM_FIT_VERDICTS)
+    .describe("Kết luận sơ bộ: san_sang = đội ngũ đã phủ vai trò cốt lõi, can_can_nhac = còn thiếu vai trò cốt lõi"),
+  areas: z
+    .array(
+      z.object({
+        ten: z.string().min(2).max(120).describe('Tên mảng, ví dụ "Kỹ thuật sản phẩm"'),
+        trangThai: z.enum(TEAM_FIT_AREA_STATES).describe("on = mảng ổn, yeu = mảng yếu"),
+        mucDo: z.enum(TEAM_FIT_LEVELS).describe("Mức độ của mảng này"),
+        lyDo: z.string().min(2).max(500).describe("Vì sao mảng này ổn hoặc yếu với chính dự án này"),
+        danChung: z
+          .string()
+          .min(2)
+          .max(500)
+          .describe("Trích câu khách đã viết (chuyên ngành, sở trường, kinh nghiệm, lĩnh vực) làm căn cứ"),
+      }),
+    )
+    .min(2)
+    .max(6),
+  industryRoles: z
+    .array(
+      z.object({
+        vaiTro: z.string().min(2).max(120).describe("Vai trò mà lĩnh vực dự án cần trong đội ngũ"),
+        conThieu: z.boolean().describe("Đội ngũ hiện có thiếu vai trò này hay không"),
+        lyDo: z.string().min(2).max(500).describe("Căn cứ đối chiếu với thông tin thành viên"),
+      }),
+    )
+    .min(2)
+    .max(8),
+  committeeQuestions: z.array(z.string().min(5).max(300)).min(5).max(7),
+});
+
+export type TeamFitAiOutput = z.infer<typeof TeamFitAiOutputSchema>;
+export type TeamFitIndustryRole = TeamFitAiOutput["industryRoles"][number];
+
+// ---------------------------------------------------------------------------
+// Team-Idea Fit Free — server-assembled report (v2)
+// machineStats is counted from customer input by the server; handoff is fixed.
+// `ai` is null when the AI call failed — parts A and C must survive that.
+// ---------------------------------------------------------------------------
+
+export const TeamFitMachineStatsSchema = z.object({
+  distinctMajors: z.number().int().min(0),
+  trackCoverage: z.record(z.enum(ROLE_TRACK_CODES), z.number().int().min(0)),
+  experiencedCount: z.number().int().min(0),
+  emptyFields: z.array(z.string()),
+});
+
+export type TeamFitMachineStats = z.infer<typeof TeamFitMachineStatsSchema>;
+
+export const TEAM_FIT_HANDOFF_COUNT = 4;
+
+export const TeamFitHandoffItemSchema = z.object({
+  cauHoi: z.string(),
+  canNopGi: z.string(),
+});
+
+export type TeamFitHandoffItem = z.infer<typeof TeamFitHandoffItemSchema>;
+
 export const TeamFitFreeReportSchema = z.object({
+  version: z.literal(2),
+  machineStats: TeamFitMachineStatsSchema,
+  ai: TeamFitAiOutputSchema.nullable(),
+  handoff: z.array(TeamFitHandoffItemSchema).length(TEAM_FIT_HANDOFF_COUNT),
+});
+
+export type TeamFitFreeReport = z.infer<typeof TeamFitFreeReportSchema>;
+
+// Legacy v1 shape — still stored on cases saved before the v2 report. Read sites
+// accept it so old cases keep rendering instead of showing empty lists.
+export const TeamFitLegacyFreeReportSchema = z.object({
   teamGaps: z.array(z.string()),
   commercialGaps: z.array(z.string()),
 });
 
-export type TeamFitFreeReport = z.infer<typeof TeamFitFreeReportSchema>;
+export type TeamFitLegacyFreeReport = z.infer<typeof TeamFitLegacyFreeReportSchema>;
+
+export const TeamFitSavedResultSchema = z.union([
+  TeamFitFreeReportSchema,
+  TeamFitLegacyFreeReportSchema,
+]);
+
+export type TeamFitSavedResult = z.infer<typeof TeamFitSavedResultSchema>;
+
+export function isTeamFitFreeReportV2(result: unknown): result is TeamFitFreeReport {
+  return !!result && typeof result === "object" && "version" in result;
+}
 
 // ---------------------------------------------------------------------------
 // Team-Idea Fit — paid tier rich report schema

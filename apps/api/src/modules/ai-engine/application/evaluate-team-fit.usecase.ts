@@ -1,45 +1,78 @@
 import type { TeamFitInput } from "../domain/team-fit.dto.js";
 import { TeamFitInputSchema } from "../domain/team-fit.dto.js";
-import { TeamFitFreeReportSchema, type TeamFitFreeReport } from "@repo/validation";
+import {
+  ROLE_TRACK_CODES,
+  ROLE_TRACK_LABELS,
+  TeamFitAiOutputSchema,
+  type RoleTrackCode,
+  type TeamFitAiOutput,
+  type TeamFitFreeReport,
+  type TeamFitHandoffItem,
+  type TeamFitMachineStats,
+} from "@repo/validation";
 import { getGoogleModel } from "../../../services/google-provider.js";
 import { generateObject } from "ai";
 import { AppError } from "../../../shared/domain/app-error.js";
 import logger from "../../../shared/infrastructure/logger.js";
 
-const SYSTEM_PROMPT = `Bạn là chuyên gia đánh giá đội ngũ khởi nghiệp cho sinh viên EXE101 tại Đại học FPT.
+// Version of the shape stored in result_snapshot (2 = three-part free report).
+const REPORT_VERSION = 2;
+const AI_TIMEOUT_MS = 30_000;
+const AI_TEMPERATURE = 0.3;
+const AI_MAX_OUTPUT_TOKENS = 4096;
 
-Tiêu chí đánh giá:
-1. Một đội ngũ "chuẩn" cần phân bố đồng đều giữa:
-   - Kỹ thuật (lập trình, thiết kế sản phẩm, dựng MVP)
-   - Marketing (truyền thông, tiếp cận khách hàng, growth)
-   - Kinh tế (mô hình kinh doanh, tài chính, định giá)
-2. Yêu cầu bắt buộc: tối thiểu 2 ngành đào tạo khác nhau trong nhóm.
-3. Kỹ năng được tính điểm cao hơn nếu có bằng chứng thực tế (project, kinh nghiệm làm việc).
-4. Đánh giá dựa trên thông tin thực tế được cung cấp, không suy đoán, không bịa đặt.
-5. Đưa ra khuyến nghị cụ thể, hành động được.
+const SYSTEM_PROMPT_FREE = `Bạn chấm ĐỘI NGŨ của một nhóm sinh viên EXE101 (ĐH FPT) so với chính ý tưởng các em mô tả.
 
-Output phải là tiếng Việt, có cấu trúc rõ ràng, dễ hiểu cho sinh viên năm 1-2.`;
+=== LUẬT CỐ ĐỊNH ===
+1. CHỈ chấm đội ngũ: trong nhóm có ai, thiếu ai, thiếu tới mức nào. KHÔNG chấm chất lượng ý tưởng, giải pháp, MVP hay mô hình kinh doanh — muốn chấm mấy thứ đó phải đọc tài liệu, lượt này không có.
+2. Mọi nhận định phải có dẫn chứng: trích lại đúng câu khách đã viết (mảng nghề, chuyên ngành, sở trường, kinh nghiệm, ô lĩnh vực) vào trường danChung. Không có dẫn chứng thì bỏ nhận định đó.
+3. KHÔNG bịa: không thêm thành viên, kỹ năng, kinh nghiệm hay số liệu mà khách không viết.
+4. KHÔNG đưa cách sửa, không khuyến nghị, không gợi ý tuyển thêm ai, không khen chung chung.
+5. KHÔNG cho điểm số.
+6. Toàn bộ nội dung bằng tiếng Việt, câu ngắn, dễ hiểu với sinh viên năm 1-2.
 
-const SYSTEM_PROMPT_FREE = `Bạn là công cụ quét bề mặt. Nhiệm vụ duy nhất: phát hiện khoảng trống. Không phân tích, không đánh giá, không đề xuất.
-
-=== NHIỆM VỤ 1: ĐỘI NGŨ (teamGaps) ===
-Dựa vào lĩnh vực dự án (field) và thông tin từng thành viên (chuyên ngành, sở trường, kinh nghiệm), liệt kê những kỹ năng hoặc lĩnh vực chuyên môn mà đội ngũ hiện chưa thể hiện.
-- Mỗi gap là một câu ngắn, chỉ nêu tên sự thiếu hụt.
-- Không giải thích tại sao thiếu là nguy hiểm.
-- Không gợi ý cần tìm ai hay làm gì để bổ sung.
-
-=== NHIỆM VỤ 2: THƯƠNG MẠI (commercialGaps) ===
-Quét 6 trường thông tin dự án: projectName, field, targetCustomer, problem, solution, mvp.
-- Chỉ ra những trường chưa rõ ràng, còn mơ hồ hoặc quá chung chung.
-- Không phán xét đúng/sai.
-- Không gợi ý cách cải thiện.
+=== CÁCH LÀM ===
+1. Đọc ô "Lĩnh vực" của dự án, tự nêu ra lĩnh vực đó cần những vai trò gì trong đội ngũ (kỹ thuật, sản phẩm, marketing, kinh doanh – tài chính, vận hành, pháp lý... tuỳ lĩnh vực). Không tra bảng nào, không dùng một bộ tiêu chí chung cho mọi ngành.
+2. Đối chiếu danh sách vai trò đó với từng thành viên: mảng nghề, chuyên ngành đào tạo, sở trường, kinh nghiệm.
+3. verdict: "san_sang" nếu đội ngũ đã phủ được các vai trò cốt lõi của lĩnh vực; "can_can_nhac" nếu còn thiếu vai trò cốt lõi.
+4. areas: 2-6 mảng, gồm cả mảng ổn và mảng yếu. Mỗi mảng gồm tên mảng, trạng thái (on/yeu), mức độ (cao/vua/thap), lý do chỗ đó đau với chính dự án này, và dẫn chứng.
+5. industryRoles: 2-8 vai trò mà lĩnh vực cần, mỗi vai trò ghi rõ đội ngũ còn thiếu hay không và căn cứ.
+6. committeeQuestions: 5-7 câu hội đồng sẽ hỏi, bám vào lĩnh vực và đội ngũ hiện có.
 
 === QUY TẮC CỨNG ===
-- KHÔNG đưa ra: khuyến nghị, điểm mạnh, phân tích có dẫn chứng, mức độ nghiêm trọng, hành động cụ thể.
-- Mỗi gap tối đa 20 từ.
-- Mỗi mảng (teamGaps, commercialGaps) tối đa 5 gap.
-- Toàn bộ output phải bằng tiếng Việt.
-- Output phải khớp chính xác schema: { teamGaps: string[], commercialGaps: string[] }`;
+- Không kết luận về ý tưởng ("ý tưởng tốt", "giải pháp chưa khả thi"...).
+- Mọi con số phải lấy từ dữ liệu khách nhập, không tự sinh số mới.
+- Output khớp đúng schema: { verdict, areas[], industryRoles[], committeeQuestions[] }.`;
+
+const IDEA_FIELD_LABELS: ReadonlyArray<readonly [keyof TeamFitInput["idea"], string]> = [
+  ["projectName", "Tên dự án"],
+  ["field", "Lĩnh vực"],
+  ["targetCustomer", "Khách hàng mục tiêu"],
+  ["problem", "Vấn đề cần giải quyết"],
+  ["solution", "Giải pháp"],
+  ["mvp", "MVP"],
+];
+
+// Fixed hand-off block: what the free report cannot answer and what the team must
+// submit to answer it. Server-owned, never generated by the AI.
+const HANDOFF_ITEMS: readonly TeamFitHandoffItem[] = [
+  {
+    cauHoi: "Giải pháp của nhóm có khả thi không?",
+    canNopGi: "Bản mô tả giải pháp hoặc đề cương dự án",
+  },
+  {
+    cauHoi: "Mô hình kinh doanh có hợp lý không?",
+    canNopGi: "Bảng chi phí, giá bán và dự phóng doanh thu",
+  },
+  {
+    cauHoi: "Khách hàng thật có cần sản phẩm này không?",
+    canNopGi: "Kết quả khảo sát hoặc phỏng vấn khách hàng",
+  },
+  {
+    cauHoi: "Kỹ thuật có làm được không?",
+    canNopGi: "Mô tả kiến trúc và phân công công việc trong nhóm",
+  },
+];
 
 function buildPrompt(input: TeamFitInput): string {
   const { idea, team } = input;
@@ -48,7 +81,8 @@ function buildPrompt(input: TeamFitInput): string {
     .map(
       (member, index) =>
         `Thành viên ${index + 1}:
-- Chuyên ngành: ${member.major}
+- Mảng nghề: ${member.roleTrack ? ROLE_TRACK_LABELS[member.roleTrack] : "Chưa xác định"}
+- Chuyên ngành đào tạo: ${member.major}
 - Sở trường: ${member.strengths.join(", ")}
 - Kinh nghiệm: ${member.experience.length > 0 ? member.experience.join(", ") : "Chưa có"}`,
     )
@@ -66,6 +100,86 @@ MVP: ${idea.mvp}
 ${teamMembers}`;
 }
 
+/**
+ * Counts what can be counted from customer input alone. The AI never sees this
+ * result, so these numbers cannot be hallucinated.
+ */
+export function computeMachineStats(input: TeamFitInput): TeamFitMachineStats {
+  const majors = new Set<string>();
+  const trackCoverage = Object.fromEntries(
+    ROLE_TRACK_CODES.map((code) => [code, 0]),
+  ) as Record<RoleTrackCode, number>;
+  const emptyFields: string[] = [];
+  let experiencedCount = 0;
+
+  for (const [key, label] of IDEA_FIELD_LABELS) {
+    if (input.idea[key].trim().length === 0) emptyFields.push(label);
+  }
+
+  input.team.forEach((member, index) => {
+    const major = member.major.trim().toLowerCase();
+    if (major.length > 0) majors.add(major);
+
+    if (member.experience.some((item) => item.trim().length > 0)) experiencedCount += 1;
+
+    // roleTrack is required for new submissions but absent on pre-upgrade data.
+    const track = member.roleTrack as RoleTrackCode | undefined;
+    if (track && track in trackCoverage) trackCoverage[track] += 1;
+    else emptyFields.push(`Thành viên ${index + 1}: Mảng nghề`);
+  });
+
+  return {
+    distinctMajors: majors.size,
+    trackCoverage,
+    experiencedCount,
+    emptyFields,
+  };
+}
+
+/**
+ * One AI call. Returns null instead of throwing: the free report must still ship
+ * machine stats and the fixed hand-off when the AI side is unavailable.
+ */
+async function generateAiAssessment(prompt: string): Promise<TeamFitAiOutput | null> {
+  const t0 = Date.now();
+
+  try {
+    const { object } = await generateObject({
+      model: getGoogleModel(),
+      schema: TeamFitAiOutputSchema,
+      system: SYSTEM_PROMPT_FREE,
+      prompt,
+      temperature: AI_TEMPERATURE,
+      maxOutputTokens: AI_MAX_OUTPUT_TOKENS,
+      abortSignal: AbortSignal.timeout(AI_TIMEOUT_MS),
+    });
+
+    logger.info(
+      {
+        model: process.env.AI_TEAM_FIT_MODEL,
+        promptLength: prompt.length,
+        duration_ms: Date.now() - t0,
+        areaCount: object.areas.length,
+      },
+      "AI evaluation success",
+    );
+    return object;
+  } catch (error) {
+    const mapped = mapAIError(error, Date.now() - t0);
+    logger.error(
+      {
+        err: error,
+        code: mapped.code,
+        status: mapped.status,
+        model: process.env.AI_TEAM_FIT_MODEL,
+        duration_ms: Date.now() - t0,
+      },
+      "AI evaluation failed - returning machine stats and hand-off only",
+    );
+    return null;
+  }
+}
+
 export async function evaluateTeamFitUseCase(input: TeamFitInput): Promise<TeamFitFreeReport> {
   const parsed = TeamFitInputSchema.safeParse(input);
   if (!parsed.success) {
@@ -73,34 +187,23 @@ export async function evaluateTeamFitUseCase(input: TeamFitInput): Promise<TeamF
     throw new AppError(400, "INVALID_INPUT", `Thiếu thông tin: ${firstError.path.join(".")}`);
   }
 
-  const prompt = buildPrompt(input);
-  const model = getGoogleModel();
-  const t0 = Date.now();
+  const machineStats = computeMachineStats(parsed.data);
+  const ai = await generateAiAssessment(buildPrompt(parsed.data));
 
-  try {
-    // t0 is defined at function scope for use in both try and catch + mapAIError
-    const { object } = await generateObject({
-      model,
-      schema: TeamFitFreeReportSchema,
-      system: SYSTEM_PROMPT_FREE,
-      prompt,
-      temperature: 0.3,
-      maxOutputTokens: 2048,
-    });
-    logger.info({ model: process.env.AI_TEAM_FIT_MODEL, promptLength: prompt.length, duration_ms: Date.now() - t0, gapCount: object.teamGaps?.length }, 'AI evaluation success');
-    return object;
-  } catch (error) {
-    logger.error({ err: error, model: process.env.AI_TEAM_FIT_MODEL, duration_ms: Date.now() - t0 }, 'AI evaluation failed');
-    throw mapAIError(error, Date.now() - t0);
-  }
+  return {
+    version: REPORT_VERSION,
+    machineStats,
+    ai,
+    handoff: HANDOFF_ITEMS.map((item) => ({ ...item })),
+  };
 }
 
-function mapAIError(error: unknown, durationMs?: number): Error {
+function mapAIError(error: unknown, durationMs?: number): AppError {
   if (error instanceof AppError) return error;
 
   const aiError = error as { name?: string; statusCode?: number; message?: string; statusText?: string };
 
-  if (aiError.name === "AI_APICallError" || aiError.name === "AI_APICallError") {
+  if (aiError.name === "AI_APICallError") {
     const code = aiError.statusCode ?? 500;
 
     if (code === 401 || code === 403) {
@@ -112,12 +215,15 @@ function mapAIError(error: unknown, durationMs?: number): Error {
     if (code === 400 && aiError.message?.includes("safety")) {
       return new AppError(400, "AI_CONTENT_FILTERED", "Nội dung không phù hợp để đánh giá. Vui lòng kiểm tra lại thông tin.");
     }
-    if (code === 400 && aiError.message?.includes("not found") || aiError.message?.includes("not supported")) {
+    if (
+      (code === 400 && aiError.message?.includes("not found")) ||
+      aiError.message?.includes("not supported")
+    ) {
       return new AppError(500, "AI_MODEL_NOT_FOUND", `Model AI không tồn tại: ${process.env.AI_TEAM_FIT_MODEL ?? "gemini-2.0-flash"}. Kiểm tra AI_TEAM_FIT_MODEL.`);
     }
   }
 
-  if (aiError.name === "AbortError" || aiError.message?.includes("timeout") || aiError.message?.includes("abort")) {
+  if (aiError.name === "AbortError" || aiError.name === "TimeoutError" || aiError.message?.includes("timeout") || aiError.message?.includes("abort")) {
     return new AppError(504, "AI_TIMEOUT", "Google AI phản hồi quá chậm. Vui lòng thử lại.");
   }
 
@@ -125,6 +231,6 @@ function mapAIError(error: unknown, durationMs?: number): Error {
     return new AppError(500, "AI_INVALID_OUTPUT", "AI trả về định dạng không hợp lệ. Vui lòng thử lại.");
   }
 
-    logger.error({ err: error, model: process.env.AI_TEAM_FIT_MODEL, duration_ms: durationMs }, 'AI evaluation unhandled error');
+  logger.error({ err: error, model: process.env.AI_TEAM_FIT_MODEL, duration_ms: durationMs }, "AI evaluation unhandled error");
   return new AppError(500, "AI_INTERNAL_ERROR", "Lỗi hệ thống AI. Vui lòng thử lại sau.");
 }
