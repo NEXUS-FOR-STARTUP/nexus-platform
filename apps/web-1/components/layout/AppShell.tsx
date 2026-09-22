@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Group,
   Button,
@@ -170,14 +171,34 @@ export default function AppShell({ children }: AppShellProps) {
               href="https://www.facebook.com/profile.php?id=61591506814865"
               target="_blank"
               rel="noopener noreferrer"
-              size="lg"
+              size="xl"
               color="gray"
               variant="subtle"
               radius="xl"
               className="cursor-pointer"
               aria-label="Nexus Facebook Page"
             >
-              <FacebookIcon className="w-4.5 h-4.5 text-brand" />
+              <FacebookIcon className="w-6 h-6 text-brand" />
+            </ActionIcon>
+            <ActionIcon
+              component="a"
+              href="https://zalo.me/g/wgadhwpaxd05vykpnxqb"
+              target="_blank"
+              rel="noopener noreferrer"
+              size="xl"
+              color="gray"
+              variant="subtle"
+              radius="xl"
+              className="cursor-pointer"
+              aria-label="Nexus Zalo Group"
+            >
+              <Image
+                src="/logo/zalo.png"
+                alt="Zalo"
+                width={24}
+                height={24}
+                className="w-6 h-6"
+              />
             </ActionIcon>
           </Group>
 
