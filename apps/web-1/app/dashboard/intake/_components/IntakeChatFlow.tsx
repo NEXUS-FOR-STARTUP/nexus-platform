@@ -198,7 +198,7 @@ export default function IntakeChatFlow({
         </div>
       </div>
 
-      <div className="bg-surface-app border border-border-app rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+      <div className="bg-surface-app border border-border-app rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm space-y-6">
         {currentStep === IntakeStep.SITUATION && <SituationStep form={form} values={values} />}
 
         {currentStep === IntakeStep.CONTACT && <ContactStep form={form} values={values} />}
@@ -222,12 +222,12 @@ export default function IntakeChatFlow({
           />
         )}
 
-        <div className="flex justify-between items-center pt-6 border-t border-border-app">
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 pt-6 border-t border-border-app">
           <Button
             onClick={handleBack}
             disabled={currentIdx <= 0 || isSubmitting}
             variant="default"
-            className="text-text-muted hover:text-text-app font-body font-semibold cursor-pointer h-9 px-4 text-xs"
+            className="w-full sm:w-auto text-text-muted hover:text-text-app font-body font-semibold cursor-pointer h-10 sm:h-9 px-4 text-xs"
           >
             <span>Quay lại</span>
           </Button>
@@ -237,7 +237,7 @@ export default function IntakeChatFlow({
               onClick={() => setIsConfirmModalOpen(true)}
               disabled={isSubmitting}
               color="brand"
-              className="font-body font-semibold cursor-pointer h-9 px-4 text-xs"
+              className="w-full sm:w-auto font-body font-semibold cursor-pointer h-10 sm:h-9 px-4 text-xs"
             >
               <span>Tạo dự án &amp; Tiếp tục thanh toán</span>
             </Button>
@@ -246,7 +246,7 @@ export default function IntakeChatFlow({
               onClick={handleNext}
               disabled={!isStepValid()}
               color="brand"
-              className="font-body font-semibold cursor-pointer disabled:opacity-50 h-9 px-4 text-xs"
+              className="w-full sm:w-auto font-body font-semibold cursor-pointer disabled:opacity-50 h-10 sm:h-9 px-4 text-xs"
             >
               <span>Tiếp tục</span>
             </Button>
@@ -273,12 +273,12 @@ export default function IntakeChatFlow({
             Bạn có chắc chắn muốn gửi thông tin dự án này? Sau khi gửi, bạn sẽ tiến hành chọn gói và bắt đầu quy trình đánh giá.
           </p>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-border-app">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t border-border-app">
             <Button
               onClick={() => setIsConfirmModalOpen(false)}
               disabled={isSubmitting}
               variant="default"
-              className="font-body font-semibold cursor-pointer h-9 px-4 text-xs"
+              className="font-body font-semibold cursor-pointer h-10 sm:h-9 px-4 text-xs w-full sm:w-auto"
             >
               Kiểm tra lại
             </Button>
@@ -289,7 +289,7 @@ export default function IntakeChatFlow({
               }}
               loading={isSubmitting}
               color="brand"
-              className="font-body font-semibold cursor-pointer h-9 px-4 text-xs"
+              className="font-body font-semibold cursor-pointer h-10 sm:h-9 px-4 text-xs w-full sm:w-auto"
             >
               Xác nhận gửi thông tin
             </Button>

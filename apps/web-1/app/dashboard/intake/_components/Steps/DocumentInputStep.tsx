@@ -296,12 +296,12 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                       radius="md"
                       className="border-border-strong bg-surface-soft/60"
                     >
-                      <Group justify="space-between" align="flex-start" wrap="nowrap">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
                         {/* File info */}
-                        <Group gap="sm" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-                          <FileText className="w-5 h-5 text-text-muted shrink-0" />
-                          <div style={{ minWidth: 0 }}>
-                            <Text size="sm" fw={600} truncate>
+                        <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                          <FileText className="w-5 h-5 text-text-muted shrink-0 mt-0.5" />
+                          <div className="min-w-0 flex-1">
+                            <Text size="sm" fw={600} truncate className="break-all">
                               {doc.original_name}
                             </Text>
                             <Group gap="xs" mt={2}>
@@ -313,37 +313,40 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                               </Text>
                             </Group>
                           </div>
-                        </Group>
+                        </div>
 
                         {/* Type selector + remove */}
-                        <Group gap="sm" wrap="nowrap">
-                          <Select
-                            placeholder="Chọn loại tài liệu"
-                            data={DOCUMENT_TYPE_OPTIONS}
-                            value={
-                              doc.document_type
-                                ? doc.document_type === "task_assignment"
-                                  ? "other"
-                                  : (DOCUMENT_CATEGORY_CODES as readonly string[]).includes(doc.document_type)
-                                    ? doc.document_type
-                                    : "other"
-                                : null
-                            }
-                            onChange={(val) => handleTypeChange(index, val, parentField)}
-                            size="xs"
-                            clearable
-                            className="min-w-[220px]"
-                          />
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                          <div className="flex-1 sm:w-[220px] sm:min-w-[220px]">
+                            <Select
+                              placeholder="Chọn loại tài liệu"
+                              data={DOCUMENT_TYPE_OPTIONS}
+                              value={
+                                doc.document_type
+                                  ? doc.document_type === "task_assignment"
+                                    ? "other"
+                                    : (DOCUMENT_CATEGORY_CODES as readonly string[]).includes(doc.document_type)
+                                      ? doc.document_type
+                                      : "other"
+                                  : null
+                              }
+                              onChange={(val) => handleTypeChange(index, val, parentField)}
+                              size="xs"
+                              clearable
+                              className="w-full"
+                            />
+                          </div>
                           <ActionIcon
                             variant="subtle"
                             color="red"
                             onClick={() => handleRemoveDoc(index, parentField)}
                             aria-label="Xóa tài liệu"
+                            className="shrink-0 min-w-[44px] min-h-[44px]"
                           >
                             <X className="w-4 h-4" />
                           </ActionIcon>
-                        </Group>
-                      </Group>
+                        </div>
+                      </div>
                     </Paper>
                   ))}
                 </Stack>
