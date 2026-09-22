@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Title, Text, Button, Container, Stack, Group, List, ThemeIcon } from "@mantine/core";
+import { Title, Text, Button, Container, List, ThemeIcon } from "@mantine/core";
 import { ArrowRight, Check } from "lucide-react";
 import classes from "./HeroBullets.module.css";
 
@@ -48,33 +48,31 @@ export default function LandingHero() {
               </List.Item>
             </List>
 
-            <Stack mt={30} className="w-full sm:w-auto">
-              <Group>
-                <Button
-                  component={Link}
-                  href="/dashboard/team-fit"
-                  size="lg"
-                  color="brand"
-                  radius="md"
-                  data-cta="free"
-                  rightSection={<ArrowRight className="w-4 h-4" />}
-                  className={`${classes.control} font-semibold font-body shadow-md shadow-brand/10 transition-transform hover:-translate-y-0.5`}
-                >
-                  Kiểm tra nhanh ý tưởng
-                </Button>
-                <Button
-                  component="a"
-                  href="#pricing"
-                  size="lg"
-                  variant="outline"
-                  radius="md"
-                  data-cta="paid"
-                  className={`${classes.control} font-semibold font-body border-border-strong`}
-                >
-                  Xem bảng giá
-                </Button>
-              </Group>
-            </Stack>
+            <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+              <Button
+                component={Link}
+                href="/dashboard/team-fit"
+                size="lg"
+                color="brand"
+                radius="md"
+                data-cta="free"
+                rightSection={<ArrowRight className="w-4 h-4 shrink-0" />}
+                className="w-full sm:w-auto font-semibold font-body shadow-md shadow-brand/10 transition-transform hover:-translate-y-0.5 justify-center"
+              >
+                Kiểm tra nhanh ý tưởng
+              </Button>
+              <Button
+                component="a"
+                href="#pricing"
+                size="lg"
+                variant="outline"
+                radius="md"
+                data-cta="paid"
+                className="w-full sm:w-auto font-semibold font-body border-border-strong justify-center"
+              >
+                Xem bảng giá
+              </Button>
+            </div>
           </div>
         </div>
       </Container>
