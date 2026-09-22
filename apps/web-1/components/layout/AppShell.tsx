@@ -36,6 +36,18 @@ const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+const TikTokIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    viewBox="0 0 24 24"
+    width="18"
+    height="18"
+    fill="currentColor"
+    {...props}
+  >
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 3 15.68 6.34 6.34 0 0 0 9.35 22a6.34 6.34 0 0 0 6.33-6.32V8.84a8.21 8.21 0 0 0 4.91 1.62v-3.77h-1z" />
+  </svg>
+);
+
 
 
 interface AppShellProps {
@@ -199,6 +211,20 @@ export default function AppShell({ children }: AppShellProps) {
                 height={24}
                 className="w-6 h-6"
               />
+            </ActionIcon>
+            <ActionIcon
+              component="a"
+              href="https://www.tiktok.com/@nexus.for.startup?_r=1&_t=ZS-99uXWT84gk9"
+              target="_blank"
+              rel="noopener noreferrer"
+              size="xl"
+              color="gray"
+              variant="subtle"
+              radius="xl"
+              className="cursor-pointer"
+              aria-label="Nexus TikTok"
+            >
+              <TikTokIcon className="w-5 h-5 text-text-app hover:text-brand transition-colors" />
             </ActionIcon>
           </Group>
 
