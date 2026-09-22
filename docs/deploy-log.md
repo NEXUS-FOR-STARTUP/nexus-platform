@@ -54,3 +54,4 @@ Sau khi xác minh, ghi 1 dòng theo format trên (ví dụ: `2026-08-03 HH:MM | 
 | 2026-09-21 15:17 | bc68db2 | staging | Merge pull request #40 from NEXUS-FOR-STARTUP/feat/ux-wording | 🟢 web |
 | 2026-09-22 06:16 | 941b313 | staging | refactor(web): hide cancel evaluation button in radar header (#41) | 🟢 web |
 | 2026-09-22 19:59 | 4795601 | staging | Merge branch 'dev' into staging | 🟢 web |
+| 2026-09-22 20:42 | 17ec895 | staging | feat(web): add Zalo group icon to footer | 🟢 web |
