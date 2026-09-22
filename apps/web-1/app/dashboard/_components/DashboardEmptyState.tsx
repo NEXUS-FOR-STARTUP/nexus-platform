@@ -18,16 +18,16 @@ export default function DashboardEmptyState() {
         Đánh giá đội ngũ khởi nghiệp của bạn trước, sau đó tạo hồ sơ phản biện với các checkpoint chuẩn.
       </p>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
         <Link
           href="/dashboard/team-fit"
-          className="inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-brand hover:bg-brand-hover text-white px-6 py-3 rounded-lg shadow-sm shadow-brand/10 transition-colors cursor-pointer"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-brand hover:bg-brand-hover text-white px-6 py-3 rounded-lg shadow-sm shadow-brand/10 transition-colors cursor-pointer whitespace-nowrap"
         >
           <span>Đánh giá đội ngũ miễn phí</span>
         </Link>
         <button
           onClick={open}
-          className="inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-surface-app border border-border-app hover:border-brand/40 text-text-app px-6 py-3 rounded-lg transition-colors cursor-pointer"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-surface-app border border-border-app hover:border-brand/40 text-text-app px-6 py-3 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
         >
           <span>Bắt đầu kiểm tra dự án</span>
         </button>

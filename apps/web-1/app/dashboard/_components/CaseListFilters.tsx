@@ -1,6 +1,6 @@
 "use client";
 
-import { Group, Select, TextInput } from "@mantine/core";
+import { Select, TextInput } from "@mantine/core";
 import { Search } from "lucide-react";
 
 export const SUPPORTER_STATUS_OPTIONS = [
@@ -54,7 +54,7 @@ export default function CaseListFilters({
   stageOptions = STUDENT_STAGE_OPTIONS,
 }: CaseListFiltersProps) {
   return (
-    <Group gap="sm" align="flex-end" wrap="wrap">
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 w-full">
       <TextInput
         label="Tìm kiếm"
         placeholder="Tìm theo mã hồ sơ hoặc tên nhóm..."
@@ -62,27 +62,29 @@ export default function CaseListFilters({
         value={search}
         onChange={(event) => onSearchChange(event.currentTarget.value)}
         radius="md"
-        style={{ flexGrow: 1, minWidth: 200 }}
+        className="flex-1 w-full"
       />
-      <Select
-        label="Trạng thái"
-        placeholder="Tất cả"
-        data={stageOptions}
-        value={stage}
-        onChange={onStageChange}
-        clearable
-        radius="md"
-        style={{ width: 208 }}
-      />
-      <Select
-        label="Sắp xếp"
-        data={STUDENT_SORT_OPTIONS}
-        value={sortValue}
-        onChange={(value) => onSortChange(value || "created_at_desc")}
-        allowDeselect={false}
-        radius="md"
-        style={{ width: 192 }}
-      />
-    </Group>
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 w-full sm:w-auto shrink-0">
+        <Select
+          label="Trạng thái"
+          placeholder="Tất cả"
+          data={stageOptions}
+          value={stage}
+          onChange={onStageChange}
+          clearable
+          radius="md"
+          className="w-full sm:w-[208px]"
+        />
+        <Select
+          label="Sắp xếp"
+          data={STUDENT_SORT_OPTIONS}
+          value={sortValue}
+          onChange={(value) => onSortChange(value || "created_at_desc")}
+          allowDeselect={false}
+          radius="md"
+          className="w-full sm:w-[192px]"
+        />
+      </div>
+    </div>
   );
 }
