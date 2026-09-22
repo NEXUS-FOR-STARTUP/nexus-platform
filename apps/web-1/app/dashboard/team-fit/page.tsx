@@ -212,7 +212,7 @@ export default function TeamFitPage() {
   // ── Render ──
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-8 px-4 py-8 sm:px-6">
+    <div className="mx-auto w-full max-w-3xl space-y-6 sm:space-y-8 px-4 pt-6 pb-28 sm:py-8 sm:px-6">
       {/* Page header */}
       <div className="text-center space-y-2">
         <h1 className="font-heading text-2xl font-bold text-text-app">
@@ -227,7 +227,7 @@ export default function TeamFitPage() {
       <StepIndicator currentStep={currentStep} onStepClick={(step) => setCurrentStep(step)} />
 
       {/* Step content */}
-      <div className="bg-surface-app border border-border-app rounded-2xl p-6">
+      <div className="bg-surface-app border border-border-app rounded-2xl p-4 sm:p-6">
         <ErrorBanner errors={displayErrors} />
 
         {currentStep === 0 && (

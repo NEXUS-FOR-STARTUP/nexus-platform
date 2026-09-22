@@ -52,10 +52,10 @@ function StepLabel({
   return (
     <span
       className={[
-        'whitespace-nowrap text-sm transition-colors',
-        isActive && 'font-semibold text-app',
-        isCompleted && 'text-muted',
-        !isActive && !isCompleted && 'text-muted',
+        'text-xs sm:text-sm transition-colors text-balance leading-tight text-center sm:text-left',
+        isActive && 'font-semibold text-text-app',
+        isCompleted && 'text-text-muted',
+        !isActive && !isCompleted && 'text-text-muted',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -67,7 +67,7 @@ function StepLabel({
 
 export default function StepIndicator({ currentStep, onStepClick }: StepIndicatorProps) {
   return (
-    <div className="flex w-full items-center gap-2 overflow-x-auto py-1">
+    <div className="flex w-full items-start sm:items-center justify-between gap-1 sm:gap-2 py-1">
       {STEPS.map((label, index) => {
         const isCompleted = index < currentStep;
         const isActive = index === currentStep;
@@ -77,7 +77,7 @@ export default function StepIndicator({ currentStep, onStepClick }: StepIndicato
           <div key={label} className="contents">
             <div
               className={[
-                'flex shrink-0 items-center gap-2',
+                'flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-2 flex-1 sm:flex-initial text-center sm:text-left',
                 isClickable ? 'cursor-pointer hover:opacity-80' : '',
               ]
                 .filter(Boolean)
@@ -97,8 +97,8 @@ export default function StepIndicator({ currentStep, onStepClick }: StepIndicato
             {index < STEPS.length - 1 && (
               <div
                 className={[
-                  'mx-1 h-0.5 flex-1 transition-colors',
-                  isCompleted ? 'bg-green-500' : 'bg-border-app',
+                  'mt-4 sm:mt-0 h-0.5 flex-1 transition-colors min-w-3 sm:min-w-6',
+                  index < currentStep ? 'bg-green-500' : 'bg-border-app',
                 ].join(' ')}
               />
             )}
