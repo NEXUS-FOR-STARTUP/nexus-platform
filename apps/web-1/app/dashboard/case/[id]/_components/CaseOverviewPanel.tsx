@@ -8,6 +8,7 @@ import OverviewIdeaSection from "./overview/OverviewIdeaSection";
 import OverviewSupportSection from "./overview/OverviewSupportSection";
 import OverviewMembersSection from "./overview/OverviewMembersSection";
 import OverviewGapsSection from "./overview/OverviewGapsSection";
+import { mapTeamFitReportResult } from "./overview/caseOverviewModel";
 
 interface IntakeContact {
   full_name?: string;
@@ -84,10 +85,6 @@ interface IdeaSnapshotData {
   mvp?: string;
 }
 
-interface ResultSnapshotData {
-  teamGaps?: string[];
-  commercialGaps?: string[];
-}
 
 interface CaseOverviewPanelProps {
   caseData: Case;
@@ -128,10 +125,6 @@ export default function CaseOverviewPanel({
   const tfTeam: TeamMemberSnapshot[] = Array.isArray(teamFit?.team_snapshot)
     ? (teamFit.team_snapshot as TeamMemberSnapshot[])
     : [];
-  const tfResult: ResultSnapshotData =
-    teamFit?.result_snapshot && typeof teamFit.result_snapshot === "object"
-      ? (teamFit.result_snapshot as ResultSnapshotData)
-      : {};
 
   const schoolName = caseData.school || teamCtx.school || intake.school || "Chưa cập nhật";
   const groupName =
@@ -167,8 +160,7 @@ export default function CaseOverviewPanel({
   const solution = idea.solution || tfIdea.solution || intake.solution || "Chưa cập nhật";
   const mvp = idea.mvp || tfIdea.mvp || intake.mvp || "";
 
-  const teamGaps: string[] = Array.isArray(tfResult.teamGaps) ? tfResult.teamGaps : [];
-  const commercialGaps: string[] = Array.isArray(tfResult.commercialGaps) ? tfResult.commercialGaps : [];
+  const { verdictLabel, areas, teamGaps, commercialGaps } = mapTeamFitReportResult(teamFit?.result_snapshot);
 
   const rawPrimaryNeed = supportNeeds.primary_need || "";
   const primaryNeedText = rawPrimaryNeed ? PRIMARY_NEEDS_MAP[rawPrimaryNeed] || rawPrimaryNeed : "";
@@ -231,9 +223,7 @@ export default function CaseOverviewPanel({
 
       {tfTeam.length > 0 && <OverviewMembersSection members={tfTeam} />}
 
-      {(teamGaps.length > 0 || commercialGaps.length > 0) && (
-        <OverviewGapsSection teamGaps={teamGaps} commercialGaps={commercialGaps} />
-      )}
+      <OverviewGapsSection verdictLabel={verdictLabel} areas={areas} teamGaps={teamGaps} commercialGaps={commercialGaps} />
     </div>
   );
 }

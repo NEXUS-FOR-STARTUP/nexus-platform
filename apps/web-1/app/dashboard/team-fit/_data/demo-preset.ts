@@ -1,6 +1,12 @@
 import type { PresetOption } from "@/components/ui/DemoDataFAB";
+import type { TeamMemberInput } from "@repo/validation";
 
-export const NEXUS_PRESET = {
+type TeamFitPreset = {
+  blanks: Record<string, string>;
+  members: TeamMemberInput[];
+};
+
+export const NEXUS_PRESET: TeamFitPreset = {
   blanks: {
     projectName: "Nexus",
     field: "EdTech - Hỗ trợ khởi nghiệp",
@@ -14,6 +20,7 @@ export const NEXUS_PRESET = {
   },
   members: [
     {
+      roleTrack: "ky_thuat",
       major: "Công nghệ phần mềm",
       strengths: [
         "quản lý dự án",
@@ -29,6 +36,7 @@ export const NEXUS_PRESET = {
       ],
     },
     {
+      roleTrack: "ky_thuat",
       major: "Công nghệ phần mềm",
       strengths: [
         "full-stack development",
@@ -42,6 +50,7 @@ export const NEXUS_PRESET = {
       ],
     },
     {
+      roleTrack: "marketing",
       major: "Truyền thông đa phương tiện",
       strengths: [
         "sáng tạo nội dung",
@@ -52,6 +61,7 @@ export const NEXUS_PRESET = {
       experience: ["Marketing Member Nexus", "phỏng vấn khách hàng EXE101"],
     },
     {
+      roleTrack: "marketing",
       major: "Truyền thông đa phương tiện",
       strengths: [
         "nghiên cứu thị trường",
@@ -65,6 +75,7 @@ export const NEXUS_PRESET = {
       ],
     },
     {
+      roleTrack: "kinh_doanh_tai_chinh",
       major: "Truyền thông đa phương tiện",
       strengths: [
         "lập kế hoạch ngân sách",
@@ -78,6 +89,7 @@ export const NEXUS_PRESET = {
       ],
     },
     {
+      roleTrack: "marketing",
       major: "Công nghệ phần mềm",
       strengths: [
         "thiết kế visual",
@@ -94,7 +106,7 @@ export const NEXUS_PRESET = {
   ],
 };
 
-export const FARM2DORM_PRESET = {
+export const FARM2DORM_PRESET: TeamFitPreset = {
   blanks: {
     projectName: "Farm2Dorm",
     field: "AgriTech & E-commerce - Phân phối nông sản",
@@ -108,6 +120,7 @@ export const FARM2DORM_PRESET = {
   },
   members: [
     {
+      roleTrack: "kinh_doanh_tai_chinh",
       major: "Quản trị kinh doanh",
       strengths: [
         "quản lý chuỗi cung ứng",
@@ -120,6 +133,7 @@ export const FARM2DORM_PRESET = {
       ],
     },
     {
+      roleTrack: "ky_thuat",
       major: "Công nghệ phần mềm",
       strengths: [
         "full-stack development",
@@ -132,6 +146,7 @@ export const FARM2DORM_PRESET = {
       ],
     },
     {
+      roleTrack: "ky_thuat",
       major: "Công nghệ phần mềm",
       strengths: [
         "backend development",
@@ -141,6 +156,7 @@ export const FARM2DORM_PRESET = {
       experience: ["Phát triển bot chốt đơn tự động qua Zalo"],
     },
     {
+      roleTrack: "kinh_doanh_tai_chinh",
       major: "Quản trị kinh doanh",
       strengths: [
         "lập kế hoạch tài chính",
@@ -153,6 +169,7 @@ export const FARM2DORM_PRESET = {
       ],
     },
     {
+      roleTrack: "marketing",
       major: "Truyền thông đa phương tiện",
       strengths: [
         "sáng tạo nội dung",
@@ -167,7 +184,7 @@ export const FARM2DORM_PRESET = {
   ],
 };
 
-export const REWEAR_PRESET = {
+export const REWEAR_PRESET: TeamFitPreset = {
   blanks: {
     projectName: "ReWear",
     field: "FashionTech & Circular Economy - Thời trang ký gửi",
@@ -181,6 +198,7 @@ export const REWEAR_PRESET = {
   },
   members: [
     {
+      roleTrack: "marketing",
       major: "Truyền thông đa phương tiện",
       strengths: [
         "xây dựng thương hiệu",
@@ -193,6 +211,7 @@ export const REWEAR_PRESET = {
       ],
     },
     {
+      roleTrack: "marketing",
       major: "Truyền thông đa phương tiện",
       strengths: [
         "chụp ảnh lookbook",
@@ -205,6 +224,7 @@ export const REWEAR_PRESET = {
       ],
     },
     {
+      roleTrack: "marketing",
       major: "Truyền thông đa phương tiện",
       strengths: [
         "chăm sóc khách hàng",
@@ -217,6 +237,7 @@ export const REWEAR_PRESET = {
       ],
     },
     {
+      roleTrack: "marketing",
       major: "Truyền thông đa phương tiện",
       strengths: [
         "lập kế hoạch sự kiện",
@@ -231,7 +252,7 @@ export const REWEAR_PRESET = {
   ],
 };
 
-export const PAWPAL_PRESET = {
+export const PAWPAL_PRESET: TeamFitPreset = {
   blanks: {
     projectName: "PawPal",
     field: "PetCare & On-Demand Services - Dịch vụ thú cưng",
@@ -245,6 +266,7 @@ export const PAWPAL_PRESET = {
   },
   members: [
     {
+      roleTrack: "ky_thuat",
       major: "Công nghệ phần mềm",
       strengths: [
         "quản lý dự án",
@@ -257,6 +279,7 @@ export const PAWPAL_PRESET = {
       ],
     },
     {
+      roleTrack: "ky_thuat",
       major: "Công nghệ phần mềm",
       strengths: [
         "full-stack development",
@@ -266,6 +289,7 @@ export const PAWPAL_PRESET = {
       experience: ["Phát triển web app đặt lịch trông pet theo giờ"],
     },
     {
+      roleTrack: "ky_thuat",
       major: "Công nghệ phần mềm",
       strengths: [
         "kiểm thử phần mềm",
@@ -275,6 +299,7 @@ export const PAWPAL_PRESET = {
       experience: ["Xây dựng cơ sở dữ liệu CTV và lịch trình chăm sóc"],
     },
     {
+      roleTrack: "kinh_doanh_tai_chinh",
       major: "Quản trị kinh doanh",
       strengths: [
         "tuyển dụng cộng tác viên",
@@ -284,6 +309,7 @@ export const PAWPAL_PRESET = {
       experience: ["Tuyển dụng và đào tạo 5 CTV sinh viên chăm sóc thú cưng"],
     },
     {
+      roleTrack: "marketing",
       major: "Ngôn ngữ Anh",
       strengths: [
         "chăm sóc khách hàng",
@@ -295,7 +321,7 @@ export const PAWPAL_PRESET = {
   ],
 };
 
-export const SMASHBOOK_PRESET = {
+export const SMASHBOOK_PRESET: TeamFitPreset = {
   blanks: {
     projectName: "SmashBook",
     field: "SportsTech & Booking Platform - Đặt sân thể thao",
@@ -309,6 +335,7 @@ export const SMASHBOOK_PRESET = {
   },
   members: [
     {
+      roleTrack: "ky_thuat",
       major: "Công nghệ phần mềm",
       strengths: [
         "quản lý hệ thống",
@@ -321,6 +348,7 @@ export const SMASHBOOK_PRESET = {
       ],
     },
     {
+      roleTrack: "ky_thuat",
       major: "Công nghệ phần mềm",
       strengths: [
         "frontend development",
@@ -330,6 +358,7 @@ export const SMASHBOOK_PRESET = {
       experience: ["Xây dựng giao diện đặt sân và lịch xem thời gian thực"],
     },
     {
+      roleTrack: "ky_thuat",
       major: "Công nghệ phần mềm",
       strengths: [
         "backend API",
@@ -341,6 +370,7 @@ export const SMASHBOOK_PRESET = {
       ],
     },
     {
+      roleTrack: "ky_thuat",
       major: "Công nghệ phần mềm",
       strengths: [
         "mobile optimization",
@@ -350,6 +380,7 @@ export const SMASHBOOK_PRESET = {
       experience: ["Tối ưu trải nghiệm đặt sân trên thiết bị di động"],
     },
     {
+      roleTrack: "kinh_doanh_tai_chinh",
       major: "Quản trị kinh doanh",
       strengths: [
         "phát triển thị trường",
@@ -359,6 +390,7 @@ export const SMASHBOOK_PRESET = {
       experience: ["Liên kết thành công 4 sân cầu lông lớn quanh Làng Đại học"],
     },
     {
+      roleTrack: "marketing",
       major: "Quản trị kinh doanh",
       strengths: [
         "marketing thể thao",
@@ -370,7 +402,7 @@ export const SMASHBOOK_PRESET = {
   ],
 };
 
-export const LEANTEA_PRESET = {
+export const LEANTEA_PRESET: TeamFitPreset = {
   blanks: {
     projectName: "LeanTea",
     field: "Food & Beverage (F&B) - Đồ uống Healthy",
@@ -384,6 +416,7 @@ export const LEANTEA_PRESET = {
   },
   members: [
     {
+      roleTrack: "kinh_doanh_tai_chinh",
       major: "Quản trị kinh doanh",
       strengths: [
         "quản lý vận hành F&B",
@@ -393,6 +426,7 @@ export const LEANTEA_PRESET = {
       experience: ["Chủ quán LeanTea", "có chứng chỉ pha chế chuyên nghiệp"],
     },
     {
+      roleTrack: "kinh_doanh_tai_chinh",
       major: "Quản trị kinh doanh",
       strengths: [
         "lập kế hoạch tài chính",
@@ -405,6 +439,7 @@ export const LEANTEA_PRESET = {
       ],
     },
     {
+      roleTrack: "marketing",
       major: "Quản trị kinh doanh",
       strengths: [
         "marketing tại điểm bán",
@@ -416,6 +451,7 @@ export const LEANTEA_PRESET = {
       ],
     },
     {
+      roleTrack: "kinh_doanh_tai_chinh",
       major: "Quản trị kinh doanh",
       strengths: [
         "tìm kiếm nguồn cung ứng",
@@ -429,7 +465,7 @@ export const LEANTEA_PRESET = {
   ],
 };
 
-export const MENTORMAP_PRESET = {
+export const MENTORMAP_PRESET: TeamFitPreset = {
   blanks: {
     projectName: "MentorMap",
     field: "EdTech & Peer-to-Peer Learning - Học tập cộng đồng",
@@ -443,6 +479,7 @@ export const MENTORMAP_PRESET = {
   },
   members: [
     {
+      roleTrack: "ky_thuat",
       major: "Công nghệ phần mềm",
       strengths: [
         "quản lý dự án",
@@ -455,6 +492,7 @@ export const MENTORMAP_PRESET = {
       ],
     },
     {
+      roleTrack: "ky_thuat",
       major: "Công nghệ phần mềm",
       strengths: [
         "full-stack web development",
@@ -466,6 +504,7 @@ export const MENTORMAP_PRESET = {
       ],
     },
     {
+      roleTrack: "kinh_doanh_tai_chinh",
       major: "Quản trị kinh doanh",
       strengths: [
         "tuyển dụng mentor",
@@ -477,6 +516,7 @@ export const MENTORMAP_PRESET = {
       ],
     },
     {
+      roleTrack: "ky_thuat",
       major: "Sư phạm tiếng Anh",
       strengths: [
         "thiết kế phương pháp giảng dạy",
@@ -486,6 +526,7 @@ export const MENTORMAP_PRESET = {
       experience: ["Xây dựng khung đánh giá chất lượng buổi kèm 90 phút"],
     },
     {
+      roleTrack: "ky_thuat",
       major: "Sư phạm tiếng Anh",
       strengths: [
         "chăm sóc sinh viên",
@@ -499,7 +540,7 @@ export const MENTORMAP_PRESET = {
   ],
 };
 
-export const SHARENEST_PRESET = {
+export const SHARENEST_PRESET: TeamFitPreset = {
   blanks: {
     projectName: "ShareNest",
     field: "PropTech & Social Matching - Tìm bạn ở ghép",
@@ -513,6 +554,7 @@ export const SHARENEST_PRESET = {
   },
   members: [
     {
+      roleTrack: "kinh_doanh_tai_chinh",
       major: "Luật kinh tế",
       strengths: [
         "soạn thảo hợp đồng ở ghép",
@@ -525,6 +567,7 @@ export const SHARENEST_PRESET = {
       ],
     },
     {
+      roleTrack: "kinh_doanh_tai_chinh",
       major: "Luật kinh tế",
       strengths: [
         "thẩm định pháp lý nhà trọ",
@@ -536,6 +579,7 @@ export const SHARENEST_PRESET = {
       ],
     },
     {
+      roleTrack: "kinh_doanh_tai_chinh",
       major: "Quản trị kinh doanh",
       strengths: [
         "phân tích tâm lý thói quen",
@@ -547,6 +591,7 @@ export const SHARENEST_PRESET = {
       ],
     },
     {
+      roleTrack: "kinh_doanh_tai_chinh",
       major: "Quản trị kinh doanh",
       strengths: [
         "khảo sát nguồn phòng trọ",
@@ -558,7 +603,7 @@ export const SHARENEST_PRESET = {
   ],
 };
 
-export const CHARGECAMPUS_PRESET = {
+export const CHARGECAMPUS_PRESET: TeamFitPreset = {
   blanks: {
     projectName: "ChargeCampus",
     field: "CleanTech & Energy Mobility - Hạ tầng sạc xe điện",
@@ -572,6 +617,7 @@ export const CHARGECAMPUS_PRESET = {
   },
   members: [
     {
+      roleTrack: "ky_thuat",
       major: "Kỹ thuật điện",
       strengths: [
         "thiết kế phần cứng trụ sạc",
@@ -584,6 +630,7 @@ export const CHARGECAMPUS_PRESET = {
       ],
     },
     {
+      roleTrack: "ky_thuat",
       major: "Kỹ thuật điện",
       strengths: [
         "lắp đặt hệ thống điện",
@@ -593,6 +640,7 @@ export const CHARGECAMPUS_PRESET = {
       experience: ["Trực tiếp chế tạo và lắp đặt 2 trụ sạc thử nghiệm"],
     },
     {
+      roleTrack: "ky_thuat",
       major: "Kỹ thuật điện",
       strengths: [
         "mạch điều khiển IoT",
@@ -602,6 +650,7 @@ export const CHARGECAMPUS_PRESET = {
       experience: ["Phát triển mạch ngắt tự động khi quá nhiệt hoặc sạc đầy"],
     },
     {
+      roleTrack: "ky_thuat",
       major: "Công nghệ phần mềm",
       strengths: [
         "lập trình nhúng IoT",
@@ -613,6 +662,7 @@ export const CHARGECAMPUS_PRESET = {
       ],
     },
     {
+      roleTrack: "ky_thuat",
       major: "Công nghệ phần mềm",
       strengths: [
         "cloud backend",
@@ -624,6 +674,7 @@ export const CHARGECAMPUS_PRESET = {
       ],
     },
     {
+      roleTrack: "kinh_doanh_tai_chinh",
       major: "Quản trị kinh doanh",
       strengths: [
         "xây dựng mô hình tài chính",
@@ -637,7 +688,7 @@ export const CHARGECAMPUS_PRESET = {
   ],
 };
 
-export const MINDNOTE_PRESET = {
+export const MINDNOTE_PRESET: TeamFitPreset = {
   blanks: {
     projectName: "MindNote",
     field: "HealthTech & Mental Wellness - Sức khỏe tinh thần",
@@ -651,6 +702,7 @@ export const MINDNOTE_PRESET = {
   },
   members: [
     {
+      roleTrack: "ky_thuat",
       major: "Công nghệ phần mềm",
       strengths: [
         "quản lý dự án mobile",
@@ -663,6 +715,7 @@ export const MINDNOTE_PRESET = {
       ],
     },
     {
+      roleTrack: "ky_thuat",
       major: "Công nghệ phần mềm",
       strengths: [
         "frontend Flutter",
@@ -674,6 +727,7 @@ export const MINDNOTE_PRESET = {
       ],
     },
     {
+      roleTrack: "ky_thuat",
       major: "Công nghệ phần mềm",
       strengths: [
         "backend Node.js",
@@ -685,6 +739,7 @@ export const MINDNOTE_PRESET = {
       ],
     },
     {
+      roleTrack: "marketing",
       major: "Thiết kế đồ họa",
       strengths: [
         "thiết kế UI/UX",
@@ -696,6 +751,7 @@ export const MINDNOTE_PRESET = {
       ],
     },
     {
+      roleTrack: "ky_thuat",
       major: "Tâm lý học",
       strengths: [
         "xây dựng kịch bản lắng nghe",
@@ -709,7 +765,7 @@ export const MINDNOTE_PRESET = {
   ],
 };
 
-export const CRAFTUNI_PRESET = {
+export const CRAFTUNI_PRESET: TeamFitPreset = {
   blanks: {
     projectName: "CraftUni",
     field: "E-Commerce & Handmade Marketplace - Chợ đồ thủ công",
@@ -723,6 +779,7 @@ export const CRAFTUNI_PRESET = {
   },
   members: [
     {
+      roleTrack: "kinh_doanh_tai_chinh",
       major: "Quản trị kinh doanh",
       strengths: [
         "quản lý sàn thương mại",
@@ -735,6 +792,7 @@ export const CRAFTUNI_PRESET = {
       ],
     },
     {
+      roleTrack: "kinh_doanh_tai_chinh",
       major: "Quản trị kinh doanh",
       strengths: [
         "xây dựng chính sách hoa hồng",
@@ -746,6 +804,7 @@ export const CRAFTUNI_PRESET = {
       ],
     },
     {
+      roleTrack: "marketing",
       major: "Thiết kế đồ họa",
       strengths: [
         "chụp ảnh sản phẩm studio",
@@ -757,6 +816,7 @@ export const CRAFTUNI_PRESET = {
       ],
     },
     {
+      roleTrack: "marketing",
       major: "Thiết kế đồ họa",
       strengths: [
         "thiết kế thương hiệu",
