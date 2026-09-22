@@ -45,11 +45,15 @@
   --font-sans: var(--font-google-sans-flex), sans-serif;
   --font-heading: var(--font-google-sans-flex), sans-serif;
   --font-body: var(--font-google-sans-flex), sans-serif;
-  --text-xs: 1rem;
-  --text-sm: 1rem;
+  --text-xs: var(--app-text-xs);
+  --text-sm: var(--app-text-sm);
 }
 
 :root {
+  /* Font sizes: Mobile defaults */
+  --app-text-xs: 0.8125rem;
+  --app-text-sm: 0.875rem;
+
   /* Brand — Sapphire Blue */
   --color-brand: #2563EB;
   --color-brand-hover: #1D4ED8;
@@ -98,6 +102,12 @@
   /* Mantine Overrides Light */
   --mantine-color-body: var(--color-bg) !important;
   --mantine-color-bg: var(--color-bg) !important;
+}
+@media (min-width: 640px) {
+  :root {
+    --app-text-xs: 1rem;
+    --app-text-sm: 1rem;
+  }
 }
 
 [data-mantine-color-scheme="dark"] {

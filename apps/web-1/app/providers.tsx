@@ -28,8 +28,8 @@ const theme = createTheme({
   },
   fontFamily: "var(--font-google-sans-flex), sans-serif",
   fontSizes: {
-    xs: "1rem",
-    sm: "1rem",
+    xs: "var(--app-text-xs)",
+    sm: "var(--app-text-sm)",
   },
   headings: {
     fontFamily: "var(--font-google-sans-flex), sans-serif",
