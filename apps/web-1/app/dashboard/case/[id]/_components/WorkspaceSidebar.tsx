@@ -137,11 +137,13 @@ export default function WorkspaceSidebar({
         </div>
       </nav>
 
-      {/* Mấu gập chìm ở mép viền (Edge Tab Handle) */}
+      {/* Mấu gập chìm ở mép viền (Edge Tab Handle) với hit-slop chuẩn touch */}
       <button
         type="button"
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className={`absolute top-14 sm:top-16 z-30 flex items-center justify-center w-4.5 sm:w-5 h-9 bg-brand text-white border-y border-r border-white/20 rounded-r-md shadow-md cursor-pointer transition-all duration-300 ease-in-out hover:w-5.5 sm:hover:w-6 focus:outline-none ${
+        aria-label={isCollapsed ? "Mở rộng thanh điều hướng" : "Thu gọn thanh điều hướng"}
+        aria-expanded={!isCollapsed}
+        className={`absolute top-14 sm:top-16 z-30 flex items-center justify-center w-5 sm:w-5.5 h-10 sm:h-9 bg-brand text-white border-y border-r border-white/20 rounded-r-md shadow-md cursor-pointer transition-all duration-300 ease-in-out hover:w-6 focus:outline-none before:absolute before:-inset-2.5 before:content-[''] ${
           isCollapsed ? "left-0" : "left-[56px] md:left-[100px]"
         }`}
         title={isCollapsed ? "Mở rộng thanh điều hướng" : "Thu gọn thanh điều hướng"}

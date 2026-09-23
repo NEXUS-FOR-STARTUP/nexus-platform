@@ -167,7 +167,7 @@ export default function RoundCard({ round, caseId, defaultExpanded = false }: Ro
         <div className="border-t border-border-app">
           {round.report ? (
             <>
-              <div className="relative w-full h-[calc(100vh-440px)] min-h-[480px]">
+              <div className="hidden sm:block relative w-full h-[calc(100vh-440px)] min-h-[480px]">
                 <LoadingOverlay visible={pdfLoading} />
                 <iframe
                   src={pdfViewUrl}

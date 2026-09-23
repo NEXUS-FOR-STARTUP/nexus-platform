@@ -176,7 +176,7 @@ export default function TabReportFindings({ report, caseId, roundHistory }: TabR
       )}
 
       {caseId && isSingleExpanded && (
-        <div className="relative w-full h-[calc(100vh-380px)] min-h-[480px] rounded-xl overflow-hidden border border-border-app bg-surface-app">
+        <div className="hidden sm:block relative w-full h-[calc(100vh-380px)] min-h-[480px] rounded-xl overflow-hidden border border-border-app bg-surface-app">
           <LoadingOverlay visible={pdfLoading} />
           <iframe
             src={pdfViewUrl}
