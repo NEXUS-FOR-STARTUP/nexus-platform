@@ -124,19 +124,17 @@ export async function getAdminWorkerStats(): Promise<AdminWorkerStatsResponse> {
     }),
     prisma.aiJob.findMany({
       where: { job_type: "omp_audit", status: "completed", updated_at: { gte: since24h } },
-      select: { created_at: true, updated_at: true, input_json: true },
+      select: { created_at: true, updated_at: true },
       take: 100,
     }),
   ]);
 
   let avgDurationMs24h = 0;
   if (completedJobs24h.length > 0) {
-    const totalDuration = completedJobs24h.reduce((acc, job) => {
-      const input = job.input_json as { startedAt?: string } | null;
-      const start = input?.startedAt ? new Date(input.startedAt).getTime() : job.created_at.getTime();
-      const end = job.updated_at.getTime();
-      return acc + Math.max(0, end - start);
-    }, 0);
+    const totalDuration = completedJobs24h.reduce(
+      (acc, job) => acc + Math.max(0, job.updated_at.getTime() - job.created_at.getTime()),
+      0,
+    );
     avgDurationMs24h = Math.round(totalDuration / completedJobs24h.length);
   }
 

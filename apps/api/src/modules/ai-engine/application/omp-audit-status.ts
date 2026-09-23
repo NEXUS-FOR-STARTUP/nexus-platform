@@ -1,7 +1,7 @@
 import { getJobMilestones, getOmpJobStatus } from "../infrastructure/queue/omp-queue.js";
 import {
   findCaseForAudit,
-  findLatestAiJobByCase,
+  findLatestAiJobForStatus,
 } from "../infrastructure/persistence/ai-job.repository.js";
 import { jobStore } from "../infrastructure/persistence/job-store.repository.js";
 import { finalizeOmpAuditResult } from "./omp-audit-finalizer.js";
@@ -31,7 +31,7 @@ export async function getCaseAiAuditStatus(caseId: string) {
   }
 
   const isAiPackage = caseRecord.package_id === "pkg_ai_audit";
-  const latestJob = await findLatestAiJobByCase(caseId);
+  const latestJob = await findLatestAiJobForStatus(caseId);
   const targetJobId = latestJob?.id;
 
   let milestones = await getJobMilestones(caseId, targetJobId);

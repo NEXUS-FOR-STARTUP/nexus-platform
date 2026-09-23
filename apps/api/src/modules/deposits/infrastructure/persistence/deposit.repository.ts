@@ -37,6 +37,7 @@ export async function findPendingDepositsByUser(userId: string) {
   return prisma.deposit.findMany({
     where: { user_id: userId, status: "pending" },
     orderBy: { created_at: "desc" },
+    take: 10,
   });
 }
 

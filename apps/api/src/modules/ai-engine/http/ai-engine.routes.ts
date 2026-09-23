@@ -30,6 +30,10 @@ export const TeamFitSaveBodySchema = z.object({
   packageId: z.string().optional(),
 })
 
+// How many of the owner's most recent team-fit reports the save idempotency
+// check looks back over. Bounded so the check stays a small indexed page read.
+const TEAM_FIT_IDEMPOTENCY_LOOKBACK = 20
+
 // ---------------------------------------------------------------------------
 // POST /api/ai-engine/team-fit — Evaluate team composition against idea
 // ---------------------------------------------------------------------------
@@ -92,7 +96,18 @@ aiEngineRouter.post('/team-fit/save', requireAuth, async (c: HonoContext<AuthEnv
         findTeamFitReportsByOwner: async (ownerId) =>
           prisma.teamFitReport.findMany({
             where: { case: { owner_auth_user_id: ownerId } },
-            include: { case: true },
+            orderBy: { created_at: 'desc' },
+            take: TEAM_FIT_IDEMPOTENCY_LOOKBACK,
+            // result_snapshot (large AI report JSON) is intentionally not selected:
+            // the idempotency check in save-team-fit.usecase.ts only compares the
+            // idea/team snapshots.
+            select: {
+              id: true,
+              case_id: true,
+              idea_snapshot: true,
+              team_snapshot: true,
+              case: { select: { id: true, case_code: true } },
+            },
           }),
         findCaseByCode: async (code) => prisma.case.findUnique({ where: { case_code: code } }),
         createCaseAndReport: async (data) =>

@@ -134,6 +134,25 @@ export async function findLatestAiJobByCase(caseId: string, jobType = "omp_audit
 }
 
 /**
+ * Lightweight projection for AI status polling (omits large output_json blob).
+ */
+export async function findLatestAiJobForStatus(caseId: string, jobType = "omp_audit") {
+  return await prisma.aiJob.findFirst({
+    where: { case_id: caseId, job_type: jobType },
+    orderBy: { created_at: "desc" },
+    select: {
+      id: true,
+      case_id: true,
+      job_type: true,
+      status: true,
+      input_json: true,
+      created_at: true,
+      updated_at: true,
+    },
+  });
+}
+
+/**
  * Fetch minimal case record needed for audit flow.
  */
 export async function findCaseForAudit(caseId: string) {

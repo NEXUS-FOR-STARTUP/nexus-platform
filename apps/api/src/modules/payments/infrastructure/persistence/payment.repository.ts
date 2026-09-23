@@ -2,7 +2,16 @@ import { prisma } from "../../../../db.js";
 
 export const SYSTEM_USER_ID = "00000000-0000-0000-0000-000000000001";
 
-export async function findManyPaymentsWithCase() {
+/**
+ * Default page size for payment listings. Without a bound these queries pull the
+ * whole payments history (plus joined case/payer rows) into memory per request.
+ */
+export const PAYMENTS_PAGE_DEFAULT_LIMIT = 50;
+
+export async function findManyPaymentsWithCase(
+  limit = PAYMENTS_PAGE_DEFAULT_LIMIT,
+  offset = 0,
+) {
   return await prisma.payment.findMany({
     include: {
       case: {
@@ -17,10 +26,16 @@ export async function findManyPaymentsWithCase() {
       payer: { select: { id: true, name: true, display_username: true } },
     },
     orderBy: { created_at: "desc" },
+    take: limit,
+    skip: offset,
   });
 }
 
-export async function findManyMyPayments(userId: string) {
+export async function findManyMyPayments(
+  userId: string,
+  limit = PAYMENTS_PAGE_DEFAULT_LIMIT,
+  offset = 0,
+) {
   return await prisma.payment.findMany({
     where: {
       payer_auth_user_id: userId,
@@ -49,6 +64,8 @@ export async function findManyMyPayments(userId: string) {
       },
     },
     orderBy: { created_at: "desc" },
+    take: limit,
+    skip: offset,
   });
 }
 

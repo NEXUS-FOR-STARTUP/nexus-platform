@@ -1,21 +1,35 @@
 import { AppError } from "../../../shared/domain/app-error.js";
+import type { DocumentType } from "@prisma/client";
 import { assembleDocumentWorkspace } from "../../documents/application/assemble-document-workspace.js";
 import { findDocumentRecordsByCaseId } from "../../documents/infrastructure/persistence/document.repository.js";
 import {
   findCaseByIdWithAllRelations,
-  findFirstIntakeUnit,
   findFirstUserEvent,
   findLifecycleUnits,
   findOpenRequestsForMoreInfo,
 } from "../infrastructure/persistence/case.repository.js";
-import {
-  findLatestApprovedReport,
-  findApprovedReports,
-} from "../../reports/infrastructure/persistence/report.repository.js";
-import { getCreditBalance, getCreditLedgerByCaseId } from "../infrastructure/persistence/credit-ledger.repository.js";
-import { findLatestAiJobByCase } from "../../ai-engine/infrastructure/persistence/ai-job.repository.js";
+import { getCreditLedgerByCaseId } from "../infrastructure/persistence/credit-ledger.repository.js";
 import { getAvailableTransitions } from "../domain/case-machine.js";
 import { prisma } from "../../../db.js";
+
+const DOC_TYPES_CACHE_TTL_MS = 5 * 60 * 1000;
+const AUDIT_JOB_TYPE = "omp_audit";
+
+// Document types are near-static reference data, but the case detail endpoint is
+// polled — re-reading the table on every poll wastes DB round-trips.
+let cachedDocTypes: DocumentType[] | null = null;
+let cachedDocTypesAt = 0;
+
+async function getActiveDocumentTypes(): Promise<DocumentType[]> {
+  if (cachedDocTypes && Date.now() - cachedDocTypesAt < DOC_TYPES_CACHE_TTL_MS) {
+    return cachedDocTypes;
+  }
+
+  const docTypes = await prisma.documentType.findMany({ where: { is_active: true } });
+  cachedDocTypes = docTypes;
+  cachedDocTypesAt = Date.now();
+  return docTypes;
+}
 
 function normalizeIntakeSnapshot(rawContent: string | null) {
   if (!rawContent) return null;
@@ -100,42 +114,52 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
   // Authz delegated to controller via requireCaseAccess.
   // This usecase assumes caller has already verified access.
 
-  // Fetch all related data in parallel (1 round-trip instead of 8+ sequential awaits)
+  // Fetch remaining data in parallel: 6 queries, one round-trip.
+  // Reports, credit balance and the intake unit are derived from data already
+  // loaded above (caseDetails.reports, credit_ledger, lifecycleUnits) — and
+  // document types come from the in-memory cache — so no extra queries.
   const [
-    intakeUnit,
-    latest_report,
     latest_user_action,
     lifecycleUnits,
-    reports,
     open_requests_for_more_info,
     documentRecords,
-    docTypes,
-    credit_balance,
     credit_ledger,
+    docTypes,
     latestAiJob,
   ] = await Promise.all([
-    findFirstIntakeUnit(caseId),
-    findLatestApprovedReport(caseId),
     findFirstUserEvent(caseId),
     findLifecycleUnits(caseId),
-    findApprovedReports(caseId),
     findOpenRequestsForMoreInfo(caseId),
     findDocumentRecordsByCaseId(caseId),
-    prisma.documentType.findMany({ where: { is_active: true } }),
-    getCreditBalance(caseId),
     getCreditLedgerByCaseId(caseId),
-    findLatestAiJobByCase(caseId),
+    getActiveDocumentTypes(),
+    // Status only: `input_json`/`output_json` blobs can reach megabytes and must
+    // never be loaded for a status poll.
+    prisma.aiJob.findFirst({
+      where: { case_id: caseId, job_type: AUDIT_JOB_TYPE },
+      orderBy: { created_at: "desc" },
+      select: { status: true },
+    }),
   ]);
 
+  const intakeUnit = lifecycleUnits.find(
+    (u) => u.unit_type === "version" && u.unit_code === "v00",
+  ) ?? null;
   const intake_snapshot = normalizeIntakeSnapshot(intakeUnit?.content || null);
 
-  const team_submissions = lifecycleUnits.filter((u: any) => u.unit_type === "version" && u.unit_code === "v00");
-  const team_revisions = lifecycleUnits.filter((u: any) => u.unit_type === "version" && u.unit_code !== "v00");
+  // `caseDetails.reports` is ordered created_at desc, so the first approved entry
+  // is the latest report.
+  const reports = (caseDetails.reports || []).filter((r) => r.status === "APPROVED");
+  const latest_report = reports[0] ?? null;
+  const credit_balance = credit_ledger.reduce((acc, entry) => acc + entry.amount, 0);
+
+  const team_submissions = lifecycleUnits.filter((u) => u.unit_type === "version" && u.unit_code === "v00");
+  const team_revisions = lifecycleUnits.filter((u) => u.unit_type === "version" && u.unit_code !== "v00");
   const nexus_reports = reports;
 
   // Build round_history from REPORTS desc — each report is a round entry
-  const round_history = reports.map((report: any) => {
-    const unit = lifecycleUnits.find((u: any) => u.id === report.lifecycle_unit_id);
+  const round_history = reports.map((report) => {
+    const unit = lifecycleUnits.find((u) => u.id === report.lifecycle_unit_id);
     const reportMeta = (report.metadata_json && typeof report.metadata_json === "object")
       ? report.metadata_json as Record<string, unknown>
       : null;
@@ -215,9 +239,7 @@ export async function getCaseDocumentWorkspaceUseCase(caseId: string) {
       orderBy: { created_at: "asc" },
     }),
     findDocumentRecordsByCaseId(caseId),
-    prisma.documentType.findMany({
-      where: { is_active: true },
-    }),
+    getActiveDocumentTypes(),
   ]);
 
   if (!caseBasic) {
