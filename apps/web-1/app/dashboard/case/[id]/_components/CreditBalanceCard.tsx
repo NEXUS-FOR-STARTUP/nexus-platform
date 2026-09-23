@@ -7,7 +7,7 @@ interface CreditBalanceCardProps {
   creditBalance: number;
   packageName?: string;
   pricePerCredit?: number;
-  onBuyCredits: () => void;
+  onBuyCredits?: () => void;
 }
 
 export default function CreditBalanceCard({
@@ -74,17 +74,18 @@ export default function CreditBalanceCard({
           </div>
         </div>
 
-        {/* Action Button */}
-        <div className="w-full md:w-auto pt-3 md:pt-0 border-t md:border-t-0 border-border-app/50">
-          <Button
-            onClick={onBuyCredits}
-            color="brand"
-            size="md"
-            className="font-semibold cursor-pointer h-10 px-5 text-base !w-full md:!w-auto"
-          >
-            {hasCredits ? "Mua thêm lượt đánh giá" : "Mua lượt đánh giá"}
-          </Button>
-        </div>
+        {onBuyCredits && (
+          <div className="w-full md:w-auto pt-3 md:pt-0 border-t md:border-t-0 border-border-app/50">
+            <Button
+              onClick={onBuyCredits}
+              color="brand"
+              size="md"
+              className="font-semibold cursor-pointer h-10 px-5 text-base !w-full md:!w-auto"
+            >
+              {hasCredits ? "Mua thêm lượt đánh giá" : "Mua lượt đánh giá"}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

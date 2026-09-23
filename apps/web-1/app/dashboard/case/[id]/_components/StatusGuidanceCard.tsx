@@ -12,7 +12,7 @@ import {
   Zap,
   Upload,
 } from "lucide-react";
-import { Alert, Button, Select, Stack, Textarea, Group } from "@mantine/core";
+import { Alert, Button, Group, Modal, Select, Stack, Textarea } from "@mantine/core";
 import { Dropzone, type FileRejection } from "@mantine/dropzone";
 import {
   STATUS_GUIDANCE_COPY,
@@ -53,7 +53,7 @@ interface StatusGuidanceCardProps {
   onOpenPayment?: () => void;
   onOpenIntake?: () => void;
   onSubmitRevision?: () => void;
-  onConfirmComplete?: () => void;
+  onConfirmComplete?: () => Promise<unknown>;
   isConfirmingComplete?: boolean;
   onTriggerAudit?: (submissionType: SubmissionType, lifecycleUnitId?: string) => Promise<void>;
   isTriggeringAudit?: boolean;
@@ -95,6 +95,7 @@ export default function StatusGuidanceCard({
   const [resubmitChangeSummary, setResubmitChangeSummary] = useState("");
   const [resubmitError, setResubmitError] = useState<string | null>(null);
   const [isResubmitting, setIsResubmitting] = useState(false);
+  const [isCompletionConfirmOpen, setCompletionConfirmOpen] = useState(false);
   const { submitStudentUpload, isSubmitting: isUploading } = useStudentDocumentUpload(caseData.id);
 
   const isFree = isCaseFree(caseData);
@@ -169,6 +170,13 @@ export default function StatusGuidanceCard({
 
     // initial or logic_check — direct trigger
     await onTriggerAudit(submissionType);
+  };
+
+  const handleConfirmComplete = async () => {
+    if (!onConfirmComplete || isConfirmingComplete) return;
+
+    await onConfirmComplete();
+    setCompletionConfirmOpen(false);
   };
 
   const appendResubmitFiles = (selected: File[]) => {
@@ -418,7 +426,7 @@ export default function StatusGuidanceCard({
                   color="brand"
                   className="shrink-0 cursor-pointer w-full sm:w-auto"
                   loading={isConfirmingComplete}
-                  onClick={onConfirmComplete}
+                  onClick={() => setCompletionConfirmOpen(true)}
                 >
                   Xác nhận hoàn thành
                 </Button>
@@ -426,6 +434,38 @@ export default function StatusGuidanceCard({
             )}
           </div>
         </Alert>
+
+        <Modal
+          opened={isCompletionConfirmOpen}
+          onClose={() => setCompletionConfirmOpen(false)}
+          title="Xác nhận hoàn tất dự án"
+          size="sm"
+          centered
+          radius="md"
+        >
+          <Stack gap="md">
+            <p className="text-sm text-text-muted leading-relaxed">
+              Hoàn tất sẽ kết thúc quy trình của dự án này. Sau đó bạn không thể mua thêm lượt đánh giá cho dự án.
+            </p>
+            <Group justify="flex-end">
+              <Button
+                variant="default"
+                onClick={() => setCompletionConfirmOpen(false)}
+                disabled={isConfirmingComplete}
+              >
+                Quay lại
+              </Button>
+              <Button
+                color="red"
+                onClick={() => void handleConfirmComplete()}
+                loading={isConfirmingComplete}
+                disabled={isConfirmingComplete}
+              >
+                Xác nhận hoàn tất
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
 
         {!hasReportCredits && (
           <Alert

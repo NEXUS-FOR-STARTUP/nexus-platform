@@ -83,13 +83,14 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const creditLedger = caseData?.credit_ledger ?? undefined;
   const packageName = caseData?.package?.name ?? undefined;
   const pricePerCredit = caseData?.package?.price ?? undefined;
+  const canBuyCredits = stage !== "completed";
 
   useEffect(() => {
-    if (checkoutParam && caseData && caseData.payment_status === "unpaid" && !checkoutHandledRef.current) {
+    if (checkoutParam && canBuyCredits && caseData && caseData.payment_status === "unpaid" && !checkoutHandledRef.current) {
       checkoutHandledRef.current = true;
       setCreditBuyOpened(true);
     }
-  }, [checkoutParam, caseData]);
+  }, [checkoutParam, canBuyCredits, caseData]);
   if (isLoading) {
     return (
       <div className="space-y-6 w-full pb-12">
@@ -173,7 +174,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               allowedTransitions={filteredTransitions}
               onSelectTab={(tab) => setActiveTab(tab)}
               onOpenPayment={
-                isIntakePending || stage === "report_ready" || (stage === "submitted" && caseRequiresPayment(caseData))
+                canBuyCredits &&
+                (isIntakePending || stage === "report_ready" || (stage === "submitted" && caseRequiresPayment(caseData)))
                   ? () => {
                       if (isCaseFree(caseData)) {
                         setPackageSelectOpened(true);
@@ -277,7 +279,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               orders={caseData.orders}
               packageName={packageName}
               pricePerCredit={pricePerCredit && pricePerCredit > 0 ? pricePerCredit : undefined}
-              onBuyCredits={() => setCreditBuyOpened(true)}
+              onBuyCredits={canBuyCredits ? () => setCreditBuyOpened(true) : undefined}
             />
           )}
 
@@ -296,17 +298,21 @@ export default function CaseWorkspacePage({ params }: PageProps) {
       />
 
       <PackageSelectionModal
-        opened={packageSelectOpened}
+        opened={canBuyCredits && packageSelectOpened}
         onClose={() => setPackageSelectOpened(false)}
-        onSelectPackage={(pkgId) => {
-          setSelectedPackageId(pkgId);
-          setCreditBuyOpened(true);
-        }}
+        onSelectPackage={
+          canBuyCredits
+            ? (pkgId) => {
+                setSelectedPackageId(pkgId);
+                setCreditBuyOpened(true);
+              }
+            : undefined
+        }
       />
 
       <CreditQuantityModal
         caseId={id}
-        opened={creditBuyOpened}
+        opened={canBuyCredits && creditBuyOpened}
         onClose={() => setCreditBuyOpened(false)}
         packageId={
           isCaseFree(caseData)

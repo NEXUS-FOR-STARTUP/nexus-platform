@@ -19,7 +19,7 @@ interface CreditPanelProps {
   orders?: Order[];
   packageName?: string;
   pricePerCredit?: number;
-  onBuyCredits: () => void;
+  onBuyCredits?: () => void;
 }
 
 export default function CreditPanel({
@@ -44,14 +44,16 @@ export default function CreditPanel({
               Mua gói đánh giá để phân tích tài liệu và nhận báo cáo chi tiết. Gói 79.000đ bao gồm 2 lượt đánh giá dự án.
             </p>
           </div>
-          <Button
-            onClick={onBuyCredits}
-            color="brand"
-            size="sm"
-            className="font-semibold shrink-0 cursor-pointer h-9 px-4 text-xs"
-          >
-            Mua lượt đánh giá
-          </Button>
+          {onBuyCredits && (
+            <Button
+              onClick={onBuyCredits}
+              color="brand"
+              size="sm"
+              className="font-semibold shrink-0 cursor-pointer h-9 px-4 text-xs"
+            >
+              Mua lượt đánh giá
+            </Button>
+          )}
         </div>
       </div>
     );
