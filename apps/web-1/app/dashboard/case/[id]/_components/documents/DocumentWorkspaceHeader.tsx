@@ -34,7 +34,7 @@ export default function DocumentWorkspaceHeader({
   onSelectCheckpoint,
 }: DocumentWorkspaceHeaderProps) {
   return (
-    <div className="px-4 py-3 border-b border-border-app flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-surface-app">
+    <div className="px-3 sm:px-4 py-2.5 sm:py-3 border-b border-border-app flex items-center justify-between gap-2 bg-surface-app">
       <div className="flex items-center gap-2 overflow-x-auto">
         <button
           type="button"
@@ -42,7 +42,7 @@ export default function DocumentWorkspaceHeader({
             setActiveTab("documents");
             setFilterRole("all");
           }}
-          className={`px-3.5 py-1.5 text-base font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+          className={`h-8 sm:h-9 px-2.5 sm:px-3.5 text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
             activeTab === "documents"
               ? "bg-brand text-white font-semibold"
               : "text-text-muted hover:text-text-app hover:bg-surface-soft"
@@ -67,12 +67,12 @@ export default function DocumentWorkspaceHeader({
               setActiveTab("assessment-reports");
               setFilterRole("all");
             }}
-            className={`px-3.5 py-1.5 text-base font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-              activeTab === "assessment-reports"
-                ? "bg-brand text-white font-semibold"
-                : "text-text-muted hover:text-text-app hover:bg-surface-soft"
-            }`}
-          >
+          className={`h-8 sm:h-9 px-2.5 sm:px-3.5 text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === "assessment-reports"
+              ? "bg-brand text-white font-semibold"
+              : "text-text-muted hover:text-text-app hover:bg-surface-soft"
+          }`}
+        >
             <span>Báo cáo phản biện</span>
             <span
               className={`text-[11px] font-semibold px-1.5 py-0.2 rounded-full leading-tight ${
@@ -113,14 +113,14 @@ export default function DocumentWorkspaceHeader({
         */}
       </div>
 
-      <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0">
+      <div className="flex items-center gap-2 shrink-0">
         {activeTab === "documents" && (
           <Select
             value={filterRole}
             onChange={(val) => setFilterRole((val as FilterRole) || "all")}
-            size="sm"
+            size="xs"
             radius="md"
-            w={175}
+            className="w-[125px] sm:w-[170px]"
             data={[
               { label: `Tất cả (${documentCount})`, value: "all" },
               { label: `Sinh viên (${studentDocCount})`, value: "student" },
@@ -133,9 +133,9 @@ export default function DocumentWorkspaceHeader({
           <Select
             value={selectedCheckpointId}
             onChange={(val) => val && onSelectCheckpoint(val)}
-            size="sm"
+            size="xs"
             radius="md"
-            w={150}
+            className="w-[110px] sm:w-[150px]"
             data={checkpoints.map((cp) => ({
               label: cp.checkpoint_code,
               value: cp.checkpoint_id,

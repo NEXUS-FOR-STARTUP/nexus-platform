@@ -133,7 +133,7 @@ export default function CaseStatusHeader({
   const slaLabel = caseData.deadline ? "Hạn mong muốn:" : "";
 
   return (
-    <div className="bg-surface-app border border-border-app rounded-lg p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+    <div className="bg-surface-app border border-border-app rounded-lg p-3.5 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-6">
       {/* Case Basic Info */}
       <div className="space-y-3">
         <div className="space-y-0.5">
