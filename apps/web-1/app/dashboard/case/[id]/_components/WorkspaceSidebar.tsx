@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Tooltip, UnstyledButton } from "@mantine/core";
-import { FileText, MessageCircle, History, Settings, CreditCard, Info, Award } from "lucide-react";
+import { FileText, MessageCircle, History, Settings, CreditCard, Info, Award, ChevronLeft, ChevronRight } from "lucide-react";
 import classes from "../../../../../components/layout/DoubleNavbar.module.css";
 
 export type WorkspaceTab = "overview" | "documents" | "report" | "discussion" | "timeline" | "settings" | "credits";
@@ -29,6 +29,7 @@ export default function WorkspaceSidebar({
   stage,
   isAiPackage = false,
 }: WorkspaceSidebarProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const isPreSubmission = stage === "intake_pending" || stage === "intake_ready";
   const isIntakePending = stage === "intake_pending";
 
@@ -93,42 +94,64 @@ export default function WorkspaceSidebar({
   ];
 
   return (
-    <nav className={`${classes.navbar} ${classes.singleWidth}`}>
-      <div className={classes.wrapper}>
-        <aside className={classes.aside}>
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
+    <div className="relative shrink-0 flex items-stretch">
+      <nav
+        className={`${classes.navbar} ${classes.singleWidth} transition-all duration-300 ease-in-out ${
+          isCollapsed ? "!w-0 !min-w-0 !flex-[0_0_0px] overflow-hidden opacity-0 pointer-events-none" : "opacity-100"
+        }`}
+      >
+        <div className={classes.wrapper}>
+          <aside className={classes.aside}>
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
 
-            return (
-              <Tooltip
-                key={tab.id}
-                label={tab.label}
-                position="right"
-                withArrow
-                disabled={typeof window !== "undefined" && window.innerWidth < 768}
-              >
-                <UnstyledButton
-                  onClick={() => onTabChange(tab.id)}
-                  className={classes.mainLink}
-                  data-active={isActive || undefined}
+              return (
+                <Tooltip
+                  key={tab.id}
+                  label={tab.label}
+                  position="right"
+                  withArrow
+                  disabled={typeof window !== "undefined" && window.innerWidth < 768}
                 >
-                  <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
-                  {tab.count !== undefined && tab.count > 0 && (
-                    <span
-                      className={`absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-xs font-semibold flex items-center justify-center border-2 ${
-                        isActive ? "bg-white text-brand border-brand" : "bg-brand text-white border-surface-app"
-                      }`}
-                    >
-                      {tab.count}
-                    </span>
-                  )}
-                </UnstyledButton>
-              </Tooltip>
-            );
-          })}
-        </aside>
-      </div>
-    </nav>
+                  <UnstyledButton
+                    onClick={() => onTabChange(tab.id)}
+                    className={`relative ${classes.mainLink}`}
+                    data-active={isActive || undefined}
+                  >
+                    <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
+                    {tab.count !== undefined && tab.count > 0 && (
+                      <span
+                        className={`absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-xs font-semibold flex items-center justify-center border-2 ${
+                          isActive ? "bg-white text-brand border-brand" : "bg-brand text-white border-surface-app"
+                        }`}
+                      >
+                        {tab.count}
+                      </span>
+                    )}
+                  </UnstyledButton>
+                </Tooltip>
+              );
+            })}
+          </aside>
+        </div>
+      </nav>
+
+      {/* Mấu gập chìm ở mép viền (Edge Tab Handle) */}
+      <button
+        type="button"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className={`absolute top-14 sm:top-16 z-30 flex items-center justify-center w-4.5 sm:w-5 h-9 bg-brand text-white border-y border-r border-white/20 rounded-r-md shadow-md cursor-pointer transition-all duration-300 ease-in-out hover:w-5.5 sm:hover:w-6 focus:outline-none ${
+          isCollapsed ? "left-0" : "left-[56px] md:left-[100px]"
+        }`}
+        title={isCollapsed ? "Mở rộng thanh điều hướng" : "Thu gọn thanh điều hướng"}
+      >
+        {isCollapsed ? (
+          <ChevronRight size={13} className="stroke-[2.5]" />
+        ) : (
+          <ChevronLeft size={13} className="stroke-[2.5]" />
+        )}
+      </button>
+    </div>
   );
 }
