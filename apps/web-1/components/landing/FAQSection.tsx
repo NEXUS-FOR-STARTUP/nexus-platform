@@ -37,7 +37,7 @@ const faqItems: Array<{ question: string; answer: ReactNode }> = [
 
 export default function FAQSection() {
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-bg-app transition-colors duration-200">
+    <section id="faq" className="py-20 px-4 sm:px-6 lg:px-8 bg-bg-app transition-colors duration-200">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12 space-y-4">
           <h2 className="font-heading text-3xl font-semibold text-text-app">Câu hỏi thường gặp (FAQ)</h2>

@@ -63,7 +63,7 @@ export default function ContactUs() {
   ];
 
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-surface-soft/10 transition-colors duration-200">
+    <section id="lien-he" className="py-20 px-4 sm:px-6 lg:px-8 bg-surface-soft/10 transition-colors duration-200">
       <Container size="md" className="space-y-10">
         <div className="text-center max-w-2xl mx-auto space-y-4">
           <Title order={2} className="font-heading text-3xl font-bold text-text-app">

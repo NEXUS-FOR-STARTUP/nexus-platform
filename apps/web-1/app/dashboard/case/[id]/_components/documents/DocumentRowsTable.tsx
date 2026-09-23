@@ -48,14 +48,13 @@ function DocumentMobileCard({
 }) {
   const isSupporter =
     row.uploaderRole === "supporter" || row.uploaderRole === "admin";
-  const isStudent = row.uploaderRole === "student";
   const isReport = activeTab === "assessment-reports";
   const { date, time } = formatDate(row.createdAt);
 
   return (
     <div className="p-3.5 rounded-xl border border-border-app bg-surface-app flex flex-col gap-2.5">
-      <div className="flex items-center justify-between gap-1.5 flex-wrap">
-        <div className="flex items-center gap-1.5 flex-wrap">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
           <Badge variant="outline" color="gray" size="sm" radius="md">
             {row.versionLabel}
           </Badge>
@@ -77,31 +76,13 @@ function DocumentMobileCard({
           >
             {row.contextLabel}
           </Badge>
-          {(activeTab === "documents" || isReport) && (
-            <Badge
-              variant="light"
-              color={
-                isReport
-                  ? "violet"
-                  : isSupporter
-                    ? "violet"
-                    : isStudent
-                      ? "teal"
-                      : "gray"
-              }
-              size="sm"
-              radius="xl"
-            >
-              {row.uploaderLabel}
-            </Badge>
-          )}
         </div>
         <Badge
           variant="light"
           color={getFormatColor(row.formatLabel)}
           size="xs"
           radius="md"
-          className="uppercase font-mono"
+          className="uppercase font-mono shrink-0"
         >
           {row.formatLabel}
         </Badge>
@@ -124,10 +105,16 @@ function DocumentMobileCard({
         )}
       </div>
 
-      <div className="flex items-center justify-between text-xs text-text-muted pt-1 border-t border-border-app/60">
-        <span>
-          {date} {time}
-        </span>
+      <div className="flex items-center justify-between text-xs text-text-muted pt-1 border-t border-border-app/60 gap-2">
+        <div className="flex items-center gap-1.5 min-w-0 text-[11px] sm:text-xs">
+          <span className="shrink-0">{date} {time}</span>
+          {(activeTab === "documents" || isReport) && row.uploaderLabel && (
+            <>
+              <span className="opacity-40">•</span>
+              <span className="truncate font-medium text-text-subtle">{row.uploaderLabel}</span>
+            </>
+          )}
+        </div>
         {row.hasAction && row.url && (
           <Button
             component="a"

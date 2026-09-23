@@ -33,7 +33,7 @@ const featuresData = [
 
 export default function FeaturesGrid() {
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-surface-soft/20 transition-colors duration-200">
+    <section id="quy-trinh" className="py-20 px-4 sm:px-6 lg:px-8 bg-surface-soft/20 transition-colors duration-200">
       <Container size="lg" className="space-y-12">
         <div className="text-center max-w-2xl mx-auto space-y-4">
           <Title order={2} className="font-heading text-3xl font-bold text-text-app">

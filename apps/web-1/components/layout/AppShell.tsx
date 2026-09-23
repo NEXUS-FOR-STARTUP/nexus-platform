@@ -101,7 +101,12 @@ export default function AppShell({ children }: AppShellProps) {
             {/* Mobile Burger and Theme Toggle */}
             <Group hiddenFrom="md" gap={8}>
               <ThemeToggler />
-              <Burger opened={drawerOpened} onClick={toggleDrawer} size="sm" />
+              <Burger
+                opened={drawerOpened}
+                onClick={toggleDrawer}
+                size="sm"
+                aria-label="Mở menu điều hướng"
+              />
             </Group>
           </div>
         </div>
@@ -126,9 +131,40 @@ export default function AppShell({ children }: AppShellProps) {
         zIndex={1000}
       >
         <ScrollArea h="calc(100vh - 80px)" mx="-md">
-          <Divider my="sm" />
+          <Divider my="xs" />
 
-          <div className="flex flex-col gap-3 px-4 pt-2 font-body">
+          <nav aria-label="Menu di động" className="flex flex-col gap-1 px-4 pt-2 font-body">
+            <Link
+              href="/#quy-trinh"
+              onClick={closeDrawer}
+              className="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-lg text-sm font-medium text-text-app hover:bg-surface-soft active:bg-surface-soft transition-colors"
+            >
+              Quy trình đánh giá
+            </Link>
+            <Link
+              href="/#pricing"
+              onClick={closeDrawer}
+              className="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-lg text-sm font-medium text-text-app hover:bg-surface-soft active:bg-surface-soft transition-colors"
+            >
+              Bảng giá dịch vụ
+            </Link>
+            <Link
+              href="/#faq"
+              onClick={closeDrawer}
+              className="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-lg text-sm font-medium text-text-app hover:bg-surface-soft active:bg-surface-soft transition-colors"
+            >
+              Câu hỏi thường gặp
+            </Link>
+            <Link
+              href="/#lien-he"
+              onClick={closeDrawer}
+              className="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-lg text-sm font-medium text-text-app hover:bg-surface-soft active:bg-surface-soft transition-colors"
+            >
+              Hỗ trợ & Liên hệ
+            </Link>
+
+            <Divider my="sm" />
+
             <Button
               component={Link}
               href="/auth"
@@ -137,11 +173,11 @@ export default function AppShell({ children }: AppShellProps) {
               fullWidth
               size="md"
               onClick={closeDrawer}
-              className="font-semibold"
+              className="font-semibold text-xs h-11"
             >
               Đăng nhập
             </Button>
-          </div>
+          </nav>
         </ScrollArea>
       </Drawer>
 
