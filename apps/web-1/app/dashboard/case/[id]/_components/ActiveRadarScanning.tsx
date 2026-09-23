@@ -107,7 +107,7 @@ export default function ActiveRadarScanning({
 
       <div className="space-y-2 pt-1">
         <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
-          <p className="font-semibold text-text-app truncate text-sm">
+          <p className="font-semibold text-text-app sm:truncate text-xs sm:text-sm">
             {statusText}
           </p>
           <div className="flex items-center gap-2 shrink-0">

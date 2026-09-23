@@ -44,11 +44,11 @@ export default function RadarHeader({
   return (
     <>
       <div className="space-y-2.5 pb-3 border-b border-border-app">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-2.5">
           {/* Left: Badge + Project Name */}
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${badge.cls}`}
+              className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-xs font-semibold border shrink-0 ${badge.cls}`}
             >
               {badge.dot && (
                 <span className="relative flex h-2 w-2 shrink-0">
@@ -58,13 +58,13 @@ export default function RadarHeader({
               )}
               {badge.label}
             </span>
-            <h3 className="text-base sm:text-lg font-bold text-text-app truncate">
+            <h3 className="text-sm sm:text-lg font-bold text-text-app truncate">
               {projectName || "Dự án đánh giá"}
             </h3>
           </div>
 
           {/* Right: Distinct Timer & Action Button */}
-          <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          <div className="flex items-center gap-2.5 shrink-0">
             <div
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border-app bg-surface-soft text-xs font-mono font-medium text-text-muted"
               title="Thời gian thực hiện"
@@ -101,15 +101,15 @@ export default function RadarHeader({
         </div>
 
         {/* Job ID row */}
-        <div className="flex items-center gap-2 text-xs">
-          <span className="text-text-subtle font-medium">Job ID:</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 text-xs min-w-0 max-w-full">
+          <span className="text-text-subtle font-medium shrink-0 whitespace-nowrap">Job ID:</span>
           <button
             type="button"
             onClick={handleCopyJobId}
-            className="inline-flex items-center gap-1.5 font-mono text-[11px] px-2 py-0.5 rounded bg-surface-soft border border-border-app hover:border-brand/40 text-text-app hover:text-brand transition-colors cursor-pointer group"
+            className="inline-flex items-center gap-1.5 font-mono text-[11px] px-2 py-0.5 rounded bg-surface-soft border border-border-app hover:border-brand/40 text-text-app hover:text-brand transition-colors cursor-pointer group min-w-0 max-w-full shrink"
             title="Nhấn để sao chép Job ID"
           >
-            <span className="truncate max-w-[220px] sm:max-w-md">{jobId}</span>
+            <span className="truncate min-w-0">{jobId}</span>
             {isCopied ? (
               <Check className="w-3 h-3 text-emerald-500 shrink-0" />
             ) : (
@@ -117,7 +117,7 @@ export default function RadarHeader({
             )}
           </button>
           {isCopied && (
-            <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+            <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 shrink-0 whitespace-nowrap">
               Đã chép
             </span>
           )}

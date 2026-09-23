@@ -85,7 +85,7 @@ export default function RadarStagePipeline({
                     {stage.num}
                   </span>
                   <h4
-                    className={`text-xs sm:text-sm font-semibold truncate ${
+                    className={`text-xs sm:text-sm font-semibold sm:truncate ${
                       isActive
                         ? "text-brand"
                         : isDone
@@ -119,7 +119,7 @@ export default function RadarStagePipeline({
                 </div>
               </div>
 
-              <p className="mt-1 text-xs text-text-muted line-clamp-1">
+              <p className="mt-1 text-xs text-text-muted line-clamp-2 sm:line-clamp-1 leading-relaxed">
                 {stage.desc}
               </p>
             </div>
