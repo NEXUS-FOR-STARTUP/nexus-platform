@@ -30,7 +30,7 @@ export default function Logo({ className, height = 52 }: LogoProps) {
       style={isHeaderSize ? undefined : { height }}
       className={
         isHeaderSize
-          ? `h-[52px] md:h-[62px] w-auto object-contain ${className ?? ""}`.trim()
+          ? `h-[46px] md:h-[62px] w-auto object-contain ${className ?? ""}`.trim()
           : `w-auto object-contain ${className ?? ""}`.trim()
       }
     />

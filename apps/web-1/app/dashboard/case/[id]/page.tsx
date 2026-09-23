@@ -146,7 +146,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   };
 
   return (
-    <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden animate-fade-in">
+    <div className="flex h-[calc(100dvh-64px)] max-h-[calc(100dvh-64px)] sm:h-[calc(100vh-64px)] sm:max-h-[calc(100vh-64px)] w-full overflow-hidden animate-fade-in">
       <WorkspaceSidebar
         activeTab={activeTab}
         onTabChange={handleTabChange}
@@ -156,7 +156,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         isAiPackage={isAiPackage}
       />
 
-      <div className={`flex-grow flex flex-col h-full min-w-0 p-6 ${activeTab === "discussion" ? "overflow-hidden" : "space-y-6 overflow-y-auto"}`}>
+      <div className={`flex-grow flex flex-col h-full min-w-0 p-3.5 sm:p-6 ${activeTab === "discussion" ? "overflow-hidden" : "space-y-4 sm:space-y-6 overflow-y-auto"}`}>
         {activeTab !== "discussion" && (
           <>
             <CaseStatusHeader
@@ -193,7 +193,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           </>
         )}
 
-        <div className={`w-full flex flex-col ${activeTab === "discussion" ? "flex-1 min-h-0 h-full" : "pb-8"}`}>
+        <div className={`w-full flex flex-col ${activeTab === "discussion" ? "flex-1 min-h-0 h-full" : "pb-16 sm:pb-8"}`}>
           {activeTab === "overview" && (
             <div className="space-y-6">
               {stage === "under_review" && caseData?.package_id === "pkg_ai_audit" && (
@@ -214,27 +214,30 @@ export default function CaseWorkspacePage({ params }: PageProps) {
 
           {activeTab === "documents" && (
             <>
-              <div className="mb-4 flex justify-end gap-3">
+              <div className="mb-4 flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
                 {canEditIntake && (
                   <Button
                     size="sm"
+                    variant="outline"
                     color="brand"
-                    className="font-semibold cursor-pointer h-8.5 text-xs"
+                    className="w-full sm:w-auto font-semibold cursor-pointer h-9 sm:h-8.5 text-xs sm:bg-brand sm:text-white sm:border-transparent sm:hover:bg-brand-hover"
                     onClick={() => router.push(`/dashboard/intake?caseId=${id}`)}
                   >
                     Cập nhật thông tin
                   </Button>
                 )}
+                {/* Ẩn nút tải tài liệu theo yêu cầu
                 {canSubmitRevision && (
                   <Button
                     size="sm"
                     color="brand"
-                    className="font-semibold cursor-pointer h-8.5 text-xs"
+                    className="w-full sm:w-auto font-semibold cursor-pointer h-9 sm:h-8.5 text-xs"
                     onClick={() => setIsStudentUploadOpen(true)}
                   >
                     Tải tài liệu
                   </Button>
                 )}
+                */}
                 {/* Ẩn nút tải đánh giá bên ngoài theo yêu cầu
                 <Button
                   size="sm"

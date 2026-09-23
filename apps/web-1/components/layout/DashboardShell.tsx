@@ -37,7 +37,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-bg-app transition-colors duration-200">
+    <div className="flex flex-col min-h-screen min-h-dvh bg-bg-app transition-colors duration-200">
       {/* Top Navbar */}
       <nav className="border-b border-border-app bg-surface-app sticky top-0 z-40 h-16 flex items-center gap-4 px-4 sm:px-6 lg:px-8 shadow-sm">
         <div className="flex items-center gap-4 min-w-0">
@@ -54,7 +54,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-grow flex flex-col">{children}</main>
+      <main className="flex-grow flex flex-col min-h-0">{children}</main>
     </div>
   );
 }
