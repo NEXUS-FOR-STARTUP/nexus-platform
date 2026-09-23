@@ -9,6 +9,7 @@ import {
   SortField,
   SortState,
   transformToUnifiedItems,
+  UnifiedTransactionItem,
 } from "./credit-history.types";
 
 const QUICK_FILTER_TABS: Array<{ id: TypeFilter; label: string }> = [
@@ -18,6 +19,64 @@ const QUICK_FILTER_TABS: Array<{ id: TypeFilter; label: string }> = [
   { id: "refund", label: "Hoàn credit" },
   { id: "order", label: "Đơn mua" },
 ];
+
+function CreditMobileCard({ item }: { item: UnifiedTransactionItem }) {
+  return (
+    <div className="p-3.5 space-y-2 bg-surface-app">
+      {/* Top: Badge + Amount */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Badge
+            variant="light"
+            color={item.badgeColor}
+            size="sm"
+            radius="md"
+            className="font-medium text-xs whitespace-nowrap"
+          >
+            {item.typeLabel}
+          </Badge>
+          {item.statusLabel !== "Thành công" && (
+            <Badge
+              variant="outline"
+              color={item.statusColor}
+              size="xs"
+              radius="sm"
+            >
+              {item.statusLabel}
+            </Badge>
+          )}
+        </div>
+        <span
+          className={`text-sm font-semibold tabular-nums ${item.amountDisplay.colorClass}`}
+        >
+          {item.amountDisplay.text}
+        </span>
+      </div>
+
+      {/* Middle: Description */}
+      <div>
+        <p className="text-sm font-medium text-text-app line-clamp-2">
+          {item.description}
+        </p>
+        {item.subDescription && (
+          <p className="text-[11px] text-text-muted font-mono mt-0.5 truncate" title={item.subDescription}>
+            {item.subDescription}
+          </p>
+        )}
+      </div>
+
+      {/* Bottom: Date & Time + Balance after */}
+      <div className="flex items-center justify-between text-xs text-text-muted pt-1 border-t border-border-app/40">
+        <span>
+          {item.date} {item.time}
+        </span>
+        <span>
+          Số dư: <span className="text-text-app font-medium">{item.balanceAfterDisplay}</span>
+        </span>
+      </div>
+    </div>
+  );
+}
 
 export default function CreditTransactionHistory({
   entries,
@@ -119,9 +178,9 @@ export default function CreditTransactionHistory({
   return (
     <div className="bg-surface-app border border-border-app rounded-xl overflow-hidden">
       {/* Modern Filter Toolbar */}
-      <div className="px-4 py-3.5 border-b border-border-app flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-surface-app">
+      <div className="px-3.5 sm:px-4 py-3 border-b border-border-app flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3 bg-surface-app">
         {/* Quick Filter Pill Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
           {QUICK_FILTER_TABS.map((tab) => {
             const isActive = typeFilter === tab.id;
             const count = tabCounts[tab.id];
@@ -133,7 +192,7 @@ export default function CreditTransactionHistory({
                 key={tab.id}
                 type="button"
                 onClick={() => setTypeFilter(tab.id)}
-                className={`px-3.5 py-1.5 text-base font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 text-xs sm:text-base font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
                   isActive
                     ? "bg-brand text-white font-semibold"
                     : "text-text-muted hover:text-text-app hover:bg-surface-soft"
@@ -155,13 +214,13 @@ export default function CreditTransactionHistory({
         </div>
 
         {/* Date Filter Dropdown */}
-        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+        <div className="w-full sm:w-auto shrink-0">
           <Select
             value={dateFilter}
             onChange={(val) => setDateFilter((val as DateFilter) || "all")}
-            size="sm"
+            size="xs"
             radius="md"
-            w={180}
+            className="w-full sm:w-[180px]"
             data={[
               { label: "Tất cả thời gian", value: "all" },
               { label: "Hôm nay", value: "today" },
@@ -180,7 +239,17 @@ export default function CreditTransactionHistory({
           </p>
         </div>
       ) : (
-        <Table.ScrollContainer minWidth={740}>
+        <>
+          {/* Mobile Card View */}
+          <div className="md:hidden divide-y divide-border-app/60">
+            {filteredAndSortedItems.map((item) => (
+              <CreditMobileCard key={item.id} item={item} />
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block">
+            <Table.ScrollContainer minWidth={740}>
           <Table
             highlightOnHover
             verticalSpacing="sm"
@@ -320,7 +389,9 @@ export default function CreditTransactionHistory({
               ))}
             </Table.Tbody>
           </Table>
-        </Table.ScrollContainer>
+            </Table.ScrollContainer>
+          </div>
+        </>
       )}
     </div>
   );

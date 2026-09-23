@@ -80,7 +80,7 @@ export default function CreditBalanceCard({
             onClick={onBuyCredits}
             color="brand"
             size="md"
-            className="font-semibold cursor-pointer h-10 px-5 text-base w-full md:w-auto"
+            className="font-semibold cursor-pointer h-10 px-5 text-base !w-full md:!w-auto"
           >
             {hasCredits ? "Mua thêm lượt đánh giá" : "Mua lượt đánh giá"}
           </Button>
