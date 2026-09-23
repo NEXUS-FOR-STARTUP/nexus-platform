@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { Download, ExternalLink, FileText, ChevronDown, ChevronUp } from "lucide-react";
-import { Button, Group, Stack, Tooltip, LoadingOverlay } from "@mantine/core";
+import { Button, Stack, Tooltip, LoadingOverlay } from "@mantine/core";
 import { useDownloadReportPdf } from "../hooks/useDownloadReportPdf";
 import type { RoundHistoryEntry } from "@/types/case";
 import RoundCard from "./RoundCard";
@@ -37,6 +37,23 @@ export default function TabReportFindings({ report, caseId, roundHistory }: TabR
     }
     return null;
   }, [report]);
+  const projectName = parsedReport?.projectName || "Dự án khởi nghiệp";
+  const reportFilename = getReportPdfFilename(projectName, report?.created_at);
+  const pdfViewUrl = caseId ? `/api/cases/${caseId}/report/${reportFilename}?view=inline` : "";
+
+  const { mutate: downloadPdf, isPending: isDownloadingPdf } = useDownloadReportPdf(caseId || "");
+
+  useEffect(() => {
+    if (pdfViewUrl) {
+      setPdfLoading(true);
+    }
+  }, [pdfViewUrl]);
+
+  const handleDownloadPdf = () => {
+    if (!caseId) return;
+    setPdfLoading(true);
+    downloadPdf(reportFilename);
+  };
 
   // If no report at all, show empty state
   if (!report && (!roundHistory || roundHistory.length === 0)) {
@@ -79,71 +96,83 @@ export default function TabReportFindings({ report, caseId, roundHistory }: TabR
     );
   }
 
-  // Fallback: has report but no round history — show legacy single-report view with expand/collapse
-  const projectName = parsedReport?.projectName || "Dự án khởi nghiệp";
-  const reportFilename = getReportPdfFilename(projectName, report?.created_at);
-  const pdfViewUrl = caseId ? `/api/cases/${caseId}/report/${reportFilename}?view=inline` : "";
-
-  useEffect(() => {
-    if (pdfViewUrl) {
-      setPdfLoading(true);
-    }
-  }, [pdfViewUrl]);
-
-  const { mutate: downloadPdf, isPending: isDownloadingPdf } = useDownloadReportPdf(caseId || "");
-
-  const handleDownloadPdf = () => {
-    if (!caseId) return;
-    setPdfLoading(true);
-    downloadPdf(reportFilename);
-  };
 
   return (
     <Stack gap="md" className="animate-fade-in font-body pb-8">
       {caseId && (
-        <Group gap="xs" justify="flex-end">
-          {isSingleExpanded && (
-            <>
-              <Tooltip label="Mở file PDF trong tab mới để in ấn hoặc đọc toàn màn hình">
-                <Button
-                  component="a"
-                  href={pdfViewUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="default"
-                  size="sm"
-                  leftSection={<ExternalLink size={15} />}
-                  className="font-medium"
-                >
-                  Mở xem toàn màn hình
-                </Button>
-              </Tooltip>
+        <div className="flex flex-col gap-2 w-full">
+          <div className="flex items-center justify-end gap-2 w-full">
+            {isSingleExpanded && (
+              <div className="hidden sm:flex items-center gap-2">
+                <Tooltip label="Mở file PDF trong tab mới để in ấn hoặc đọc toàn màn hình">
+                  <Button
+                    component="a"
+                    href={pdfViewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="default"
+                    size="sm"
+                    leftSection={<ExternalLink size={15} />}
+                    className="font-medium"
+                  >
+                    Mở xem toàn màn hình
+                  </Button>
+                </Tooltip>
 
+                <Button
+                  leftSection={<Download size={15} />}
+                  color="brand"
+                  size="sm"
+                  loading={isDownloadingPdf}
+                  onClick={handleDownloadPdf}
+                  className="font-semibold cursor-pointer"
+                >
+                  Tải báo cáo (PDF)
+                </Button>
+              </div>
+            )}
+
+            {/* Prominent Expand / Collapse toggle button at the far right */}
+            <Button
+              variant={isSingleExpanded ? "default" : "light"}
+              color={isSingleExpanded ? "gray" : "brand"}
+              size="sm"
+              onClick={() => setIsSingleExpanded(!isSingleExpanded)}
+              rightSection={isSingleExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              className="h-8 sm:h-9 font-bold text-xs sm:text-sm cursor-pointer border border-border-app px-3 sm:px-4 shadow-sm"
+            >
+              {isSingleExpanded ? "Thu gọn" : "Xem báo cáo"}
+            </Button>
+          </div>
+
+          {/* Mobile Action Bar (Only on mobile when expanded) */}
+          {isSingleExpanded && (
+            <div className="sm:hidden flex items-center gap-2 w-full">
               <Button
-                leftSection={<Download size={15} />}
+                component="a"
+                href={pdfViewUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="default"
+                size="xs"
+                leftSection={<ExternalLink size={14} />}
+                className="flex-1 font-medium h-9 text-xs"
+              >
+                Toàn màn hình
+              </Button>
+              <Button
+                leftSection={<Download size={14} />}
                 color="brand"
-                size="sm"
+                size="xs"
                 loading={isDownloadingPdf}
                 onClick={handleDownloadPdf}
-                className="font-semibold cursor-pointer"
+                className="flex-1 font-semibold cursor-pointer h-9 text-xs"
               >
-                Tải báo cáo (PDF)
+                Tải PDF
               </Button>
-            </>
+            </div>
           )}
-
-          {/* Prominent Expand / Collapse toggle button at the far right */}
-          <Button
-            variant={isSingleExpanded ? "default" : "light"}
-            color={isSingleExpanded ? "gray" : "brand"}
-            size="md"
-            onClick={() => setIsSingleExpanded(!isSingleExpanded)}
-            rightSection={isSingleExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-            className="font-bold text-sm cursor-pointer border border-border-app px-4 shadow-sm"
-          >
-            {isSingleExpanded ? "Thu gọn" : "Xem báo cáo"}
-          </Button>
-        </Group>
+        </div>
       )}
 
       {caseId && isSingleExpanded && (

@@ -76,23 +76,23 @@ export default function RoundCard({ round, caseId, defaultExpanded = false }: Ro
       {/* Header bar */}
       <div
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between gap-3 px-5 py-3.5 text-left hover:bg-surface-soft/50 transition-colors cursor-pointer select-none"
+        className="w-full flex items-center justify-between gap-2.5 sm:gap-3 px-3.5 sm:px-5 py-3 sm:py-3.5 text-left hover:bg-surface-soft/50 transition-colors cursor-pointer select-none"
       >
-        <div className="flex items-center gap-3 min-w-0 flex-wrap">
-          <Badge variant="light" color={typeColor} size="md" radius="sm">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-wrap">
+          <Badge variant="light" color={typeColor} size="md" radius="sm" className="h-5 sm:h-6 text-[10px] sm:text-xs">
             {typeLabel}
           </Badge>
-          <span className="text-base font-bold text-text-app tracking-tight">
+          <span className="text-sm sm:text-base font-bold text-text-app tracking-tight">
             Phiên bản {displayVersion}
           </span>
-          <span className="text-xs text-text-muted">
+          <span className="text-[11px] sm:text-xs text-text-muted">
             {formatDateShort(round.submitted_at)}
           </span>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0" onClick={(e) => e.stopPropagation()}>
           {isExpanded && (
-            <>
+            <div className="hidden sm:flex items-center gap-2.5">
               <Button
                 component="a"
                 href={pdfViewUrl}
@@ -115,7 +115,7 @@ export default function RoundCard({ round, caseId, defaultExpanded = false }: Ro
               >
                 Tải báo cáo (PDF)
               </Button>
-            </>
+            </div>
           )}
 
           {/* Prominent Expand / Collapse toggle button at the far right */}
@@ -124,14 +124,44 @@ export default function RoundCard({ round, caseId, defaultExpanded = false }: Ro
             color={isExpanded ? "gray" : "brand"}
             size="md"
             onClick={() => setIsExpanded(!isExpanded)}
-            rightSection={isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-            className="font-bold text-sm cursor-pointer border border-border-app px-4 shadow-sm"
+            rightSection={isExpanded ? <ChevronUp className="w-4 h-4 sm:w-4.5 sm:h-4.5" /> : <ChevronDown className="w-4 h-4 sm:w-4.5 sm:h-4.5" />}
+            className="h-8 sm:h-10 font-bold text-xs sm:text-sm cursor-pointer border border-border-app px-2.5 sm:px-4 shadow-sm"
           >
             {isExpanded ? "Thu gọn" : "Xem báo cáo"}
           </Button>
         </div>
       </div>
 
+      {/* Mobile Action Bar (Only on mobile when expanded) */}
+      {isExpanded && (
+        <div
+          className="sm:hidden px-3.5 py-2.5 bg-surface-soft/60 border-t border-border-app flex items-center gap-2"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Button
+            component="a"
+            href={pdfViewUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="default"
+            size="xs"
+            leftSection={<ExternalLink size={14} />}
+            className="flex-1 font-medium h-9 text-xs"
+          >
+            Toàn màn hình
+          </Button>
+          <Button
+            leftSection={<Download size={14} />}
+            color="brand"
+            size="xs"
+            loading={isDownloadingPdf}
+            onClick={handleDownload}
+            className="flex-1 font-semibold cursor-pointer h-9 text-xs"
+          >
+            Tải PDF
+          </Button>
+        </div>
+      )}
       {/* Collapsible PDF Viewer Content */}
       {isExpanded && (
         <div className="border-t border-border-app">
