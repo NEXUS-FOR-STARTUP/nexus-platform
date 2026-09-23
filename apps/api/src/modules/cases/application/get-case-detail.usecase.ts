@@ -100,14 +100,34 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
   // Authz delegated to controller via requireCaseAccess.
   // This usecase assumes caller has already verified access.
 
-  const intakeUnit = await findFirstIntakeUnit(caseId);
+  // Fetch all related data in parallel (1 round-trip instead of 8+ sequential awaits)
+  const [
+    intakeUnit,
+    latest_report,
+    latest_user_action,
+    lifecycleUnits,
+    reports,
+    open_requests_for_more_info,
+    documentRecords,
+    docTypes,
+    credit_balance,
+    credit_ledger,
+    latestAiJob,
+  ] = await Promise.all([
+    findFirstIntakeUnit(caseId),
+    findLatestApprovedReport(caseId),
+    findFirstUserEvent(caseId),
+    findLifecycleUnits(caseId),
+    findApprovedReports(caseId),
+    findOpenRequestsForMoreInfo(caseId),
+    findDocumentRecordsByCaseId(caseId),
+    prisma.documentType.findMany({ where: { is_active: true } }),
+    getCreditBalance(caseId),
+    getCreditLedgerByCaseId(caseId),
+    findLatestAiJobByCase(caseId),
+  ]);
+
   const intake_snapshot = normalizeIntakeSnapshot(intakeUnit?.content || null);
-
-  const latest_report = await findLatestApprovedReport(caseId);
-  const latest_user_action = await findFirstUserEvent(caseId);
-
-  const lifecycleUnits = await findLifecycleUnits(caseId);
-  const reports = await findApprovedReports(caseId);
 
   const team_submissions = lifecycleUnits.filter((u: any) => u.unit_type === "version" && u.unit_code === "v00");
   const team_revisions = lifecycleUnits.filter((u: any) => u.unit_type === "version" && u.unit_code !== "v00");
@@ -137,12 +157,6 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
     };
   });
 
-  const open_requests_for_more_info = await findOpenRequestsForMoreInfo(caseId);
-
-  const [documentRecords, docTypes] = await Promise.all([
-    findDocumentRecordsByCaseId(caseId),
-    prisma.documentType.findMany({ where: { is_active: true } }),
-  ]);
   const document_workspace = assembleDocumentWorkspace({
     id: caseDetails.id,
     current_checkpoint: caseDetails.current_checkpoint,
@@ -158,18 +172,12 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
     : baseCase;
 
   // ── Derived fields ────────────────────────────────────────────────────────
-  const [credit_balance, credit_ledger] = await Promise.all([
-    getCreditBalance(caseId),
-    getCreditLedgerByCaseId(caseId),
-  ]);
-  const latestAiJob = await findLatestAiJobByCase(caseId);
   const allowed_transitions = getAvailableTransitions(caseDetails.internal_status);
 
   (caseResponse as Record<string, unknown>).credit_balance = credit_balance;
   (caseResponse as Record<string, unknown>).credit_ledger = credit_ledger;
   (caseResponse as Record<string, unknown>).allowed_transitions = allowed_transitions;
   (caseResponse as Record<string, unknown>).latest_ai_job_status = latestAiJob?.status ?? null;
-
   return {
     case: caseResponse,
     intake_snapshot,

@@ -20,10 +20,10 @@ export async function getCaseAiAuditStatus(caseId: string) {
   const latestJob = await findLatestAiJobByCase(caseId);
   const targetJobId = latestJob?.id;
 
-  let milestones = getJobMilestones(caseId, targetJobId);
+  let milestones = await getJobMilestones(caseId, targetJobId);
   // Fallback to targetJobId directly if checked by jobId alone, or fallback to caseId
   if (!milestones.reportJson && targetJobId) {
-    const fallbackByJob = getJobMilestones(targetJobId);
+    const fallbackByJob = await getJobMilestones(targetJobId);
     if (fallbackByJob.reportJson || fallbackByJob.triadPacket || fallbackByJob.auditReport) {
       milestones = fallbackByJob;
     }
@@ -34,10 +34,12 @@ export async function getCaseAiAuditStatus(caseId: string) {
     await finalizeOmpAuditResult(caseId, targetJobId).catch(() => {});
   }
 
-  const queueStatus = await getOmpJobStatus(caseId, targetJobId);
+  const [queueStatus, targetLogs, caseLogs] = await Promise.all([
+    getOmpJobStatus(caseId, targetJobId, milestones),
+    targetJobId ? jobStore.getLogs(targetJobId) : Promise.resolve([]),
+    jobStore.getLogs(caseId),
+  ]);
   const storedJob = (targetJobId ? jobStore.get(targetJobId) : null) || jobStore.get(caseId);
-  const targetLogs = targetJobId ? await jobStore.getLogs(targetJobId) : [];
-  const caseLogs = await jobStore.getLogs(caseId);
   const logs = targetLogs.length > 0 ? targetLogs : caseLogs;
 
   const aiJobInput =
