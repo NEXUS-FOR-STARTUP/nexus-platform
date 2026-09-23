@@ -1,6 +1,29 @@
 import { prisma } from "../../../db.js";
 import { Prisma } from "@prisma/client";
+import { redisPublisher } from "../../ai-engine/infrastructure/queue/omp-queue.js";
+import logger from "../../../shared/infrastructure/logger.js";
 import type { AdminStatsResponse, RevenueTrendPoint, CaseTrendPoint } from "./admin-stats.dto.js";
+
+const ADMIN_STATS_CACHE_TTL_SECONDS = Number(process.env.ADMIN_STATS_CACHE_TTL_SECONDS || 30);
+const CACHE_KEY_PREFIX = "admin:stats:";
+const inFlightStats = new Map<string, Promise<AdminStatsResponse>>();
+const REDIS_OP_TIMEOUT_MS = 500;
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs = REDIS_OP_TIMEOUT_MS): Promise<T> {
+  let timer: NodeJS.Timeout;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error("REDIS_TIMEOUT")), timeoutMs);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timer));
+}
+const VALID_PERIODS = new Set(["7d", "30d", "month", "semester", "quarter", "year"]);
+
+function normalizePeriod(raw?: string): string {
+  if (raw && VALID_PERIODS.has(raw.trim().toLowerCase())) {
+    return raw.trim().toLowerCase();
+  }
+  return "30d";
+}
 
 interface Bucket {
   label: string;
@@ -144,6 +167,43 @@ function generateBuckets(period: string): Bucket[] {
 }
 
 export async function getAdminStatsUseCase(period: string = "30d"): Promise<AdminStatsResponse> {
+  const normalizedPeriod = normalizePeriod(period);
+  const cacheKey = `${CACHE_KEY_PREFIX}${normalizedPeriod}`;
+  if (process.env.NODE_ENV !== "test") {
+    try {
+      const cached = await withTimeout(redisPublisher.get(cacheKey));
+      if (cached) {
+        return JSON.parse(cached) as AdminStatsResponse;
+      }
+    } catch (err) {
+      logger.warn({ cacheKey, err }, "Redis get admin stats cache warning, falling back to DB");
+    }
+  }
+
+  const existing = inFlightStats.get(cacheKey);
+  if (existing) {
+    return existing;
+  }
+
+  const queryPromise = computeAdminStats(normalizedPeriod);
+  inFlightStats.set(cacheKey, queryPromise);
+
+  try {
+    const stats = await queryPromise;
+    if (process.env.NODE_ENV !== "test") {
+      try {
+        await withTimeout(redisPublisher.set(cacheKey, JSON.stringify(stats), "EX", ADMIN_STATS_CACHE_TTL_SECONDS));
+      } catch (setErr) {
+        logger.warn({ cacheKey, setErr }, "Redis set admin stats cache warning");
+      }
+    }
+    return stats;
+  } finally {
+    inFlightStats.delete(cacheKey);
+  }
+}
+
+async function computeAdminStats(period: string): Promise<AdminStatsResponse> {
   const buckets = generateBuckets(period);
   const now = new Date();
 

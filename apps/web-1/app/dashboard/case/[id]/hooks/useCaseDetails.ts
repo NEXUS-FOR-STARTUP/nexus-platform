@@ -35,7 +35,7 @@ export function useCaseDetails(id: string) {
     enabled: !!id,
     refetchInterval: (query) => {
       const stage = (query.state.data?.case as Case | undefined)?.user_facing_stage;
-      return stage === "under_review" ? 2500 : 10000;
+      return stage === "under_review" ? 8000 : 15000;
     },
   });
 
