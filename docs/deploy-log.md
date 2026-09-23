@@ -58,3 +58,4 @@ Sau khi xác minh, ghi 1 dòng theo format trên (ví dụ: `2026-08-03 HH:MM | 
 | 2026-09-23 02:52 | 6217735 | staging | Merge branch 'dev' into staging | 🔵 api 🟢 web |
 | 2026-09-23 20:19 | 12cb953 | staging | feat(web): add ExcelGuide Nhom 155 demo presets for team-fit and intake | 🟢 web |
 | 2026-09-23 21:50 | 8813057 | staging | perf: A1-A5 optimization, Redis stats cache, bounded docs, non-blocking finalize, relax polls, B1 indexes | 🔵 api 🟢 web |
+| 2026-09-23 22:50 | 7c71852 | staging | fix(credit): compute price per credit on refund to prevent double-refunding 79k package | 🔵 api |
