@@ -1,6 +1,7 @@
 import { Queue, QueueEvents } from "bullmq";
 import { Redis } from "ioredis";
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, constants } from "node:fs";
+import { access, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import logger from "../../../../shared/infrastructure/logger.js";
 
@@ -117,8 +118,16 @@ export interface OmpJobMilestones {
   auditReport: boolean;
   reportJson: boolean;
 }
+async function pathExists(p: string): Promise<boolean> {
+  try {
+    await access(p, constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
-export function getJobMilestones(jobId: string, aiJobId?: string): OmpJobMilestones {
+export async function getJobMilestones(jobId: string, aiJobId?: string): Promise<OmpJobMilestones> {
   const root = resolveRepoRoot();
   const candidateDirs: string[] = [];
 
@@ -135,9 +144,9 @@ export function getJobMilestones(jobId: string, aiJobId?: string): OmpJobMilesto
   ];
 
   for (const base of baseDirs) {
-    if (existsSync(base)) {
+    if (await pathExists(base)) {
       try {
-        const subdirs = readdirSync(base, { withFileTypes: true })
+        const subdirs = (await readdir(base, { withFileTypes: true }))
           .filter((d) => d.isDirectory() && d.name !== "input" && d.name !== "output");
         for (const d of subdirs) {
           candidateDirs.push(resolve(base, d.name));
@@ -150,26 +159,55 @@ export function getJobMilestones(jobId: string, aiJobId?: string): OmpJobMilesto
 
   candidateDirs.push(...baseDirs);
 
-  const sandboxReady = candidateDirs.some((dir) => {
-    const inputDir = resolve(dir, "input");
-    return existsSync(inputDir) && readdirSync(inputDir).length > 0;
-  });
+  const [sandboxReady, triadPacket, auditReport, reportJson] = await Promise.all([
+    (async () => {
+      for (const dir of candidateDirs) {
+        const inputDir = resolve(dir, "input");
+        try {
+          const files = await readdir(inputDir);
+          if (files.length > 0) return true;
+        } catch {
+          // ignore
+        }
+      }
+      return false;
+    })(),
+    (async () => {
+      for (const dir of candidateDirs) {
+        if (await pathExists(resolve(dir, "output/triad_handoff_packet.md"))) return true;
+      }
+      return false;
+    })(),
+    (async () => {
+      for (const dir of candidateDirs) {
+        if (await pathExists(resolve(dir, "output/input_clarification_audit.md"))) return true;
+      }
+      return false;
+    })(),
+    (async () => {
+      for (const dir of candidateDirs) {
+        if (await pathExists(resolve(dir, "output/report.json"))) return true;
+      }
+      return false;
+    })(),
+  ]);
 
-  const triadPacket = candidateDirs.some((dir) => existsSync(resolve(dir, "output/triad_handoff_packet.md")));
-  const auditReport = candidateDirs.some((dir) => existsSync(resolve(dir, "output/input_clarification_audit.md")));
-  const reportJson = candidateDirs.some((dir) => existsSync(resolve(dir, "output/report.json")));
   return { sandboxReady, triadPacket, auditReport, reportJson };
 }
 
 /**
  * Retrieve real status of a job from BullMQ and filesystem.
  */
-export async function getOmpJobStatus(jobId: string, aiJobId?: string): Promise<{
+export async function getOmpJobStatus(
+  jobId: string,
+  aiJobId?: string,
+  preloadedMilestones?: OmpJobMilestones
+): Promise<{
   state: "waiting" | "active" | "completed" | "failed" | "unknown";
   milestones: OmpJobMilestones;
   failedReason?: string;
 }> {
-  const milestones = getJobMilestones(jobId, aiJobId);
+  const milestones = preloadedMilestones ?? (await getJobMilestones(jobId, aiJobId));
   try {
     let job = await ompQueue.getJob(jobId);
     if (!job && aiJobId) {

@@ -13,13 +13,14 @@ const SUPPORTER_INCLUDE = {
 } satisfies Prisma.CaseInclude;
 
 const ADMIN_INCLUDE = {
-  owner: true,
-  assigned_supporter: true,
-  package: true,
+  owner: { select: { id: true, name: true, email: true } },
+  assigned_supporter: { select: { id: true, name: true } },
+  package: { select: { id: true, name: true } },
   lifecycle_units: {
     where: { unit_type: "version" },
     orderBy: { version_no: "asc" },
     take: 1,
+    select: { content: true },
   },
 } satisfies Prisma.CaseInclude;
 

@@ -1,13 +1,12 @@
-"use client";
-
-import { Card, Group, Text, Button, List } from "@mantine/core";
-import { AlertTriangle, Info, Check } from "lucide-react";
-import type { TeamFitFreeReport } from "@repo/validation";
+import type { TeamFitSavedResult } from "@repo/validation";
 import { PACKAGE_KEYS, formatPrice } from "@/lib/pricing";
 import { usePackagePrice } from "@/lib/usePackagePrice";
+import { TeamFitReportCard } from "./TeamFitReportCard";
+import { AlertTriangle, Check } from "lucide-react";
+import { Button, Group, Text } from "@mantine/core";
 
 interface TeamFitResultStepProps {
-  result: TeamFitFreeReport | null;
+  result: TeamFitSavedResult | null;
   isLoading: boolean;
   error: string | null;
   onReset: () => void;
@@ -66,51 +65,17 @@ export default function TeamFitResultStep({
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
         <Text size="sm" c="dimmed">
-          Nhấn &quot;Kiểm tra sơ bộ&quot; để hệ thống chỉ ra các điểm còn chưa rõ hoặc năng lực nhóm có thể đang thiếu
+          Nhấn &quot;Kiểm tra sơ bộ&quot; để hệ thống đếm chỉ số nhóm, nhận định đội ngũ và nêu những câu nhóm chưa trả lời được
         </Text>
       </div>
     );
   }
 
-  // ── Result state ──
   return (
     <div className="space-y-4">
-      {/* Result context banner */}
-      <div className="p-3 bg-surface-soft/80 border border-border-app rounded-xl text-center">
-        <Text size="xs" c="dimmed">
-          Đây là kết quả kiểm tra sơ bộ dựa trên thông tin mô tả ngắn của nhóm.
-        </Text>
-      </div>
+      <TeamFitReportCard report={result} />
 
-      {/* Card 1: team gaps */}
-      <Card shadow="sm" padding="lg" radius="md" withBorder>
-        <Group gap="sm" mb="sm">
-          <AlertTriangle className="h-5 w-5 text-amber-500" />
-          <Text fw={600} size="sm">
-            Nhóm có thể đang thiếu...
-          </Text>
-        </Group>
-        <List spacing="xs" size="sm">
-          {result.teamGaps.map((gap, i) => (
-            <List.Item key={i}>{gap}</List.Item>
-          ))}
-        </List>
-      </Card>
 
-      {/* Card 2: commercial gaps */}
-      <Card shadow="sm" padding="lg" radius="md" withBorder>
-        <Group gap="sm" mb="sm">
-          <Info className="h-5 w-5 text-blue-500" />
-          <Text fw={600} size="sm">
-            Ý tưởng dự án cần làm rõ thêm ở...
-          </Text>
-        </Group>
-        <List spacing="xs" size="sm">
-          {result.commercialGaps.map((gap, i) => (
-            <List.Item key={i}>{gap}</List.Item>
-          ))}
-        </List>
-      </Card>
       {/* Buttons row */}
       <Group justify="center" gap="sm">
         <Button variant="outline" color="red" onClick={onReset}>

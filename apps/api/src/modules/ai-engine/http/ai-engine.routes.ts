@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { TeamFitInputSchema } from '../domain/team-fit.dto.js'
 import { evaluateTeamFitUseCase } from '../application/evaluate-team-fit.usecase.js'
 import { saveTeamFitUseCase } from '../application/save-team-fit.usecase.js'
+import { checkTeamFitRateLimit } from '../application/team-fit-rate-limit.js'
 import { handleError } from '../../../shared/infrastructure/http-helpers.js'
 import { requireAuth } from '../../../shared/infrastructure/middlewares/auth.js'
 import { prisma } from '../../../db.js'
@@ -12,7 +13,7 @@ import type { Context as HonoContext } from 'hono'
 import {
   IdeaInputSchema,
   TeamMemberInputSchema,
-  TeamFitFreeReportSchema,
+  TeamFitSavedResultSchema,
 } from '@repo/validation'
 
 export const aiEngineRouter = new Hono()
@@ -20,18 +21,29 @@ export const aiEngineRouter = new Hono()
 // ---------------------------------------------------------------------------
 // Request body schema for team-fit save
 // ---------------------------------------------------------------------------
-const TeamFitSaveBodySchema = z.object({
+export const TeamFitSaveBodySchema = z.object({
   idea: IdeaInputSchema,
   team: z.array(TeamMemberInputSchema).min(1).max(6),
-  result: TeamFitFreeReportSchema,
+  // Accepts both the v2 three-part report and the legacy {teamGaps, commercialGaps}
+  // payload, so clients still holding an old result can save without a 400.
+  result: TeamFitSavedResultSchema,
   packageId: z.string().optional(),
 })
+
+// How many of the owner's most recent team-fit reports the save idempotency
+// check looks back over. Bounded so the check stays a small indexed page read.
+const TEAM_FIT_IDEMPOTENCY_LOOKBACK = 20
 
 // ---------------------------------------------------------------------------
 // POST /api/ai-engine/team-fit — Evaluate team composition against idea
 // ---------------------------------------------------------------------------
-aiEngineRouter.post('/team-fit', requireAuth, async (c: HonoContext) => {
+aiEngineRouter.post('/team-fit', requireAuth, async (c: HonoContext<AuthEnv>) => {
   try {
+    const user = c.get('user')
+    if (!user) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+    checkTeamFitRateLimit(user.id)
     const body = await c.req.json()
     const parsed = TeamFitInputSchema.safeParse(body)
 
@@ -84,7 +96,18 @@ aiEngineRouter.post('/team-fit/save', requireAuth, async (c: HonoContext<AuthEnv
         findTeamFitReportsByOwner: async (ownerId) =>
           prisma.teamFitReport.findMany({
             where: { case: { owner_auth_user_id: ownerId } },
-            include: { case: true },
+            orderBy: { created_at: 'desc' },
+            take: TEAM_FIT_IDEMPOTENCY_LOOKBACK,
+            // result_snapshot (large AI report JSON) is intentionally not selected:
+            // the idempotency check in save-team-fit.usecase.ts only compares the
+            // idea/team snapshots.
+            select: {
+              id: true,
+              case_id: true,
+              idea_snapshot: true,
+              team_snapshot: true,
+              case: { select: { id: true, case_code: true } },
+            },
           }),
         findCaseByCode: async (code) => prisma.case.findUnique({ where: { case_code: code } }),
         createCaseAndReport: async (data) =>

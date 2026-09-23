@@ -21,6 +21,7 @@ const FIELD_LABELS: Record<string, string> = {
 };
 
 const TEAM_LABELS: Record<string, string> = {
+  roleTrack: "Mảng nghề",
   major: "Chuyên ngành",
   strengths: "Thế mạnh / kỹ năng nổi bật",
   experience: "Kinh nghiệm",
@@ -101,6 +102,15 @@ export function formatIssue(
     if (fieldKey) {
       const label = TEAM_LABELS[fieldKey] ?? fieldKey;
       const sub = typeof subIdx === "number" ? ` mục thứ ${subIdx + 1}` : "";
+
+      // Ô chọn (vd. mảng nghề): zod v4 báo "Invalid option" khi bỏ trống hoặc
+      // chọn giá trị lạ — dịch sang tiếng Việt, không lộ mã code cho người dùng.
+      if (
+        message.includes("Invalid option") ||
+        message.includes("Invalid enum value")
+      ) {
+        return `Thành viên ${memberNum} — ${label}: vui lòng chọn một giá trị hợp lệ`;
+      }
 
       const minMatch = message.match(/have >=(\d+)/);
       if (minMatch) {

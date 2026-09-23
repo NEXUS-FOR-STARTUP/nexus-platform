@@ -12,6 +12,7 @@ test("admin stats revenue uses paid orders, not legacy payments", async () => {
       findMany: (...args: unknown[]) => Promise<unknown[]>;
     };
     payment: { aggregate: (...args: unknown[]) => Promise<unknown>; findMany: (...args: unknown[]) => Promise<unknown[]> };
+    $queryRaw: (...args: unknown[]) => Promise<unknown>;
   };
 
   const original = {
@@ -19,11 +20,12 @@ test("admin stats revenue uses paid orders, not legacy payments", async () => {
     caseGroupBy: client.case.groupBy,
     caseFindMany: client.case.findMany,
     userFindMany: client.user.findMany,
+    orderAggregate: client.order.aggregate,
     orderFindMany: client.order.findMany,
     paymentAggregate: client.payment.aggregate,
     paymentFindMany: client.payment.findMany,
+    queryRaw: client.$queryRaw,
   };
-
   const paidAmount = 39000;
   const paidOrderDate = new Date();
   const oldPaidOrderDate = new Date(paidOrderDate.getTime() - 10 * 24 * 60 * 60 * 1000);
@@ -70,6 +72,56 @@ test("admin stats revenue uses paid orders, not legacy payments", async () => {
   client.payment.findMany = async () => {
     throw new Error("legacy payments must not be queried");
   };
+  client.$queryRaw = async (...args: any[]) => {
+    const strings = args[0];
+    const text = Array.isArray(strings) ? strings.join(" ") : String(strings?.strings ? strings.strings.join(" ") : strings);
+    if (text.includes("orders o")) {
+      const buckets: Array<{ label: string; ord: number; startDate: Date; endDate: Date }> = [];
+      const now = new Date();
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        const startDate = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+        const endDate = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+        const dayStr = String(d.getDate()).padStart(2, "0");
+        const monthStr = String(d.getMonth() + 1).padStart(2, "0");
+        buckets.push({
+          label: `${dayStr}/${monthStr}`,
+          ord: 6 - i,
+          startDate,
+          endDate,
+        });
+      }
+
+      return buckets.map((b) => {
+        const matchingOrders = orderRows.filter(
+          (o) =>
+            o.status === "paid" &&
+            o.created_at >= b.startDate &&
+            o.created_at <= b.endDate
+        );
+        const revenue = matchingOrders.reduce((sum, o) => sum + o.total_amount, 0);
+        const transactions = matchingOrders.length;
+        return { label: b.label, ord: b.ord, revenue, transactions };
+      });
+    }
+    if (text.includes("cases c")) {
+      const now = new Date();
+      const buckets: Array<{ label: string; ord: number; free: number; paid: number }> = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        const dayStr = String(d.getDate()).padStart(2, "0");
+        const monthStr = String(d.getMonth() + 1).padStart(2, "0");
+        buckets.push({
+          label: `${dayStr}/${monthStr}`,
+          ord: 6 - i,
+          free: 0,
+          paid: 0,
+        });
+      }
+      return buckets;
+    }
+    return [];
+  };
 
   try {
     const result = await getAdminStatsUseCase("7d");
@@ -83,8 +135,10 @@ test("admin stats revenue uses paid orders, not legacy payments", async () => {
     client.case.groupBy = original.caseGroupBy;
     client.case.findMany = original.caseFindMany;
     client.user.findMany = original.userFindMany;
+    client.order.aggregate = original.orderAggregate;
     client.order.findMany = original.orderFindMany;
     client.payment.aggregate = original.paymentAggregate;
     client.payment.findMany = original.paymentFindMany;
+    client.$queryRaw = original.queryRaw;
   }
 });

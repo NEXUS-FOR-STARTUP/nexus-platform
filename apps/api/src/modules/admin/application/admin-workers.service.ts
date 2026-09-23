@@ -1,4 +1,5 @@
-import { existsSync, readdirSync, statSync } from "node:fs";
+import { constants } from "node:fs";
+import { access, readdir, stat } from "node:fs/promises";
 import { resolve, extname } from "node:path";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "../../../db.js";
@@ -30,7 +31,16 @@ import type {
 const TEN_MINUTES_MS = 10 * 60 * 1000;
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 
-function getSandboxFiles(caseId: string, subFolder: "input" | "output", jobId?: string): JobSandboxFileInfo[] {
+async function pathExists(p: string): Promise<boolean> {
+  try {
+    await access(p, constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function getSandboxFiles(caseId: string, subFolder: "input" | "output", jobId?: string): Promise<JobSandboxFileInfo[]> {
   if (!/^[a-zA-Z0-9_-]+$/.test(caseId)) {
     return [];
   }
@@ -47,22 +57,29 @@ function getSandboxFiles(caseId: string, subFolder: "input" | "output", jobId?: 
     resolve(root, "storage", "jobs", caseId, subFolder),
     resolve(root, "apps", "api", "storage", "jobs", caseId, subFolder),
   );
-  const targetDir = candidateDirs.find((d) => existsSync(d));
+  let targetDir: string | undefined;
+  for (const d of candidateDirs) {
+    if (await pathExists(d)) {
+      targetDir = d;
+      break;
+    }
+  }
   if (!targetDir) return [];
   try {
-    const entries = readdirSync(targetDir, { withFileTypes: true });
-    return entries
-      .filter((e) => e.isFile())
-      .map((e) => {
-        const filePath = resolve(targetDir, e.name);
-        const stats = statSync(filePath);
+    const entries = await readdir(targetDir, { withFileTypes: true });
+    const fileEntries = entries.filter((e) => e.isFile());
+    return await Promise.all(
+      fileEntries.map(async (e) => {
+        const filePath = resolve(targetDir!, e.name);
+        const fileStats = await stat(filePath);
         const ext = extname(e.name).replace(".", "");
         return {
           name: e.name,
-          sizeBytes: stats.size,
+          sizeBytes: fileStats.size,
           extension: ext,
         };
-      });
+      })
+    );
   } catch (err) {
     logger.warn({ caseId, subFolder, err }, "Failed to scan sandbox directory");
     return [];
@@ -107,19 +124,17 @@ export async function getAdminWorkerStats(): Promise<AdminWorkerStatsResponse> {
     }),
     prisma.aiJob.findMany({
       where: { job_type: "omp_audit", status: "completed", updated_at: { gte: since24h } },
-      select: { created_at: true, updated_at: true, input_json: true },
+      select: { created_at: true, updated_at: true },
       take: 100,
     }),
   ]);
 
   let avgDurationMs24h = 0;
   if (completedJobs24h.length > 0) {
-    const totalDuration = completedJobs24h.reduce((acc, job) => {
-      const input = job.input_json as { startedAt?: string } | null;
-      const start = input?.startedAt ? new Date(input.startedAt).getTime() : job.created_at.getTime();
-      const end = job.updated_at.getTime();
-      return acc + Math.max(0, end - start);
-    }, 0);
+    const totalDuration = completedJobs24h.reduce(
+      (acc, job) => acc + Math.max(0, job.updated_at.getTime() - job.created_at.getTime()),
+      0,
+    );
     avgDurationMs24h = Math.round(totalDuration / completedJobs24h.length);
   }
 
@@ -372,11 +387,10 @@ export async function getAdminWorkerJobDetail(
     (job.status === "queued" || job.status === "processing") &&
     job.updated_at.getTime() < tenMinutesAgo.getTime();
 
-  const milestones = getJobMilestones(caseId, job.id);
-  const inputFiles = getSandboxFiles(caseId, "input", job.id);
-  const outputFiles = getSandboxFiles(caseId, "output", job.id);
-
-  const [teamFit, latestReport] = await Promise.all([
+  const [milestones, inputFiles, outputFiles, teamFit, latestReport] = await Promise.all([
+    getJobMilestones(caseId, job.id),
+    getSandboxFiles(caseId, "input", job.id),
+    getSandboxFiles(caseId, "output", job.id),
     prisma.teamFitReport.findUnique({ where: { case_id: caseId } }),
     prisma.report.findFirst({
       where: { case_id: caseId },

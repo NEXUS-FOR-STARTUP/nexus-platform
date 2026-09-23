@@ -1,5 +1,29 @@
 import { prisma } from "../../../db.js";
+import { Prisma } from "@prisma/client";
+import { redisPublisher } from "../../ai-engine/infrastructure/queue/omp-queue.js";
+import logger from "../../../shared/infrastructure/logger.js";
 import type { AdminStatsResponse, RevenueTrendPoint, CaseTrendPoint } from "./admin-stats.dto.js";
+
+const ADMIN_STATS_CACHE_TTL_SECONDS = Number(process.env.ADMIN_STATS_CACHE_TTL_SECONDS || 30);
+const CACHE_KEY_PREFIX = "admin:stats:";
+const inFlightStats = new Map<string, Promise<AdminStatsResponse>>();
+const REDIS_OP_TIMEOUT_MS = 500;
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs = REDIS_OP_TIMEOUT_MS): Promise<T> {
+  let timer: NodeJS.Timeout;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error("REDIS_TIMEOUT")), timeoutMs);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timer));
+}
+const VALID_PERIODS = new Set(["7d", "30d", "month", "semester", "quarter", "year"]);
+
+function normalizePeriod(raw?: string): string {
+  if (raw && VALID_PERIODS.has(raw.trim().toLowerCase())) {
+    return raw.trim().toLowerCase();
+  }
+  return "30d";
+}
 
 interface Bucket {
   label: string;
@@ -143,14 +167,135 @@ function generateBuckets(period: string): Bucket[] {
 }
 
 export async function getAdminStatsUseCase(period: string = "30d"): Promise<AdminStatsResponse> {
-  // 1. Total cases
-  const totalCases = await prisma.case.count();
+  const normalizedPeriod = normalizePeriod(period);
+  const cacheKey = `${CACHE_KEY_PREFIX}${normalizedPeriod}`;
+  if (process.env.NODE_ENV !== "test") {
+    try {
+      const cached = await withTimeout(redisPublisher.get(cacheKey));
+      if (cached) {
+        return JSON.parse(cached) as AdminStatsResponse;
+      }
+    } catch (err) {
+      logger.warn({ cacheKey, err }, "Redis get admin stats cache warning, falling back to DB");
+    }
+  }
 
-  // 2. Cases by package_id — free vs paid
-  const packageGroups = await prisma.case.groupBy({
-    by: ["package_id"],
-    _count: true,
-  });
+  const existing = inFlightStats.get(cacheKey);
+  if (existing) {
+    return existing;
+  }
+
+  const queryPromise = computeAdminStats(normalizedPeriod);
+  inFlightStats.set(cacheKey, queryPromise);
+
+  try {
+    const stats = await queryPromise;
+    if (process.env.NODE_ENV !== "test") {
+      try {
+        await withTimeout(redisPublisher.set(cacheKey, JSON.stringify(stats), "EX", ADMIN_STATS_CACHE_TTL_SECONDS));
+      } catch (setErr) {
+        logger.warn({ cacheKey, setErr }, "Redis set admin stats cache warning");
+      }
+    }
+    return stats;
+  } finally {
+    inFlightStats.delete(cacheKey);
+  }
+}
+
+async function computeAdminStats(period: string): Promise<AdminStatsResponse> {
+  const buckets = generateBuckets(period);
+  const now = new Date();
+
+  const bucketValues = Prisma.join(
+    buckets.map(
+      (b, i) =>
+        Prisma.sql`(${b.label}::text, ${i}::int, ${b.startDate}::timestamptz, ${b.endDate}::timestamptz)`
+    ),
+    ","
+  );
+
+  // Run all primary aggregates and trend queries in parallel (1 round-trip)
+  const [
+    totalCases,
+    packageGroups,
+    nonIntakeCount,
+    revenueAgg,
+    slaBreachCount,
+    stageGroups,
+    supporterGroups,
+    revenueRows,
+    caseRows,
+  ] = await Promise.all([
+    // 1. Total cases
+    prisma.case.count(),
+
+    // 2. Cases by package_id — free vs paid
+    prisma.case.groupBy({
+      by: ["package_id"],
+      _count: true,
+    }),
+
+    // 3. Conversion rate denominator
+    prisma.case.count({
+      where: { user_facing_stage: { notIn: ["intake_pending", "intake_ready"] } },
+    }),
+
+    // 4. Total revenue from paid orders
+    prisma.order.aggregate({
+      where: { status: "paid" },
+      _sum: { total_amount: true },
+    }),
+
+    // 5. SLA breach — open cases whose 48h clock has passed
+    prisma.case.count({
+      where: {
+        sla_deadline_at: { lte: now },
+        internal_status: { notIn: ["done", "cancelled"] },
+      },
+    }),
+
+    // 6. Cases by stage
+    prisma.case.groupBy({
+      by: ["user_facing_stage"],
+      _count: true,
+    }),
+
+    // 7. Supporter groups
+    prisma.case.groupBy({
+      by: ["assigned_supporter_auth_user_id"],
+      _count: true,
+    }),
+
+    // 8. Revenue & transactions trend grouped into buckets by SQL
+    prisma.$queryRaw<Array<{ label: string; ord: number; revenue: number; transactions: number }>>`
+      WITH bucket(label, ord, start_date, end_date) AS (VALUES ${bucketValues})
+      SELECT b.label, b.ord,
+             COALESCE(SUM(o.total_amount), 0)::bigint AS revenue,
+             COUNT(o.id)::int AS transactions
+      FROM bucket b
+      LEFT JOIN orders o
+        ON o.status = 'paid'
+       AND o.created_at >= b.start_date
+       AND o.created_at <= b.end_date
+      GROUP BY b.label, b.ord
+      ORDER BY b.ord
+    `,
+
+    // 9. Free vs paid case trend grouped into buckets by SQL
+    prisma.$queryRaw<Array<{ label: string; ord: number; free: number; paid: number }>>`
+      WITH bucket(label, ord, start_date, end_date) AS (VALUES ${bucketValues})
+      SELECT b.label, b.ord,
+             COUNT(c.id) FILTER (WHERE c.package_id IS NULL OR c.package_id = 'pkg_tf_free')::int AS free,
+             COUNT(c.id) FILTER (WHERE c.package_id IS NOT NULL AND c.package_id <> 'pkg_tf_free')::int AS paid
+      FROM bucket b
+      LEFT JOIN cases c
+        ON c.created_at >= b.start_date
+       AND c.created_at <= b.end_date
+      GROUP BY b.label, b.ord
+      ORDER BY b.ord
+    `,
+  ]);
 
   let freeCases = 0;
   let paidCases = 0;
@@ -162,46 +307,19 @@ export async function getAdminStatsUseCase(period: string = "30d"): Promise<Admi
     }
   }
 
-  // 3. Conversion rate
-  const nonIntakeCount = await prisma.case.count({
-    where: { user_facing_stage: { notIn: ["intake_pending", "intake_ready"] } },
-  });
   const conversionRate =
     nonIntakeCount > 0
       ? Math.round((paidCases / nonIntakeCount) * 100 * 100) / 100
       : 0;
 
-  // 4. Total revenue from paid orders
-  const revenueAgg = await prisma.order.aggregate({
-    where: { status: "paid" },
-    _sum: { total_amount: true },
-  });
   const totalRevenue = revenueAgg._sum.total_amount ?? 0;
 
-  // 5. SLA breach — open cases whose 48h clock has passed
-  const slaBreachCount = await prisma.case.count({
-    where: {
-      sla_deadline_at: { lte: new Date() },
-      internal_status: { notIn: ["done", "cancelled"] },
-    },
-  });
-
-  // 6. Cases by stage
-  const stageGroups = await prisma.case.groupBy({
-    by: ["user_facing_stage"],
-    _count: true,
-  });
   const casesByStage: Record<string, number> = {};
   for (const g of stageGroups) {
     casesByStage[g.user_facing_stage] = g._count;
   }
 
-  // 7. Supporter workload
-  const supporterGroups = await prisma.case.groupBy({
-    by: ["assigned_supporter_auth_user_id"],
-    _count: true,
-  });
-
+  // Supporter workload names (at most 1 small query for assigned supporters)
   const assignedIds = supporterGroups
     .map((g) => g.assigned_supporter_auth_user_id)
     .filter((id): id is string => id !== null);
@@ -224,69 +342,16 @@ export async function getAdminStatsUseCase(period: string = "30d"): Promise<Admi
       caseCount: g._count,
     }));
 
-  // 8. Timeframe Buckets & Zero-Filled Trends
-  const buckets = generateBuckets(period);
-  const earliestDate = buckets[0].startDate;
-
-  // Fetch paid orders since earliestDate
-  const orders = await prisma.order.findMany({
-    where: {
-      status: "paid",
-      created_at: { gte: earliestDate },
-    },
-    select: {
-      total_amount: true,
-      created_at: true,
-    },
-  });
-
-  // Fetch cases created since earliestDate
-  const cases = await prisma.case.findMany({
-    where: {
-      created_at: { gte: earliestDate },
-    },
-    select: {
-      package_id: true,
-      created_at: true,
-    },
-  });
-
-  // Fill buckets
-  for (const order of orders) {
-    const orderTime = new Date(order.created_at).getTime();
-    for (const b of buckets) {
-      if (orderTime >= b.startDate.getTime() && orderTime <= b.endDate.getTime()) {
-        b.revenue += order.total_amount;
-        b.transactions += 1;
-        break;
-      }
-    }
-  }
-
-  for (const c of cases) {
-    const cTime = new Date(c.created_at).getTime();
-    for (const b of buckets) {
-      if (cTime >= b.startDate.getTime() && cTime <= b.endDate.getTime()) {
-        if (!c.package_id || c.package_id === "pkg_tf_free") {
-          b.free += 1;
-        } else {
-          b.paid += 1;
-        }
-        break;
-      }
-    }
-  }
-
-  const revenueTrend: RevenueTrendPoint[] = buckets.map((b) => ({
-    label: b.label,
-    revenue: b.revenue,
-    transactions: b.transactions,
+  const revenueTrend: RevenueTrendPoint[] = revenueRows.map((r) => ({
+    label: r.label,
+    revenue: Number(r.revenue),
+    transactions: Number(r.transactions),
   }));
 
-  const caseTrend: CaseTrendPoint[] = buckets.map((b) => ({
-    label: b.label,
-    free: b.free,
-    paid: b.paid,
+  const caseTrend: CaseTrendPoint[] = caseRows.map((r) => ({
+    label: r.label,
+    free: Number(r.free),
+    paid: Number(r.paid),
   }));
 
   // Legacy fallback for backward compatibility
@@ -310,3 +375,4 @@ export async function getAdminStatsUseCase(period: string = "30d"): Promise<Admi
     period,
   };
 }
+

@@ -258,6 +258,7 @@ model Deposit {
 
   @@index([user_id, created_at])
   @@index([status, created_at])
+  @@index([created_at(sort: Desc)])
   @@map("deposits")
 }
 
@@ -277,6 +278,7 @@ model Order {
   items OrderItem[]
 
   @@index([user_id, created_at])
+  @@index([status, created_at])
   @@map("orders")
 }
 
@@ -354,6 +356,10 @@ model Case {
   @@index([owner_auth_user_id])
   @@index([assigned_supporter_auth_user_id])
   @@index([package_id])
+  @@index([created_at(sort: Desc), id(sort: Desc)])
+  @@index([user_facing_stage])
+  @@index([internal_status])
+  @@index([sla_deadline_at])
   @@map("cases")
 }
 
@@ -416,6 +422,7 @@ model LifecycleUnit {
 
   @@index([case_id])
   @@index([checkpoint_id])
+  @@index([case_id, unit_type, version_no])
   @@map("lifecycle_units")
 }
 
@@ -456,6 +463,7 @@ model DocumentRecord {
   @@index([case_id, checkpoint_id])
   @@index([case_id, source_kind])
   @@index([case_id, superseded_at])
+  @@index([created_at(sort: Desc)])
   @@map("document_records")
 }
 
@@ -499,6 +507,7 @@ model Report {
   @@index([checkpoint_id])
   @@index([lifecycle_unit_id])
   @@index([approved_by_auth_user_id])
+  @@index([case_id, created_at(sort: Desc)])
   @@map("reports")
 }
 
@@ -616,6 +625,8 @@ model AiJob {
   case Case @relation(fields: [case_id], references: [id], onDelete: Cascade)
 
   @@index([case_id])
+  @@index([job_type, status, updated_at])
+  @@index([job_type, created_at(sort: Desc)])
   @@map("ai_jobs")
 }
 

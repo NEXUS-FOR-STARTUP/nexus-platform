@@ -6,6 +6,10 @@ import TeamMemberCard from './TeamMemberCard';
 
 const MAX_MEMBERS = 6;
 
+// Thành viên mới luôn ở trạng thái nháp: mảng nghề rỗng buộc người dùng chọn,
+// schema chặn lúc nộp kèm lỗi tiếng Việt (giống major rỗng hiện tại).
+const EMPTY_ROLE_TRACK = '' as TeamMemberInput['roleTrack'];
+
 interface TeamInputStepProps {
   members: TeamMemberInput[];
   onChange: (members: TeamMemberInput[]) => void;
@@ -14,7 +18,10 @@ interface TeamInputStepProps {
 export default function TeamInputStep({ members, onChange }: TeamInputStepProps) {
   const addMember = () => {
     if (members.length >= MAX_MEMBERS) return;
-    onChange([...members, { major: '', strengths: [], experience: [] }]);
+    onChange([
+      ...members,
+      { roleTrack: EMPTY_ROLE_TRACK, major: '', strengths: [], experience: [] },
+    ]);
   };
 
   const updateMember = (index: number, partial: Partial<TeamMemberInput>) => {

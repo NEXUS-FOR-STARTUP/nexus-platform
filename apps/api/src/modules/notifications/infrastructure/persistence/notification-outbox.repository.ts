@@ -1,5 +1,13 @@
 import { prisma } from "../../../../db.js";
 
+// Row "processing" quá STALE_PROCESSING_AGE_MS coi như crash giữa claim → trả về pending.
+const STALE_PROCESSING_AGE_MS = 60_000;
+// Relay tick 2s → quét stale mỗi tick là 30 table scan/phút trên processing_at (không index).
+// Stale được định nghĩa là processing_at <= now - 60s nên throttle 60s không đổi semantics
+// crash-recovery: row chỉ được reclaim khi đã stale, chỉ trễ tối đa 1 chu kỳ.
+const STALE_RECOVERY_INTERVAL_MS = 60_000;
+let lastStaleRecoveryAt = 0;
+
 export interface OutboxRowInput {
   eventId: string;
   type: string;
@@ -37,19 +45,24 @@ export async function insertOutboxRow(data: OutboxRowInput) {
 
 export async function claimBatch(limit = 50) {
   return await prisma.$transaction(async (tx) => {
-    // 1) Reclaim stale processing (> 60s — crash giữa claim)
-    const staleRows = await tx.notificationOutbox.findMany({
-      where: {
-        status: "processing",
-        processing_at: { lte: new Date(Date.now() - 60_000) },
-      },
-      select: { id: true },
-    });
-    if (staleRows.length > 0) {
-      await tx.notificationOutbox.updateMany({
-        where: { id: { in: staleRows.map((r) => r.id) }, status: "processing" },
-        data: { status: "pending", processing_at: null },
+    // 1) Reclaim stale processing (> 60s — crash giữa claim) — throttle 1 lần/phút.
+    //    Set timestamp TRƯỚC await để 2 tick chồng lấn không quét stale trùng nhau.
+    const recoveryNowMs = Date.now();
+    if (recoveryNowMs - lastStaleRecoveryAt >= STALE_RECOVERY_INTERVAL_MS) {
+      lastStaleRecoveryAt = recoveryNowMs;
+      const staleRows = await tx.notificationOutbox.findMany({
+        where: {
+          status: "processing",
+          processing_at: { lte: new Date(recoveryNowMs - STALE_PROCESSING_AGE_MS) },
+        },
+        select: { id: true },
       });
+      if (staleRows.length > 0) {
+        await tx.notificationOutbox.updateMany({
+          where: { id: { in: staleRows.map((r) => r.id) }, status: "processing" },
+          data: { status: "pending", processing_at: null },
+        });
+      }
     }
 
     // 2+3) Claim atomic — FOR UPDATE SKIP LOCKED: 2 tick KHÔNG BAO GIỜ lấy cùng row

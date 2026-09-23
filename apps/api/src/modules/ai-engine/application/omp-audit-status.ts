@@ -1,11 +1,25 @@
 import { getJobMilestones, getOmpJobStatus } from "../infrastructure/queue/omp-queue.js";
 import {
   findCaseForAudit,
-  findLatestAiJobByCase,
+  findLatestAiJobForStatus,
 } from "../infrastructure/persistence/ai-job.repository.js";
 import { jobStore } from "../infrastructure/persistence/job-store.repository.js";
 import { finalizeOmpAuditResult } from "./omp-audit-finalizer.js";
+import logger from "../../../shared/infrastructure/logger.js";
 
+// In-flight guard: prevent duplicate background finalize jobs with 60s TTL eviction
+const finalizingCases = new Map<string, number>();
+const FINALIZING_LOCK_TIMEOUT_MS = 60_000;
+
+function isFinalizing(caseId: string): boolean {
+  const startedAt = finalizingCases.get(caseId);
+  if (!startedAt) return false;
+  if (Date.now() - startedAt > FINALIZING_LOCK_TIMEOUT_MS) {
+    finalizingCases.delete(caseId);
+    return false;
+  }
+  return true;
+}
 /**
  * Retrieve verified status and live logs for frontend.
  */
@@ -17,27 +31,39 @@ export async function getCaseAiAuditStatus(caseId: string) {
   }
 
   const isAiPackage = caseRecord.package_id === "pkg_ai_audit";
-  const latestJob = await findLatestAiJobByCase(caseId);
+  const latestJob = await findLatestAiJobForStatus(caseId);
   const targetJobId = latestJob?.id;
 
-  let milestones = getJobMilestones(caseId, targetJobId);
+  let milestones = await getJobMilestones(caseId, targetJobId);
   // Fallback to targetJobId directly if checked by jobId alone, or fallback to caseId
   if (!milestones.reportJson && targetJobId) {
-    const fallbackByJob = getJobMilestones(targetJobId);
+    const fallbackByJob = await getJobMilestones(targetJobId);
     if (fallbackByJob.reportJson || fallbackByJob.triadPacket || fallbackByJob.auditReport) {
       milestones = fallbackByJob;
     }
   }
 
-  // Self-heal: If report.json is on disk but case is still under_review, finalize now
+  // Self-heal: If report.json is on disk but case is still under_review, trigger background finalize
+  // without blocking the GET response or hammering Cloudinary on repeated polls.
   if (milestones.reportJson && caseRecord.user_facing_stage === "under_review") {
-    await finalizeOmpAuditResult(caseId, targetJobId).catch(() => {});
+    if (!isFinalizing(caseId)) {
+      finalizingCases.set(caseId, Date.now());
+      finalizeOmpAuditResult(caseId, targetJobId)
+        .catch((err) => {
+          logger.warn({ caseId, targetJobId, err }, "Background self-heal finalize failed");
+        })
+        .finally(() => {
+          finalizingCases.delete(caseId);
+        });
+    }
   }
 
-  const queueStatus = await getOmpJobStatus(caseId, targetJobId);
+  const [queueStatus, targetLogs, caseLogs] = await Promise.all([
+    getOmpJobStatus(caseId, targetJobId, milestones),
+    targetJobId ? jobStore.getLogs(targetJobId) : Promise.resolve([]),
+    jobStore.getLogs(caseId),
+  ]);
   const storedJob = (targetJobId ? jobStore.get(targetJobId) : null) || jobStore.get(caseId);
-  const targetLogs = targetJobId ? await jobStore.getLogs(targetJobId) : [];
-  const caseLogs = await jobStore.getLogs(caseId);
   const logs = targetLogs.length > 0 ? targetLogs : caseLogs;
 
   const aiJobInput =

@@ -5,60 +5,6 @@ import { AppError } from "../../../../shared/domain/app-error.js";
 import { MESSAGE_PAGE_DEFAULT, encodeMessageCursor } from "../../application/message-cursor.js";
 
 
-export async function findManyCasesByRole(userId: string, role: string) {
-  if (role === "admin") {
-    return await prisma.case.findMany({
-      include: {
-        owner: true,
-        assigned_supporter: true,
-        package: true,
-      },
-      orderBy: { created_at: "desc" },
-    });
-  } else if (role === "supporter") {
-    return await prisma.case.findMany({
-      where: {
-        assigned_supporter_auth_user_id: userId,
-      },
-      include: {
-        owner: true,
-        package: true,
-      },
-      orderBy: { created_at: "desc" },
-    });
-  } else {
-    return await prisma.case.findMany({
-      where: {
-        OR: [
-          { owner_auth_user_id: userId },
-          { members: { some: { auth_user_id: userId } } },
-        ],
-      },
-      include: {
-        assigned_supporter: true,
-        package: true,
-      },
-      orderBy: { created_at: "desc" },
-    });
-  }
-}
-
-export async function findManyCasesAdmin(where: any, take?: number) {
-  return await prisma.case.findMany({
-    where,
-    include: {
-      owner: true,
-      assigned_supporter: true,
-      package: true,
-      lifecycle_units: {
-        where: { unit_type: "version" },
-        take: 1,
-      },
-    },
-    orderBy: { created_at: "desc" },
-    take,
-  });
-}
 
 export async function findCaseById(id: string) {
   return await prisma.case.findUnique({
@@ -66,6 +12,14 @@ export async function findCaseById(id: string) {
   });
 }
 
+/**
+ * Case detail projection for the workspace poll endpoint.
+ *
+ * Heavy columns (`reports.content_md`, `lifecycle_units.content`, full actor rows)
+ * and unbounded child lists are deliberately trimmed: this result is polled by the
+ * UI, so payload size drives both latency and server memory. Full report bodies are
+ * fetched through the report endpoints; full lifecycle units through findLifecycleUnits.
+ */
 export async function findCaseByIdWithAllRelations(id: string) {
   return await prisma.case.findUnique({
     where: { id },
@@ -75,24 +29,66 @@ export async function findCaseByIdWithAllRelations(id: string) {
       package: true,
       checkpoints: {
         include: {
-          lifecycle_units: true,
+          // Heavy `content` (intake/revision markdown) is omitted: the detail
+          // endpoint only needs unit metadata, and full units are loaded
+          // separately by findLifecycleUnits when the workspace is assembled.
+          lifecycle_units: {
+            select: {
+              id: true,
+              checkpoint_id: true,
+              unit_code: true,
+              unit_type: true,
+              version_no: true,
+              assessment_no: true,
+              linked_version_no: true,
+              drive_folder_id: true,
+              file_url: true,
+              created_at: true,
+            },
+          },
         },
       },
       members: {
         include: {
-          user: true,
+          user: {
+            select: { id: true, name: true, email: true, image: true, role: true },
+          },
         },
       },
+      // Bounded: the workspace timeline renders recent activity only, and
+      // unbounded event rows dominate payload size on long-lived cases.
       events: {
+        take: 50,
         include: {
-          actor: true,
+          actor: {
+            select: { id: true, name: true, image: true, role: true },
+          },
         },
         orderBy: { created_at: "desc" },
       },
       payments: {
+        take: 50,
         orderBy: { created_at: "desc" },
       },
+      // Reports for this case: include content_md for backward compatibility with
+      // web Report type and legacy markdown report rendering in TabReportFindings / RoundCard.
       reports: {
+        select: {
+          id: true,
+          case_id: true,
+          checkpoint_id: true,
+          lifecycle_unit_id: true,
+          report_type: true,
+          content_md: true,
+          status: true,
+          metadata_json: true,
+          created_by: true,
+          approved_by_auth_user_id: true,
+          sent_at: true,
+          document_id: true,
+          created_at: true,
+          updated_at: true,
+        },
         orderBy: { created_at: "desc" },
       },
       team_fit_report: true,
@@ -433,6 +429,7 @@ export async function findOpenRequestsForMoreInfo(caseId: string) {
       event_type: { in: ["more_info_requested", "request_more_info", "case_closed", "T8_REQUEST_INFO"] },
     },
     orderBy: { created_at: "desc" },
+    take: 10,
   });
 }
 
@@ -721,7 +718,16 @@ export async function listCaseMessages(
           }
         : {}),
     },
-    include: { sender: true },
+    include: {
+      sender: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+          role: true,
+        },
+      },
+    },
     orderBy: [{ created_at: "desc" }, { id: "desc" }],
     take: limit + 1, // +1 để biết còn trang cũ hơn không
   });

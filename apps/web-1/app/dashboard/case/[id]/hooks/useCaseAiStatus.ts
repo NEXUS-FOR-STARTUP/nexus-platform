@@ -35,7 +35,7 @@ export function useCaseAiStatus(caseId: string, enabled = true) {
     refetchInterval: (q) => {
       const status = q.state.data?.status;
       if (status === "queued" || status === "running") {
-        return 3000;
+        return 8000;
       }
       return false;
     },
