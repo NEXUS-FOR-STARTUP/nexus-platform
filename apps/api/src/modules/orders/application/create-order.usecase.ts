@@ -144,6 +144,9 @@ export async function createOrderUseCase(
           creditsGranted = 2 * item.quantity;
         }
         grantedByItem.push(creditsGranted);
+        const pricePerCredit = creditsGranted > 0
+          ? Math.round((unitPrice * item.quantity) / creditsGranted)
+          : unitPrice;
 
         await tx.creditLedger.create({
           data: {
@@ -154,7 +157,14 @@ export async function createOrderUseCase(
             reference_type: "order",
             reference_id: order.id,
             idempotency_key: `credit-purchase-${order.id}-${item.service_type}-${caseId}`,
-            metadata_json: { order_id: order.id, quantity: item.quantity, unit_price: unitPrice, credits_granted: creditsGranted },
+            metadata_json: {
+              order_id: order.id,
+              quantity: item.quantity,
+              unit_price: pricePerCredit,
+              package_unit_price: unitPrice,
+              price_per_credit: pricePerCredit,
+              credits_granted: creditsGranted,
+            },
           },
         });
 
