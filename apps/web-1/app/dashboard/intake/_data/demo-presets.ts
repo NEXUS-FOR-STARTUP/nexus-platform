@@ -456,6 +456,49 @@ const CRAFTUNI_PRESET: IntakeData = {
   course_context: "EXE101",
 };
 
+const EXCELGUIDE_INTAKE_PRESET: IntakeData = {
+  package_id: "",
+  current_blocker:
+    "Brief CP1 đã chốt MVP chỉ làm Excel (form bắt bệnh + super prompt + workflow 3 bước + trạm cứu viện), nhưng nhóm chưa biết người không biết IT có đi hết 3 bước copy prompt - bật Developer - dán code bấm Run hay sẽ bỏ ở bước báo lỗi chữ đỏ. Chưa kiểm chứng ai trả 99K/tháng khi ChatGPT miễn phí và YouTube đầy tutorial, cũng chưa biết bán Team 299K cho SME qua kênh nào ngoài seeding group Excel.",
+  current_situations: [
+    "Đã chốt brief CP1: khách hàng chị Lan kế toán SME, pain 2-3 giờ/tuần copy 3 file Excel",
+    "Đã thử thủ công: mô tả tiếng Việt thành prompt rồi lấy VBA chạy được trên 2 mẫu lọc báo cáo và gộp sheet",
+    "Đã quan sát 3 group Excel Việt Nam, thấy nhiều người hỏi lỗi VBA nhưng chưa seeding",
+    "Chưa có web app, mới chỉ có brief và prompt thử nghiệm rời rạc",
+    "Mới phỏng vấn 8 người, chưa có user nào hoàn thành trọn workflow 3 bước",
+    "Chưa có doanh thu, chưa test giá Pro 99K và Team 299K",
+  ],
+  case_summary:
+    "ExcelGuide là nền tảng trợ lý dẫn đường AI giúp nhân viên kế toán và hành chính không biết IT tự tạo Macro Excel: mô tả bài toán bằng tiếng Việt qua form bắt bệnh, nhận prompt cá nhân hóa dán vào ChatGPT/Claude, làm theo workflow 3 bước có ảnh từng click, kẹt ở đâu dán lỗi vào trạm cứu viện. MVP chỉ làm Excel với 5-10 mẫu lọc báo cáo, gộp sheet, format bảng. Thu phí Free giới hạn - Pro 99K/tháng - Team 299K/5 người, vào thị trường qua seeding group Excel Việt Nam.",
+  contact: {
+    full_name: "Nguyễn Minh Khang",
+    student_code: "SE186155",
+    team_role: "Trưởng nhóm",
+    zalo: "",
+    email: "",
+    telegram: "",
+  },
+  team_context: {
+    group_no: "155",
+    project_name: "ExcelGuide",
+    team_status_summary:
+      "Nhóm 5 người (2 CNPM + 1 QTKD + 1 Truyền thông + 1 Thiết kế). Đang học EXE101, vừa xong brief CP1, chưa có web app, đang test prompt và macro mẫu thủ công.",
+  },
+  support_needs: {
+    primary_need: "critique_feasibility",
+    extra_notes:
+      "Workflow 3 bước có quá sức với người sợ chữ đỏ không, trạm cứu viện cần làm tới đâu để giữ họ ở lại? Giá Pro 99K và Team 299K có ai trả khi ChatGPT miễn phí? Nên ưu tiên hoàn thiện mẫu macro nào trước để đạt 100 người hoàn thành trong 60 ngày?",
+  },
+  documents: [],
+  lecturer_feedback:
+    'CP1: "Ý tưởng rõ khách hàng và pain, nhưng phải chứng minh người không biết IT đi hết được workflow 3 bước. Giá 99K lấy từ đâu ra, Team 299K bán cho ai ký? Đối thủ ChatGPT và tutorial miễn phí thì moat nằm ở đâu?".',
+  expected_outputs:
+    "Báo cáo phản biện: workflow 3 bước có khả thi với dân văn phòng sợ code không, pricing 99K/299K có cơ sở không, 3 việc cần làm ngay để đạt 100 user hoàn thành đầu tiên.",
+  boundary_confirmations: ["originality", "advisory_only", "accurate_contact"],
+  school: "Đại học FPT",
+  course_context: "EXE101",
+};
+
 export const DEMO_PRESETS: PresetOption[] = [
   {
     label: "Nexus - Nhóm 13 EXE101",
@@ -511,5 +554,10 @@ export const DEMO_PRESETS: PresetOption[] = [
     label: "CraftUni - Nhóm 29",
     description: "Chợ đồ handmade sinh viên",
     data: CRAFTUNI_PRESET,
+  },
+  {
+    label: "ExcelGuide - Nhóm 155",
+    description: "Trợ lý tạo Macro Excel cho dân văn phòng",
+    data: EXCELGUIDE_INTAKE_PRESET,
   },
 ];

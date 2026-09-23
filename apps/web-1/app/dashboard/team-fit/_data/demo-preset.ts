@@ -830,6 +830,88 @@ export const CRAFTUNI_PRESET: TeamFitPreset = {
   ],
 };
 
+export const EXCELGUIDE_PRESET: TeamFitPreset = {
+  blanks: {
+    projectName: "ExcelGuide",
+    field: "Văn phòng & Tự động hóa - Trợ lý tạo Macro Excel",
+    targetCustomer:
+      "nhân viên kế toán và hành chính 25-35 tuổi tại công ty SME 20-500 người, dùng Excel mỗi ngày, không học IT và không có thời gian học code",
+    problem:
+      "mỗi tuần mất 2-3 giờ copy số liệu giữa 3 file Excel, chỉnh format và xóa dòng trống, cả năm lãng phí hơn 100 giờ; thử ChatGPT miễn phí thì nhận 30 dòng VBA dán vào báo lỗi chữ đỏ không biết sửa nên bỏ cuộc, xem YouTube thì dạy từ biến và vòng lặp trong khi chỉ cần xong việc hôm nay, công ty lại không có IT ngồi cạnh chỉ việc",
+    solution:
+      "nền tảng web đóng vai trò trợ lý dẫn đường AI: người dùng mô tả bài toán bằng tiếng Việt qua form bắt bệnh có sẵn, hệ thống tiêm vào super prompt đã tối ưu cho Excel, trả lại prompt cá nhân hóa để dán vào ChatGPT/Claude lấy code, kèm luồng hướng dẫn 3 bước từng cú click và trạm cứu viện gỡ lỗi khi Excel báo đỏ",
+    mvp: "MVP chỉ làm Excel: form bắt bệnh tiếng Việt, prompt wrapper engine, workflow 3 bước copy prompt - bật Developer - dán code bấm Run, nút Tôi bị kẹt dán lỗi ngược lại nhận hướng dẫn, kèm 5-10 mẫu lọc báo cáo, gộp sheet và format bảng",
+  },
+  members: [
+    {
+      roleTrack: "ky_thuat",
+      major: "Công nghệ phần mềm",
+      strengths: [
+        "prompt engineering cho bài toán Excel",
+        "full-stack web development",
+        "thiết kế form bắt bệnh tiếng Việt",
+      ],
+      experience: [
+        "Trưởng nhóm ExcelGuide",
+        "tối ưu super prompt tạo VBA từ mô tả tiếng Việt",
+        "phỏng vấn 8 nhân viên kế toán về tác vụ Excel lặp lại",
+      ],
+    },
+    {
+      roleTrack: "ky_thuat",
+      major: "Công nghệ phần mềm",
+      strengths: [
+        "VBA và Office Scripts Excel",
+        "kiểm thử macro nhiều file",
+        "viết hướng dẫn từng cú click",
+      ],
+      experience: [
+        "Phụ trách kỹ thuật macro",
+        "test thành công macro gộp 3 sheet và format bảng mẫu",
+      ],
+    },
+    {
+      roleTrack: "kinh_doanh_tai_chinh",
+      major: "Quản trị kinh doanh",
+      strengths: [
+        "xây dựng bảng giá và P&L",
+        "phân tích pricing SME",
+        "đàm phán B2B thử nghiệm",
+      ],
+      experience: [
+        "Phụ trách tài chính ExcelGuide",
+        "dựng mô hình Free 0đ - Pro 99K - Team 299K/5 người",
+      ],
+    },
+    {
+      roleTrack: "marketing",
+      major: "Truyền thông đa phương tiện",
+      strengths: [
+        "sáng tạo nội dung cộng đồng Excel",
+        "quay video hướng dẫn thao tác",
+        "quản lý group và seeding",
+      ],
+      experience: [
+        "Phụ trách truyền thông",
+        "tham gia 3 group Excel Việt Nam quan sát pain của dân văn phòng",
+      ],
+    },
+    {
+      roleTrack: "marketing",
+      major: "Thiết kế đồ họa",
+      strengths: [
+        "thiết kế ảnh chụp màn hình từng bước",
+        "Figma và Canva",
+        "soạn tài liệu dễ đọc cho người sợ code",
+      ],
+      experience: [
+        "Phụ trách thiết kế luồng 3 bước",
+        "vẽ mockup form bắt bệnh và trạm cứu viện Tôi bị kẹt",
+      ],
+    },
+  ],
+};
+
 export const DEMO_PRESETS: PresetOption[] = [
   {
     label: "Nexus - Nhóm 13 EXE101",
@@ -885,5 +967,10 @@ export const DEMO_PRESETS: PresetOption[] = [
     label: "CraftUni - Nhóm 29",
     description: "Chợ đồ handmade sinh viên",
     data: CRAFTUNI_PRESET,
+  },
+  {
+    label: "ExcelGuide - Nhóm 155",
+    description: "Trợ lý tạo Macro Excel cho dân văn phòng",
+    data: EXCELGUIDE_PRESET,
   },
 ];
