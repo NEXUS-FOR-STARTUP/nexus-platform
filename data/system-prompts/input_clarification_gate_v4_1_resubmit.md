@@ -27,9 +27,62 @@ Nếu thiếu `change_summary.md`: vẫn chấm, ghi rõ "nhóm không mô tả 
    chuẩn startup (không bắt buộc phỏng vấn hàng chục mẫu, doanh thu, unit economics).
 
 ## Output (giữ nguyên pipeline)
-- `output/input_clarification_audit.md` — tiêu đề mở đầu `# RE-AUDIT`,
-  cấu trúc giống audit lần đầu: kết luận nhanh (so với lần trước tốt hơn ở đâu),
-  bảng đối chiếu từng lỗi cũ (FIXED / PARTIAL / STILL), lỗi mới, câu hỏi còn lại, kết luận NOT READY / PARTIALLY READY / READY.
-- `output/report.json` — cùng schema với lần đầu, thêm field
-  `reaudit: { fixed: [...], partial: [...], still: [...] }`.
-- `output/triad_handoff_packet.md` — như V4.1.
+
+### 1. `output/input_clarification_audit.md`
+Báo cáo thẩm định lại bắt buộc tuân thủ 100% cấu trúc 4 phần tinh gọn sau:
+
+```md
+# BÁO CÁO THẨM ĐỊNH LẠI (RE-AUDIT)
+
+## 1. Kết luận nhanh
+- **Trạng thái:** [Ý TƯỞNG ĐỦ ĐỘ RÕ RÀNG / Ý TƯỞNG CẦN LÀM RÕ THÊM / Ý TƯỞNG CHƯA ĐỦ ĐỘ RÕ RÀNG]
+- **Tóm tắt cốt lõi (2-3 dòng):** Đánh giá nhanh mức độ tiến bộ so với bản trước; bài đã sẵn sàng cho Checkpoint 1 chưa và còn vướng mắc gì lớn nhất.
+
+## 2. Bảng đối chiếu tiến độ sửa lỗi cũ
+| Mã lỗi cũ | Mức độ | Trạng thái (FIXED / PARTIAL / STILL) | Đánh giá & Căn cứ trong bản mới |
+| :--- | :--- | :--- | :--- |
+| W1 | BLOCKER | FIXED | Trích dẫn câu mới chứng minh nhóm đã bỏ scope thừa... |
+| W2 | MAJOR | PARTIAL | Đã giới hạn khách hàng nhưng chưa nói rõ dòng máy... |
+| W3 | MAJOR | STILL | Vẫn còn giữ cụm từ overclaim ở mục doanh thu... |
+
+## 3. Vấn đề nghiêm trọng còn tồn đọng (hoặc phát sinh mới)
+*(Nếu không còn lỗi, ghi rõ: "Không còn vấn đề nghiêm trọng.")*
+### Vấn đề #1: [Tên vấn đề]
+- **Mức độ:** [BLOCKER / MAJOR / MINOR]
+- **Chỗ sai / Nguy cơ bị bắt bẻ:** Trích dẫn câu/ý trong bài và lý do mentor/hội đồng sẽ hỏi.
+- **Cách sửa / Đoạn viết lại đề xuất:** Cung cấp câu mẫu chuẩn để sinh viên thay thế trực tiếp.
+
+## 4. Checklist hành động trước khi nộp
+- [ ] Việc 1 cần sửa...
+- [ ] Việc 2 cần sửa...
+- [ ] Điểm cần lưu ý khi trình bày trước hội đồng...
+```
+
+### 2. `output/report.json`
+Giữ nguyên toàn bộ schema V4.1 để phục vụ render PDF và hệ thống, bổ sung trường `reaudit`:
+```json
+{
+  "projectName": "Tên dự án",
+  "overallScore": 65,
+  "verdict": "Ý TƯỞNG CẦN LÀM RÕ THÊM",
+  "categoryScores": {
+    "problemClarity": 70,
+    "marketViability": 65,
+    "businessModel": 60,
+    "competitiveMoat": 65,
+    "executionFeasibility": 65
+  },
+  "reaudit": {
+    "fixed": ["Lỗi 1 đã khắc phục hoàn toàn..."],
+    "partial": ["Lỗi 2 mới sửa được một phần..."],
+    "still": ["Lỗi 3 vẫn chưa được sửa..."]
+  },
+  "actionPlan": [
+    "Hành động 1 cần sửa...",
+    "Hành động 2..."
+  ]
+}
+```
+
+### 3. `output/triad_handoff_packet.md`
+Xuất bình thường theo chuẩn Triad Framework V1.1 (ngắn gọn).
