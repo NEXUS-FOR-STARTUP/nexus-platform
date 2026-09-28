@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Progress } from "@mantine/core";
-import { useCaseAiStatus, type LogEntry } from "../hooks/useCaseAiStatus";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCaseAiStatus, type LogEntry, type CaseAiStatusResponse } from "../hooks/useCaseAiStatus";
 import RadarHeader from "./RadarHeader";
 import RadarStagePipeline from "./RadarStagePipeline";
 import RadarLogsViewer from "./RadarLogsViewer";
@@ -21,6 +22,7 @@ export default function ActiveRadarScanning({
   caseId,
   projectName,
 }: ActiveRadarScanningProps) {
+  const queryClient = useQueryClient();
   const { aiStatusData, cancel, isCancelling, retry, isRetrying } =
     useCaseAiStatus(caseId);
   const [elapsedSecs, setElapsedSecs] = useState<number>(0);
@@ -33,16 +35,43 @@ export default function ActiveRadarScanning({
   const jobId = aiStatusData?.jobId || caseId;
   const startedAt = aiStatusData?.startedAt;
 
+  // Reset live logs and elapsed time when a new job starts (new jobId or startedAt)
   useEffect(() => {
-    if (!startedAt || isTerminal) return;
+    setLiveLogs([]);
+    setElapsedSecs(0);
+  }, [jobId, startedAt]);
+
+  // Accurately count elapsed time while active, freeze at true duration when completed
+  useEffect(() => {
+    if (!startedAt) {
+      setElapsedSecs(aiStatusData?.elapsedSeconds || 0);
+      return;
+    }
     const startMs = new Date(startedAt).getTime();
-    const tick = () =>
-      setElapsedSecs(Math.max(0, Math.floor((Date.now() - startMs) / 1000)));
+    if (isNaN(startMs)) {
+      setElapsedSecs(aiStatusData?.elapsedSeconds || 0);
+      return;
+    }
+
+    const calcElapsed = () =>
+      Math.max(0, Math.floor((Date.now() - startMs) / 1000));
+
+    if (isTerminal) {
+      if (typeof aiStatusData?.elapsedSeconds === "number" && aiStatusData.elapsedSeconds > 0) {
+        setElapsedSecs(aiStatusData.elapsedSeconds);
+      } else {
+        setElapsedSecs(calcElapsed());
+      }
+      return;
+    }
+
+    const tick = () => setElapsedSecs(calcElapsed());
     tick();
     const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
-  }, [startedAt, isTerminal]);
+  }, [startedAt, isTerminal, aiStatusData?.elapsedSeconds, jobId]);
 
+  // Connect SSE for live logs and real-time state events
   useEffect(() => {
     if (isTerminal) return;
     const apiBase = process.env.NEXT_PUBLIC_API_URL
@@ -59,9 +88,25 @@ export default function ActiveRadarScanning({
         );
       } catch {}
     });
+    es.addEventListener("job_state", (e) => {
+      try {
+        const item = JSON.parse(e.data) as Partial<CaseAiStatusResponse>;
+        if (item) {
+          queryClient.setQueryData(["case-ai-status", caseId], (prev: any) => ({
+            ...prev,
+            ...item,
+          }));
+        }
+      } catch {}
+    });
     return () => es.close();
-  }, [caseId, isTerminal]);
+  }, [caseId, isTerminal, jobId, queryClient]);
 
+  const handleRetry = useCallback(() => {
+    setLiveLogs([]);
+    setElapsedSecs(0);
+    retry();
+  }, [retry]);
   const logs = useMemo(() => {
     const base = aiStatusData?.logs || [];
     if (!liveLogs.length) return base;
@@ -102,7 +147,7 @@ export default function ActiveRadarScanning({
         isCancelling={isCancelling}
         isRetrying={isRetrying}
         onCancel={cancel}
-        onRetry={retry}
+        onRetry={handleRetry}
       />
 
       <div className="space-y-2 pt-1">
