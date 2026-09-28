@@ -43,13 +43,12 @@ export function resolveJobSandboxDir(caseId: string, aiJobId?: string): string {
     if (existsSync(apiFlatJob)) return apiFlatJob;
   }
 
-  // 3. Fallback: storage/jobs/{caseId} (legacy runs)
+  // 3. Fallback: storage/jobs/{caseId} (legacy runs without aiJobId only)
   const legacyCaseDir = resolve(projectRoot, "storage", "jobs", caseId);
-  if (existsSync(legacyCaseDir)) return legacyCaseDir;
+  if (existsSync(legacyCaseDir) && !aiJobId) return legacyCaseDir;
 
   const apiLegacyCaseDir = resolve(projectRoot, "apps", "api", "storage", "jobs", caseId);
-  if (existsSync(apiLegacyCaseDir)) return apiLegacyCaseDir;
-
+  if (existsSync(apiLegacyCaseDir) && !aiJobId) return apiLegacyCaseDir;
   // Default target path
   return aiJobId
     ? resolve(projectRoot, "storage", "jobs", caseId, aiJobId)
@@ -65,19 +64,19 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
   const outputDir = resolve(jobDir, "output");
   mkdirSync(outputDir, { recursive: true });
 
-  const candidateDirs = [
-    jobDir,
-    resolve(projectRoot, "storage", "jobs", caseId),
-    resolve(projectRoot, "apps", "api", "storage", "jobs", caseId),
-    ...(aiJobId
-      ? [
-          resolve(projectRoot, "storage", "jobs", caseId, aiJobId),
-          resolve(projectRoot, "apps", "api", "storage", "jobs", caseId, aiJobId),
-          resolve(projectRoot, "storage", "jobs", aiJobId),
-          resolve(projectRoot, "apps", "api", "storage", "jobs", aiJobId),
-        ]
-      : []),
-  ];
+  const candidateDirs = aiJobId
+    ? [
+        jobDir,
+        resolve(projectRoot, "storage", "jobs", caseId, aiJobId),
+        resolve(projectRoot, "apps", "api", "storage", "jobs", caseId, aiJobId),
+        resolve(projectRoot, "storage", "jobs", aiJobId),
+        resolve(projectRoot, "apps", "api", "storage", "jobs", aiJobId),
+      ]
+    : [
+        jobDir,
+        resolve(projectRoot, "storage", "jobs", caseId),
+        resolve(projectRoot, "apps", "api", "storage", "jobs", caseId),
+      ];
 
   for (const dir of candidateDirs) {
     if (dir === jobDir) continue;

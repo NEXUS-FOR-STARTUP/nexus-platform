@@ -37,24 +37,9 @@ export async function getCaseAiAuditStatus(caseId: string) {
   let milestones = await getJobMilestones(caseId, targetJobId);
   // Fallback to targetJobId directly if checked by jobId alone, or fallback to caseId
   if (!milestones.reportJson && targetJobId) {
-    const fallbackByJob = await getJobMilestones(targetJobId);
+    const fallbackByJob = await getJobMilestones(targetJobId, targetJobId);
     if (fallbackByJob.reportJson || fallbackByJob.triadPacket || fallbackByJob.auditReport) {
       milestones = fallbackByJob;
-    }
-  }
-
-  // Self-heal: If report.json is on disk but case is still under_review, trigger background finalize
-  // without blocking the GET response or hammering Cloudinary on repeated polls.
-  if (milestones.reportJson && caseRecord.user_facing_stage === "under_review") {
-    if (!isFinalizing(caseId)) {
-      finalizingCases.set(caseId, Date.now());
-      finalizeOmpAuditResult(caseId, targetJobId)
-        .catch((err) => {
-          logger.warn({ caseId, targetJobId, err }, "Background self-heal finalize failed");
-        })
-        .finally(() => {
-          finalizingCases.delete(caseId);
-        });
     }
   }
 
@@ -64,7 +49,6 @@ export async function getCaseAiAuditStatus(caseId: string) {
     jobStore.getLogs(caseId),
   ]);
   const storedJob = (targetJobId ? jobStore.get(targetJobId) : null) || jobStore.get(caseId);
-  const logs = targetLogs.length > 0 ? targetLogs : caseLogs;
 
   const aiJobInput =
     latestJob?.input_json && typeof latestJob.input_json === "object"
@@ -78,21 +62,64 @@ export async function getCaseAiAuditStatus(caseId: string) {
     caseRecord.updated_at?.toISOString() ||
     new Date().toISOString();
 
+  const startMs = new Date(startedAt).getTime();
+  const filteredCaseLogs = caseLogs.filter((l) => {
+    const logMs = new Date(l.timestamp).getTime();
+    return isNaN(logMs) || logMs >= startMs - 3000;
+  });
+  const logs = targetLogs.length > 0 ? targetLogs : filteredCaseLogs;
+  // Check if job is actively queued or processing before considering self-heal finalize
+  const isActivelyQueuedOrProcessing =
+    latestJob?.status === "queued" ||
+    latestJob?.status === "processing" ||
+    queueStatus.state === "waiting" ||
+    queueStatus.state === "active";
+
+  // Self-heal: If report.json is on disk for this job but case is still under_review, trigger background finalize
+  // without blocking the GET response or hammering Cloudinary on repeated polls.
+  if (
+    milestones.reportJson &&
+    caseRecord.user_facing_stage === "under_review" &&
+    !isActivelyQueuedOrProcessing
+  ) {
+    if (!isFinalizing(caseId)) {
+      finalizingCases.set(caseId, Date.now());
+      finalizeOmpAuditResult(caseId, targetJobId)
+        .catch((err) => {
+          logger.warn({ caseId, targetJobId, err }, "Background self-heal finalize failed");
+        })
+        .finally(() => {
+          finalizingCases.delete(caseId);
+        });
+    }
+  }
   const elapsedSeconds = Math.max(0, Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000));
 
   let finalStatus: "queued" | "running" | "completed" | "failed" | "cancelled" = "running";
-  if (
-    caseRecord.user_facing_stage === "report_ready" ||
-    milestones.reportJson ||
-    storedJob?.status === "completed" ||
-    latestJob?.status === "completed"
+  if (latestJob?.status === "cancelled" || storedJob?.status === "cancelled") {
+    finalStatus = "cancelled";
+  } else if (latestJob?.status === "failed" || storedJob?.status === "failed" || queueStatus.state === "failed") {
+    finalStatus = "failed";
+  } else if (
+    latestJob?.status === "queued" &&
+    queueStatus.state !== "active" &&
+    storedJob?.status !== "running"
+  ) {
+    finalStatus = "queued";
+  } else if (
+    latestJob?.status === "processing" ||
+    queueStatus.state === "active" ||
+    storedJob?.status === "running"
+  ) {
+    finalStatus = "running";
+  } else if (
+    latestJob?.status === "completed" ||
+    (caseRecord.user_facing_stage === "report_ready" && !isActivelyQueuedOrProcessing) ||
+    (milestones.reportJson && !isActivelyQueuedOrProcessing) ||
+    (storedJob?.status === "completed" && !isActivelyQueuedOrProcessing)
   ) {
     finalStatus = "completed";
-  } else if (storedJob?.status === "cancelled" || latestJob?.status === "cancelled") {
-    finalStatus = "cancelled";
-  } else if (latestJob?.status === "failed" || queueStatus.state === "failed" || storedJob?.status === "failed") {
-    finalStatus = "failed";
-  } else if (queueStatus.state === "waiting" || storedJob?.status === "queued" || latestJob?.status === "queued") {
+  } else if (queueStatus.state === "waiting" || storedJob?.status === "queued") {
     finalStatus = "queued";
   } else {
     finalStatus = "running";

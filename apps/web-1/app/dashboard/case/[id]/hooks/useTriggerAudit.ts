@@ -26,6 +26,25 @@ export function useTriggerAudit(caseId: string) {
       });
       return response.data;
     },
+    onMutate: async () => {
+      queryClient.setQueryData(["case", caseId], (prev: any) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          user_facing_stage: "under_review",
+        };
+      });
+      queryClient.setQueryData(["case-ai-status", caseId], (prev: any) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          status: "queued",
+          startedAt: new Date().toISOString(),
+          elapsedSeconds: 0,
+          logs: [],
+        };
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["case", caseId] });
       queryClient.invalidateQueries({ queryKey: ["case-ai-status", caseId] });
@@ -36,6 +55,8 @@ export function useTriggerAudit(caseId: string) {
       });
     },
     onError: (error: unknown) => {
+      queryClient.invalidateQueries({ queryKey: ["case", caseId] });
+      queryClient.invalidateQueries({ queryKey: ["case-ai-status", caseId] });
       const errData = isAxiosError<TriggerAuditErrorResponse>(error)
         ? error.response?.data
         : undefined;
