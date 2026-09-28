@@ -106,4 +106,24 @@ Khi được kích hoạt trong sandbox workspace, bạn **PHẢI** tuân thủ 
 }
 ```
 
+### BAREM ĐỊNH LƯỢNG ĐIỂM SỐ VÀ PHÁT BIỂU KẾT LUẬN (SCORING RUBRIC & VERDICT BANDS)
+Tuyệt đối không tự ý gán điểm số ngẫu nhiên hoặc cảm tính. Điểm số bắt buộc phải được tính toán dựa trên mức độ nghiêm trọng của các lỗi được phát hiện:
+1. **Dải điểm neo cứng theo Kết luận (Verdict Bands):**
+   - **`Ý TƯỞNG ĐỦ ĐỘ RÕ RÀNG`** (mã kỹ thuật: `READY FOR REALITY CHECK`): **75 đến 100 điểm** (0 lỗi BLOCKER, 0 lỗi MAJOR, chỉ có tối đa 1 hoặc 2 lỗi MINOR nhẹ).
+   - **`Ý TƯỞNG CẦN LÀM RÕ THÊM`** (mã kỹ thuật: `PARTIALLY READY FOR REALITY CHECK`): **50 đến 74 điểm** (0 lỗi BLOCKER, có từ 1 đến 3 lỗi MAJOR và các lỗi MINOR).
+   - **`Ý TƯỞNG CHƯA ĐỦ ĐỘ RÕ RÀNG`** (mã kỹ thuật: `NOT READY FOR REALITY CHECK`): **0 đến 49 điểm** (khi có từ 1 lỗi BLOCKER trở lên hoặc có từ 4 lỗi MAJOR trở lên ở các trường cốt lõi).
+
+2. **Công thức trừ điểm số học cố định:**
+   - Mỗi danh mục thành phần (`categoryScores`) và điểm tổng bắt đầu từ mốc chuẩn **100 điểm**:
+     - Mỗi lỗi **`BLOCKER`**: Trừ đúng **-20 điểm** (và khóa trần danh mục chứa lỗi không vượt quá 40/100).
+     - Mỗi lỗi **`MAJOR`**: Trừ đúng **-10 điểm** (và khóa trần danh mục chứa lỗi không vượt quá 65/100).
+     - Mỗi lỗi **`MINOR`**: Trừ đúng **-3 điểm**.
+   - **Phân bổ vào 5 trục hiển thị trên PDF (`categoryScores`):**
+     - **`problemClarity` (Rõ ràng):** Trừ theo lỗi ở các mục (1) Tên ý tưởng, (3) Chân dung khách hàng, (4) Vấn đề khách hàng, (9) Phân vai người dùng & người trả tiền.
+     - **`marketViability` (Thị trường):** Trừ theo lỗi ở các mục (2) Khách hàng mục tiêu, (8) Tuyên ngôn giá trị.
+     - **`businessModel` (Kinh doanh):** Trừ theo lỗi ở các mục (5) Giải pháp thay thế hiện tại, (11) Nguồn thu dự kiến, (12) Cơ cấu chi phí.
+     - **`competitiveMoat` (Cạnh tranh):** Trừ theo lỗi ở các mục (6) Điểm hạn chế của giải pháp hiện tại, (13) Lợi thế cạnh tranh.
+     - **`executionFeasibility` (Thực thi):** Trừ theo lỗi ở các mục (7) Giải pháp đề xuất, (10) Phạm vi MVP.
+   - `overallScore` là trung bình cộng làm tròn của 5 điểm thành phần trong `categoryScores` và **bắt buộc phải nằm trong dải điểm của Kết luận (Verdict)**.
+
 Sau khi hoàn thành ghi cả 3 tệp, hãy in ra thông báo hoàn tất để worker nhận diện kết quả.

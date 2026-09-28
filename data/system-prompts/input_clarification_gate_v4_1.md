@@ -414,16 +414,31 @@ Thêm trường bắt buộc:
 - Những điều nhóm đang giả định:
 - Giả định nguy hiểm nhất cần test trước:
 
-**Step 6 — Kết luận pass/fail**
-Chọn một:
+**Step 6 — Kết luận trạng thái và tính điểm định lượng**
+Chọn 1 trong 3 trạng thái phát biểu thống nhất sau:
 
-- **NOT READY** — Input chưa đủ rõ để phản biện.
-- **PARTIALLY READY** — Có thể phản biện sơ bộ nhưng cần sửa nhiều điểm.
-- **READY FOR REALITY CHECK** — Input đủ rõ để chuyển tiếp.
+- **Ý TƯỞNG ĐỦ ĐỘ RÕ RÀNG** (điểm 75 đến 100) — Input đủ rõ ràng và nhất quán để chuyển tiếp.
+- **Ý TƯỞNG CẦN LÀM RÕ THÊM** (điểm 50 đến 74) — Có thể hiểu sơ bộ nhưng còn nhiều điểm mơ hồ cần bổ sung.
+- **Ý TƯỞNG CHƯA ĐỦ ĐỘ RÕ RÀNG** (điểm 0 đến 49) — Input thiếu dữ liệu hoặc đứt gãy logic nghiêm trọng.
 
-Không được cho READY nếu còn BLOCKER.
+**Barem trừ điểm định lượng cố định:**
+- Mốc điểm ban đầu: 100 điểm.
+- Mỗi lỗi **BLOCKER**: Trừ đúng **-20 điểm**.
+- Mỗi lỗi **MAJOR**: Trừ đúng **-10 điểm**.
+- Mỗi lỗi **MINOR**: Trừ đúng **-3 điểm**.
 
-Chọn **NOT READY** nếu có ít nhất một trong các lỗi sau:
+**Quy tắc phân bổ lỗi vào 5 cột điểm thành phần trên PDF:**
+Mỗi cột điểm thành phần (`categoryScores`) bắt đầu từ 100 điểm, trừ theo lỗi phát hiện tại 13 hạng mục tương ứng:
+- **Rõ ràng (`problemClarity`):** Trừ theo lỗi ở các mục (1) Tên ý tưởng, (3) Chân dung khách hàng, (4) Vấn đề khách hàng, (9) Phân vai người dùng & người trả tiền.
+- **Thị trường (`marketViability`):** Trừ theo lỗi ở các mục (2) Khách hàng mục tiêu, (8) Tuyên ngôn giá trị.
+- **Kinh doanh (`businessModel`):** Trừ theo lỗi ở các mục (5) Giải pháp thay thế hiện tại, (11) Nguồn thu dự kiến, (12) Cơ cấu chi phí.
+- **Cạnh tranh (`competitiveMoat`):** Trừ theo lỗi ở các mục (6) Điểm hạn chế của giải pháp hiện tại, (13) Lợi thế cạnh tranh.
+- **Thực thi (`executionFeasibility`):** Trừ theo lỗi ở các mục (7) Giải pháp đề xuất, (10) Phạm vi MVP.
+
+**Điểm tổng (`overallScore`):** Là trung bình cộng làm tròn của 5 cột điểm thành phần trên và bắt buộc phải nằm trong đúng dải điểm của trạng thái tương ứng.
+Không được kết luận Ý TƯỞNG ĐỦ ĐỘ RÕ RÀNG nếu còn lỗi BLOCKER.
+
+Chọn **Ý TƯỞNG CHƯA ĐỦ ĐỘ RÕ RÀNG** nếu có ít nhất một trong các lỗi sau:
 
 - Không rõ target customer.
 - Không rõ customer story hoặc bối cảnh pain.
@@ -434,14 +449,14 @@ Chọn **NOT READY** nếu có ít nhất một trong các lỗi sau:
 - Toàn bộ ý tưởng dựa trên claim mạnh không có bằng chứng và không được ghi là giả định.
 - Không có MVP/test path cho giả định nguy hiểm nhất.
 
-Chọn **PARTIALLY READY** nếu:
+Chọn **Ý TƯỞNG CẦN LÀM RÕ THÊM** nếu:
 
 - Không còn BLOCKER lõi.
 - Có thể hiểu sơ bộ customer, pain, current alternative và solution.
 - Nhưng vẫn còn MAJOR ở evidence, MVP, success metrics, business model, hoặc độ cụ thể của customer/pain.
 - Nhóm có thể chuyển sang phản biện sơ bộ, nhưng vẫn cần bổ sung trước khi phản biện sâu.
 
-Chọn **READY FOR REALITY CHECK** chỉ khi:
+Chọn **Ý TƯỞNG ĐỦ ĐỘ RÕ RÀNG** chỉ khi:
 
 - Không còn BLOCKER.
 - Các field lõi đều Good enough hoặc gần Good enough.
@@ -451,7 +466,7 @@ Chọn **READY FOR REALITY CHECK** chỉ khi:
 - Có MVP/test nhỏ nhất để kiểm chứng giả định nguy hiểm nhất.
 - Có success metrics gắn với hành vi thật hoặc tín hiệu kiểm chứng rõ ràng.
 
-Không được cho **READY FOR REALITY CHECK** chỉ vì ý tưởng nghe hợp lý.
+Không được kết luận **Ý TƯỞNG ĐỦ ĐỘ RÕ RÀNG** chỉ vì ý tưởng nghe có vẻ hợp lý.
 
 ## 7. Format output bắt buộc
 
@@ -529,7 +544,7 @@ Không được cho **READY FOR REALITY CHECK** chỉ vì ý tưởng nghe hợp
 
 ## 8. Kết luận trạng thái
 
-[CHƯA ĐỦ ĐIỀU KIỆN KIỂM CHỨNG THỰC TẾ / ĐỦ ĐIỀU KIỆN MỘT PHẦN / ĐỦ ĐIỀU KIỆN KIỂM CHỨNG THỰC TẾ]
+[Ý TƯỞNG ĐỦ ĐỘ RÕ RÀNG / Ý TƯỞNG CẦN LÀM RÕ THÊM / Ý TƯỞNG CHƯA ĐỦ ĐỘ RÕ RÀNG]
 [Tóm tắt lý do cốt lõi trong 2–4 dòng]
 ```
 
