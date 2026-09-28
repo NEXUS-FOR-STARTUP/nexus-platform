@@ -109,6 +109,36 @@ export function formatReportDateTime(dateInput?: string | Date): string {
     return d.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
   }
 }
+const SCORE_VERDICT_READY_MIN = 75;
+const SCORE_VERDICT_PARTIALLY_MIN = 50;
+
+/**
+ * Chuẩn hóa phát biểu trạng thái thẩm định sang tiếng Việt thuần, không ký tự đặc biệt,
+ * rõ ràng và thống nhất với thang điểm cho người đọc báo cáo PDF/HTML:
+ * - >= 75: Ý TƯỞNG ĐỦ ĐỘ RÕ RÀNG
+ * - 50..74: Ý TƯỞNG CẦN LÀM RÕ THÊM
+ * - < 50: Ý TƯỞNG CHƯA ĐỦ ĐỘ RÕ RÀNG
+ */
+export function formatVerdictDisplay(rawVerdict?: string, overallScore?: number): string {
+  if (typeof overallScore === "number" && !Number.isNaN(overallScore)) {
+    if (overallScore >= SCORE_VERDICT_READY_MIN) {
+      return "Ý TƯỞNG ĐỦ ĐỘ RÕ RÀNG";
+    }
+    if (overallScore >= SCORE_VERDICT_PARTIALLY_MIN) {
+      return "Ý TƯỞNG CẦN LÀM RÕ THÊM";
+    }
+    return "Ý TƯỞNG CHƯA ĐỦ ĐỘ RÕ RÀNG";
+  }
+
+  const v = (rawVerdict || "").toUpperCase();
+  if (v.includes("CHƯA ĐỦ") || v.includes("NOT READY")) {
+    return "Ý TƯỞNG CHƯA ĐỦ ĐỘ RÕ RÀNG";
+  }
+  if (v.includes("ĐỦ ĐỘ RÕ RÀNG") || (v.includes("READY") && !v.includes("PARTIALLY") && !v.includes("NOT"))) {
+    return "Ý TƯỞNG ĐỦ ĐỘ RÕ RÀNG";
+  }
+  return "Ý TƯỞNG CẦN LÀM RÕ THÊM";
+}
 
 /**
  * Chuyển tên dự án tiếng Việt (có dấu, ký tự đặc biệt) thành slug an toàn
@@ -240,7 +270,7 @@ export async function generateReportPdfBuffer(opts: GeneratePdfOptions): Promise
     agent_name: agent,
     created_at: formatReportDateTime(opts.meta.createdAt),
     overall_score: opts.meta.overallScore,
-    verdict: opts.meta.verdict,
+    verdict: formatVerdictDisplay(opts.meta.verdict, opts.meta.overallScore),
     scores: opts.meta.categoryScores,
   }), "utf-8");
 
@@ -317,17 +347,8 @@ export function buildFormalReportHtml({
       ? (result.reportJson as Record<string, unknown>)
       : null;
   const score = typeof report?.overallScore === "number" ? report.overallScore : 0;
-  const rawVerdict = typeof report?.verdict === "string" ? report.verdict.toUpperCase() : "CHƯA XÁC ĐỊNH";
-
-  let verdict = rawVerdict;
-  if (rawVerdict.includes("NOT READY")) {
-    verdict = "CHƯA ĐỦ ĐIỀU KIỆN KIỂM CHỨNG THỰC TẾ";
-  } else if (rawVerdict.includes("PARTIALLY READY")) {
-    verdict = "ĐỦ ĐIỀU KIỆN MỘT PHẦN";
-  } else if (rawVerdict.includes("READY")) {
-    verdict = "ĐỦ ĐIỀU KIỆN KIỂM CHỨNG THỰC TẾ";
-  }
-
+  const rawVerdict = typeof report?.verdict === "string" ? report.verdict : "CHƯA XÁC ĐỊNH";
+  const verdict = formatVerdictDisplay(rawVerdict, score);
   const creationDate = job.createdAt ? new Date(job.createdAt).toLocaleString("vi-VN") : new Date().toLocaleString("vi-VN");
   const projectName =
     (typeof report?.projectName === "string" && report.projectName) ||

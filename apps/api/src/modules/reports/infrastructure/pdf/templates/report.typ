@@ -98,14 +98,13 @@
 #let slash100 = "/ 100"
 
 // Verdict text color only — no badge fill
-#let verdict-color = if total >= 80 {
+#let verdict-color = if total >= 75 {
   rgb(22, 101, 52)
-} else if total >= 60 {
+} else if total >= 50 {
   rgb(120, 53, 15)
 } else {
   rgb(127, 29, 29)
 }
-
 #block(
   width: 100%,
   inset: (x: 14pt, y: 12pt),

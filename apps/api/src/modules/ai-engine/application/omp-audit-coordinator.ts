@@ -395,7 +395,7 @@ export async function triggerOmpAuditForCase(
     admin_triggered: adminTriggered = false,
     force_supersede: forceSupersede = false,
   } = parsed.data;
-  const resolvedModel = model?.trim() || process.env.OMP_MODEL || "mimo/mimo-v2.5-pro";
+  const resolvedModel = model?.trim() || process.env.OMP_MODEL || "opencode-go/deepseek-v4-pro";
   // 2. Validate lifecycle_unit belongs to case (if provided)
   if (lifecycleUnitId) {
     const unit = await prisma.lifecycleUnit.findUnique({ where: { id: lifecycleUnitId } });
@@ -585,12 +585,18 @@ export async function triggerOmpAuditForCase(
     const jobDir = resolve(projectRoot, "storage", "jobs", caseId, newAiJob.id);
     cleanDirectory(resolve(jobDir, "input"));
     cleanDirectory(resolve(jobDir, "output"));
+    // Legacy/flat sandbox path (storage/jobs/<jobId>) for worker compatibility without globbing
+    const flatJobDir = resolve(projectRoot, "storage", "jobs", newAiJob.id);
+    cleanDirectory(resolve(flatJobDir, "input"));
+    cleanDirectory(resolve(flatJobDir, "output"));
 
     // Optional local-dev mirror (e.g. a second checkout's storage). Unset = skip.
     const sandboxStorage = process.env.OMP_SANDBOX_MIRROR_ROOT || "";
     if (existsSync(sandboxStorage)) {
       cleanDirectory(resolve(sandboxStorage, "jobs", caseId, newAiJob.id, "input"));
       cleanDirectory(resolve(sandboxStorage, "jobs", caseId, newAiJob.id, "output"));
+      cleanDirectory(resolve(sandboxStorage, "jobs", newAiJob.id, "input"));
+      cleanDirectory(resolve(sandboxStorage, "jobs", newAiJob.id, "output"));
     }
     // 9. Assemble scoped input files per submission type
     const { inputFiles, resolvedLifecycleUnitId } = await assembleScopedInputFiles(
@@ -624,14 +630,25 @@ export async function triggerOmpAuditForCase(
       }
     }
 
-    // 10. Prepare sandbox
+    // 10. Prepare sandbox (nested as primary, flat as compatibility mirror for immutable worker image)
     prepareSandbox(jobDir, inputFiles);
+
+    try {
+      prepareSandbox(flatJobDir, inputFiles);
+    } catch (flatErr) {
+      logger.warn({ caseId, jobId: newAiJob.id, flatErr }, "Failed to mirror sandbox to flat path for worker compatibility");
+    }
 
     if (existsSync(sandboxStorage)) {
       try {
         prepareSandbox(resolve(sandboxStorage, "jobs", caseId, newAiJob.id), inputFiles);
       } catch (err) {
-        logger.warn({ caseId, err }, "Failed to mirror sandbox to OMP_SANDBOX_MIRROR_ROOT");
+        logger.warn({ caseId, err }, "Failed to mirror sandbox to OMP_SANDBOX_MIRROR_ROOT (nested)");
+      }
+      try {
+        prepareSandbox(resolve(sandboxStorage, "jobs", newAiJob.id), inputFiles);
+      } catch (err) {
+        logger.warn({ caseId, err }, "Failed to mirror sandbox to OMP_SANDBOX_MIRROR_ROOT (flat)");
       }
     }
 
