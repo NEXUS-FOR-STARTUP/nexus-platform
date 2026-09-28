@@ -3,18 +3,27 @@ import assert from "node:assert/strict";
 import {
   buildOmpQueueJobId,
   parseOmpQueueJobId,
+  getJobMilestones,
   ompQueue,
   ompQueueEvents,
   redisPublisher,
   redisSubscriber,
 } from "../../../modules/ai-engine/infrastructure/queue/omp-queue.js";
+import { mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { resolve } from "node:path";
 
 describe("OMP Dual-Key Queue Job ID Helpers", () => {
   after(async () => {
     await ompQueue.close().catch(() => {});
     await ompQueueEvents.close().catch(() => {});
-    redisSubscriber.disconnect();
-    redisPublisher.disconnect();
+    try {
+      if (redisSubscriber.status === "ready") {
+        redisSubscriber.disconnect();
+      }
+      if (redisPublisher.status === "ready") {
+        redisPublisher.disconnect();
+      }
+    } catch {}
   });
 
   describe("buildOmpQueueJobId", () => {
@@ -94,6 +103,35 @@ describe("OMP Dual-Key Queue Job ID Helpers", () => {
 
       assert.strictEqual(parsed.caseId, caseId);
       assert.strictEqual(parsed.aiJobId, aiJobId);
+    });
+  });
+
+  describe("getJobMilestones sibling isolation", () => {
+    const testCaseId = `test-isolation-${Date.now()}`;
+    const job1 = "job-finished-prev";
+    const job2 = "job-new-resubmit";
+    const job1Dir = resolve(process.cwd(), "storage", "jobs", testCaseId, job1, "output");
+    const job2Dir = resolve(process.cwd(), "storage", "jobs", testCaseId, job2, "input");
+    const testCaseDir = resolve(process.cwd(), "storage", "jobs", testCaseId);
+
+    it("does not leak reportJson from sibling job1 to job2 when aiJobId is specified", async () => {
+      try {
+        mkdirSync(job1Dir, { recursive: true });
+        mkdirSync(job2Dir, { recursive: true });
+        writeFileSync(resolve(job1Dir, "report.json"), JSON.stringify({ score: 100 }));
+        writeFileSync(resolve(job2Dir, "doc.md"), "input doc");
+
+        // Job 2 is newly started: should NOT see Job 1's report.json
+        const m2 = await getJobMilestones(testCaseId, job2);
+        assert.strictEqual(m2.reportJson, false, "Job 2 must not see Job 1's reportJson");
+        assert.strictEqual(m2.sandboxReady, true, "Job 2 should see its own input sandbox");
+
+        // Job 1 is completed: should see its own report.json
+        const m1 = await getJobMilestones(testCaseId, job1);
+        assert.strictEqual(m1.reportJson, true, "Job 1 must see its own reportJson");
+      } finally {
+        rmSync(testCaseDir, { recursive: true, force: true });
+      }
     });
   });
 });

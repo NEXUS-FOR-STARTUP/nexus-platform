@@ -132,32 +132,36 @@ export async function getJobMilestones(jobId: string, aiJobId?: string): Promise
   const candidateDirs: string[] = [];
 
   if (aiJobId) {
+    // When aiJobId is provided, candidateDirs MUST strictly be limited to THIS job's directory.
+    // Never scan other sibling subdirectories under storage/jobs/{jobId} (caseId).
     candidateDirs.push(
       resolve(root, "storage", "jobs", jobId, aiJobId),
-      resolve(root, "apps", "api", "storage", "jobs", jobId, aiJobId)
+      resolve(root, "apps", "api", "storage", "jobs", jobId, aiJobId),
+      resolve(root, "storage", "jobs", aiJobId),
+      resolve(root, "apps", "api", "storage", "jobs", aiJobId)
     );
-  }
+  } else {
+    const baseDirs = [
+      resolve(root, "storage", "jobs", jobId),
+      resolve(root, "apps", "api", "storage", "jobs", jobId),
+    ];
 
-  const baseDirs = [
-    resolve(root, "storage", "jobs", jobId),
-    resolve(root, "apps", "api", "storage", "jobs", jobId),
-  ];
-
-  for (const base of baseDirs) {
-    if (await pathExists(base)) {
-      try {
-        const subdirs = (await readdir(base, { withFileTypes: true }))
-          .filter((d) => d.isDirectory() && d.name !== "input" && d.name !== "output");
-        for (const d of subdirs) {
-          candidateDirs.push(resolve(base, d.name));
+    for (const base of baseDirs) {
+      if (await pathExists(base)) {
+        try {
+          const subdirs = (await readdir(base, { withFileTypes: true }))
+            .filter((d) => d.isDirectory() && d.name !== "input" && d.name !== "output");
+          for (const d of subdirs) {
+            candidateDirs.push(resolve(base, d.name));
+          }
+        } catch {
+          // ignore
         }
-      } catch {
-        // ignore
       }
     }
-  }
 
-  candidateDirs.push(...baseDirs);
+    candidateDirs.push(...baseDirs);
+  }
 
   const [sandboxReady, triadPacket, auditReport, reportJson] = await Promise.all([
     (async () => {

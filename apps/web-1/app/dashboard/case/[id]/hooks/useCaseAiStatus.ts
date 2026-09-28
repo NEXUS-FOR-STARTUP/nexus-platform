@@ -64,11 +64,25 @@ export function useCaseAiStatus(caseId: string, enabled = true) {
       const response = await apiClient.post(`/cases/${caseId}/ai-retry`);
       return response.data;
     },
+    onMutate: async () => {
+      queryClient.setQueryData<CaseAiStatusResponse>(["case-ai-status", caseId], (prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          status: "queued",
+          startedAt: new Date().toISOString(),
+          elapsedSeconds: 0,
+          logs: [],
+        };
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["case-ai-status", caseId] });
       queryClient.invalidateQueries({ queryKey: ["case", caseId] });
     },
     onError: (error: unknown) => {
+      queryClient.invalidateQueries({ queryKey: ["case-ai-status", caseId] });
+      queryClient.invalidateQueries({ queryKey: ["case", caseId] });
       const errData = isAxiosError<{ code?: string; message?: string }>(error)
         ? error.response?.data
         : undefined;
