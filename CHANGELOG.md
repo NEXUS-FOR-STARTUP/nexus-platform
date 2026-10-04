@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-04
+
 ### 2026-10-04 — Documentation & Operating Rules Alignment
 
 **Added**
@@ -140,6 +142,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed 12 unused dependencies; deleted dead tracked files and dead exports
 
 ### Removed
+
 - 12 unused dependencies
 - Dead tracked files, dead exports; `getSession` helper deduplicated
 
@@ -257,7 +260,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Codebase summary with file structure
 - Research logging best practices
 
-[Unreleased]: https://github.com/NEXUS-FOR-STARTUP/nexus-platform/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/NEXUS-FOR-STARTUP/nexus-platform/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/NEXUS-FOR-STARTUP/nexus-platform/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/NEXUS-FOR-STARTUP/nexus-platform/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/NEXUS-FOR-STARTUP/nexus-platform/compare/v0.0.1...v1.0.0
 [0.0.1]: https://github.com/NEXUS-FOR-STARTUP/nexus-platform/releases/tag/v0.0.1
