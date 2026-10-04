@@ -17,8 +17,11 @@ AI chỉ được coi các file sau là source of truth chính:
 - `docs/flows/*.md`
 - `docs/requirements/*.md`
 - `docs/technical-notes/*.md`
+- `docs/system-architecture.md`
+- `docs/codebase-summary.md`
+- `docs/code-standards.md`
 
-`docs/archive/` chỉ là legacy reference.
+`docs/archive/`, `docs/research/`, `docs/nexus-document/`, và `docs/journals/` là tài liệu lịch sử / tham khảo, KHÔNG ĐƯỢC dùng làm source of truth kỹ thuật cho code.
 
 ## 3. Quy tắc tạo file
 
@@ -59,9 +62,10 @@ Không được tự bịa:
 - feature rationale
 - success metric
 
-## 8. Quy tắc archive
+## 8. Quy tắc archive & tài liệu phi chuẩn (Non-canonical)
 
-- `docs/archive/` là nơi chứa tài liệu legacy, không phải nguồn chuẩn.
+- `docs/archive/`, `docs/research/`, `docs/nexus-document/`, `docs/journals/` là nơi chứa tài liệu legacy, nghiên cứu cũ, bài nộp học thuật hoặc nhật ký hàng ngày — KHÔNG PHẢI nguồn chuẩn kỹ thuật.
+- Tuyệt đối không trích dẫn các nhận định trong các thư mục trên để áp đặt quyết định code (ví dụ: cấm chat, mô hình audit round cũ, hay các API giả định).
 - Không cập nhật tài liệu cũ như document chính.
 - Nếu cần dùng lại nội dung cũ, phải rút ra và đưa vào canonical docs mới.
 

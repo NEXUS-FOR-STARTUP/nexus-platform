@@ -6,14 +6,14 @@ trigger: always_on
 
 ## 1. Design Intent
 
-Nexus stack: **HeroUI + Tailwind**.
+Nexus stack: **Mantine UI v9 + Tailwind CSS v4**.
 
 Interface feel: clear, focused, calm, practical, trustworthy, modern, polished, slightly creative, never confusing.
 
 No Material Design copy. No direct Google UI copy.
 Use Google-like product thinking: clarity, hierarchy, useful defaults, visible system status, understandable language, predictable interaction.
 
-HeroUI = component base, not ceiling. Custom layout, composition, spacing, visual rhythm, product-specific UI patterns allowed when they improve experience.
+Mantine UI v9 = component base, not ceiling. Custom layout, composition, spacing, visual rhythm, product-specific UI patterns allowed when they improve experience.
 
 ## 2. Rule Priority
 

@@ -6,7 +6,7 @@
 - Route that: `apps/api/src/modules/reports/http/reports.routes.ts:17` (`/:reportId/download`)
 
 ## Overview
-- Priority: P2. Status: pending.
+- Priority: P2. Status: completed.
 - Xoa export chet + sua 2 comment/docstring stale. Khong doi behavior, khong migration.
 
 ## Key Insights
@@ -36,10 +36,10 @@
 5. Chay `check-types` BE (hoac `tsc --noEmit` scope api). Doi xanh.
 
 ## Todo List
-- [ ] Q1 xoa `LEGACY_AUDIT_PACKAGE_KEY` + grep 0 ref
-- [ ] Q3 comment dung `pkg_ai_audit`
-- [ ] Q4 docstring dung `:reportId/download`
-- [ ] BE `check-types` xanh
+- [x] Q1 xoa `LEGACY_AUDIT_PACKAGE_KEY` + grep 0 ref
+- [x] Q3 comment dung `pkg_ai_audit`
+- [x] Q4 docstring dung `:reportId/download`
+- [x] BE `check-types` xanh
 
 ## Success Criteria
 - `grep LEGACY_AUDIT_PACKAGE_KEY` -> 0 match ngoai lich su git.

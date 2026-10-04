@@ -1,6 +1,6 @@
 ---
 title: "Quản lý & Giám sát Tiến trình Thẩm định AI (OMP Worker Monitoring) cho Quản trị viên"
-status: pending
+status: completed
 created: 2026-09-16
 author: AI Agent & Senior System Architect
 tags: [admin, ai-worker, omp, bullmq, monitoring, dashboard, mantine-v9, ux-ui]

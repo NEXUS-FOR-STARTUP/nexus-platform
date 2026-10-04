@@ -7,7 +7,7 @@
 - Truth gia: `prisma/seeds/seed-active-packages.ts:65-67` (`pkg_ai_audit` 79k, `pkg_tf_audit` legacy inactive)
 
 ## Overview
-- Priority: P2. Status: pending.
+- Priority: P2. Status: completed.
 - Q2 xoa keys chet; Q5 null fallback FE-only; Q6 sua gia stale 39k -> 79k.
 
 ## Key Insights
@@ -43,11 +43,11 @@
 7. Chay FE `check-types` (scope web-1). Doi xanh.
 
 ## Todo List
-- [ ] Q2 xoa 2 keys + grep 0 ref
-- [ ] Q5 widen type + RoundCard fallback
-- [ ] Q5 xac nhan BE khong doi (diff khong cham usecase)
-- [ ] Q6 gia 79k + ref seed active
-- [ ] FE `check-types` xanh
+- [x] Q2 xoa 2 keys + grep 0 ref
+- [x] Q5 widen type + RoundCard fallback
+- [x] Q5 xac nhan BE khong doi (diff khong cham usecase)
+- [x] Q6 gia 79k + ref seed active
+- [x] FE `check-types` xanh
 
 ## Success Criteria
 - `pricing.ts` con 3 keys; khong consumer nao hong (typecheck).

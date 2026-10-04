@@ -1,58 +1,63 @@
 # System Architecture
 
-_Cập nhật: 2026-09-20. Bám codebase hiện tại._
+_Cập nhật: 2026-10-04. Bám codebase hiện tại._
 
 ## 1. Mục tiêu tài liệu
 
-Tài liệu này mô tả architecture hiện trạng phục vụ MVP demo Nexus, bám codebase đang có thay vì mô tả tương lai giả định.
+Tài liệu này mô tả architecture hiện trạng phục vụ vận hành sản phẩm Nexus, bám codebase đang có thay vì mô tả tương lai giả định.
 
 ## 2. Kiến trúc tổng quan
 
-Nexus hiện là monorepo Turborepo với 4 vùng chính:
-- `apps/web-1`: product frontend Next.js 16 + Mantine UI v9
-- `apps/api`: backend Hono + Better Auth + Prisma
-- `apps/worker-omp`: worker container xử lý tác vụ AI nặng (OMP agent runner)
-- `packages/validation`: Zod schemas & naming helpers dùng chung (FE↔BE)
-- Redis: Message broker cho BullMQ (`omp-queue`) và Pub/Sub real-time logs
+Nexus hiện là monorepo Turborepo với các vùng chính:
+- `apps/web-1`: product frontend Next.js 16 + Mantine UI v9 (port 3001)
+- `apps/api`: backend Hono + Better Auth + Prisma 7 (15 modules, 112 endpoints, port 8000)
+- `apps/worker-omp`: worker daemon Bun xử lý tác vụ AI nặng qua BullMQ + sandbox cô lập
+- `packages/shared`: `@app/shared` — module quản lý telemetry & metrics CPU/RAM/disk
+- `packages/validation`: Zod schemas & report naming helpers dùng chung (FE↔BE)
+- Redis: Message broker cho BullMQ (`omp-queue`), Pub/Sub real-time logs (`job:logs:*`), và kênh hủy job (`job-cancellation`)
+- Centrifugo v6: Realtime WebSocket message broker cho case chat (`chat:{caseId}`)
 
-Data model trung tâm nằm ở `prisma/schema.prisma` (30 models), với auth, case, checkpoint, lifecycle unit, document record, report, payment, event, AI job, team-fit report, credit ledger, notification (Notification + NotificationOutbox), service catalog (ServiceType + ServicePricing), wallet (UserWallet + WalletTransaction + WalletTopup [deprecated]), deposit/order (Deposit + Order + OrderItem), và domain event outbox (DomainEventOutbox).
+Data model trung tâm nằm ở `prisma/schema.prisma` (32 models, 31 migrations), với auth, case, checkpoint, lifecycle unit, document record, report, payment, event, AI job, team-fit report, credit ledger, notification (Notification + NotificationPreference + NotificationOutbox), chat read state (CaseChatReadState), service catalog (ServiceType + ServicePricing), wallet (UserWallet + WalletTransaction + WalletTopup [deprecated]), deposit/order (Deposit + Order + OrderItem), và domain event outbox (DomainEventOutbox).
 
 ## 2.1 Sơ đồ kiến trúc (text-based)
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│  apps/web-1 (Next.js 16, Mantine UI v9, TanStack Query)      │
-│  ┌─────────┐ ┌──────────┐ ┌───────────┐ ┌───────────────┐   │
-│  │ Student │ │Supporter │ │   Admin   │ │   Auth / UI   │   │
-│  │ Intake  │ │Workspace │ │  Triage   │ │  (useSession) │   │
-│  │Dashboard│ │+ Output  │ │+ Packages │ │  Mantine v9   │   │
-│  │Workspace│ │  Upload  │ │           │ │  Lucide/TQ    │   │
-│  └────┬────┘ └────┬─────┘ └─────┬─────┘ └───────┬───────┘   │
-│       └───────────┴─────────────┴────────────────┘           │
-│                        │ Axios (HTTP)                        │
-└────────────────────────┼─────────────────────────────────────┘
-                         │
-┌────────────────────────┼─────────────────────────────────────┐
-│  apps/api (Hono, Better Auth, Prisma 7)                      │
-│  ┌──────────┐ ┌──────────┐ ┌────────┐ ┌──────────────────┐  │
-│  │  Cases   │ │Documents │ │Reports │ │ Admin/Supporter  │  │
-│  │  module  │ │  module  │ │ module │ │    modules       │  │
-│  │22 routes │ │          │ │        │ │                  │  │
-│  ├──────────┤ ├──────────┤ ├────────┤ ├──────────────────┤  │
-│  │Payments  │ │ Packages │ │AI Eng. │ │ Shared: AppError │  │
-│  │2 routes  │ │  module  │ │ module │ │ requireAuth, etc │  │
-│  └────┬─────┘ └────┬─────┘ └───┬────┘ └──────────────────┘  │
-│       └────────────┴───────────┴───────────────────────────  │
-│                         │ Prisma                              │
-└─────────────────────────┼────────────────────────────────────┘
-                          │
-                  ┌───────┴───────┐
-                  │  PostgreSQL   │
-                  │ (30 models)   │
-                  └───────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│  apps/web-1 (Next.js 16, Mantine UI v9, TanStack Query)                │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌───────────────┐ │
+│  │   Student    │ │  Supporter   │ │    Admin     │ │ Server Guard  │ │
+│  │ Workspace    │ │  Workspace   │ │   Triage &   │ │   proxy.ts    │ │
+│  │ 7 tabs (URL) │ │(Desktop-only)│ │ Worker Mon.  │ │  (Maint. Mode)│ │
+│  │(Responsive)  │ │              │ │(Desktop-only)│ │  useSession   │ │
+│  └──────┬───────┘ └──────┬───────┘ └──────┬───────┘ └───────┬───────┘ │
+│         └────────────────┴────────────────┴─────────────────┘         │
+│                          │ Axios (HTTP) / Centrifugo WS               │
+└──────────────────────────┼────────────────────────────────────────────┘
+                           │
+┌──────────────────────────┼────────────────────────────────────────────┐
+│  apps/api (Hono, Better Auth, Prisma 7, Typst PDF Engine)             │
+│  ┌──────────────────────────────────────────────────────────────────┐ │
+│  │ 15 Modules (Cases, Admin, Reports, Payments, Wallet,             │ │
+│  │ Deposits, Orders, Supporter, AI Engine, Profile, Realtime, etc.) │ │
+│  │ 112 Endpoints (108 module routes + 4 system routes)              │ │
+│  └──────────────┬──────────────────┬─────────────────┬──────────────┘ │
+│                 │ BullMQ Producer  │ Domain Events   │ Prisma         │
+└─────────────────┼──────────────────┼─────────────────┼────────────────┘
+                  │                  │                 │
+       ┌──────────┴──────────┐       │         ┌───────┴───────┐
+       │   Redis 7           │       │         │  PostgreSQL   │
+       │  - omp-queue        │       │         │  (32 models)  │
+       │  - job:logs:*       │       │         │  - Outboxes   │
+       │  - job-cancellation │       │         └───────────────┘
+       └──────────┬──────────┘       │
+                  │ BullMQ Consumer  │
+┌─────────────────┴──────────────────┴──────────────────────────────────┐
+│  apps/worker-omp (BullMQ Worker Daemon, Bun runtime)                  │
+│  - Sandbox: storage/jobs/${caseId}/${jobId}/ (input/output)          │
+│  - Redis Dual-Publish Logger (Admin Terminal + Student SSE)          │
+│  - Output: report.json (Typst PDF compilation handled by apps/api)    │
+└───────────────────────────────────────────────────────────────────────┘
 ```
-
-> Sơ đồ trên là snapshot trước phase notifications + realtime + wallet + deposits/orders + profile. Module mới `notifications` (5 routes: list, unread-count, `:id/read` PATCH, read-all PATCH, `stream` SSE) + `realtime` (2 routes: connection-token, `cases/:caseId/subscribe-token`) + `wallet` (4 routes: balance, history, purchase-credits [deprecated], topups [410 GONE]) + `deposits` (5 routes) + `orders` (3 routes) + `profile` (5 routes: avatar upload, delete account, list active sessions, revoke session, revoke other sessions) + event bus `shared/` (xem §4.5, §4.6, §4.8) chưa vẽ vào. API hiện: 14 modules, 86 routes (82 module + 4 system: `/`, `/health`, `/stream`, `/session`).
 
 ## 3. Frontend surfaces chính
 
@@ -67,13 +72,14 @@ Tham chiếu:
 
 ### 3.2 Student dashboard + case workspace
 - dashboard liệt kê case của user
-- case workspace có sidebar shell
-- điều hướng chính hiện bám `documents`, `discussion`, `timeline`, `settings`
+- case workspace có sidebar shell và 7 tabs chính (`overview`, `documents`, `report`, `discussion`, `timeline`, `settings`, `credits`) đồng bộ trạng thái qua query param `?tab=`
+- điều hướng và hiển thị tab được gate theo gói dịch vụ (ví dụ: gói `pkg_ai_audit` ẩn tab trao đổi trực tiếp)
 - page dùng `useCaseDetails(id)` để lấy dữ liệu workspace (polling 10s)
 - stage-based case flow: `CaseStatusHeader` (hiển thị `user_facing_stage` + next action), `StatusGuidanceCard`, `CaseOverviewPanel`
 - credit/ledger economy: `CreditPanel`, `CreditQuantityModal`, `CreditActions`, `CreditTransactionHistory`, `CreditBalanceCard` — mua credit, xem lịch sử giao dịch, số dư hiện tại
 - payment/credit là core economy (không còn là surface phụ): mua credit qua sepay webhook, admin veto-with-refund (48h)
-- ví VND (2026-08-11): trang `/dashboard/wallet` hiển thị số dư VND (`WalletBalanceCard`), lịch sử giao dịch (`WalletTransactionList`/`WalletTransactionItem`), và modal nạp tiền SePay (`WalletTopupModal` — trả QR + transfer content); nav item "Ví của tôi" (icon Wallet) trong `DashboardShell` cho student; hooks `useWalletBalance`/`useWalletHistory`/`useCreateDeposit` (`app/dashboard/wallet/hooks/useWallet.ts`, polling 30s)
+- ví VND: trang `/dashboard/wallet` hiển thị số dư VND (`WalletBalanceCard`), lịch sử giao dịch (`WalletTransactionList`), và modal nạp tiền SePay (`WalletTopupModal`); nav item "Ví của tôi" (icon Wallet) trong `DashboardShell` cho student
+- **Device Persona Scope**: Toàn bộ luồng sinh viên (dashboard, intake, case workspace, wallet, settings) hỗ trợ mobile responsive (drawer nav, card view table, collapsible radar). Ngược lại, giao diện Supporter và Admin là **Desktop-only tuyệt đối** (chặn truy cập trên màn hình < 1024px bởi `DesktopOnlyNotice.tsx`).
 
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/page.tsx`
@@ -251,22 +257,24 @@ Tham chiếu:
 > Ghi chú: component `VersionSelector` không còn tồn tại trong codebase — version switching không còn là bề mặt UI riêng.
 
 ### 5.5 Workspace tabs abstraction
-Case workspace dùng `WorkspaceTabs` để điều hướng giữa các tab, mỗi tab là một component riêng:
+Case workspace dùng `WorkspaceTabs` để điều hướng giữa **7 tabs**, đồng bộ 2 chiều với query param URL `?tab=` và tự động gate theo gói dịch vụ (ví dụ: `pkg_ai_audit` ẩn tab `discussion`):
 
-| Tab | Component | Vai trò |
-|-----|-----------|---------|
-| Nội dung ý tưởng | `TabIdeaContent` | Xem nội dung case và intake snapshot |
-| Trao đổi | `TabDiscussionChat` | Chat realtime Centrifugo (WS), REST + polling 60s fallback |
-| Kết quả đánh giá | `TabReportFindings` | Xem report và findings |
-| Timeline | `ActivityTimeline` | Event log liên tục |
-| Document | (qua `DocumentWorkspace`) | Tài liệu theo checkpoint |
+| Tab ID | Component | Vai trò | Gating / Điều kiện |
+|--------|-----------|---------|---------------------|
+| `overview` | `TabOverview` / `CaseOverviewPanel` | Xem tổng quan hồ sơ, intake snapshot, team members | Mặc định |
+| `documents` | `DocumentWorkspace` | Quản lý tài liệu theo checkpoint, checklist minh chứng | Luôn mở |
+| `report` | `TabReportFindings` | Xem báo cáo phản biện, tải PDF chuẩn Typst | Mở khi có report draft/published |
+| `discussion` | `TabDiscussionChat` | Chat realtime Centrifugo (WS), REST + polling 60s fallback | Chỉ mở cho gói có supporter |
+| `timeline` | `ActivityTimeline` | Nhật ký sự kiện và tiến độ hồ sơ liên tục | Luôn mở |
+| `settings` | `TabCaseSettings` | Cài đặt hồ sơ, quyền thành viên | Chỉ owner |
+| `credits` | `CreditPanel` | Quản lý số dư lượt phản biện, nạp & khóa lượt khi case hoàn thành | Luôn mở |
 
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/WorkspaceTabs.tsx`
-- `apps/web-1/app/dashboard/case/[id]/_components/TabIdeaContent.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/TabDiscussionChat.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/TabReportFindings.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/TabCaseSettings.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CreditPanel.tsx`
 
 ### 5.6 Stage flow & revision rounds
 Workspace điều hướng theo stage (`user_facing_stage`) và revision rounds qua:
