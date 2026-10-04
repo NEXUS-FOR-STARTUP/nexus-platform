@@ -4,10 +4,7 @@ import {
   Trash2,
   ExternalLink,
   Search,
-  AlertCircle,
-  Calendar,
-  User,
-  Folder,
+  MoreVertical,
 } from "lucide-react";
 import {
   Table,
@@ -17,8 +14,7 @@ import {
   TextInput,
   Select,
   Group,
-  Text,
-  Tooltip,
+  Menu,
 } from "@mantine/core";
 
 interface DocumentRecordDto {
@@ -38,6 +34,7 @@ interface DocumentRecordDto {
   uploaded_by: string;
   uploaded_by_email: string;
   created_at: string;
+  superseded_at: string | null;
 }
 
 interface AdminDocumentsTableProps {
@@ -257,7 +254,7 @@ export default function AdminDocumentsTable({
                 <Table.Tr key={doc.id} className="hover:bg-surface-soft/30 transition-colors">
                   {/* File name & Download URL */}
                   <Table.Td>
-                    <div className="flex items-center gap-2 max-w-[280px]">
+                    <div className={`flex items-center gap-2 max-w-[280px] ${doc.superseded_at ? "opacity-60" : ""}`}>
                       {getFileIcon(doc.extension)}
                       <div className="truncate">
                         {doc.file_url ? (
@@ -289,16 +286,22 @@ export default function AdminDocumentsTable({
 
                   {/* Doc type */}
                   <Table.Td>
-                    <Badge color="blue" variant="light" size="sm">
-                      {doc.doc_type}
-                    </Badge>
+                    <div className="flex flex-col gap-1 items-start">
+                      <Badge color="blue" variant="light" size="sm">
+                        {doc.doc_type}
+                      </Badge>
+                      {doc.superseded_at && (
+                        <Badge color="orange" variant="light" size="xs">
+                          Đã thay thế
+                        </Badge>
+                      )}
+                    </div>
                   </Table.Td>
 
                   {/* Related Case */}
                   <Table.Td>
                     <div className="flex flex-col gap-0.5">
-                      <span className="font-heading font-semibold text-base text-text-app flex items-center gap-1">
-                        <Folder className="w-3.5 h-3.5 text-brand" />
+                      <span className="font-heading font-semibold text-base text-text-app">
                         {doc.case_code}
                       </span>
                       <span className="text-base text-text-muted truncate max-w-[180px]">
@@ -310,8 +313,7 @@ export default function AdminDocumentsTable({
                   {/* Uploaded By */}
                   <Table.Td>
                     <div className="flex flex-col gap-0.5">
-                      <span className="font-semibold text-base text-text-app flex items-center gap-1">
-                        <User className="w-3.5 h-3.5 text-text-muted" />
+                      <span className="font-semibold text-base text-text-app">
                         {doc.uploaded_by}
                       </span>
                       <span className="text-base text-text-muted truncate max-w-[180px]">
@@ -322,25 +324,29 @@ export default function AdminDocumentsTable({
 
                   {/* Date Created */}
                   <Table.Td className="text-text-subtle text-base">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5 text-text-muted" />
-                      {formatDate(doc.created_at)}
-                    </span>
+                    {formatDate(doc.created_at)}
                   </Table.Td>
 
                   {/* Action */}
                   <Table.Td className="text-center">
-                    <Tooltip label="Xóa tài liệu khỏi hệ thống" withArrow position="left">
-                      <ActionIcon
-                        variant="subtle"
-                        color="red"
-                        onClick={() => handleDeleteClick(doc.id, doc.original_name)}
-                        disabled={isDeleting}
-                        className="cursor-pointer mx-auto"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </ActionIcon>
-                    </Tooltip>
+                    <Menu shadow="md" width={180} position="bottom-end">
+                      <Menu.Target>
+                        <ActionIcon variant="subtle" color="gray" className="cursor-pointer mx-auto">
+                          <MoreVertical className="w-4 h-4" />
+                        </ActionIcon>
+                      </Menu.Target>
+
+                      <Menu.Dropdown className="bg-surface-app border border-border-app p-1 rounded-lg">
+                        <Menu.Item
+                          leftSection={<Trash2 className="w-3.5 h-3.5 text-danger" />}
+                          onClick={() => handleDeleteClick(doc.id, doc.original_name)}
+                          disabled={isDeleting}
+                          className="text-danger hover:bg-danger-soft cursor-pointer text-xs font-semibold"
+                        >
+                          Xóa tài liệu
+                        </Menu.Item>
+                      </Menu.Dropdown>
+                    </Menu>
                   </Table.Td>
                 </Table.Tr>
               ))

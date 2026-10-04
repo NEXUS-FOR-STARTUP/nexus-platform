@@ -23,6 +23,16 @@ trigger: always_on
 - **[IMPORTANT]** Follow the codebase structure and code standards in `./docs` during implementation.
 - **[IMPORTANT]** Do not just simulate the implementation or mocking them, always implement the real code.
 
+## Tooling & Code Intelligence Hierarchy
+- **Architecture & Symbol Discovery**: Prioritize `CodeGraph` (`codegraph_explore` MCP) for finding symbols, call paths, blast radius, and reading implementations in a single round-trip before editing.
+- **Type Intelligence & Precision Refactoring**: Use `LSP` (`xd://lsp`):
+  - `diagnostics`: Fast file-level type error verification without running full monorepo typecheck.
+  - `rename` / `rename_file`: Safe cross-file renaming to ensure zero missed callsites or broken imports.
+  - `definition` / `type_definition` / `references` / `hover`: Symbol navigation across monorepo packages (`@repo/validation`, `.js` relative imports).
+  - `code_actions`: Server-assisted auto-imports and quick-fixes.
+- **Structural Rewrites**: Use `ast_edit` (`xd://ast_edit`) for multi-file AST pattern replacements.
+- **Search Fallback**: Use `grep` / `glob` for non-indexed files, configurations, documentation, or raw string queries.
+
 ## Code Quality Guidelines
 - Read and follow codebase structure and code standards in `./docs`
 - Don't be too harsh on code linting, but **make sure there are no syntax errors and code are compilable**

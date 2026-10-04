@@ -1,9 +1,3 @@
-# =============================================================================
-# Docker Compose — Nexus Platform (Production VPS)
-# =============================================================================
-# Prerequisites: docker network create proxy-net
-# =============================================================================
-
 name: nexus-platform
 
 services:
@@ -54,9 +48,19 @@ services:
       PORT: "8000"
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable
       BETTER_AUTH_URL: https://${DOMAIN}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      APP_ROOT: /app
+      OMP_MODEL: ${OMP_MODEL:-openai-codex/gpt-5.6-sol}
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - /var/log/nexus:/app/logs
+      - ./storage:/app/storage
+      - ./data:/app/data:ro
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8000/health || exit 1"]
       interval: 30s
@@ -66,10 +70,15 @@ services:
     networks:
       - nexus-network
       - proxy-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     deploy:
       resources:
         limits:
-          cpus: "0.5"
+          cpus: "1.0"
           memory: 512M
         reservations:
           cpus: "0.25"
@@ -78,16 +87,25 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy-net"
       - "traefik.http.middlewares.compress.compress=true"
-      - "traefik.http.middlewares.security-headers.headers.browserXssFilter=true"
-      - "traefik.http.middlewares.security-headers.headers.contentTypeNosniff=true"
-      - "traefik.http.middlewares.security-headers.headers.frameDeny=true"
-      - "traefik.http.middlewares.security-headers.headers.referrerPolicy=strict-origin-when-cross-origin"
+      - "traefik.http.middlewares.security-headers-api.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.security-headers-api.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.security-headers-api.headers.customFrameOptionsValue=SAMEORIGIN"
+      - "traefik.http.middlewares.security-headers-api.headers.contentSecurityPolicy=frame-ancestors 'self'"
+      - "traefik.http.middlewares.security-headers-api.headers.referrerPolicy=strict-origin-when-cross-origin"
       - "traefik.http.routers.nexus-api.rule=Host(`${DOMAIN}`) && (PathPrefix(`/api`) || PathPrefix(`/health`) || PathPrefix(`/session`) || PathPrefix(`/stream`))"
       - "traefik.http.routers.nexus-api.entrypoints=websecure"
       - "traefik.http.routers.nexus-api.tls=true"
       - "traefik.http.routers.nexus-api.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.nexus-api.middlewares=compress,security-headers"
+      - "traefik.http.routers.nexus-api.middlewares=compress,security-headers-api"
+      - "traefik.http.routers.nexus-api.service=nexus-api"
       - "traefik.http.services.nexus-api.loadbalancer.server.port=8000"
+      - "traefik.http.routers.nexus-api-stream.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/notifications/stream`)"
+      - "traefik.http.routers.nexus-api-stream.entrypoints=websecure"
+      - "traefik.http.routers.nexus-api-stream.tls=true"
+      - "traefik.http.routers.nexus-api-stream.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.nexus-api-stream.middlewares=security-headers-api"
+      - "traefik.http.routers.nexus-api-stream.service=nexus-api-stream"
+      - "traefik.http.services.nexus-api-stream.loadbalancer.server.port=8000"
 
   web:
     image: lgdlong/nexus-web:latest
@@ -117,12 +135,114 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy-net"
+      - "traefik.http.middlewares.compress-web.compress=true"
+      - "traefik.http.middlewares.security-headers-web.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.security-headers-web.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.security-headers-web.headers.frameDeny=true"
+      - "traefik.http.middlewares.security-headers-web.headers.referrerPolicy=strict-origin-when-cross-origin"
       - "traefik.http.routers.nexus-web.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.nexus-web.entrypoints=websecure"
       - "traefik.http.routers.nexus-web.tls=true"
       - "traefik.http.routers.nexus-web.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.nexus-web.middlewares=compress,security-headers"
+      - "traefik.http.routers.nexus-web.middlewares=compress-web,security-headers-web"
       - "traefik.http.services.nexus-web.loadbalancer.server.port=3000"
+
+  centrifugo:
+    image: centrifugo/centrifugo:v6
+    container_name: nexus-centrifugo
+    restart: unless-stopped
+    stop_grace_period: 10s
+    ports:
+      - "127.0.0.1:${CENTRIFUGO_EXPOSED_PORT:-8010}:8000"
+    environment:
+      CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY: ${CENTRIFUGO_TOKEN_SECRET}
+      CENTRIFUGO_HTTP_API_KEY: ${CENTRIFUGO_API_KEY}
+      CENTRIFUGO_CLIENT_ALLOWED_ORIGINS: ${CENTRIFUGO_ALLOWED_ORIGINS:-https://${DOMAIN}}
+    volumes:
+      - ./centrifugo/config.json:/centrifugo/config.json:ro
+    command: centrifugo -c /centrifugo/config.json
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - nexus-network
+      - proxy-net
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy-net"
+      - "traefik.http.middlewares.security-headers-ws.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.security-headers-ws.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.security-headers-ws.headers.referrerPolicy=strict-origin-when-cross-origin"
+      - "traefik.http.routers.nexus-centrifugo.rule=Host(`${DOMAIN}`) && PathPrefix(`/connection`)"
+      - "traefik.http.routers.nexus-centrifugo.entrypoints=websecure"
+      - "traefik.http.routers.nexus-centrifugo.tls=true"
+      - "traefik.http.routers.nexus-centrifugo.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.nexus-centrifugo.middlewares=security-headers-ws"
+      - "traefik.http.services.nexus-centrifugo.loadbalancer.server.port=8000"
+
+  redis:
+    image: redis:7-alpine
+    container_name: nexus-redis
+    restart: unless-stopped
+    stop_grace_period: 10s
+    ports:
+      - "127.0.0.1:${REDIS_HOST_PORT:-6390}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+    networks:
+      - nexus-network
+
+  worker-omp:
+    build:
+      context: .
+      dockerfile: apps/worker-omp/Dockerfile
+    image: lgdlong/nexus-worker-omp:latest
+    container_name: nexus-worker-omp
+    restart: unless-stopped
+    stop_grace_period: 30s
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - STORAGE_DIR=/app/storage
+      - NODE_ENV=production
+      - OMP_MODEL=${OMP_MODEL:-openai-codex/gpt-5.6-sol}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+    volumes:
+      - ./storage:/app/storage
+      - ./data:/app/data:ro
+      - ${HOST_OMP_DIR:-./storage/auth/omp}:/root/.omp
+    depends_on:
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+    networks:
+      - nexus-network
 
 volumes:
   postgres_data:

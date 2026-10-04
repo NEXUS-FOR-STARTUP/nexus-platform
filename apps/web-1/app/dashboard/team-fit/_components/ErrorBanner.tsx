@@ -10,7 +10,7 @@ export default function ErrorBanner({ errors }: ErrorBannerProps) {
   return (
     <div className="mb-6 p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl">
       <p className="text-red-700 dark:text-red-400 font-semibold text-sm mb-2">
-        Vui lòng sửa các lỗi sau:
+        Thông tin cần hoàn thiện:
       </p>
       <ul className="list-disc list-inside space-y-1">
         {errors.map((err, i) => (

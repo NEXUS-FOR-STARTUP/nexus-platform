@@ -1,5 +1,0 @@
-/**
- * Reports module schemas.
- */
-
-export {};

@@ -2,6 +2,10 @@
 
 Hướng dẫn chạy Prisma migration an toàn trên production sử dụng Docker container.
 
+_Cập nhật: 2026-08-24. Hiện có 23 migration folders trong `prisma/migrations/` (latest: `20260819171456_case_messages_pagination_index`)._
+
+> Sau bất kỳ thay đổi schema nào, **bắt buộc chạy `migrate deploy`** (bước 5) khi deploy lên VPS — không thì migration mới chưa áp dụng và API fail khi ghi vào bảng/cột mới. Luôn kiểm tra migration hiện hành bằng `ls prisma/migrations/` trước khi viết doc.
+
 > ⚠️ **ĐỌC TRƯỚC KHI CHẠY BẤT CỨ LỆNH NÀO**
 >
 > Migration trên production DB là thao tác **nguy hiểm**. Sai sót có thể gây mất dữ liệu không thể khôi phục.
@@ -18,20 +22,22 @@ Hướng dẫn chạy Prisma migration an toàn trên production sử dụng Doc
 ## Lệnh Migration
 
 ```bash
+# Cách 1: Dùng Makefile (khuyến nghị)
+make migrate
+
+# Cách 2: Dùng docker compose trực tiếp qua container api đang chạy
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec api \
-  npx prisma migrate deploy --schema prisma/schema.prisma
+  bun x prisma migrate deploy --schema prisma/schema.prisma
 ```
 
 ### Giải thích
 
 | Phần | Ý nghĩa |
 |------|---------|
-| `docker compose -f docker-compose.prod.yml` | Dùng compose file production |
-| `--env-file .env.prod` | Load biến môi trường từ file `.env.prod` (chứa `DATABASE_URL`) |
-| `exec api` | Chạy lệnh trong container API đang chạy (không tạo container mới) |
-| `npx prisma migrate deploy` | Áp dụng migration chưa chạy vào database (chỉ chạy migration mới, không reset) |
+| `make migrate` | Lệnh rút gọn chạy `docker compose exec api bun x prisma migrate deploy ...` |
+| `exec api` | Chạy lệnh trực tiếp trong container `nexus-api` đang hoạt động |
+| `bun x prisma migrate deploy` | Áp dụng migration chưa chạy vào database (an toàn, không reset) |
 | `--schema prisma/schema.prisma` | Đường dẫn schema file trong container |
-
 ## Workflow Chuẩn
 
 ### 1. Local — Tạo Migration File
@@ -67,10 +73,11 @@ docker compose -f docker-compose.prod.yml up -d api
 ### 5. Chạy Migration
 
 ```bash
+make migrate
+# hoặc:
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec api \
-  npx prisma migrate deploy --schema prisma/schema.prisma
+  bun x prisma migrate deploy --schema prisma/schema.prisma
 ```
-
 Output kỳ vọng:
 ```
 Prisma Migrate deployed the following migration(s):
@@ -84,10 +91,11 @@ Prisma Migrate deployed the following migration(s):
 ### Kiểm tra migration đã áp dụng
 
 ```bash
+make migrate-status
+# hoặc:
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec api \
-  npx prisma migrate status --schema prisma/schema.prisma
+  bun x prisma migrate status --schema prisma/schema.prisma
 ```
-
 Output kỳ vọng:
 ```
 Prisma Migrate status:
@@ -107,8 +115,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod exec api \
 # Pull, restart, migrate
 docker compose -f docker-compose.prod.yml pull api && \
   docker compose -f docker-compose.prod.yml up -d api && \
-  docker compose -f docker-compose.prod.yml --env-file .env.prod exec api \
-    npx prisma migrate deploy --schema prisma/schema.prisma
+  make migrate
 ```
 
 ## Troubleshooting
@@ -135,10 +142,11 @@ Migration có lỗi SQL. Rollback bằng cách deploy image cũ và sửa migrat
 |-----------|-----------|---------|
 | `prisma migrate deploy` | ✅ | Chỉ chạy migration chưa applied |
 | `prisma migrate status` | ✅ | Chỉ đọc, an toàn |
-| `prisma migrate dev` | ❌ | **Tuyệt đối không** — chạy full run, có thể reset DB |
+| `prisma migrate dev --create-only` | ✅ | Tạo migration file ở local, không áp dụng lên DB |
+| `prisma migrate dev` (full run) | ❌ | **Tuyệt đối không** — chạy full run, có thể reset DB |
 | `prisma migrate reset` | ❌ | Sẽ xoá toàn bộ dữ liệu |
 | `prisma db push` | ❌ | Không qua migration, không thể rollback |
-| `prisma migrate resolve` | ⚠️ | Chỉ khi có người hiểu rõ hậu quả |
+| `prisma migrate resolve` | ❌ | Tuyệt đối không chạy trên production (xem `.agents/rules/prisma-migration-safety.md` — thuộc danh sách Absolute Forbidden) |
 
 ## Reference
 

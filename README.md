@@ -7,23 +7,24 @@ Monorepo cho `apps/api`, `apps/web-1`, và shared `packages/*`. Nền tảng wor
 - **Frontend:** Next.js 16.2.0, React 19.2.0, Mantine UI v9 (`@mantine/core`, `@mantine/hooks`, `@mantine/charts`, `@mantine/tiptap`, `@mantine/notifications`, `@mantine/dropzone`...)
 - **TanStack:** Query v5, Form v1, Virtual v3
 - **UI:** Lucide React (icons), Recharts (charts), TipTap (editor)
-- **Backend:** Hono 4.12, Better Auth 1.4 (email/password + Google OAuth), Vercel AI SDK (`@ai-sdk/google`, `@ai-sdk/openai`)
-- **Database:** Prisma 7 + PostgreSQL (PgBouncer adapter)
+- **Backend:** Hono 4.12, Better Auth 1.4 (email/password + Google OAuth), Vercel AI SDK (`@ai-sdk/google`), BullMQ + Redis
+- **Database:** Prisma 7 + PostgreSQL (PgBouncer adapter, 32 models, 31 migrations)
 - **Tooling:** TypeScript, Turborepo, Tailwind CSS v4, next-themes, dayjs, axios
-- **Monorepo:** npm workspaces, Turbo 2.10
+- **Monorepo:** Bun workspaces, Turbo 2.10
 
 ## Structure
 
 ```txt
 root/
-├── apps/api/        # Hono backend, auth, Prisma, streaming
-├── apps/web-1/      # Next.js 16 product app (Mantine UI v9)
+├── apps/api/        # Hono backend, auth, Prisma, streaming (port 8000)
+├── apps/web-1/      # Next.js 16 product app (Mantine UI v9, port 3001)
+├── apps/worker-omp/ # AI evaluation daemon (BullMQ + Redis sandbox)
 ├── packages/
-│   ├── ui/          # Shared React primitives
+│   ├── shared/      # Shared telemetry & worker metrics (@app/shared)
 │   ├── validation/  # Zod schemas (IdeaInput, TeamFitInput...)
 │   ├── eslint-config/ # ESLint 9 flat configs
 │   └── typescript-config/ # tsconfig presets
-├── prisma/          # Root Prisma schema (16 models)
+├── prisma/          # Root Prisma schema (32 models, 31 migrations)
 ├── docs/            # Product + technical documentation
 ├── .agents/rules/   # Agent development rules
 └── .codegraph/      # Code intelligence index
@@ -32,7 +33,7 @@ root/
 ## Setup
 
 ```bash
-npm install
+bun install
 ```
 
 Tạo root `.env` từ `.env.example`, set:
@@ -50,13 +51,20 @@ Tạo root `.env` từ `.env.example`, set:
 - `CLOUDINARY_API_SECRET`
 - `GOOGLE_GENERATIVE_AI_API_KEY` *(tuỳ chọn, cho AI engine)*
 - `OPENAI_API_KEY` *(tuỳ chọn, cho AI engine)*
+- `TELEGRAM_BOT_TOKEN` / `TELEGRAM_ADMIN_CHAT_ID` / `TELEGRAM_SUPPORTER_CHAT_ID` *(tuỳ chọn, kênh Telegram notifications)*
+- `RESEND_API_KEY` / `RESEND_FROM_EMAIL` *(tuỳ chọn, email notifications)*
+- `NOTIFICATIONS_ENABLED` *(tuỳ chọn, mặc định `true`)*
+- `CENTRIFUGO_URL` / `CENTRIFUGO_TOKEN_SECRET` / `CENTRIFUGO_API_KEY` *(realtime chat — bắt buộc nếu dùng Centrifugo)*
+- `NEXT_PUBLIC_CENTRIFUGO_URL` *(build-time, Web client)*
 
 Cloudinary dùng cho upload minh chứng thanh toán. Lưu `secure_url` trong payment record.
+
+Notifications/realtime chi tiết: [`docs/realtime-centrifugo-guide.md`](docs/realtime-centrifugo-guide.md).
 
 ## Run
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 Ports:
@@ -67,11 +75,11 @@ Ports:
 ## Build và checks
 
 ```bash
-npm run build
-npm run lint
-npm run check-types
-npm run prisma:generate
-npm run prisma:migrate
+bun run build
+bun run lint
+bun run check-types
+bun run prisma:generate
+bun run prisma:migrate
 ```
 
 ## Quy ước
@@ -95,5 +103,8 @@ npm run prisma:migrate
 | `docs/db-query-guide.md` | Hướng dẫn truy vấn DB an toàn |
 | `docs/db-backup-guide.md` | Hướng dẫn backup DB |
 | `docs/db-migration-guide.md` | Hướng dẫn migration Prisma |
+| `docs/realtime-centrifugo-guide.md` | Vận hành & troubleshooting realtime chat (Centrifugo v6) |
+| `docs/shared-validation-convention.md` | Quy ước zod/entity dùng chung FE↔BE |
 | `docs/docker-build-push-guide.md` | Hướng dẫn build/push Docker image |
 | `docs/ci-guide.md` | Hướng dẫn CI/CD với GitHub Actions |
+| `docs/deploy-log.md` | Log các lần deploy image lên Docker Hub |

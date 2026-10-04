@@ -1,0 +1,1 @@
+-- AlterTable ALTER TABLE "payments" ADD COLUMN "transfer_content" TEXT;

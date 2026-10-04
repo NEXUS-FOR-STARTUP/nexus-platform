@@ -14,6 +14,10 @@ Quy tắc:
 
 Sau đó:
 - [`intake-flow.md`](./intake-flow.md)
+- [`payment-verification-flow.md`](./payment-verification-flow.md)
 - [`admin-triage-and-assignment-flow.md`](./admin-triage-and-assignment-flow.md)
 - [`case-lifecycle-flow.md`](./case-lifecycle-flow.md)
+- [`team-fit-flow.md`](./team-fit-flow.md)
 - [`cp1-mvp-screen-spec.md`](./cp1-mvp-screen-spec.md)
+- [`camunda/README.md`](./camunda/README.md) — bộ file BPMN + DMN chuẩn OMG mô tả cùng các flow trên
+  (mở bằng Camunda Modeler / bpmn.io; đã qua lint `c8ctl bpmn lint` + `dmnlint`)

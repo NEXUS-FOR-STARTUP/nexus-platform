@@ -1,6 +1,6 @@
 import { User } from "./user";
 import { ServicePackage } from "./package";
-import { Payment } from "./payment";
+import { Payment, Order } from "./payment";
 
 export interface Case {
   id: string;
@@ -20,7 +20,7 @@ export interface Case {
   credit_balance?: number;              // NEW — derived from CreditLedger
   credit_ledger?: CreditLedger[];
   sla_deadline_at?: string | null;      // NEW — from case.sla_deadline_at
-  allowed_transitions?: string[];       // NEW — valid symflow transitions
+  allowed_transitions?: string[];       // NEW — valid XState transitions
   deadline?: string | null;
   created_at: string;
   updated_at: string;
@@ -33,9 +33,11 @@ export interface Case {
   lifecycle_units?: LifecycleUnit[];
   reports?: Report[];
   payments?: Payment[];
+  orders?: Order[];
   messages?: CaseMessage[];
   events?: CaseEvent[];
   team_fit_report?: TeamFitReport | null;
+  latest_ai_job_status?: string | null;
 }
 
 export interface TeamFitReport {
@@ -52,6 +54,7 @@ export interface CreditLedger {
   amount: number;
   balance_after: number;
   type: "purchase" | "consumption" | "refund";
+  reference_type: string | null;
   reference_id: string | null;
   created_at: string;
 }
@@ -102,6 +105,7 @@ export interface Report {
   lifecycle_unit_id?: string | null;
   report_type: string;
   content_md: string;
+  metadata_json?: Record<string, unknown> | null;
   status: "draft" | "sent" | "APPROVED" | string;
   created_by: string;
   approved_by_auth_user_id?: string | null;
@@ -114,6 +118,15 @@ export interface Report {
   case?: Case;
 }
 
+export interface RoundHistoryEntry {
+  report_id: string;
+  version_no: number | null;
+  submitted_at: string;
+  submission_type: "initial" | "resubmit" | "logic_check" | null;
+  report: Report | null;
+  pdfUrl?: string | null;
+}
+
 export interface CaseMessage {
   id: string;
   case_id: string;
@@ -122,6 +135,11 @@ export interface CaseMessage {
   content: string;
   created_at: string;
   sender?: User;
+}
+
+export interface CaseMessagesPage {
+  messages: CaseMessage[];
+  next_cursor: string | null;
 }
 
 export interface CaseEvent {
@@ -193,6 +211,7 @@ export interface DocumentFile {
   is_primary: boolean;
   doc_type?: string | null;
   doc_type_label?: string | null;
+  category?: string | null;
   source_kind: "drive" | "cloudinary" | "generated";
   canonical_name: string | null;
   original_name: string | null;
@@ -213,7 +232,7 @@ export interface StatusThemeDetails {
 }
 
 export const statusThemeMap: Record<string, StatusThemeDetails> = {
-  intake_pending: { label: "Chờ thanh toán — Kích hoạt kiểm tra chuyên sâu", color: "primary" },
+  intake_pending: { label: "Chờ kích hoạt — Mua credit đánh giá chuyên sâu", color: "primary" },
   intake_ready: { label: "Sẵn sàng — Cập nhật thông tin hồ sơ", color: "primary" },
   submitted: {
     label: "Hồ sơ đã gửi — chờ xét duyệt",
@@ -319,4 +338,34 @@ export const statusThemeMap: Record<string, StatusThemeDetails> = {
     label: "Đã hủy",
     color: "danger",
   },
+};
+
+export const paymentStatusThemeMap: Record<string, StatusThemeDetails> = {
+  unpaid: { label: "Chưa thanh toán", color: "warning" },
+  pending_verification: { label: "Chờ duyệt thanh toán", color: "warning" },
+  pendingVerification: { label: "Chờ duyệt thanh toán", color: "warning" },
+  paid: { label: "Đã thanh toán", color: "success" },
+  not_required: { label: "Gói miễn phí", color: "success" },
+  rejected: { label: "Thanh toán bị từ chối", color: "danger" },
+};
+
+export const studentStatusThemeMap: Record<string, StatusThemeDetails> = {
+  intake_pending: { label: "Chưa kích hoạt — Cần mua lượt đánh giá", color: "primary" },
+  intake_ready: { label: "Sẵn sàng đánh giá", color: "primary" },
+  submitted: { label: "Đang chuẩn bị đánh giá", color: "primary" },
+  need_more_information: { label: "Cần bổ sung tài liệu", color: "warning" },
+  under_review: { label: "Đang đánh giá", color: "primary" },
+  report_ready: { label: "Báo cáo đã sẵn sàng", color: "success" },
+  waiting_for_revision: { label: "Đang chờ tài liệu chỉnh sửa", color: "warning" },
+  revision_submitted: { label: "Đã tải lên phiên bản mới — Sẵn sàng đánh giá lại", color: "primary" },
+  completed: { label: "Đã hoàn tất đánh giá", color: "success" },
+  rejected: { label: "Yêu cầu chưa được duyệt", color: "danger" },
+  closed: { label: "Đã đóng", color: "default" },
+
+  // Payment status fallbacks
+  unpaid: { label: "Chưa thanh toán", color: "warning" },
+  pending_verification: { label: "Chờ duyệt thanh toán", color: "warning" },
+  pendingVerification: { label: "Chờ duyệt thanh toán", color: "warning" },
+  paid: { label: "Đã thanh toán", color: "success" },
+  not_required: { label: "Gói miễn phí", color: "success" },
 };

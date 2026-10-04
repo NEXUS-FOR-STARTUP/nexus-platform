@@ -1,9 +1,16 @@
+/**
+ * @deprecated Replaced by deposits/orders modules (2026-08-12).
+ * Kept for reference. Routes return 410 Gone.
+ */
+
 import { AppError } from "../../../shared/domain/app-error.js";
 import { fileStorageService } from "../infrastructure/file-storage.service.js";
 import { submitPaymentProof } from "../infrastructure/persistence/payment.repository.js";
 import { normalizePaymentStatus } from "../domain/payment.types.js";
 import { findCaseById } from "../../cases/infrastructure/persistence/case.repository.js";
 import logger from "../../../shared/infrastructure/logger.js";
+import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
+import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 import { prisma } from "../../../db.js";
 import type { UploadPaymentProofRequest } from "./payments.dto.js";
 
@@ -85,6 +92,20 @@ export async function uploadPaymentProofUseCase(
       });
 
       logger.info({ paymentId: _paymentId, fileUrl: _fileUrl, fileSize: file.size, duration_ms: Date.now() - __log_start }, "payment proof uploaded");
+
+      emitEvent({
+        eventId: crypto.randomUUID(),
+        type: DOMAIN_EVENTS.PAYMENT_PROOF_UPLOADED,
+        actorId: userId,
+        occurredAt: new Date(),
+        payload: {
+          caseId,
+          caseCode: caseObj.case_code,
+          paymentId: payment.id,
+          amount: payment.amount,
+          transferContent: (payment as any).transfer_content ?? null,
+        },
+      });
 
       return {
         ...payment,

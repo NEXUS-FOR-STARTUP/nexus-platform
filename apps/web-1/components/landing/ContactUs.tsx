@@ -1,120 +1,117 @@
 "use client";
 
-import React from "react";
-import { Container, Title, Text, TextInput, Textarea, Button, Card, SimpleGrid, Group } from "@mantine/core";
-import { Mail, MapPin, Phone, Share2 } from "lucide-react";
-import { notifications } from "@mantine/notifications";
+import { Container, Title, Text, Card, ThemeIcon, Group, Stack, Divider } from "@mantine/core";
+import { Mail, Phone, Share2, Users, ArrowUpRight } from "lucide-react";
+
+const TikTokIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    viewBox="0 0 24 24"
+    width="18"
+    height="18"
+    fill="currentColor"
+    {...props}
+  >
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 3 15.68 6.34 6.34 0 0 0 9.35 22a6.34 6.34 0 0 0 6.33-6.32V8.84a8.21 8.21 0 0 0 4.91 1.62v-3.77h-1z" />
+  </svg>
+);
 
 export default function ContactUs() {
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    notifications.show({
-      title: "Gửi tin nhắn thành công",
-      message: "Cảm ơn bạn đã gửi lời nhắn! Chúng tôi sẽ phản hồi sớm nhất có thể.",
-      color: "green",
-    });
-  };
+  const contactChannels = [
+    {
+      title: "Email",
+      value: "phungluuhoanglong@gmail.com",
+      href: "mailto:phungluuhoanglong@gmail.com",
+      icon: Mail,
+      color: "blue",
+      actionText: "Gửi email",
+    },
+    {
+      title: "Số điện thoại",
+      value: "0776 506 822",
+      href: "tel:0776506822",
+      icon: Phone,
+      color: "teal",
+      actionText: "Gọi điện",
+    },
+    {
+      title: "Zalo Group",
+      value: "Nhóm hỗ trợ Nexus",
+      href: "https://zalo.me/g/wgadhwpaxd05vykpnxqb",
+      icon: Users,
+      color: "cyan",
+      actionText: "Tham gia nhóm",
+      external: true,
+    },
+    {
+      title: "Facebook Fanpage",
+      value: "Nexus Platform",
+      href: "https://www.facebook.com/profile.php?id=61591506814865",
+      icon: Share2,
+      color: "indigo",
+      actionText: "Truy cập Fanpage",
+      external: true,
+    },
+    {
+      title: "Kênh TikTok",
+      value: "@nexus.for.startup",
+      href: "https://www.tiktok.com/@nexus.for.startup?_r=1&_t=ZS-99uXWT84gk9",
+      icon: TikTokIcon,
+      color: "dark",
+      actionText: "Xem TikTok",
+      external: true,
+    },
+  ];
 
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-surface-soft/10 transition-colors duration-200">
-      <Container size="lg" className="space-y-12">
+    <section id="lien-he" className="py-20 px-4 sm:px-6 lg:px-8 bg-surface-soft/10 transition-colors duration-200">
+      <Container size="md" className="space-y-10">
         <div className="text-center max-w-2xl mx-auto space-y-4">
           <Title order={2} className="font-heading text-3xl font-bold text-text-app">
-            Liên hệ với chúng tôi
+            Cần hỗ trợ hoặc đóng góp ý kiến?
           </Title>
           <Text className="font-body text-text-muted">
-            Mọi thắc mắc hoặc yêu cầu hỗ trợ đặc biệt, xin vui lòng gửi tin nhắn hoặc liên hệ trực tiếp.
+            Liên hệ trực tiếp với đội ngũ phát triển Nexus qua các kênh chính thức dưới đây.
           </Text>
         </div>
 
-        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xl">
-          {/* Info Card */}
-          <Card p="lg" radius="lg" withBorder className="bg-surface-app border-border-app flex flex-col justify-between">
-            <div className="space-y-6">
-              <Title order={4} className="font-heading font-semibold text-text-app">
-                Thông tin liên hệ
-              </Title>
-              <Text className="font-body text-text-muted">
-                Nexus luôn sẵn sàng giải đáp và lắng nghe các phản hồi của bạn.
-              </Text>
-
-              <div className="space-y-4 pt-4 font-body">
-                <div className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-brand shrink-0" />
-                  <div>
-                    <div className="text-base text-text-muted font-semibold uppercase">Email</div>
-                    <div className="text-xs text-text-app font-semibold">phungluuhoanglong@gmail.com</div>
-                  </div>
+        <Card p="xl" radius="lg" withBorder className="bg-surface-app border-border-app">
+          <Stack gap={0}>
+            {contactChannels.map((channel, idx) => {
+              const Icon = channel.icon;
+              return (
+                <div key={idx}>
+                  {idx > 0 && <Divider my="md" className="border-border-subtle" />}
+                  <a
+                    href={channel.href}
+                    target={channel.external ? "_blank" : undefined}
+                    rel={channel.external ? "noopener noreferrer" : undefined}
+                    className="flex items-center justify-between gap-4 no-underline group"
+                  >
+                    <Group gap="md" align="center" wrap="nowrap" className="min-w-0">
+                      <ThemeIcon color={channel.color} size={40} radius="md" variant="light" className="shrink-0">
+                        <Icon className="w-5 h-5" />
+                      </ThemeIcon>
+                      <div className="min-w-0">
+                        <Text className="text-xs font-medium text-text-muted font-body">
+                          {channel.title}
+                        </Text>
+                        <Text className="text-sm font-semibold text-text-app font-heading group-hover:text-brand transition-colors truncate">
+                          {channel.value}
+                        </Text>
+                      </div>
+                    </Group>
+                    <Group gap="xs" align="center" wrap="nowrap" className="shrink-0">
+                      <Text className="text-xs text-brand font-medium font-body hidden sm:block">
+                        {channel.actionText}
+                      </Text>
+                      <ArrowUpRight className="w-4 h-4 text-text-muted group-hover:text-brand transition-colors" />
+                    </Group>
+                  </a>
                 </div>
-
-                <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-brand shrink-0" />
-                  <div>
-                    <div className="text-base text-text-muted font-semibold uppercase">Hotline</div>
-                    <div className="text-xs text-text-app font-semibold">0776 506 822</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Share2 className="w-5 h-5 text-brand shrink-0" />
-                  <div>
-                    <div className="text-base text-text-muted font-semibold uppercase">Fanpage Facebook</div>
-                    <a
-                      href="https://www.facebook.com/profile.php?id=61591506814865"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-brand font-semibold hover:underline flex items-center gap-1"
-                    >
-                      <span>Nexus Platform</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Form Card */}
-          <Card p="lg" radius="lg" withBorder className="bg-surface-app border-border-app">
-            <form onSubmit={handleSubmit} className="space-y-4 font-body">
-              <SimpleGrid cols={2}>
-                <TextInput
-                  label="Họ tên"
-                  placeholder="Họ tên của bạn"
-                  required
-                  radius="md"
-                />
-                <TextInput
-                  label="Email"
-                  placeholder="email@example.com"
-                  type="email"
-                  required
-                  radius="md"
-                />
-              </SimpleGrid>
-
-              <TextInput
-                label="Tiêu đề"
-                placeholder="Lời nhắn về chủ đề gì?"
-                required
-                radius="md"
-              />
-
-              <Textarea
-                label="Nội dung tin nhắn"
-                placeholder="Viết lời nhắn của bạn ở đây..."
-                minRows={4}
-                required
-                radius="md"
-              />
-
-              <Group justify="flex-end" className="pt-2">
-                <Button type="submit" color="brand" radius="md" className="font-semibold cursor-pointer">
-                  Gửi tin nhắn
-                </Button>
-              </Group>
-            </form>
-          </Card>
-        </SimpleGrid>
+              );
+            })}
+          </Stack>
+        </Card>
       </Container>
     </section>
   );

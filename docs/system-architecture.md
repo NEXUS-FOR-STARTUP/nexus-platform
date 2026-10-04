@@ -1,53 +1,62 @@
 # System Architecture
 
-_Cập nhật: 2026-07-23. Bám codebase hiện tại._
+_Cập nhật: 2026-10-04. Bám codebase hiện tại._
 
 ## 1. Mục tiêu tài liệu
 
-Tài liệu này mô tả architecture hiện trạng phục vụ MVP demo Nexus, bám codebase đang có thay vì mô tả tương lai giả định.
+Tài liệu này mô tả architecture hiện trạng phục vụ vận hành sản phẩm Nexus, bám codebase đang có thay vì mô tả tương lai giả định.
 
 ## 2. Kiến trúc tổng quan
 
-Nexus hiện là monorepo Turborepo với 3 vùng chính:
-- `apps/web-1`: product frontend Next.js 16
-- `apps/api`: backend Hono + Better Auth + Prisma
-- `packages/ui`: UI primitives dùng chung
+Nexus hiện là monorepo Turborepo với các vùng chính:
+- `apps/web-1`: product frontend Next.js 16 + Mantine UI v9 (port 3001)
+- `apps/api`: backend Hono + Better Auth + Prisma 7 (15 modules, 112 endpoints, port 8000)
+- `apps/worker-omp`: worker daemon Bun xử lý tác vụ AI nặng qua BullMQ + sandbox cô lập
+- `packages/shared`: `@app/shared` — module quản lý telemetry & metrics CPU/RAM/disk
+- `packages/validation`: Zod schemas & report naming helpers dùng chung (FE↔BE)
+- Redis: Message broker cho BullMQ (`omp-queue`), Pub/Sub real-time logs (`job:logs:*`), và kênh hủy job (`job-cancellation`)
+- Centrifugo v6: Realtime WebSocket message broker cho case chat (`chat:{caseId}`)
 
-Data model trung tâm nằm ở `prisma/schema.prisma`, với auth, case, checkpoint, lifecycle unit, document record, report, payment, event, và AI job.
+Data model trung tâm nằm ở `prisma/schema.prisma` (32 models, 31 migrations), với auth, case, checkpoint, lifecycle unit, document record, report, payment, event, AI job, team-fit report, credit ledger, notification (Notification + NotificationPreference + NotificationOutbox), chat read state (CaseChatReadState), service catalog (ServiceType + ServicePricing), wallet (UserWallet + WalletTransaction + WalletTopup [deprecated]), deposit/order (Deposit + Order + OrderItem), và domain event outbox (DomainEventOutbox).
 
 ## 2.1 Sơ đồ kiến trúc (text-based)
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│  apps/web-1 (Next.js 16, Mantine UI v9, TanStack Query)      │
-│  ┌─────────┐ ┌──────────┐ ┌───────────┐ ┌───────────────┐   │
-│  │ Student │ │Supporter │ │   Admin   │ │   Auth / UI   │   │
-│  │ Intake  │ │Workspace │ │  Triage   │ │  (useSession) │   │
-│  │Dashboard│ │+ Output  │ │+ Packages │ │  Mantine v9   │   │
-│  │Workspace│ │  Upload  │ │           │ │  Lucide/TQ    │   │
-│  └────┬────┘ └────┬─────┘ └─────┬─────┘ └───────┬───────┘   │
-│       └───────────┴─────────────┴────────────────┘           │
-│                        │ Axios (HTTP)                        │
-└────────────────────────┼─────────────────────────────────────┘
-                         │
-┌────────────────────────┼─────────────────────────────────────┐
-│  apps/api (Hono, Better Auth, Prisma 7)                      │
-│  ┌──────────┐ ┌──────────┐ ┌────────┐ ┌──────────────────┐  │
-│  │  Cases   │ │Documents │ │Reports │ │ Admin/Supporter  │  │
-│  │  module  │ │  module  │ │ module │ │    modules       │  │
-│  │19 routes │ │          │ │        │ │                  │  │
-│  ├──────────┤ ├──────────┤ ├────────┤ ├──────────────────┤  │
-│  │ Payments │ │ Packages │ │AI Eng. │ │ Shared: AppError │  │
-│  │  module  │ │  module  │ │ module │ │ requireAuth, etc │  │
-│  └────┬─────┘ └────┬─────┘ └───┬────┘ └──────────────────┘  │
-│       └────────────┴───────────┴───────────────────────────  │
-│                         │ Prisma                              │
-└─────────────────────────┼────────────────────────────────────┘
-                          │
-                  ┌───────┴───────┐
-                  │  PostgreSQL   │
-                  │ (16 models)   │
-                  └───────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│  apps/web-1 (Next.js 16, Mantine UI v9, TanStack Query)                │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌───────────────┐ │
+│  │   Student    │ │  Supporter   │ │    Admin     │ │ Server Guard  │ │
+│  │ Workspace    │ │  Workspace   │ │   Triage &   │ │   proxy.ts    │ │
+│  │ 7 tabs (URL) │ │(Desktop-only)│ │ Worker Mon.  │ │  (Maint. Mode)│ │
+│  │(Responsive)  │ │              │ │(Desktop-only)│ │  useSession   │ │
+│  └──────┬───────┘ └──────┬───────┘ └──────┬───────┘ └───────┬───────┘ │
+│         └────────────────┴────────────────┴─────────────────┘         │
+│                          │ Axios (HTTP) / Centrifugo WS               │
+└──────────────────────────┼────────────────────────────────────────────┘
+                           │
+┌──────────────────────────┼────────────────────────────────────────────┐
+│  apps/api (Hono, Better Auth, Prisma 7, Typst PDF Engine)             │
+│  ┌──────────────────────────────────────────────────────────────────┐ │
+│  │ 15 Modules (Cases, Admin, Reports, Payments, Wallet,             │ │
+│  │ Deposits, Orders, Supporter, AI Engine, Profile, Realtime, etc.) │ │
+│  │ 112 Endpoints (108 module routes + 4 system routes)              │ │
+│  └──────────────┬──────────────────┬─────────────────┬──────────────┘ │
+│                 │ BullMQ Producer  │ Domain Events   │ Prisma         │
+└─────────────────┼──────────────────┼─────────────────┼────────────────┘
+                  │                  │                 │
+       ┌──────────┴──────────┐       │         ┌───────┴───────┐
+       │   Redis 7           │       │         │  PostgreSQL   │
+       │  - omp-queue        │       │         │  (32 models)  │
+       │  - job:logs:*       │       │         │  - Outboxes   │
+       │  - job-cancellation │       │         └───────────────┘
+       └──────────┬──────────┘       │
+                  │ BullMQ Consumer  │
+┌─────────────────┴──────────────────┴──────────────────────────────────┐
+│  apps/worker-omp (BullMQ Worker Daemon, Bun runtime)                  │
+│  - Sandbox: storage/jobs/${caseId}/${jobId}/ (input/output)          │
+│  - Redis Dual-Publish Logger (Admin Terminal + Student SSE)          │
+│  - Output: report.json (Typst PDF compilation handled by apps/api)    │
+└───────────────────────────────────────────────────────────────────────┘
 ```
 
 ## 3. Frontend surfaces chính
@@ -63,31 +72,41 @@ Tham chiếu:
 
 ### 3.2 Student dashboard + case workspace
 - dashboard liệt kê case của user
-- case workspace có sidebar shell
-- điều hướng chính hiện bám `documents`, `discussion`, `timeline`, `settings`
-- page dùng `useCaseDetails(id)` để lấy dữ liệu workspace
-- payment tồn tại như surface phụ qua unpaid banner và payment page riêng
+- case workspace có sidebar shell và 7 tabs chính (`overview`, `documents`, `report`, `discussion`, `timeline`, `settings`, `credits`) đồng bộ trạng thái qua query param `?tab=`
+- điều hướng và hiển thị tab được gate theo gói dịch vụ (ví dụ: gói `pkg_ai_audit` ẩn tab trao đổi trực tiếp)
+- page dùng `useCaseDetails(id)` để lấy dữ liệu workspace (polling 10s)
+- stage-based case flow: `CaseStatusHeader` (hiển thị `user_facing_stage` + next action), `StatusGuidanceCard`, `CaseOverviewPanel`
+- credit/ledger economy: `CreditPanel`, `CreditQuantityModal`, `CreditActions`, `CreditTransactionHistory`, `CreditBalanceCard` — mua credit, xem lịch sử giao dịch, số dư hiện tại
+- payment/credit là core economy (không còn là surface phụ): mua credit qua sepay webhook, admin veto-with-refund (48h)
+- ví VND: trang `/dashboard/wallet` hiển thị số dư VND (`WalletBalanceCard`), lịch sử giao dịch (`WalletTransactionList`), và modal nạp tiền SePay (`WalletTopupModal`); nav item "Ví của tôi" (icon Wallet) trong `DashboardShell` cho student
+- **Device Persona Scope**: Toàn bộ luồng sinh viên (dashboard, intake, case workspace, wallet, settings) hỗ trợ mobile responsive (drawer nav, card view table, collapsible radar). Ngược lại, giao diện Supporter và Admin là **Desktop-only tuyệt đối** (chặn truy cập trên màn hình < 1024px bởi `DesktopOnlyNotice.tsx`).
 
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/page.tsx`
 - `apps/web-1/app/dashboard/case/[id]/hooks/useCaseDetails.ts`
 - `apps/web-1/app/dashboard/case/[id]/_components/WorkspaceSidebar.tsx`
-- `apps/web-1/app/dashboard/case/[id]/payment/page.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CreditPanel.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CaseStatusHeader.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/StatusGuidanceCard.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CaseOverviewPanel.tsx`
+- `apps/web-1/app/dashboard/wallet/page.tsx` (xem §4.7)
 
 ### 3.3 Supporter workspace
 - supporter mở case bằng shell rất giống student workspace
 - supporter tái dùng `WorkspaceSidebar`, `CaseStatusHeader`, `TabDiscussionChat`, `ActivityTimeline`, `DocumentWorkspace`
 - supporter không có settings tab trong workspace
 - supporter có `SupporterOutputUploadModal` để upload output report
-- ⚠️ **Cần xác nhận:** Supporter không còn review page riêng (`apps/web-1/app/supporter/case/[id]/review/page.tsx` không tồn tại). Việc xuất report hiện qua modal upload thay vì page riêng.
+- ✅ **Đã xác nhận:** Supporter không có review page riêng (`apps/web-1/app/supporter/case/[id]/review/page.tsx` không tồn tại). Việc biên tập báo cáo chuyển qua usecases `get-draft-report`/`edit-draft-report` trong supporter module; xuất report qua modal upload thay vì page riêng.
 
 Tham chiếu:
 - `apps/web-1/app/supporter/case/[id]/page.tsx`
 - `apps/web-1/app/supporter/case/[id]/_components/SupporterOutputUploadModal.tsx`
+- `apps/api/src/modules/supporter/application/get-draft-report.usecase.ts`
+- `apps/api/src/modules/supporter/application/edit-draft-report.usecase.ts`
 
 ### 3.4 Admin triage
 - admin có modal chi tiết case để đọc intake snapshot, documents, support needs
-- admin có action yêu cầu làm rõ, từ chối, duyệt, phân công supporter
+- admin có action từ chối, duyệt, phân công supporter (action request-more-info đã xóa — reject reason ≥ 10 ký tự là kênh trao đổi triage)
 
 Tham chiếu:
 - `apps/web-1/app/admin/_components/AdminCaseDetailModal.tsx`
@@ -105,7 +124,8 @@ Tham chiếu:
 - frontend không sở hữu workflow semantics; frontend chủ yếu map và trình bày
 
 ### 4.3 Report workflow
-- supporter review page làm việc với draft report và approve/send flow
+- supporter biên tập draft report qua usecases `get-draft-report` (GET `/supporter/cases/:caseId/reports/draft`) và `edit-draft-report` (PUT `/supporter/reports/:reportId`) trong supporter module
+- publish report qua `publish-report` (POST `/supporter/reports/:reportId/publish`)
 - report là output chính thức của supporter, không để chat thay vai trò này
 
 ### 4.4 Document workflow
@@ -113,6 +133,71 @@ Tham chiếu:
 - contract mới được expose theo kiểu additive từ case detail payload, giữ tương thích với field cũ
 - document type và document record đã có module riêng trong backend
 
+### 4.5 Notification workflow (SSE + event bus + outbox)
+- Module mới `apps/api/src/modules/notifications/` theo clean architecture: domain (`notification.types`), application (4 inbox usecases: list, unread-count, mark-read, mark-all-read + `notification-listener` + `notification-relay` + `notification-templates` + `recipients`), infrastructure (`notification.repository`, `notification-outbox.repository`, `sse-hub`, `email.service` (Resend), `telegram.service` (grammY)), http (`notifications.routes` + controller)
+- **Event bus mới** `shared/domain/domain-events.ts` (14 event types) + `shared/infrastructure/event-bus.ts` (`emitEvent`/`onEvent`, queueMicrotask) — khác với "direct module-to-module calls" trước đây: usecase emit event, notifications module subscribe
+- **Outbox pattern**: listener ghi outbox rows → relay worker (setInterval 2s) xử lý kênh in-app/email/telegram với retry exponential backoff; crash/restart → pending rows xử lý lại
+- **SSE**: `GET /api/notifications/stream` (requireAuth, cap 5 connection/user, heartbeat 25s, `retry: 5000`); chỉ gửi ping → client refetch REST list. CORS allowMethods mở rộng thêm `PATCH`
+- Endpoints (5): `GET /api/notifications` (list), `GET /api/notifications/unread-count`, `PATCH /api/notifications/:id/read`, `PATCH /api/notifications/read-all`, `GET /api/notifications/stream` (SSE)
+- Frontend: `apps/web-1/lib/hooks/useNotifications.ts` (SSE + TanStack Query), `components/layout/NotificationBell.tsx`, `types/notification.ts`
+- Env mới (optional, 6): `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ADMIN_CHAT_ID`, `TELEGRAM_SUPPORTER_CHAT_ID`, `NOTIFICATIONS_ENABLED`
+- Kênh Telegram: admin alert tự động trên event `payment.verified`; `payment.proof_uploaded` gửi kèm `transferContent` ("Nội dung chuyển khoản")
+- Types/validation dùng chung FE↔BE qua `@repo/validation` (single source of truth): `NOTIFICATION_TYPES` (9 notification types trong `@repo/validation`: case.assigned, case.approved, case.rejected, payment.proof_uploaded, payment.verified, payment.rejected, case.stage_changed, report.published, request_more_info; 5 financial events được định nghĩa riêng tại backend domain events), `NotificationItemSchema`, `ListNotificationsResponseSchema`
+- Test: `apps/api/src/shared/infrastructure/tests/phase-08-notifications.test.ts` (16 tests, all pass)
+- SSE chỉ dùng cho notifications; chat realtime đi qua Centrifugo (xem §4.6)
+
+### 4.6 Realtime chat workflow (Centrifugo v6) & Unread Tracking (GA-19) — đã ship 2026-08-08, nâng cấp 2026-08-27
+- Module `apps/api/src/modules/realtime/`: 2 routes — `GET /api/realtime/connection-token`, `GET /api/realtime/cases/:caseId/subscribe-token` (cả 2 qua `requireAuth` + `requireCaseAccess`)
+- Token: HS256 JWT qua `jose`, TTL 15 phút, channel `chat:{caseId}`
+- Publish: `infrastructure/centrifugo.service.ts` POST `{CENTRIFUGO_URL}/api/publish` với header `X-API-Key`; fire-and-forget sau khi insert message trong `send-message.usecase.ts` (`toPublishMessage` sanitize payload — không leak email) và khi đánh dấu đã đọc trong `mark-chat-read.usecase.ts` (event `chat:read`)
+- **Unread-per-User Tracking (GA-19)**:
+  - Model `CaseChatReadState` (bảng `case_chat_read_states`, unique `(case_id, user_id)`): lưu `last_read_message_id`, `last_read_at` (neo theo timestamp created_at của tin nhắn).
+  - Endpoints: `POST /api/cases/:id/chat/read` (đánh dấu đã đọc tới message chỉ định + broadcast `chat:read`), `GET /api/cases/:id/chat/unread` (lấy số tin chưa đọc).
+  - Frontend: hook `useCaseUnreadCount` (TanStack Query, auto-refetch khi reconnect qua `client.on("connected")` + `refetchOnWindowFocus: true`), `WorkspaceSidebar` badge hiển thị đúng số tin chưa đọc thay vì tổng số tin nhắn.
+- **DB = source of truth**; Centrifugo chỉ transport realtime. Client không publish trực tiếp — tin phải qua REST để giữ credit check + stage lock + access control
+- Env: `CENTRIFUGO_URL` (default `http://localhost:8010`), `CENTRIFUGO_API_KEY` (thiếu → bỏ publish + warn), `CENTRIFUGO_TOKEN_SECRET` (thiếu → 503)
+- Web-1: `lib/realtime/centrifuge-client.ts` (singleton, `NEXT_PUBLIC_CENTRIFUGO_URL` default `ws://localhost:8010/connection/websocket`), `hooks/useRealtimeChat.ts` (per-sub token, dedup theo message id, xử lý `chat:read` và tăng unread count realtime), `hooks/useCaseUnreadCount.ts`, `TabDiscussionChat.tsx`
+- Fallback: `useCaseChat` polling `refetchInterval: 60_000` khi Centrifugo down
+- Tests: `apps/api/src/shared/infrastructure/tests/phase-09-realtime-chat.test.ts` và `apps/api/src/shared/infrastructure/tests/ga-19-chat-unread.test.ts`
+- Ops chi tiết: [`realtime-centrifugo-guide.md`](./realtime-centrifugo-guide.md)
+### 4.7 Wallet + deposit workflow (ví VND + SePay top-up) — ship 2026-08-11
+- Module `apps/api/src/modules/wallet/` (clean architecture: domain `wallet.types`, application `wallet.service`, infrastructure/http `wallet.routes`) mount tại `/api/wallet`, toàn bộ qua `requireAuth`. **Live endpoints (2):** `GET /api/wallet/balance` (số dư từ `user_wallets.balance`), `GET /api/wallet/history?limit&offset` (danh sách `wallet_transactions`). `POST /api/wallet/topups` → **410 GONE** ("Tạo mã nạp tiền tại POST /api/deposits"); `POST /api/wallet/purchase-credits` **deprecated 2026-08-12** — cả hai usecase (`wallet-topup.usecase`, `purchase-credits.usecase`) còn trên đĩa nhưng không dùng.
+- **Top-up/nạp tiền thuộc module deposits** `apps/api/src/modules/deposits/` — 5 routes: `GET /api/deposits/admin/all`, `GET /api/deposits`, `POST /api/deposits` (tạo deposit pending, trả QR + `transferContent` prefix `CR`, min 10,000 VND), `GET /api/deposits/:id`, `POST /api/deposits/:id/verify`. **Mua credit/order thuộc module orders** (3 routes: GET/POST `/api/orders`, GET `/api/orders/:id`).
+- **DB = source of truth cho ví**: `UserWallet` (cached `balance`, `currency` = "VND") + `WalletTransaction` (append-only ledger, `balance_before`/`balance_after`); `WalletTopup` `@deprecated` (replaced by deposits). Khác `credit_ledgers` cũ (case-level) — ví là account-level VND
+- Frontend: trang `apps/web-1/app/dashboard/wallet/page.tsx` (header "Ví của tôi", `WalletBalanceCard`, `WalletTransactionList`, `WalletTopupModal` — nay tạo deposit); hooks trong `app/dashboard/wallet/hooks/useWallet.ts` (`useWalletBalance`, `useWalletHistory`, `useCreateDeposit` — polling 30s, mutation invalidates `["wallet"]`)
+- Nav: `DashboardShell` thêm menu item "Ví của tôi" (icon `Wallet` từ lucide-react) cho student → `router.push("/dashboard/wallet")`
+
+### 4.8 Profile, account & session management workflow — ship 2026-08-27 / 2026-08-28
+- Module `apps/api/src/modules/profile/` (domain `avatar-upload-rules`, application `upload-avatar.usecase`, `delete-account.usecase`, `list-sessions.usecase`, `revoke-session.usecase`, `revoke-other-sessions.usecase`, http `profile.routes`, `avatar.controller`, `profile.controller`, `session.controller`) mount tại `/api/profile`, toàn bộ qua `requireAuth`.
+- **Avatar upload (`POST /api/profile/avatar`)**:
+  - DoS Guard: kiểm tra header `content-length` $\le 2\text{ MB} + 64\text{ KB}$ trước khi parse multipart body.
+  - Validation: cho phép `.jpg`, `.jpeg`, `.png`, `.webp`, đối chiếu MIME type với extension, dung lượng $\le 2\text{ MB}$.
+  - Cloudinary: tải lên thư mục `nexus-platform/avatars` với resource type `image`, lưu secure URL vào `User.image` trong PostgreSQL.
+  - Rollback & Cleanup: tự động xóa avatar mới trên Cloudinary nếu cập nhật DB thất bại; tự động dọn dẹp avatar Cloudinary cũ khi upload mới thành công (bỏ qua nếu avatar cũ là external URL OAuth).
+- **Account deletion (`DELETE /api/profile/account`)**: tuân thủ NĐ 13/2023 về quyền xóa dữ liệu cá nhân.
+- **Session management UI & API (GA-06)**:
+  - `GET /api/profile/sessions`: Lấy danh sách phiên còn hạn (`expires_at > now()`, `take: 100`), đối chiếu `s.id === currentSessionId` trên server để xác định `isCurrent: true` (bất biến, không bị lệch khi Better Auth xoay vòng rolling token `updateAge: 24h`), tuyệt đối loại bỏ trường `token` bí mật khỏi DTO.
+  - `DELETE /api/profile/sessions/:id`: Thu hồi 1 phiên làm việc của user (ngăn chặn tự thu hồi phiên hiện tại `CANNOT_REVOKE_CURRENT_SESSION`, bảo vệ chống IDOR qua `user_id`).
+  - `POST /api/profile/sessions/revoke-others`: Thu hồi tất cả phiên khác (`id !== currentSessionId`) kèm guard kiểm tra `currentSessionId` hợp lệ.
+  - Audit logging: ghi nhận mọi thao tác thu hồi vào `auditLogger.log` (`profile.revoke_session`, `profile.revoke_other_sessions`).
+- Frontend:
+  - Form Cài đặt `/dashboard/settings/profile` (`ProfileInfoForm`), mutation `useProfileMutations`, đồng bộ tức thì qua Better Auth `refetch()` cập nhật đồng thời form profile và Popover `UserMenu` trên Navbar Header.
+  - Trang Quản lý thiết bị `/dashboard/settings/sessions` & `/supporter/settings/sessions` (`SessionsList`, `SessionItem`, `RevokeOthersModal`): phân tích User-Agent (OS, Browser, Device Type) với regex ưu tiên chính xác, hiển thị IP rút gọn (`formatIpAddress`), badge "Phiên hiện tại", scoped loading spinner theo `sessionId`, và `onSettled` cache invalidation.
+- Test: `apps/api/src/shared/infrastructure/tests/avatar-upload.test.ts` (9/9 pass), `apps/api/src/shared/infrastructure/tests/session-management.test.ts` (16/16 pass).
+
+### 4.9 AI Engine, OMP Worker execution architecture & Report generation — ship 2026-09-20
+Module `apps/api/src/modules/ai-engine/` kết hợp cùng service độc lập `apps/worker-omp/` và package `@repo/validation` tạo thành pipeline thẩm định AI và phát hành báo cáo chuẩn hóa:
+- **Độc lập Job Run (Run-based Lifecycle):** Mỗi lần chạy thẩm định tạo một bản ghi `AiJob` mới với UUID riêng và `attempt_count` (lần chạy 1, 2...). Trạng thái cập nhật theo primary key qua `updateAiJobStatusById`, không ghi đè dữ liệu lịch sử của case.
+- **BullMQ Dual-Key Queue:** Hàng đợi `omp-queue` sử dụng định danh kép `omp-${caseId}--${aiJobId}` qua `buildOmpQueueJobId`. Hàm `parseOmpQueueJobId` phân tách chính xác `caseId` và `aiJobId` đồng thời hỗ trợ fallback tương thích ngược với các job cũ (`omp-${caseId}`).
+- **Phân cấp Sandbox Storage:** Môi trường thực thi của worker được lưu tại `storage/jobs/${caseId}/${jobId}/` (chứa `input/`, `output/`, `models.json`, `system_prompt/`). Hàm `resolveJobSandboxDir` hỗ trợ fallback an toàn 3 cấp: phân cấp `caseId/jobId` $\rightarrow$ phẳng `jobId` $\rightarrow$ legacy `caseId`.
+- **Dual-Publish Redis Logging:** Worker (`logJob`) phát hành log đồng thời:
+  - Kênh Job (`job:log:${jobId}`) + Danh sách (`job:logs:${jobId}`, TTL 24h) phục vụ Admin Worker Monitoring drawer.
+  - Kênh Case (`job:log:${caseId}`) + Danh sách (`job:logs:${caseId}`, TTL 24h) phục vụ SSE stream cho sinh viên (`/api/cases/:id/ai-events`).
+  - Tích hợp bộ lọc bảo mật tự động loại bỏ prompt nhạy cảm trước khi phát tán lên Redis.
+- **Chuẩn hóa Tên File Báo cáo PDF:** Quy ước đặt tên file báo cáo tập trung duy nhất tại `packages/validation/src/report-naming.ts` (`buildStandardReportPdfFilename`):
+  $$\text{Tên file} = \texttt{\$\{slug\}\_\$\{submission\_type\}\_\$\{timestamp\}\_v\$\{version\}.pdf}$$
+  Được tái sử dụng đồng nhất tại backend Typst compiler (`pdfService.ts`), API download (`reports.controller.ts`), Tab Tài liệu (`report-rows.ts`), và Tab Phản biện (`RoundCard.tsx`).
+- Chi tiết kỹ thuật: xem [`docs/technical-notes/ai-worker-execution-and-report-naming.md`](./technical-notes/ai-worker-execution-and-report-naming.md).
 ## 5. Case workspace data flow
 
 ### 5.1 Case details
@@ -135,18 +220,20 @@ Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/hooks/useCaseDetails.ts`
 
 ### 5.2 Chat / discussion
-`useCaseChat(caseId)` hiện:
-- GET `/cases/:id/messages`
-- POST `/cases/:id/messages`
-- polling mỗi 5 giây
-- invalidate query sau khi gửi
-
-Đây là text chat bằng REST + polling, không phải realtime socket.
+Chat hiện là **realtime qua Centrifugo (WebSocket primary)** + REST fallback:
+- `useRealtimeChat(caseId)`: lấy subscribe-token qua `/api/realtime/cases/:caseId/subscribe-token`, sub WebSocket `chat:{caseId}`, publication → `setQueryData` cache + dedupe theo message id, xử lý `chat:read` và tăng unread count
+- `useCaseUnreadCount(caseId)`: TanStack Query hook lấy số tin chưa đọc từ `GET /cases/:id/chat/unread`, mutation `POST /cases/:id/chat/read`, reconnect sync qua listener `client.on("connected")` và window focus
+- REST (source of truth): GET `/cases/:id/messages`, POST `/cases/:id/messages`, POST `/cases/:id/chat/read`, GET `/cases/:id/chat/unread`
+- Fallback khi Centrifugo down: `useCaseChat` polling `refetchInterval: 60_000` (không còn 5s polling)
+- Client KHÔNG publish trực tiếp — tin qua REST để giữ credit check + stage lock + access control
 
 Tham chiếu:
+- `apps/web-1/app/dashboard/case/[id]/hooks/useRealtimeChat.ts`
+- `apps/web-1/app/dashboard/case/[id]/hooks/useCaseUnreadCount.ts`
 - `apps/web-1/app/dashboard/case/[id]/hooks/useCaseChat.ts`
+- `apps/web-1/lib/realtime/centrifuge-client.ts`
 - `apps/web-1/app/dashboard/case/[id]/_components/TabDiscussionChat.tsx`
-
+- `apps/web-1/app/dashboard/case/[id]/_components/WorkspaceSidebar.tsx`
 ### 5.3 Timeline / activity log
 - `ActivityTimeline` đọc `caseData.events`
 - timeline hiện map nhiều event_type sang label UI
@@ -162,61 +249,75 @@ Tham chiếu:
 - cho chọn checkpoint khi case có nhiều checkpoint
 - render các tab `overview`, `documents`, `external-feedback`
 - tách tài liệu support flow và tài liệu đánh giá bên ngoài
-- `VersionSelector` cho phép chuyển đổi giữa các version tài liệu
 
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/documents/DocumentWorkspace.tsx`
-- `apps/web-1/app/dashboard/case/[id]/_components/VersionSelector.tsx`
 - `apps/api/src/modules/documents/domain/document-contract.ts`
 
-### 5.5 Workspace tabs abstraction
-Case workspace dùng `WorkspaceTabs` để điều hướng giữa các tab, mỗi tab là một component riêng:
+> Ghi chú: component `VersionSelector` không còn tồn tại trong codebase — version switching không còn là bề mặt UI riêng.
 
-| Tab | Component | Vai trò |
-|-----|-----------|---------|
-| Nội dung ý tưởng | `TabIdeaContent` | Xem nội dung case và intake snapshot |
-| Trao đổi | `TabDiscussionChat` | Chat REST + polling 5s |
-| Kết quả đánh giá | `TabReportFindings` | Xem report và findings |
-| Timeline | `ActivityTimeline` | Event log liên tục |
-| Document | (qua `DocumentWorkspace`) | Tài liệu theo checkpoint |
+### 5.5 Workspace tabs abstraction
+Case workspace dùng `WorkspaceTabs` để điều hướng giữa **7 tabs**, đồng bộ 2 chiều với query param URL `?tab=` và tự động gate theo gói dịch vụ (ví dụ: `pkg_ai_audit` ẩn tab `discussion`):
+
+| Tab ID | Component | Vai trò | Gating / Điều kiện |
+|--------|-----------|---------|---------------------|
+| `overview` | `TabOverview` / `CaseOverviewPanel` | Xem tổng quan hồ sơ, intake snapshot, team members | Mặc định |
+| `documents` | `DocumentWorkspace` | Quản lý tài liệu theo checkpoint, checklist minh chứng | Luôn mở |
+| `report` | `TabReportFindings` | Xem báo cáo phản biện, tải PDF chuẩn Typst | Mở khi có report draft/published |
+| `discussion` | `TabDiscussionChat` | Chat realtime Centrifugo (WS), REST + polling 60s fallback | Chỉ mở cho gói có supporter |
+| `timeline` | `ActivityTimeline` | Nhật ký sự kiện và tiến độ hồ sơ liên tục | Luôn mở |
+| `settings` | `TabCaseSettings` | Cài đặt hồ sơ, quyền thành viên | Chỉ owner |
+| `credits` | `CreditPanel` | Quản lý số dư lượt phản biện, nạp & khóa lượt khi case hoàn thành | Luôn mở |
 
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/WorkspaceTabs.tsx`
-- `apps/web-1/app/dashboard/case/[id]/_components/TabIdeaContent.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/TabDiscussionChat.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/TabReportFindings.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/TabCaseSettings.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CreditPanel.tsx`
 
-### 5.6 Revision rounds
-Workspace hỗ trợ vòng sửa (revision rounds) qua:
-- `AuditRoundTimeline`: hiển thị lịch sử audit rounds
-- `RevisionSubmitModal`: student nộp bản sửa
-- `BuyRoundModal`: student mua thêm vòng sửa
+### 5.6 Stage flow & revision rounds
+Workspace điều hướng theo stage (`user_facing_stage`) và revision rounds qua:
+- `CaseStatusHeader`: hiển thị stage hiện tại + next action
 - `StatusGuidanceCard`: hướng dẫn trạng thái hiện tại và next action
+- `CaseOverviewPanel`: tóm tắt case
+- Revision upload được gate theo stage (chỉ ở stage `waiting_for_revision`)
+- Backend: `internal_status` chạy qua `case-machine.ts` (XState v5 — `transition.types.ts` giữ `TARGET_STAGE`), `allowed_transitions` trả về trong case detail, SLA `sla_deadline_at`
+
+> Ghi chú: `RevisionSubmitModal`, `BuyRoundModal`, `AuditRoundTimeline` không còn tồn tại trong codebase — luồng vòng sửa được xử lý qua stage-based flow + revision upload gating, không phải modal mua vòng riêng.
 
 Tham chiếu:
-- `apps/web-1/app/dashboard/case/[id]/_components/AuditRoundTimeline.tsx`
-- `apps/web-1/app/dashboard/case/[id]/_components/RevisionSubmitModal.tsx`
-- `apps/web-1/app/dashboard/case/[id]/_components/BuyRoundModal.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CaseStatusHeader.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/StatusGuidanceCard.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CaseOverviewPanel.tsx`
+- `apps/api/src/modules/cases/domain/case-machine.ts`
 
-### 5.7 Payment surface
-Payment hiện có 2 bề mặt:
-- `payment/page.tsx` — page riêng cho payment
-- `PaymentDrawer` — drawer inline trong workspace
-- `UnpaidAlertBanner` — cảnh báo khi chưa thanh toán
+### 5.7 Credit / payment surface
+Credit/ledger economy là core của hệ thống (không còn là surface phụ):
+- `CreditPanel` + `CreditQuantityModal` + `CreditActions`: mua credit
+- `CreditTransactionHistory` + `CreditBalanceCard`: lịch sử giao dịch + số dư
+- Backend: model `CreditLedger` (purchase/consumption/refund, `balance_after`), error `NO_CREDITS` (402), events `credit_used`/`credits_purchased`
+- Thanh toán: sepay webhook (`POST /api/payments/sepay-webhook`) xác minh bank transfer, admin veto-with-refund (48h)
+- Giá: 39,000 VND/credit
+- `payment/page.tsx` riêng vẫn tồn tại cho admin payment transparency
 
 Tham chiếu:
-- `apps/web-1/app/dashboard/case/[id]/payment/page.tsx`
-- `apps/web-1/app/dashboard/case/[id]/_components/PaymentDrawer.tsx`
-- `apps/web-1/app/dashboard/case/[id]/_components/UnpaidAlertBanner.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CreditPanel.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CreditQuantityModal.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CreditTransactionHistory.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CreditBalanceCard.tsx`
+- `apps/api/src/modules/payments/http/sepay.routes.ts`
 
-### 5.8 External feedback upload
+> Ghi chú: `PaymentDrawer` không còn tồn tại trong codebase — luồng thanh toán chuyển sang credit purchase.
+
+### 5.8 External feedback & document upload
 - `ExternalFeedbackUploadModal`: cho phép upload phản hồi từ bên ngoài (lecturer feedback, v.v.)
+- `StudentDocumentUploadModal`: student upload tài liệu minh chứng trong case workspace
 - `SupporterOutputUploadModal`: supporter upload output report
 
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/ExternalFeedbackUploadModal.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/StudentDocumentUploadModal.tsx`
 - `apps/web-1/app/supporter/case/[id]/_components/SupporterOutputUploadModal.tsx`
 
 ## 6. Data model bề mặt frontend đáng chú ý
@@ -227,6 +328,8 @@ Tham chiếu:
 - `internal_status`
 - `payment_status`
 - `locked_price`
+- `sla_deadline_at`
+- `credit_ledgers`
 - `messages`
 - `events`
 - `checkpoints`
@@ -234,7 +337,7 @@ Tham chiếu:
 - `lifecycle_units`
 - `reports`
 
-Điều này cho thấy workspace hiện tại đã bám model giàu hơn nhiều so với form submit đơn giản.
+Điều này cho thấy workspace hiện tại đã bám model giàu hơn nhiều so với form submit đơn giản, kèm credit ledger và SLA deadline cho stage flow.
 
 ### 6.2 ServicePackage
 `ServicePackage` hiện đã có các trường cấu hình giá và audit trail:
@@ -311,9 +414,10 @@ Tham chiếu:
 ### Student
 - tạo case
 - xem case workspace
-- theo dõi tài liệu, timeline, status, payment state
+- theo dõi tài liệu, timeline, status, credit balance
+- mua credit qua `CreditPanel`/`CreditQuantityModal`
 - chat với supporter/admin nếu luồng cho phép
-- xem report và nộp revision
+- xem report và nộp revision (gate theo stage)
 
 ### Supporter
 - mở case workspace cùng shell
@@ -322,17 +426,16 @@ Tham chiếu:
 - upload external feedback qua `ExternalFeedbackUploadModal`
 
 ### Admin
-- triage, reject, request more info, approve
+- triage, reject (lý do ≥ 10 ký tự), approve
 - assign hoặc reassign supporter
 
 ## 9. Architectural constraints cho MVP demo
 
 - Không nên refactor backend workflow trước demo.
 - Không nên thay schema tài liệu lớn trước demo.
-- Không nên giới thiệu websocket/realtime claims nếu code chưa có.
 - Không nên mô tả intake upload flow như đã hoàn chỉnh nếu UI vẫn thiên về Drive link + checklist.
 - Không nên phá shared workspace shell; đây là lợi thế hiện tại của codebase.
-- Không nên để payment lấn narrative chính của audit/review flow, dù payment vẫn là surface thật.
+- Không nên để credit/payment lấn narrative chính của audit/review flow, dù credit ledger + sepay webhook + veto-with-refund là core economy đã code xong.
 
 ## 10. Architectural direction ngắn hạn đã chốt
 
@@ -343,12 +446,14 @@ Tham chiếu:
 - Xem text chat là coordination path.
 - Xem timeline là continuity/trust layer.
 - Xem report là output chính thức của supporter.
+- Xem credit ledger + stage flow là trạng thái vận hành hiện tại (đã code), không còn là mục tiêu deferred.
 
 ## 11. Những gì chưa nên hứa trong tài liệu
 
 Không ghi như thể đã có sẵn:
-- realtime chat bằng socket;
 - intake document ingestion file-by-file hoàn chỉnh;
 - event sourcing đầy đủ;
 - document version manager hoàn chỉnh cho mọi artifact ngoài scope hiện tại;
 - automation AI mới chưa tồn tại trong luồng hiện tại.
+
+> Realtime chat qua Centrifugo đã ship (xem §4.6) — không còn thuộc danh sách này.

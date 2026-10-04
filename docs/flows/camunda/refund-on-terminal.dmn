@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" id="definitions_refund_on_terminal" name="Chính sách hoàn tiền khi đóng case" namespace="http://camunda.org/schema/1.0/dmn">
+  <decision id="refund_on_terminal" name="Chính sách hoàn tiền khi đóng case">
+    <decisionTable id="decisionTable_refund_on_terminal" hitPolicy="FIRST">
+      <input id="input_endType" label="Cách kết thúc">
+        <inputExpression id="inputExpression_endType" typeRef="string">
+          <text>endType</text>
+        </inputExpression>
+      </input>
+      <output id="output_refundPackage" label="Hoàn tiền gói" name="refundPackage" typeRef="boolean" />
+      <output id="output_refundUnusedCredits" label="Hoàn lượt chưa dùng" name="refundUnusedCredits" typeRef="boolean" />
+      <rule id="rule_veto">
+        <inputEntry id="inputEntry_rule_veto"><text>"veto"</text></inputEntry>
+        <outputEntry id="outputEntry_rule_veto_1"><text>true</text></outputEntry>
+        <outputEntry id="outputEntry_rule_veto_2"><text>true</text></outputEntry>
+      </rule>
+      <rule id="rule_others">
+        <inputEntry id="inputEntry_rule_others"><text>"reject", "cancel", "delete"</text></inputEntry>
+        <outputEntry id="outputEntry_rule_others_1"><text>false</text></outputEntry>
+        <outputEntry id="outputEntry_rule_others_2"><text>true</text></outputEntry>
+      </rule>
+      <rule id="rule_fallback">
+        <inputEntry id="inputEntry_rule_fallback"><text>-</text></inputEntry>
+        <outputEntry id="outputEntry_rule_fallback_1"><text>false</text></outputEntry>
+        <outputEntry id="outputEntry_rule_fallback_2"><text>true</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

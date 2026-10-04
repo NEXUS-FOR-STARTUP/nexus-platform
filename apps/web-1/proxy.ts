@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -36,12 +38,57 @@ function redirectTo(request: NextRequest, pathname: string, preserveReturnUrl = 
 
   return NextResponse.redirect(redirectUrl);
 }
+function checkMaintenanceMode(): boolean {
+  const candidatePaths = [
+    path.resolve(/*turbopackIgnore: true*/ process.cwd(), ".env"),
+    path.resolve(/*turbopackIgnore: true*/ process.cwd(), "../../.env"),
+  ];
+
+  for (const envPath of candidatePaths) {
+    try {
+      if (fs.existsSync(envPath)) {
+        const content = fs.readFileSync(envPath, "utf-8");
+        const match = content.match(
+          /^MAINTENANCE_MODE\s*=\s*(?:["']?)(true|false)(?:["']?)/m
+        );
+        if (match) {
+          return match[1] === "true";
+        }
+      }
+    } catch {
+      // Continue to next path
+    }
+  }
+
+  return process.env.MAINTENANCE_MODE === "true";
+}
+
 
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const isMaintenanceMode = checkMaintenanceMode();
+  const isMaintenancePath = pathname === "/maintenance";
+
+  if (isMaintenanceMode) {
+    if (!isMaintenancePath) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/maintenance";
+      redirectUrl.search = "";
+      return NextResponse.redirect(redirectUrl);
+    }
+    return NextResponse.next();
+  }
+
+  if (isMaintenancePath) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/";
+    redirectUrl.search = "";
+    return NextResponse.redirect(redirectUrl);
+  }
+
   const sessionCookie =
     request.cookies.get("__Secure-better-auth.session_token") ||
     request.cookies.get("better-auth.session_token");
-  const { pathname } = request.nextUrl;
   const isDashboardRoute = pathname.startsWith("/dashboard");
   const isSupporterRoute = pathname.startsWith("/supporter");
   const isAdminRoute = pathname.startsWith("/admin");
@@ -74,8 +121,11 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
+    "/auth/:path*",
     "/dashboard/:path*",
     "/supporter/:path*",
     "/admin/:path*",
+    "/maintenance",
   ],
 };

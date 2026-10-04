@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { useCaseChat } from "../hooks/useCaseChat";
+import { useCaseUnreadCount } from "../hooks/useCaseUnreadCount";
+import { useCaseChatVirtualizer } from "../hooks/useCaseChatVirtualizer";
 import { useSession } from "@/lib/auth-client";
-import { ArrowUp, MessageSquare, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowUp, MessageCircle, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
 import { ActionIcon, Textarea, Tooltip, Alert } from "@mantine/core";
 
 interface TabDiscussionChatProps {
   caseId: string;
-  creditBalance?: number;
 }
 
 /* ─── Helpers ─────────────────────────────────────────────── */
@@ -29,20 +29,6 @@ function formatTime(dateStr: string) {
   });
 }
 
-function formatDateLabel(dateStr: string) {
-  const d = new Date(dateStr);
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-  if (d.toDateString() === today.toDateString()) return "Hôm nay";
-  if (d.toDateString() === yesterday.toDateString()) return "Hôm qua";
-  return d.toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}
-
 function avatarHue(id: string) {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 360;
@@ -51,27 +37,75 @@ function avatarHue(id: string) {
 
 function getRoleBadge(role?: string) {
   if (role === "admin")
-    return { label: "Admin", cls: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" };
+    return {
+      label: "Admin",
+      cls: "bg-red-50 text-red-600 border border-red-200/60 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900/40",
+    };
   if (role === "supporter")
-    return { label: "Supporter", cls: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400" };
-  return { label: "Sinh viên", cls: "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400" };
+    return {
+      label: "Supporter",
+      cls: "bg-blue-50 text-blue-600 border border-blue-200/60 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/40",
+    };
+  return {
+    label: "Sinh viên",
+    cls: "bg-slate-100 text-slate-600 border border-slate-200/60 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700/60",
+  };
 }
 
-/* ─── Virtualizer row types ────────────────────────────────── */
-type Row =
-  | { kind: "divider"; label: string }
-  | { kind: "message"; msg: any };
+/* ─── Chat gate error (D16) ───────────────────────────────── */
+interface ChatGateError {
+  code: "CHAT_FREE_TIER" | "CHAT_REJECTED" | "CHAT_CLOSED" | "CHAT_LOCKED";
+  unlockInMs?: number;
+}
 
+function extractChatGateError(error: unknown): ChatGateError | null {
+  if (!error || typeof error !== "object") return null;
+  const err = error as {
+    response?: { data?: { code?: string; details?: { unlockInMs?: number } } };
+  };
+  const code = err.response?.data?.code;
+  if (
+    code === "CHAT_FREE_TIER" ||
+    code === "CHAT_REJECTED" ||
+    code === "CHAT_CLOSED" ||
+    code === "CHAT_LOCKED"
+  ) {
+    return { code, unlockInMs: err.response?.data?.details?.unlockInMs };
+  }
+  return null;
+}
 /* ─── Component ─────────────────────────────────────────────── */
-export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussionChatProps) {
+export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
   const { data: session } = useSession();
-  const { messages, isLoading, isFetching, error, refetch, sendMessage, isSending } =
-    useCaseChat(caseId);
+  const { markAsRead } = useCaseUnreadCount(caseId);
+  const {
+    messages, isLoading, isFetching, error, refetch, sendMessage, isSending, sendError,
+    hasPreviousPage, isFetchingPreviousPage, fetchPreviousPage,
+  } = useCaseChat(caseId);
+  useEffect(() => {
+    if (messages.length > 0) {
+      const latestMsg = messages[messages.length - 1];
+      void markAsRead(latestMsg.id);
+    }
+  }, [messages, markAsRead]);
+  const { scrollRef, rows, virtualizer } = useCaseChatVirtualizer(messages, {
+    hasPreviousPage,
+    isFetchingPreviousPage,
+    fetchPreviousPage,
+  }, session?.user?.id);
 
-  const isLocked = (creditBalance ?? 1) <= 0;
+  const chatGate = useMemo(() => extractChatGateError(sendError), [sendError]);
+  const isChatClosed =
+    chatGate?.code === "CHAT_FREE_TIER" ||
+    chatGate?.code === "CHAT_REJECTED" ||
+    chatGate?.code === "CHAT_CLOSED";
+  const isChatLocked = chatGate?.code === "CHAT_LOCKED";
+  const isChatBlocked = isChatClosed || isChatLocked;
+
   const [inputText, setInputText] = useState("");
   const [isMultiLine, setIsMultiLine] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
 
   /* track textarea rows for input border-radius */
   useEffect(() => {
@@ -84,65 +118,23 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
     return () => observer.disconnect();
   }, []);
 
-  /* scrollable container ref for virtualizer */
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  /* ── Flatten messages + date dividers into rows ── */
-  const rows = useMemo<Row[]>(() => {
-    const result: Row[] = [];
-    let lastLabel: string | null = null;
-    for (const msg of messages) {
-      const label = formatDateLabel(msg.created_at);
-      if (label !== lastLabel) {
-        result.push({ kind: "divider", label });
-        lastLabel = label;
-      }
-      result.push({ kind: "message", msg });
-    }
-    return result;
-  }, [messages]);
-
-  /* ── TanStack Virtual ── */
-  const virtualizer = useVirtualizer({
-    count: rows.length,
-    getScrollElement: () => scrollRef.current,
-    estimateSize: (index) => {
-      const row = rows[index];
-      if (row.kind === "divider") return 36;
-      // estimate taller for multiline; actual size is measured via measureElement
-      const lineCount = (row.msg.content?.split("\n").length ?? 1);
-      return Math.max(72, 56 + lineCount * 18);
-    },
-    overscan: 8,
-  });
-
-  /* scroll to bottom whenever messages change */
-  useEffect(() => {
-    if (rows.length === 0) return;
-    // wait one tick so virtualizer measures first
-    requestAnimationFrame(() => {
-      virtualizer.scrollToIndex(rows.length - 1, { align: "end", behavior: "smooth" });
-    });
-  }, [rows.length]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim()) return;
+    if (!inputText.trim() || isSending) return;
     try {
       await sendMessage(inputText.trim());
       setInputText("");
     } catch {}
   };
 
-  const isMyMessage = (msg: any) => msg.sender_auth_user_id === session?.user?.id;
+  const isMyMessage = (msg: { sender_auth_user_id?: string | null }) => msg.sender_auth_user_id === session?.user?.id;
 
   /* ─── Render ─────────────────────────────────────────────── */
   return (
     <div
-      className="flex flex-col overflow-hidden rounded-xl border border-border-app animate-fade-in h-full"
+      className="flex flex-col overflow-hidden rounded-xl border border-border-app animate-fade-in h-full flex-1 min-h-0"
       style={{
         background: "var(--color-surface-app)",
-        boxShadow: "var(--shadow-md)",
       }}
     >
       {/* ── Header ── */}
@@ -151,16 +143,8 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
         style={{ background: "var(--color-surface-soft)" }}
       >
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-brand" />
-          <span className="text-xs font-semibold text-text-app tracking-wide">Trao đổi</span>
-          {messages.length > 0 && (
-            <span
-              className="text-xs font-semibold px-1.5 py-0.5 rounded-full"
-              style={{ background: "var(--color-brand-soft)", color: "var(--color-brand)" }}
-            >
-              {messages.length}
-            </span>
-          )}
+          <MessageCircle className="w-4 h-4 text-brand" />
+          <span className="text-[13px] font-semibold text-text-app tracking-wide">Trao đổi</span>
         </div>
 
         <Tooltip label="Tải tin nhắn mới" position="left" withArrow>
@@ -190,14 +174,14 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-text-muted">
             <div
-              className="w-12 h-12 rounded-full flex items-center justify-center"
+              className="w-10 h-10 rounded-full flex items-center justify-center"
               style={{ background: "var(--color-brand-soft)" }}
             >
-              <MessageSquare className="w-5 h-5 text-brand" />
+              <MessageCircle className="w-5 h-5 text-brand" />
             </div>
             <div className="text-center">
-              <p className="text-xs font-semibold text-text-app mb-0.5">Chưa có trao đổi nào</p>
-              <p className="text-base text-text-muted max-w-[260px] leading-relaxed">
+              <p className="text-[14px] font-semibold text-text-app mb-0.5">Chưa có trao đổi nào</p>
+              <p className="text-[13px] text-text-muted max-w-[280px] leading-relaxed">
                 Đây là nơi nhóm và Supporter phối hợp trong suốt quá trình phản biện.
               </p>
             </div>
@@ -219,97 +203,121 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
                     left: 0,
                     right: 0,
                     transform: `translateY(${vItem.start}px)`,
-                    paddingBottom: "12px",
+                    paddingBottom: row.kind === "divider" ? "8px" : row.isFirstInGroup ? "6px" : "3px",
                   }}
                 >
                   {row.kind === "divider" ? (
                     /* ── Date divider ── */
-                    <div className="flex items-center gap-3 py-1">
-                      <div className="flex-1 h-px" style={{ background: "var(--color-border)" }} />
+                    <div className="flex items-center justify-center gap-3 pt-3.5 pb-2 select-none">
+                      <div className="flex-1 max-w-[120px] sm:max-w-[180px] h-px opacity-60" style={{ background: "var(--color-border)" }} />
                       <span
-                        className="text-xs font-semibold px-2.5 py-0.5 rounded-full shrink-0"
+                        className="text-[11px] font-medium px-2.5 py-0.5 rounded-md shrink-0 shadow-2xs"
                         style={{
                           background: "var(--color-surface-muted)",
                           color: "var(--color-text-subtle)",
+                          border: "1px solid var(--color-border)",
                         }}
                       >
                         {row.label}
                       </span>
-                      <div className="flex-1 h-px" style={{ background: "var(--color-border)" }} />
+                      <div className="flex-1 max-w-[120px] sm:max-w-[180px] h-px opacity-60" style={{ background: "var(--color-border)" }} />
                     </div>
                   ) : (
                     /* ── Message bubble ── */
                     (() => {
                       const msg = row.msg;
                       const isMe = isMyMessage(msg);
-                      const senderName = isMe
-                        ? (session?.user?.name ?? "Tôi")
-                        : (msg.sender?.name || "Người dùng");
-                      const displayName = isMe ? "Tôi" : senderName;
+                      const senderName = msg.sender?.name || "Người dùng";
                       const role = msg.sender?.role;
                       const badge = getRoleBadge(role);
                       const hue = avatarHue(msg.sender_auth_user_id || msg.id);
                       const initials = getInitials(senderName);
+                      const isShort = (msg.content?.length ?? 0) <= 28 && !msg.content?.includes("\n");
+                      const showHeader = !isMe && row.isFirstInGroup;
 
                       return (
-                        <div className={`flex gap-2.5 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
-                          {/* Avatar */}
-                          <div
-                            className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0 mt-5 select-none"
-                            style={{ background: `hsl(${hue} 60% ${isMe ? "45%" : "50%"})` }}
-                          >
-                            {initials}
-                          </div>
-
-                          {/* Bubble group */}
-                          <div
-                            className={`space-y-1 max-w-[72%] flex flex-col ${isMe ? "items-end" : "items-start"}`}
-                          >
-                            {/* Sender + badge */}
-                            <div className={`flex items-center gap-1.5 ${isMe ? "flex-row-reverse" : ""}`}>
-                              <span className="text-base font-semibold text-text-app">
-                                {displayName}
-                              </span>
-                              {!isMe && (
-                                <span
-                                  className={`text-xs font-semibold px-1.5 py-0.5 rounded ${badge.cls}`}
+                        <div className={`flex w-full ${isMe ? "justify-end" : "justify-start"}`}>
+                          <div className={`flex gap-2 max-w-[82%] sm:max-w-[72%] ${isMe ? "justify-end" : "items-start"}`}>
+                            {/* Avatar (only for incoming messages) */}
+                            {!isMe && (
+                              showHeader ? (
+                                <div
+                                  className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-semibold shrink-0 select-none shadow-xs mt-0.5"
+                                  style={{ background: `hsl(${hue} 60% 45%)` }}
                                 >
-                                  {badge.label}
-                                </span>
-                              )}
-                            </div>
+                                  {initials}
+                                </div>
+                              ) : (
+                                <div className="w-7 shrink-0" aria-hidden="true" />
+                              )
+                            )}
 
-                            {/* Bubble */}
-                            <div
-                              className={`relative px-3.5 pt-2.5 pb-2 text-xs leading-relaxed break-words w-fit ${
-                                isMe
-                                  ? "rounded-2xl rounded-tr-sm text-white"
-                                  : "rounded-2xl rounded-tl-sm"
-                              }`}
-                              style={
-                                isMe
-                                  ? {
-                                      background: "var(--color-brand)",
-                                      boxShadow: "0 2px 8px rgba(37,99,235,0.28)",
-                                      maxWidth: "min(360px,68vw)",
-                                    }
-                                  : {
-                                      background: "var(--color-surface-soft)",
-                                      border: "1px solid var(--color-border)",
-                                      boxShadow: "var(--shadow-sm)",
-                                      maxWidth: "min(360px,68vw)",
-                                    }
-                              }
-                            >
-                              <p style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-                                {msg.content}
-                              </p>
-                              <p
-                                className="text-base mt-1 select-none"
-                                style={{ textAlign: isMe ? "right" : "left", opacity: 0.6 }}
+                            {/* Bubble group */}
+                            <div className={`flex flex-col ${isMe ? "items-end" : "items-start"} min-w-0`}>
+                              {/* Sender + badge (only for first message in group) */}
+                              {showHeader && (
+                                <div className="flex items-center gap-1.5 mb-0.5 px-0.5">
+                                  <span className="text-[12px] font-semibold text-text-app">
+                                    {senderName}
+                                  </span>
+                                  <span
+                                    className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${badge.cls}`}
+                                  >
+                                    {badge.label}
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Bubble */}
+                              <div
+                                className={`relative px-2.5 py-1.5 text-[13px] leading-snug break-words w-fit ${
+                                  isMe
+                                    ? "rounded-lg rounded-tr-xs text-white"
+                                    : "rounded-lg rounded-tl-xs text-text-app"
+                                }`}
+                                style={
+                                  isMe
+                                    ? {
+                                        background: "var(--color-brand)",
+                                        boxShadow: "0 1px 2px rgba(37,99,235,0.2)",
+                                        maxWidth: "min(380px, 75vw)",
+                                      }
+                                    : {
+                                        background: "var(--color-surface-soft)",
+                                        border: "1px solid var(--color-border)",
+                                        boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+                                        maxWidth: "min(380px, 75vw)",
+                                      }
+                                }
                               >
-                                {formatTime(msg.created_at)}
-                              </p>
+                                {isShort ? (
+                                  <div className="flex items-baseline gap-2">
+                                    <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                                      {msg.content}
+                                    </span>
+                                    <span
+                                      className={`text-[9px] shrink-0 select-none tabular-nums ${
+                                        isMe ? "text-white/75" : "text-text-subtle"
+                                      }`}
+                                    >
+                                      {formatTime(msg.created_at)}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-col">
+                                    <p style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                                      {msg.content}
+                                    </p>
+                                    <span
+                                      className={`text-[9px] mt-0.5 select-none leading-none self-end tabular-nums ${
+                                        isMe ? "text-white/75" : "text-text-subtle"
+                                      }`}
+                                    >
+                                      {formatTime(msg.created_at)}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -326,11 +334,11 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
       {/* ── Error bar ── */}
       {error && (
         <div
-          className="px-5 py-2 flex items-center gap-2 text-base shrink-0"
+          className="px-4 py-2 flex items-center gap-2 text-[13px] shrink-0"
           style={{ background: "var(--color-danger-soft)", color: "var(--color-danger)" }}
         >
           <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-          <span>{(error as any)?.message || String(error)}</span>
+          <span>{(error as Error)?.message || String(error)}</span>
         </div>
       )}
 
@@ -341,7 +349,7 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
       >
         <form onSubmit={handleSend}>
           <div
-            className={`flex items-end gap-2 border border-border-strong bg-surface-app px-5 py-3 transition-colors ${isMultiLine ? "rounded-2xl" : "rounded-full"}`}
+            className={`flex items-end gap-2 border border-border-strong bg-surface-app px-4 py-2.5 transition-colors ${isMultiLine ? "rounded-xl" : "rounded-lg"}`}
             style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
           >
             <Textarea
@@ -349,8 +357,8 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
               aria-label="Nhập nội dung tin nhắn"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              disabled={isLocked}
-              placeholder={isLocked ? "Hết credit — mua thêm để tiếp tục trao đổi" : "Nhắn gì đó…"}
+              disabled={isChatBlocked}
+              placeholder={isChatClosed ? "Chat hiện không khả dụng" : isChatLocked ? "Hết lượt kiểm tra và ân hạn. Vui lòng nạp thêm credit." : "Nhắn gì đó…"}
               className="flex-1"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
@@ -366,6 +374,7 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
                   background: "transparent",
                   border: "none",
                   lineHeight: "1.5",
+                  fontSize: "14px",
                   padding: "6px 0",
                   minHeight: "26px",
                 },
@@ -380,7 +389,7 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
               type="submit"
               disabled={!inputText.trim() || isSending}
               size={36}
-              radius="xl"
+              radius="md"
               color="brand"
               className="shrink-0 cursor-pointer"
               style={{
@@ -402,11 +411,22 @@ export default function TabDiscussionChat({ caseId, creditBalance }: TabDiscussi
           </div>
         </form>
 
-        {isLocked && (
+        {isChatClosed && (
           <Alert color="red" variant="light" radius="md" className="mt-2">
-            <div className="flex items-center gap-2 text-xs">
+            <div className="flex items-center gap-2 text-[13px]">
               <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>Bạn đã hết credit. Mua thêm để tiếp tục trao đổi với supporter.</span>
+              <span>Chat hiện không khả dụng. Vui lòng liên hệ qua email hoặc điện thoại.</span>
+            </div>
+          </Alert>
+        )}
+
+        {isChatLocked && (
+          <Alert color="yellow" variant="light" radius="md" className="mt-2">
+            <div className="flex items-center gap-2 text-[13px]">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>
+                Hết lượt kiểm tra và đã qua thời gian ân hạn 24h. Vui lòng mua thêm credit để tiếp tục trao đổi.
+              </span>
             </div>
           </Alert>
         )}

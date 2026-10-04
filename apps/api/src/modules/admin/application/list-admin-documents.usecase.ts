@@ -1,7 +1,14 @@
 import { prisma } from "../../../db.js";
 
+/**
+ * Upper bound guard for admin documents listing.
+ * Prevents full-table scans while full server-side pagination is being scheduled.
+ */
+export const ADMIN_DOCUMENTS_PAGE_LIMIT = 100;
+
 export async function listAdminDocumentsUseCase() {
   const docs = await prisma.documentRecord.findMany({
+    take: ADMIN_DOCUMENTS_PAGE_LIMIT,
     orderBy: {
       created_at: "desc",
     },
@@ -45,5 +52,6 @@ export async function listAdminDocumentsUseCase() {
     uploaded_by_email: doc.uploaded_by?.email || "N/A",
     created_at: doc.created_at,
     updated_at: doc.updated_at,
+    superseded_at: doc.superseded_at,
   }));
 }

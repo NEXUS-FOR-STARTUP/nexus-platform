@@ -35,7 +35,7 @@ function ensureConfig() {
 // Upload / Delete
 // ---------------------------------------------------------------------------
 
-export interface UploadResult {
+interface UploadResult {
   fileUrl: string;
   publicId: string;
   resourceType: string;
@@ -59,6 +59,7 @@ export async function uploadFile(
   folder: string,
   publicId: string,
   resourceType: string = 'raw',
+  overwrite: boolean = true,
 ): Promise<UploadResult> {
   ensureConfig();
   const t0 = Date.now();
@@ -68,7 +69,7 @@ export async function uploadFile(
       folder,
       public_id: publicId,
       resource_type: resourceType,
-      overwrite: false,
+      overwrite,
     });
 
     const fileUrl = result?.secure_url || result?.url;
@@ -115,7 +116,7 @@ export function getCloudName(): string {
   return requiredEnv('CLOUDINARY_CLOUD_NAME');
 }
 
-export function getCloudinaryHost(): string {
+function getCloudinaryHost(): string {
   return 'res.cloudinary.com';
 }
 
@@ -129,7 +130,7 @@ export function isValidCloudinaryUrl(url: string): boolean {
   }
 }
 
-export function validateCloudinaryUrl(url: string): void {
+function validateCloudinaryUrl(url: string): void {
   if (!isValidCloudinaryUrl(url)) {
     throw new Error('INVALID_CLOUDINARY_HOST');
   }

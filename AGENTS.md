@@ -3,24 +3,25 @@
 - Prefer `caveman` skill lite mode + `sequential-thinking` for structured reasoning.
 - **CodeGraph**: Project indexed with CodeGraph. Use `codegraph_explore` MCP or `codegraph explore` CLI BEFORE `grep` or Read.
 
-**Generated:** 2026-07-23
+**Generated:** 2026-10-04
 
 ## OVERVIEW
 
-Turborepo monorepo. Stack: Next.js 16, Hono, Better Auth, Prisma 7, Mantine UI v9, TanStack Query/Form/Virtual, Lucide React, Vercel AI SDK (OpenAI/Google), shared `@repo/*` packages.
+Turborepo monorepo. Stack: Next.js 16, Hono, Better Auth, Prisma 7, Mantine UI v9, TanStack Query/Form/Virtual, Lucide React, Vercel AI SDK (@ai-sdk/google), BullMQ + Redis, shared `@repo/*` and `@app/*` packages.
 
 ## STRUCTURE
 
 ```
 root/
-├── apps/api/         # Hono backend (8 modules, 51 endpoints)
+├── apps/api/         # Hono backend (15 modules, 112 endpoints)
 ├── apps/web-1/       # Next.js 16 product app (port 3001)
+├── apps/worker-omp/  # AI evaluation daemon (BullMQ + Redis sandbox)
 ├── packages/         # Shared packages
-│   ├── ui/           # React primitives (Button, Card, Code)
+│   ├── shared/       # Shared telemetry & worker metrics (@app/shared)
 │   ├── validation/   # Zod schemas (shared frontend↔backend)
 │   ├── eslint-config/# ESLint 9 flat configs
 │   └── typescript-config/ # tsconfig presets
-├── prisma/           # Root Prisma schema (16 models)
+├── prisma/           # Root Prisma schema (32 models, 31 migrations)
 ├── docs/             # Product + technical documentation
 ├── .agents/rules/    # Agent development rules
 ├── .codegraph/       # Code intelligence index
@@ -32,25 +33,28 @@ root/
 | Task            | Location                                              | Notes                                                        |
 | --------------- | ----------------------------------------------------- | ------------------------------------------------------------ |
 | Backend/API     | `apps/api/src/index.ts`, `auth.ts`, `db.ts`, `env.ts` | Hono entry, auth mount, DB wiring                            |
+| Worker OMP      | `apps/worker-omp/src/index.ts`, `storage.ts`          | BullMQ daemon, Redis Pub/Sub, sandbox execution              |
 | Web UI          | `apps/web-1/app/*`                                    | Mantine UI v9 app; read `apps/web-1/AGENTS.md` first         |
-| Shared UI       | `packages/ui/src/*`                                   | Common primitives for shared React usage                     |
-| DB schema       | `prisma/schema-*.md` or `prisma/schema.prisma`        | 16 models, plural snake_case fields                          |
+| Shared UI       | Mantine UI v9                                          | Real design system for web-1                                 |
+| DB schema       | `prisma/schema-*.md` or `prisma/schema.prisma`        | 32 models, plural snake_case fields (31 migrations)          |
 | DB migration    | `docs/db-migration-guide.md`                          | Prisma migration workflow, generate/migrate/deploy          |
 | Tech docs       | `docs/tech-doc-urls.txt`                              | Source of truth for external docs                            |
 | CI/CD           | `docs/ci-guide.md`                                    | GitHub Actions workflow, automate build/test/deploy          |
 | Workspace rules | `package.json`, `turbo.json`                          | Root scripts + Turbo task graph                              |
-| Shared packages | `packages/validation/src/`, `packages/ui/src/`        | Zod schemas, React primitives                                |
+| Shared packages | `packages/validation/src/`, `packages/shared/src/`    | Zod schemas (shared FE↔BE) & telemetry metrics               |
 | Agent rules     | `.agents/rules/`                                      | Development, docs, orchestration, workflow, prisma-migration |
-| Test infra      | `apps/api/src/shared/infrastructure/tests/`           | 12 test files, Node built-in runner                          |
+| Test infra      | `apps/api/src/shared/infrastructure/tests/`           | 48 files (47 *.test.ts + coverage-report.ts), node:test in api |
+| Realtime chat   | `apps/api/src/modules/realtime/`                      | Centrifugo v6; ops: `docs/realtime-centrifugo-guide.md`     |
 | DB query (prod) | `docs/db-query-guide.md`                              | Read-only query via READONLY_DATABASE_URL, guest account     |
 | DB backup       | `docs/db-backup-guide.md`                             | pg_dump via Docker, safe SQL on VPS, restore                 |
 | Docker build    | `docs/docker-build-push-guide.md`                     | Build/push API & Web images, deploy to VPS                   |
+| VPS deploy      | `docs/vps-deployment-guide.md`                        | Safe VPS deployment checklist (Single Compose, OMP worker)    |
 
 ## CONVENTIONS
 
 - One root `.env`.
 - TypeScript ESM, NodeNext-style relative imports use `.js`.
-- API `8000`; web `3000`.
+- API `8000`; web `3001`.
 - Better Auth in `apps/api`; frontend only consumes client/session helpers.
 - Prisma schema: plural tables + snake_case columns.
 - Mantine UI web-only.
@@ -62,6 +66,7 @@ root/
 - Test: Node built-in runner (`node:test` + `node:assert`), only in apps/api.
 - CI/CD: see `docs/ci-guide.md` for GitHub Actions workflow setup.
 - Docker build: see `docs/docker-build-push-guide.md` for API & Web images.
+- Shared validation: see `docs/shared-validation-convention.md` for zod/entity rules.
 
 ## ANTI-PATTERNS
 
@@ -74,40 +79,41 @@ root/
 - Add manual Tailwind positioning classes (`fixed`, `inset-0`, `flex`, `items-center`, `justify-center`) to Mantine UI components (`Modal`, `Drawer`). Mantine has default layout; override classes break display (e.g., center alignment).
 - Split `.env` per app (3 violations found: `apps/web-1/.env`, `apps/web-1/.env.prod`, `.env.prod`).
 - Direct `apiClient` calls in UI components instead of hooks.
-- `as any` type escapes (107 occurrences in API, 11 in web-1).
+- `as any` type escapes (126 occurrences in API, 20 in web-1 — số đếm hiện tại, có thể trôi).
 - try/catch in component code (delegate to hook/query layer).
 - Files exceeding 200-line limit (20 files across API and web-1).
 - Shadows on Mantine Card/Paper (`shadow-sm`, `shadow-md` on 22 files).
+- Adding responsive mobile layouts to Admin or Supporter interfaces (violates Desktop-only design enforced by `DesktopOnlyNotice`).
+- Assuming frontend has no server-side auth guard (Next.js 16 `proxy.ts` performs server-side route guarding and maintenance mode).
 
 ## UNIQUE STYLES
 
 - `apps/web-1`: Mantine UI v9 + TanStack Form + Lucide React.
 - `apps/api`: Hono streaming helpers, Better Auth plugins, Vercel AI SDK for Google/OpenAI.
-- `packages/ui`: tiny, stable, shared; keep changes minimal.
+- `packages/validation`: Zod schemas shared FE↔BE; single source of truth for entity types.
 
 ## COMMANDS
 
 ```bash
-npm run dev
-npm run build
-npm run check-types
-npm run prisma:generate
-npm run prisma:migrate
+bun run dev
+bun run build
+bun run check-types
+bun run prisma:generate
+bun run prisma:migrate
 ```
 
 ## BUILD & CI
 
 ```bash
 # Dev
-npm run dev                    # parallel: API (tsx watch :8000) + Web (next dev :3001)
-npm run build                  # prisma generate → tsc (API) + next build (Web)
-npm run lint                   # ESLint zero-warnings (Web + UI)
-npm run check-types            # tsc --noEmit all workspaces
-npm run prisma:generate        # Root Prisma schema → client
-npm test                       # Only in apps/api: tsx --test (Node built-in runner)
-npm run format                 # Prettier (not in CI pipeline)
+bun run dev                    # parallel: API (bun --watch :8000) + Web (next dev :3001)
+bun run build                  # prisma generate → tsc (API) + next build (Web)
+bun run lint                   # ESLint zero-warnings (Web + UI)
+bun run check-types            # tsc --noEmit all workspaces
+bun run prisma:generate        # Root Prisma schema → client
+bun run --filter nexus-platform-api test # API test suite (tsx --test)
+bun run format                 # Prettier (not in CI pipeline)
 ```
-
 ## DOCKER BUILD & DEPLOY
 
 > Full guide: `docs/docker-build-push-guide.md` — troubleshooting, Makefile shortcuts, CI/CD template.
@@ -129,22 +135,25 @@ npm run format                 # Prettier (not in CI pipeline)
 - `prisma db push`
 - `DROP TABLE`, `DROP COLUMN`, `DELETE FROM`, `TRUNCATE`
 
-Nếu DATABASE_URL trỏ `supabase.co` hoặc `pooler.supabase.com` → **tuyệt đối không chạy destructive command**. Orchestrator phải inject safety block vào mọi subagent prompt (xem `.agents/rules/orchestration-protocol.md` → DB SAFETY PROTOCOL).
+Nếu DATABASE_URL trỏ host remote VPS, IP production (hoặc domain ngoài localhost/127.0.0.1) → **tuyệt đối không chạy destructive command**. Production DB là self-hosted PostgreSQL 18.4 trên VPS (container `nexus-db` theo `docker-compose.prod.yml`). Orchestrator phải inject safety block vào mọi subagent prompt (xem `.agents/rules/orchestration-protocol.md` → DB SAFETY PROTOCOL).
 
 **Vi phạm = data loss = irrecoverable.** Đã xảy ra 1 lần. Không được phép lần 2.
 
 ## NOTES
 
 - `apps/web-1/AGENTS.md` is child-specific Mantine UI note; sync with web work.
+- `apps/worker-omp/AGENTS.md` covers the BullMQ AI worker daemon and sandbox environment.
 - **Agent Rules**: [.agents/rules/](.agents/rules/) contains project-wide guidelines:
   - [development-rules.md](.agents/rules/development-rules.md): Coding standards, file sizes, visual aids, no direct `apiClient` calls in UI.
   - [documentation-management.md](.agents/rules/documentation-management.md): Roadmaps, changelogs, plan files.
   - [orchestration-protocol.md](.agents/rules/orchestration-protocol.md): Subagent delegation and parallel execution — **includes DB Safety Protocol**.
   - [primary-workflow.md](.agents/rules/primary-workflow.md): Planning, implementation, testing, code quality, integration, visual explanations — **includes DB Migration Safety Gate**.
-- Apps/api: 51 endpoints across 8 modules. Clean Architecture (domain/application/infrastructure/http). Some modules lack infrastructure layer (admin, supporter). Direct module-to-module calls (no event bus).
-- Apps/web-1: 16 custom hooks across 4 route groups. Auth entirely client-side (no middleware guard). Vietnamese-first UI.
+- Apps/api: 112 endpoints (108 module routes + 4 system) across 15 modules (`admin, ai-engine, auth, cases, deposits, documents, notifications, orders, packages, payments, profile, realtime, reports, supporter, wallet`). Clean Architecture (domain/application/infrastructure/http). Event bus (`shared/domain/domain-events.ts`, 14 event types) + 2 Outbox Relays (`DomainEventOutbox` 5s tick crash recovery, `NotificationOutbox` 2s tick). BullMQ `omp-queue` producer for AI jobs.
+- Apps/web-1: 37 custom hooks across route groups. Auth server-side guard via Next.js 16 `proxy.ts` (with `MAINTENANCE_MODE`). Case workspace has 7 tabs (`overview, documents, report, discussion, timeline, settings, credits`) with URL sync `?tab=`. Student workspace is mobile-responsive; Admin & Supporter are strictly Desktop-only (`DesktopOnlyNotice.tsx` < 1024px). Canonical UX wording reference: `design-system/wording/`. Vietnamese-first UI.
+- Apps/worker-omp: Dedicated BullMQ worker daemon on Bun. Consumes `omp-queue`, isolates runs in `storage/jobs/${caseId}/${jobId}/`, dual-publishes logs to Redis (`job:logs:${jobId}` and `job:logs:${caseId}`), listens to `job-cancellation`. Typst PDF generation is handled in `apps/api`, not worker.
 - Packages/validation: Zod v4, shared schemas for IdeaInput, TeamMemberInput, TeamFitInput.
-- Packages/ui: 3 scaffold components — these are NOT the real design system (Mantine is).
+- Packages/shared: Shared worker telemetry, CPU/RAM/disk metrics (`@app/shared`).
+- No `packages/ui` package exists; Mantine UI v9 is the real design system for web-1.
 
 ## UI-UX-PRO-MAX USAGE RULE
 
@@ -172,49 +181,3 @@ Never let skill override Nexus requirements:
 - Landing creative; workspace/admin restrained.
 
 Use skill as inspiration and validation, not rigid generator.
-
-<!-- gitnexus:start -->
-# GitNexus — Code Intelligence
-
-This project is indexed by GitNexus as **nexus-platform** (10518 symbols, 21057 relationships, 258 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
-
-> Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
-
-## Always Do
-
-- **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user. For unified PDG impact, add `mode: "pdg"` with optional `line: <N>` — it returns statement-level `affectedStatements` over CDG + REACHING_DEF and inter-procedural symbols in `interproceduralByDepth`/`byDepth`; no-layer/degraded PDG results are UNKNOWN-risk notes (`--pdg` layer).
-- **MUST run `detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows. For regression review, compare against the default branch: `detect_changes({scope: "compare", base_ref: "main"})`.
-- **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
-- When exploring unfamiliar code, use `query({search_query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
-- When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `context({name: "symbolName"})`.
-- For security review, `explain({target: "fileOrSymbol"})` lists taint findings (source→sink flows; needs `analyze --pdg`).
-- For control/data dependence, `pdg_query({mode: "controls", target: "fileOrSymbol"})` answers "under what condition does X run?" (CDG, incl. guard clauses) and `pdg_query({mode: "flows", target, variable})` traces "where does variable Y flow?" (REACHING_DEF). `--pdg` layer.
-
-## Never Do
-
-- NEVER edit a function, class, or method without first running `impact` on it.
-- NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
-- NEVER rename symbols with find-and-replace — use `rename` which understands the call graph.
-- NEVER commit changes without running `detect_changes()` to check affected scope.
-
-## Resources
-
-| Resource | Use for |
-|----------|---------|
-| `gitnexus://repo/nexus-platform/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/nexus-platform/clusters` | All functional areas |
-| `gitnexus://repo/nexus-platform/processes` | All execution flows |
-| `gitnexus://repo/nexus-platform/process/{name}` | Step-by-step execution trace |
-
-## CLI
-
-| Task | Read this skill file |
-|------|---------------------|
-| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md` |
-| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
-| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md` |
-| Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
-| Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
-| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
-
-<!-- gitnexus:end -->

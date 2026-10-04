@@ -20,6 +20,7 @@ Tài liệu này xác định các yêu cầu chức năng và nghiệp vụ c�
    - Mọi quyết định "Case này có cần thanh toán hay không" và "số tiền cần thanh toán là bao nhiêu" đều phải dựa trên `Case.locked_price`, không được đọc trực tiếp từ `ServicePackage.price` của gói dịch vụ sau khi case đã tạo.
    - Khi Admin thay đổi giá gói dịch vụ, sự thay đổi đó chỉ áp dụng cho các Case được tạo mới sau thời điểm đó. Tất cả các Case cũ (ở trạng thái unpaid, proof_uploaded, pending_verification, hoặc rejected) vẫn giữ nguyên giá cũ đã được khóa tại thời điểm tạo.
 3. **Tái nộp minh chứng sau khi bị từ chối (Rejected Payment Resubmission):** Khi người dùng nộp lại minh chứng thanh toán mới sau khi bị Admin từ chối (Reject), số tiền yêu cầu thanh toán (`Payment.amount`) vẫn phải bằng `locked_price` của Case.
+4. **Nâng cấp gói từ Case miễn phí khi mua credit (Free Case Upgrade on Paid Order):** Khi Case ban đầu được tạo với gói miễn phí (`pkg_tf_free`, `locked_price = 0`), khi người dùng mua credit đánh giá (`credit_audit`), backend resolve đơn giá từ gói chuyên sâu `pkg_tf_audit`. Chỉ sau khi `walletService.withdraw` trừ tiền ví thành công trong transaction tạo order, Case mới được cập nhật `package_id = "pkg_tf_audit"`, khóa `locked_price = unitPrice`, chuyển `payment_status = "paid"` và ghi nhận sự kiện `package_upgraded`. Frontend không thực hiện pre-upgrade trước khi tạo order, đảm bảo trường hợp ví thiếu tiền thì Case vẫn giữ nguyên trạng thái miễn phí ban đầu.
 
 ### 2.3 Nhật ký thay đổi giá gói dịch vụ (Pricing Audit Trail)
 1. **Lưu vết lịch sử thay đổi gần nhất:** Trên bảng `ServicePackage`, hệ thống ghi nhận các thông tin lịch sử thay đổi giá gần nhất gồm:
@@ -111,10 +112,15 @@ Tài liệu này xác định các yêu cầu chức năng và nghiệp vụ c�
   - **Use Case:** [upload-payment-proof.usecase.ts](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/api/src/modules/payments/application/upload-payment-proof.usecase.ts)
   - **Mô tả:** Đọc `Case.locked_price` để gán giá trị chính xác cho `Payment.amount`, thay vì dùng giá của `ServicePackage` tại thời điểm tải lên.
 
+- **API Tạo đơn hàng & Nâng cấp Case miễn phí:** `POST /api/orders`
+  - **Use Case:** [create-order.usecase.ts](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/api/src/modules/orders/application/create-order.usecase.ts) & [credit-audit-order.helpers.ts](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/api/src/modules/orders/application/credit-audit-order.helpers.ts)
+  - **Mô tả:** Đối với case miễn phí (`pkg_tf_free` hoặc `locked_price === 0`), `resolveCreditAuditPrice` lấy giá theo gói `pkg_tf_audit`. Khi người dùng mua credit thành công (trừ ví VND qua `walletService.withdraw`), case được nâng cấp tự động sang `package_id = "pkg_tf_audit"`, gán `locked_price = unitPrice`, `payment_status = "paid"`, và tạo event `package_upgraded`.
+
 ### 3.4 Frontend UI Components liên quan
 - **Custom Hook:** [useAdminPackages.ts](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/web-1/app/admin/hooks/useAdminPackages.ts)
 - **UI Admin Settings:** [AdminPackagesSettings.tsx](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/web-1/app/admin/_components/AdminPackagesSettings.tsx) - hiển thị danh sách gói và lịch sử thay đổi giá cũ của Admin.
 - **UI Student Workspace & Payment:**
   - [UnpaidAlertBanner.tsx](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/web-1/app/dashboard/case/[id]/_components/UnpaidAlertBanner.tsx): Sử dụng `getCaseEffectivePrice` hiển thị số tiền cần trả trên banner thông báo.
-  - [PaymentDrawer.tsx](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/web-1/app/dashboard/case/[id]/_components/PaymentDrawer.tsx): Sử dụng `getCaseEffectivePrice` và `validatePaymentProof`.
+  - [CreditPanel.tsx](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/web-1/app/dashboard/case/[id]/_components/CreditPanel.tsx) + [CreditQuantityModal.tsx](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/web-1/app/dashboard/case/[id]/_components/CreditQuantityModal.tsx): mua credit (giá 39,000 VND/credit) — thay thế `PaymentDrawer` (đã không còn tồn tại).
+  - [CreditTransactionHistory.tsx](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/web-1/app/dashboard/case/[id]/_components/CreditTransactionHistory.tsx) + [CreditBalanceCard.tsx](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/web-1/app/dashboard/case/[id]/_components/CreditBalanceCard.tsx): lịch sử giao dịch + số dư credit.
   - [/payment/page.tsx](file:///E:/FPT/Semester_7/EXE101/product-workspace/nexus-platform/apps/web-1/app/dashboard/case/[id]/payment/page.tsx): Trang thanh toán chi tiết sử dụng `caseRequiresPayment`, `getCaseEffectivePrice` để tạo mã QR chuyển khoản chính xác và hiển thị thông tin hóa đơn.

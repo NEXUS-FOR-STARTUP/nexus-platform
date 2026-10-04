@@ -1,21 +1,35 @@
 import { AppError } from "../../../shared/domain/app-error.js";
+import type { DocumentType } from "@prisma/client";
 import { assembleDocumentWorkspace } from "../../documents/application/assemble-document-workspace.js";
 import { findDocumentRecordsByCaseId } from "../../documents/infrastructure/persistence/document.repository.js";
 import {
   findCaseByIdWithAllRelations,
-  findFirstIntakeUnit,
   findFirstUserEvent,
   findLifecycleUnits,
   findOpenRequestsForMoreInfo,
 } from "../infrastructure/persistence/case.repository.js";
-import {
-  findLatestApprovedReport,
-  findApprovedReports,
-} from "../../reports/infrastructure/persistence/report.repository.js";
-import { getCreditBalance, getCreditLedgerByCaseId } from "../infrastructure/persistence/credit-ledger.repository.js";
-import { canTransition } from "../infrastructure/persistence/case-workflow-engine.js";
-import { caseWorkflow } from "../domain/case-workflow.js";
+import { getCreditLedgerByCaseId } from "../infrastructure/persistence/credit-ledger.repository.js";
+import { getAvailableTransitions } from "../domain/case-machine.js";
 import { prisma } from "../../../db.js";
+
+const DOC_TYPES_CACHE_TTL_MS = 5 * 60 * 1000;
+const AUDIT_JOB_TYPE = "omp_audit";
+
+// Document types are near-static reference data, but the case detail endpoint is
+// polled — re-reading the table on every poll wastes DB round-trips.
+let cachedDocTypes: DocumentType[] | null = null;
+let cachedDocTypesAt = 0;
+
+async function getActiveDocumentTypes(): Promise<DocumentType[]> {
+  if (cachedDocTypes && Date.now() - cachedDocTypesAt < DOC_TYPES_CACHE_TTL_MS) {
+    return cachedDocTypes;
+  }
+
+  const docTypes = await prisma.documentType.findMany({ where: { is_active: true } });
+  cachedDocTypes = docTypes;
+  cachedDocTypesAt = Date.now();
+  return docTypes;
+}
 
 function normalizeIntakeSnapshot(rawContent: string | null) {
   if (!rawContent) return null;
@@ -42,7 +56,7 @@ function normalizeIntakeSnapshot(rawContent: string | null) {
 
 /**
  * Base response shape — safe for all roles (student, supporter, admin).
- * VERIFY-001 fix: excludes internal_status and detailed payment_status.
+ * Internal status is excluded for student; payment_status is included so student can view case billing state.
  */
 function toBaseResponse(caseDetails: any) {
   return {
@@ -56,6 +70,7 @@ function toBaseResponse(caseDetails: any) {
     current_checkpoint: caseDetails.current_checkpoint,
     package_id: caseDetails.package_id,
     locked_price: caseDetails.locked_price,
+    payment_status: caseDetails.payment_status,
     assigned_supporter_auth_user_id: caseDetails.assigned_supporter_auth_user_id,
     user_facing_stage: caseDetails.user_facing_stage,
     deadline: caseDetails.deadline,
@@ -80,13 +95,12 @@ function toBaseResponse(caseDetails: any) {
 
 /**
  * Extend base response with internal fields for admin/supporter.
- * VERIFY-001 fix: internal_status and payment_status only for admin/supporter.
+ * internal_status only for admin/supporter.
  */
 function extendWithInternalFields(baseResponse: any, caseDetails: any) {
   return {
     ...baseResponse,
     internal_status: caseDetails.internal_status,
-    payment_status: caseDetails.payment_status,
   };
 }
 
@@ -100,37 +114,73 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
   // Authz delegated to controller via requireCaseAccess.
   // This usecase assumes caller has already verified access.
 
-  const intakeUnit = await findFirstIntakeUnit(caseId);
+  // Fetch remaining data in parallel: 6 queries, one round-trip.
+  // Reports, credit balance and the intake unit are derived from data already
+  // loaded above (caseDetails.reports, credit_ledger, lifecycleUnits) — and
+  // document types come from the in-memory cache — so no extra queries.
+  const [
+    latest_user_action,
+    lifecycleUnits,
+    open_requests_for_more_info,
+    documentRecords,
+    credit_ledger,
+    docTypes,
+    latestAiJob,
+  ] = await Promise.all([
+    findFirstUserEvent(caseId),
+    findLifecycleUnits(caseId),
+    findOpenRequestsForMoreInfo(caseId),
+    findDocumentRecordsByCaseId(caseId),
+    getCreditLedgerByCaseId(caseId),
+    getActiveDocumentTypes(),
+    // Status only: `input_json`/`output_json` blobs can reach megabytes and must
+    // never be loaded for a status poll.
+    prisma.aiJob.findFirst({
+      where: { case_id: caseId, job_type: AUDIT_JOB_TYPE },
+      orderBy: { created_at: "desc" },
+      select: { status: true },
+    }),
+  ]);
+
+  const intakeUnit = lifecycleUnits.find(
+    (u) => u.unit_type === "version" && u.unit_code === "v00",
+  ) ?? null;
   const intake_snapshot = normalizeIntakeSnapshot(intakeUnit?.content || null);
 
-  const latest_report = await findLatestApprovedReport(caseId);
-  const latest_user_action = await findFirstUserEvent(caseId);
+  // `caseDetails.reports` is ordered created_at desc, so the first approved entry
+  // is the latest report.
+  const reports = (caseDetails.reports || []).filter((r) => r.status === "APPROVED");
+  const latest_report = reports[0] ?? null;
+  const credit_balance = credit_ledger.reduce((acc, entry) => acc + entry.amount, 0);
 
-  const lifecycleUnits = await findLifecycleUnits(caseId);
-  const reports = await findApprovedReports(caseId);
-
-  const team_submissions = lifecycleUnits.filter((u: any) => u.unit_type === "version" && u.unit_code === "v00");
-  const team_revisions = lifecycleUnits.filter((u: any) => u.unit_type === "version" && u.unit_code !== "v00");
+  const team_submissions = lifecycleUnits.filter((u) => u.unit_type === "version" && u.unit_code === "v00");
+  const team_revisions = lifecycleUnits.filter((u) => u.unit_type === "version" && u.unit_code !== "v00");
   const nexus_reports = reports;
 
-  const round_history = lifecycleUnits
-    .map((unit: any) => {
-      const report = reports.find((r: any) => r.lifecycle_unit_id === unit.id);
-      return {
-        round_no: unit.version_no,
-        submitted_at: unit.created_at,
-        submission: unit,
-        report: report || null,
-      };
-    })
-    .sort((a: any, b: any) => b.round_no - a.round_no);
+  // Build round_history from REPORTS desc — each report is a round entry
+  const round_history = reports.map((report) => {
+    const unit = lifecycleUnits.find((u) => u.id === report.lifecycle_unit_id);
+    const reportMeta = (report.metadata_json && typeof report.metadata_json === "object")
+      ? report.metadata_json as Record<string, unknown>
+      : null;
+    // View via API (inline disposition + versioned .pdf filename). Never expose raw
+    // Cloudinary URLs: raw assets have no .pdf suffix and serve octet-stream,
+    // which makes browsers auto-download with a wrong name instead of viewing.
+    const pdfUrl = `/api/reports/${report.id}/download?view=inline`;
+    const submissionType = reportMeta && typeof reportMeta["submission_type"] === "string"
+      ? reportMeta["submission_type"] as string
+      : null;
 
-  const open_requests_for_more_info = await findOpenRequestsForMoreInfo(caseId);
+    return {
+      report_id: report.id,
+      version_no: unit?.version_no ?? null,
+      submitted_at: report.created_at,
+      submission_type: submissionType,
+      report,
+      pdfUrl,
+    };
+  });
 
-  const [documentRecords, docTypes] = await Promise.all([
-    findDocumentRecordsByCaseId(caseId),
-    prisma.documentType.findMany({ where: { is_active: true } }),
-  ]);
   const document_workspace = assembleDocumentWorkspace({
     id: caseDetails.id,
     current_checkpoint: caseDetails.current_checkpoint,
@@ -146,18 +196,12 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
     : baseCase;
 
   // ── Derived fields ────────────────────────────────────────────────────────
-  const [credit_balance, credit_ledger] = await Promise.all([
-    getCreditBalance(caseId),
-    getCreditLedgerByCaseId(caseId),
-  ]);
-  const allowed_transitions = caseWorkflow.transitions
-    .filter(t => canTransition(caseDetails, t.name))
-    .map(t => t.name);
+  const allowed_transitions = getAvailableTransitions(caseDetails.internal_status);
 
   (caseResponse as Record<string, unknown>).credit_balance = credit_balance;
   (caseResponse as Record<string, unknown>).credit_ledger = credit_ledger;
   (caseResponse as Record<string, unknown>).allowed_transitions = allowed_transitions;
-
+  (caseResponse as Record<string, unknown>).latest_ai_job_status = latestAiJob?.status ?? null;
   return {
     case: caseResponse,
     intake_snapshot,
@@ -195,9 +239,7 @@ export async function getCaseDocumentWorkspaceUseCase(caseId: string) {
       orderBy: { created_at: "asc" },
     }),
     findDocumentRecordsByCaseId(caseId),
-    prisma.documentType.findMany({
-      where: { is_active: true },
-    }),
+    getActiveDocumentTypes(),
   ]);
 
   if (!caseBasic) {

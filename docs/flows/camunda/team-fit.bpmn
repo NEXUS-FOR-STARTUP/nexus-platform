@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_teamfit" targetNamespace="http://bpmn.io/schema/bpmn" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <bpmn:process id="team-fit" name="Kiểm tra khớp nhóm (Team-fit)" isExecutable="true">
+    <bpmn:startEvent id="Start_TF" name="Sinh viên mở bài kiểm tra khớp nhóm">
+      <bpmn:outgoing>Flow_TFStart</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="AnswerTeamFit" name="Trả lời câu hỏi khớp nhóm">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition externalReference="team-fit-form" />
+        <zeebe:assignmentDefinition candidateGroups="students" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_TFStart</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToAnalyze</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="AnalyzeSave" name="Phân tích &amp; lưu báo cáo + tạo case">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="save-team-fit" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToAnalyze</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToGwPackage</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GwPackage" name="Gói dịch vụ" default="Flow_ToPayment">
+      <bpmn:incoming>Flow_ToGwPackage</bpmn:incoming>
+      <bpmn:outgoing>Flow_Free</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ToPayment</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:callActivity id="CallPayment" name="Thanh toán &amp; mua lượt">
+      <bpmn:extensionElements>
+        <zeebe:calledElement processId="payment-and-credit" propagateAllChildVariables="false" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToPayment</bpmn:incoming>
+      <bpmn:outgoing>Flow_Paid</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_CreatedFree" name="Case đã tạo — chờ điền hồ sơ">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="publish-message" />
+      </bpmn:extensionElements>
+      <bpmn:messageEventDefinition messageRef="Message_caseCreated" />
+      <bpmn:incoming>Flow_Free</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_CreatedPaid" name="Case đã tạo — chờ điền hồ sơ">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="publish-message" />
+      </bpmn:extensionElements>
+      <bpmn:messageEventDefinition messageRef="Message_caseCreated" />
+      <bpmn:incoming>Flow_Paid</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:textAnnotation id="Note_SameCase" text="Case team-fit = case intake — sinh viên tiếp tục điền hồ sơ trên chính case này (không tạo case thứ hai). Báo cáo khớp nhóm lưu riêng, không lẫn vào hồ sơ intake." />
+    <bpmn:sequenceFlow id="Flow_TFStart" sourceRef="Start_TF" targetRef="AnswerTeamFit" />
+    <bpmn:sequenceFlow id="Flow_ToAnalyze" sourceRef="AnswerTeamFit" targetRef="AnalyzeSave" />
+    <bpmn:sequenceFlow id="Flow_ToGwPackage" sourceRef="AnalyzeSave" targetRef="GwPackage" />
+    <bpmn:sequenceFlow id="Flow_Free" name="Gói miễn phí" sourceRef="GwPackage" targetRef="End_CreatedFree">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=paymentStatus = "not_required"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_ToPayment" name="Gói chuyên sâu" sourceRef="GwPackage" targetRef="CallPayment" />
+    <bpmn:sequenceFlow id="Flow_Paid" sourceRef="CallPayment" targetRef="End_CreatedPaid" />
+    <bpmn:association id="Assoc_SameCase" sourceRef="Note_SameCase" targetRef="AnalyzeSave" />
+  </bpmn:process>
+  <bpmn:message id="Message_caseCreated" name="case-created">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=caseId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_teamfit">
+    <bpmndi:BPMNPlane id="BPMNPlane_teamfit" bpmnElement="team-fit">
+      <bpmndi:BPMNShape id="Start_TF_di" bpmnElement="Start_TF">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AnswerTeamFit_di" bpmnElement="AnswerTeamFit">
+        <dc:Bounds x="240" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="AnalyzeSave_di" bpmnElement="AnalyzeSave">
+        <dc:Bounds x="390" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwPackage_di" bpmnElement="GwPackage" isMarkerVisible="true">
+        <dc:Bounds x="540" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_CreatedFree_di" bpmnElement="End_CreatedFree">
+        <dc:Bounds x="690" y="43" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallPayment_di" bpmnElement="CallPayment">
+        <dc:Bounds x="690" y="165" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_CreatedPaid_di" bpmnElement="End_CreatedPaid">
+        <dc:Bounds x="840" y="187" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Note_SameCase_di" bpmnElement="Note_SameCase">
+        <dc:Bounds x="200" y="220" width="340" height="100" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_TFStart_di" bpmnElement="Flow_TFStart">
+        <di:waypoint x="188" y="120" />
+        <di:waypoint x="240" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToAnalyze_di" bpmnElement="Flow_ToAnalyze">
+        <di:waypoint x="340" y="120" />
+        <di:waypoint x="390" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToGwPackage_di" bpmnElement="Flow_ToGwPackage">
+        <di:waypoint x="490" y="120" />
+        <di:waypoint x="540" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Free_di" bpmnElement="Flow_Free">
+        <di:waypoint x="565" y="95" />
+        <di:waypoint x="565" y="61" />
+        <di:waypoint x="690" y="61" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToPayment_di" bpmnElement="Flow_ToPayment">
+        <di:waypoint x="565" y="145" />
+        <di:waypoint x="565" y="205" />
+        <di:waypoint x="690" y="205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Paid_di" bpmnElement="Flow_Paid">
+        <di:waypoint x="790" y="205" />
+        <di:waypoint x="840" y="205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_SameCase_di" bpmnElement="Assoc_SameCase">
+        <di:waypoint x="200" y="270" />
+        <di:waypoint x="440" y="270" />
+        <di:waypoint x="440" y="160" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

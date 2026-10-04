@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { FileText, FileSpreadsheet, MessageSquare, History, Settings } from "lucide-react";
+import { FileText, FileSpreadsheet, MessageCircle, History, Settings } from "lucide-react";
 
 interface WorkspaceTabsProps {
   activeTab: "idea" | "report" | "discussion" | "timeline" | "settings";
@@ -14,18 +14,18 @@ export default function WorkspaceTabs({ activeTab, onTabChange, messageCount, hi
   const tabs = [
     {
       id: "idea" as const,
-      label: "Ý tưởng nộp",
+      label: "Ý tưởng",
       icon: FileSpreadsheet,
     },
     {
       id: "report" as const,
-      label: "Báo cáo phản biện",
+      label: "Báo cáo đánh giá",
       icon: FileText,
     },
     {
       id: "discussion" as const,
-      label: "Trao đổi & Phản hồi",
-      icon: MessageSquare,
+      label: "Thảo luận",
+      icon: MessageCircle,
       count: messageCount,
     },
     {
@@ -37,7 +37,7 @@ export default function WorkspaceTabs({ activeTab, onTabChange, messageCount, hi
       ? [
           {
             id: "settings" as const,
-            label: "Cấu hình",
+            label: "Cài đặt",
             icon: Settings,
           },
         ]

@@ -55,7 +55,7 @@ apps/api/src/
 Run from repo root:
 
 ```bash
-npm install
+bun install
 ```
 
 Set root `.env`:
@@ -76,14 +76,14 @@ Payment proof uploads use Cloudinary public URLs; local `/uploads/*` serving rem
 ## Run
 
 ```bash
-npm run dev --workspace=apps/api
+bun run --filter nexus-platform-api dev
 ```
 
 ## Build and checks
 
 ```bash
-npm run build --workspace=apps/api
-npm run check-types --workspace=apps/api
+bun run --filter nexus-platform-api build
+bun run --filter nexus-platform-api check-types
 ```
 
 ## Docker

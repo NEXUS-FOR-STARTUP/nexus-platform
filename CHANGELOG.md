@@ -7,11 +7,144 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-04
+
+### 2026-10-04 — Documentation & Operating Rules Alignment
+
+**Added**
+- `apps/worker-omp/AGENTS.md`: Tài liệu kiến trúc daemon BullMQ `omp-queue`, sandbox filesystem `storage/jobs/${caseId}/${jobId}/`, dual-publish Redis, và ranh giới sinh PDF.
+- `DESIGN.md`: Đặc tả Design System chuẩn hóa (Stitch tokens, bảng ánh xạ utility class Tailwind CSS v4, quy định gating 7 tabs Case Workspace, và tham chiếu kho từ ngữ UX).
+- 11 technical journals trong `docs/journals/` ghi nhận toàn bộ đợt triển khai kỹ thuật tháng 9 và đợt đồng bộ tài liệu tháng 10.
+
+**Changed**
+- Cập nhật root `AGENTS.md`, `README.md`, `apps/api/AGENTS.md`, `apps/web-1/AGENTS.md` đồng bộ chuẩn xác với thực tế tại HEAD: 15 modules API, 112 endpoints, 32 models Prisma, 31 migrations, 4 packages monorepo (ghi nhận `@app/shared`), và 48 test files backend.
+- Cập nhật quy tắc Auth: Ghi nhận Server-side route guard `proxy.ts` (Next.js 16) và chế độ bảo trì `MAINTENANCE_MODE`.
+- Phân định thiết bị theo persona: Student dashboard hỗ trợ Mobile-responsive; Admin & Supporter là Desktop-only tuyệt đối (`DesktopOnlyNotice.tsx` < 1024px).
+- Đồng bộ `docs/codebase-summary.md`, `docs/system-architecture.md`, `docs/code-standards.md` bổ sung sơ đồ OMP worker, 2 outbox relays (`DomainEventOutbox` 5s, `NotificationOutbox` 2s), và quy chuẩn truy vấn an toàn qua `READONLY_DATABASE_URL`.
+- Lưu trữ toàn bộ 23 kế hoạch đã hoàn thành vào `plans/archive/`, dọn sạch thư mục gốc `plans/`.
+
+**Fixed**
+- Sửa `.agents/rules/frontend-ui-rules.md`: Khai tử hoàn toàn dòng chữ "HeroUI + Tailwind", chuẩn hóa thành "Mantine UI v9 + Tailwind CSS v4".
+- Sửa `.agents/rules/documentation-management.md`: Xóa bỏ các file ma (`docs/development-roadmap.md`, `docs/project-changelog.md`), trỏ về `CHANGELOG.md` và `plans/`.
+- Cập nhật trạng thái `docs/flows/cp1-mvp-screen-spec.md` thành Historical MVP Reference và làm rõ phạm vi tab Trao đổi Centrifugo trong `docs/requirements/case-workspace-and-status.md`.
+
+**Removed**
+- Xóa bỏ 3 file thừa/rác: `docs/case-documents/NEXUS_DOCUMENT_SYSTEM_COMPLETE_SPEC.md` (trùng lặp 100%), `docs/archive/system-architecture.md` (stub link gãy), và `docs/archive/web-spec/web-spec-export-raw.json` (raw dump JSON 256KB).
+- Xóa bỏ toàn bộ thư mục `docs/archive/web-spec/` (10 files đặc tả cũ lỗi thời).
+- Xóa bỏ thư mục `docs/journal/` lẻ (gộp file vào `docs/journals/`).
+
+---
+
+### 2026-09 — Nexus AI Engine 79k, Typst PDF & Runtime Stabilization
+
+**Added**
+- Gói dịch vụ 79k Basic AI Audit (`pkg_ai_audit`): Cấp thẳng 2 lượt đánh giá AI (`credits_granted: 2`), không giới hạn thời gian 24h, hỗ trợ 3 loại thẩm định: Lần đầu (`initial`), Đã sửa (`resubmit`), và Soi logic (`logic_check`).
+- Tách độc lập Job ID (Run-based AI Jobs): Mỗi lần chạy AI sinh UUID mới, lưu sandbox phân cấp `storage/jobs/${caseId}/${jobId}/`, hỗ trợ dual-publish Redis (`job:logs:${jobId}` cho Admin và `job:logs:${caseId}` cho sinh viên).
+- Báo cáo phân phiên bản (Report Versioning): Tạo mới report (`prisma.report.create`) thay vì ghi đè, hiển thị `round_history` trên giao diện sinh viên.
+- Typst PDF Engine: Tích hợp biên dịch PDF vector A4 qua Typst CLI trong container Docker API, sử dụng font Merriweather tiếng Việt chuẩn in ấn.
+- Module `@repo/validation/report-naming`: Single source of truth đặt tên file báo cáo dùng chung cho cả FE và BE.
+- Màn hình Quản trị Giám sát OMP Worker (`/admin/workers`): KPI worker, terminal drawer xem log realtime, can thiệp huỷ job kẹt qua kênh Redis `job-cancellation`.
+- Form Intake thích ứng (Adaptive Intake): 6 bước cho gói 79k (bỏ bước mentor), 5 danh mục tài liệu chuẩn hóa, phân bổ điểm completeness theo gói.
+
+**Changed**
+- Chuyển đổi toàn bộ kiến trúc Docker sang Single Compose (`docker-compose.prod.yml`), xóa bỏ `docker-compose.worker.yml`.
+- Tự động khóa CTA mua thêm credit trên Case Workspace khi dự án đạt trạng thái `completed`.
+
+**Fixed**
+- Khắc phục 3 lỗi P0: Guard finalizer chống chạy trùng và ghi đè PDF, đưa kiểm tra credit vào database transaction nguyên tử, cố định `lifecycle_unit_id` qua payload job.
+- Khắc phục 4 lỗi tài chính (B1-B5): Ambient transaction cho `walletService`, gộp refund key `refundAll`, xóa trừ credit thừa ở T11, xử lý lỗi P2002 idempotent thành HTTP 409 cho SePay webhook.
+- Chặn chat và Centrifugo subscription đối với gói 79k AI Audit (HTTP 409 `CHAT_AI_TIER`), xóa nhãn hạn nộp bài thừa ở bước 6 Intake, chặn chọn gói 149k chưa sẵn sàng bằng notification.
+- Xử lý atomic write (tmp + rename) bảo vệ `jobs_db.json` chống corrupt dữ liệu khi ngắt nguồn đột ngột.
+
+---
+
+### 2026-08-16 — Backlog bugs fix (8 bugs: #1 #3 #5 #9 #12 #13 #14 #16)
+
+**Added**
+- Completion flow: T17_USER_CONFIRM_COMPLETE (user xác nhận hoàn thành, isOwner), T19_REOPEN (mua credit case `done` → `under_review`, re-arm SLA 48h), auto-done 7 ngày (daily sweep neo latest T11, fire T14 ADMIN)
+- Document model: category codes (`idea_report`/`pitch_deck`/`competitor_analysis`/`customer_research`/`task_assignment`/`other`) vào `metadata_json.category`, soft-supersede `superseded_at` (index `[case_id, superseded_at]`), `unit_code` `intake` → `v00`
+- Intake caps: max 10 tài liệu (intake-only) + text caps (≤100/≤254/≤20000 theo field) — `Cp1IntakeCaps`
+- Refund credit dư: hoàn VND về ví theo giá mua thực tế (walk DESC), idempotency `refund-credit-{caseId}`
+- Realtime `case_deleted` trên kênh `chat:{caseId}` khi admin xóa case
+
+**Changed**
+- T14 guard: isAssignedSupporter → **isAdmin** (supporter không còn tự close; user confirm qua T17)
+- T6 self-loop cho reassign ở `supporter_working`/`report_ready_to_publish` — SLA đếm tiếp, không reset
+- T11/T3 hết credit → 402 `NO_CREDITS` rõ (thay 400 generic); `subtractCredit` no-op khi `lockedPrice === 0` (free case)
+- Admin list tách bucket `intake_pending` "Chờ sinh viên nộp hồ sơ"; detail empty-state khi `intake_snapshot = null` (disable approve/reject)
+- FE banner credit guidance tại `report_ready` (có credit → guidance; hết credit → đỏ + nút mua)
+
+**Fixed**
+- #1 Reassign supporter: SLA đếm tiếp (không reset); refund credit dư FIFO đúng giá mua; idempotent, không hoàn kép
+- #3 User không hiểu "lần 2 phải mua credit": banner guidance + 402 NO_CREDITS rõ ràng
+- #5 Chưa rõ ai xác nhận hoàn thành: user confirm (T17), admin-only force-close (T14), auto-done 7 ngày, mua credit case done → reopen
+- #9 Trả tiền nhưng chưa nộp hồ sơ: admin queue tách bucket, detail empty-state, vô hiệu nút duyệt
+- #12 Admin thấy nhiều tài liệu, user thấy 1: bỏ "tài liệu chính", category codes, soft-supersede, user chỉ thấy bộ mới nhất
+- #13 Intake spam tài liệu: giới hạn 10 tài liệu
+- #14 Intake lưu không giới hạn chữ: caps ≤100/≤254/≤20000
+- #16 Không kick khi xóa case: realtime `case_deleted` + FE toast/redirect + poll fallback 404
+
+**Removed**
+- Supporter close-case route (bypass machine, không guard)
+
+---
+
+### 2026-08-12 — Financial Domain Refactor & Security Hardening
+
+**Added**
+- Financial domain refactor: deposits module (`POST /api/deposits`, `POST /api/deposits/:id/verify`)
+- Financial domain refactor: orders module (`POST /api/orders`)
+- Legacy dual-write feature flags: `DUAL_WRITE_WALLET_TOPUP`, `DUAL_WRITE_PAYMENT`
+- `docs/financial-domain-migration-sql.md` — migration SQL for production deployment
+- Bắt buộc xác minh email OTP trước đăng nhập: OTP 6 số qua Resend (hết hạn 300s, tối đa 3 lần nhập, rate-limit 3/60s); `RESEND_API_KEY` bắt buộc; không auto sign-in sau đăng ký; email đã verify → 409 `EMAIL_ALREADY_VERIFIED`; trang `/auth/verify-email` + gửi lại mã + lỗi OTP tiếng Việt
+- Chặn duyệt hồ sơ (T5_ACCEPT) khi thanh toán chưa hoàn tất — chỉ trạng thái `paid` hoặc `not_required` mới được duyệt (fail-closed)
+- Giới hạn gửi tin chat 1 tin/giây/user trên API (`claimMessageSendSlot` sync trước await). 429 `RATE_LIMITED` kèm `unlockInMs`. Nội dung rỗng hoặc >5000 không chiếm slot
+
+**Changed**
+- `POST /api/wallet/topups` → 410 Gone (dùng `POST /api/deposits`)
+- `POST /api/payments` → 410 Gone (dùng `POST /api/deposits` hoặc `POST /api/orders`)
+- `GET /api/payments`, `GET /api/payments/my`, `GET /api/payments/:id` → 410 Gone (dùng `/api/deposits`)
+- `POST /api/payments/proof`, `POST /api/payments/:id/verify` → 410 Gone
+- `WalletTopup`, `Payment` models đánh dấu `@deprecated` trong schema Prisma
+- `Payment`, `WalletTopup` use cases đánh dấu `@deprecated`
+- Admin pages (cases, deposits, documents, packages, stats, users) tự động làm mới dữ liệu mỗi 10 giây qua `refetchInterval` — không cần refresh trang, đồng bộ với cơ chế polling của trang chi tiết case (user/supporter)
+- Sau khi mua credit, case được cập nhật `payment_status: paid` và chuyển từ `intake_pending` sang `intake_ready`
+- Admin UI vô hiệu hóa nút Duyệt hồ sơ cho đến khi thanh toán hoàn tất
+
+**Fixed**
+- Notification `CASE_APPROVED`/`CASE_REJECTED`: emit `caseCode` từ `case_code` (trước chỉ `caseId` nên email/in-app ra `Case undefined`); field thiếu/rỗng fallback `chưa xác định`; Telegram assignment supporter thêm tên
+- Chat: chặn Enter khi tin đang gửi (`isSending`) — khớp nút submit đã disable
+- UX `StatusGuidanceCard`: gỡ bỏ early-return chặn hiển thị khi `!hasCredits` ở stage `report_ready`, đảm bảo sinh viên luôn nhìn thấy và có thể bấm "Xác nhận hoàn thành" (`T17_USER_CONFIRM_COMPLETE`) để đóng quy trình đánh giá kể cả khi số dư credit bằng 0; chuyển cảnh báo hết credit thành banner phụ gọn gàng bên trong cùng card thông báo
+
+**Removed**
+- Legacy payment routes (6 endpoints) returning 410 Gone
+
+## [1.1.0] - 2026-08-09
+
 ### Added
+- Notification system: in-app + email + Telegram delivery, read/badge state, notification bell
+- Telegram admin group alert on `payment.verified` events — case thanh toán xong, sẵn sàng triage (admin recipient fan-out trong `recipients.ts` + `adminBody`/`adminLink` template trong `notification-templates.ts`)
+- Realtime chat powered by Centrifugo v6 (websocket proxy, env-driven `allowed_origins`, dev port 8081)
+- Transfer content column in admin payment verification table
 
 ### Changed
+- Notifications types/validation shared via `@repo/validation` (single source of truth FE↔BE)
+- Entity types migrated to `@repo/validation`: ServicePackage, User, TeamFitReport, Cp1Intake (Zod, 100% parity)
+- CI triggers extended to `dev` and `staging` branches
+- Centrifugo config environment-driven instead of hardcoded
 
 ### Fixed
+- Notification coverage gaps: read/badge state, links in notifications
+- Raw relative link dropped from Telegram messages
+- Telegram disabled treated as delivery failure (not silent success)
+- Notification bell keyboard accessibility + SSE ping event listener
+- Centrifugo env placeholder missing closing quote
+- Removed 12 unused dependencies; deleted dead tracked files and dead exports
+
+### Removed
+
+- 12 unused dependencies
+- Dead tracked files, dead exports; `getSession` helper deduplicated
 
 ## [1.0.0] - 2026-08-03
 
@@ -127,6 +260,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Codebase summary with file structure
 - Research logging best practices
 
-[Unreleased]: https://github.com/CHECKPOINT-00/nexus-platform/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/CHECKPOINT-00/nexus-platform/compare/v0.0.1...v1.0.0
-[0.0.1]: https://github.com/CHECKPOINT-00/nexus-platform/releases/tag/v0.0.1
+[Unreleased]: https://github.com/NEXUS-FOR-STARTUP/nexus-platform/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/NEXUS-FOR-STARTUP/nexus-platform/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/NEXUS-FOR-STARTUP/nexus-platform/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/NEXUS-FOR-STARTUP/nexus-platform/compare/v0.0.1...v1.0.0
+[0.0.1]: https://github.com/NEXUS-FOR-STARTUP/nexus-platform/releases/tag/v0.0.1

@@ -1,5 +1,12 @@
 # Screen-by-screen UX spec cho MVP audit CP1
 
+> ⚠️ **HISTORICAL MVP SPECIFICATION (SNAPSHOT THÁNG 06-07/2026)**
+> Tài liệu này lưu trữ đặc tả màn hình ban đầu phục vụ mốc CP1. Nhiều cơ chế trong tài liệu này (như wizard 8 bước cũ, lệnh cấm chat, mô hình audit rounds mua riêng) đã được thay thế trong hệ thống production bằng Intake dạng trang đơn (`DocumentInputStep`), Chat Realtime Centrifugo (`TabDiscussionChat`), Hệ thống Credit Ledger và 7 Tabs Workspace.
+> Khi tìm hiểu kiến trúc và luồng nghiệp vụ hiện hành, vui lòng tham khảo các tài liệu canonical:
+> - [`./case-lifecycle-flow.md`](./case-lifecycle-flow.md) — Vòng đời case stage-based hiện tại
+> - [`./team-fit-flow.md`](./team-fit-flow.md) — Luồng thẩm định đội ngũ & ý tưởng
+> - [`../system-architecture.md`](../system-architecture.md) — Kiến trúc hệ thống hiện hành
+
 - PRD reference: [`../prd/core-product-prd.md`](../prd/core-product-prd.md)
 - Flow references:
   - [`./cp1-audit-end-to-end-flow.md`](./cp1-audit-end-to-end-flow.md)
@@ -12,7 +19,7 @@
   - [`../requirements/admin-triage-and-assignment.md`](../requirements/admin-triage-and-assignment.md)
   - [`../requirements/supporter-review-and-report.md`](../requirements/supporter-review-and-report.md)
   - [`../requirements/revision-rounds-and-history.md`](../requirements/revision-rounds-and-history.md)
-- Trạng thái: đang làm việc
+- Trạng thái: Historical Reference (Đã thay thế)
 
 ## 1. Mục tiêu
 
@@ -59,7 +66,7 @@ Biến business flow đã chốt thành một bộ màn hình đủ rõ để im
 
 ## 4. Quyết định khóa cho spec này
 
-- Admin được yêu cầu bổ sung trước khi accept.
+- Admin reject với lý do rõ (≥ 10 ký tự — reject reason là kênh trao đổi triage); yêu cầu bổ sung do supporter thực hiện sau khi được assign (machine T8).
 - Report phase 1 là rich text trong hệ thống, có thể kèm file tải xuống.
 - Không có tab chat tự do.
 - Payment không nằm trong luồng chính.

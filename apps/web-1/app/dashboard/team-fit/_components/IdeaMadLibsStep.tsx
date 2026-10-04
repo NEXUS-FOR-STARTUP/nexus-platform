@@ -1,7 +1,7 @@
 'use client';
 
 import { Fragment } from 'react';
-import { Paper } from '@mantine/core';
+import { AlertTriangle } from 'lucide-react';
 import InlineBlank from './InlineBlank';
 
 type IdeaMadLibsStepProps = {
@@ -12,12 +12,12 @@ type IdeaMadLibsStepProps = {
 };
 
 const MADLIBS_TEMPLATE = [
-  { text: 'Dự án của chúng tôi tên là', blank: 'projectName', placeholder: 'tên dự án' },
-  { text: ', thuộc lĩnh vực', blank: 'field', placeholder: 'lĩnh vực' },
-  { text: '. Chúng tôi giúp', blank: 'targetCustomer', placeholder: 'khách hàng mục tiêu' },
-  { text: 'giải quyết', blank: 'problem', placeholder: 'vấn đề / nhu cầu' },
-  { text: 'bằng cách', blank: 'solution', placeholder: 'giải pháp / sản phẩm' },
-  { text: '. Sản phẩm khả dụng đầu tiên (MVP) sẽ là', blank: 'mvp', placeholder: 'mô tả MVP' },
+  { text: 'Dự án của chúng tôi tên là', blank: 'projectName', placeholder: 'Ví dụ: Nền tảng tìm bạn cùng phòng' },
+  { text: ', thuộc lĩnh vực', blank: 'field', placeholder: 'Ví dụ: EdTech, Thương mại điện tử...' },
+  { text: '. Chúng tôi giúp', blank: 'targetCustomer', placeholder: 'Ví dụ: Sinh viên đại học năm nhất' },
+  { text: 'giải quyết', blank: 'problem', placeholder: 'Ví dụ: Khó khăn trong việc tìm người ở ghép phù hợp lối sống' },
+  { text: 'bằng cách', blank: 'solution', placeholder: 'Ví dụ: Ứng dụng gợi ý ghép phòng theo thói quen sinh hoạt' },
+  { text: '. Sản phẩm khả dụng đầu tiên (MVP) sẽ là', blank: 'mvp', placeholder: 'Ví dụ: Landing page và nhóm kết nối thủ công' },
   { text: '.' },
 ];
 
@@ -32,8 +32,12 @@ const FIELD_LABELS: Record<string, string> = {
 
 export default function IdeaMadLibsStep({ blanks, onChange, errors = {}, onBlur }: IdeaMadLibsStepProps) {
   return (
-    <Paper className="rounded-xl bg-surface-app p-6 sm:p-8">
-      <p className="font-body text-base sm:text-lg leading-loose text-text-app select-text">
+    <div className="space-y-4 py-1 sm:py-2">
+      <p className="font-body text-xs sm:text-sm text-text-muted">
+        Hoàn thành các câu bên dưới để định hình nhanh bài toán dự án đang giải quyết.
+      </p>
+      {/* Main Pitch MadLibs paragraph */}
+      <p className="font-body text-base sm:text-lg leading-relaxed sm:leading-loose text-text-app select-text break-words">
         {MADLIBS_TEMPLATE.map((item, idx) => {
           const nextItem = MADLIBS_TEMPLATE[idx + 1];
           const nextStartsWithPunct = nextItem && /^[,.]/.test(nextItem.text);
@@ -43,7 +47,7 @@ export default function IdeaMadLibsStep({ blanks, onChange, errors = {}, onBlur 
             <Fragment key={idx}>
               <span>{item.text}</span>
               {item.blank && (
-                <span className="relative inline-flex flex-col align-middle">
+                <>
                   {' '}
                   <InlineBlank
                     value={blanks[item.blank] ?? ''}
@@ -51,13 +55,9 @@ export default function IdeaMadLibsStep({ blanks, onChange, errors = {}, onBlur 
                     placeholder={item.placeholder}
                     onBlurField={() => onBlur?.(item.blank as string)}
                     hasError={!!error}
+                    errorMessage={error}
                   />
-                  {error && (
-                    <span className="text-red-500 dark:text-red-400 text-base leading-tight mt-0.5 whitespace-nowrap">
-                      {error}
-                    </span>
-                  )}
-                </span>
+                </>
               )}
               {nextItem && !nextStartsWithPunct && ' '}
             </Fragment>
@@ -67,19 +67,22 @@ export default function IdeaMadLibsStep({ blanks, onChange, errors = {}, onBlur 
 
       {/* Summary of all errors below the template */}
       {Object.keys(errors).length > 0 && (
-        <div className="mt-4 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg">
-          <p className="text-red-700 dark:text-red-400 font-semibold text-xs mb-1">
-            Vui lòng sửa các lỗi sau:
-          </p>
-          <ul className="list-disc list-inside space-y-0.5">
+        <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl space-y-2">
+          <div className="flex items-center gap-2 text-red-700 dark:text-red-400 font-semibold text-xs sm:text-sm">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>Thông tin cần hoàn thiện:</span>
+          </div>
+          <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm pl-1">
             {Object.entries(errors).map(([key, msg]) => (
-              <li key={key} className="text-red-600 dark:text-red-400 text-base">
+              <li key={key} className="text-red-600 dark:text-red-400">
                 <span className="font-medium">{FIELD_LABELS[key] ?? key}:</span> {msg}
               </li>
             ))}
           </ul>
         </div>
       )}
-    </Paper>
+    </div>
   );
 }
+
+

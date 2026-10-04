@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev, staging]
   pull_request:
-    branches: [main]
+    branches: [main, dev, staging]
 
 jobs:
   build-and-typecheck:
@@ -19,15 +19,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 22
-          cache: npm
+          bun-version: 1.4.0
 
-      - run: npm ci
+      - run: bun install --frozen-lockfile
 
       - name: Build
-        run: npm run build
+        run: bun run build
 
       - name: Type check
-        run: npm run check-types
+        run: bun run check-types

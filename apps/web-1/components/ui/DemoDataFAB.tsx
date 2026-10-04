@@ -43,25 +43,27 @@ export default function DemoDataFAB({ presets, onSelect, onClear }: Props) {
         <Text size="xs" fw={600} c="dimmed" className="px-2 pb-1">
           Dữ liệu demo
         </Text>
-        {presets.map((preset) => (
-          <UnstyledButton
-            key={preset.label}
-            onClick={() => {
-              onSelect(preset.data);
-              setOpened(false);
-            }}
-            className="w-full text-left px-3 py-2 rounded-lg hover:bg-surface-soft transition-colors cursor-pointer"
-          >
-            <Text size="sm" fw={500} className="text-text-app">
-              {preset.label}
-            </Text>
-            {preset.description && (
-              <Text size="xs" c="dimmed" className="mt-0.5">
-                {preset.description}
+        <div className="max-h-72 overflow-y-auto space-y-1 pr-1">
+          {presets.map((preset) => (
+            <UnstyledButton
+              key={preset.label}
+              onClick={() => {
+                onSelect(preset.data);
+                setOpened(false);
+              }}
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-surface-soft transition-colors cursor-pointer"
+            >
+              <Text size="sm" fw={500} className="text-text-app">
+                {preset.label}
               </Text>
-            )}
-          </UnstyledButton>
-        ))}
+              {preset.description && (
+                <Text size="xs" c="dimmed" className="mt-0.5">
+                  {preset.description}
+                </Text>
+              )}
+            </UnstyledButton>
+          ))}
+        </div>
         {onClear && (
           <>
             <Divider my={4} />

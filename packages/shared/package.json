@@ -1,0 +1,15 @@
+{
+  "name": "@app/shared",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "pidusage": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/pidusage": "^2.0.5"
+  }
+}

@@ -32,7 +32,7 @@ export default function ApproveCaseModal({
       await onApprove(caseId);
       onClose();
     } catch (e: any) {
-      setError(e?.response?.data?.error || e?.message || "Đã xảy ra lỗi khi duyệt hồ sơ.");
+      setError(e?.response?.data?.message || e?.response?.data?.error || e?.message || "Đã xảy ra lỗi khi duyệt hồ sơ.");
     } finally {
       setIsSubmitting(false);
     }

@@ -4,6 +4,10 @@ import {
   deleteCase,
 } from "../infrastructure/persistence/case.repository.js";
 import logger from "../../../shared/infrastructure/logger.js";
+import { prisma } from "../../../db.js";
+import { refundRemainingCreditInTx } from "../../../services/credit-refund.js";
+import { publishToChannel } from "../../realtime/infrastructure/centrifugo.service.js";
+import { chatChannel, buildCaseDeletedMessage } from "../../realtime/domain/realtime.types.js";
 
 export async function deleteCaseUseCase(
   userId: string,
@@ -33,8 +37,14 @@ export async function deleteCaseUseCase(
   }
 
   try {
-    const result = await deleteCase(caseId);
+    const result = await prisma.$transaction(async (tx) => {
+      await refundRemainingCreditInTx(tx, caseId, existingCase.owner_auth_user_id);
+      return deleteCase(caseId, tx);
+    });
     logger.info({ caseId, actorId: userId, actorRole: userRole, duration_ms: Date.now() - startTime }, 'case deleted');
+    void publishToChannel(chatChannel(caseId), buildCaseDeletedMessage(caseId)).catch((e) => {
+      logger.error({ caseId, err: e }, "case_deleted publish unexpected failure");
+    });
     return result;
   } catch (error) {
     logger.error({ err: error, caseId, actorId: userId, actorRole: userRole, duration_ms: Date.now() - startTime }, 'case deleted failed');

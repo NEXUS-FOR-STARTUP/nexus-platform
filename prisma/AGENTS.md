@@ -57,12 +57,12 @@ Read `.agents/rules/prisma-migration-safety.md` before any migration task.
 ## COMMANDS
 
 ```bash
-npm run prisma:generate
-npm run prisma:migrate
+bun run prisma:generate
+bun run prisma:migrate
 # or direct:
-npx prisma generate --schema prisma/schema.prisma
-npx prisma migrate dev --schema prisma/schema.prisma
-npx prisma migrate deploy --schema prisma/schema.prisma
+bunx prisma generate --schema prisma/schema.prisma
+bunx prisma migrate dev --schema prisma/schema.prisma
+bunx prisma migrate deploy --schema prisma/schema.prisma
 ```
 
 ## NOTES

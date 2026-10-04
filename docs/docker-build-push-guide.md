@@ -2,14 +2,15 @@
 
 Guide build và push Docker images cho Nexus Platform lên Docker Hub.
 
-> ⚠️ **WARNING — Web image bắt BUỘC `--build-arg NEXT_PUBLIC_API_URL`**
+> ⚠️ **WARNING — Web image bắt BUỘC `--build-arg NEXT_PUBLIC_API_URL` và `--build-arg NEXT_PUBLIC_CENTRIFUGO_URL`**
 >
-> `NEXT_PUBLIC_API_URL` là **build-time argument**, Next.js inline giá trị này vào JS bundle.
-> **Không phải runtime env**. Nếu thiếu, bundle sẽ dùng fallback `http://localhost:8000`
-> → trình duyệt user fetch tới localhost của chính họ → **auth loop, loading vô hạn**.
+> `NEXT_PUBLIC_API_URL` và `NEXT_PUBLIC_CENTRIFUGO_URL` là **build-time argument**, Next.js inline giá trị này vào JS bundle.
+> **Không phải runtime env**. Nếu thiếu:
+> - `NEXT_PUBLIC_API_URL`: bundle dùng fallback `http://localhost:8000` → browser fetch tới localhost → **auth loop, loading vô hạn**.
+> - `NEXT_PUBLIC_CENTRIFUGO_URL`: bundle dùng fallback `ws://localhost:8010/connection/websocket` → WebSocket không kết nối được ngoài dev local.
 >
-> **Phải có `--build-arg NEXT_PUBLIC_API_URL=...` trong lệnh `docker build` web image.**
-> Kiểm tra bằng `docker exec nexus-web env | grep NEXT_PUBLIC` — nếu không thấy là sai.
+> **Phải có cả 2 `--build-arg` trong lệnh `docker build` web image.**
+> Kiểm tra bằng `docker exec nexus-web env | grep NEXT_PUBLIC` — nếu không thấy đủ 2 biến là sai.
 
 ## Prerequisites
 
@@ -22,31 +23,27 @@ Guide build và push Docker images cho Nexus Platform lên Docker Hub.
 |---------|------------|------------|
 | API | `lgdlong/nexus-api:latest` | `apps/api/Dockerfile` |
 | Web | `lgdlong/nexus-web:latest` | `apps/web-1/Dockerfile` |
+| Worker OMP | `lgdlong/nexus-worker-omp:latest` | `apps/worker-omp/Dockerfile` |
 
 ## Architecture
 
 Dùng Turborepo `turbo prune --docker` trong Dockerfile — chỉ prune workspace cần thiết + lockfile:
 
 ```
-turbo prune → npm ci (pruned deps) → build → runner (minimal)
+turbo prune → bun install (pruned deps) → build → runner (minimal)
 ```
 
 Build context là **repo root**, Dockerfile nằm trong `apps/*`.
 
-### ⚠️ npm Workspace Hoisting
+### ⚠️ Workspace Node Modules & Hoisting
 
-Trong builder stage, Dockerfile copy thêm workspace-level `node_modules/` vì npm **không hoist** được tất cả package lên root:
+Trong builder stage, Dockerfile copy thêm workspace-level `node_modules/` để đảm bảo resolve đầy đủ dependencies của từng app:
 
 ```dockerfile
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 ```
 
-Lý do: npm workspaces chỉ hoist package lên root `node_modules/` khi không có version conflict. Các package sau bị giữ ở workspace-level:
-
-- `@ai-sdk/google` — conflict `@ai-sdk/provider` version với `@ai-sdk/openai`
-- `next` — conflict version giữa lockfile và package.json (`16.2.0` vs `16.2.9`)
-- Các transitive dependency khác có version conflict
-
+Lý do: Trong cấu trúc monorepo với Turborepo và Bun workspaces, một số dependencies hoặc binaries được đặt tại workspace-level (ví dụ `@ai-sdk/google` hoặc binary `next`). Tại deps stage, Dockerfile chạy `bun install --frozen-lockfile && mkdir -p /app/apps/<workspace>/node_modules` để layer này luôn tồn tại kể cả khi toàn bộ dependencies đã được hoist lên root.
 Nếu thiếu dòng COPY này, build sẽ fail với lỗi:
 - **API**: `TS2307: Cannot find module '@ai-sdk/google'`
 - **Web**: `sh: next: not found`
@@ -77,18 +74,19 @@ docker login
 docker build --no-cache -f apps/api/Dockerfile -t lgdlong/nexus-api:latest .
 ```
 
-> **Why `--no-cache`?** Prisma Client generate phụ thuộc vào `schema.prisma`. Docker cache layer `npm run build` không invalidate khi chỉ schema thay đổi → image cũ chạy Prisma Client cũ → lỗi `Unknown argument` hoặc missing field. Luôn `--no-cache` cho API build.
+> **Why `--no-cache`?** Prisma Client generate phụ thuộc vào `schema.prisma`. Docker cache layer build không invalidate khi chỉ schema thay đổi → image cũ chạy Prisma Client cũ → lỗi `Unknown argument` hoặc missing field. Luôn `--no-cache` cho API build.
 
 ### 3. Build Web Image
 
 ```bash
-# NEXT_PUBLIC_API_URL baked at build time (Next.js inlines vào JS bundle)
+# NEXT_PUBLIC_API_URL và NEXT_PUBLIC_CENTRIFUGO_URL baked at build time (Next.js inlines vào JS bundle)
 docker build -f apps/web-1/Dockerfile \
   --build-arg NEXT_PUBLIC_API_URL=https://nexusforstartup.site \
+  --build-arg NEXT_PUBLIC_CENTRIFUGO_URL="wss://nexusforstartup.site/connection/websocket" \
   -t lgdlong/nexus-web:latest .
 ```
 
-`NEXT_PUBLIC_API_URL` là build-time only — không cần trong `.env.prod` hay compose environment.
+`NEXT_PUBLIC_API_URL` và `NEXT_PUBLIC_CENTRIFUGO_URL` là build-time only — không cần trong `.env.prod` hay compose environment.
 
 ### 4. Push cả 2 lên Docker Hub
 
@@ -119,6 +117,7 @@ docker build --no-cache -f apps/api/Dockerfile -t lgdlong/nexus-api:latest . && 
 # Build & push Web
 docker build -f apps/web-1/Dockerfile \
   --build-arg NEXT_PUBLIC_API_URL=https://nexusforstartup.site \
+  --build-arg NEXT_PUBLIC_CENTRIFUGO_URL="wss://nexusforstartup.site/connection/websocket" \
   -t lgdlong/nexus-web:latest . && docker push lgdlong/nexus-web:latest
 
 # ⚠️ Sau khi push: ghi deploy log
@@ -135,6 +134,23 @@ docker compose -f docker-compose.prod.yml up -d
 ```
 
 `pull_policy: always` trong `docker-compose.prod.yml` đảm bảo luôn pull image mới nhất.
+
+### ⚠️ SSE stream router (Notifications)
+
+Từ phase notifications, `docker-compose.prod.yml` có **router Traefik riêng** cho SSE:
+
+```yaml
+# SSE stream router — KHÔNG compress (compress + SSE rủi ro buffer/treo connection)
+- "traefik.http.routers.nexus-api-stream.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/notifications/stream`)"
+- "traefik.http.routers.nexus-api-stream.middlewares=security-headers-api"
+- "traefik.http.services.nexus-api-stream.loadbalancer.server.port=8000"
+```
+
+- Router `nexus-api` (middleware `compress`) **không** match `/api/notifications/stream` — route stream qua `nexus-api-stream` (chỉ `security-headers-api`, **bỏ compress**).
+- Cả 2 router trỏ cùng service port `8000`.
+- Sau khi sửa labels: chạy lại `docker compose -f docker-compose.prod.yml up -d` để Traefik nhận label mới.
+
+> Khi **schema thay đổi** (vd migration `20260819171456_case_messages_pagination_index`) → **bắt buộc `--no-cache`** build API: `prisma generate` chạy trong build stage, cache layer không invalidate khi chỉ schema đổi → image cũ chạy Prisma Client cũ → lỗi `Unknown argument`/missing field khi ghi notification.
 
 ## Troubleshooting
 
@@ -153,7 +169,7 @@ src/services/google-provider.ts: TS2307: Cannot find module '@ai-sdk/google'
 sh: next: not found
 ```
 
-**Nguyên nhân:** npm workspaces không hoist được package lên root `node_modules/` do version conflict. Dockerfile builder stage chỉ copy root `node_modules/`, thiếu workspace-level `node_modules/`.
+**Nguyên nhân:** Monorepo workspaces có thể giữ package/binary ở workspace-level `node_modules/`. Dockerfile builder stage nếu chỉ copy root `node_modules/` sẽ thiếu workspace-level `node_modules/`.
 
 **Fix:** Thêm dòng COPY workspace node_modules trong builder stage:
 ```dockerfile
@@ -213,6 +229,7 @@ $env:DOCKER_BUILDKIT=1
   run: |
     docker build -f apps/web-1/Dockerfile \
       --build-arg NEXT_PUBLIC_API_URL=https://nexusforstartup.site \
+      --build-arg NEXT_PUBLIC_CENTRIFUGO_URL="wss://nexusforstartup.site/connection/websocket" \
       -t lgdlong/nexus-web:latest .
     docker push lgdlong/nexus-web:latest
 

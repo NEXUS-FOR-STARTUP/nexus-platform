@@ -1,6 +1,7 @@
 import { Hono } from "hono";
-import { listPackagesHandler } from "./packages.controller.js";
+import { listPackagesHandler, getPackageHandler } from "./packages.controller.js";
 
 export const packagesRouter = new Hono();
 
 packagesRouter.get("/", listPackagesHandler);
+packagesRouter.get("/:id", getPackageHandler);

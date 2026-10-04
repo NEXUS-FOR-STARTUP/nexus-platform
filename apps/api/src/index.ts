@@ -16,6 +16,17 @@ import { aiEngineRouter } from './modules/ai-engine/http/ai-engine.routes.js'
 import { adminRouter } from './modules/admin/http/admin.routes.js'
 import { supporterRouter } from './modules/supporter/http/supporter.routes.js'
 import { documentsRouter } from './modules/documents/http/documents.routes.js'
+import { notificationsRouter } from './modules/notifications/http/notifications.routes.js'
+import { realtimeRouter } from './modules/realtime/http/realtime.routes.js'
+import { walletRoutes } from './modules/wallet/infrastructure/http/wallet.routes.js'
+import { orderRouter } from './modules/orders/infrastructure/http/order.routes.js'
+import { depositRouter } from './modules/deposits/infrastructure/http/deposit.routes.js'
+import { profileRouter } from './modules/profile/http/profile.routes.js'
+import { registerNotificationListener } from './modules/notifications/application/notification-listener.js'
+import { startRelay } from './modules/notifications/application/notification-relay.js'
+import { startOutboxRelay, stopOutboxRelay } from "./shared/infrastructure/outbox-relay.js";
+import { startAutoDoneSweep, stopAutoDoneSweep } from "./modules/cases/application/auto-done-sweep.js";
+import { initAiAuditOrderListener } from "./modules/ai-engine/application/ai-audit-order.listener.js";
 import { prisma } from './db.js'
 import { AppError } from './shared/domain/app-error.js'
 import logger from './shared/infrastructure/logger.js'
@@ -37,7 +48,8 @@ app.use(
       return allowedOrigins.some((r) => r.test(origin)) ? origin : null
     },
     allowHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    exposeHeaders: ['Content-Disposition'],
     credentials: true,
   }),
 )
@@ -148,6 +160,12 @@ app.route('/api/ai-engine', aiEngineRouter)
 app.route('/api/admin', adminRouter)
 app.route('/api/supporter', supporterRouter)
 app.route('/api/documents', documentsRouter)
+app.route('/api/notifications', notificationsRouter)
+app.route('/api/realtime', realtimeRouter)
+app.route('/api/wallet', walletRoutes)
+app.route('/api/orders', orderRouter)
+app.route('/api/deposits', depositRouter)
+app.route('/api/profile', profileRouter)
 
 // Global error handler — catches unhandled errors, no stack trace leak
 app.onError((err, c) => {
@@ -161,13 +179,46 @@ app.onError((err, c) => {
   return c.json({ code: 'INTERNAL_ERROR', message: 'Lỗi hệ thống' }, 500 as 200)
 })
 
+process.on("SIGTERM", () => {
+  stopOutboxRelay();
+  stopAutoDoneSweep();
+});
+
+process.on("SIGINT", () => {
+  stopOutboxRelay();
+  stopAutoDoneSweep();
+});
+
 export { app }
 
+interface BunRuntime {
+  serve: (options: {
+    fetch: typeof app.fetch;
+    port: number;
+  }) => unknown;
+}
+
+declare const Bun: BunRuntime | undefined;
+
 if (process.env.NODE_ENV !== 'test') {
-  serve({
-    fetch: app.fetch,
-    port
-  }, (info) => {
-    logger.info({ port: info.port }, 'server started')
-  })
+  registerNotificationListener();
+  initAiAuditOrderListener();
+  startRelay();
+  startOutboxRelay();
+  startAutoDoneSweep();
+
+  if (typeof Bun !== 'undefined') {
+    Bun.serve({
+      fetch: app.fetch,
+      port,
+    });
+    logger.info({ port }, 'server started (bun native runtime)');
+  } else {
+    serve({
+      fetch: app.fetch,
+      port
+    }, (info) => {
+      logger.info({ port: info.port }, 'server started (node server runtime)');
+    });
+  }
 }

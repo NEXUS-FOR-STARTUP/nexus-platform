@@ -2,7 +2,7 @@
 
 ## Document Status
 
-- **Cập nhật lần cuối:** 2026-07-23
+- **Cập nhật lần cuối:** 2026-08-08
 - **Phiên bản:** MVP demo realignment (post-rebuild)
 - **Business context canonical:** [`project-context.md`](./project-context.md)
 - **Code references ghi theo đường dẫn thật:** `apps/web-1/` (không phải `apps/web`)
@@ -81,14 +81,18 @@ Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/documents/DocumentWorkspace.tsx`
 - `apps/api/src/modules/documents/domain/document-contract.ts`
 
-### 5.3 Chat text cơ bản đã có
-- `TabDiscussionChat.tsx` đã fetch message list, render thread, gửi message mới.
-- `useCaseChat.ts` dùng GET/POST REST và polling 5 giây.
-- Chat chưa phải realtime socket. Nó là coordination surface, không phải trung tâm duy nhất của product story.
+### 5.3 Chat text đã có (nay realtime)
+- `TabDiscussionChat.tsx` fetch message list, render thread, gửi message mới.
+- `useCaseChat.ts` dùng GET/POST REST; realtime qua Centrifugo (WebSocket primary) từ 2026-08-08 — `useRealtimeChat.ts` lấy per-sub token, publication cập nhật cache + dedupe theo message id.
+- REST polling 60s là fallback khi Centrifugo down; client không publish trực tiếp — tin qua REST để giữ credit check + stage lock + access control.
+- Chat là coordination surface, không phải trung tâm duy nhất của product story.
 
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/TabDiscussionChat.tsx`
 - `apps/web-1/app/dashboard/case/[id]/hooks/useCaseChat.ts`
+- `apps/web-1/app/dashboard/case/[id]/hooks/useRealtimeChat.ts`
+- `apps/web-1/lib/realtime/centrifuge-client.ts`
+- `docs/realtime-centrifugo-guide.md`
 
 ### 5.4 Activity timeline đã có
 - Workspace đã có `ActivityTimeline`.
@@ -98,47 +102,61 @@ Tham chiếu:
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/ActivityTimeline.tsx`
 
-### 5.5 Supporter review flow
+### 5.5 Supporter draft report flow
 - Supporter đã có workspace riêng để đọc case.
-- Supporter đã có `SupporterOutputUploadModal` để upload output report.
-- ⚠️ **Cần xác nhận:** Supporter không có review page riêng (`apps/web-1/app/supporter/case/[id]/review/page.tsx` không tồn tại). Việc create/edit report hiện có thể xử lý qua output upload modal thay vì page riêng.
+- Supporter biên tập draft report qua backend usecases `get-draft-report` / `edit-draft-report` trong supporter module (không còn review page riêng — `apps/web-1/app/supporter/case/[id]/review/page.tsx` không tồn tại).
+- Supporter publish report qua `publish-report` usecase và có `SupporterOutputUploadModal` để upload output report.
 
 Tham chiếu:
 - `apps/web-1/app/supporter/case/[id]/page.tsx`
 - `apps/web-1/app/supporter/case/[id]/_components/SupporterOutputUploadModal.tsx`
+- `apps/api/src/modules/supporter/application/get-draft-report.usecase.ts`
+- `apps/api/src/modules/supporter/application/edit-draft-report.usecase.ts`
+- `apps/api/src/modules/supporter/application/publish-report.usecase.ts`
 
-### 5.6 Bề mặt revision rounds (đã có)
-- `RevisionSubmitModal`: cho student nộp bản sửa.
-- `BuyRoundModal`: cho student mua thêm vòng sửa.
-- `AuditRoundTimeline`: hiển thị lịch sử các vòng audit.
-- Workspace tabs đã có tab `reports` và tab riêng cho findings.
+### 5.6 Stage-based case flow & revision rounds (đã có)
+- Stage flow: `user_facing_stage` (intake_pending → intake_ready → submitted → need_more_information → under_review → report_ready → waiting_for_revision → revision_submitted → completed/rejected/closed), `internal_status` chạy qua `case-machine.ts` (XState v5).
+- `CaseStatusHeader`: hiển thị stage + next action.
+- `StatusGuidanceCard`: hướng dẫn trạng thái hiện tại và next action.
+- `CaseOverviewPanel`: tóm tắt case.
+- Revision upload được gate theo stage (chỉ khi `waiting_for_revision`); có rejection reason + resubmit.
 
-Tham chiếu:
-- `apps/web-1/app/dashboard/case/[id]/_components/RevisionSubmitModal.tsx`
-- `apps/web-1/app/dashboard/case/[id]/_components/BuyRoundModal.tsx`
-- `apps/web-1/app/dashboard/case/[id]/_components/AuditRoundTimeline.tsx`
-
-### 5.7 Payment drawer (đã có)
-- Ngoài payment page riêng, workspace đã có `PaymentDrawer` cho luồng thanh toán inline.
-- `UnpaidAlertBanner` hiển thị cảnh báo nếu chưa thanh toán.
+> Ghi chú: `RevisionSubmitModal`, `BuyRoundModal`, `AuditRoundTimeline` không còn tồn tại trong codebase — luồng vòng sửa được xử lý qua stage-based flow + revision upload gating, không phải modal mua vòng riêng.
 
 Tham chiếu:
-- `apps/web-1/app/dashboard/case/[id]/_components/PaymentDrawer.tsx`
-- `apps/web-1/app/dashboard/case/[id]/_components/UnpaidAlertBanner.tsx`
-- `apps/web-1/app/dashboard/case/[id]/payment/page.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CaseStatusHeader.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/StatusGuidanceCard.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CaseOverviewPanel.tsx`
+- `apps/api/src/modules/cases/domain/case-machine.ts`
 
-### 5.8 External feedback upload (đã có)
+### 5.7 Credit / payment core economy (đã có)
+- `CreditPanel` + `CreditQuantityModal` + `CreditActions`: mua credit.
+- `CreditTransactionHistory` + `CreditBalanceCard`: lịch sử giao dịch + số dư.
+- Backend: model `CreditLedger` (purchase/consumption/refund, `balance_after`), error `NO_CREDITS` (402), events `credit_used`/`credits_purchased`, sepay webhook xác minh bank transfer, admin veto-with-refund (48h).
+- Giá: 39,000 VND/credit.
+- `UnpaidAlertBanner` + `payment/page.tsx` vẫn tồn tại cho cảnh báo chưa thanh toán và admin payment transparency.
+
+> Ghi chú: `PaymentDrawer` không còn tồn tại trong codebase — luồng thanh toán chuyển sang credit purchase.
+
+Tham chiếu:
+- `apps/web-1/app/dashboard/case/[id]/_components/CreditPanel.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CreditQuantityModal.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CreditTransactionHistory.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/CreditBalanceCard.tsx`
+- `apps/api/src/modules/payments/http/sepay.routes.ts`
+
+### 5.8 External feedback & document upload (đã có)
 - `ExternalFeedbackUploadModal` cho phép supporter upload phản hồi từ bên ngoài.
+- `StudentDocumentUploadModal` cho student upload tài liệu minh chứng.
 
 Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/ExternalFeedbackUploadModal.tsx`
+- `apps/web-1/app/dashboard/case/[id]/_components/StudentDocumentUploadModal.tsx`
 
-### 5.9 Version selector & workspace tabs (đã có)
-- `VersionSelector`: chọn version tài liệu trong workspace.
+### 5.9 Workspace tabs (đã có)
 - `WorkspaceTabs`: abstract tabs switching (`TabIdeaContent`, `TabDiscussionChat`, `TabReportFindings`, `TabCaseSettings`).
 
 Tham chiếu:
-- `apps/web-1/app/dashboard/case/[id]/_components/VersionSelector.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/WorkspaceTabs.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/TabIdeaContent.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/TabReportFindings.tsx`
@@ -149,19 +167,35 @@ Tham chiếu:
 - User chọn checklist loại tài liệu có trong thư mục.
 - Có template helper để copy Markdown hoặc tải `.docx`.
 - Đây là hybrid model ở intake, không phải blank slate.
+- Intake hiện là trang riêng (`apps/web-1/app/dashboard/intake/page.tsx`) với submit/resubmit; demo presets + `DemoDataFAB` (`apps/web-1/components/ui/DemoDataFAB.tsx`).
 
 Tham chiếu:
 - `apps/web-1/app/dashboard/intake/_types/intake.types.ts`
 - `apps/web-1/app/dashboard/intake/_components/Steps/DocumentInputStep.tsx`
 - `apps/web-1/app/dashboard/intake/hooks/useIntakeForm.ts`
+- `apps/web-1/app/dashboard/intake/_data/demo-preset.ts`
 
-### 5.11 Payment tồn tại như surface phụ
-- Case workspace đã có `payment_status`, unpaid banner, payment page, và payment drawer.
-- Payment không phải golden path của demo, nhưng là surface thật trong codebase nên không được mô tả như thể không tồn tại.
+### 5.11 Credit ledger + sepay webhook là core economy
+- Credit purchase/consumption/refund là luồng chính của hệ thống thanh toán (không còn là surface phụ).
+- `credit_ledger` model lưu từng entry purchase/consumption/refund với `balance_after`.
+- SePay webhook xác minh bank transfer; admin veto-with-refund trong 48h.
+- Giá 39,000 VND/credit (xem `payment.repository.ts`, `upgrade-package.usecase.ts`).
+- Ví VND account-level (2026-08-11): wallet module giữ live `GET /api/wallet/balance` + `GET /api/wallet/history`; **nạp tiền thuộc module deposits** (`POST /api/deposits` + `POST /api/deposits/:id/verify`, 5 routes) — `POST /api/wallet/topups` → **410 GONE**, `POST /api/wallet/purchase-credits` **deprecated 2026-08-12**; mua credit/order thuộc module orders (3 routes). Trang `/dashboard/wallet` (số dư, lịch sử giao dịch, nạp tiền SePay qua deposit); nav "Ví của tôi" trong `DashboardShell`. Bổ trợ credit per-case — hướng tới "1 đơn vị = 1 VND" (xem `docs/research/user-wallet-brainstorm-2026-08-11.md`).
 
 Tham chiếu:
-- `apps/web-1/app/dashboard/case/[id]/payment/page.tsx`
-- `apps/web-1/types/case.ts`
+- `apps/api/src/modules/payments/infrastructure/persistence/payment.repository.ts`
+- `apps/api/src/modules/cases/application/upgrade-package.usecase.ts`
+- `prisma/schema.prisma` → model `CreditLedger`
+
+### 5.12 Notifications + realtime chat (đã có, 2026-08)
+- Notifications: module 5 endpoints (list, unread-count, read, read-all, SSE stream `/api/notifications/stream`); event bus + outbox pattern (relay 2s tick); kênh in_app/email/telegram; types/validation shared qua `@repo/validation` (single source of truth FE↔BE); Telegram admin alert trên `payment.verified`.
+- Realtime chat: Centrifugo v6 transport, WS primary + REST polling 60s fallback (xem §5.3); `apps/api/src/modules/realtime/` (2 endpoints token), `apps/web-1/lib/realtime/centrifuge-client.ts`.
+
+Tham chiếu:
+- `apps/api/src/modules/notifications/http/notifications.routes.ts`
+- `apps/api/src/shared/domain/domain-events.ts`
+- `apps/api/src/modules/realtime/http/realtime.routes.ts`
+- `docs/realtime-centrifugo-guide.md`
 
 ## 6. MVP demo core đã chốt
 
@@ -170,13 +204,14 @@ Tham chiếu:
 - tạo `Hồ sơ phản biện`;
 - điền bối cảnh, nhu cầu hỗ trợ, thông tin liên hệ, xác nhận cần thiết;
 - nộp tài liệu minh chứng qua Drive/Docs link chính + checklist loại tài liệu;
-- vào case workspace để theo dõi tài liệu, trạng thái, timeline, trao đổi, báo cáo, và vòng sửa;
-- nộp revision qua `RevisionSubmitModal`, mua thêm vòng qua `BuyRoundModal`.
+- vào case workspace để theo dõi tài liệu, trạng thái (stage-based), timeline, trao đổi, báo cáo, và vòng sửa;
+- nộp revision khi ở stage `waiting_for_revision` (revision upload được gate theo stage);
+- xem ví VND (`/dashboard/wallet`): số dư, lịch sử giao dịch, nạp tiền qua SePay (QR + transfer content).
 
 ### 6.2 Admin
 - xem case mới;
 - đọc nhanh summary, needs, documents;
-- yêu cầu làm rõ / từ chối / duyệt;
+- từ chối / duyệt;
 - phân công supporter;
 - quản lý gói dịch vụ và giá qua Settings/Packages.
 
@@ -184,8 +219,8 @@ Tham chiếu:
 - mở cùng case workspace shell;
 - đọc context và tài liệu của case theo checkpoint;
 - trao đổi với sinh viên khi cần;
-- tạo hoặc biên tập báo cáo phản biện (qua output upload modal);
-- gửi phản hồi, upload external feedback, yêu cầu bổ sung, theo dõi timeline.
+- biên tập báo cáo phản biện qua `get-draft-report`/`edit-draft-report` usecases (draft report flow);
+- gửi phản hồi, upload external feedback + output report, yêu cầu bổ sung, theo dõi timeline.
 
 ## 7. Những gì phải giữ
 
@@ -195,7 +230,7 @@ Tham chiếu:
 - Giữ timeline/event trace.
 - Giữ intake document model hiện tại nếu không thật cần đổi schema.
 - Giữ shared shell giữa student và supporter.
-- Giữ các bề mặt revision round, payment drawer, external feedback, version selector như đã có.
+- Giữ stage-based case flow + credit ledger (đã code, là trạng thái vận hành hiện tại).
 
 ## 8. Những gì phải sửa
 
@@ -225,21 +260,22 @@ Tham chiếu:
 
 Không làm trước demo:
 - document-first schema rewrite lớn;
-- backend workflow/status refactor;
-- subsystem chat realtime bằng socket;
+- backend workflow/status refactor (stage flow đã code — giữ nguyên, không đổi semantic);
 - upload manager mới hoàn toàn khác intake hiện có;
 - supporter/admin redesign lớn;
 - AI parsing pipeline mới;
-- payment scope expansion nếu không phục vụ trực tiếp demo path.
+- credit/payment scope expansion ngoài credit ledger + sepay + veto-refund hiện có nếu không phục vụ trực tiếp demo path.
+
+> Realtime chat subsystem đã **SHIPPED** 2026-08-08 (Centrifugo) — không còn thuộc danh sách hoãn này.
 
 ## 10. Demo path mục tiêu
 
 1. Sinh viên tạo `Hồ sơ phản biện`.
 2. Sinh viên mô tả rõ đang mắc ở đâu và cần hỗ trợ gì.
 3. Sinh viên nộp Drive folder / main doc cùng checklist tài liệu minh chứng.
-4. Admin vào triage, hiểu case rất nhanh, duyệt hoặc yêu cầu làm rõ.
-5. Supporter mở cùng workspace, đọc tài liệu theo checkpoint, trao đổi khi cần, biên tập báo cáo phản biện.
-6. Sinh viên nhận báo cáo, theo dõi timeline, và có thể nộp revision qua modal.
+4. Admin vào triage, hiểu case rất nhanh, duyệt hoặc từ chối, phân công supporter.
+5. Supporter mở cùng workspace, đọc tài liệu theo checkpoint, trao đổi khi cần, biên tập báo cáo phản biện (draft report flow).
+6. Sinh viên nhận báo cáo, theo dõi timeline, stage-based status, và nộp revision khi ở stage `waiting_for_revision`.
 
 ## 11. Acceptance criteria cho bản demo
 

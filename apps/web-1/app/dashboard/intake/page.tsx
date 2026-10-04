@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, Suspense } from "react";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
 import { useStore } from "@tanstack/react-form";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -13,58 +13,10 @@ import Link from "next/link";
 import { Modal, Button, Alert } from "@mantine/core";
 import { Trash2, AlertTriangle, Clock, AlertCircle } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
-import DemoDataFAB, { type PresetOption } from "@/components/ui/DemoDataFAB";
+import DemoDataFAB from "@/components/ui/DemoDataFAB";
+import { DEMO_PRESETS } from "./_data/demo-presets";
+import { PACKAGE_KEYS } from "@/lib/pricing";
 
-const NEXUS_INTAKE_PRESET: IntakeData = {
-  package_id: "",
-  current_blocker:
-    "Nhóm đã hoàn thành 4 CP với điểm tốt nhưng chưa có doanh thu thật từ 9 team đã hỗ trợ (đều miễn phí do GV chuyển đến). Cần kiểm chứng willingness-to-pay và chuyển từ Concierge MVP sang Web App MVP. Cạnh tranh với ChatGPT/Gemini đang ngày càng mạnh.",
-  current_situations: [
-    "Đã test MVP với khách hàng thật (9 team)",
-    "Đã phỏng vấn khách hàng (25 người)",
-    "Đã có quy trình audit + template + checklist",
-    "Đang xây web app (Next.js + Hono + Prisma)",
-    "Đã có Lean Canvas + SWOT + kế hoạch tài chính 10 quý",
-    "Chưa có doanh thu",
-  ],
-  case_summary:
-    "Nexus là dịch vụ audit và refine ý tưởng khởi nghiệp cho sinh viên EXE101. Khách hàng: team FPT gặp khó ở CP1. Pain: không biết lỗi gốc, không biết sửa gì trước. Giải pháp: audit có cấu trúc → report lỗi + hướng sửa → re-audit. Bằng chứng: 9 team cải thiện từ ~3.5 lên >=8/10. Mô hình KD: 3 gói 149K-599K, bootstrapping. Tech: Next.js 16 + Hono + Prisma + AI SDK.",
-  contact: {
-    full_name: "Phùng Lưu Hoàng Long",
-    student_code: "SE190377",
-    team_role: "Project Manager & Tech Lead",
-    zalo: "",
-    email: "",
-    telegram: "",
-  },
-  team_context: {
-    group_no: "13",
-    project_name: "Nexus",
-    team_status_summary:
-      "Nhóm 6 người (3 CNPM + 3 Truyền thông ĐPT). Đã hoàn thành CP1-CP4 môn EXE101 kỳ Summer 2026. Đã hỗ trợ 9 team EXE101 cải thiện điểm CP1 từ ~3.5 lên >=8.0. Đang chuyển từ Concierge MVP sang Web App MVP.",
-  },
-  support_needs: {
-    primary_need: "team_fit",
-    extra_notes:
-      "Team có đủ năng lực scale không? (3 CNPM + 3 Truyền thông). Rủi ro phụ thuộc founder. Cần thêm vai trò gì khi mở rộng? Đánh giá mô hình doanh thu 149K-599K.",
-  },
-  documents: [],
-  lecturer_feedback:
-    'CP2: "Làm web app hẳn hoi, không chỉ Google Form + Sheet". CP3: "Đừng phụ thuộc rubric — xây tiêu chí đánh giá riêng". CP4: "Không oversell — Nexus hỗ trợ, không cam kết điểm".',
-  expected_outputs:
-    "Báo cáo team-fit: điểm mạnh/yếu, gaps, rủi ro, vai trò cần bổ sung.",
-  boundary_confirmations: ["no_nda", "self_reviewed", "agree_tos"],
-  school: "FPT University HCMC",
-  course_context: "EXE101 - Summer 2026",
-};
-
-const DEMO_PRESETS: PresetOption[] = [
-  {
-    label: "Nexus - Nhóm 13 EXE101",
-    description: "Dịch vụ audit idea khởi nghiệp cho sinh viên FPT",
-    data: NEXUS_INTAKE_PRESET,
-  },
-];
 
 function IntakePageContent() {
   const searchParams = useSearchParams();
@@ -72,57 +24,72 @@ function IntakePageContent() {
   const caseId = searchParams.get("caseId") || null;
   const isUpdateMode = !!caseId;
 
-  // Fetch existing case data for UPDATE mode
-  const { data: existingCaseData, isLoading: isLoadingCase } = useQuery({
+  const { data: existingCaseData, isLoading: isLoadingCase, isError: isCaseError } = useQuery({
     queryKey: ["case-intake", caseId],
     queryFn: () => apiClient.get(`/cases/${caseId}`).then((r) => r.data),
     enabled: isUpdateMode,
   });
 
   // Fetch active packages for packageId validation (CREATE mode only)
-  const { data: packagesData, isLoading: isLoadingPackages } = useQuery({
+  const { data: packagesData, isLoading: isLoadingPackages, isError: isPackagesError } = useQuery({
     queryKey: ["active-packages"],
     queryFn: () => apiClient.get("/packages").then((r) => r.data),
     enabled: !isUpdateMode,
   });
 
+  const effectivePackageId = isUpdateMode
+    ? (existingCaseData?.case?.package_id || existingCaseData?.package_id || "")
+    : packageId;
+  const isAiOnlyPackage = effectivePackageId === "pkg_ai_audit";
+
   const initialData: IntakeData | null = useMemo(() => {
     if (!existingCaseData) return null;
+    const caseRow = existingCaseData.case ?? existingCaseData;
+    const owner = caseRow.owner ?? existingCaseData.owner;
     const rawSnapshot = existingCaseData.intake_snapshot || {};
+    const pkgId = caseRow.package_id || rawSnapshot.package_id || "";
+    const isAi = pkgId === "pkg_ai_audit";
     return {
       ...rawSnapshot,
-      package_id: existingCaseData.package_id || rawSnapshot.package_id || "",
-      school: existingCaseData.school || rawSnapshot.school || rawSnapshot.team_context?.school || "Đại học FPT",
-      course_context: existingCaseData.course_context || rawSnapshot.course_context || rawSnapshot.team_context?.course_context || "EXE101",
+      package_id: pkgId,
+      school: caseRow.school || rawSnapshot.school || rawSnapshot.team_context?.school || "Đại học FPT",
+      course_context: caseRow.course_context || rawSnapshot.course_context || rawSnapshot.team_context?.course_context || "EXE101",
       current_blocker: rawSnapshot.current_blocker || "",
       current_situations: rawSnapshot.current_situations || [],
       case_summary: rawSnapshot.case_summary || "",
       contact: {
-        full_name: rawSnapshot.contact?.full_name || existingCaseData.owner?.name || "",
+        full_name: rawSnapshot.contact?.full_name || owner?.name || "",
         student_code: rawSnapshot.contact?.student_code || "",
         team_role: rawSnapshot.contact?.team_role || rawSnapshot.contact?.role || "Trưởng nhóm",
         zalo: rawSnapshot.contact?.zalo || rawSnapshot.contact?.phone || "",
-        email: rawSnapshot.contact?.email || existingCaseData.owner?.email || "",
+        email: rawSnapshot.contact?.email || owner?.email || "",
         telegram: rawSnapshot.contact?.telegram || "",
       },
       team_context: {
-        group_no: existingCaseData.group_no || rawSnapshot.team_context?.group_no || "",
-        project_name: existingCaseData.team_name || rawSnapshot.team_context?.project_name || "",
+        group_no: caseRow.group_no || rawSnapshot.team_context?.group_no || "",
+        project_name: caseRow.team_name || rawSnapshot.team_context?.project_name || "",
         team_status_summary: rawSnapshot.team_context?.team_status_summary || rawSnapshot.current_blocker || "",
       },
-      support_needs: {
-        primary_need: rawSnapshot.support_needs?.primary_need || "clarify_customer_pain",
-        extra_notes: rawSnapshot.support_needs?.extra_notes || "",
-      },
+      support_needs: isAi
+        ? { primary_need: "", extra_notes: "" }
+        : {
+            primary_need: rawSnapshot.support_needs?.primary_need || "clarify_customer_pain",
+            extra_notes: rawSnapshot.support_needs?.extra_notes || "",
+          },
       documents: rawSnapshot.documents || [],
       lecturer_feedback: rawSnapshot.lecturer_feedback || "",
-      expected_outputs: rawSnapshot.expected_outputs || "",
+      expected_outputs: isAi ? "" : (rawSnapshot.expected_outputs || ""),
       boundary_confirmations: rawSnapshot.boundary_confirmations || ["originality", "advisory_only", "accurate_contact"],
     };
   }, [existingCaseData]);
 
   const { form, isLoaded, saveDraft, clearDraft, isSubmitting, error } =
-    useIntakeForm({ packageId, caseId, initialData });
+    useIntakeForm({
+      packageId: effectivePackageId || packageId,
+      caseId,
+      initialData,
+      isAiOnlyPackage,
+    });
 
   const [currentStep, setCurrentStep] = useState<IntakeStep>(
     IntakeStep.SITUATION,
@@ -132,38 +99,114 @@ function IntakePageContent() {
   // Hook up store value retrieval for validation
   const values = useStore(form.store, (state: any) => state.values);
 
-  // Steps definition — PACKAGE & DEADLINE removed
-  const stepsList = [
-    IntakeStep.SITUATION,
-    IntakeStep.CONTACT,
-    IntakeStep.PROJECT_CONTEXT,
-    IntakeStep.SUPPORT_NEEDS,
-    IntakeStep.DOCUMENTS,
-    IntakeStep.BOUNDARY,
-    IntakeStep.REVIEW,
-  ];
+  // Dynamic stepsList based on package
+  const stepsList = useMemo(() => {
+    if (isAiOnlyPackage) {
+      return [
+        IntakeStep.SITUATION,
+        IntakeStep.CONTACT,
+        IntakeStep.PROJECT_CONTEXT,
+        IntakeStep.DOCUMENTS,
+        IntakeStep.BOUNDARY,
+        IntakeStep.REVIEW,
+      ];
+    }
+    return [
+      IntakeStep.SITUATION,
+      IntakeStep.CONTACT,
+      IntakeStep.PROJECT_CONTEXT,
+      IntakeStep.SUPPORT_NEEDS,
+      IntakeStep.DOCUMENTS,
+      IntakeStep.BOUNDARY,
+      IntakeStep.REVIEW,
+    ];
+  }, [isAiOnlyPackage]);
+
+  // Guard against invalid currentStep when in AI-only package mode
+  useEffect(() => {
+    if (isAiOnlyPackage && currentStep === IntakeStep.SUPPORT_NEEDS) {
+      setCurrentStep(IntakeStep.DOCUMENTS);
+    }
+  }, [isAiOnlyPackage, currentStep]);
 
   // Calculate selectable steps where all preceding steps are valid
-  const selectableSteps: IntakeStep[] = [];
-  for (let i = 0; i < stepsList.length; i++) {
-    const stepVal = stepsList[i];
-    if (i === 0) {
-      selectableSteps.push(stepVal);
-    } else {
-      let allPrevValid = true;
-      for (let j = 0; j < i; j++) {
-        if (!checkStepValidity(stepsList[j], values)) {
-          allPrevValid = false;
-          break;
+  const selectableSteps: IntakeStep[] = useMemo(() => {
+    const selectable: IntakeStep[] = [];
+    for (let i = 0; i < stepsList.length; i++) {
+      const stepVal = stepsList[i];
+      if (i === 0) {
+        selectable.push(stepVal);
+      } else {
+        let allPrevValid = true;
+        for (let j = 0; j < i; j++) {
+          const prevStep = stepsList[j];
+          const isPrevValid =
+            prevStep === IntakeStep.SUPPORT_NEEDS && !stepsList.includes(IntakeStep.SUPPORT_NEEDS)
+              ? true
+              : checkStepValidity(prevStep, values);
+          if (!isPrevValid) {
+            allPrevValid = false;
+            break;
+          }
+        }
+        if (allPrevValid) {
+          selectable.push(stepVal);
         }
       }
-      if (allPrevValid) {
-        selectableSteps.push(stepVal);
-      }
     }
-  }
+    return selectable;
+  }, [stepsList, values]);
 
-  const isLoadingForm = !isLoaded || (isUpdateMode && isLoadingCase) || (!isUpdateMode && isLoadingPackages);
+  const isLoadingForm =
+    !isLoaded ||
+    (isUpdateMode && isLoadingCase) ||
+    (!isUpdateMode && isLoadingPackages);
+  if (isUpdateMode && isCaseError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] p-6">
+        <Alert
+          icon={<AlertCircle className="w-5 h-5" />}
+          title="Lỗi"
+          color="red"
+          radius="md"
+          variant="light"
+          className="max-w-md"
+        >
+          <p className="text-sm font-body">Không tải được hồ sơ. Vui lòng thử lại.</p>
+        </Alert>
+      </div>
+    );
+  }
+  if (!isUpdateMode && isPackagesError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] p-6">
+        <Alert
+          icon={<AlertCircle className="w-5 h-5" />}
+          title="Lỗi kết nối"
+          color="red"
+          radius="md"
+          variant="light"
+          className="max-w-md"
+        >
+          <div className="space-y-4">
+            <p className="text-sm font-body">
+              Không thể tải danh sách gói dịch vụ. Vui lòng kiểm tra kết nối mạng và thử lại.
+            </p>
+            <Button
+              component={Link}
+              href="/"
+              color="red"
+              variant="outline"
+              fullWidth
+              className="font-body font-semibold cursor-pointer"
+            >
+              Quay lại trang chủ
+            </Button>
+          </div>
+        </Alert>
+      </div>
+    );
+  }
 
   if (isLoadingForm) {
     return (
@@ -177,6 +220,48 @@ function IntakePageContent() {
       </div>
     );
   }
+  // Guard against in-development 149k package (pkg_supporter_audit)
+  if (!isUpdateMode && packageId === PACKAGE_KEYS.SUPPORTER_AUDIT) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] p-6">
+        <Alert
+          icon={<AlertCircle className="w-5 h-5" />}
+          title="Tính năng đang được phát triển"
+          color="blue"
+          radius="md"
+          variant="light"
+          className="max-w-md"
+        >
+          <div className="space-y-4">
+            <p className="text-sm font-body">
+              Gói Premium Mentor Audit hiện đang được hoàn thiện. Vui lòng chọn gói Basic AI Audit (79.000đ) để được phản biện tức thì!
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button
+                component={Link}
+                href={`/dashboard/intake?packageId=${PACKAGE_KEYS.AI_AUDIT}`}
+                color="blue"
+                fullWidth
+                className="font-body font-semibold cursor-pointer"
+              >
+                Chuyển sang gói Basic AI (79k)
+              </Button>
+              <Button
+                component={Link}
+                href="/dashboard"
+                variant="default"
+                fullWidth
+                className="font-body cursor-pointer"
+              >
+                Quay lại Dashboard
+              </Button>
+            </div>
+          </div>
+        </Alert>
+      </div>
+    );
+  }
+
 
   // Validate packageId for CREATE mode
   if (!isUpdateMode && packagesData) {
@@ -220,32 +305,20 @@ function IntakePageContent() {
     <div className="space-y-8 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="text-center space-y-2">
         <h1 className="font-heading text-2xl sm:text-3xl font-bold text-text-app">
-          {isUpdateMode ? "Cập nhật hồ sơ" : "Tạo hồ sơ mới"}
+          {isUpdateMode ? "Cập nhật thông tin dự án" : "Đăng ký đánh giá dự án"}
         </h1>
         <p className="font-body text-sm text-text-muted max-w-lg mx-auto">
           {isUpdateMode
-            ? "Điều chỉnh thông tin hồ sơ hiện tại."
-            : "Cấu trúc ý tưởng và thông tin minh chứng để bắt đầu chạy phản biện."}
+            ? "Điều chỉnh thông tin dự án hiện tại."
+            : "Cung cấp thông tin dự án và tải lên tài liệu để bắt đầu quy trình đánh giá."}
         </p>
-
-        {/* SLA 48h Banner */}
-        <div className="max-w-lg mx-auto">
-          <Alert
-            variant="light"
-            color="blue"
-            icon={<Clock className="w-4 h-4" />}
-            className="text-left text-xs font-body"
-          >
-            ⏱ Thời gian phản biện: 48h kể từ khi thanh toán và có Supporter phân
-            công
-          </Alert>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
         {/* Progress Stepper Sidebar */}
         <div className="lg:col-span-1 lg:sticky lg:top-6 flex flex-col gap-3">
           <IntakeProgressStepper
+            stepsList={stepsList}
             currentStep={currentStep}
             selectableSteps={selectableSteps}
             onStepClick={(step) => {
@@ -267,6 +340,8 @@ function IntakePageContent() {
         {/* Main Content Area */}
         <div className="lg:col-span-3">
           <IntakeChatFlow
+            stepsList={stepsList}
+            isAiOnlyPackage={isAiOnlyPackage}
             form={form}
             saveDraft={saveDraft}
             isSubmitting={isSubmitting}
@@ -276,7 +351,6 @@ function IntakePageContent() {
           />
         </div>
       </div>
-
       {/* Reset Confirmation Modal */}
       <Modal
         opened={isResetOpen}
@@ -340,12 +414,16 @@ function IntakePageContent() {
           form.setFieldValue("team_context.group_no", preset.team_context.group_no);
           form.setFieldValue("team_context.project_name", preset.team_context.project_name);
           form.setFieldValue("team_context.team_status_summary", preset.team_context.team_status_summary);
-          // Support needs
-          form.setFieldValue("support_needs.primary_need", preset.support_needs.primary_need);
-          form.setFieldValue("support_needs.extra_notes", preset.support_needs.extra_notes);
-          // Other
-          form.setFieldValue("lecturer_feedback", preset.lecturer_feedback);
-          form.setFieldValue("expected_outputs", preset.expected_outputs);
+          // Support needs & outputs
+          if (isAiOnlyPackage) {
+            form.setFieldValue("support_needs.primary_need", "");
+            form.setFieldValue("support_needs.extra_notes", "");
+            form.setFieldValue("expected_outputs", "");
+          } else {
+            form.setFieldValue("support_needs.primary_need", preset.support_needs?.primary_need || "clarify_customer_pain");
+            form.setFieldValue("support_needs.extra_notes", preset.support_needs?.extra_notes || "");
+            form.setFieldValue("expected_outputs", preset.expected_outputs || "");
+          }
           form.setFieldValue("boundary_confirmations", preset.boundary_confirmations);
           form.setFieldValue("school", preset.school);
           form.setFieldValue("course_context", preset.course_context);

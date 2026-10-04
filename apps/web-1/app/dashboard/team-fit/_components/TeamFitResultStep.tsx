@@ -1,11 +1,12 @@
-"use client";
-
-import { Card, Group, Text, Button, List } from "@mantine/core";
-import { AlertTriangle, Info, Check } from "lucide-react";
-import type { TeamFitFreeReport } from "@repo/validation";
+import type { TeamFitSavedResult } from "@repo/validation";
+import { PACKAGE_KEYS, formatPrice } from "@/lib/pricing";
+import { usePackagePrice } from "@/lib/usePackagePrice";
+import { TeamFitReportCard } from "./TeamFitReportCard";
+import { AlertTriangle, Check } from "lucide-react";
+import { Button, Group, Text } from "@mantine/core";
 
 interface TeamFitResultStepProps {
-  result: TeamFitFreeReport | null;
+  result: TeamFitSavedResult | null;
   isLoading: boolean;
   error: string | null;
   onReset: () => void;
@@ -29,6 +30,9 @@ export default function TeamFitResultStep({
   isUpgrading = false,
   hasSaved = false,
 }: TeamFitResultStepProps) {
+  const { data: auditPkg } = usePackagePrice(PACKAGE_KEYS.AI_AUDIT);
+  const auditPriceLabel = formatPrice(auditPkg?.price ?? 79000);
+
   // Loading state
   if (isLoading) {
     return (
@@ -61,49 +65,21 @@ export default function TeamFitResultStep({
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
         <Text size="sm" c="dimmed">
-          Nhấn &quot;Đánh giá&quot; để AI phân tích đội ngũ của bạn
+          Nhấn &quot;Kiểm tra sơ bộ&quot; để hệ thống đếm chỉ số nhóm, nhận định đội ngũ và nêu những câu nhóm chưa trả lời được
         </Text>
       </div>
     );
   }
 
-  // ── Result state ──
   return (
     <div className="space-y-4">
-      {/* Card 1: team gaps */}
-      <Card shadow="sm" padding="lg" radius="md" withBorder>
-        <Group gap="sm" mb="sm">
-          <AlertTriangle className="h-5 w-5 text-amber-500" />
-          <Text fw={600} size="sm">
-            Nhóm bạn có thể thiếu...
-          </Text>
-        </Group>
-        <List spacing="xs" size="sm">
-          {result.teamGaps.map((gap, i) => (
-            <List.Item key={i}>{gap}</List.Item>
-          ))}
-        </List>
-      </Card>
+      <TeamFitReportCard report={result} />
 
-      {/* Card 2: commercial gaps */}
-      <Card shadow="sm" padding="lg" radius="md" withBorder>
-        <Group gap="sm" mb="sm">
-          <Info className="h-5 w-5 text-blue-500" />
-          <Text fw={600} size="sm">
-            Dự án có thể chưa rõ ở...
-          </Text>
-        </Group>
-        <List spacing="xs" size="sm">
-          {result.commercialGaps.map((gap, i) => (
-            <List.Item key={i}>{gap}</List.Item>
-          ))}
-        </List>
-      </Card>
 
       {/* Buttons row */}
       <Group justify="center" gap="sm">
         <Button variant="outline" color="red" onClick={onReset}>
-          Làm lại
+          Kiểm tra lại
         </Button>
 
         {hasSaved ? (
@@ -114,14 +90,14 @@ export default function TeamFitResultStep({
               disabled
               rightSection={<Check className="h-4 w-4" />}
             >
-              Đã lưu
+              Đã lưu vào dự án
             </Button>
             <Button
               variant="filled"
               color="brand"
               onClick={onXemCase}
             >
-              Xem case →
+              Xem dự án →
             </Button>
           </>
         ) : (
@@ -131,18 +107,18 @@ export default function TeamFitResultStep({
             onClick={onSave}
             loading={isSaving}
           >
-            Lưu kết quả
+            Lưu kết quả & Tạo dự án
           </Button>
         )}
       </Group>
 
       {/* Upsell banner */}
-      <div className="mt-6 p-4 bg-brand-soft/10 border border-brand/20 rounded-lg">
+      <div className="mt-6 p-4 bg-brand/10 border border-brand/20 rounded-lg">
         <Text size="sm" fw={600} mb="xs">
-          Muốn được Supporter kiểm tra chuyên sâu?
+          Cần đánh giá kỹ hơn từ tài liệu của dự án?
         </Text>
         <Text size="xs" c="dimmed" mb="sm">
-          Nhận phản biện chi tiết từ Supporter giàu kinh nghiệm. Giá chỉ 39.000đ / lượt.
+          Tải lên slide hoặc đề cương hoàn chỉnh để nhận báo cáo phản biện chi tiết qua 5 nhóm tiêu chí. Gói {auditPriceLabel} bao gồm 2 lượt đánh giá.
         </Text>
         <Button
           size="sm"
@@ -150,7 +126,7 @@ export default function TeamFitResultStep({
           onClick={onUpgrade}
           loading={isUpgrading}
         >
-          Mua kiểm tra chuyên sâu
+          Đánh giá dự án
         </Button>
       </div>
     </div>

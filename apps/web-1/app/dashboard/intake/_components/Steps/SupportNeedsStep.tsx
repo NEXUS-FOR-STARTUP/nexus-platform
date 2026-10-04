@@ -13,9 +13,11 @@ const PRIMARY_NEEDS = [
   { key: "filter_select_idea", label: "Cần hỗ trợ chọn hướng ý tưởng phù hợp để phát triển tiếp" },
   { key: "clarify_customer_pain", label: "Cần phản biện để làm rõ khách hàng mục tiêu và vấn đề cốt lõi" },
   { key: "critique_feasibility", label: "Cần phản biện để đánh giá giải pháp hiện tại có hợp lý và khả thi không" },
-  { key: "audit_cp1_draft", label: "Cần rà soát báo cáo Checkpoint 1 và chỉ ra điểm cần chỉnh sửa" },
+  { key: "audit_cp1_draft", label: "Cần rà soát tài liệu dự án và chỉ ra điểm cần chỉnh sửa" },
   { key: "improve_rejected_idea", label: "Cần góp ý để cải thiện ý tưởng sau phản hồi chưa tốt từ giảng viên" },
 ];
+
+const PRIMARY_NEED_MAX = 100;
 
 export default function SupportNeedsStep({ form, values }: SupportNeedsStepProps) {
   return (
@@ -41,6 +43,7 @@ export default function SupportNeedsStep({ form, values }: SupportNeedsStepProps
           validators={{
             onChange: ({ value }: { value: string }) => {
               if (!value) return "Nhu cầu hỗ trợ chính là bắt buộc.";
+              if (value.length > PRIMARY_NEED_MAX) return `Nhu cầu hỗ trợ chính không được vượt quá ${PRIMARY_NEED_MAX} ký tự.`;
               return undefined;
             },
           }}

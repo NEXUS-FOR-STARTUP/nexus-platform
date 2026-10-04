@@ -1,0 +1,18 @@
+# Force LF line endings for all text files (project convention).
+# Fixes mass CRLF vs LF diffs that appeared after Windows edits.
+* text=auto eol=lf
+
+# Explicit binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary
+*.lockb binary

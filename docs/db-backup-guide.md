@@ -1,11 +1,11 @@
 # DB Backup Guide (for agents)
 
-Quy trình backup database Supabase bằng Docker + pg_dump. Chạy trước/sau các thao tác seed, migration, hoặc cleanup data.
+Quy trình backup database Postgres bằng Docker + pg_dump. Chạy trước/sau các thao tác seed, migration, hoặc cleanup data.
 
 ## Yêu cầu
 
 - Docker installed + đang chạy
-- `.env` có `DATABASE_URL` / `DIRECT_URL` (Supabase Postgres)
+- `.env` có `DATABASE_URL` / `DIRECT_URL` (production: self-hosted Postgres 18.4 trên VPS qua `docker-compose.prod.yml` — service `db`, port `5432`, `POSTGRES_USER`/`POSTGRES_DB`)
 - Quyền đọc `.env` (user approve nếu bị block)
 
 ## Kiểm tra Docker trước
@@ -34,7 +34,7 @@ $outFile = "prisma/backup/nexus-db-backup-$timestamp.sql"
 New-Item -ItemType Directory -Path "prisma/backup" -Force | Out-Null
 
 # 3. Chạy pg_dump qua Docker (dùng port 5432, không qua pgbouncer)
-docker run --rm postgres:17 pg_dump --no-owner --no-acl `
+docker run --rm postgres:18.4 pg_dump --no-owner --no-acl `
   "$directUrl" | Out-File -FilePath $outFile -Encoding utf8
 ```
 
@@ -48,8 +48,9 @@ File >100KB = OK. Mở head để verify có header `PostgreSQL database dump`.
 
 ## Lưu ý
 
-- Dùng `DIRECT_URL` (port 5432), không dùng `DATABASE_URL` (port 6543 qua pgbouncer — pg_dump không chạy được)
-- Server version Supabase = 17 → dùng image `postgres:17` (không 16, không 15)
+- Dùng `DIRECT_URL` (port 5432), không dùng `DATABASE_URL` (qua pgbouncer — pg_dump không chạy được)
+- Production server version = 18.4 (self-hosted trên VPS, `docker-compose.prod.yml` → image `postgres:18.4`) → dùng image `postgres:18.4` cho pg_dump
+- ⚠️ **Version mismatch:** nếu pg_dump version thấp hơn server (vd dùng `postgres:17` dump từ server 18.4), dump có thể fail hoặc sinh file thiếu dữ liệu mới. Luôn dùng image `postgres:18.4` hoặc cao hơn để khớp server.
 - File backup lưu trong `prisma/backup/`
 - Format tên file: `nexus-db-backup-YYYY-MM-DD-HHMM.sql`
 - Encoding: Luôn dùng `Out-File -Encoding utf8` (hoặc `Set-Content -Encoding UTF8`). **Không dùng `>` redirect** — PowerShell mặc định ghi UTF-16LE, gây hỏng tiếng Việt.
@@ -62,14 +63,16 @@ Trên production VPS, SQL chạy bằng docker exec, không qua Prisma. Luôn SE
 
 ```bash
 # SELECT trước để xác nhận
-docker exec nexus-db psql -U admin -d nexus_platform -c "SELECT id, name, price, is_active FROM service_packages ORDER BY price;"
+docker exec nexus-db psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c "SELECT id, name, price, is_active FROM service_packages ORDER BY price;"
 
 # Chỉ UPDATE sau khi confirm đúng record
-docker exec nexus-db psql -U admin -d nexus_platform -c "UPDATE service_packages SET name = 'Kiểm tra đội ngũ miễn phí' WHERE id = 'pkg_tf_free';"
+docker exec nexus-db psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c "UPDATE service_packages SET name = 'Kiểm tra đội ngũ miễn phí' WHERE id = 'pkg_tf_free';"
 
 # SELECT lại để verify
-docker exec nexus-db psql -U admin -d nexus_platform -c "SELECT id, name, price, is_active FROM service_packages WHERE id IN ('pkg_tf_free', 'pkg_tf_audit');"
+docker exec nexus-db psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c "SELECT id, name, price, is_active FROM service_packages WHERE id IN ('pkg_tf_free', 'pkg_tf_audit');"
 ```
+
+> `POSTGRES_USER`/`POSTGRES_DB` lấy từ biến env của `docker-compose.prod.yml` (không hardcode `admin`/`nexus_platform`).
 
 ### Rules
 
@@ -82,7 +85,7 @@ docker exec nexus-db psql -U admin -d nexus_platform -c "SELECT id, name, price,
 
 ```bash
 # Copy backup file lên VPS trước, rồi:
-docker exec -i nexus-db psql -U admin -d nexus_platform < prisma/backup/nexus-db-backup-2026-07-26.sql
+docker exec -i nexus-db psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} < prisma/backup/nexus-db-backup-2026-07-26.sql
 
 # Kiểm tra encoding của file backup trước khi restore (phải là UTF-8):
 file prisma/backup/nexus-db-backup-2026-07-26.sql

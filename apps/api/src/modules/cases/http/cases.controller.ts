@@ -19,6 +19,8 @@ import { assignSupporterUseCase } from "../application/assign-supporter.usecase.
 import { updateCaseStatusUseCase } from "../application/update-case-status.usecase.js";
 import { listMessagesUseCase } from "../application/list-messages.usecase.js";
 import { sendMessageUseCase } from "../application/send-message.usecase.js";
+import { markChatReadUseCase } from "../application/mark-chat-read.usecase.js";
+import { getChatUnreadCountUseCase } from "../application/get-chat-unread-count.usecase.js";
 import { updateCaseSettingsUseCase } from "../application/update-case-settings.usecase.js";
 import { deleteCaseUseCase } from "../application/delete-case.usecase.js";
 import { listDocumentTypesUseCase } from "../../documents/application/list-document-types.usecase.js";
@@ -39,6 +41,9 @@ import { vetoCaseUseCase } from "../application/veto-case.usecase.js";
 import { completeCaseUseCase } from "../application/complete-case.usecase.js";
 import { upgradePackageUseCase } from "../application/upgrade-package.usecase.js";
 import { resubmitCaseUseCase } from "../application/resubmit-case.usecase.js";
+import { AppError } from "../../../shared/domain/app-error.js";
+import { parseMessageLimit, decodeMessageCursor } from "../application/message-cursor.js";
+
 
 // ---------------------------------------------------------------------------
 // GET /api/cases — List cases based on role
@@ -51,9 +56,9 @@ export async function listCasesHandler(c: Context) {
   }
 
   try {
-    const result = await listCasesUseCase(session);
+    const result = await listCasesUseCase(session, c.req.query());
     return c.json(result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleError(c, error);
   }
 }
@@ -353,7 +358,20 @@ export async function listMessagesHandler(c: Context) {
   }
 
   try {
-    const result = await listMessagesUseCase(caseId);
+    const cursorRaw = c.req.query("cursor");
+    let before: { createdAt: Date; id: string } | undefined;
+    if (cursorRaw) {
+      const decoded = decodeMessageCursor(cursorRaw);
+      if (!decoded) {
+        throw new AppError(400, "INVALID_CURSOR", "Tham số phân trang không hợp lệ");
+      }
+      before = decoded;
+    }
+
+    const result = await listMessagesUseCase(caseId, {
+      limit: parseMessageLimit(c.req.query("limit")),
+      before,
+    });
     return c.json(result);
   } catch (error: any) {
     return handleError(c, error);
@@ -380,6 +398,53 @@ export async function sendMessageHandler(c: Context) {
       body?.content || "",
     );
     return c.json(result, 201);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/cases/:id/chat/read — Mark chat messages as read (GA-19)
+// ---------------------------------------------------------------------------
+
+export async function markChatReadHandler(c: Context) {
+  const caseId = c.req.param("id") || "";
+  const access = await requireCaseAccess(c, caseId);
+  if (!access.ok) {
+    return access.response;
+  }
+
+  try {
+    const body = (await readJsonBody(c)) as { last_read_message_id?: string };
+    const result = await markChatReadUseCase(
+      access.session.user.id,
+      (access.session.user as any).role,
+      caseId,
+      body?.last_read_message_id,
+    );
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/cases/:id/chat/unread — Get unread chat message count (GA-19)
+// ---------------------------------------------------------------------------
+
+export async function getChatUnreadCountHandler(c: Context) {
+  const caseId = c.req.param("id") || "";
+  const access = await requireCaseAccess(c, caseId);
+  if (!access.ok) {
+    return access.response;
+  }
+
+  try {
+    const result = await getChatUnreadCountUseCase(
+      caseId,
+      access.session.user.id,
+    );
+    return c.json(result);
   } catch (error: any) {
     return handleError(c, error);
   }
@@ -485,7 +550,7 @@ export async function vetoHandler(c: Context) {
 }
 
 // ---------------------------------------------------------------------------
-// POST /api/cases/:id/complete — Supporter marks case as completed
+// POST /api/cases/:id/complete — Owner xác nhận hoàn thành (T17) / Admin force-close (T14)
 // ---------------------------------------------------------------------------
 
 export async function completeCaseHandler(c: Context) {
@@ -495,8 +560,8 @@ export async function completeCaseHandler(c: Context) {
   }
 
   const role = (session.user as any).role;
-  if (role !== "supporter" && role !== "admin") {
-    return c.json({ code: "FORBIDDEN", message: "Chỉ supporter mới có quyền đánh dấu hoàn thành" }, 403);
+  if (role !== "user" && role !== "supporter" && role !== "admin") {
+    return c.json({ code: "FORBIDDEN", message: "Không có quyền đánh dấu hoàn thành" }, 403);
   }
 
   const caseId = c.req.param("id") || "";

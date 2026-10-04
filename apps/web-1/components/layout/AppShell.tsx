@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Group,
   Button,
@@ -35,6 +36,18 @@ const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+const TikTokIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    viewBox="0 0 24 24"
+    width="18"
+    height="18"
+    fill="currentColor"
+    {...props}
+  >
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 3 15.68 6.34 6.34 0 0 0 9.35 22a6.34 6.34 0 0 0 6.33-6.32V8.84a8.21 8.21 0 0 0 4.91 1.62v-3.77h-1z" />
+  </svg>
+);
+
 
 
 interface AppShellProps {
@@ -48,8 +61,10 @@ export default function AppShell({ children }: AppShellProps) {
 
 
   const footerLinks = [
-    { href: "#", label: "Chính sách bảo mật" },
-    { href: "#", label: "Điều khoản sử dụng" },
+    { href: "/privacy", label: "Chính sách bảo mật" },
+    { href: "/terms", label: "Điều khoản sử dụng" },
+    { href: "/refund-policy", label: "Thanh toán & Hoàn tiền" },
+    { href: "/fair-use-policy", label: "Quy chế & Fair-Use" },
   ];
 
   return (
@@ -63,7 +78,7 @@ export default function AppShell({ children }: AppShellProps) {
               href="/"
               className="flex items-center"
             >
-              <Logo height={52} />
+              <Logo height={62} />
             </Link>
 
 
@@ -74,29 +89,24 @@ export default function AppShell({ children }: AppShellProps) {
               <Button
                 component={Link}
                 href="/auth"
-                variant="default"
-                radius="md"
-                size="sm"
-                className="font-semibold text-text-muted border-border-app hover:bg-surface-soft font-body"
-              >
-                Đăng nhập
-              </Button>
-              <Button
-                component={Link}
-                href="/auth?tab=register"
                 color="brand"
                 radius="md"
                 size="sm"
                 className="font-semibold font-body"
               >
-                Đăng ký
+                Đăng nhập
               </Button>
             </Group>
 
             {/* Mobile Burger and Theme Toggle */}
             <Group hiddenFrom="md" gap={8}>
               <ThemeToggler />
-              <Burger opened={drawerOpened} onClick={toggleDrawer} size="sm" />
+              <Burger
+                opened={drawerOpened}
+                onClick={toggleDrawer}
+                size="sm"
+                aria-label="Mở menu điều hướng"
+              />
             </Group>
           </div>
         </div>
@@ -121,34 +131,53 @@ export default function AppShell({ children }: AppShellProps) {
         zIndex={1000}
       >
         <ScrollArea h="calc(100vh - 80px)" mx="-md">
-          <Divider my="sm" />
+          <Divider my="xs" />
 
-          <div className="flex flex-col gap-3 px-4 pt-2 font-body">
+          <nav aria-label="Menu di động" className="flex flex-col gap-1 px-4 pt-2 font-body">
+            <Link
+              href="/#quy-trinh"
+              onClick={closeDrawer}
+              className="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-lg text-sm font-medium text-text-app hover:bg-surface-soft active:bg-surface-soft transition-colors"
+            >
+              Quy trình đánh giá
+            </Link>
+            <Link
+              href="/#pricing"
+              onClick={closeDrawer}
+              className="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-lg text-sm font-medium text-text-app hover:bg-surface-soft active:bg-surface-soft transition-colors"
+            >
+              Bảng giá dịch vụ
+            </Link>
+            <Link
+              href="/#faq"
+              onClick={closeDrawer}
+              className="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-lg text-sm font-medium text-text-app hover:bg-surface-soft active:bg-surface-soft transition-colors"
+            >
+              Câu hỏi thường gặp
+            </Link>
+            <Link
+              href="/#lien-he"
+              onClick={closeDrawer}
+              className="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-lg text-sm font-medium text-text-app hover:bg-surface-soft active:bg-surface-soft transition-colors"
+            >
+              Hỗ trợ & Liên hệ
+            </Link>
+
+            <Divider my="sm" />
+
             <Button
               component={Link}
               href="/auth"
-              variant="default"
-              radius="md"
-              fullWidth
-              size="md"
-              onClick={closeDrawer}
-              className="font-semibold text-text-muted border-border-app"
-            >
-              Đăng nhập
-            </Button>
-            <Button
-              component={Link}
-              href="/auth?tab=register"
               color="brand"
               radius="md"
               fullWidth
               size="md"
               onClick={closeDrawer}
-              className="font-semibold"
+              className="font-semibold text-xs h-11"
             >
-              Đăng ký
+              Đăng nhập
             </Button>
-          </div>
+          </nav>
         </ScrollArea>
       </Drawer>
 
@@ -190,14 +219,48 @@ export default function AppShell({ children }: AppShellProps) {
               href="https://www.facebook.com/profile.php?id=61591506814865"
               target="_blank"
               rel="noopener noreferrer"
-              size="lg"
+              size="xl"
               color="gray"
               variant="subtle"
               radius="xl"
               className="cursor-pointer"
               aria-label="Nexus Facebook Page"
             >
-              <FacebookIcon className="w-4.5 h-4.5 text-brand" />
+              <FacebookIcon className="w-6 h-6 text-brand" />
+            </ActionIcon>
+            <ActionIcon
+              component="a"
+              href="https://zalo.me/g/wgadhwpaxd05vykpnxqb"
+              target="_blank"
+              rel="noopener noreferrer"
+              size="xl"
+              color="gray"
+              variant="subtle"
+              radius="xl"
+              className="cursor-pointer"
+              aria-label="Nexus Zalo Group"
+            >
+              <Image
+                src="/logo/zalo.png"
+                alt="Zalo"
+                width={24}
+                height={24}
+                className="w-6 h-6"
+              />
+            </ActionIcon>
+            <ActionIcon
+              component="a"
+              href="https://www.tiktok.com/@nexus.for.startup?_r=1&_t=ZS-99uXWT84gk9"
+              target="_blank"
+              rel="noopener noreferrer"
+              size="xl"
+              color="gray"
+              variant="subtle"
+              radius="xl"
+              className="cursor-pointer"
+              aria-label="Nexus TikTok"
+            >
+              <TikTokIcon className="w-5 h-5 text-text-app hover:text-brand transition-colors" />
             </ActionIcon>
           </Group>
 

@@ -1,0 +1,1 @@
+-- AlterTable ALTER TABLE "cases" ADD COLUMN     "post_closure_chat_expires_at" TIMESTAMP(3);  -- CreateIndex CREATE INDEX "cases_owner_auth_user_id_payment_status_idx" ON "cases"("owner_auth_user_id", "payment_status");

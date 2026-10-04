@@ -3,7 +3,7 @@
 # =============================================================================
 # Daily dev tasks: start server, manage Docker DB, run tests
 #
-#   make dev             # Start API + Web (npm workspaces)
+#   make dev             # Start API + Web (bun workspaces)
 #   make db              # Start Docker DB
 #   make db-stop         # Stop Docker DB
 #   make db-migrate      # Run Prisma migrations
@@ -33,20 +33,20 @@ help: ## Show this help
 # Dev
 # ──────────────────────────────────────────
 
-dev: ## Start API + Web (npm workspaces, no Docker)
-	@npm run dev
+dev: ## Start API + Web (bun workspaces, no Docker)
+	@bun run dev
 
 build: ## Turbo build (all workspaces)
-	@npm run build
+	@bun run build
 
 lint: ## ESLint all
-	@npm run lint
+	@bun run lint
 
 check-types: ## TypeScript type check
-	@npm run check-types
+	@bun run check-types
 
 test: ## Run API tests
-	@npm run test --workspace=apps/api
+	@bun run --filter nexus-platform-api test
 
 # ──────────────────────────────────────────
 # Docker DB
@@ -59,22 +59,22 @@ db-stop: ## Stop PostgreSQL container
 	@$(DOCKER_COMPOSE) down db
 
 db-migrate: ## Run Prisma migrations (local)
-	@npx prisma migrate dev --schema prisma/schema.prisma
+	@bun x prisma migrate dev --schema prisma/schema.prisma
 
 db-migrate-deploy: ## Deploy migrations (production-safe)
-	@npx prisma migrate deploy --schema prisma/schema.prisma
+	@bun x prisma migrate deploy --schema prisma/schema.prisma
 
 db-reset: ## Reset DB (WARNING: deletes all data)
 	@$(DOCKER_COMPOSE) down db
 	@docker volume rm nexus-platform_postgres_data 2>/dev/null || true
 	@$(DOCKER_COMPOSE) up -d db
 	@sleep 3
-	@npx prisma migrate deploy --schema prisma/schema.prisma
+	@bun x prisma migrate deploy --schema prisma/schema.prisma
 	@echo "DB reset complete. Run 'make db-migrate' for local dev or restore backup."
 
 db-seed: ## Seed service packages
-	@npx tsx prisma/seeds/seed-packages.ts
-	@npx tsx prisma/seeds/seed-active-packages.ts
+	@bun x tsx prisma/seeds/seed-packages.ts
+	@bun x tsx prisma/seeds/seed-active-packages.ts
 
 db-backup: ## Backup DB to prisma/backup/
 	@docker exec nexus-db pg_dump -U admin -d nexus_platform \

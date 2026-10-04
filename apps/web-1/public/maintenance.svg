@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" width="100%" height="100%" fill="none">
+  <!-- Ground line -->
+  <line x1="60" y1="260" x2="420" y2="260" stroke="#94A3B8" stroke-width="4" stroke-linecap="round" />
+
+  <!-- Scaffold / Trestle stand -->
+  <g stroke="#CBD5E1" stroke-width="3" stroke-linecap="round">
+    <!-- Vertical legs -->
+    <line x1="120" y1="170" x2="120" y2="258" />
+    <line x1="175" y1="170" x2="175" y2="258" />
+    <line x1="230" y1="170" x2="230" y2="258" />
+    <!-- X-bracing -->
+    <line x1="120" y1="175" x2="175" y2="255" />
+    <line x1="175" y1="175" x2="120" y2="255" />
+    <line x1="175" y1="175" x2="230" y2="255" />
+    <line x1="230" y1="175" x2="175" y2="255" />
+    <!-- Crossbar -->
+    <line x1="110" y1="215" x2="240" y2="215" />
+  </g>
+
+  <!-- Platform base under screen -->
+  <rect x="100" y="166" width="150" height="8" rx="2" fill="#64748B" />
+
+  <!-- Screen / Billboard -->
+  <rect x="115" y="75" width="120" height="92" rx="4" fill="#FFFFFF" stroke="#94A3B8" stroke-width="6" />
+  
+  <!-- Screen content: blue title bar -->
+  <rect x="128" y="90" width="40" height="12" rx="2" fill="#2563EB" />
+  
+  <!-- Screen content: wireframe text rows -->
+  <rect x="128" y="110" width="38" height="4" rx="1" fill="#E2E8F0" />
+  <rect x="128" y="118" width="38" height="4" rx="1" fill="#E2E8F0" />
+  <rect x="128" y="126" width="38" height="4" rx="1" fill="#E2E8F0" />
+  
+  <!-- Screen content: grid boxes -->
+  <rect x="174" y="90" width="12" height="12" rx="2" fill="#E2E8F0" />
+  <rect x="192" y="90" width="12" height="12" rx="2" fill="#E2E8F0" />
+  <rect x="210" y="90" width="12" height="12" rx="2" fill="#E2E8F0" />
+
+  <rect x="174" y="108" width="12" height="12" rx="2" fill="#E2E8F0" />
+  <rect x="192" y="108" width="12" height="12" rx="2" fill="#E2E8F0" />
+  <rect x="210" y="108" width="12" height="12" rx="2" fill="#E2E8F0" />
+
+  <rect x="174" y="126" width="12" height="12" rx="2" fill="#E2E8F0" />
+  <rect x="192" y="126" width="12" height="12" rx="2" fill="#F97316" />
+  <rect x="210" y="126" width="12" height="12" rx="2" fill="#E2E8F0" />
+
+  <!-- Lifted blue beam -->
+  <rect x="160" y="65" width="52" height="6" rx="2" fill="#2563EB" />
+  <line x1="186" y1="36" x2="186" y2="65" stroke="#64748B" stroke-width="2" />
+
+  <!-- Crane arm (boom) -->
+  <!-- Upper cable -->
+  <line x1="186" y1="36" x2="190" y2="28" stroke="#475569" stroke-width="2" />
+  <circle cx="190" cy="28" r="4" fill="#475569" />
+  <line x1="190" y1="28" x2="190" y2="44" stroke="#475569" stroke-width="3" />
+
+  <!-- Diagonal boom telescoping sections -->
+  <line x1="190" y1="28" x2="340" y2="185" stroke="#94A3B8" stroke-width="8" stroke-linecap="round" />
+  <line x1="200" y1="38" x2="335" y2="180" stroke="#CBD5E1" stroke-width="4" stroke-linecap="round" />
+  <line x1="260" y1="100" x2="350" y2="195" stroke="#64748B" stroke-width="12" stroke-linecap="round" />
+
+  <!-- Crane Truck -->
+  <!-- Truck chassis -->
+  <rect x="236" y="232" width="170" height="12" rx="2" fill="#475569" />
+
+  <!-- Front Cab -->
+  <path d="M 238 232 L 238 214 Q 238 206 248 206 L 272 206 Q 284 206 284 220 L 284 232 Z" fill="#64748B" />
+  <!-- Windshield -->
+  <path d="M 248 209 L 268 209 Q 275 209 276 218 L 276 222 L 248 222 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2" />
+  <!-- Cab Interior / Seat -->
+  <rect x="252" y="214" width="8" height="8" rx="1" fill="#F59E0B" />
+  <!-- Headlight -->
+  <rect x="236" y="218" width="3" height="6" rx="1" fill="#F59E0B" />
+
+  <!-- Rear Crane Operator Cab -->
+  <rect x="330" y="195" width="46" height="37" rx="4" fill="#E2E8F0" stroke="#94A3B8" stroke-width="3" />
+  <rect x="334" y="200" width="22" height="22" rx="2" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2" />
+  <rect x="340" y="208" width="8" height="8" rx="1" fill="#F59E0B" />
+  <!-- Crane mount turntable -->
+  <rect x="312" y="224" width="30" height="8" rx="2" fill="#334155" />
+
+  <!-- Wheels (Front, Middle, Rear) -->
+  <!-- Front wheel -->
+  <circle cx="260" cy="254" r="14" fill="#334155" />
+  <circle cx="260" cy="254" r="7" fill="#94A3B8" />
+  <!-- Middle wheel -->
+  <circle cx="338" cy="254" r="14" fill="#334155" />
+  <circle cx="338" cy="254" r="7" fill="#94A3B8" />
+  <!-- Rear wheel -->
+  <circle cx="376" cy="254" r="14" fill="#334155" />
+  <circle cx="376" cy="254" r="7" fill="#94A3B8" />
+</svg>

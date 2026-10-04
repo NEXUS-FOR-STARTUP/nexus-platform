@@ -3,7 +3,9 @@
 import React, { useRef, useState } from "react";
 import { Alert, Button, Tooltip, Text, Badge, ActionIcon, Paper, Group, Select, Stack } from "@mantine/core";
 import { CheckCircle2, HelpCircle, Copy, Download, Upload, X, FileText, AlertCircle } from "lucide-react";
+import { DOCUMENT_CATEGORY_CODES, docCategoryLabel } from "@repo/validation";
 import { apiClient } from "@/lib/api-client";
+import { IntakeDocument } from "../../_types/intake.types";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -19,28 +21,13 @@ interface DocumentInputStepProps {
 // ---------------------------------------------------------------------------
 
 const MAX_DOCUMENT_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15MB
+const MAX_DOCUMENT_COUNT = 5;
 const ACCEPT_EXTENSIONS = ".pdf,.docx,.xlsx,.pptx,.md,.txt";
 
-const DOCUMENT_TYPE_OPTIONS = [
-  { label: "Báo cáo ý tưởng (Draft Report)", value: "Báo cáo ý tưởng" },
-  { label: "Slide thuyết trình (Pitch Deck)", value: "Slide thuyết trình" },
-  {
-    label: "Phân tích đối thủ (Competitor Analysis)",
-    value: "Phân tích đối thủ cạnh tranh",
-  },
-  {
-    label: "Khảo sát & Phỏng vấn khách hàng (Customer Research)",
-    value: "Khảo sát khách hàng",
-  },
-  {
-    label: "Đề cương phân công (Task Assignment)",
-    value: "Đề cương phân công",
-  },
-  {
-    label: "Tài liệu bổ sung khác (Other resources)",
-    value: "Tài liệu bổ sung",
-  },
-];
+const DOCUMENT_TYPE_OPTIONS = DOCUMENT_CATEGORY_CODES.map((code) => ({
+  value: code,
+  label: docCategoryLabel(code),
+}));
 
 const TEMPLATE_MD_URL = "/idea-template/TEMPLATE_STARTUP_CHECKPOINT1_V2.md";
 const TEMPLATE_DOCX_URL = "/idea-template/TEMPLATE_STARTUP_CHECKPOINT1_V2.docx";
@@ -97,6 +84,14 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
       return;
     }
 
+    const existingDocs = (parentField.state.value ?? []) as IntakeDocument[];
+    if (existingDocs.length >= MAX_DOCUMENT_COUNT) {
+      setUploadError(
+        `Tối đa ${MAX_DOCUMENT_COUNT} tài liệu mỗi hồ sơ. Vui lòng xóa bớt tài liệu trước khi tải thêm.`,
+      );
+      return;
+    }
+
     setUploading(true);
     setUploadError("");
 
@@ -146,10 +141,9 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
   // --- Change document type ---
 
   const handleTypeChange = (index: number, type: string | null, parentField: any) => {
-    if (!type) return;
     const currentDocs: any[] = parentField.state.value || [];
     const nextDocs = currentDocs.map((doc: any, i: number) =>
-      i === index ? { ...doc, document_type: type } : doc,
+      i === index ? { ...doc, document_type: type ?? "" } : doc,
     );
     parentField.handleChange(nextDocs);
     parentField.handleBlur();
@@ -164,10 +158,10 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
       {/* ─── Template Reference Alert ─── */}
       <div className="flex items-center gap-1.5 pb-1">
         <h3 className="font-heading text-base font-semibold text-text-app">
-          Hồ sơ của nhóm đã có sẵn chưa?
+          Tài liệu dự án của nhóm
         </h3>
         <Tooltip
-          label="Tải file tài liệu nhóm đã chuẩn bị. Supporter sẽ đọc trực tiếp từ đây, nên bạn không cần viết lại toàn bộ ý tưởng."
+          label="Tải file tài liệu nhóm đã chuẩn bị. Hệ thống sẽ phân tích trực tiếp từ đây, nên bạn không cần viết lại toàn bộ ý tưởng."
           position="top"
           multiline
           w={260}
@@ -183,12 +177,12 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
         variant="light"
         color="blue"
         radius="md"
-        title="Chưa có hồ sơ hoặc ý tưởng còn mơ hồ?"
+        title="Chưa có tài liệu hoàn chỉnh hoặc ý tưởng còn sơ lược?"
         icon={<CheckCircle2 className="w-4 h-4" />}
       >
         <div className="space-y-3 text-sm leading-relaxed">
           <p>
-            Nếu nhóm chưa có proposal đủ rõ, hãy dùng template có sẵn để điền nhanh
+            Nếu nhóm chưa có đề cương hay slide hoàn chỉnh, hãy dùng template có sẵn để hoàn thiện nhanh
             các phần cốt lõi. Sau khi hoàn tất, tải file lên ở bên dưới.
           </p>
           <div className="flex flex-wrap gap-2.5 pt-1">
@@ -234,10 +228,10 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-1.5">
                   <label className="text-sm font-semibold text-text-app">
-                    Tải lên tài liệu hồ sơ <span className="text-danger">*</span>
+                    Tải lên tài liệu <span className="text-danger">*</span>
                   </label>
                   <Tooltip
-                    label="Hỗ trợ PDF, DOCX, XLSX, PPTX, MD, TXT. Dung lượng tối đa 15MB mỗi file."
+                    label="Hỗ trợ PDF, PPTX, DOCX, XLSX, MD, TXT (slide thuyết trình hoặc đề cương dự án). Dung lượng tối đa 15MB mỗi tệp."
                     multiline
                     w={260}
                     withArrow
@@ -262,14 +256,14 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                   leftSection={<Upload className="w-4 h-4" />}
                   onClick={() => fileInputRef.current?.click()}
                   loading={uploading}
-                  disabled={uploading}
+                  disabled={uploading || docs.length >= MAX_DOCUMENT_COUNT}
                   className="font-body font-semibold cursor-pointer h-10 px-4 rounded-xl text-sm border-border-strong text-text-app hover:bg-surface-hover w-fit"
                 >
                   {uploading ? "Đang tải lên..." : "Chọn file tài liệu"}
                 </Button>
 
                 <Text size="xs" c="dimmed">
-                  .pdf, .docx, .xlsx, .pptx, .md, .txt &bull; tối đa 15MB
+                  .pdf, .docx, .xlsx, .pptx, .md, .txt &bull; tối đa 15MB mỗi tệp &bull; {docs.length}/{MAX_DOCUMENT_COUNT} tài liệu
                 </Text>
 
                 {/* Upload error banner */}
@@ -291,7 +285,7 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
               {hasDocs && (
                 <Stack gap="sm">
                   <label className="text-sm font-semibold text-text-app">
-                    Tài liệu đã tải lên ({docs.length})
+                    Tài liệu đã tải lên ({docs.length}/{MAX_DOCUMENT_COUNT})
                   </label>
 
                   {docs.map((doc: any, index: number) => (
@@ -302,12 +296,12 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                       radius="md"
                       className="border-border-strong bg-surface-soft/60"
                     >
-                      <Group justify="space-between" align="flex-start" wrap="nowrap">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
                         {/* File info */}
-                        <Group gap="sm" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-                          <FileText className="w-5 h-5 text-text-muted shrink-0" />
-                          <div style={{ minWidth: 0 }}>
-                            <Text size="sm" fw={600} truncate>
+                        <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                          <FileText className="w-5 h-5 text-text-muted shrink-0 mt-0.5" />
+                          <div className="min-w-0 flex-1">
+                            <Text size="sm" fw={600} truncate className="break-all">
                               {doc.original_name}
                             </Text>
                             <Group gap="xs" mt={2}>
@@ -319,29 +313,40 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                               </Text>
                             </Group>
                           </div>
-                        </Group>
+                        </div>
 
                         {/* Type selector + remove */}
-                        <Group gap="sm" wrap="nowrap">
-                          <Select
-                            placeholder="Chọn loại tài liệu"
-                            data={DOCUMENT_TYPE_OPTIONS}
-                            value={doc.document_type || null}
-                            onChange={(val) => handleTypeChange(index, val, parentField)}
-                            size="xs"
-                            clearable
-                            className="min-w-[220px]"
-                          />
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                          <div className="flex-1 sm:w-[220px] sm:min-w-[220px]">
+                            <Select
+                              placeholder="Chọn loại tài liệu"
+                              data={DOCUMENT_TYPE_OPTIONS}
+                              value={
+                                doc.document_type
+                                  ? doc.document_type === "task_assignment"
+                                    ? "other"
+                                    : (DOCUMENT_CATEGORY_CODES as readonly string[]).includes(doc.document_type)
+                                      ? doc.document_type
+                                      : "other"
+                                  : null
+                              }
+                              onChange={(val) => handleTypeChange(index, val, parentField)}
+                              size="xs"
+                              clearable
+                              className="w-full"
+                            />
+                          </div>
                           <ActionIcon
                             variant="subtle"
                             color="red"
                             onClick={() => handleRemoveDoc(index, parentField)}
                             aria-label="Xóa tài liệu"
+                            className="shrink-0 min-w-[44px] min-h-[44px]"
                           >
                             <X className="w-4 h-4" />
                           </ActionIcon>
-                        </Group>
-                      </Group>
+                        </div>
+                      </div>
                     </Paper>
                   ))}
                 </Stack>

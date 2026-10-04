@@ -1,7 +1,12 @@
 export interface ListAdminCasesRequest {
+  page?: string;
+  limit?: string;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: string;
   stage?: string;
   internal_status?: string;
-  limit?: string;
+  view?: string;
 }
 
 export interface AdminCaseListItemDto {

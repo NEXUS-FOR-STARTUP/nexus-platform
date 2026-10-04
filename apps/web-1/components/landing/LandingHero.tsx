@@ -2,11 +2,13 @@
 
 import React from "react";
 import Link from "next/link";
-import { Title, Text, Button, Container, Stack, Group, List, ThemeIcon } from "@mantine/core";
+import { Title, Text, Button, Container, List, ThemeIcon } from "@mantine/core";
 import { ArrowRight, Check } from "lucide-react";
 import classes from "./HeroBullets.module.css";
 
 export default function LandingHero() {
+  // Pricing state removed as LandingPricing component handles generic prices
+
   return (
     <section className="relative overflow-hidden bg-bg-app transition-colors duration-200">
       {/* Decorative background grid */}
@@ -16,12 +18,12 @@ export default function LandingHero() {
         <div className={classes.inner}>
           <div className={classes.content}>
             <Title className={classes.title}>
-              Kiểm định Ý tưởng & Đánh giá <br />
-              <span className={classes.highlight}>Checkpoint 1</span>
+              Đánh giá và phản biện <br />
+              <span className={classes.highlight}>dự án khởi nghiệp</span>
             </Title>
             
             <Text c="dimmed" mt="md" className="font-body leading-relaxed">
-              Nexus giúp các nhóm sinh viên kiểm định nội dung Checkpoint 1 (CP1) theo đúng tiêu chí chấm điểm học thuật, phát hiện lỗi logic lập luận bằng AI và nhận phản biện thực tế từ Supporter giàu kinh nghiệm.
+              Nexus đưa dự án của nhóm bạn qua quy trình đánh giá có cấu trúc — phát hiện điểm thiếu logic, nhận diện các giả định chưa kiểm chứng và gợi ý hướng hoàn thiện trước khi trình bày.
             </Text>
 
             <List
@@ -36,44 +38,41 @@ export default function LandingHero() {
               className="font-body text-text-muted"
             >
               <List.Item>
-                <b>Đánh giá tiêu chí Checkpoint</b> – Báo cáo chi tiết chỉ ra lỗ hổng lập luận và lỗi logic.
+                <b>Đánh giá có cấu trúc</b> – Báo cáo chi tiết chỉ ra các lỗ hổng lập luận và khoảng trống dữ liệu.
               </List.Item>
               <List.Item>
-                <b>Minh chứng thuyết phục</b> – Định vị bằng chứng cụ thể trong slide/tài liệu của bạn.
+                <b>Định vị minh chứng</b> – Đối chiếu trực tiếp nhận xét với các phần nội dung liên quan trong tài liệu.
               </List.Item>
               <List.Item>
-                <b>Đồng hành cùng Supporter</b> – Báo cáo được chỉnh sửa, hoàn thiện bởi giảng viên/mentor.
+                <b>Ưu tiên hành động</b> – Phân loại rõ vấn đề cần xử lý trước và các gợi ý hoàn thiện thêm.
               </List.Item>
             </List>
 
-            <Stack mt={30} className="w-full sm:w-auto">
-              <Group>
-                <Button
-                  component={Link}
-                  href="/dashboard/team-fit"
-                  size="lg"
-                  color="brand"
-                  radius="md"
-                  data-cta="free"
-                  rightSection={<ArrowRight className="w-4 h-4" />}
-                  className={`${classes.control} font-semibold font-body shadow-md shadow-brand/10 transition-transform hover:-translate-y-0.5`}
-                >
-                  Kiểm tra miễn phí
-                </Button>
-                <Button
-                  component={Link}
-                  href="/dashboard/intake?packageId=pkg_tf_audit"
-                  size="lg"
-                  variant="outline"
-                  radius="md"
-                  data-cta="paid"
-                  className={`${classes.control} font-semibold font-body border-border-strong`}
-                >
-                  Mua kiểm tra chuyên sâu
-                </Button>
-              </Group>
-              <Text size="xs" c="dimmed">39.000đ / lượt</Text>
-            </Stack>
+            <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+              <Button
+                component={Link}
+                href="/dashboard/team-fit"
+                size="lg"
+                color="brand"
+                radius="md"
+                data-cta="free"
+                rightSection={<ArrowRight className="w-4 h-4 shrink-0" />}
+                className="w-full sm:w-auto font-semibold font-body shadow-md shadow-brand/10 transition-transform hover:-translate-y-0.5 justify-center"
+              >
+                Kiểm tra nhanh ý tưởng
+              </Button>
+              <Button
+                component="a"
+                href="#pricing"
+                size="lg"
+                variant="outline"
+                radius="md"
+                data-cta="paid"
+                className="w-full sm:w-auto font-semibold font-body border-border-strong justify-center"
+              >
+                Xem bảng giá
+              </Button>
+            </div>
           </div>
         </div>
       </Container>

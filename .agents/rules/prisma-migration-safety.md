@@ -2,7 +2,7 @@
 
 ## Context
 
-This project uses Prisma with a production Supabase Postgres database.
+This project uses Prisma with a production self-hosted PostgreSQL 18.4 database running via Docker on a VPS (`docker-compose.prod.yml`, container `nexus-db`).
 
 The production database has:
 
@@ -57,17 +57,14 @@ The agent may prepare, analyze, generate, and review migration files, but must n
 
 Treat the database as production if any of the following is true:
 
-* `DATABASE_URL` points to Supabase
-* `DIRECT_URL` points to Supabase
-* `READONLY_DATABASE_URL` points to Supabase
-* host contains `supabase.co`
-* host contains `pooler.supabase.com`
-* database contains real user data
-* environment is unclear
-* the user says "prod", "production", "live", "Supabase prod", or "real database"
+* `DATABASE_URL`, `READONLY_DATABASE_URL`, or `DIRECT_URL` points to a remote VPS host, remote IP, or production domain
+* host is not `localhost`, `127.0.0.1`, `::1`, or local Docker internal service `db`
+* host contains `supabase.co` or `pooler.supabase.com` (legacy remote)
+* database contains real user/business data
+* environment is unclear or `.env.prod` is loaded
+* the user says "prod", "production", "live", "VPS prod", or "real database"
 
 If uncertain, assume production.
-
 ### Connection String Rules (Supabase-Specific)
 
 This project may have multiple database URLs:

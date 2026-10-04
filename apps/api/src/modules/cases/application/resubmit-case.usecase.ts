@@ -1,34 +1,36 @@
 import { AppError } from "../../../shared/domain/app-error.js";
-import { findCaseById, resubmitCase } from "../infrastructure/persistence/case.repository.js";
+import { executeTransition } from "../../../services/case-transition.service.js";
+import type { TransitionName } from "../domain/transition.types.js";
 import logger from "../../../shared/infrastructure/logger.js";
 
-export async function resubmitCaseUseCase(userId: string, caseId: string) {
+export async function resubmitCaseUseCase(
+  userId: string,
+  caseId: string,
+  transition: TransitionName = 'T3_RESUBMIT_AFTER_REJECT',
+) {
   const startTime = Date.now();
 
   if (!caseId || typeof caseId !== "string" || !caseId.trim()) {
     throw new AppError(400, "VALIDATION_ERROR", "ID dự án không hợp lệ");
   }
 
-  const caseItem = await findCaseById(caseId);
-  if (!caseItem) {
-    throw new AppError(404, "NOT_FOUND", "Không tìm thấy dự án");
-  }
-
-  if (caseItem.user_facing_stage !== "rejected") {
-    throw new AppError(400, "INVALID_STAGE", "Dự án không ở trạng thái bị từ chối, không thể nộp lại");
-  }
-
-  // Ensure ownership — only the case owner can resubmit
-  if (caseItem.owner_auth_user_id !== userId) {
-    throw new AppError(403, "FORBIDDEN", "Bạn không phải chủ sở hữu dự án này");
+  if (transition !== 'T3_RESUBMIT_AFTER_REJECT' && transition !== 'T4_RESUBMIT_AFTER_VETO') {
+    throw new AppError(400, "VALIDATION_ERROR", "Transition không hợp lệ cho resubmit");
   }
 
   try {
-    const result = await resubmitCase(caseId, userId);
-    logger.info({ caseId, transition: 'resubmit', fromState: 'rejected/cancelled', toState: 'submitted/triage_pending', actorId: userId, actorRole: 'user', duration_ms: Date.now() - startTime }, 'case transition: resubmit');
+    const result = await executeTransition({
+      transition,
+      caseId,
+      actorId: userId,
+      roleVerified: 'CUSTOMER',
+    });
+
+    logger.info({ caseId, transition, actorId: userId, duration_ms: Date.now() - startTime }, `case transition: ${transition}`);
+
     return result;
   } catch (error) {
-    logger.error({ err: error, caseId, transition: 'resubmit', actorId: userId, actorRole: 'user', duration_ms: Date.now() - startTime }, 'case transition failed: resubmit');
+    logger.error({ err: error, caseId, transition, actorId: userId, duration_ms: Date.now() - startTime }, `case transition failed: ${transition}`);
     throw error;
   }
 }

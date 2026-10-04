@@ -1,62 +1,10 @@
 import { prisma } from "../../../../db.js";
+import type { Prisma } from "@prisma/client";
 import { createDocumentRecordsForUnit } from "../../../documents/infrastructure/persistence/document.repository.js";
 import { AppError } from "../../../../shared/domain/app-error.js";
+import { MESSAGE_PAGE_DEFAULT, encodeMessageCursor } from "../../application/message-cursor.js";
 
 
-export async function findManyCasesByRole(userId: string, role: string) {
-  if (role === "admin") {
-    return await prisma.case.findMany({
-      include: {
-        owner: true,
-        assigned_supporter: true,
-        package: true,
-      },
-      orderBy: { created_at: "desc" },
-    });
-  } else if (role === "supporter") {
-    return await prisma.case.findMany({
-      where: {
-        assigned_supporter_auth_user_id: userId,
-      },
-      include: {
-        owner: true,
-        package: true,
-      },
-      orderBy: { created_at: "desc" },
-    });
-  } else {
-    return await prisma.case.findMany({
-      where: {
-        OR: [
-          { owner_auth_user_id: userId },
-          { members: { some: { auth_user_id: userId } } },
-        ],
-      },
-      include: {
-        assigned_supporter: true,
-        package: true,
-      },
-      orderBy: { created_at: "desc" },
-    });
-  }
-}
-
-export async function findManyCasesAdmin(where: any, take?: number) {
-  return await prisma.case.findMany({
-    where,
-    include: {
-      owner: true,
-      assigned_supporter: true,
-      package: true,
-      lifecycle_units: {
-        where: { unit_type: "version" },
-        take: 1,
-      },
-    },
-    orderBy: { created_at: "desc" },
-    take,
-  });
-}
 
 export async function findCaseById(id: string) {
   return await prisma.case.findUnique({
@@ -64,6 +12,14 @@ export async function findCaseById(id: string) {
   });
 }
 
+/**
+ * Case detail projection for the workspace poll endpoint.
+ *
+ * Heavy columns (`reports.content_md`, `lifecycle_units.content`, full actor rows)
+ * and unbounded child lists are deliberately trimmed: this result is polled by the
+ * UI, so payload size drives both latency and server memory. Full report bodies are
+ * fetched through the report endpoints; full lifecycle units through findLifecycleUnits.
+ */
 export async function findCaseByIdWithAllRelations(id: string) {
   return await prisma.case.findUnique({
     where: { id },
@@ -73,24 +29,66 @@ export async function findCaseByIdWithAllRelations(id: string) {
       package: true,
       checkpoints: {
         include: {
-          lifecycle_units: true,
+          // Heavy `content` (intake/revision markdown) is omitted: the detail
+          // endpoint only needs unit metadata, and full units are loaded
+          // separately by findLifecycleUnits when the workspace is assembled.
+          lifecycle_units: {
+            select: {
+              id: true,
+              checkpoint_id: true,
+              unit_code: true,
+              unit_type: true,
+              version_no: true,
+              assessment_no: true,
+              linked_version_no: true,
+              drive_folder_id: true,
+              file_url: true,
+              created_at: true,
+            },
+          },
         },
       },
       members: {
         include: {
-          user: true,
+          user: {
+            select: { id: true, name: true, email: true, image: true, role: true },
+          },
         },
       },
+      // Bounded: the workspace timeline renders recent activity only, and
+      // unbounded event rows dominate payload size on long-lived cases.
       events: {
+        take: 50,
         include: {
-          actor: true,
+          actor: {
+            select: { id: true, name: true, image: true, role: true },
+          },
         },
         orderBy: { created_at: "desc" },
       },
       payments: {
+        take: 50,
         orderBy: { created_at: "desc" },
       },
+      // Reports for this case: include content_md for backward compatibility with
+      // web Report type and legacy markdown report rendering in TabReportFindings / RoundCard.
       reports: {
+        select: {
+          id: true,
+          case_id: true,
+          checkpoint_id: true,
+          lifecycle_unit_id: true,
+          report_type: true,
+          content_md: true,
+          status: true,
+          metadata_json: true,
+          created_by: true,
+          approved_by_auth_user_id: true,
+          sent_at: true,
+          document_id: true,
+          created_at: true,
+          updated_at: true,
+        },
         orderBy: { created_at: "desc" },
       },
       team_fit_report: true,
@@ -215,6 +213,11 @@ export async function createCaseWithCheckpointAndIntake(data: {
       "intake_document",
       "inbound",
       tx,
+      undefined,
+      (doc) =>
+        typeof doc.document_type === "string" && doc.document_type.trim()
+          ? doc.document_type
+          : undefined,
     );
 
     await tx.caseEvent.create({
@@ -252,8 +255,8 @@ export async function acceptCase(caseId: string, adminId: string, nextStatus: st
   });
 }
 
-export async function deleteCase(caseId: string) {
-  return await prisma.case.delete({
+export async function deleteCase(caseId: string, tx?: Prisma.TransactionClient) {
+  return await (tx ?? prisma).case.delete({
     where: { id: caseId },
   });
 }
@@ -353,6 +356,33 @@ export async function assignCaseSupporter(caseId: string, adminId: string, suppo
   });
 }
 
+export async function assignCaseSupporterInTx(
+  tx: Prisma.TransactionClient,
+  caseId: string,
+  adminId: string,
+  supporterId: string,
+  supporterName?: string,
+) {
+  const updated = await tx.case.update({
+    where: { id: caseId },
+    data: { assigned_supporter_auth_user_id: supporterId },
+  });
+
+  await tx.caseEvent.create({
+    data: {
+      case: { connect: { id: caseId } },
+      event_type: "supporter_assigned",
+      actor: { connect: { id: adminId } },
+      metadata_json: {
+        supporter_id: supporterId,
+        ...(supporterName ? { supporter_name: supporterName } : {}),
+      },
+    },
+  });
+
+  return updated;
+}
+
 export async function findFirstIntakeUnit(caseId: string) {
   return await prisma.lifecycleUnit.findFirst({
     where: {
@@ -396,8 +426,16 @@ export async function findOpenRequestsForMoreInfo(caseId: string) {
   return await prisma.caseEvent.findMany({
     where: {
       case_id: caseId,
-      event_type: "more_info_requested",
+      event_type: { in: ["more_info_requested", "request_more_info", "case_closed", "T8_REQUEST_INFO"] },
     },
+    orderBy: { created_at: "desc" },
+    take: 10,
+  });
+}
+
+export async function findLatestCaseEventByType(caseId: string, eventType: string) {
+  return await prisma.caseEvent.findFirst({
+    where: { case_id: caseId, event_type: eventType },
     orderBy: { created_at: "desc" },
   });
 }
@@ -410,15 +448,18 @@ function buildAssessmentUnitCode(assessmentNo: number, linkedVersionNo: number) 
   return `a${String(assessmentNo).padStart(2, "0")}-v${String(linkedVersionNo).padStart(2, "0")}`;
 }
 
-export async function submitCaseRevision(data: {
-  caseId: string;
-  checkpointId: string;
-  nextVersion: number;
-  userId: string;
-  changeSummary: string;
-  documents: any[];
-  remainingBlockers: any;
-}) {
+export async function submitCaseRevisionInTx(
+  tx: Prisma.TransactionClient,
+  data: {
+    caseId: string;
+    checkpointId: string;
+    nextVersion: number;
+    userId: string;
+    changeSummary: string;
+    documents: any[];
+    remainingBlockers: any;
+  },
+) {
   const {
     caseId,
     checkpointId,
@@ -429,164 +470,118 @@ export async function submitCaseRevision(data: {
     remainingBlockers,
   } = data;
 
-  return await prisma.$transaction(async (tx: any) => {
-    await tx.checkpoint.update({
-      where: { id: checkpointId },
-      data: { latest_version_no: nextVersion },
-    });
-
-    const revisionUnit = await tx.lifecycleUnit.create({
-      data: {
-        case_id: caseId,
-        checkpoint_id: checkpointId,
-        unit_code: buildVersionUnitCode(nextVersion),
-        unit_type: "version",
-        version_no: nextVersion,
-        content: JSON.stringify({
-          change_summary: changeSummary,
-          documents,
-          remaining_blockers: remainingBlockers,
-        }),
-        file_url: documents[0]?.drive_url || documents[0]?.file_url || null,
-      },
-    });
-
-    await createDocumentRecordsForUnit(
-      caseId,
-      checkpointId,
-      revisionUnit.id,
-      revisionUnit.unit_code,
-      documents,
-      userId,
-      "revision_document",
-      "outbound",
-      tx,
-    );
-
-    await tx.case.update({
-      where: { id: caseId },
-      data: {
-        user_facing_stage: "revision_submitted",
-      },
-    });
-
-    await tx.caseEvent.create({
-      data: {
-        case: { connect: { id: caseId } },
-        event_type: "revision_submitted",
-        actor: { connect: { id: userId } },
-        metadata_json: { version_no: nextVersion, change_summary: changeSummary },
-      },
-    });
-
-    return revisionUnit;
+  await tx.checkpoint.update({
+    where: { id: checkpointId },
+    data: { latest_version_no: nextVersion },
   });
+
+  const revisionUnit = await tx.lifecycleUnit.create({
+    data: {
+      case_id: caseId,
+      checkpoint_id: checkpointId,
+      unit_code: buildVersionUnitCode(nextVersion),
+      unit_type: "version",
+      version_no: nextVersion,
+      content: JSON.stringify({
+        change_summary: changeSummary,
+        documents,
+        remaining_blockers: remainingBlockers,
+      }),
+      file_url: documents[0]?.drive_url || documents[0]?.file_url || null,
+    },
+  });
+
+  await createDocumentRecordsForUnit(
+    caseId,
+    checkpointId,
+    revisionUnit.id,
+    revisionUnit.unit_code,
+    documents,
+    userId,
+    "revision_document",
+    "outbound",
+    tx,
+  );
+
+  await tx.caseEvent.create({
+    data: {
+      case: { connect: { id: caseId } },
+      event_type: "revision_submitted",
+      actor: { connect: { id: userId } },
+      metadata_json: { version_no: nextVersion, change_summary: changeSummary },
+    },
+  });
+
+  return revisionUnit;
 }
 
-export async function createSupporterOutput(data: {
-  caseId: string;
-  checkpointId: string;
-  userId: string;
-  note?: string;
-  documents: any[];
-}) {
+export async function createSupporterOutputDocs(
+  tx: Prisma.TransactionClient,
+  data: {
+    caseId: string;
+    checkpointId: string;
+    userId: string;
+    note?: string;
+    documents: any[];
+  },
+) {
   const { caseId, checkpointId, userId, note, documents } = data;
 
-  return await prisma.$transaction(async (tx: any) => {
-    const checkpoint = await tx.checkpoint.findUnique({
-      where: { id: checkpointId },
-      select: { latest_version_no: true },
-    });
-
-    if (!checkpoint) {
-      throw new AppError(404, "CHECKPOINT_NOT_FOUND", "Không tìm thấy checkpoint");
-    }
-
-    const versionNo = checkpoint.latest_version_no;
-    const unitCode = buildVersionUnitCode(versionNo);
-    const versionUnit = await tx.lifecycleUnit.findFirst({
-      where: {
-        case_id: caseId,
-        checkpoint_id: checkpointId,
-        unit_type: "version",
-        version_no: versionNo,
-      },
-      orderBy: { created_at: "desc" },
-    });
-
-    if (!versionUnit) {
-      throw new AppError(404, "VERSION_UNIT_NOT_FOUND", "Không tìm thấy phiên bản");
-    }
-
-    const latestLedger = await tx.creditLedger.findFirst({
-      where: { case_id: caseId },
-      orderBy: { id: 'desc' },
-    });
-    const currentBalance = latestLedger?.balance_after ?? 0;
-    if (currentBalance < 1) {
-      throw new AppError(402, 'NO_CREDITS', 'Hết credit. Vui lòng mua thêm.');
-    }
-
-    await createDocumentRecordsForUnit(
-      caseId,
-      checkpointId,
-      versionUnit.id,
-      unitCode,
-      documents,
-      userId,
-      "supporter_output",
-      "outbound",
-      tx,
-    );
-
-    await tx.case.update({
-      where: { id: caseId },
-      data: {
-        user_facing_stage: "report_ready",
-        internal_status: "report_ready_to_publish",
-      },
-    });
-
-    await tx.caseEvent.create({
-      data: {
-        case: { connect: { id: caseId } },
-        event_type: "supporter_output_uploaded",
-        actor: { connect: { id: userId } },
-        metadata_json: {
-          unit_code: unitCode,
-          document_count: documents.length,
-          note: note || null,
-        },
-      },
-    });
-
-    const newBalance = currentBalance - 1;
-    await tx.creditLedger.create({
-      data: {
-        case_id: caseId,
-        amount: -1,
-        balance_after: newBalance,
-        type: 'consumption',
-        reference_id: unitCode,
-        idempotency_key: `consume-${unitCode}-${caseId}`,
-      },
-    });
-
-    await tx.caseEvent.create({
-      data: {
-        case: { connect: { id: caseId } },
-        event_type: 'credit_used',
-        actor: { connect: { id: userId } },
-        metadata_json: { new_balance: newBalance },
-      },
-    });
-
-    return {
-      unit_code: unitCode,
-      version_no: versionNo,
-      document_count: documents.length,
-    };
+  const checkpoint = await tx.checkpoint.findUnique({
+    where: { id: checkpointId },
+    select: { latest_version_no: true },
   });
+
+  if (!checkpoint) {
+    throw new AppError(404, "CHECKPOINT_NOT_FOUND", "Không tìm thấy checkpoint");
+  }
+
+  const versionNo = checkpoint.latest_version_no;
+  const unitCode = buildVersionUnitCode(versionNo);
+  const versionUnit = await tx.lifecycleUnit.findFirst({
+    where: {
+      case_id: caseId,
+      checkpoint_id: checkpointId,
+      unit_type: "version",
+      version_no: versionNo,
+    },
+    orderBy: { created_at: "desc" },
+  });
+
+  if (!versionUnit) {
+    throw new AppError(404, "VERSION_UNIT_NOT_FOUND", "Không tìm thấy phiên bản");
+  }
+
+  await createDocumentRecordsForUnit(
+    caseId,
+    checkpointId,
+    versionUnit.id,
+    unitCode,
+    documents,
+    userId,
+    "supporter_output",
+    "outbound",
+    tx,
+  );
+
+  await tx.caseEvent.create({
+    data: {
+      case: { connect: { id: caseId } },
+      event_type: "supporter_output_uploaded",
+      actor: { connect: { id: userId } },
+      metadata_json: {
+        unit_code: unitCode,
+        document_count: documents.length,
+        note: note || null,
+      },
+    },
+  });
+
+  return {
+    unit_code: unitCode,
+    version_no: versionNo,
+    document_count: documents.length,
+  };
 }
 
 export async function createExternalFeedback(data: {
@@ -706,19 +701,44 @@ export async function createCaseEvent(caseId: string, userId: string, eventType:
   });
 }
 
-export async function listCaseMessages(caseId: string) {
-  try {
-    return await prisma.caseMessage.findMany({
-      where: { case_id: caseId },
-      include: {
-        sender: true,
+export async function listCaseMessages(
+  caseId: string,
+  options: { limit?: number; before?: { createdAt: Date; id: string } } = {},
+) {
+  const { limit = MESSAGE_PAGE_DEFAULT, before } = options;
+  const rows = await prisma.caseMessage.findMany({
+    where: {
+      case_id: caseId,
+      ...(before
+        ? {
+            OR: [
+              { created_at: { lt: before.createdAt } },
+              { created_at: before.createdAt, id: { lt: before.id } },
+            ],
+          }
+        : {}),
+    },
+    include: {
+      sender: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+          role: true,
+        },
       },
-      orderBy: { created_at: "asc" },
-    });
-  } catch (error) {
-    console.error("[listCaseMessages] Failed to fetch case messages:", error);
-    return [];
-  }
+    },
+    orderBy: [{ created_at: "desc" }, { id: "desc" }],
+    take: limit + 1, // +1 để biết còn trang cũ hơn không
+  });
+  const hasMore = rows.length > limit;
+  // Lấy từ mới nhất đi ngược về quá khứ rồi đảo ngược để trả về thứ tự asc (cũ → mới) như UI mong đợi.
+  const messages = (hasMore ? rows.slice(0, limit) : rows).slice().reverse();
+  // Cursor trỏ vào tin CŨ NHẤT của page — lần fetch tiếp theo lùi về quá khứ.
+  const next_cursor = hasMore
+    ? encodeMessageCursor(messages[0].created_at, messages[0].id)
+    : null;
+  return { messages, next_cursor };
 }
 
 export async function createCaseMessage(data: {
@@ -798,6 +818,79 @@ export async function upgradeCasePackage(
       package_id: packageId,
       locked_price: lockedPrice,
       payment_status: "unpaid",
+    },
+  });
+}
+
+export async function upsertCaseChatReadState(
+  caseId: string,
+  userId: string,
+  lastReadMessageId?: string,
+) {
+  let readTimestamp = new Date();
+
+  if (lastReadMessageId) {
+    const message = await prisma.caseMessage.findUnique({
+      where: { id: lastReadMessageId },
+      select: { created_at: true },
+    });
+    if (message) {
+      readTimestamp = message.created_at;
+    }
+  }
+
+  return await prisma.caseChatReadState.upsert({
+    where: {
+      case_id_user_id: {
+        case_id: caseId,
+        user_id: userId,
+      },
+    },
+    update: {
+      last_read_message_id: lastReadMessageId ?? undefined,
+      last_read_at: readTimestamp,
+    },
+    create: {
+      case_id: caseId,
+      user_id: userId,
+      last_read_message_id: lastReadMessageId ?? null,
+      last_read_at: readTimestamp,
+    },
+  });
+}
+
+export async function getCaseChatReadState(caseId: string, userId: string) {
+  return await prisma.caseChatReadState.findUnique({
+    where: {
+      case_id_user_id: {
+        case_id: caseId,
+        user_id: userId,
+      },
+    },
+  });
+}
+
+export async function getUnreadMessageCount(
+  caseId: string,
+  userId: string,
+): Promise<number> {
+  const readState = await prisma.caseChatReadState.findUnique({
+    where: {
+      case_id_user_id: {
+        case_id: caseId,
+        user_id: userId,
+      },
+    },
+    select: { last_read_at: true },
+  });
+
+  const lastReadAt = readState?.last_read_at ?? new Date(0);
+
+  return await prisma.caseMessage.count({
+    where: {
+      case_id: caseId,
+      sender_auth_user_id: { not: userId },
+      created_at: { gt: lastReadAt },
     },
   });
 }

@@ -59,6 +59,7 @@ export function buildDocumentRecordInput(
   uploaderId: string,
   defaultDocType: string,
   defaultDirection: DocumentDirection,
+  category?: string,
 ): CreateDocumentRecordInput | null {
   const url = doc.file_url || doc.drive_url || "";
   if (!url.trim()) return null;
@@ -67,6 +68,10 @@ export function buildDocumentRecordInput(
   const originalName = doc.original_name || canonicalNameFromUrl(url);
   const extension = doc.extension || extensionFromFilename(originalName);
   const mimeType = doc.mime_type || mimeTypeFromExtension(extension);
+  const docType = category ? defaultDocType : (doc.doc_type || doc.document_type || defaultDocType);
+  const metadataJson = category
+    ? { ...((doc.metadata_json ?? {}) as Record<string, unknown>), category }
+    : doc.metadata_json;
 
   return {
     case_id: caseId,
@@ -74,7 +79,7 @@ export function buildDocumentRecordInput(
     lifecycle_unit_id: lifecycleUnitId,
     unit_code: unitCode,
     direction: defaultDirection,
-    doc_type: doc.doc_type || doc.document_type || defaultDocType,
+    doc_type: docType,
     seq,
     is_primary: seq === 0,
     source_kind: sourceKind,
@@ -85,7 +90,7 @@ export function buildDocumentRecordInput(
     file_url: url,
     download_url: doc.download_url || url,
     cloudinary_public_id: doc.cloudinary_public_id || null,
-    metadata_json: doc.metadata_json,
+    metadata_json: metadataJson,
     uploaded_by_auth_user_id: uploaderId,
   };
 }
@@ -118,7 +123,7 @@ function stableStringHash(str: string) {
 
 export async function findDocumentRecordsByCaseId(caseId: string) {
   return await prisma.documentRecord.findMany({
-    where: { case_id: caseId },
+    where: { case_id: caseId, superseded_at: null },
     include: {
       uploaded_by: {
         select: {
@@ -153,8 +158,9 @@ export async function createDocumentRecord(
   input: CreateDocumentRecordInput,
   client: DocumentRecordClient = prisma,
 ) {
+  const id = buildDocumentRecordId(input);
   return await client.documentRecord.create({
-    data: input as unknown as Prisma.DocumentRecordCreateInput,
+    data: { id, ...(input as unknown as Prisma.DocumentRecordCreateInput) },
   });
 }
 
@@ -163,13 +169,7 @@ export async function createDocumentRecords(
   client: DocumentRecordClient = prisma,
 ) {
   if (inputs.length === 0) return [];
-  return await Promise.all(
-    inputs.map((input) =>
-      client.documentRecord.create({
-        data: input as unknown as Prisma.DocumentRecordCreateInput,
-      }),
-    ),
-  );
+  return await Promise.all(inputs.map((input) => createDocumentRecord(input, client)));
 }
 
 export async function upsertDocumentRecord(
@@ -177,10 +177,35 @@ export async function upsertDocumentRecord(
   client: DocumentRecordClient = prisma,
 ) {
   const id = buildDocumentRecordId(input);
+  const create = { id, ...(input as unknown as Prisma.DocumentRecordCreateInput) };
+  const update = {
+    ...(input as unknown as Prisma.DocumentRecordUpdateInput),
+    superseded_at: null,
+  };
+
+  // Partial unique index (WHERE lifecycle_unit_id IS NOT NULL) cannot be
+  // Prisma upsert ON CONFLICT target. Find then update/create instead.
+  if (input.lifecycle_unit_id) {
+    const existing = await client.documentRecord.findFirst({
+      where: {
+        lifecycle_unit_id: input.lifecycle_unit_id,
+        doc_type: String(input.doc_type),
+        seq: input.seq,
+      },
+    });
+    if (existing) {
+      return await client.documentRecord.update({
+        where: { id: existing.id },
+        data: update,
+      });
+    }
+    return await client.documentRecord.create({ data: create });
+  }
+
   return await client.documentRecord.upsert({
     where: { id },
-    create: { id, ...(input as unknown as Prisma.DocumentRecordCreateInput) },
-    update: input as unknown as Prisma.DocumentRecordUpdateInput,
+    create,
+    update,
   });
 }
 
@@ -195,10 +220,14 @@ export async function createDocumentRecordsForUnit(
   defaultDirection: DocumentDirection,
   client: DocumentRecordClient = prisma,
   metadataFactory?: (doc: DocumentInputLike, index: number) => Prisma.InputJsonValue | undefined,
+  category?: string | ((doc: DocumentInputLike) => string | undefined),
 ) {
   const inputs: CreateDocumentRecordInput[] = [];
   let seq = 0;
   for (const doc of documents) {
+    const docCategory = typeof category === "function"
+      ? category(doc)
+      : category;
     const input = buildDocumentRecordInput(
       caseId,
       checkpointId,
@@ -212,6 +241,7 @@ export async function createDocumentRecordsForUnit(
       uploaderId,
       defaultDocType,
       defaultDirection,
+      docCategory,
     );
     if (!input) continue;
     inputs.push(input);
@@ -231,10 +261,14 @@ export async function upsertDocumentRecordsForUnit(
   defaultDocType: string,
   defaultDirection: DocumentDirection,
   client: DocumentRecordClient = prisma,
+  category?: string | ((doc: DocumentInputLike) => string | undefined),
 ) {
   const created = [];
   let seq = 0;
   for (const doc of documents) {
+    const docCategory = typeof category === "function"
+      ? category(doc)
+      : category;
     const input = buildDocumentRecordInput(
       caseId,
       checkpointId,
@@ -245,6 +279,7 @@ export async function upsertDocumentRecordsForUnit(
       uploaderId,
       defaultDocType,
       defaultDirection,
+      docCategory,
     );
     if (!input) continue;
     created.push(await upsertDocumentRecord(input, client));
@@ -293,8 +328,44 @@ export async function upsertReportArtifactDocumentRecord(
   reportId: string,
   createdByUserId: string,
   client: DocumentRecordClient = prisma,
+  options?: {
+    fileUrl?: string | null;
+    downloadUrl?: string | null;
+    cloudinaryPublicId?: string | null;
+    originalName?: string | null;
+    extension?: string;
+    mimeType?: string;
+  },
 ) {
   const id = buildReportArtifactDocumentRecordId(reportId);
+  const ext = options?.extension ?? "md";
+  const mime = options?.mimeType ?? (ext === "pdf" ? "application/pdf" : "text/markdown");
+  const fileUrl = options?.fileUrl ?? null;
+  const downloadUrl = options?.downloadUrl ?? fileUrl;
+  const cloudinaryPublicId = options?.cloudinaryPublicId ?? null;
+  const originalName = options?.originalName ?? `Báo cáo phản biện ${reportId.slice(-6)}`;
+  const sourceKind = cloudinaryPublicId ? "cloudinary" : "generated";
+
+  let validUserId = createdByUserId;
+  const userExists = await client.user.findUnique({
+    where: { id: createdByUserId },
+    select: { id: true },
+  });
+  if (!userExists) {
+    const caseRecord = await client.case.findUnique({
+      where: { id: caseId },
+      select: { owner_auth_user_id: true, assigned_supporter_auth_user_id: true },
+    });
+    validUserId = caseRecord?.assigned_supporter_auth_user_id || caseRecord?.owner_auth_user_id || "";
+    if (!validUserId) {
+      const firstAdmin = await client.user.findFirst({
+        where: { role: "admin" },
+        select: { id: true },
+      });
+      validUserId = firstAdmin?.id || "";
+    }
+  }
+
   return await client.documentRecord.upsert({
     where: { id },
     create: {
@@ -307,15 +378,15 @@ export async function upsertReportArtifactDocumentRecord(
       doc_type: "assessment_report",
       seq: 0,
       is_primary: true,
-      source_kind: "generated",
+      source_kind: sourceKind,
       canonical_name: `report-${reportId}`,
-      original_name: `Báo cáo phản biện ${reportId.slice(-6)}`,
-      extension: "md",
-      mime_type: "text/markdown",
-      file_url: null,
-      download_url: null,
-      cloudinary_public_id: null,
-      uploaded_by_auth_user_id: createdByUserId,
+      original_name: originalName,
+      extension: ext,
+      mime_type: mime,
+      file_url: fileUrl,
+      download_url: downloadUrl,
+      cloudinary_public_id: cloudinaryPublicId,
+      uploaded_by_auth_user_id: validUserId,
     },
     update: {
       case_id: caseId,
@@ -323,8 +394,14 @@ export async function upsertReportArtifactDocumentRecord(
       lifecycle_unit_id: lifecycleUnitId,
       unit_code: unitCode,
       doc_type: "assessment_report",
-      source_kind: "generated",
-      uploaded_by_auth_user_id: createdByUserId,
+      source_kind: sourceKind,
+      original_name: originalName,
+      extension: ext,
+      mime_type: mime,
+      file_url: fileUrl,
+      download_url: downloadUrl,
+      cloudinary_public_id: cloudinaryPublicId,
+      uploaded_by_auth_user_id: validUserId,
     },
   });
 }

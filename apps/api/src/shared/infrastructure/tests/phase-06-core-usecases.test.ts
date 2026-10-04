@@ -312,14 +312,13 @@ test("Phase 06 - Core usecases", async (t) => {
   });
 
   await t.test("updateCaseStatusUseCase - stage transition rules", async () => {
-    const { isValidStageTransition, isFinalCaseStage } = await import(
+    const { isFinalCaseStage, isPreSubmissionStage } = await import(
       "../../../modules/cases/domain/case.types.js"
     );
-    assert.ok(isValidStageTransition("submitted", "under_review"));
-    assert.ok(!isValidStageTransition("submitted", "completed"));
-    assert.ok(!isValidStageTransition("completed", "under_review"));
     assert.ok(isFinalCaseStage("completed"));
     assert.ok(!isFinalCaseStage("submitted"));
+    assert.ok(isPreSubmissionStage("intake_pending"));
+    assert.ok(!isPreSubmissionStage("submitted"));
   });
 
   // -----------------------------------------------------------------------
@@ -592,33 +591,38 @@ test("Phase 06 - Core usecases", async (t) => {
   });
 
   // -----------------------------------------------------------------------
-  // closeCaseUseCase (no DI — hits real DB)
-  // -----------------------------------------------------------------------
-  await t.test("closeCaseUseCase - not found", async () => {
-    const { closeCaseUseCase } = await import(
-      "../../../modules/supporter/application/close-case.usecase.js"
-    );
-    const { AppError } = await import("../../domain/app-error.js");
-
-    try {
-      await closeCaseUseCase("sup-1", "nonexistent-id");
-      assert.fail("Should throw");
-    } catch (err: any) {
-      assert.ok(err instanceof AppError);
-      assert.strictEqual(err.code, "NOT_FOUND");
-    }
-  });
-
-  // -----------------------------------------------------------------------
   // listCasesUseCase — smoke test
   // -----------------------------------------------------------------------
-  await t.test("listCasesUseCase - returns array", async () => {
+  await t.test("listCasesUseCase - returns paginated", async () => {
     const { listCasesUseCase } = await import(
       "../../../modules/cases/application/list-cases.usecase.js"
     );
 
-    const result = await listCasesUseCase({ user: { id: "user-1", role: "user" } });
-    assert.ok(Array.isArray(result));
+    const result = await listCasesUseCase(
+      { user: { id: "user-1", role: "user" } },
+      {},
+      {
+        findPagedCasesByRole: async () => ({
+          items: [
+            {
+              id: "case-1",
+              case_code: "CASE-001",
+              title: "Test Case",
+              stage: "intake",
+              payment_status: "not_required",
+              owner_id: "user-1",
+              created_at: new Date(),
+              updated_at: new Date(),
+            } as unknown as Parameters<typeof listCasesUseCase>[0] extends { user: unknown } ? any : never,
+          ],
+          total: 1,
+        }),
+      },
+    );
+    assert.ok(Array.isArray(result.items));
+    assert.equal(result.total, 1);
+    assert.equal(result.page, 1);
+    assert.equal(result.limit, 20);
   });
 
   // -----------------------------------------------------------------------

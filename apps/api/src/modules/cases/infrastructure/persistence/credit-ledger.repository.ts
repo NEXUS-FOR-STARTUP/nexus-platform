@@ -1,22 +1,20 @@
 import { prisma } from "../../../../db.js";
 
 export async function getCreditBalance(caseId: string): Promise<number> {
-  const latest = await prisma.creditLedger.findFirst({
+  const result = await prisma.creditLedger.aggregate({
     where: { case_id: caseId },
-    orderBy: { id: 'desc' },
-    select: { balance_after: true },
+    _sum: { amount: true },
   });
-  return latest?.balance_after ?? 0;
+  return result._sum.amount ?? 0;
 }
 
 // For use inside transactions (tx is prisma.$transaction client)
 export async function getCreditBalanceForTx(tx: any, caseId: string): Promise<number> {
-  const latest = await tx.creditLedger.findFirst({
+  const result = await tx.creditLedger.aggregate({
     where: { case_id: caseId },
-    orderBy: { id: 'desc' },
-    select: { balance_after: true },
+    _sum: { amount: true },
   });
-  return latest?.balance_after ?? 0;
+  return result._sum.amount ?? 0;
 }
 
 export async function getCreditLedgerByCaseId(caseId: string) {
@@ -28,13 +26,16 @@ export async function getCreditLedgerByCaseId(caseId: string) {
       amount: true,
       balance_after: true,
       type: true,
+      reference_type: true,
       reference_id: true,
       created_at: true,
     },
   });
 }
 
-export async function createCreditEntry(data: {
+// First param accepts the global client or a $transaction client so callers
+// can join an ambient transaction (credit must never commit without its job).
+export async function createCreditEntry(tx: Pick<typeof prisma, "creditLedger">, data: {
   caseId: string;
   amount: number;
   balanceAfter: number;
@@ -43,7 +44,7 @@ export async function createCreditEntry(data: {
   idempotencyKey: string;
   metadataJson?: any;
 }): Promise<any> {
-  return await prisma.creditLedger.create({
+  return await tx.creditLedger.create({
     data: {
       case_id: data.caseId,
       amount: data.amount,

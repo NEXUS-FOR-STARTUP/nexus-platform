@@ -2,7 +2,16 @@ import { prisma } from "../../../../db.js";
 
 export const SYSTEM_USER_ID = "00000000-0000-0000-0000-000000000001";
 
-export async function findManyPaymentsWithCase() {
+/**
+ * Default page size for payment listings. Without a bound these queries pull the
+ * whole payments history (plus joined case/payer rows) into memory per request.
+ */
+export const PAYMENTS_PAGE_DEFAULT_LIMIT = 50;
+
+export async function findManyPaymentsWithCase(
+  limit = PAYMENTS_PAGE_DEFAULT_LIMIT,
+  offset = 0,
+) {
   return await prisma.payment.findMany({
     include: {
       case: {
@@ -17,10 +26,16 @@ export async function findManyPaymentsWithCase() {
       payer: { select: { id: true, name: true, display_username: true } },
     },
     orderBy: { created_at: "desc" },
+    take: limit,
+    skip: offset,
   });
 }
 
-export async function findManyMyPayments(userId: string) {
+export async function findManyMyPayments(
+  userId: string,
+  limit = PAYMENTS_PAGE_DEFAULT_LIMIT,
+  offset = 0,
+) {
   return await prisma.payment.findMany({
     where: {
       payer_auth_user_id: userId,
@@ -49,13 +64,20 @@ export async function findManyMyPayments(userId: string) {
       },
     },
     orderBy: { created_at: "desc" },
+    take: limit,
+    skip: offset,
   });
 }
 
 export async function findPaymentById(id: string) {
   return await prisma.payment.findUnique({
     where: { id },
-    include: { payer: true },
+    include: {
+      payer: true,
+      case: {
+        select: { case_code: true },
+      },
+    },
   });
 }
 
@@ -168,57 +190,47 @@ export async function verifyPayment(data: {
     });
 
     if (status === "paid") {
-      // --- Intake pending → intake ready on successful payment ---
-      const caseRecord = await tx.case.findUnique({
-        where: { id: caseId },
-        select: { user_facing_stage: true },
-      });
-      if (caseRecord?.user_facing_stage === "intake_pending") {
-        await tx.case.update({
-          where: { id: caseId },
-          data: { user_facing_stage: "intake_ready" },
+      // --- Credit purchase on successful verification ---
+      if (process.env["USE_ORDER_DOMAIN"] !== "true") {
+        const paymentRecord = await tx.payment.findUnique({ where: { id: paymentId } });
+        // Read actual credit quantity from metadata_json first (set by CreditQuantityModal)
+        // Fallback: derive from payment.amount / CREDIT_PRICE (handles old data where metadata was lost)
+        const metaQuantity = (paymentRecord?.metadata_json as Record<string, unknown> | null)?.quantity;
+        const quantity = typeof metaQuantity === 'number'
+          ? metaQuantity
+          : Math.round((paymentRecord?.amount ?? 0) / 39000) || 1;
+
+        // Get current credit balance
+        const balResult = await tx.creditLedger.aggregate({
+          where: { case_id: caseId },
+          _sum: { amount: true },
+        });
+        const currentBalance = balResult._sum.amount ?? 0;
+        const newBalance = currentBalance + quantity;
+
+        // Create credit ledger purchase entry
+        await tx.creditLedger.create({
+          data: {
+            case_id: caseId,
+            amount: quantity,
+            balance_after: newBalance,
+            type: "purchase",
+            reference_id: paymentId,
+            idempotency_key: `purchase-${paymentId}`,
+          },
+        });
+
+        // Create case event for credit purchase
+        await tx.caseEvent.create({
+          data: {
+            case: { connect: { id: caseId } },
+            event_type: "credits_purchased",
+            actor: { connect: { id: adminId } },
+            payment: { connect: { id: paymentId } },
+            metadata_json: { quantity, new_balance: newBalance, payment_id: paymentId },
+          },
         });
       }
-
-      // --- Credit purchase on successful verification ---
-      const paymentRecord = await tx.payment.findUnique({ where: { id: paymentId } });
-      // Read actual credit quantity from metadata_json first (set by CreditQuantityModal)
-      // Fallback: derive from payment.amount / CREDIT_PRICE (handles old data where metadata was lost)
-      const metaQuantity = (paymentRecord?.metadata_json as Record<string, unknown> | null)?.quantity;
-      const quantity = typeof metaQuantity === 'number'
-        ? metaQuantity
-        : Math.round((paymentRecord?.amount ?? 0) / 39000) || 1;
-
-      // Get current credit balance
-      const latestLedger = await tx.creditLedger.findFirst({
-        where: { case_id: caseId },
-        orderBy: { id: "desc" },
-      });
-      const currentBalance = latestLedger?.balance_after ?? 0;
-      const newBalance = currentBalance + quantity;
-
-      // Create credit ledger purchase entry
-      await tx.creditLedger.create({
-        data: {
-          case_id: caseId,
-          amount: quantity,
-          balance_after: newBalance,
-          type: "purchase",
-          reference_id: paymentId,
-          idempotency_key: `purchase-${paymentId}`,
-        },
-      });
-
-      // Create case event for credit purchase
-      await tx.caseEvent.create({
-        data: {
-          case: { connect: { id: caseId } },
-          event_type: "credits_purchased",
-          actor: { connect: { id: adminId } },
-          payment: { connect: { id: paymentId } },
-          metadata_json: { quantity, new_balance: newBalance, payment_id: paymentId },
-        },
-      });
     }
 
     return updatedPayment;

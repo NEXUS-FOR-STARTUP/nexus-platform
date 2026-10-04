@@ -1,4 +1,13 @@
-import { findManyMyPayments as defaultFindManyMyPayments } from "../infrastructure/persistence/payment.repository.js";
+/**
+ * @deprecated Replaced by deposits/orders modules (2026-08-12).
+ * Kept for reference. Routes return 410 Gone.
+ */
+
+import {
+  findManyMyPayments as defaultFindManyMyPayments,
+  PAYMENTS_PAGE_DEFAULT_LIMIT,
+} from "../infrastructure/persistence/payment.repository.js";
+import type { ListPaymentsPagination } from "./list-payments.usecase.js";
 import type {
   ListMyPaymentsResponse,
   PaymentHistoryItem,
@@ -33,13 +42,15 @@ function toPaymentHistoryItem(
 export async function listMyPaymentsUseCase(
   userId: string,
   deps: ListMyPaymentsDeps = {},
+  pagination: ListPaymentsPagination = {},
 ): Promise<ListMyPaymentsResponse> {
   const { findManyMyPayments } = {
     ...defaultDeps,
     ...deps,
   };
+  const { limit = PAYMENTS_PAGE_DEFAULT_LIMIT, offset = 0 } = pagination;
 
-  const payments = await findManyMyPayments(userId);
+  const payments = await findManyMyPayments(userId, limit, offset);
 
   return {
     payments: payments.map(toPaymentHistoryItem),

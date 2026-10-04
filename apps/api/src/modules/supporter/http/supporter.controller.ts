@@ -8,7 +8,6 @@ import { getDraftReportUseCase } from "../application/get-draft-report.usecase.j
 import { editDraftReportUseCase } from "../application/edit-draft-report.usecase.js";
 import { publishReportUseCase } from "../application/publish-report.usecase.js";
 import { supporterRequestMoreInfoUseCase } from "../application/supporter-request-more-info.usecase.js";
-import { closeCaseUseCase } from "../application/close-case.usecase.js";
 
 export async function getDraftReportHandler(c: Context) {
   const caseId = c.req.param("caseId") || "";
@@ -92,26 +91,6 @@ export async function supporterRequestMoreInfoHandler(c: Context) {
       caseId,
       query,
     );
-    return c.json(result);
-  } catch (error: any) {
-    return handleError(c, error);
-  }
-}
-
-export async function closeCaseHandler(c: Context) {
-  const caseId = c.req.param("caseId") || "";
-  const access = await requireCaseAccess(c, caseId, {
-    allowStudent: false,
-    allowSupporter: true,
-    allowAdmin: true,
-  });
-
-  if (!access.ok) {
-    return access.response;
-  }
-
-  try {
-    const result = await closeCaseUseCase(access.session.user.id, caseId);
     return c.json(result);
   } catch (error: any) {
     return handleError(c, error);

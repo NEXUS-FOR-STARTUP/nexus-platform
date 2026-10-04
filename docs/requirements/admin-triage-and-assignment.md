@@ -12,7 +12,7 @@
 - Business reason: moi case moi phai duoc nhan, tu choi, hoac giao dung nguoi xu ly.
 - Target customer: admin, supporter, user.
 - User problem: case da gui nhung khong biet co duoc nhan khong; supporter khong biet case nao minh phai lam.
-- Product behavior: admin triage case moi, quyet dinh accept/reject/yeu cau bo sung/assign supporter.
+- Product behavior: admin triage case moi, quyet dinh accept/reject/assign supporter.
 - Related user story: admin can scan nhanh queue; user can biet case da duoc nhan hay can bo sung.
 - Related acceptance criteria: moi case moi di qua triage queue va co owner ro neu duoc nhan.
 
@@ -24,7 +24,6 @@
 - admin case detail
 - accept case
 - reject case
-- request more info
 - assign supporter
 
 ### Out of scope
@@ -64,15 +63,15 @@
 
 ### Validation rules
 
-- Reject phai co ly do.
-- Request more info phai co phan can bo sung ro rang.
+- Reject phai co ly do (toi thieu 10 ky tu).
+- Yeu cau bo sung (supporter thuc hien qua machine T8) phai co noi dung can bo sung ro rang.
 - Assign supporter phai gan voi supporter hop le.
 
 ### Business rules
 
 - Case moi khong duoc trôi nổi khong owner neu da accept.
 - Case ngoai pham vi hoac input qua thieu co the bi reject hoac yeu cau bo sung.
-- Admin duoc request more info truoc khi accept.
+- Admin khong con action request more info (xoa 2026-08-14); reject reason la kenh trao doi triage; yeu cau bo sung do supporter thuc hien (T8) sau khi duoc assign.
 
 ## 9. User stories
 
@@ -83,7 +82,7 @@
 ## 10. Error and edge cases
 
 - Case: case khong du tai lieu de supporter bat dau.
-  Expected behavior: admin yeu cau bo sung.
+  Expected behavior: admin duyet roi de supporter yeu cau bo sung (T8), hoac reject voi ly do ro.
 
 - Case: case ngoai pham vi hien tai.
   Expected behavior: admin reject voi ly do ro.
@@ -94,12 +93,12 @@
 ## 11. Acceptance criteria
 
 - [ ] Moi case moi xuat hien trong triage queue.
-- [ ] Admin co the accept, reject, yeu cau bo sung, va assign supporter.
+- [ ] Admin co the accept, reject, va assign supporter.
 - [ ] Reject co ly do ro.
-- [ ] Request more info co noi dung can bo sung ro.
+- [ ] Yeu cau bo sung (supporter, T8) co noi dung can bo sung ro.
 - [ ] Case da accept co owner ro hoac o trang thai accepted_unassigned.
 
 ## 12. Missing / unclear
 
-- Locked for phase 1: admin duoc request more info truoc khi accept.
+- Superseded (2026-08-14): admin request more info da xoa — yeu cau bo sung chuyen ve supporter (machine T8) sau khi duoc assign.
 - Needs decision: rule uu tien case theo deadline / urgency o phase 1.

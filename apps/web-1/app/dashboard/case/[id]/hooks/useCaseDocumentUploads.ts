@@ -36,45 +36,6 @@ export function useDocumentTypeOptions(flow: string, unitScope?: string) {
   });
 }
 
-export function useCaseRevisionUpload(caseId: string) {
-  const queryClient = useQueryClient();
-
-  const mutation = useMutation({
-    mutationFn: async (payload: {
-      change_summary: string;
-      remaining_blockers?: string;
-      document_type_code: string;
-      files: File[];
-    }) => {
-      const documents = await Promise.all(
-        payload.files.map(async (file) => {
-          const uploaded = await uploadManagedDocument(file);
-          return {
-            ...uploaded,
-            doc_type: payload.document_type_code,
-          };
-        }),
-      );
-
-      const response = await apiClient.post(`/cases/${caseId}/revisions/upload`, {
-        change_summary: payload.change_summary,
-        remaining_blockers: payload.remaining_blockers || undefined,
-        documents,
-      });
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["case", caseId] });
-    },
-  });
-
-  return {
-    submitRevisionUpload: mutation.mutateAsync,
-    isSubmitting: mutation.isPending,
-    error: mutation.error,
-  };
-}
-
 export function useSupporterOutputUpload(caseId: string) {
   const queryClient = useQueryClient();
 
@@ -157,11 +118,17 @@ export function useExternalFeedbackUpload(caseId: string) {
   };
 }
 
+export interface RevisionUploadResponse {
+  lifecycle_unit_id: string;
+  version_no: number;
+  [key: string]: unknown;
+}
+
 export function useStudentDocumentUpload(caseId: string) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async (payload: { note?: string; files: File[] }) => {
+    mutationFn: async (payload: { note?: string; changeSummary?: string; files: File[] }): Promise<RevisionUploadResponse> => {
       const documents = await Promise.all(
         payload.files.map(async (file) => {
           const uploaded = await uploadManagedDocument(file);
@@ -172,12 +139,13 @@ export function useStudentDocumentUpload(caseId: string) {
         }),
       );
 
-      const changeSummary = `Tải lên: ${payload.files.map(f => f.name).join(', ')}`;
+      const changeSummary = payload.changeSummary || `Tải lên: ${payload.files.map(f => f.name).join(', ')}`;
 
-      await apiClient.post(`/cases/${caseId}/revisions/upload`, {
+      const response = await apiClient.post(`/cases/${caseId}/revisions/upload`, {
         change_summary: changeSummary,
         documents,
       });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["case", caseId] });

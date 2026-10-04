@@ -2,6 +2,8 @@ import { AppError } from "../../../shared/domain/app-error.js";
 import { findReportById, publishReport } from "../infrastructure/persistence/report.repository.js";
 import { auditLogger } from "../../../shared/infrastructure/audit-logger.js";
 import logger from "../../../shared/infrastructure/logger.js";
+import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
+import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 
 export async function approveReportUseCase(userId: string, reportId: string) {
   const start = performance.now();
@@ -45,6 +47,17 @@ export async function approveReportUseCase(userId: string, reportId: string) {
       duration_ms: timer(),
     });
     logger.info({ caseId: report.case_id, reportId, duration_ms: Math.round(performance.now() - start) }, 'report approved');
+    emitEvent({
+      eventId: crypto.randomUUID(),
+      type: DOMAIN_EVENTS.REPORT_PUBLISHED,
+      actorId: userId,
+      occurredAt: new Date(),
+      payload: {
+        caseId: report.case_id,
+        caseCode: report.case.case_code,
+        reportId,
+      },
+    });
     return result;
   } catch (error) {
     logger.error({ err: error, reportId, duration_ms: Math.round(performance.now() - start) }, 'report approve failed');

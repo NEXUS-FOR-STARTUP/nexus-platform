@@ -1,14 +1,15 @@
 # Code standards
 
-_Cập nhật: 2026-07-23_
+_Cập nhật: 2026-10-04_
 
 ## Repo structure
 
-- `apps/api`: Hono backend, Better Auth, Prisma, document/report/payment workflows.
-- `apps/web-1`: Next.js 16 product app (Mantine UI v9).
-- `packages/ui`: shared React primitives.
-- `packages/validation`: Zod schemas chia sẻ giữa api và web-1.
-- `prisma/schema.prisma`: single source of truth cho data model.
+- `apps/api`: Hono backend (15 modules, 112 endpoints), Better Auth, Prisma 7, Typst PDF engine.
+- `apps/web-1`: Next.js 16 product app (Mantine UI v9 + Tailwind CSS v4).
+- `apps/worker-omp`: AI evaluation daemon (BullMQ + Redis sandbox).
+- `packages/shared`: shared telemetry & worker metrics (`@app/shared`).
+- `packages/validation`: shared Zod schemas (FE↔BE, single source of truth).
+- `prisma/schema.prisma`: single source of truth cho data model (32 models, 31 migrations).
 - Tài liệu DB tham khảo: [`db-query-guide.md`](./db-query-guide.md), [`db-backup-guide.md`](./db-backup-guide.md).
 
 ## TypeScript
@@ -42,9 +43,9 @@ _Cập nhật: 2026-07-23_
 
 ## API module organization
 
-- Bounded context theo domain: cases, reports, payments, packages, documents, admin, supporter, ai-engine.
-- Layering theo clean architecture: domain → application → infrastructure → presentation.
-- Modules giao tiếp trực tiếp qua use-case/service, không cần event bus cho MVP.
+- Bounded context theo 15 domain modules: cases, reports, payments, packages, documents, admin, supporter, ai-engine, notifications, realtime, wallet, deposits, orders, profile, auth.
+- Layering theo clean architecture: domain → application → infrastructure → presentation/http.
+- Modules giao tiếp trực tiếp qua use-case/service; event bus (`shared/domain/domain-events.ts` + `shared/infrastructure/event-bus.ts`) dùng cho notifications (14 event types), hỗ trợ 2 Outbox Relays: `NotificationOutbox` (2s tick) và `DomainEventOutbox` (5s tick).
 - Shared infra: `AppError` class, `requireAuth` middleware, `requireCaseAccess` authorization, audit-logger.
 
 ## Error handling
@@ -58,26 +59,27 @@ _Cập nhật: 2026-07-23_
 ## Web standards
 
 - Next.js App Router, route groups: public, auth, dashboard, supporter, admin.
-- Giữ UI consistent với Mantine UI v9 và shared primitives (`packages/ui`).
-- Không đưa business logic nặng vào component page — tách hook/module.
-- Với Nexus MVP, ưu tiên shared workspace shell thay vì page flow rời rạc.
+- Giữ UI consistent với Mantine UI v9 và Tailwind CSS v4.
+- Auth & Route Guard: Server-side route guard tại `proxy.ts` (Next.js 16) chặn truy cập theo role trước khi render, quản lý `MAINTENANCE_MODE`. Client-side dùng Better Auth `useSession()`.
+- Device Persona Scope: Toàn bộ luồng Student (dashboard, intake, case workspace, wallet, settings) hỗ trợ mobile-responsive (drawer nav, card view table). Admin & Supporter là **Desktop-only tuyệt đối** (`DesktopOnlyNotice.tsx` chặn < 1024px).
+- Thuật ngữ UX: Toàn bộ copy và micro-copy giao diện tuân thủ quy chuẩn từ ngữ tại `design-system/wording/`.
+- Không đưa business logic nặng vào component page — tách hook/module (37 custom hooks hiện tại).
+- Với Nexus, ưu tiên shared workspace shell với 7 tabs (`overview`, `documents`, `report`, `discussion`, `timeline`, `settings`, `credits`) đồng bộ trạng thái qua URL `?tab=`.
 - Phân biệt rõ 2 lớp document flow: intake (hybrid Drive/Docs + checklist) và workspace (checkpoint/version/assessment).
-- Discussion/chat hiện là REST + polling; không viết tài liệu hoặc UI như thể đã có realtime socket.
-- Payment là surface phụ; không để nó lấn narrative chính của audit/review flow.
+- Discussion/chat: realtime Centrifugo (WebSocket primary) + REST polling 60s fallback — không viết tài liệu hoặc UI như thể vẫn còn polling 5s.
+- Credit/ledger economy là core (CreditPanel/CreditQuantityModal/CreditTransactionHistory/CreditBalanceCard + sepay webhook); không để credit lấn narrative chính của audit/review flow.
 - Data fetching: TanStack Query + Axios. Không dùng Redux/Zustand — server state qua query.
 - Forms: TanStack Form everywhere.
 - Icons: Lucide React, không dùng Mantine icons.
 
 ## Testing standards
 
-_Trạng thái hiện tại: Chưa có test file trong codebase._
+_Trạng thái hiện tại: 48 files tại `apps/api/src/shared/infrastructure/tests/` (47 `*.test.ts` + `coverage-report.ts`) — Node built-in runner (`node:test` + `node:assert`), chạy qua `tsx --test` (chỉ trong apps/api)._
 
-- **Unit test:** prefer Vitest (phù hợp với Vite/esbuild toolchain của Turborepo).
-- **Component test:** Testing Library + Vitest (nếu setup sau này).
-- **E2E test:** Playwright (khuyến nghị, chưa setup).
-- **API test:** Vitest + Hono `app.request()` helper.
-- Test naming: `{module}.test.ts` hoặc `{component}.test.tsx`, đặt cạnh file cần test.
-- Coverage: không bắt buộc ở MVP, nhưng khuyến khích cho core business logic.
+- **Unit test:** Node built-in runner (`node:test`) + `tsx --test` — chuẩn hiện tại của repo, không dùng Vitest.
+- **Test naming:** `{module}.test.ts`, đặt trong `apps/api/src/shared/infrastructure/tests/`.
+- **Coverage:** không bắt buộc ở MVP, nhưng khuyến khích cho core business logic.
+- **Frontend/component test:** chưa setup.
 
 ## Documentation standards
 
@@ -93,9 +95,40 @@ _Trạng thái hiện tại: Chưa có test file trong codebase._
 
 - Plural table names: `service_packages`, `case_members`, `document_records`.
 - Snake_case columns: `user_facing_stage`, `locked_price`, `last_price_changed_at`.
-- Migration: tạo qua `prisma migrate dev`, commit migration files.
+- Migration: tạo qua `prisma migrate dev --create-only` (tuyệt đối không chạy full `migrate dev` trên production — xem [.agents/rules/prisma-migration-safety.md](../.agents/rules/prisma-migration-safety.md)); deploy lên production qua `prisma migrate deploy`.
 - Read-only queries: dùng `READONLY_DATABASE_URL` (xem [`db-query-guide.md`](./db-query-guide.md)).
 - Backup: tham khảo [`db-backup-guide.md`](./db-backup-guide.md).
+
+### Prisma field naming: LUÔN snake_case
+
+Khi gọi Prisma trực tiếp (`prisma.user.findMany`, `prisma.session.deleteMany`, v.v.), **tất cả field trong `where`, `data`, `orderBy`, `select` phải dùng snake_case** — đúng với tên cột trong schema.
+
+```ts
+// ✅ ĐÚNG — snake_case theo schema
+await prisma.session.deleteMany({ where: { user_id: userId } });
+await prisma.user.update({
+  where: { id: userId },
+  data: { banned: true, ban_reason: reason, updated_at: new Date() },
+});
+
+// ❌ SAI — camelCase sẽ throw PrismaClientValidationError lúc runtime
+await prisma.session.deleteMany({ where: { userId } });
+// → Unknown argument `userId`. Did you mean `user_id`?
+```
+
+**Ngoại lệ duy nhất:** File `apps/api/src/auth.ts` dùng camelCase key trong `fields` config của Better Auth — đây là format bắt buộc của Better Auth adapter để map API field → DB column:
+
+```ts
+// Better Auth config — key bên trái = tên Better Auth API, value bên phải = tên cột DB
+user: {
+  fields: {
+    emailVerified: 'email_verified',   // camelCase → snake_case
+    banReason: 'ban_reason',
+  }
+}
+```
+
+**Quy tắc nhớ:** Trực tiếp gọi `prisma.*` → snake_case. Better Auth config → camelCase key + snake_case value. Lẫn lộn 2 cái này sẽ crash runtime.
 
 ## Conventions chung
 

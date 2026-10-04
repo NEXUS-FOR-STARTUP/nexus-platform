@@ -36,10 +36,9 @@ This is NON-NEGOTIABLE. Do not delegate this read — orchestrator reads it BEFO
 
 ### 2. Identify target database
 Check `DATABASE_URL` host in `.env` (without exposing the full connection string). If host contains:
-- `supabase.co` or `pooler.supabase.com` → **PRODUCTION. READ-ONLY MODE.**
-- `localhost` or `127.0.0.1` or `::1` → local dev
+- Remote VPS IP, remote domain, `supabase.co`, or `pooler.supabase.com` → **PRODUCTION. READ-ONLY MODE.** Production DB là self-hosted PostgreSQL 18.4 trên VPS (`docker-compose.prod.yml`).
+- `localhost` or `127.0.0.1` or `::1` or internal docker service `db` in local compose → local dev
 - Unknown → **ASSUME PRODUCTION. STOP.**
-
 ### 3. Inject safety constraints into EVERY subagent prompt
 Every Task tool call that involves the database MUST include this block in the prompt:
 
@@ -49,7 +48,7 @@ Every Task tool call that involves the database MUST include this block in the p
 - KHÔNG chạy: DROP TABLE, DROP COLUMN, DELETE FROM, TRUNCATE
 - KHÔNG sửa migration file đã applied
 - Nếu cần migration → chỉ tạo file với `--create-only`
-- Nếu DATABASE_URL trỏ Supabase → DỪNG, báo cáo
+- Nếu DATABASE_URL trỏ Production VPS / remote host → DỪNG, báo cáo
 - Rule file gốc: .agents/rules/prisma-migration-safety.md (phải đọc trước khi làm)
 ```
 

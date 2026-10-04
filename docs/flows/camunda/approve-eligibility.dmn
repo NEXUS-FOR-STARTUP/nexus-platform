@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" id="definitions_approve_eligibility" name="Case có thể duyệt?" namespace="http://camunda.org/schema/1.0/dmn">
+  <decision id="approve_eligibility" name="Case có thể duyệt?">
+    <decisionTable id="decisionTable_approve_eligibility" hitPolicy="FIRST">
+      <input id="input_paymentStatus" label="Trạng thái thanh toán">
+        <inputExpression id="inputExpression_paymentStatus" typeRef="string">
+          <text>paymentStatus</text>
+        </inputExpression>
+      </input>
+      <input id="input_lockedPrice" label="Giá gói (đã khóa)">
+        <inputExpression id="inputExpression_lockedPrice" typeRef="number">
+          <text>lockedPrice</text>
+        </inputExpression>
+      </input>
+      <input id="input_creditBalance" label="Lượt đánh giá còn lại">
+        <inputExpression id="inputExpression_creditBalance" typeRef="number">
+          <text>creditBalance</text>
+        </inputExpression>
+      </input>
+      <output id="output_allowed" label="Được duyệt" name="allowed" typeRef="boolean" />
+      <output id="output_reason" label="Lý do" name="reason" typeRef="string" />
+      <rule id="rule_unpaid">
+        <inputEntry id="inputEntry_rule_unpaid_1"><text>"unpaid"</text></inputEntry>
+        <inputEntry id="inputEntry_rule_unpaid_2"><text>-</text></inputEntry>
+        <inputEntry id="inputEntry_rule_unpaid_3"><text>-</text></inputEntry>
+        <outputEntry id="outputEntry_rule_unpaid_1"><text>false</text></outputEntry>
+        <outputEntry id="outputEntry_rule_unpaid_2"><text>"Chưa hoàn tất thanh toán"</text></outputEntry>
+      </rule>
+      <rule id="rule_free">
+        <inputEntry id="inputEntry_rule_free_1"><text>-</text></inputEntry>
+        <inputEntry id="inputEntry_rule_free_2"><text>0</text></inputEntry>
+        <inputEntry id="inputEntry_rule_free_3"><text>-</text></inputEntry>
+        <outputEntry id="outputEntry_rule_free_1"><text>true</text></outputEntry>
+        <outputEntry id="outputEntry_rule_free_2"><text>""</text></outputEntry>
+      </rule>
+      <rule id="rule_has_credit">
+        <inputEntry id="inputEntry_rule_has_credit_1"><text>-</text></inputEntry>
+        <inputEntry id="inputEntry_rule_has_credit_2"><text>-</text></inputEntry>
+        <inputEntry id="inputEntry_rule_has_credit_3"><text><![CDATA[>= 1]]></text></inputEntry>
+        <outputEntry id="outputEntry_rule_has_credit_1"><text>true</text></outputEntry>
+        <outputEntry id="outputEntry_rule_has_credit_2"><text>""</text></outputEntry>
+      </rule>
+      <rule id="rule_no_credit">
+        <inputEntry id="inputEntry_rule_no_credit_1"><text>-</text></inputEntry>
+        <inputEntry id="inputEntry_rule_no_credit_2"><text>-</text></inputEntry>
+        <inputEntry id="inputEntry_rule_no_credit_3"><text><![CDATA[< 1]]></text></inputEntry>
+        <outputEntry id="outputEntry_rule_no_credit_1"><text>false</text></outputEntry>
+        <outputEntry id="outputEntry_rule_no_credit_2"><text>"Hết lượt đánh giá"</text></outputEntry>
+      </rule>
+      <rule id="rule_unknown">
+        <inputEntry id="inputEntry_rule_unknown_1"><text>-</text></inputEntry>
+        <inputEntry id="inputEntry_rule_unknown_2"><text>-</text></inputEntry>
+        <inputEntry id="inputEntry_rule_unknown_3"><text>-</text></inputEntry>
+        <outputEntry id="outputEntry_rule_unknown_1"><text>false</text></outputEntry>
+        <outputEntry id="outputEntry_rule_unknown_2"><text>"Không xác định"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

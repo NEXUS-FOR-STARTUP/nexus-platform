@@ -1,0 +1,90 @@
+"use client";
+
+import { Select, TextInput } from "@mantine/core";
+import { Search } from "lucide-react";
+
+export const SUPPORTER_STATUS_OPTIONS = [
+  { value: "assigned", label: "Đã phân công" },
+  { value: "supporter_working", label: "Đang phản biện" },
+  { value: "waiting_user", label: "Chờ sinh viên" },
+  { value: "report_ready_to_publish", label: "Đã giao" },
+  { value: "done", label: "Hoàn thành" },
+  { value: "cancelled", label: "Đã hủy" },
+];
+export const STUDENT_STAGE_OPTIONS = [
+  { value: "intake_pending", label: "Chờ kích hoạt" },
+  { value: "intake_ready", label: "Sẵn sàng cập nhật" },
+  { value: "submitted", label: "Chờ xét duyệt" },
+  { value: "need_more_information", label: "Cần bổ sung" },
+  { value: "under_review", label: "Đang phản biện" },
+  { value: "report_ready", label: "Báo cáo sẵn sàng" },
+  { value: "waiting_for_revision", label: "Chờ bản sửa" },
+  { value: "revision_submitted", label: "Đã nộp bản sửa" },
+  { value: "completed", label: "Hoàn thành" },
+  { value: "rejected", label: "Bị từ chối" },
+  { value: "closed", label: "Đã đóng" },
+];
+
+export const STUDENT_SORT_OPTIONS = [
+  { value: "created_at_desc", label: "Mới nhất" },
+  { value: "created_at_asc", label: "Cũ nhất" },
+  { value: "case_code_asc", label: "Mã hồ sơ (A-Z)" },
+  { value: "case_code_desc", label: "Mã hồ sơ (Z-A)" },
+  { value: "team_name_asc", label: "Tên nhóm (A-Z)" },
+  { value: "team_name_desc", label: "Tên nhóm (Z-A)" },
+];
+
+interface CaseListFiltersProps {
+  search: string;
+  onSearchChange: (value: string) => void;
+  stage: string | null;
+  onStageChange: (value: string | null) => void;
+  sortValue: string;
+  onSortChange: (value: string) => void;
+  stageOptions?: { value: string; label: string }[];
+}
+
+export default function CaseListFilters({
+  search,
+  onSearchChange,
+  stage,
+  onStageChange,
+  sortValue,
+  onSortChange,
+  stageOptions = STUDENT_STAGE_OPTIONS,
+}: CaseListFiltersProps) {
+  return (
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 w-full">
+      <TextInput
+        label="Tìm kiếm"
+        placeholder="Tìm theo mã hồ sơ hoặc tên nhóm..."
+        leftSection={<Search className="w-4 h-4 text-text-muted" />}
+        value={search}
+        onChange={(event) => onSearchChange(event.currentTarget.value)}
+        radius="md"
+        className="flex-1 w-full"
+      />
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 w-full sm:w-auto shrink-0">
+        <Select
+          label="Trạng thái"
+          placeholder="Tất cả"
+          data={stageOptions}
+          value={stage}
+          onChange={onStageChange}
+          clearable
+          radius="md"
+          className="w-full sm:w-[208px]"
+        />
+        <Select
+          label="Sắp xếp"
+          data={STUDENT_SORT_OPTIONS}
+          value={sortValue}
+          onChange={(value) => onSortChange(value || "created_at_desc")}
+          allowDeselect={false}
+          radius="md"
+          className="w-full sm:w-[192px]"
+        />
+      </div>
+    </div>
+  );
+}

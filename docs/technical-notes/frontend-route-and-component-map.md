@@ -28,10 +28,17 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 - `/dashboard/intake`
 - `/dashboard/case/[id]`
 - `/dashboard/case/[id]/payment`
+- `/dashboard/wallet`
 - `/admin`
 - `/supporter`
 - `/supporter/case/[id]`
-- `/supporter/case/[id]/review`
+- `/dashboard/payments` (redirect → `/dashboard/wallet`)
+- `/dashboard/profile` (redirect → `/dashboard/settings/profile`)
+- `/dashboard/settings` (sidebar settings: `/profile`, `/password`, `/sessions`)
+- `/supporter/settings` (supporter settings: `/profile`, `/password`, `/sessions`)
+- `/auth/forgot-password` (đã fix OTP flow)
+
+> Ghi chú (cập nhật 2026-08-24): `/supporter/case/[id]/review` **không tồn tại** — supporter biên tập report qua usecases `get-draft-report`/`edit-draft-report` + modal upload, không có page riêng. Route `/dashboard/wallet` đã triển khai — ví VND student (số dư, lịch sử giao dịch, nạp tiền SePay). Nav item "Ví của tôi" (icon Wallet) được thêm vào `DashboardShell` cho student. Backend: wallet module giữ live `GET /api/wallet/balance` + `GET /api/wallet/history`; **nạp tiền thuộc module deposits** (5 routes, `POST /api/deposits` + `POST /api/deposits/:id/verify`), `POST /api/wallet/topups` → **410 GONE**, `POST /api/wallet/purchase-credits` **deprecated**.
 
 ### Shell hiện có
 
@@ -65,7 +72,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 - Giữ `/auth` làm route auth hợp nhất.
 - Giữ `/dashboard/intake` làm route create case wizard.
 - Giữ `/dashboard/case/[id]` làm user case workspace.
-- Giữ `/supporter/case/[id]` và `/supporter/case/[id]/review`.
+- Giữ `/supporter/case/[id]`; KHÔNG tạo `/supporter/case/[id]/review` — supporter biên tập report qua modal/`SupporterOutputUploadModal` (get-draft-report/edit-draft-report usecases), page riêng không tồn tại.
 - Dùng `/admin/case/[id]` như route canonical cho admin case detail ngay từ phase 1.
 - Xem `/dashboard/case/[id]/payment` là legacy/deferred route, không thuộc luồng CP1 MVP chính.
 
@@ -79,11 +86,13 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | `/dashboard/intake` | User | Create case wizard | Reuse + rebuild content | Giữ route, thay flow chat cũ bằng guided wizard |
 | `/dashboard/case/[id]` | User | User case workspace | Reuse + refocus | Màn quan trọng nhất; chuyển sang report-centric |
 | `/dashboard/case/[id]/payment` | User | Payment legacy | Deferred / legacy | Không nằm trong golden flow hiện tại |
+| `/dashboard/wallet` | User | Student wallet — số dư VND, lịch sử giao dịch, nạp tiền SePay | New (2026-08-11) | Nav item "Ví của tôi" trong DashboardShell |
 | `/admin` | Admin | Admin triage queue | Adapt mạnh | Trang queue chính |
 | `/admin/case/[id]` | Admin | Admin case detail | New | Canonical route cho detail view; không gộp tạm trong `/admin` |
 | `/supporter` | Supporter, Admin | Supporter queue | Reuse + adapt | Giữ route; đổi filter và copy theo queue thật |
 | `/supporter/case/[id]` | Supporter, Admin | Supporter case workspace | Reuse + adapt | Giữ route |
-| `/supporter/case/[id]/review` | Supporter, Admin | Supporter report composer | Reuse + adapt | Giữ route; đây là chỗ biên tập report |
+| `/dashboard/settings/sessions` | User | Quản lý thiết bị & Phiên đăng nhập (GA-06) | New (2026-08-28) | Hiển thị phiên, OS/Browser, badge phiên hiện tại, thu hồi phiên |
+| `/supporter/settings/sessions` | Supporter | Quản lý thiết bị & Phiên đăng nhập supporter (GA-06) | New (2026-08-28) | Tái sử dụng SessionsList cho supporter |
 
 ## 6. Route transition map
 
@@ -105,8 +114,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 
 - `/auth` -> đăng nhập thành công với role `supporter` -> `/supporter`
 - `/supporter` -> click case -> `/supporter/case/[id]`
-- `/supporter/case/[id]` -> `Biên tập phản biện` -> `/supporter/case/[id]/review`
-- `/supporter/case/[id]/review` -> publish thành công -> quay lại `/supporter/case/[id]`
+- `/supporter/case/[id]` -> biên tập report trong workspace (get-draft-report/edit-draft-report usecases) -> publish qua `SupporterOutputUploadModal`
 
 ## 7. Route-level implementation notes
 
@@ -150,6 +158,9 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | `IntakeChatFlow` | Existing | `/dashboard/intake` | Replace hoặc refactor mạnh |
 | `DriveValidatorInput` | Existing | intake | Reuse nếu vẫn phù hợp |
 | `useIntakeForm` | Existing | intake | Adapt để bám field set mới |
+| `WalletBalanceCard` / `WalletTransactionList` / `WalletTransactionItem` | New (2026-08-11) | `/dashboard/wallet` | Số dư VND + lịch sử giao dịch (`wallet_transactions`) |
+| `WalletTopupModal` | New (2026-08-11) | `/dashboard/wallet` | Nạp tiền SePay — trả QR + transfer content |
+| `useWallet` (useWalletBalance / useWalletHistory / useCreateDeposit) | New (2026-08-11) | `/dashboard/wallet` | Query balance/history (polling 30s), create-deposit mutation |
 
 ## 8.4 User case workspace
 
@@ -162,6 +173,9 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | `TabIdeaContent` | Có thể đổi thành panel `Tài liệu nhóm đã gửi` |
 | `TabReportFindings` | Giữ làm lõi của latest report view |
 | `useCaseDetails` | Giữ làm hook chính cho workspace |
+| `CreditPanel` / `CreditQuantityModal` / `CreditActions` | Core economy — mua credit trong workspace |
+| `CreditTransactionHistory` / `CreditBalanceCard` | Lịch sử giao dịch + số dư credit |
+| `StatusGuidanceCard` / `CaseOverviewPanel` | Hướng dẫn next action theo stage + tóm tắt case |
 
 ### Existing components nên bỏ khỏi golden flow hoặc hạ ưu tiên
 
@@ -169,9 +183,10 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | --- | --- |
 | `TabDiscussionChat` | Phase 1 không dùng chat tự do làm core flow |
 | `TabCaseSettings` | Không phải giá trị chính cho khách hàng trong MVP |
-| `PaymentDrawer` | Payment ra khỏi luồng chính |
 | `UnpaidAlertBanner` | Chỉ giữ nếu thật sự cần warning nội bộ; không để chi phối UI khách hàng |
 | `WorkspaceSidebar` / `WorkspaceTabs` | Có thể giữ tạm, nhưng cần refactor để ưu tiên `report + next action` thay vì portal tab-heavy |
+
+> Ghi chú (cập nhật 2026-08-03): `PaymentDrawer` không còn tồn tại trong codebase — luồng thanh toán đã chuyển sang credit/ledger economy (`CreditPanel`, `CreditQuantityModal`, `CreditActions`, `CreditTransactionHistory`, `CreditBalanceCard`).
 
 ### New user-facing components cần thêm
 
@@ -183,7 +198,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | `RequestMoreInfoNotice` | Hiển thị yêu cầu bổ sung có CTA rõ |
 | `DocumentBoard` | Gom tài liệu theo nhóm và theo round |
 | `DocumentBoardSection` | Section con cho từng nhóm tài liệu |
-| `RevisionSubmitModal` | Modal/drawer gửi bản sửa mới |
+| `RevisionUploadGate` | Nộp bản sửa mới, gate theo stage (`waiting_for_revision`) |
 | `RoundHistoryPanel` | Cho user thấy các vòng đã qua mà không áp đảo UI |
 
 ## 8.5 Admin components
@@ -200,7 +215,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | Component | Lý do |
 | --- | --- |
 | `AdminPaymentVerificationTable` | payment không còn thuộc golden flow |
-| `RejectionReasonModal` | Có thể giữ pattern modal, nhưng nội dung phải đổi sang reject case / request more info |
+| `RejectionReasonModal` | Có thể giữ pattern modal, nhưng nội dung phải đổi sang reject case (lý do ≥ 10 ký tự) — admin không còn action request more info |
 | `useAdminPayments` | deferred theo payment |
 
 ### New admin components cần thêm
@@ -211,9 +226,8 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | `AdminCaseRow` | item/card cho queue |
 | `AdminCaseSummaryPanel` | summary của case trong detail view |
 | `AdminDocumentPreviewPanel` | preview tài liệu để triage |
-| `AdminTriageActionPanel` | accept / reject / request more info / assign |
-| `RequestMoreInfoModal` | nhập phần cần bổ sung |
-| `RejectCaseModal` | nhập lý do reject |
+| `AdminTriageActionPanel` | accept / reject / assign |
+| `RejectCaseModal` | nhập lý do reject (bắt buộc ≥ 10 ký tự) |
 | `AssignSupporterPanel` | chọn supporter phù hợp |
 
 ## 8.6 Supporter components
@@ -242,7 +256,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | `SupporterCaseSummaryPanel` | summary riêng cho supporter |
 | `SupporterAuditChecklistPanel` | checklist audit tối thiểu trong UI |
 | `SupporterRoundComparisonPanel` | đặt bản cũ / bản mới cạnh nhau |
-| `SupporterReportComposer` | wrapper rõ cho route `/supporter/case/[id]/review` |
+| `SupporterReportComposer` | wrapper rõ cho report composer trong `/supporter/case/[id]` (không dùng route riêng) |
 | `CloseCaseModal` | đóng case với lý do rõ |
 | `SupporterRequestMoreInfoAction` | phát yêu cầu bổ sung từ supporter |
 
@@ -258,6 +272,7 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 | `usePaymentUpload` | deferred |
 | `useAdminCases` | refactor theo triage flow |
 | `useAdminPayments` | deferred |
+| `useWallet` | mới — ví VND: `useWalletBalance` (polling 30s), `useWalletHistory`, `useCreateDeposit` |
 
 ## 9. Reuse / adapt / new summary
 
@@ -287,11 +302,12 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 - `IntakeChatFlow`
 - `TabDiscussionChat`
 - `TabCaseSettings`
-- `PaymentDrawer`
 - `UnpaidAlertBanner`
 - `AdminPaymentVerificationTable`
 - `usePaymentUpload`
 - `useAdminPayments`
+
+> Ghi chú (cập nhật 2026-08-03): `PaymentDrawer` không còn trong codebase; thanh toán đã chuyển sang credit/ledger economy (`CreditPanel`, `CreditQuantityModal`, `CreditActions`, `CreditTransactionHistory`, `CreditBalanceCard`).
 
 ### New components required to finish MVP cleanly
 
@@ -299,7 +315,6 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 - `LatestReportPanel`
 - `RequestMoreInfoNotice`
 - `DocumentBoard`
-- `RevisionSubmitModal`
 - `AdminTriageQueueTable`
 - `AdminCaseSummaryPanel`
 - `AdminTriageActionPanel`
@@ -307,13 +322,15 @@ Chốt bản đồ route và bản đồ component cho `apps/web-1` theo hướn
 - `SupporterRoundComparisonPanel`
 - `CloseCaseModal`
 
+> Ghi chú (cập nhật 2026-08-03): `RevisionSubmitModal` không còn trong codebase — revision được xử lý qua stage-based flow (`user_facing_stage` + revision upload gating), với `CaseStatusHeader`/`StatusGuidanceCard` làm hướng dẫn next action.
+
 ## 10. Implement-first order
 
 1. Refactor `/dashboard/intake` thành wizard đúng spec.
 2. Refactor `/dashboard/case/[id]` thành report-centric workspace.
-3. Tạo `RevisionSubmitModal` trong user workspace.
+3. Thêm revision upload gating theo stage trong user workspace.
 4. Refactor `/supporter` và `/supporter/case/[id]`.
-5. Refactor `/supporter/case/[id]/review` thành report composer sạch hơn.
+5. Gắn draft report composer (get-draft-report/edit-draft-report usecases) vào `/supporter/case/[id]` — không tạo route `/supporter/case/[id]/review`.
 6. Refactor `/admin` thành triage queue.
 7. Triển khai `/admin/case/[id]` như detail page riêng cho admin.
 

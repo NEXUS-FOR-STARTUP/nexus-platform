@@ -4,7 +4,6 @@ import {
   getAdminCaseDetailHandler,
   acceptCaseHandler,
   rejectCaseHandler,
-  adminRequestMoreInfoHandler,
   adminAssignSupporterHandler,
   listAdminDocumentsHandler,
   deleteAdminDocumentHandler,
@@ -12,15 +11,35 @@ import {
   updatePackagePriceHandler,
   updatePackageStatusHandler,
   getAdminStatsHandler,
+  listServiceTypesHandler,
+  createServiceTypeHandler,
+  updateServiceTypeHandler,
+  getPricingHistoryHandler,
+  setPricingHandler,
+  createAdminUserHandler,
+  banUserHandler,
+  unbanUserHandler,
+  exportAdminDataHandler,
 } from "./admin.controller.js";
+import {
+  getAdminWorkerStatsHandler,
+  listAdminWorkerJobsHandler,
+  getAdminWorkerJobDetailHandler,
+  getAdminWorkerJobLogsHandler,
+  retryAdminWorkerJobHandler,
+  healStuckAdminWorkerJobHandler,
+  cancelAdminWorkerJobHandler,
+} from "./admin-workers.controller.js";
+
 
 export const adminRouter = new Hono();
+
+adminRouter.get("/exports", exportAdminDataHandler);
 
 adminRouter.get("/cases", listAdminCasesHandler);
 adminRouter.get("/cases/:id", getAdminCaseDetailHandler);
 adminRouter.post("/cases/:id/accept", acceptCaseHandler);
 adminRouter.post("/cases/:id/reject", rejectCaseHandler);
-adminRouter.post("/cases/:id/request-more-info", adminRequestMoreInfoHandler);
 adminRouter.post("/cases/:id/assign", adminAssignSupporterHandler);
 
 adminRouter.get("/documents", listAdminDocumentsHandler);
@@ -31,3 +50,23 @@ adminRouter.get("/stats", getAdminStatsHandler);
 adminRouter.get("/packages", listAdminPackagesHandler);
 adminRouter.put("/packages/:id/price", updatePackagePriceHandler);
 adminRouter.put("/packages/:id/status", updatePackageStatusHandler);
+
+adminRouter.get("/service-types", listServiceTypesHandler);
+adminRouter.post("/service-types", createServiceTypeHandler);
+adminRouter.patch("/service-types/:id", updateServiceTypeHandler);
+
+adminRouter.get("/packages/:id/pricing", getPricingHistoryHandler);
+adminRouter.post("/packages/:id/pricing", setPricingHandler);
+
+adminRouter.post("/users", createAdminUserHandler);
+adminRouter.post("/users/:id/ban", banUserHandler);
+adminRouter.post("/users/:id/unban", unbanUserHandler);
+
+// Worker & Queue Monitoring
+adminRouter.get("/workers/stats", getAdminWorkerStatsHandler);
+adminRouter.get("/workers/jobs", listAdminWorkerJobsHandler);
+adminRouter.get("/workers/jobs/:id", getAdminWorkerJobDetailHandler);
+adminRouter.get("/workers/jobs/:id/logs", getAdminWorkerJobLogsHandler);
+adminRouter.post("/workers/jobs/:id/retry", retryAdminWorkerJobHandler);
+adminRouter.post("/workers/jobs/:id/heal-stuck", healStuckAdminWorkerJobHandler);
+adminRouter.post("/workers/jobs/:id/cancel", cancelAdminWorkerJobHandler);

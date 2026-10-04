@@ -5,10 +5,10 @@ trigger: always_on
 # Project Documentation Management
 
 ### Roadmap & Changelog Maintenance
-- **Project Roadmap** (`./docs/development-roadmap.md`): Living document tracking project phases, milestones, and progress
-- **Project Changelog** (`./docs/project-changelog.md`): Detailed record of all significant changes, features, and fixes
-- **System Architecture** (`./docs/system-architecture.md`): Detailed record of all significant changes, features, and fixes
-- **Code Standards** (`./docs/code-standards.md`): Detailed record of all significant changes, features, and fixes
+- **Project Roadmap & Plans** (`./plans/`): Living directory tracking implementation plans, phases, milestones, and progress
+- **Project Changelog** (`./CHANGELOG.md`): Detailed record of all significant changes, features, and fixes
+- **System Architecture** (`./docs/system-architecture.md`): Detailed record of system design, modules, and data flow
+- **Code Standards** (`./docs/code-standards.md`): Detailed record of coding rules, testing conventions, and safety guidelines
 
 ### Automatic Updates Required
 - **After Feature Implementation**: Update roadmap progress status and changelog entries
@@ -72,7 +72,7 @@ plans/
 - Key dependencies
 
 ##### Phase Files (phase-XX-name.md)
-Fully respect the `./docs/development-rules.md` file.
+Fully respect the `./.agents/rules/development-rules.md` file.
 Each phase file should contain:
 
 **Context Links**

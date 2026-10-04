@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_intake" targetNamespace="http://bpmn.io/schema/bpmn" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <bpmn:process id="intake-process" name="Nhập hồ sơ (Intake)" isExecutable="true">
+    <bpmn:startEvent id="Start_Wizard" name="Sinh viên mở wizard intake">
+      <bpmn:outgoing>Flow_Start1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:startEvent id="Start_CaseCreated" name="Case đã tạo từ team-fit">
+      <bpmn:messageEventDefinition messageRef="Message_caseCreated" />
+      <bpmn:outgoing>Flow_Start2</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="GwMergeFill" name="Vào điền hồ sơ">
+      <bpmn:incoming>Flow_Start1</bpmn:incoming>
+      <bpmn:incoming>Flow_Start2</bpmn:incoming>
+      <bpmn:incoming>Flow_BackToFill</bpmn:incoming>
+      <bpmn:outgoing>Flow_MergeFill</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="FillIntake" name="Điền hồ sơ intake">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition externalReference="intake-form" />
+        <zeebe:assignmentDefinition candidateGroups="students" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_MergeFill</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToGwComplete</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="GwComplete" name="Đủ dữ liệu tối thiểu?" default="Flow_BackToFill">
+      <bpmn:incoming>Flow_ToGwComplete</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToCreate</bpmn:outgoing>
+      <bpmn:outgoing>Flow_BackToFill</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="CreateCase" name="Tạo case">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="create-case" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToCreate</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToGwPayment</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GwPayment" name="Gói cần thanh toán?" default="Flow_ToFork">
+      <bpmn:incoming>Flow_ToGwPayment</bpmn:incoming>
+      <bpmn:outgoing>Flow_NotRequired</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ToFork</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:parallelGateway id="ForkAnyOrder" name="Thứ tự tự do">
+      <bpmn:incoming>Flow_ToFork</bpmn:incoming>
+      <bpmn:outgoing>Flow_ForkSubmit</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ForkPay</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:exclusiveGateway id="GwMergeSubmit" name="Vào nộp hồ sơ">
+      <bpmn:incoming>Flow_NotRequired</bpmn:incoming>
+      <bpmn:incoming>Flow_ForkSubmit</bpmn:incoming>
+      <bpmn:outgoing>Flow_MergeSubmit</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="SubmitIntake" name="Nộp hồ sơ">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition externalReference="intake-submit" />
+        <zeebe:assignmentDefinition candidateGroups="students" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_MergeSubmit</bpmn:incoming>
+      <bpmn:outgoing>Flow_SubmitDone</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="MarkSubmitted" name="Ghi nhận đã nộp">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="submit-intake" retries="3" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_SubmitDone</bpmn:incoming>
+      <bpmn:outgoing>Flow_Submitted</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:callActivity id="CallPayment" name="Thanh toán &amp; mua lượt">
+      <bpmn:extensionElements>
+        <zeebe:calledElement processId="payment-and-credit" propagateAllChildVariables="false" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ForkPay</bpmn:incoming>
+      <bpmn:outgoing>Flow_Paid</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:endEvent id="End_Submitted" name="Case vào hàng đợi admin">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="publish-message" />
+      </bpmn:extensionElements>
+      <bpmn:messageEventDefinition messageRef="Message_caseSubmitted" />
+      <bpmn:incoming>Flow_Submitted</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Paid" name="Case đã thanh toán">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="publish-message" />
+      </bpmn:extensionElements>
+      <bpmn:messageEventDefinition messageRef="Message_casePaid" />
+      <bpmn:incoming>Flow_Paid</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:textAnnotation id="Note_Bug" text="⚠ Lệch so với code hiện tại (PR #19): mua lượt khi case đang 'Chờ thanh toán' đẩy case sang 'Sẵn sàng nộp'; việc Nộp hồ sơ sau đó bị kẹt, không lên 'Đã nộp' được. Sơ đồ thể hiện luồng nghiệp vụ mong muốn — xem docs/research/brainstorm-2026-08-21-flow-confusion-intake-payment-credit.md" />
+    <bpmn:sequenceFlow id="Flow_Start1" sourceRef="Start_Wizard" targetRef="GwMergeFill" />
+    <bpmn:sequenceFlow id="Flow_Start2" sourceRef="Start_CaseCreated" targetRef="GwMergeFill" />
+    <bpmn:sequenceFlow id="Flow_MergeFill" sourceRef="GwMergeFill" targetRef="FillIntake" />
+    <bpmn:sequenceFlow id="Flow_ToGwComplete" sourceRef="FillIntake" targetRef="GwComplete" />
+    <bpmn:sequenceFlow id="Flow_BackToFill" name="Thiếu dữ liệu — quay lại" sourceRef="GwComplete" targetRef="GwMergeFill" />
+    <bpmn:sequenceFlow id="Flow_ToCreate" name="Đủ" sourceRef="GwComplete" targetRef="CreateCase">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=intakeComplete = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_ToGwPayment" sourceRef="CreateCase" targetRef="GwPayment" />
+    <bpmn:sequenceFlow id="Flow_NotRequired" name="Gói miễn phí" sourceRef="GwPayment" targetRef="GwMergeSubmit">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=paymentStatus = "not_required"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_ToFork" name="Gói trả phí" sourceRef="GwPayment" targetRef="ForkAnyOrder" />
+    <bpmn:sequenceFlow id="Flow_ForkSubmit" sourceRef="ForkAnyOrder" targetRef="GwMergeSubmit" />
+    <bpmn:sequenceFlow id="Flow_ForkPay" sourceRef="ForkAnyOrder" targetRef="CallPayment" />
+    <bpmn:sequenceFlow id="Flow_MergeSubmit" sourceRef="GwMergeSubmit" targetRef="SubmitIntake" />
+    <bpmn:sequenceFlow id="Flow_SubmitDone" sourceRef="SubmitIntake" targetRef="MarkSubmitted" />
+    <bpmn:sequenceFlow id="Flow_Submitted" sourceRef="MarkSubmitted" targetRef="End_Submitted" />
+    <bpmn:sequenceFlow id="Flow_Paid" sourceRef="CallPayment" targetRef="End_Paid" />
+    <bpmn:association id="Assoc_Bug" sourceRef="Note_Bug" targetRef="CallPayment" />
+  </bpmn:process>
+  <bpmn:message id="Message_caseCreated" name="case-created" />
+  <bpmn:message id="Message_caseSubmitted" name="case-submitted">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=caseId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Message_casePaid" name="case-paid">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=caseId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_intake">
+    <bpmndi:BPMNPlane id="BPMNPlane_intake" bpmnElement="intake-process">
+      <bpmndi:BPMNShape id="Start_Wizard_di" bpmnElement="Start_Wizard">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_CaseCreated_di" bpmnElement="Start_CaseCreated">
+        <dc:Bounds x="152" y="185" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwMergeFill_di" bpmnElement="GwMergeFill" isMarkerVisible="true">
+        <dc:Bounds x="240" y="115" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="FillIntake_di" bpmnElement="FillIntake">
+        <dc:Bounds x="340" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwComplete_di" bpmnElement="GwComplete" isMarkerVisible="true">
+        <dc:Bounds x="490" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CreateCase_di" bpmnElement="CreateCase">
+        <dc:Bounds x="590" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwPayment_di" bpmnElement="GwPayment" isMarkerVisible="true">
+        <dc:Bounds x="740" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ForkAnyOrder_di" bpmnElement="ForkAnyOrder">
+        <dc:Bounds x="840" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwMergeSubmit_di" bpmnElement="GwMergeSubmit" isMarkerVisible="true">
+        <dc:Bounds x="940" y="105" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubmitIntake_di" bpmnElement="SubmitIntake">
+        <dc:Bounds x="1040" y="65" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="MarkSubmitted_di" bpmnElement="MarkSubmitted">
+        <dc:Bounds x="1190" y="65" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Submitted_di" bpmnElement="End_Submitted">
+        <dc:Bounds x="1340" y="87" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallPayment_di" bpmnElement="CallPayment">
+        <dc:Bounds x="990" y="165" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Paid_di" bpmnElement="End_Paid">
+        <dc:Bounds x="1140" y="187" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Note_Bug_di" bpmnElement="Note_Bug">
+        <dc:Bounds x="1410" y="150" width="260" height="110" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Start1_di" bpmnElement="Flow_Start1">
+        <di:waypoint x="188" y="120" />
+        <di:waypoint x="240" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Start2_di" bpmnElement="Flow_Start2">
+        <di:waypoint x="188" y="203" />
+        <di:waypoint x="203" y="203" />
+        <di:waypoint x="203" y="140" />
+        <di:waypoint x="240" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_MergeFill_di" bpmnElement="Flow_MergeFill">
+        <di:waypoint x="290" y="140" />
+        <di:waypoint x="310" y="140" />
+        <di:waypoint x="310" y="120" />
+        <di:waypoint x="340" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToGwComplete_di" bpmnElement="Flow_ToGwComplete">
+        <di:waypoint x="440" y="120" />
+        <di:waypoint x="490" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_BackToFill_di" bpmnElement="Flow_BackToFill">
+        <di:waypoint x="515" y="95" />
+        <di:waypoint x="515" y="30" />
+        <di:waypoint x="265" y="30" />
+        <di:waypoint x="265" y="115" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToCreate_di" bpmnElement="Flow_ToCreate">
+        <di:waypoint x="540" y="120" />
+        <di:waypoint x="590" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToGwPayment_di" bpmnElement="Flow_ToGwPayment">
+        <di:waypoint x="690" y="120" />
+        <di:waypoint x="740" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_NotRequired_di" bpmnElement="Flow_NotRequired">
+        <di:waypoint x="765" y="95" />
+        <di:waypoint x="765" y="45" />
+        <di:waypoint x="965" y="45" />
+        <di:waypoint x="965" y="105" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToFork_di" bpmnElement="Flow_ToFork">
+        <di:waypoint x="790" y="120" />
+        <di:waypoint x="840" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ForkSubmit_di" bpmnElement="Flow_ForkSubmit">
+        <di:waypoint x="865" y="95" />
+        <di:waypoint x="865" y="130" />
+        <di:waypoint x="940" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ForkPay_di" bpmnElement="Flow_ForkPay">
+        <di:waypoint x="865" y="145" />
+        <di:waypoint x="865" y="205" />
+        <di:waypoint x="990" y="205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_MergeSubmit_di" bpmnElement="Flow_MergeSubmit">
+        <di:waypoint x="990" y="130" />
+        <di:waypoint x="1015" y="130" />
+        <di:waypoint x="1015" y="105" />
+        <di:waypoint x="1040" y="105" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SubmitDone_di" bpmnElement="Flow_SubmitDone">
+        <di:waypoint x="1140" y="105" />
+        <di:waypoint x="1190" y="105" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Submitted_di" bpmnElement="Flow_Submitted">
+        <di:waypoint x="1290" y="105" />
+        <di:waypoint x="1340" y="105" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Paid_di" bpmnElement="Flow_Paid">
+        <di:waypoint x="1090" y="205" />
+        <di:waypoint x="1140" y="205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_Bug_di" bpmnElement="Assoc_Bug">
+        <di:waypoint x="1410" y="205" />
+        <di:waypoint x="1090" y="205" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

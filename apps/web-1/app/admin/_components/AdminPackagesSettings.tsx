@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { ServicePackage } from "@/types";
-import { Table, NumberInput, Button, Card, Stack, Text, Badge, Switch } from "@mantine/core";
+import { Table, NumberInput, Card, Stack, Text, Badge, Switch, Menu, ActionIcon } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
+import { MoreVertical, Save } from "lucide-react";
 import { formatPrice } from "@/lib/pricing";
 
 interface AdminPackagesSettingsProps {
@@ -97,9 +98,9 @@ export default function AdminPackagesSettings({
               <Table.Th className="text-left">Tên gói dịch vụ</Table.Th>
               <Table.Th className="text-left w-36">Trạng thái</Table.Th>
               <Table.Th className="text-left w-52">Hiển thị với khách mới</Table.Th>
-              <Table.Th className="text-left w-56">Đơn giá hiện tại (VNĐ)</Table.Th>
-              <Table.Th className="text-left w-56">Thiết lập giá mới (VNĐ)</Table.Th>
-              <Table.Th className="text-center w-44">Thao tác</Table.Th>
+              <Table.Th className="text-left w-56">Đơn giá hiện tại (VND)</Table.Th>
+              <Table.Th className="text-left w-56">Thiết lập giá mới (VND)</Table.Th>
+              <Table.Th className="text-center w-20">Thao tác</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -151,26 +152,32 @@ export default function AdminPackagesSettings({
                       value={currentInputVal}
                       onChange={(val) => handlePriceChange(pkg.id, val)}
                       min={0}
-                      thousandSeparator="."
-                      decimalSeparator=","
-                      suffix=" VNĐ"
+                      thousandSeparator=","
+                      decimalSeparator="."
+                      suffix=" VND"
                       placeholder="Nhập giá mới..."
                       radius="md"
                     />
                   </Table.Td>
-                  <Table.Td>
-                    <Button
-                      onClick={() => handleUpdatePrice(pkg)}
-                      disabled={isUpdatingPrice || !isModified}
-                      loading={isUpdatingPrice}
-                      variant="filled"
-                      color="brand"
-                      size="xs"
-                      radius="md"
-                      fullWidth
-                    >
-                      Cập nhật giá
-                    </Button>
+                  <Table.Td className="text-center">
+                    <Menu shadow="md" width={180} position="bottom-end">
+                      <Menu.Target>
+                        <ActionIcon variant="subtle" color="gray" className="cursor-pointer mx-auto">
+                          <MoreVertical className="w-4 h-4" />
+                        </ActionIcon>
+                      </Menu.Target>
+
+                      <Menu.Dropdown className="bg-surface-app border border-border-app p-1 rounded-lg">
+                        <Menu.Item
+                          leftSection={<Save className="w-3.5 h-3.5 text-brand" />}
+                          onClick={() => handleUpdatePrice(pkg)}
+                          disabled={isUpdatingPrice || !isModified}
+                          className="text-text-app hover:bg-surface-soft cursor-pointer text-xs font-semibold"
+                        >
+                          Cập nhật giá
+                        </Menu.Item>
+                      </Menu.Dropdown>
+                    </Menu>
                   </Table.Td>
                 </Table.Tr>
               );
