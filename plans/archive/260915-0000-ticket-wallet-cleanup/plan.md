@@ -1,6 +1,6 @@
-# Plan nháp: dọn nền tiền vé + ví rồi fix P0 (DRAFT — chưa chốt)
+# Plan nháp: dọn nền tiền vé + ví rồi fix P0 (SUPERSEDED)
 
-> Trạng thái: DRAFT. Chưa implement. Chờ chốt phương án pay-per-trigger hay giữ vé, và thứ tự dọn vs fix P0.
+> Trạng thái: SUPERSEDED. Các nội dung P0 và sửa lỗi tài chính B1-B5 đã được tách ra thực hiện hoàn tất tại `plans/260915-1646-fix-p0-audit` và `plans/260915-1700-fix-b1-b5-blockers`. Ý tưởng thêm cột Prisma schema đã bãi bỏ (dùng package metadata_json).
 
 ## Bối cảnh
 

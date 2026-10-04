@@ -1,7 +1,9 @@
-# Plan: Fix Nghẽn Luồng Kích Hoạt Nexus AI & Tối Ưu Hóa Giao Diện Case Submitted
+# Plan: Fix Nghẽn Luồng Kích Hoạt Nexus AI & Tối Ưu Hóa Giao Diện Case Submitted (SUPERSEDED)
+
+> Trạng thái: SUPERSEDED. Vấn đề cốt lõi về transaction abort / retry kẹt đã được giải quyết triệt để và toàn diện hơn bằng kiến trúc Run-based Job IDs (UUID độc lập cho từng lượt chạy) tại `plans/260920-1700-independent-job-runs-and-report-naming`. Giao diện radar chờ quét AI cho gói 79k đã được tích hợp trực tiếp trên case page.
 
 **Mã kế hoạch:** `plans/260916-1700-fix-nexus-ai-trigger-and-guidance-card/plan.md`  
-**Trạng thái:** `pending`  
+**Trạng thái:** `superseded`  
 **Ngày tạo:** 16/09/2026  
 **Dựa trên Báo cáo:** `plans/reports/260916-brainstorm-nexus-ai-trigger-and-guidance-card.md`  
 **Tiêu chuẩn sản xuất (Production Standards):** Không `TODO`/`FIXME`, Type-safe 100%, Xử lý triệt để lỗi Transaction Postgres, Không nuốt lỗi.

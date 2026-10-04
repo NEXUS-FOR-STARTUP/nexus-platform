@@ -1,7 +1,7 @@
 ---
 title: "Quickfix legacy cutover + null contract FE-only + docs"
 description: "6 quick-fixes co hoc: xoa pkg_tf_audit chet, FE null fallback, sua docs gia 39k"
-status: pending
+status: completed
 priority: P2
 effort: 2h
 branch: feat/79k-dual-credit
@@ -20,8 +20,8 @@ BE `get-case-detail.usecase.ts:125-127` giu `null` truthful cho legacy reports (
 ## Phases
 | Phase | File | Q | Status |
 |---|---|---|---|
-| 01 | `phase-01-backend-dead-code-docs.md` | Q1,Q3,Q4 | pending |
-| 02 | `phase-02-frontend-null-docs.md` | Q2,Q5,Q6 | pending |
+| 01 | `phase-01-backend-dead-code-docs.md` | Q1,Q3,Q4 | completed |
+| 02 | `phase-02-frontend-null-docs.md` | Q2,Q5,Q6 | completed |
 
 ## Key files
 - BE: `credit-audit-order.helpers.ts:8`, `create-order.usecase.ts:128-130`, `reports.controller.ts:338`, `reports.routes.ts:17`, `get-case-detail.usecase.ts:125-133`

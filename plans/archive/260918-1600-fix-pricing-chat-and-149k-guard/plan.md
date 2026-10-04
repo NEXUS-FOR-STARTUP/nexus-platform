@@ -1,3 +1,10 @@
+---
+title: "Fix Pricing Chat Guard, Realtime Lifecycle, and 149k Entrypoints"
+status: completed
+created: 2026-09-18
+tags: [pricing, chat, realtime, 149k-guard, intake]
+---
+
 # Plan: Fix Pricing Chat Guard, Realtime Lifecycle, and 149k Entrypoints
 
 ## Overview
