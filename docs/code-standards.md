@@ -1,13 +1,15 @@
 # Code standards
 
-_Cập nhật: 2026-08-24_
+_Cập nhật: 2026-10-04_
 
 ## Repo structure
 
-- `apps/api`: Hono backend, Better Auth, Prisma, document/report/payment workflows.
-- `apps/web-1`: Next.js 16 product app (Mantine UI v9).
+- `apps/api`: Hono backend (15 modules, 112 endpoints), Better Auth, Prisma 7, Typst PDF engine.
+- `apps/web-1`: Next.js 16 product app (Mantine UI v9 + Tailwind CSS v4).
+- `apps/worker-omp`: AI evaluation daemon (BullMQ + Redis sandbox).
+- `packages/shared`: shared telemetry & worker metrics (`@app/shared`).
 - `packages/validation`: shared Zod schemas (FE↔BE, single source of truth).
-- `prisma/schema.prisma`: single source of truth cho data model.
+- `prisma/schema.prisma`: single source of truth cho data model (32 models, 31 migrations).
 - Tài liệu DB tham khảo: [`db-query-guide.md`](./db-query-guide.md), [`db-backup-guide.md`](./db-backup-guide.md).
 
 ## TypeScript
@@ -41,9 +43,9 @@ _Cập nhật: 2026-08-24_
 
 ## API module organization
 
-- Bounded context theo domain: cases, reports, payments, packages, documents, admin, supporter, ai-engine, notifications, realtime, wallet, deposits, orders.
-- Layering theo clean architecture: domain → application → infrastructure → presentation.
-- Modules giao tiếp trực tiếp qua use-case/service; event bus (`shared/domain/domain-events.ts` + `shared/infrastructure/event-bus.ts`) dùng cho notifications (14 event types), phần còn lại không cần.
+- Bounded context theo 15 domain modules: cases, reports, payments, packages, documents, admin, supporter, ai-engine, notifications, realtime, wallet, deposits, orders, profile, auth.
+- Layering theo clean architecture: domain → application → infrastructure → presentation/http.
+- Modules giao tiếp trực tiếp qua use-case/service; event bus (`shared/domain/domain-events.ts` + `shared/infrastructure/event-bus.ts`) dùng cho notifications (14 event types), hỗ trợ 2 Outbox Relays: `NotificationOutbox` (2s tick) và `DomainEventOutbox` (5s tick).
 - Shared infra: `AppError` class, `requireAuth` middleware, `requireCaseAccess` authorization, audit-logger.
 
 ## Error handling
@@ -57,9 +59,12 @@ _Cập nhật: 2026-08-24_
 ## Web standards
 
 - Next.js App Router, route groups: public, auth, dashboard, supporter, admin.
-- Giữ UI consistent với Mantine UI v9.
-- Không đưa business logic nặng vào component page — tách hook/module.
-- Với Nexus MVP, ưu tiên shared workspace shell thay vì page flow rời rạc.
+- Giữ UI consistent với Mantine UI v9 và Tailwind CSS v4.
+- Auth & Route Guard: Server-side route guard tại `proxy.ts` (Next.js 16) chặn truy cập theo role trước khi render, quản lý `MAINTENANCE_MODE`. Client-side dùng Better Auth `useSession()`.
+- Device Persona Scope: Toàn bộ luồng Student (dashboard, intake, case workspace, wallet, settings) hỗ trợ mobile-responsive (drawer nav, card view table). Admin & Supporter là **Desktop-only tuyệt đối** (`DesktopOnlyNotice.tsx` chặn < 1024px).
+- Thuật ngữ UX: Toàn bộ copy và micro-copy giao diện tuân thủ quy chuẩn từ ngữ tại `design-system/wording/`.
+- Không đưa business logic nặng vào component page — tách hook/module (37 custom hooks hiện tại).
+- Với Nexus, ưu tiên shared workspace shell với 7 tabs (`overview`, `documents`, `report`, `discussion`, `timeline`, `settings`, `credits`) đồng bộ trạng thái qua URL `?tab=`.
 - Phân biệt rõ 2 lớp document flow: intake (hybrid Drive/Docs + checklist) và workspace (checkpoint/version/assessment).
 - Discussion/chat: realtime Centrifugo (WebSocket primary) + REST polling 60s fallback — không viết tài liệu hoặc UI như thể vẫn còn polling 5s.
 - Credit/ledger economy là core (CreditPanel/CreditQuantityModal/CreditTransactionHistory/CreditBalanceCard + sepay webhook); không để credit lấn narrative chính của audit/review flow.
@@ -69,7 +74,7 @@ _Cập nhật: 2026-08-24_
 
 ## Testing standards
 
-_Trạng thái hiện tại: 22 files tại `apps/api/src/shared/infrastructure/tests/` (21 `*.test.ts` + `coverage-report.ts`) — Node built-in runner (`node:test` + `node:assert`), chạy qua `tsx --test` (chỉ trong apps/api)._
+_Trạng thái hiện tại: 48 files tại `apps/api/src/shared/infrastructure/tests/` (47 `*.test.ts` + `coverage-report.ts`) — Node built-in runner (`node:test` + `node:assert`), chạy qua `tsx --test` (chỉ trong apps/api)._
 
 - **Unit test:** Node built-in runner (`node:test`) + `tsx --test` — chuẩn hiện tại của repo, không dùng Vitest.
 - **Test naming:** `{module}.test.ts`, đặt trong `apps/api/src/shared/infrastructure/tests/`.
