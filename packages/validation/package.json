@@ -13,7 +13,8 @@
     }
   },
   "scripts": {
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "tsx --test src/__tests__/*.test.ts"
   },
   "dependencies": {
     "zod": "^4.4.3"
