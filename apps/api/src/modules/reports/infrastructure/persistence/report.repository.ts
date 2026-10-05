@@ -135,6 +135,62 @@ export async function findApprovedReports(caseId: string) {
 }
 
 /**
+ * Resolve the checkpoint an OMP audit report belongs to.
+ *
+ * Priority:
+ *  1. The lifecycle unit's own checkpoint — the artifact is versioned under a
+ *     specific checkpoint, so this is the authoritative route (fixes the old
+ *     CP1 mis-route that always picked the oldest checkpoint by created_at).
+ *  2. The case's `current_checkpoint` code, when it matches a real checkpoint.
+ *  3. The checkpoint with the highest `latest_version_no`.
+ *  4. Create CP1 as a last resort (backward-compatible with fresh cases).
+ */
+async function resolveOmpAuditCheckpoint(
+  caseId: string,
+  lifecycleUnitId: string | null | undefined,
+  db: Pick<typeof prisma, "checkpoint" | "report" | "lifecycleUnit" | "case">,
+) {
+  if (lifecycleUnitId) {
+    const unit = await db.lifecycleUnit.findUnique({
+      where: { id: lifecycleUnitId },
+      select: { id: true, case_id: true, checkpoint_id: true },
+    });
+    if (unit && unit.case_id === caseId) {
+      const checkpoint = await db.checkpoint.findUnique({
+        where: { id: unit.checkpoint_id },
+      });
+      if (checkpoint) return checkpoint;
+    }
+  }
+
+  const caseRecord = await db.case.findUnique({
+    where: { id: caseId },
+    select: { current_checkpoint: true },
+  });
+  if (caseRecord?.current_checkpoint) {
+    const checkpoint = await db.checkpoint.findFirst({
+      where: { case_id: caseId, checkpoint_code: caseRecord.current_checkpoint },
+    });
+    if (checkpoint) return checkpoint;
+  }
+
+  const latestCheckpoint = await db.checkpoint.findFirst({
+    where: { case_id: caseId },
+    orderBy: [{ latest_version_no: "desc" }, { created_at: "asc" }],
+  });
+  if (latestCheckpoint) return latestCheckpoint;
+
+  return await db.checkpoint.create({
+    data: {
+      case_id: caseId,
+      checkpoint_code: "CP1",
+      checkpoint_status: "submitted",
+      latest_version_no: 1,
+    },
+  });
+}
+
+/**
  * Create a new OMP automated audit report row. Always inserts — never upserts.
  * Each AI audit run produces a distinct report linked to its lifecycle_unit.
  * Accepts an optional tx client so the caller's duplicate-report check and
@@ -147,26 +203,12 @@ export async function saveOmpAuditReport(
     contentMd: string;
     metadataJson?: Record<string, unknown> | null;
   },
-  db: Pick<typeof prisma, "checkpoint" | "report"> = prisma,
+  db: Pick<typeof prisma, "checkpoint" | "report" | "lifecycleUnit" | "case"> = prisma,
 ) {
   const { caseId, lifecycleUnitId, contentMd, metadataJson } = params;
 
-  // Find checkpoint for this case
-  let checkpoint = await db.checkpoint.findFirst({
-    where: { case_id: caseId },
-    orderBy: { created_at: "asc" },
-  });
-
-  if (!checkpoint) {
-    checkpoint = await db.checkpoint.create({
-      data: {
-        case_id: caseId,
-        checkpoint_code: "CP1",
-        checkpoint_status: "submitted",
-        latest_version_no: 1,
-      },
-    });
-  }
+  // Route to the checkpoint the audit actually belongs to, not the oldest row.
+  const checkpoint = await resolveOmpAuditCheckpoint(caseId, lifecycleUnitId, db);
 
   return await db.report.create({
     data: {

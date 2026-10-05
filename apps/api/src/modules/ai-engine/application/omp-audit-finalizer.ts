@@ -15,7 +15,7 @@ import {
 import { saveOmpAuditReport } from "../../reports/infrastructure/persistence/report.repository.js";
 import { upsertReportArtifactDocumentRecord } from "../../documents/infrastructure/persistence/document.repository.js";
 import { uploadFile } from "../../../services/cloudinary.js";
-import { resolveRepoRoot } from "../omp-audit.service.js";
+import { resolveRepoRoot, resolveAuditPromptFileName } from "../omp-audit.service.js";
 import { prisma } from "../../../db.js";
 import { ompQueue } from "../infrastructure/queue/omp-queue.js";
 
@@ -257,6 +257,8 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
     pdfUrl,
     pdfPublicId,
     submission_type: submissionType,
+    prompt_version: resolveAuditPromptFileName(submissionType),
+    prompt_mode: (aiJobInput?.prompt_mode as string | undefined) ?? "full",
     triggerStartedAt,
     model: (aiJobInput?.model as string | undefined) ?? process.env.OMP_MODEL ?? "mimo/mimo-v2.5-pro",
   };

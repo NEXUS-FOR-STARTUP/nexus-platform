@@ -56,6 +56,22 @@ export function resolveRepoRoot(): string {
   }
   return process.cwd();
 }
+
+/**
+ * Map a submission type to the versioned submission-specific system prompt file
+ * the OMP runtime actually loads. Mirrors `apps/worker-omp/src/omp-runner.ts`.
+ * Used both to run the audit and to stamp prompt provenance on the saved report.
+ */
+export function resolveAuditPromptFileName(submissionType: string): string {
+  switch (submissionType) {
+    case "resubmit":
+      return "input_clarification_gate_v4_1_resubmit.md";
+    case "logic_check":
+      return "input_clarification_gate_v4_1_logic.md";
+    default:
+      return "input_clarification_gate_v4_1.md";
+  }
+}
 function safeCopyFileSync(src: string, dest: string): void {
   try {
     copyFileSync(src, dest);
@@ -184,18 +200,7 @@ export async function runOmpAudit(opts: OmpAuditOptions): Promise<OmpAuditResult
   const promptFilesDir = resolve(projectRoot, "data/system-prompts");
   const submissionType = opts.submissionType ?? "initial";
 
-  let promptFileName: string;
-  switch (submissionType) {
-    case "resubmit":
-      promptFileName = "input_clarification_gate_v4_1_resubmit.md";
-      break;
-    case "logic_check":
-      promptFileName = "input_clarification_gate_v4_1_logic.md";
-      break;
-    default:
-      promptFileName = "input_clarification_gate_v4_1.md";
-      break;
-  }
+  const promptFileName = resolveAuditPromptFileName(submissionType);
 
   const promptFilePath = resolve(promptFilesDir, promptFileName);
   const promptInstructions = existsSync(promptFilePath)
