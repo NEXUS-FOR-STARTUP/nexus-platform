@@ -126,6 +126,8 @@ export const config = {
     "/dashboard/:path*",
     "/supporter/:path*",
     "/admin/:path*",
+    "/news",
+    "/news/:path*",
     "/maintenance",
   ],
 };

@@ -80,8 +80,15 @@ export default function AppShell({ children }: AppShellProps) {
             >
               <Logo height={62} />
             </Link>
-
-
+            {/* Desktop Nav */}
+            <nav aria-label="Điều hướng chính" className="hidden md:flex items-center gap-6">
+              <Link
+                href="/news"
+                className="text-sm font-medium text-text-muted hover:text-text-app transition-colors"
+              >
+                Tin tức
+              </Link>
+            </nav>
 
             {/* Desktop Actions */}
             <Group visibleFrom="md" gap={12}>
@@ -161,6 +168,13 @@ export default function AppShell({ children }: AppShellProps) {
               className="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-lg text-sm font-medium text-text-app hover:bg-surface-soft active:bg-surface-soft transition-colors"
             >
               Hỗ trợ & Liên hệ
+            </Link>
+            <Link
+              href="/news"
+              onClick={closeDrawer}
+              className="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-lg text-sm font-medium text-text-app hover:bg-surface-soft active:bg-surface-soft transition-colors"
+            >
+              Tin tức
             </Link>
 
             <Divider my="sm" />
