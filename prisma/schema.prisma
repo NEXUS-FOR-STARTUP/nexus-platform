@@ -725,3 +725,26 @@ model NotificationPreference {
 
   @@map("notification_preferences")
 }
+
+model NewsItem {
+  id                      String    @id @default(uuid())
+  type                    String    // "article" | "video"
+  status                  String    @default("draft") // "draft" | "published"
+  title                   String    @db.VarChar(200)
+  slug                    String?   @unique @db.VarChar(160)
+  excerpt                 String    @default("") @db.VarChar(320)
+  content_json            Json?
+  youtube_video_id        String?   @db.VarChar(11)
+  cover_image_url         String?
+  cover_image_public_id   String?
+  cover_image_alt         String?   @db.VarChar(200)
+  published_at            DateTime?
+  created_by_auth_user_id String
+  updated_by_auth_user_id String
+  created_at              DateTime  @default(now())
+  updated_at              DateTime  @updatedAt
+
+  @@index([status, published_at(sort: Desc), id(sort: Desc)])
+  @@index([updated_at(sort: Desc), id(sort: Desc)])
+  @@map("news_items")
+}

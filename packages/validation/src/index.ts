@@ -980,3 +980,317 @@ export function buildStandardReportPdfFilename(opts: BuildReportPdfFilenameOptio
       : "";
   return `${slug}_${typeSlug}_${timestamp}${versionSuffix}.pdf`;
 }
+
+// ---------------------------------------------------------------------------
+// News Module — Shared contracts, DTOs & Validation
+// ---------------------------------------------------------------------------
+
+export const NEWS_TYPE = {
+  ARTICLE: 'article',
+  VIDEO: 'video',
+} as const;
+
+export type NewsType = (typeof NEWS_TYPE)[keyof typeof NEWS_TYPE];
+
+export const NEWS_STATUS = {
+  DRAFT: 'draft',
+  PUBLISHED: 'published',
+} as const;
+
+export type NewsStatus = (typeof NEWS_STATUS)[keyof typeof NEWS_STATUS];
+
+export const NEWS_TITLE_MAX_LENGTH = 200;
+export const NEWS_SLUG_MAX_LENGTH = 160;
+export const NEWS_EXCERPT_MAX_LENGTH = 320;
+export const NEWS_COVER_ALT_MAX_LENGTH = 200;
+export const NEWS_MAX_CONTENT_JSON_BYTES = 512 * 1024; // 512 KiB
+
+export const NEWS_PUBLIC_DEFAULT_LIMIT = 12;
+export const NEWS_PUBLIC_MAX_LIMIT = 48;
+export const NEWS_ADMIN_DEFAULT_LIMIT = 20;
+export const NEWS_ADMIN_MAX_LIMIT = 100;
+
+export const NewsTypeSchema = z.enum(['article', 'video']);
+export const NewsStatusSchema = z.enum(['draft', 'published']);
+
+export function isSafeHttpUrl(url: string): boolean {
+  if (!url || typeof url !== 'string') return false;
+  const trimmed = url.trim();
+  if (trimmed.startsWith('/') && !trimmed.startsWith('//')) {
+    return !/[\r\n\t\0\\]/.test(trimmed);
+  }
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
+    if (parsed.username || parsed.password) return false;
+    if (/[\r\n\t\0\\]/.test(trimmed)) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function extractYouTubeVideoId(input: string): string | null {
+  if (!input || typeof input !== 'string') return null;
+  const trimmed = input.trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+    return trimmed;
+  }
+  try {
+    const url = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
+    const host = url.hostname.toLowerCase();
+    if (host === 'youtu.be') {
+      const id = url.pathname.slice(1).split('/')[0];
+      return id && /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : null;
+    }
+    if (
+      host === 'youtube.com' ||
+      host === 'www.youtube.com' ||
+      host === 'm.youtube.com'
+    ) {
+      if (url.pathname === '/watch') {
+        const v = url.searchParams.get('v');
+        return v && /^[a-zA-Z0-9_-]{11}$/.test(v) ? v : null;
+      }
+      if (url.pathname.startsWith('/shorts/') || url.pathname.startsWith('/embed/')) {
+        const parts = url.pathname.split('/');
+        const id = parts[2];
+        return id && /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : null;
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export function getYouTubeThumbnailUrl(videoId: string): string {
+  return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+}
+
+export function generateNewsSlug(title: string): string {
+  if (!title) return '';
+  return title
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, (m) => (m === 'đ' ? 'd' : 'D'))
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, NEWS_SLUG_MAX_LENGTH);
+}
+
+// Closed recursive TipTap schema
+export const TipTapLinkMarkSchema = z.object({
+  type: z.literal('link'),
+  attrs: z
+    .object({
+      href: z.string().refine(isSafeHttpUrl, { message: 'Invalid or unsafe link URL' }),
+      target: z.string().optional(),
+      rel: z.string().optional(),
+    })
+    .passthrough(),
+});
+
+export const TipTapMarkSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('bold') }),
+  z.object({ type: z.literal('italic') }),
+  z.object({ type: z.literal('strike') }),
+  z.object({ type: z.literal('underline') }),
+  TipTapLinkMarkSchema,
+]);
+
+export type TipTapMark = z.infer<typeof TipTapMarkSchema>;
+
+export interface TipTapNode {
+  type: string;
+  attrs?: Record<string, any>;
+  content?: TipTapNode[];
+  marks?: TipTapMark[];
+  text?: string;
+}
+
+export const TipTapNodeSchema: z.ZodType<TipTapNode> = z.lazy(() =>
+  z.object({
+    type: z.enum([
+      'doc',
+      'paragraph',
+      'text',
+      'heading',
+      'bulletList',
+      'orderedList',
+      'listItem',
+      'blockquote',
+      'horizontalRule',
+      'hardBreak',
+    ]),
+    attrs: z
+      .record(z.string(), z.any())
+      .optional()
+      .refine(
+        (attrs) => {
+          if (attrs && 'level' in attrs) {
+            return attrs.level === 2 || attrs.level === 3;
+          }
+          return true;
+        },
+        { message: 'Heading level must be 2 or 3' }
+      ),
+    content: z.array(TipTapNodeSchema).optional(),
+    marks: z.array(TipTapMarkSchema).optional(),
+    text: z.string().optional(),
+  })
+);
+
+export const TipTapDocSchema = TipTapNodeSchema.refine((val) => val.type === 'doc', {
+  message: 'Root node must be doc',
+}).refine(
+  (val) => {
+    try {
+      return JSON.stringify(val).length <= NEWS_MAX_CONTENT_JSON_BYTES;
+    } catch {
+      return false;
+    }
+  },
+  { message: `Content exceeds ${NEWS_MAX_CONTENT_JSON_BYTES} bytes` }
+);
+
+export type TipTapDoc = z.infer<typeof TipTapDocSchema>;
+
+// Public DTOs
+export const NewsArticlePublicCardSchema = z.object({
+  id: z.string().uuid(),
+  type: z.literal('article'),
+  title: z.string(),
+  slug: z.string(),
+  excerpt: z.string(),
+  cover_image_url: z.string().nullable(),
+  cover_image_alt: z.string().nullable(),
+  published_at: z.string(),
+});
+
+export const NewsVideoPublicCardSchema = z.object({
+  id: z.string().uuid(),
+  type: z.literal('video'),
+  title: z.string(),
+  excerpt: z.string(),
+  youtube_video_id: z.string(),
+  youtube_thumbnail_url: z.string(),
+  published_at: z.string(),
+});
+
+export const NewsItemPublicCardSchema = z.discriminatedUnion('type', [
+  NewsArticlePublicCardSchema,
+  NewsVideoPublicCardSchema,
+]);
+
+export type NewsItemPublicCard = z.infer<typeof NewsItemPublicCardSchema>;
+
+export const NewsArticlePublicDetailSchema = z.object({
+  id: z.string().uuid(),
+  type: z.literal('article'),
+  title: z.string(),
+  slug: z.string(),
+  excerpt: z.string(),
+  content_json: z.any().nullable(),
+  cover_image_url: z.string().nullable(),
+  cover_image_alt: z.string().nullable(),
+  published_at: z.string(),
+  author_byline: z.literal('Nexus Team'),
+});
+
+export type NewsArticlePublicDetail = z.infer<typeof NewsArticlePublicDetailSchema>;
+
+// Admin DTOs
+export const NewsItemAdminSchema = z.object({
+  id: z.string().uuid(),
+  type: NewsTypeSchema,
+  status: NewsStatusSchema,
+  title: z.string(),
+  slug: z.string().nullable(),
+  excerpt: z.string(),
+  content_json: z.any().nullable(),
+  youtube_video_id: z.string().nullable(),
+  cover_image_url: z.string().nullable(),
+  cover_image_public_id: z.string().nullable(),
+  cover_image_alt: z.string().nullable(),
+  published_at: z.string().nullable(),
+  created_by_auth_user_id: z.string(),
+  updated_by_auth_user_id: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+
+export type NewsItemAdmin = z.infer<typeof NewsItemAdminSchema>;
+
+export const CreateNewsItemInputSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('article'),
+    title: z.string().trim().min(1, 'Tiêu đề không được để trống').max(NEWS_TITLE_MAX_LENGTH),
+    slug: z.string().trim().max(NEWS_SLUG_MAX_LENGTH).optional(),
+    excerpt: z.string().trim().max(NEWS_EXCERPT_MAX_LENGTH).default(''),
+    content_json: z.any().optional(),
+    cover_image_url: z.string().nullable().optional(),
+    cover_image_public_id: z.string().nullable().optional(),
+    cover_image_alt: z.string().trim().max(NEWS_COVER_ALT_MAX_LENGTH).nullable().optional(),
+  }),
+  z.object({
+    type: z.literal('video'),
+    title: z.string().trim().min(1, 'Tiêu đề không được để trống').max(NEWS_TITLE_MAX_LENGTH),
+    excerpt: z.string().trim().max(NEWS_EXCERPT_MAX_LENGTH).default(''),
+    youtube_url_or_id: z.string().trim().refine((val) => extractYouTubeVideoId(val) !== null, {
+      message: 'URL hoặc ID video YouTube không hợp lệ',
+    }),
+  }),
+]);
+
+export type CreateNewsItemInput = z.infer<typeof CreateNewsItemInputSchema>;
+
+export const UpdateNewsItemInputSchema = z.object({
+  title: z.string().trim().min(1).max(NEWS_TITLE_MAX_LENGTH).optional(),
+  slug: z.string().trim().max(NEWS_SLUG_MAX_LENGTH).optional(),
+  excerpt: z.string().trim().max(NEWS_EXCERPT_MAX_LENGTH).optional(),
+  content_json: z.any().optional(),
+  youtube_url_or_id: z.string().trim().optional(),
+  cover_image_url: z.string().nullable().optional(),
+  cover_image_public_id: z.string().nullable().optional(),
+  cover_image_alt: z.string().trim().max(NEWS_COVER_ALT_MAX_LENGTH).nullable().optional(),
+  expected_updated_at: z.string().min(1, 'expected_updated_at is required for concurrency control'),
+});
+
+export type UpdateNewsItemInput = z.infer<typeof UpdateNewsItemInputSchema>;
+
+export const PublicNewsListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(NEWS_PUBLIC_MAX_LIMIT).default(NEWS_PUBLIC_DEFAULT_LIMIT),
+  type: NewsTypeSchema.optional(),
+});
+
+export type PublicNewsListQuery = z.infer<typeof PublicNewsListQuerySchema>;
+
+export const AdminNewsListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(NEWS_ADMIN_MAX_LIMIT).default(NEWS_ADMIN_DEFAULT_LIMIT),
+  type: NewsTypeSchema.optional(),
+  status: NewsStatusSchema.optional(),
+  sort: z.enum(['newest', 'oldest']).default('newest'),
+});
+
+export type AdminNewsListQuery = z.infer<typeof AdminNewsListQuerySchema>;
+
+export const NewsListResponseSchema = <T extends z.ZodTypeAny>(itemSchema: T) =>
+  z.object({
+    items: z.array(itemSchema),
+    total: z.number().int().min(0),
+    page: z.number().int().min(1),
+    limit: z.number().int().min(1),
+    total_pages: z.number().int().min(0),
+  });
+
+export const NewsErrorResponseSchema = z.object({
+  error: z.object({
+    code: z.string(),
+    message: z.string(),
+    details: z.any().optional(),
+  }),
+});
