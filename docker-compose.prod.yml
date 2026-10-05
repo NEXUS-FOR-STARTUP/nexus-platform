@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
     stop_grace_period: 60s
     ports:
-      - "${POSTGRES_EXPOSED_PORT:-5433}:5432"
+      - "5432:5432"
     env_file:
       - .env.prod
     environment:
@@ -58,7 +58,7 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - ${NEXUS_LOGS_DIR:-./logs}:/app/logs
+      - /var/log/nexus:/app/logs
       - ./storage:/app/storage
       - ./data:/app/data:ro
     healthcheck:
@@ -229,9 +229,6 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
-      - DEEPINFRA_API_KEY=${DEEPINFRA_API_KEY:-}
-      - DEEPINFRA_TOKEN=${DEEPINFRA_TOKEN:-}
-      - MIMO_API_KEY=${MIMO_API_KEY:-}
     volumes:
       - ./storage:/app/storage
       - ./data:/app/data:ro
