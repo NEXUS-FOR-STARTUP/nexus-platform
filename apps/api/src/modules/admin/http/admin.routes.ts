@@ -31,6 +31,7 @@ import {
   cancelAdminWorkerJobHandler,
 } from "./admin-workers.controller.js";
 
+import { newsAdminRouter } from "../../news/http/news-admin.routes.js";
 
 export const adminRouter = new Hono();
 
@@ -70,3 +71,6 @@ adminRouter.get("/workers/jobs/:id/logs", getAdminWorkerJobLogsHandler);
 adminRouter.post("/workers/jobs/:id/retry", retryAdminWorkerJobHandler);
 adminRouter.post("/workers/jobs/:id/heal-stuck", healStuckAdminWorkerJobHandler);
 adminRouter.post("/workers/jobs/:id/cancel", cancelAdminWorkerJobHandler);
+
+// News Management
+adminRouter.route("/news", newsAdminRouter);
