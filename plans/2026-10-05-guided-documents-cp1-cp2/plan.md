@@ -89,8 +89,10 @@ satisfies. Clause numbers are used throughout the rest of this plan.
    question. Not a sequential wizard, not a chatbot.
 3. A question contains **text, explanation, suggested actions**.
 4. Per-template classification is **required / recommended / supplemental**.
-5. **Unanswered is NOT locked** unless an explicit dependency exists. Phase unlocking depends only on
-   configured required prerequisites, never on optional answers.
+5. **Unanswered is NOT locked** unless an explicit question-level dependency exists. A question is
+   locked (greyed, unopenable) only when it declares a dependency on another question that is not yet
+   complete. Phases are display grouping only (TOC sections) and never gate access. Locks never depend
+   on optional answers.
 6. **Manual Save draft and Complete buttons**; both persist; draft is in-progress; complete is
    user-declared; **no AI quality gate**; reopening is permitted; saving draft reverts completion.
 7. Completed-answer edits **invalidate downstream relevance through the configured dependency graph**:
@@ -156,11 +158,11 @@ paths are paid checkout, the free-package path in `apps/api/src/modules/cases/ap
 
 | Option | Shape | Verdict |
 |---|---|---|
-| A. Catalog tables (`questions`, `templates`, `phases`, `template_questions`) plus seeding | Runtime editable | Rejected |
+| A. Catalog tables (`questions`, `templates`, `phases`, `template_questions`) plus seeding | Runtime editable | Rejected for now — Q5 (§14) sets DB catalog as the future goal |
 | B. Catalog as versioned TypeScript constants in the shared validation package | No new tables, no admin CRUD | **Chosen** |
 
-**Chosen: B.** Reason: clause 15 explicitly excludes a general template admin builder, so runtime editing has
-no consumer. A database catalog would add four tables, a seeding migration, cache invalidation, and an
+**Chosen: B.** Reason: clause 15 excludes a general template admin builder from this plan's scope, so runtime editing has
+no consumer yet. (Q5 §14 sets option A as the future goal; this verdict is "not now", not "never".) A database catalog would add four tables, a seeding migration, cache invalidation, and an
 authoring surface nobody asked for — that is exactly the kind of speculative generality this project
 forbids. Code also makes the catalog reviewable in pull requests next to the rubric copies that justify it.
 The one thing a database catalog would buy — history of catalog changes — is instead preserved by storing
@@ -622,5 +624,24 @@ mandates production-safety assumption because `DIRECT_URL` is unknown).
   xác minh API (2026-10-05): `mammoth.extractRawText({ buffer })`; `import { PDFParse } from 'pdf-parse'`
   → `new PDFParse({ data }).getText()` (nhớ `.destroy()`); `docx` `Document`/`Packer` render OK.
   Thêm 3 dependency vào `apps/api`: docx@9.8.1, mammoth@1.13.0, pdf-parse@2.4.5.
+- **Q5 — Template & câu hỏi soạn ở đâu. ĐÃ DUYỆT (user 2026-10-05) → C hướng tới B.**
+  Giữ catalog-as-code (mục 3 D2 option B) làm chuẩn chạy CP1-CP2; Template Builder (admin UI + DB,
+  D2 option A) là đích kỹ thuật về sau theo `revisit trigger` ở D2. Marketplace/paywall vẫn out of scope
+  (clause 15, Q8). Logic authoring nhận `Template` object chung chung nên đổi nguồn code→DB không vứt code P3.
+- **Q6 — "Hệ thống tự viết tài liệu" = merge hay AI. ĐÃ DUYỆT (user 2026-10-05) → C: merge trước, AI polish sau.**
+  P6 worker làm merge (điền câu trả lời vào DOCX, renderer deterministic mục 7.3) trước; AI polish là
+  lớp gia tăng gắn sau.
+- **Q7 — Phạm vi checkpoint. ĐÃ DUYỆT (user 2026-10-05) → A: CP1-CP2 trước.** Chưa làm CP3/CP4 (thiếu rubric).
+- **Q8 — Khoá template trả phí. ĐÃ DUYỆT (user 2026-10-05) → C: để sau.** Làm xong lõi "điền → tải tài liệu" đã.
+- **Q9 — Luồng điền tài liệu. ĐÃ DUYỆT (user 2026-10-05) → cả 2, ưu tiên Luồng 1 (guided Q&A) trước.**
+  Luồng 2 (upload import) làm sau.
+- **Q10 — Từ ngữ phân loại câu hỏi. ĐÃ CHỐT (user 2026-10-05) → "bắt buộc / khuyến nghị / bổ sung".**
+  Bỏ 3 từ "rất quan trọng / quan trọng / làm rõ"; mapping: rất quan trọng = bắt buộc, quan trọng = khuyến nghị,
+  làm rõ = bổ sung. Clause 4 giữ nguyên cấu trúc per-template, chỉ chốt từ ngữ.
+- **Q11 — Phạm vi gate tạo tài liệu. ĐÃ CHỐT (user 2026-10-05) → tier 1 (chỉ câu "bắt buộc").**
+  "Trả lời toàn bộ câu quan trọng" = chỉ tier bắt buộc; câu khuyến nghị/bổ sung thiếu chỉ cảnh báo, không chặn.
+  Clause 8 và §7.1 giữ nguyên (đã đúng giả định tier 1).
+- **Q12 — Clause 12 (assessment gắn version). ĐÃ CHỐT (user 2026-10-05, đồng ý ngầm).**
+  User không phản đối đề xuất "quy tắc kỹ thuật" ở U26 → giữ clause 12, không cần hỏi lại.
 
 

@@ -12,9 +12,9 @@
 | 3 | Phản biện thiết kế | ✅ done | |
 | 4 | Viết + kiểm tra plan | ✅ done | `plan.md` |
 | 5 | **P0** Foundation | ✅ done | deps: docx@9.8.1, mammoth@1.13.0, pdf-parse@2.4.5 (vào `apps/api` = package `nexus-platform-api`) |
-| 6 | **P1** Migration (create-only) | ⛔ **CHỜ DUYỆT** | safety gate — chưa dispatch |
+| 6 | **P1** Migration (create-only) | ⏸️ **TẠM DỪNG (user 2026-10-05)** | Schema + SQL đã soạn xong nhưng **chưa commit, chưa apply**. Drift DB local chưa fix. P3/P4/P6 vẫn blocked. Muốn tiếp tục: fix drift trước, rồi review SQL, apply, `prisma generate`. |
 | 7 | **P2** Catalog | ✅ done | `packages/validation/src/catalogs/*` |
-| 8 | **P3** API authoring | 🔒 blocked by P1 | |
+| 8 | **P3** API authoring | ✅ done | commit `ad97ddb` — 10 routes `/api/authoring`, DB-free tests 10/10; runtime chờ P1 apply |
 | 9 | **P4** Frontend workspace UI | 🔒 blocked by P3 | |
 | 10 | **P5** Routing fix | ✅ done | `resolveOmpAuditCheckpoint` |
 | 11 | **P6** Hardening | 🔒 blocked by P1 | |
@@ -54,11 +54,16 @@ Nội dung P1 (chỉ THÊM, không sửa/xoá):
 
 An toàn: DB đang trỏ `localhost` (local dev, không phải production VPS). Quy trình: `prisma migrate dev --create-only` → user xem SQL → duyệt → `migrate dev` apply.
 
+## QUYẾT ĐỊNH SẢN PHẨM — ĐÃ DUYỆT (user 2026-10-05)
+
+User duyệt theo khuyến nghị (Q5–Q9). Chi tiết đầy đủ → `plan.md` §14. Đây là chữ ký cuối — không code gì thêm khi chưa duyệt.
+
 ## BƯỚC TIẾP THEO (khi resume)
 
 1. Hỏi/xác nhận P1 từ user.
 2. Dispatch agent P1 (migration create-only).
-3. Sau P1: thả **P3 (API) + P6 (hardening)** song song → rồi **P4 (frontend)** (blocked by P3).
+3. Sau P1: **P6 (worker — merge DOCX trước, AI polish sau)** → rồi **P4 (frontend — Luồng 1 guided Q&A trước)**.
+4. Template Builder (Q1 hướng tới B) = phase riêng, thiết kế sau khi lõi chạy.
 
 ## Context kỹ thuật cần nhớ
 
