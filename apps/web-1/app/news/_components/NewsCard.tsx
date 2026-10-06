@@ -82,8 +82,8 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
           {/* Cột nội dung bên phải */}
           <div className="flex-1 flex flex-col justify-between min-w-0">
             <div>
-              {/* Tag/Phân loại: góc trên bên trái, 16px */}
-              <span className="text-[16px] text-text-muted uppercase font-medium tracking-wide mb-1.5 block">
+              {/* Tag/Phân loại: góc trên bên trái, 14px */}
+              <span className="text-[14px] text-text-muted uppercase font-medium tracking-wide mb-1.5 block">
                 {categoryTag}
               </span>
 
@@ -98,26 +98,26 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
                 </h3>
               </a>
               {item.excerpt && (
-                <p className="text-[16px] text-text-app/75 line-clamp-2 leading-relaxed mb-3">
+                <p className="text-[14px] text-text-app/75 line-clamp-2 leading-relaxed mb-3">
                   {item.excerpt}
                 </p>
               )}
             </div>
 
-            {/* Profile và ngày đăng ở dưới description: 16px */}
-            <div className="flex items-center gap-2.5 pt-2 text-[16px] text-text-muted">
+            {/* Profile và ngày đăng ở dưới description: 14px */}
+            <div className="flex items-center gap-2.5 pt-2 text-[14px] text-text-muted">
               <Avatar
                 src={item.author_avatar_url}
                 color="red"
                 radius="xl"
-                size={32}
+                size={28}
                 className="font-bold shrink-0 text-xs"
               >
                 {authorInitials}
               </Avatar>
-              <span className="font-semibold text-text-app truncate max-w-[140px] text-[16px] leading-none">{authorName}</span>
+              <span className="font-semibold text-text-app truncate max-w-[140px] text-[14px] leading-none">{authorName}</span>
               <span className="leading-none">•</span>
-              <span className="shrink-0 text-[16px] leading-none">{formatDate(item.published_at)}</span>
+              <span className="shrink-0 text-[14px] leading-none">{formatDate(item.published_at)}</span>
             </div>
           </div>
         </div>
@@ -151,8 +151,8 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
         {/* Cột nội dung bên phải */}
         <div className="flex-1 flex flex-col justify-between min-w-0">
           <div>
-            {/* Tag/Phân loại: góc trên bên trái, 16px */}
-            <span className="text-[16px] text-text-muted uppercase font-medium tracking-wide mb-1.5 block">
+            {/* Tag/Phân loại: góc trên bên trái, 14px */}
+            <span className="text-[14px] text-text-muted uppercase font-medium tracking-wide mb-1.5 block">
               {categoryTag}
             </span>
 
@@ -162,26 +162,26 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
               </h3>
             </Link>
             {item.excerpt && (
-              <p className="text-[16px] text-text-app/75 line-clamp-2 leading-relaxed mb-3">
+              <p className="text-[14px] text-text-app/75 line-clamp-2 leading-relaxed mb-3">
                 {item.excerpt}
               </p>
             )}
           </div>
 
-          {/* Profile và ngày đăng ở dưới description: 16px */}
-          <div className="flex items-center gap-2.5 pt-2 text-[16px] text-text-muted">
+          {/* Profile và ngày đăng ở dưới description: 14px */}
+          <div className="flex items-center gap-2.5 pt-2 text-[14px] text-text-muted">
             <Avatar
               src={item.author_avatar_url}
               color="blue"
               radius="xl"
-              size={32}
+              size={28}
               className="font-bold shrink-0 text-xs"
             >
               {authorInitials}
             </Avatar>
-            <span className="font-semibold text-text-app truncate max-w-[140px] text-[16px] leading-none">{authorName}</span>
+            <span className="font-semibold text-text-app truncate max-w-[140px] text-[14px] leading-none">{authorName}</span>
             <span className="leading-none">•</span>
-            <span className="shrink-0 text-[16px] leading-none">{formatDate(item.published_at)}</span>
+            <span className="shrink-0 text-[14px] leading-none">{formatDate(item.published_at)}</span>
           </div>
         </div>
       </div>
