@@ -45,7 +45,7 @@ export function useEmailPasswordLogin(returnUrl: string) {
           return "no-password";
         }
 
-        const { error: signInError } = await signIn.email({
+        const { data: signInData, error: signInError } = await signIn.email({
           email,
           password,
         });
@@ -55,7 +55,18 @@ export function useEmailPasswordLogin(returnUrl: string) {
           return "error";
         }
 
-        router.push(returnUrl);
+        const role = (signInData?.user as { role?: string } | undefined)?.role;
+        if (returnUrl && returnUrl !== "/dashboard") {
+          router.push(returnUrl);
+        } else if (role === "admin") {
+          router.push("/admin");
+        } else if (role === "supporter") {
+          router.push("/supporter");
+        } else if (role === "writer") {
+          router.push("/writer");
+        } else {
+          router.push("/dashboard");
+        }
         return "signed-in";
       } catch (err: unknown) {
         setError(translateAuthError(axiosErrorMessage(err)));

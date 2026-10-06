@@ -1,7 +1,34 @@
 "use client";
 
+import Image from "next/image";
 import { Container, Title, Text, Card, ThemeIcon, Group, Stack, Divider } from "@mantine/core";
-import { Mail, Phone, Share2, Users, ArrowUpRight } from "lucide-react";
+import { Mail, Phone, ArrowUpRight } from "lucide-react";
+
+const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    viewBox="0 0 24 24"
+    width="18"
+    height="18"
+    stroke="currentColor"
+    strokeWidth="2"
+    fill="none"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+  </svg>
+);
+
+const ZaloIcon = ({ className }: { className?: string }) => (
+  <Image
+    src="/logo/zalo.png"
+    alt="Zalo"
+    width={20}
+    height={20}
+    className={`w-5 h-5 object-contain ${className || ""}`}
+  />
+);
 
 const TikTokIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -37,8 +64,8 @@ export default function ContactUs() {
       title: "Zalo Group",
       value: "Nhóm hỗ trợ Nexus",
       href: "https://zalo.me/g/wgadhwpaxd05vykpnxqb",
-      icon: Users,
-      color: "cyan",
+      icon: ZaloIcon,
+      color: "blue",
       actionText: "Tham gia nhóm",
       external: true,
     },
@@ -46,7 +73,7 @@ export default function ContactUs() {
       title: "Facebook Fanpage",
       value: "Nexus Platform",
       href: "https://www.facebook.com/profile.php?id=61591506814865",
-      icon: Share2,
+      icon: FacebookIcon,
       color: "indigo",
       actionText: "Truy cập Fanpage",
       external: true,

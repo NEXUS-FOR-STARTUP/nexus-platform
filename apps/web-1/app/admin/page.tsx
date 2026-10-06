@@ -1,6 +1,7 @@
 "use client";
 
 import React, { Suspense, useState } from "react";
+import dynamic from "next/dynamic";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAdminDeposits } from "./hooks/useAdminDeposits";
 import { useAdminCases } from "./hooks/useAdminCases";
@@ -19,10 +20,17 @@ import AdminExportMenu from "./_components/AdminExportMenu";
 import { useAdminStats } from "./hooks/useAdminStats";
 import { useAdminWorkerStats } from "./hooks/useAdminWorkers";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, FolderKanban, Activity, Users, Clock, Bot } from "lucide-react";
+import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, FolderKanban, Activity, Users, Clock, Bot, Newspaper } from "lucide-react";
 import { Tooltip, UnstyledButton, Title, Text, Badge, Divider } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import classes from "../../components/layout/DoubleNavbar.module.css";
+
+const AdminNewsManager = dynamic(
+  () => import("./_components/news/AdminNewsManager").then((m) => m.AdminNewsManager),
+  {
+    loading: () => <LoadingSkeleton variant="table-row" count={4} />,
+  }
+);
 
 export default function AdminHubPage() {
   return (
@@ -86,7 +94,7 @@ function AdminHubPageInner() {
 
   const [rejectingDepositId, setRejectingDepositId] = useState<string | null>(null);
   const [approvingDepositId, setApprovingDepositId] = useState<string | null>(null);
-  const VALID_TABS = ["payments", "cases", "documents", "packages", "stats", "users", "workers"] as const;
+  const VALID_TABS = ["payments", "cases", "documents", "packages", "stats", "users", "workers", "news"] as const;
   type AdminTab = typeof VALID_TABS[number];
   const rawTab = searchParams.get("tab");
   const activeSection: AdminTab = (VALID_TABS as readonly string[]).includes(rawTab ?? "") ? (rawTab as AdminTab) : "stats";
@@ -328,6 +336,13 @@ function AdminHubPageInner() {
         icon: Bot,
       };
     }
+    if (activeSection === "news") {
+      return {
+        title: "Quản lý tin tức",
+        description: "Quản lý bài viết và video chia sẻ kinh nghiệm khởi nghiệp trên website.",
+        icon: Newspaper,
+      };
+    }
     return {
       title: "Thiết lập gói dịch vụ",
       description: "Bật/tắt hiển thị với khách hàng mới và cập nhật đơn giá các gói trên hệ thống.",
@@ -429,13 +444,22 @@ function AdminHubPageInner() {
                   )}
                 </UnstyledButton>
               </Tooltip>
+              <Tooltip label="Tin tức" position="right" withArrow>
+                <UnstyledButton
+                  onClick={() => setActiveSection("news")}
+                  className={classes.mainLink}
+                  data-active={activeSection === "news" || undefined}
+                >
+                  <Newspaper className="w-6 h-6" />
+                </UnstyledButton>
+              </Tooltip>
             </aside>
 
           {/* Secondary Panel (Details / Submenu) */}
           <div className={classes.main}>
             <div className="mb-4">
               <Title order={4} className="font-heading font-semibold text-text-app">
-                {activeSection === "stats" ? "Thống kê" : activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : activeSection === "documents" ? "Quản lý tài liệu" : activeSection === "users" ? "Người dùng" : activeSection === "workers" ? "Tiến trình AI" : "Cài đặt gói"}
+                {activeSection === "stats" ? "Thống kê" : activeSection === "payments" ? "Giao dịch" : activeSection === "cases" ? "Hồ sơ đề tài" : activeSection === "documents" ? "Quản lý tài liệu" : activeSection === "users" ? "Người dùng" : activeSection === "workers" ? "Tiến trình AI" : activeSection === "news" ? "Tin tức" : "Cài đặt gói"}
               </Title>
               <Text size="xs" className="text-text-muted font-body mt-0.5">
                 {activeSection === "stats"
@@ -450,6 +474,8 @@ function AdminHubPageInner() {
                   ? "Quản lý tài khoản & phân quyền."
                   : activeSection === "workers"
                   ? "Giám sát máy ảo OMP & hàng đợi."
+                  : activeSection === "news"
+                  ? "Quản lý bài viết & video chia sẻ."
                   : "Cài đặt đơn giá gói dịch vụ."}
               </Text>
             </div>
@@ -626,6 +652,15 @@ function AdminHubPageInner() {
                   <span>Đã hoàn thành</span>
                 </UnstyledButton>
               </div>
+            ) : activeSection === "news" ? (
+              <div className="flex flex-col gap-1">
+                <UnstyledButton
+                  className={classes.link}
+                  data-active={true}
+                >
+                  <span>Tất cả tin tức</span>
+                </UnstyledButton>
+              </div>
             ) : (
               <div className="flex flex-col gap-1">
                 <UnstyledButton
@@ -735,6 +770,10 @@ function AdminHubPageInner() {
             ) : activeSection === "workers" ? (
               <div>
                 <AdminWorkerMonitoring filter={workerFilter} />
+              </div>
+            ) : activeSection === "news" ? (
+              <div>
+                <AdminNewsManager />
               </div>
             ) : (
               <div>

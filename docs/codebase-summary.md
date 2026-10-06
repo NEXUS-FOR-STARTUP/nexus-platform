@@ -13,10 +13,10 @@ Công cụ hỗ trợ: **CodeGraph** (`.codegraph/`) — index code symbol, call
 ### `apps/api` (260 files src, ~31,000 LOC)
 
 Backend Hono với:
-- 15 modules: cases (28 routes: triage, details, messages, chat/read, chat/unread, settings, status, intake, SSE stream, v.v.), admin (26 routes: case triage, documents, stats, packages, users, worker monitoring KPI & jobs), reports (8 routes: critique draft, edit, approve, latest, Typst PDF download), payments (7 routes: proof + sepay-webhook), wallet (7 routes: balance, history, credit lock/unlock), notifications (7 routes: list, unread-count, read, read-all, SSE stream, preferences), deposits (6 routes: list, detail, verify, user deposits), orders (6 routes: create, status, user orders), supporter (5 routes), profile (2 routes: avatar, account deletion), realtime (2 routes: connection-token, cases/:caseId/subscribe-token), ai-engine (2 routes), packages (1 route), documents (1 route), auth (Better Auth catch-all), system (4 routes: `/`, `/health`, `/stream`, `/session`)
+- 16 modules: cases (28 routes), admin (34 routes: case triage, documents, stats, packages, users, worker monitoring KPI & jobs, news management), news (2 public routes: list, detail), reports (8 routes: critique draft, edit, approve, latest, Typst PDF download), payments (7 routes: proof + sepay-webhook), wallet (7 routes: balance, history, credit lock/unlock), notifications (7 routes: list, unread-count, read, read-all, SSE stream, preferences), deposits (6 routes: list, detail, verify, user deposits), orders (6 routes: create, status, user orders), supporter (5 routes), profile (2 routes: avatar, account deletion), realtime (2 routes: connection-token, cases/:caseId/subscribe-token), ai-engine (2 routes), packages (3 routes), documents (3 routes), auth (session & admin plugin)
 - shared infra: AppError, requireAuth, requireCaseAccess, audit-logger, **event-bus + domain-events** (14 event types) + **2 Outbox Relays**: `NotificationOutbox` (2s tick cho email/telegram) và `DomainEventOutbox` (5s tick lưu trữ crash recovery)
 - services: Cloudinary (file upload), Google Generative AI (@ai-sdk/google), Typst PDF Engine (`src/modules/reports/infrastructure/pdf/`)
-- 112 API endpoints (108 module routes + 4 system), Hono + Better Auth + Prisma 7 + Vercel AI SDK
+- 122 API endpoints (118 module routes + 4 system), Hono + Better Auth + Prisma 7 + Vercel AI SDK
 - AI Job Dispatch: Hàng đợi BullMQ `omp-queue` chuyển giao tác vụ thẩm định cho `apps/worker-omp`
 - Kiến trúc: modular monolith + Clean Architecture (domain/application/infrastructure/http)
 - Auth: Better Auth (email/password, Google OAuth, admin plugin)
@@ -32,7 +32,7 @@ Next.js 16.2.0 product app với:
 - Forms: TanStack Form everywhere
 - Auth: Server-side route guard (`proxy.ts`) chặn theo role và xử lý `MAINTENANCE_MODE` trước khi render; client-side dùng Better Auth client (`useSession`)
 - State: server state qua TanStack Query, không Redux/Zustand; 37 custom hooks
-- Pages: landing (`/`), auth (`/auth`), dashboard (`/dashboard`), intake (`/dashboard/intake`), team-fit (`/dashboard/team-fit`), case workspace (`/dashboard/case/[id]` — 7 tabs: `overview, documents, report, discussion, timeline, settings, credits` đồng bộ qua URL `?tab=`), payment (`/dashboard/payment`), wallet (`/dashboard/wallet`), settings (`/dashboard/settings`), admin (`/admin` — 7 tabs: `stats, payments, cases, documents, packages, users, workers`), supporter (`/supporter`)
+- Pages: landing (`/`), auth (`/auth`), news (`/news`, `/news/[slug]`), dashboard (`/dashboard`), intake (`/dashboard/intake`), team-fit (`/dashboard/team-fit`), case workspace (`/dashboard/case/[id]` — 7 tabs: `overview, documents, report, discussion, timeline, settings, credits` đồng bộ qua URL `?tab=`), payment (`/dashboard/payment`), wallet (`/dashboard/wallet`), settings (`/dashboard/settings`), admin (`/admin` — 8 tabs: `stats, payments, cases, documents, packages, users, workers, news`), supporter (`/supporter`)
 - Wording: Toàn bộ thuật ngữ UX tiếng Việt bám sát quy chuẩn tại `design-system/wording/`
 - UI: Mantine UI v9, Lucide React, Recharts, TipTap, Tailwind CSS v4
 - Port: 3001
@@ -55,7 +55,7 @@ Worker daemon độc lập xử lý tác vụ thẩm định AI chuyên sâu:
 | `typescript-config` | 3 tsconfig presets (base, nextjs, react-library) |
 ### `prisma/schema.prisma`
 
-32 models: 5 auth (User, Session, Account, Verification, TwoFactor) + 27 business (ServicePackage, ServiceType, ServicePricing, UserWallet, WalletTransaction, WalletTopup [deprecated], Deposit, Order, OrderItem, DomainEventOutbox, Case, CaseMember, Checkpoint, LifecycleUnit, DocumentRecord, DocumentType, Report, Payment [deprecated], CaseMessage, CaseChatReadState, CaseEvent, AiJob, TeamFitReport, CreditLedger, Notification, NotificationPreference, NotificationOutbox). 31 migrations (mới nhất: `20260923213000_add_performance_indexes`).
+33 models: 5 auth (User, Session, Account, Verification, TwoFactor) + 28 business (NewsItem, ServicePackage, ServiceType, ServicePricing, UserWallet, WalletTransaction, WalletTopup [deprecated], Deposit, Order, OrderItem, DomainEventOutbox, Case, CaseMember, Checkpoint, LifecycleUnit, DocumentRecord, DocumentType, Report, Payment [deprecated], CaseMessage, CaseChatReadState, CaseEvent, AiJob, TeamFitReport, CreditLedger, Notification, NotificationPreference, NotificationOutbox). 32 migrations (mới nhất: `20261006120000_add_news_items`).
 
 > Ghi chú: migration `20260722000000_add_audit_rounds` vẫn còn trong lịch sử migrations (tạo bảng `audit_rounds`), nhưng model `AuditRound` không còn trong schema hiện tại — luồng vòng sửa đã chuyển sang stage-based + credit ledger. Mọi tham chiếu tài liệu tới model `AuditRound` là stale.
 
