@@ -1006,11 +1006,40 @@ export const NEWS_COVER_ALT_MAX_LENGTH = 200;
 export const NEWS_MAX_CONTENT_JSON_BYTES = 512 * 1024; // 512 KiB
 
 export const NEWS_CATEGORIES = [
+  // Cốt lõi nền tảng & Khởi nghiệp
   { slug: 'khoi-nghiep', name: 'Khởi nghiệp' },
-  { slug: 'cong-nghe', name: 'Công nghệ & AI' },
-  { slug: 'goc-nhin', name: 'Góc nhìn & Bài học' },
-  { slug: 'san-pham', name: 'Sản phẩm & Tăng trưởng' },
-  { slug: 'huong-dan', name: 'Hướng dẫn' },
+  { slug: 'cong-nghe', name: 'Khoa học - Công nghệ' },
+  { slug: 'kinh-doanh', name: 'Kinh doanh' },
+  { slug: 'tai-chinh', name: 'Tài chính' },
+  { slug: 'quan-diem-tranh-luan', name: 'Quan điểm - Tranh luận' },
+  { slug: 'goc-nhin-thoi-su', name: 'Góc nhìn thời sự' },
+  { slug: 'phat-trien-ban-than', name: 'Phát triển bản thân' },
+  { slug: 'tam-ly-hoc', name: 'Tâm lý học' },
+  { slug: 'nguoi-trong-muon-nghe', name: 'Người trong muôn nghề' },
+  { slug: 'san-pham', name: 'Sản phẩm' },
+  { slug: 'the-brands', name: 'The Brands' },
+  { slug: 'sach', name: 'Sách' },
+  { slug: 'giao-duc', name: 'Giáo dục' },
+  { slug: 'thinking-out-loud', name: 'Thinking Out Loud' },
+  { slug: 'sang-tac', name: 'Sáng tác' },
+  { slug: 'movie', name: 'Movie' },
+  { slug: 'am-nhac', name: 'Âm nhạc' },
+  { slug: 'game', name: 'Game' },
+  { slug: 'the-thao', name: 'Thể thao' },
+  { slug: 'fitness', name: 'Fitness' },
+  { slug: 'du-lich', name: 'Du lịch' },
+  { slug: 'am-thuc', name: 'Nấu ăn - Ẩm thực' },
+  { slug: 'fashion', name: 'Fashion' },
+  { slug: 'life-style', name: 'Life style' },
+  { slug: 'yeu', name: 'Yêu' },
+  { slug: 'chuyen-tham-kin', name: 'Chuyện thầm kín' },
+  { slug: 'lich-su', name: 'Lịch sử' },
+  { slug: 'kien-truc-my-thuat', name: 'Điêu khắc - Kiến trúc - Mỹ thuật' },
+  { slug: 'nhiep-anh', name: 'Nhiếp ảnh' },
+  { slug: 'o-to', name: 'Ô tô' },
+  { slug: 'xe-may', name: 'Xe máy' },
+  { slug: 'wtf', name: 'WTF' },
+  { slug: 'su-kien-nexus', name: 'Sự kiện Nexus' },
   { slug: 'khac', name: 'Khác' },
 ] as const;
 
@@ -1018,8 +1047,33 @@ export type NewsCategorySlug = (typeof NEWS_CATEGORIES)[number]['slug'];
 
 export function getNewsCategoryName(slug: string | null | undefined): string {
   if (!slug) return 'Khởi nghiệp';
-  const found = NEWS_CATEGORIES.find((c) => c.slug === slug);
-  return found ? found.name : slug;
+  const normalized = slug.trim().toLowerCase();
+  const found = NEWS_CATEGORIES.find((c) => c.slug === normalized);
+  if (found) return found.name;
+
+  // Fallback map cho các slug cũ hoặc biến thể
+  const fallbackMap: Record<string, string> = {
+    'cong-nghe': 'Khoa học - Công nghệ',
+    'khoa-hoc-cong-nghe': 'Khoa học - Công nghệ',
+    'tai-chinh': 'Tài chính',
+    'khoi-nghiep': 'Khởi nghiệp',
+    'kinh-doanh': 'Kinh doanh',
+    'ky-nang': 'Phát triển bản thân',
+    'phat-trien-ban-than': 'Phát triển bản thân',
+    'goc-nhin': 'Quan điểm - Tranh luận',
+    'quan-diem-tranh-luan': 'Quan điểm - Tranh luận',
+    'san-pham': 'Sản phẩm',
+    'huong-dan': 'Phát triển bản thân',
+    'nau-an-am-thuc': 'Nấu ăn - Ẩm thực',
+    'am-thuc': 'Nấu ăn - Ẩm thực',
+    'dieu-khac-kien-truc-my-thuat': 'Điêu khắc - Kiến trúc - Mỹ thuật',
+    'kien-truc-my-thuat': 'Điêu khắc - Kiến trúc - Mỹ thuật',
+    'su-kien-nexus': 'Sự kiện Nexus',
+    'su-kien': 'Sự kiện Nexus',
+    'khac': 'Khác',
+  };
+
+  return fallbackMap[normalized] || slug;
 }
 
 export const NEWS_PUBLIC_DEFAULT_LIMIT = 12;

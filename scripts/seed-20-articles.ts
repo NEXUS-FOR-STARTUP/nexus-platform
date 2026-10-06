@@ -14,10 +14,6 @@ function h2(text: string) {
   return { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text }] };
 }
 
-function _h3(text: string) {
-  return { type: 'heading', attrs: { level: 3 }, content: [{ type: 'text', text }] };
-}
-
 function bq(text: string) {
   return {
     type: 'blockquote',
@@ -413,7 +409,7 @@ async function main() {
   console.log('Seeding 20 long articles...');
   let count = 0;
 
-  const categories = ['khoi-nghiep', 'cong-nghe', 'goc-nhin', 'huong-dan', 'san-pham'];
+  const categories = ['khoi-nghiep', 'cong-nghe', 'kinh-doanh', 'tai-chinh', 'ky-nang', 'goc-nhin', 'san-pham', 'khac'];
   const tagPool = [
     ['KhởiNghiệp', 'MVP', 'SinhViên'],
     ['AI', 'CôngNghệ', 'LLM'],
