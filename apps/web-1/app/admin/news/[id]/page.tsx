@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import { Button, Card, Group, Stack, Text, TextInput, Textarea, Badge, Modal } from '@mantine/core';
+import { Button, Card, Group, Stack, Text, TextInput, Textarea, Badge, Modal, Select, TagsInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { ArrowLeft, Save, Send, Undo2 } from 'lucide-react';
 import { useAdminNewsDetail, useUpdateNewsItem, usePublishNewsItem, useUnpublishNewsItem, useUploadNewsCover } from '@/app/admin/hooks/useAdminNews';
 import { NewsRichTextEditor } from '@/app/admin/_components/news/NewsRichTextEditor';
 import { YouTubePreviewSection, ArticleCoverSection } from '@/app/admin/_components/news/NewsEditorFormSections';
-import { extractYouTubeVideoId } from '@repo/validation';
+import { NEWS_CATEGORIES, extractYouTubeVideoId } from '@repo/validation';
 import LoadingSkeleton from '@/components/ui/LoadingSkeleton';
 
 export default function EditNewsItemPage({ params }: { params: Promise<{ id: string }> }) {
@@ -22,6 +22,8 @@ export default function EditNewsItemPage({ params }: { params: Promise<{ id: str
 
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
+  const [category, setCategory] = useState<string>('khoi-nghiep');
+  const [tags, setTags] = useState<string[]>([]);
   const [excerpt, setExcerpt] = useState('');
   const [contentJson, setContentJson] = useState<unknown>({ type: 'doc', content: [{ type: 'paragraph' }] });
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -34,6 +36,8 @@ export default function EditNewsItemPage({ params }: { params: Promise<{ id: str
     if (item) {
       setTitle(item.title);
       setSlug(item.slug || '');
+      setCategory(item.category || 'khoi-nghiep');
+      setTags(item.tags || []);
       setExcerpt(item.excerpt || '');
       setContentJson(item.content_json || { type: 'doc', content: [{ type: 'paragraph' }] });
       setYoutubeUrl(item.youtube_video_id ? `https://www.youtube.com/watch?v=${item.youtube_video_id}` : '');
@@ -55,6 +59,8 @@ export default function EditNewsItemPage({ params }: { params: Promise<{ id: str
 
   const origYt = item.youtube_video_id ? `https://www.youtube.com/watch?v=${item.youtube_video_id}` : '';
   const isDirty = coverFile !== null || title !== item.title || excerpt !== (item.excerpt ?? '') || coverAlt !== (item.cover_image_alt ?? '')
+    || category !== (item.category ?? 'khoi-nghiep')
+    || JSON.stringify(tags) !== JSON.stringify(item.tags ?? [])
     || (item.type === 'article' && (slug !== (item.slug ?? '') || JSON.stringify(contentJson) !== JSON.stringify(item.content_json))) || (item.type === 'video' && youtubeUrl !== origYt);
   const handleSaveInternal = async () => {
     const errs: { title?: string; youtube?: string; cover?: string; alt?: string; content?: string } = {};
@@ -70,6 +76,8 @@ export default function EditNewsItemPage({ params }: { params: Promise<{ id: str
     try {
       let updated = await updateMutation.mutateAsync({ id: item.id, data: {
         title: title.trim(), slug: item.type === 'article' && !isPublished ? slug.trim() : undefined,
+        category,
+        tags,
         excerpt: excerpt.trim(), content_json: item.type === 'article' ? contentJson : undefined,
         youtube_url_or_id: item.type === 'video' ? youtubeUrl.trim() : undefined,
         cover_image_alt: item.type === 'article' ? coverAlt.trim() : undefined,
@@ -152,6 +160,29 @@ export default function EditNewsItemPage({ params }: { params: Promise<{ id: str
       <form className="w-full" onSubmit={handleSave} onKeyDown={(e) => { if (e.key === 'Enter' && (e.target as HTMLElement)?.tagName === 'INPUT') e.preventDefault(); }}>
         <Card withBorder radius="xl" padding="lg" className="w-full space-y-6 bg-surface-app border-border-app">
           <TextInput label="Tiêu đề" withAsterisk value={title} onChange={(e) => { setTitle(e.currentTarget.value); setErrors((p) => ({ ...p, title: undefined })); }} required maxLength={200} error={errors.title} />
+
+          {/* Category & Tags */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Select
+              label="Chuyên mục"
+              description="Chọn chuyên mục chính cho bài viết"
+              data={NEWS_CATEGORIES.map((c) => ({ value: c.slug, label: c.name }))}
+              value={category}
+              onChange={(val) => setCategory(val || 'khoi-nghiep')}
+              required
+              withAsterisk
+              radius="md"
+            />
+            <TagsInput
+              label="Chủ đề / Tags"
+              description="Nhấn Enter để thêm tag (vd: KhởiNghiệp, AI, PMF)"
+              placeholder="Thêm tag..."
+              value={tags}
+              onChange={setTags}
+              maxTags={10}
+              radius="md"
+            />
+          </div>
           <Textarea label="Mô tả tóm tắt (Excerpt)" value={excerpt} onChange={(e) => setExcerpt(e.currentTarget.value)} maxLength={320} rows={3} />
 
           {item.type === 'article' ? (

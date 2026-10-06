@@ -110,6 +110,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       {/* Spiderum-style Header */}
       <ArticleHeader
         title={article.title}
+        category={article.category}
         excerpt={article.excerpt}
         authorName={authorName}
         authorInitials={authorInitials}
@@ -142,18 +143,24 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       <div className="w-full">
         <NewsTipTapRenderer content={article.content_json} />
 
-        {/* Article Tags */}
-        <div className="mt-12 flex flex-wrap gap-2 items-center">
-          <span className="text-xs font-semibold text-text-muted mr-1">Chủ đề:</span>
-          {['#KhởiNghiệp', '#CôngNghệAI', '#ProductMarketFit', '#GócNhìnFounder'].map((tag) => (
-            <span
-              key={tag}
-              className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-surface-soft text-text-muted hover:text-brand hover:bg-brand/10 transition-colors cursor-pointer"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
+        {/* Article Tags: click để lọc theo chủ đề */}
+        {article.tags && article.tags.length > 0 && (
+          <div className="mt-12 flex flex-wrap gap-2 items-center">
+            <span className="text-xs font-semibold text-text-muted mr-1">Chủ đề:</span>
+            {article.tags.map((rawTag) => {
+              const cleanTag = rawTag.startsWith('#') ? rawTag.slice(1) : rawTag;
+              return (
+                <Link
+                  key={rawTag}
+                  href={`/news?tag=${encodeURIComponent(cleanTag)}`}
+                  className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-surface-soft text-text-muted hover:text-brand hover:bg-brand/10 transition-colors cursor-pointer"
+                >
+                  #{cleanTag}
+                </Link>
+              );
+            })}
+          </div>
+        )}
 
         {/* Spiderum-style Author Bio Card */}
         <ArticleAuthorBio

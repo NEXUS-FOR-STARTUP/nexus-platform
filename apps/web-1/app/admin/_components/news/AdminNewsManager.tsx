@@ -14,12 +14,13 @@ import {
 } from '../../hooks/useAdminNews';
 import { NewsTable } from './NewsTable';
 import LoadingSkeleton from '@/components/ui/LoadingSkeleton';
-import type { NewsItemAdmin } from '@repo/validation';
+import { NEWS_CATEGORIES, type NewsItemAdmin } from '@repo/validation';
 
 export function AdminNewsManager() {
   const [page, setPage] = useState(1);
   const [type, setType] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [category, setCategory] = useState<string | null>(null);
   const [sort, setSort] = useState<string | null>('newest');
   const [search, setSearch] = useState('');
   const [debouncedSearch] = useDebouncedValue(search, 300);
@@ -29,6 +30,7 @@ export function AdminNewsManager() {
     limit: 15,
     type: type === 'article' || type === 'video' ? type : undefined,
     status: status === 'draft' || status === 'published' ? status : undefined,
+    category: category || undefined,
     sort: sort === 'oldest' ? 'oldest' : 'newest',
     search: debouncedSearch.trim() || undefined,
   });
@@ -158,6 +160,18 @@ export function AdminNewsManager() {
           clearable
           radius="md"
           style={{ width: 160 }}
+        />
+        <Select
+          placeholder="Chuyên mục"
+          data={[
+            { value: '', label: 'Tất cả chuyên mục' },
+            ...NEWS_CATEGORIES.map((c) => ({ value: c.slug, label: c.name })),
+          ]}
+          value={category ?? ''}
+          onChange={(val) => { setCategory(val || null); setPage(1); }}
+          clearable
+          radius="md"
+          style={{ width: 180 }}
         />
         <Select
           placeholder="Trạng thái"

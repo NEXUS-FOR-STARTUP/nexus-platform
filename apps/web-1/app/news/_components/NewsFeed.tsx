@@ -7,21 +7,26 @@ import { FeaturedCard } from './FeaturedCard';
 import { NewsFilterModal } from './NewsFilterModal';
 import { NewsPagination } from './NewsPagination';
 import { useNewsFeed } from '../hooks';
+import { getNewsCategoryName } from '@repo/validation';
 import type { NewsListResult } from '@/lib/news-server';
 
 interface NewsFeedProps {
   data: NewsListResult;
   currentType?: string;
+  currentCategory?: string;
+  currentTag?: string;
   currentSearch?: string;
 }
 
-export function NewsFeed({ data, currentType, currentSearch }: NewsFeedProps) {
+export function NewsFeed({ data, currentType, currentCategory, currentTag, currentSearch }: NewsFeedProps) {
   const {
     searchInput,
     setSearchInput,
     filterOpened,
     selectedType,
     setSelectedType,
+    selectedCategory,
+    setSelectedCategory,
     handleSearchSubmit,
     handleClearSearch,
     handleOpenFilter,
@@ -29,13 +34,16 @@ export function NewsFeed({ data, currentType, currentSearch }: NewsFeedProps) {
     handleApplyFilter,
     handleResetFilter,
     handleRemoveTypeFilter,
+    handleRemoveCategoryFilter,
+    handleRemoveTagFilter,
     handleClearAllFilters,
-  } = useNewsFeed({ currentType, currentSearch });
+  } = useNewsFeed({ currentType, currentCategory, currentTag, currentSearch });
 
   const { items, page, total_pages } = data;
-  const isFiltering = Boolean(currentSearch || currentType);
+  const isFiltering = Boolean(currentSearch || currentType || currentCategory || currentTag);
   const featuredItem = !isFiltering && page === 1 && items.length > 0 ? items[0] : null;
   const listItems = !isFiltering && page === 1 && items.length > 0 ? items.slice(1) : items;
+  const activeFilterCount = (currentType ? 1 : 0) + (currentCategory ? 1 : 0) + (currentTag ? 1 : 0);
 
   return (
     <Container size="lg" className="py-8 sm:py-12">
@@ -70,15 +78,15 @@ export function NewsFeed({ data, currentType, currentSearch }: NewsFeedProps) {
           />
           <Button
             type="button"
-            variant={currentType ? 'light' : 'default'}
-            color={currentType ? 'brand' : 'gray'}
+            variant={activeFilterCount > 0 ? 'light' : 'default'}
+            color={activeFilterCount > 0 ? 'brand' : 'gray'}
             size="lg"
             radius="md"
             onClick={handleOpenFilter}
             leftSection={<SlidersHorizontal size={17} />}
             className="h-12 sm:h-14 px-3.5 sm:px-4 text-sm sm:text-base font-medium shadow-none whitespace-nowrap border-border-app text-text-app hover:bg-surface-soft shrink-0"
           >
-            Bộ lọc{currentType ? ` (1)` : ''}
+            Bộ lọc{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
           </Button>
 
           <Button
@@ -93,7 +101,7 @@ export function NewsFeed({ data, currentType, currentSearch }: NewsFeedProps) {
         </form>
 
         {/* Active Filter Tags */}
-        {(currentSearch || currentType) && (
+        {(currentSearch || currentType || currentCategory || currentTag) && (
           <div className="flex items-center gap-2 flex-wrap text-sm text-text-muted mt-3 px-1">
             {currentSearch && (
               <span>
@@ -122,6 +130,50 @@ export function NewsFeed({ data, currentType, currentSearch }: NewsFeedProps) {
                 {currentType === 'article' ? 'Bài viết' : currentType === 'video' ? 'Video' : currentType}
               </Badge>
             )}
+            {currentCategory && (
+              <Badge
+                variant="light"
+                color="blue"
+                size="md"
+                radius="sm"
+                className="text-xs font-semibold px-2.5 py-1"
+                rightSection={
+                  <ActionIcon
+                    variant="transparent"
+                    color="blue"
+                    size="xs"
+                    onClick={handleRemoveCategoryFilter}
+                    aria-label="Bỏ lọc chuyên mục"
+                  >
+                    <X size={13} />
+                  </ActionIcon>
+                }
+              >
+                Chuyên mục: {getNewsCategoryName(currentCategory)}
+              </Badge>
+            )}
+            {currentTag && (
+              <Badge
+                variant="light"
+                color="teal"
+                size="md"
+                radius="sm"
+                className="text-xs font-semibold px-2.5 py-1"
+                rightSection={
+                  <ActionIcon
+                    variant="transparent"
+                    color="teal"
+                    size="xs"
+                    onClick={handleRemoveTagFilter}
+                    aria-label="Bỏ lọc chủ đề"
+                  >
+                    <X size={13} />
+                  </ActionIcon>
+                }
+              >
+                Chủ đề: #{currentTag}
+              </Badge>
+            )}
             <button
               type="button"
               onClick={handleClearAllFilters}
@@ -138,6 +190,8 @@ export function NewsFeed({ data, currentType, currentSearch }: NewsFeedProps) {
           onClose={handleCloseFilter}
           selectedType={selectedType}
           onTypeChange={setSelectedType}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
           onApply={handleApplyFilter}
           onReset={handleResetFilter}
         />
@@ -172,6 +226,8 @@ export function NewsFeed({ data, currentType, currentSearch }: NewsFeedProps) {
         page={page}
         totalPages={total_pages}
         currentType={currentType}
+        currentCategory={currentCategory}
+        currentTag={currentTag}
         currentSearch={currentSearch}
       />
     </Container>

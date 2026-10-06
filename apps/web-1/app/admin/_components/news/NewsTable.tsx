@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { Table, Badge, Menu, ActionIcon, Text } from '@mantine/core';
 import { NewsTableModals } from './NewsTableModals';
 import { MoreVertical, Edit, Send, Undo2, Trash2, Video, Newspaper } from 'lucide-react';
-import type { NewsItemAdmin } from '@repo/validation';
+import { getNewsCategoryName, type NewsItemAdmin } from '@repo/validation';
 
 interface NewsTableProps {
   items: NewsItemAdmin[];
@@ -81,6 +81,17 @@ export function NewsTable({
                   </Table.Td>
 
                   <Table.Td>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Badge variant="outline" size="xs" color="gray">
+                        {getNewsCategoryName(item.category)}
+                      </Badge>
+                      {item.tags && item.tags.length > 0 && (
+                        <Text size="xs" c="dimmed">
+                          {item.tags.map((t) => (t.startsWith('#') ? t : `#${t}`)).slice(0, 2).join(' ')}
+                          {item.tags.length > 2 ? ` +${item.tags.length - 2}` : ''}
+                        </Text>
+                      )}
+                    </div>
                     <Link
                       href={`/admin/news/${item.id}`}
                       className="font-semibold text-text-app hover:text-brand transition-colors line-clamp-1 block text-sm mb-0.5"

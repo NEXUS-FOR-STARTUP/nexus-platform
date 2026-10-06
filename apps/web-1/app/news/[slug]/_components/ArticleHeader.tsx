@@ -1,8 +1,11 @@
+import Link from 'next/link';
 import { Badge, Avatar } from '@mantine/core';
+import { getNewsCategoryName } from '@repo/validation';
 import { ArticleShareButton } from './ArticleShareButton';
 
 interface ArticleHeaderProps {
   title: string;
+  category?: string | null;
   excerpt?: string | null;
   authorName: string;
   authorInitials: string;
@@ -12,6 +15,7 @@ interface ArticleHeaderProps {
 
 export function ArticleHeader({
   title,
+  category,
   excerpt,
   authorName,
   authorInitials,
@@ -20,15 +24,17 @@ export function ArticleHeader({
 }: ArticleHeaderProps) {
   return (
     <header className="mb-10">
-      <Badge
-        color="blue"
-        variant="light"
-        size="lg"
-        radius="sm"
-        className="font-bold tracking-wider uppercase mb-5 px-3.5 py-1.5 !text-xs sm:!text-sm bg-blue-50 text-[#288ad6] !border-0"
-      >
-        Khởi nghiệp & Công nghệ
-      </Badge>
+      <Link href={`/news?category=${category || 'khoi-nghiep'}`} className="inline-block">
+        <Badge
+          color="blue"
+          variant="light"
+          size="lg"
+          radius="sm"
+          className="font-bold tracking-wider uppercase mb-5 px-3.5 py-1.5 !text-xs sm:!text-sm bg-blue-50 text-[#288ad6] hover:bg-blue-100 !border-0 cursor-pointer transition-colors"
+        >
+          {getNewsCategoryName(category)}
+        </Badge>
+      </Link>
 
       <h1 className="text-2xl sm:text-3xl md:text-[34px] font-black text-text-app tracking-tight leading-snug mb-4 sm:mb-5">
         {title}

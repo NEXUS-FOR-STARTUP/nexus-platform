@@ -3,13 +3,13 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Button, Card, Group, SegmentedControl, Stack, Text, TextInput, Textarea, Title } from '@mantine/core';
+import { Button, Card, Group, SegmentedControl, Stack, Text, TextInput, Textarea, Title, Select, TagsInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useCreateNewsItem, useUploadNewsCover } from '@/app/admin/hooks/useAdminNews';
 import { NewsRichTextEditor } from '@/app/admin/_components/news/NewsRichTextEditor';
 import { YouTubePreviewSection, ArticleCoverSection } from '@/app/admin/_components/news/NewsEditorFormSections';
-import { generateNewsSlug, extractYouTubeVideoId } from '@repo/validation';
+import { NEWS_CATEGORIES, generateNewsSlug, extractYouTubeVideoId } from '@repo/validation';
 
 export default function NewNewsItemPage() {
   const router = useRouter();
@@ -20,6 +20,8 @@ export default function NewNewsItemPage() {
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [slugCustomized, setSlugCustomized] = useState(false);
+  const [category, setCategory] = useState<string>('khoi-nghiep');
+  const [tags, setTags] = useState<string[]>([]);
   const [excerpt, setExcerpt] = useState('');
   const [contentJson, setContentJson] = useState<unknown>({ type: 'doc', content: [{ type: 'paragraph' }] });
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -51,8 +53,24 @@ export default function NewNewsItemPage() {
     try {
       const created = await createMutation.mutateAsync(
         type === 'article'
-          ? { type: 'article', title: title.trim(), slug: slug.trim() || undefined, excerpt: excerpt.trim(), content_json: contentJson, cover_image_alt: coverAlt.trim() || undefined }
-          : { type: 'video', title: title.trim(), excerpt: excerpt.trim(), youtube_url_or_id: youtubeUrl.trim() }
+          ? {
+              type: 'article',
+              title: title.trim(),
+              slug: slug.trim() || undefined,
+              excerpt: excerpt.trim(),
+              category,
+              tags,
+              content_json: contentJson,
+              cover_image_alt: coverAlt.trim() || undefined,
+            }
+          : {
+              type: 'video',
+              title: title.trim(),
+              excerpt: excerpt.trim(),
+              category,
+              tags,
+              youtube_url_or_id: youtubeUrl.trim(),
+            }
       );
 
       // If cover image was selected for article, upload it now
@@ -123,6 +141,29 @@ export default function NewNewsItemPage() {
             maxLength={200}
             error={errors.title}
           />
+
+          {/* Category & Tags */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Select
+              label="Chuyên mục"
+              description="Chọn chuyên mục chính cho bài viết"
+              data={NEWS_CATEGORIES.map((c) => ({ value: c.slug, label: c.name }))}
+              value={category}
+              onChange={(val) => setCategory(val || 'khoi-nghiep')}
+              required
+              withAsterisk
+              radius="md"
+            />
+            <TagsInput
+              label="Chủ đề / Tags"
+              description="Nhấn Enter để thêm tag (vd: KhởiNghiệp, AI, PMF)"
+              placeholder="Thêm tag..."
+              value={tags}
+              onChange={setTags}
+              maxTags={10}
+              radius="md"
+            />
+          </div>
 
           {/* Excerpt */}
           <Textarea

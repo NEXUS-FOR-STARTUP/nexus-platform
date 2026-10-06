@@ -13,7 +13,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Avatar } from '@mantine/core';
 import { Play } from 'lucide-react';
-import type { NewsItemPublicCard } from '@repo/validation';
+import { getNewsCategoryName, type NewsItemPublicCard } from '@repo/validation';
 
 function formatDate(isoString: string): string {
   try {
@@ -37,21 +37,8 @@ function formatDate(isoString: string): string {
 }
 
 function getCategoryTag(item: NewsItemPublicCard): string {
-  const text = `${item.title} ${item.excerpt || ''}`.toLowerCase();
-  if (/\b(ai|llm|gpt|mô hình ngôn ngữ)\b/i.test(text) || text.includes('công nghệ') || text.includes('trí tuệ nhân tạo') || text.includes('deep learning')) {
-    return 'CÔNG NGHỆ NỔI BẬT';
-  }
-  if (text.includes('khởi nghiệp') || text.includes('startup') || text.includes('founder') || text.includes('sản phẩm') || text.includes('mvp') || text.includes('pmf')) {
-    return 'KHỞI NGHIỆP NỔI BẬT';
-  }
-  if (text.includes('vốn') || text.includes('đầu tư') || text.includes('tài chính') || text.includes('kinh doanh') || text.includes('doanh thu')) {
-    return 'TÀI CHÍNH NỔI BẬT';
-  }
-  if (text.includes('sách') || text.includes('đọc sách')) {
-    return 'SÁCH HAY NỔI BẬT';
-  }
-  if (text.includes('bài học') || text.includes('triết lý') || text.includes('phát triển') || text.includes('góc nhìn') || text.includes('tư duy')) {
-    return 'GÓC NHÌN NỔI BẬT';
+  if (item.category) {
+    return `${getNewsCategoryName(item.category).toUpperCase()} NỔI BẬT`;
   }
   return item.type === 'video' ? 'VIDEO NỔI BẬT' : 'KHỞI NGHIỆP NỔI BẬT';
 }
@@ -103,10 +90,13 @@ export function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
         {/* Featured Info bên phải */}
         <div className="flex-1 flex flex-col justify-between w-full">
           <div>
-            {/* Tag/Phân loại: góc trên bên trái, khóa cố định qua .news-featured-tag */}
-            <span className="news-featured-tag text-text-muted uppercase font-medium tracking-wide mb-2 block">
+            {/* Tag/Phân loại: click để filter theo category */}
+            <Link
+              href={`/news?category=${item.category || 'khoi-nghiep'}`}
+              className="news-featured-tag text-text-muted hover:text-brand transition-colors uppercase font-medium tracking-wide mb-2 inline-block"
+            >
               {categoryTag}
-            </span>
+            </Link>
 
             <Link href={targetUrl} target={isVideo ? '_blank' : undefined} rel={isVideo ? 'noopener noreferrer' : undefined}>
               <h2 className="news-featured-title font-bold text-text-app group-hover:text-brand transition-colors leading-snug tracking-tight mb-3">

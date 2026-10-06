@@ -413,9 +413,21 @@ async function main() {
   console.log('Seeding 20 long articles...');
   let count = 0;
 
+  const categories = ['khoi-nghiep', 'cong-nghe', 'goc-nhin', 'huong-dan', 'san-pham'];
+  const tagPool = [
+    ['KhởiNghiệp', 'MVP', 'SinhViên'],
+    ['AI', 'CôngNghệ', 'LLM'],
+    ['KháchHàng', 'ProductMarketFit', 'Sales'],
+    ['KinhDoanh', 'TàiChính', 'ĐầuTư'],
+    ['KỹNăng', 'LãnhĐạo', 'ĐộiNgũ'],
+    ['UX', 'ThiếtKế', 'SảnPhẩm'],
+  ];
+
   for (const art of articles) {
     const publishedAt = new Date();
     publishedAt.setDate(publishedAt.getDate() - art.published_days_ago);
+    const assignedCategory = categories[count % categories.length];
+    const assignedTags = tagPool[count % tagPool.length];
 
     await prisma.newsItem.upsert({
       where: { slug: art.slug },
@@ -423,6 +435,8 @@ async function main() {
         title: art.title,
         type: 'article',
         status: 'published',
+        category: assignedCategory,
+        tags: assignedTags,
         excerpt: art.excerpt,
         content_json: art.content,
         cover_image_url: art.cover_image_url,
@@ -435,6 +449,8 @@ async function main() {
         slug: art.slug,
         type: 'article',
         status: 'published',
+        category: assignedCategory,
+        tags: assignedTags,
         excerpt: art.excerpt,
         content_json: art.content,
         cover_image_url: art.cover_image_url,
@@ -446,7 +462,7 @@ async function main() {
     });
 
     count++;
-    console.log(`[${count}/20] Seeded: ${art.title}`);
+    console.log(`[${count}/20] Seeded: ${art.title} (category: ${assignedCategory}, tags: ${assignedTags.join(', ')})`);
   }
 
   const total = await prisma.newsItem.count();

@@ -5,6 +5,8 @@ export interface ListPublicNewsOptions {
   page: number;
   limit: number;
   type?: 'article' | 'video';
+  category?: string;
+  tag?: string;
   search?: string;
 }
 
@@ -13,6 +15,8 @@ export interface ListAdminNewsOptions {
   limit: number;
   type?: 'article' | 'video';
   status?: 'draft' | 'published';
+  category?: string;
+  tag?: string;
   sort?: 'newest' | 'oldest';
   search?: string;
 }
@@ -23,6 +27,8 @@ export class PrismaNewsRepository {
       status: 'published',
       published_at: { lte: new Date() },
       ...(opts.type ? { type: opts.type } : {}),
+      ...(opts.category ? { category: opts.category } : {}),
+      ...(opts.tag ? { tags: { has: opts.tag } } : {}),
       ...(opts.search?.trim()
         ? {
             title: {
@@ -44,6 +50,8 @@ export class PrismaNewsRepository {
           title: true,
           slug: true,
           excerpt: true,
+          category: true,
+          tags: true,
           youtube_video_id: true,
           cover_image_url: true,
           cover_image_alt: true,
@@ -116,6 +124,8 @@ export class PrismaNewsRepository {
     const where: Prisma.NewsItemWhereInput = {
       ...(opts.type ? { type: opts.type } : {}),
       ...(opts.status ? { status: opts.status } : {}),
+      ...(opts.category ? { category: opts.category } : {}),
+      ...(opts.tag ? { tags: { has: opts.tag } } : {}),
       ...(opts.search?.trim()
         ? {
             title: {

@@ -7,6 +7,8 @@ interface NewsPaginationProps {
   page: number;
   totalPages: number;
   currentType?: string;
+  currentCategory?: string;
+  currentTag?: string;
   currentSearch?: string;
 }
 
@@ -14,6 +16,8 @@ export function NewsPagination({
   page,
   totalPages,
   currentType,
+  currentCategory,
+  currentTag,
   currentSearch,
 }: NewsPaginationProps) {
   if (totalPages <= 1) return null;
@@ -22,6 +26,8 @@ export function NewsPagination({
     const params = new URLSearchParams();
     params.set('page', String(targetPage));
     if (currentType) params.set('type', currentType);
+    if (currentCategory) params.set('category', currentCategory);
+    if (currentTag) params.set('tag', currentTag);
     if (currentSearch) params.set('search', currentSearch);
     return `/news?${params.toString()}`;
   };

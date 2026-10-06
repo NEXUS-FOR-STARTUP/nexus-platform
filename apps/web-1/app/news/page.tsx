@@ -12,6 +12,8 @@ interface NewsPageProps {
   searchParams: Promise<{
     page?: string;
     type?: string;
+    category?: string;
+    tag?: string;
     search?: string;
   }>;
 }
@@ -23,11 +25,15 @@ export default async function NewsPage({ searchParams }: NewsPageProps) {
     params.type === 'article' || params.type === 'video'
       ? params.type
       : undefined;
+  const category = params.category?.trim() || undefined;
+  const tag = params.tag?.trim() || undefined;
   const search = params.search?.trim() || undefined;
 
   const data = await fetchPublicNewsList({
     page: isNaN(page) || page < 1 ? 1 : page,
     type,
+    category,
+    tag,
     search,
     limit: 12,
   });
@@ -35,7 +41,13 @@ export default async function NewsPage({ searchParams }: NewsPageProps) {
   return (
     <>
       <NewsPoller />
-      <NewsFeed data={data} currentType={type} currentSearch={search} />
+      <NewsFeed
+        data={data}
+        currentType={type}
+        currentCategory={category}
+        currentTag={tag}
+        currentSearch={search}
+      />
     </>
   );
 }

@@ -1005,6 +1005,21 @@ export const NEWS_EXCERPT_MAX_LENGTH = 320;
 export const NEWS_COVER_ALT_MAX_LENGTH = 200;
 export const NEWS_MAX_CONTENT_JSON_BYTES = 512 * 1024; // 512 KiB
 
+export const NEWS_CATEGORIES = [
+  { slug: 'khoi-nghiep', name: 'Khởi nghiệp' },
+  { slug: 'cong-nghe', name: 'Công nghệ & AI' },
+  { slug: 'goc-nhin', name: 'Góc nhìn & Bài học' },
+  { slug: 'san-pham', name: 'Sản phẩm & Tăng trưởng' },
+] as const;
+
+export type NewsCategorySlug = (typeof NEWS_CATEGORIES)[number]['slug'];
+
+export function getNewsCategoryName(slug: string | null | undefined): string {
+  if (!slug) return 'Khởi nghiệp';
+  const found = NEWS_CATEGORIES.find((c) => c.slug === slug);
+  return found ? found.name : slug;
+}
+
 export const NEWS_PUBLIC_DEFAULT_LIMIT = 12;
 export const NEWS_PUBLIC_MAX_LIMIT = 48;
 export const NEWS_ADMIN_DEFAULT_LIMIT = 20;
@@ -1164,6 +1179,8 @@ export const NewsArticlePublicCardSchema = z.object({
   title: z.string(),
   slug: z.string(),
   excerpt: z.string(),
+  category: z.string().default('khoi-nghiep'),
+  tags: z.array(z.string()).default([]),
   cover_image_url: z.string().nullable(),
   cover_image_alt: z.string().nullable(),
   published_at: z.string(),
@@ -1176,6 +1193,8 @@ export const NewsVideoPublicCardSchema = z.object({
   type: z.literal('video'),
   title: z.string(),
   excerpt: z.string(),
+  category: z.string().default('khoi-nghiep'),
+  tags: z.array(z.string()).default([]),
   youtube_video_id: z.string(),
   youtube_thumbnail_url: z.string(),
   published_at: z.string(),
@@ -1196,6 +1215,8 @@ export const NewsArticlePublicDetailSchema = z.object({
   title: z.string(),
   slug: z.string(),
   excerpt: z.string(),
+  category: z.string().default('khoi-nghiep'),
+  tags: z.array(z.string()).default([]),
   content_json: z.any().nullable(),
   cover_image_url: z.string().nullable(),
   cover_image_alt: z.string().nullable(),
@@ -1214,6 +1235,8 @@ export const NewsItemAdminSchema = z.object({
   title: z.string(),
   slug: z.string().nullable(),
   excerpt: z.string(),
+  category: z.string().default('khoi-nghiep'),
+  tags: z.array(z.string()).default([]),
   content_json: z.any().nullable(),
   youtube_video_id: z.string().nullable(),
   cover_image_url: z.string().nullable(),
@@ -1234,6 +1257,8 @@ export const CreateNewsItemInputSchema = z.discriminatedUnion('type', [
     title: z.string().trim().min(1, 'Tiêu đề không được để trống').max(NEWS_TITLE_MAX_LENGTH),
     slug: z.string().trim().max(NEWS_SLUG_MAX_LENGTH).optional(),
     excerpt: z.string().trim().max(NEWS_EXCERPT_MAX_LENGTH).default(''),
+    category: z.string().trim().max(50).default('khoi-nghiep'),
+    tags: z.array(z.string().trim().max(50)).default([]),
     content_json: z.any().optional(),
     cover_image_url: z.string().nullable().optional(),
     cover_image_public_id: z.string().nullable().optional(),
@@ -1243,6 +1268,8 @@ export const CreateNewsItemInputSchema = z.discriminatedUnion('type', [
     type: z.literal('video'),
     title: z.string().trim().min(1, 'Tiêu đề không được để trống').max(NEWS_TITLE_MAX_LENGTH),
     excerpt: z.string().trim().max(NEWS_EXCERPT_MAX_LENGTH).default(''),
+    category: z.string().trim().max(50).default('khoi-nghiep'),
+    tags: z.array(z.string().trim().max(50)).default([]),
     youtube_url_or_id: z.string().trim().refine((val) => extractYouTubeVideoId(val) !== null, {
       message: 'URL hoặc ID video YouTube không hợp lệ',
     }),
@@ -1255,6 +1282,8 @@ export const UpdateNewsItemInputSchema = z.object({
   title: z.string().trim().min(1).max(NEWS_TITLE_MAX_LENGTH).optional(),
   slug: z.string().trim().max(NEWS_SLUG_MAX_LENGTH).optional(),
   excerpt: z.string().trim().max(NEWS_EXCERPT_MAX_LENGTH).optional(),
+  category: z.string().trim().max(50).optional(),
+  tags: z.array(z.string().trim().max(50)).optional(),
   content_json: z.any().optional(),
   youtube_url_or_id: z.string().trim().optional(),
   cover_image_url: z.string().nullable().optional(),
@@ -1269,6 +1298,8 @@ export const PublicNewsListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(NEWS_PUBLIC_MAX_LIMIT).default(NEWS_PUBLIC_DEFAULT_LIMIT),
   type: NewsTypeSchema.optional(),
+  category: z.string().trim().max(50).optional(),
+  tag: z.string().trim().max(50).optional(),
   search: z.string().trim().max(100).optional(),
 });
 
@@ -1279,6 +1310,8 @@ export const AdminNewsListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(NEWS_ADMIN_MAX_LIMIT).default(NEWS_ADMIN_DEFAULT_LIMIT),
   type: NewsTypeSchema.optional(),
   status: NewsStatusSchema.optional(),
+  category: z.string().trim().max(50).optional(),
+  tag: z.string().trim().max(50).optional(),
   sort: z.enum(['newest', 'oldest']).default('newest'),
   search: z.string().trim().max(100).optional(),
 });
