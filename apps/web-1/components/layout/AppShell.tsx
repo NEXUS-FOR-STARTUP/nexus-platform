@@ -211,21 +211,21 @@ export default function AppShell({ children }: AppShellProps) {
       <main className="flex-grow">{children}</main>
 
       {/* ── Footer Centered ── */}
-      <footer className="border-t border-border-app bg-surface-app py-12">
+      <footer className="border-t border-border-app bg-surface-app py-6 sm:py-7">
         <Container
           size="lg"
-          className="flex flex-col items-center gap-6 text-center"
+          className="flex flex-col items-center gap-4 text-center"
         >
           {/* Logo Centered */}
           <Link
             href="/"
             className="flex items-center"
           >
-            <Logo height={44} />
+            <Logo height={38} />
           </Link>
 
           {/* Centered Navigation Links */}
-          <Group gap="xl" justify="center" className="flex-wrap">
+          <Group gap="lg" justify="center" className="flex-wrap">
             {footerLinks.map((link) => (
               <Anchor
                 component={Link}
@@ -245,21 +245,21 @@ export default function AppShell({ children }: AppShellProps) {
               href="https://www.facebook.com/profile.php?id=61591506814865"
               target="_blank"
               rel="noopener noreferrer"
-              size="xl"
+              size="lg"
               color="gray"
               variant="subtle"
               radius="xl"
               className="cursor-pointer"
               aria-label="Nexus Facebook Page"
             >
-              <FacebookIcon className="w-6 h-6 text-brand" />
+              <FacebookIcon className="w-5 h-5 text-brand" />
             </ActionIcon>
             <ActionIcon
               component="a"
               href="https://zalo.me/g/wgadhwpaxd05vykpnxqb"
               target="_blank"
               rel="noopener noreferrer"
-              size="xl"
+              size="lg"
               color="gray"
               variant="subtle"
               radius="xl"
@@ -269,9 +269,9 @@ export default function AppShell({ children }: AppShellProps) {
               <Image
                 src="/logo/zalo.png"
                 alt="Zalo"
-                width={24}
-                height={24}
-                className="w-6 h-6"
+                width={20}
+                height={20}
+                className="w-5 h-5"
               />
             </ActionIcon>
             <ActionIcon
@@ -279,14 +279,14 @@ export default function AppShell({ children }: AppShellProps) {
               href="https://www.tiktok.com/@nexus.for.startup?_r=1&_t=ZS-99uXWT84gk9"
               target="_blank"
               rel="noopener noreferrer"
-              size="xl"
+              size="lg"
               color="gray"
               variant="subtle"
               radius="xl"
               className="cursor-pointer"
               aria-label="Nexus TikTok"
             >
-              <TikTokIcon className="w-5 h-5 text-text-app hover:text-brand transition-colors" />
+              <TikTokIcon className="w-4 h-4 text-text-app hover:text-brand transition-colors" />
             </ActionIcon>
           </Group>
 
