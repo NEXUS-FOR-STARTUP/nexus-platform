@@ -16,6 +16,7 @@ import {
   updateServiceTypeHandler,
   getPricingHistoryHandler,
   setPricingHandler,
+  listAdminUsersHandler,
   createAdminUserHandler,
   banUserHandler,
   unbanUserHandler,
@@ -59,6 +60,7 @@ adminRouter.patch("/service-types/:id", updateServiceTypeHandler);
 adminRouter.get("/packages/:id/pricing", getPricingHistoryHandler);
 adminRouter.post("/packages/:id/pricing", setPricingHandler);
 
+adminRouter.get("/users", listAdminUsersHandler);
 adminRouter.post("/users", createAdminUserHandler);
 adminRouter.post("/users/:id/ban", banUserHandler);
 adminRouter.post("/users/:id/unban", unbanUserHandler);

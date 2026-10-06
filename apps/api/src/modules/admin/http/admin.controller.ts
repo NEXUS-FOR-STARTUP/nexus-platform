@@ -15,6 +15,7 @@ import { getAdminStatsUseCase } from "../application/get-admin-stats.usecase.js"
 import { listServiceTypesUseCase, createServiceTypeUseCase, updateServiceTypeUseCase } from "../../packages/application/service-type.usecase.js";
 import { setCurrentPricingUseCase, getPricingHistoryUseCase } from "../../packages/application/service-pricing.usecase.js";
 import { createAdminUserUseCase } from "../application/create-admin-user.usecase.js";
+import { listAdminUsersUseCase } from "../application/list-admin-users.usecase.js";
 import { banUserUseCase } from "../application/ban-user.usecase.js";
 import { unbanUserUseCase } from "../application/unban-user.usecase.js";
 import { exportAdminDataUseCase, parseExportResource } from "../application/export-admin-data.usecase.js";
@@ -329,6 +330,25 @@ export async function setPricingHandler(c: Context) {
     const { price } = await c.req.json();
     const pricing = await setCurrentPricingUseCase(c.req.param('id')!, price, authResult.session.user.id);
     return c.json(pricing, 201);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/admin/users — List users with search, filter, pagination
+// ---------------------------------------------------------------------------
+
+export async function listAdminUsersHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  try {
+    const query = c.req.query();
+    const result = await listAdminUsersUseCase(query);
+    return c.json(result);
   } catch (error: any) {
     return handleError(c, error);
   }
