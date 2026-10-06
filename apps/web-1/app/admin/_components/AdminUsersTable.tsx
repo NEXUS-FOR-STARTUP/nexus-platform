@@ -15,6 +15,7 @@ const ROLE_FILTER_OPTIONS: { value: string; label: string }[] = [
   { value: "all", label: "Tất cả vai trò" },
   { value: "admin", label: "Admin" },
   { value: "supporter", label: "Supporter" },
+  { value: "writer", label: "Writer" },
   { value: "user", label: "Student" },
   { value: "banned", label: "Bị khóa" },
 ];
@@ -33,12 +34,14 @@ function formatDate(dateStr: string | null | undefined): string {
 const roleThemeMap: Record<string, string> = {
   admin: "red",
   supporter: "brand",
+  writer: "violet",
   user: "gray",
 };
 
 const roleLabelMap: Record<string, string> = {
   admin: "Admin",
   supporter: "Supporter",
+  writer: "Writer",
   user: "Student",
 };
 

@@ -13,6 +13,7 @@ interface NewsTableProps {
   onUnpublish: (item: NewsItemAdmin) => Promise<void>;
   onDelete: (item: NewsItemAdmin) => Promise<void>;
   isActionLoading?: boolean;
+  basePath?: string;
 }
 
 export function NewsTable({
@@ -21,6 +22,7 @@ export function NewsTable({
   onUnpublish,
   onDelete,
   isActionLoading = false,
+  basePath = '/admin/news',
 }: NewsTableProps) {
   const [deleteTarget, setDeleteTarget] = useState<NewsItemAdmin | null>(null);
   const [publishTarget, setPublishTarget] = useState<NewsItemAdmin | null>(null);
@@ -95,7 +97,7 @@ export function NewsTable({
                       )}
                     </div>
                     <Link
-                      href={`/admin/news/${item.id}`}
+                      href={`${basePath}/${item.id}`}
                       className="font-semibold text-text-app hover:text-brand transition-colors line-clamp-1 block text-sm mb-0.5"
                     >
                       {item.title}
@@ -135,7 +137,7 @@ export function NewsTable({
                       <Menu.Dropdown>
                         <Menu.Item
                           component={Link}
-                          href={`/admin/news/${item.id}`}
+                          href={`${basePath}/${item.id}`}
                           leftSection={<Edit size={14} />}
                         >
                           Chỉnh sửa

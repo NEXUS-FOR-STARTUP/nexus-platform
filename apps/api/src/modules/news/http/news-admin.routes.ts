@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import {
-  requireAdmin,
+  requireAdminOrWriter,
   verifyMutationOrigin,
 } from '../../../shared/infrastructure/middlewares/auth.js';
 import {
@@ -16,7 +16,7 @@ import {
 
 export const newsAdminRouter = new Hono();
 
-newsAdminRouter.use('*', requireAdmin);
+newsAdminRouter.use('*', requireAdminOrWriter);
 newsAdminRouter.use('*', verifyMutationOrigin);
 
 newsAdminRouter.get('/', listAdminNewsHandler);

@@ -278,7 +278,7 @@ export const UserSchema = z.object({
   image: z.string().url().nullable().default(null),
   created_at: z.string().datetime(),
   updated_at: z.string().datetime(),
-  role: z.enum(['user', 'supporter', 'admin']),
+  role: z.enum(['user', 'supporter', 'admin', 'writer']),
   banned: z.boolean().default(false),
   ban_reason: z.string().nullable().default(null),
   ban_expires: z.string().datetime().nullable().default(null),

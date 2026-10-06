@@ -33,6 +33,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
   const getHomeLink = () => {
     if (user?.role === "admin") return "/admin";
     if (user?.role === "supporter") return "/supporter";
+    if (user?.role === "writer") return "/writer";
     return "/dashboard";
   };
 

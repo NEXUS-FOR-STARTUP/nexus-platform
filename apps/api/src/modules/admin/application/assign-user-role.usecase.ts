@@ -3,7 +3,7 @@ import { prisma } from "../../../db.js";
 import { auditLogger } from "../../../shared/infrastructure/audit-logger.js";
 import logger from "../../../shared/infrastructure/logger.js";
 
-const VALID_ROLES = ["user", "supporter", "admin"] as const;
+const VALID_ROLES = ["user", "supporter", "writer", "admin"] as const;
 export type AssignableRole = (typeof VALID_ROLES)[number];
 
 export async function assignUserRoleUseCase(

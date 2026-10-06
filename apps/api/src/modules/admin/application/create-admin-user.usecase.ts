@@ -9,7 +9,7 @@ export async function createAdminUserUseCase(
   role: string,
   headers: Headers,
 ) {
-  const safeRole = (role === "admin" || role === "user" || role === "supporter") ? role : "user";
+  const safeRole = (role === "admin" || role === "user" || role === "supporter" || role === "writer") ? role : "user";
   // Auto-generate secure random password
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   const bytes = crypto.getRandomValues(new Uint8Array(12));
@@ -21,10 +21,10 @@ export async function createAdminUserUseCase(
     headers,
   });
 
-  if (safeRole === "supporter" && newUser.user?.id) {
+  if ((safeRole === "supporter" || safeRole === "writer") && newUser.user?.id) {
     await prisma.user.update({
       where: { id: newUser.user.id },
-      data: { role: "supporter" },
+      data: { role: safeRole },
     });
   }
 

@@ -19,20 +19,23 @@ interface AssignRoleModalProps {
 }
 
 const ROLE_OPTIONS = [
-  { value: "user", label: "Student (Người dùng)" },
-  { value: "supporter", label: "Supporter (Hỗ trợ viên)" },
-  { value: "admin", label: "Admin (Quản trị viên)" },
+  { value: "user", label: "Student" },
+  { value: "supporter", label: "Supporter" },
+  { value: "writer", label: "Writer" },
+  { value: "admin", label: "Admin" },
 ];
 
 const roleLabelMap: Record<string, string> = {
   admin: "Admin",
   supporter: "Supporter",
+  writer: "Writer",
   user: "Student",
 };
 
 const roleThemeMap: Record<string, string> = {
   admin: "red",
   supporter: "brand",
+  writer: "violet",
   user: "gray",
 };
 

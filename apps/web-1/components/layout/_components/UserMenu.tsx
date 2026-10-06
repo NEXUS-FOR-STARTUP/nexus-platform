@@ -32,7 +32,7 @@ export default function UserMenu() {
     : undefined;
 
   const walletBalance = walletData?.balance ?? 0;
-  const isStudent = !(user?.role === "admin" || user?.role === "supporter");
+  const isStudent = !(user?.role === "admin" || user?.role === "supporter" || user?.role === "writer");
   const isSupporter = user?.role === "supporter";
   const settingsHref = isStudent
     ? "/dashboard/settings"
@@ -43,6 +43,7 @@ export default function UserMenu() {
   const getHomeLink = (role?: string) => {
     if (role === "admin") return "/admin";
     if (role === "supporter") return "/supporter";
+    if (role === "writer") return "/writer";
     return "/dashboard";
   };
 
