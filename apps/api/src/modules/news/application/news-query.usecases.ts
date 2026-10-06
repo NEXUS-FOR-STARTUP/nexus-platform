@@ -17,6 +17,9 @@ export async function getPublicNewsListUseCase(query: PublicNewsListQuery) {
   });
 
   const mappedItems: NewsItemPublicCard[] = result.items.map((item) => {
+    const authorByline = item.author?.name || (item.type === 'video' ? 'Nexus Video' : 'Nexus Team');
+    const authorAvatarUrl = item.author?.image ?? null;
+
     if (item.type === 'article') {
       return {
         id: item.id,
@@ -27,6 +30,8 @@ export async function getPublicNewsListUseCase(query: PublicNewsListQuery) {
         cover_image_url: item.cover_image_url,
         cover_image_alt: item.cover_image_alt,
         published_at: item.published_at?.toISOString() ?? item.created_at.toISOString(),
+        author_byline: authorByline,
+        author_avatar_url: authorAvatarUrl,
       };
     }
     return {
@@ -37,6 +42,8 @@ export async function getPublicNewsListUseCase(query: PublicNewsListQuery) {
       youtube_video_id: item.youtube_video_id ?? '',
       youtube_thumbnail_url: `https://img.youtube.com/vi/${item.youtube_video_id}/hqdefault.jpg`,
       published_at: item.published_at?.toISOString() ?? item.created_at.toISOString(),
+      author_byline: authorByline,
+      author_avatar_url: authorAvatarUrl,
     };
   });
 
@@ -55,6 +62,9 @@ export async function getPublicArticleDetailUseCase(slug: string): Promise<NewsA
     throw new AppError(404, 'NOT_FOUND', 'Bài viết không tồn tại hoặc chưa được xuất bản');
   }
 
+  const authorByline = item.author?.name || 'Nexus Team';
+  const authorAvatarUrl = item.author?.image ?? null;
+
   return {
     id: item.id,
     type: 'article',
@@ -65,7 +75,8 @@ export async function getPublicArticleDetailUseCase(slug: string): Promise<NewsA
     cover_image_url: item.cover_image_url,
     cover_image_alt: item.cover_image_alt,
     published_at: item.published_at?.toISOString() ?? item.created_at.toISOString(),
-    author_byline: 'Nexus Team',
+    author_byline: authorByline,
+    author_avatar_url: authorAvatarUrl,
   };
 }
 

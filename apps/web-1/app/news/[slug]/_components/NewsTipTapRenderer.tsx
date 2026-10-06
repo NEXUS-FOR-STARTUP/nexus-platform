@@ -1,5 +1,22 @@
 import React from 'react';
+import Image from 'next/image';
 import { isSafeHttpUrl } from '@repo/validation';
+
+const WHITELISTED_IMAGE_HOSTS = new Set([
+  'res.cloudinary.com',
+  'images.unsplash.com',
+  'img.youtube.com',
+  'i.ytimg.com',
+]);
+
+function isHostWhitelisted(urlStr: string): boolean {
+  try {
+    const parsed = new URL(urlStr, 'http://localhost');
+    return WHITELISTED_IMAGE_HOSTS.has(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
 
 interface TipTapMark {
   type: string;
@@ -85,7 +102,7 @@ function renderNode(node: TipTapNode, index: number): React.ReactNode {
         <p
           key={index}
           style={style}
-          className="font-serif text-[19px] leading-[1.9] sm:leading-[1.95] text-text-app mb-8 sm:mb-9 tracking-normal"
+          className="font-serif text-[19px] leading-[32px] text-text-app mb-8 sm:mb-9 tracking-normal"
         >
           {children && children.length > 0 ? children : null}
         </p>
@@ -137,7 +154,7 @@ function renderNode(node: TipTapNode, index: number): React.ReactNode {
       return (
         <ul
           key={index}
-          className="font-serif list-disc pl-6 my-8 space-y-4 text-[19px] leading-[1.9] text-text-app"
+          className="font-serif list-disc pl-6 my-8 space-y-4 text-[19px] leading-[32px] text-text-app"
         >
           {children}
         </ul>
@@ -146,7 +163,7 @@ function renderNode(node: TipTapNode, index: number): React.ReactNode {
       return (
         <ol
           key={index}
-          className="font-serif list-decimal pl-6 my-8 space-y-4 text-[19px] leading-[1.9] text-text-app"
+          className="font-serif list-decimal pl-6 my-8 space-y-4 text-[19px] leading-[32px] text-text-app"
         >
           {children}
         </ol>
@@ -157,7 +174,7 @@ function renderNode(node: TipTapNode, index: number): React.ReactNode {
       return (
         <blockquote
           key={index}
-          className="border-l-4 border-[#3199d5] pl-6 py-1 my-10 font-serif italic text-[19px] leading-[1.9] text-text-app [&>p:last-child]:!mb-0"
+          className="border-l-4 border-[#3199d5] pl-6 py-1 my-10 font-serif italic text-[19px] leading-[32px] text-text-app [&>p:last-child]:!mb-0"
         >
           {children}
         </blockquote>
@@ -168,12 +185,19 @@ function renderNode(node: TipTapNode, index: number): React.ReactNode {
       const src = typeof node.attrs?.src === 'string' ? node.attrs.src : '';
       const alt = typeof node.attrs?.alt === 'string' ? node.attrs.alt : '';
       if (!isSafeHttpUrl(src)) return null;
+
+      const isWhitelisted = isHostWhitelisted(src);
+
       return (
         <figure key={index} className="my-10 text-center">
-          <img
+          <Image
             src={src}
-            alt={alt}
-            className="w-full max-w-[700px] mx-auto object-cover border border-border-app"
+            alt={alt || 'Hình ảnh bài viết'}
+            width={700}
+            height={400}
+            unoptimized={!isWhitelisted}
+            sizes="(max-width: 768px) 100vw, 700px"
+            className="w-full h-auto max-w-[700px] mx-auto object-cover border border-border-app"
             loading="lazy"
           />
           {alt && <figcaption className="mt-2 text-xs text-text-muted italic font-serif">{alt}</figcaption>}

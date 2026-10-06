@@ -35,15 +35,48 @@ export class PrismaNewsRepository {
 
     const skip = (opts.page - 1) * opts.limit;
 
-    const [items, total] = await Promise.all([
+    const [rawItems, total] = await Promise.all([
       prisma.newsItem.findMany({
         where,
+        select: {
+          id: true,
+          type: true,
+          title: true,
+          slug: true,
+          excerpt: true,
+          youtube_video_id: true,
+          cover_image_url: true,
+          cover_image_alt: true,
+          published_at: true,
+          created_at: true,
+          created_by_auth_user_id: true,
+        },
         orderBy: [{ published_at: 'desc' }, { id: 'desc' }],
         skip,
         take: opts.limit,
       }),
       prisma.newsItem.count({ where }),
     ]);
+
+    const authorIds = [
+      ...new Set(
+        rawItems
+          .map((i) => i.created_by_auth_user_id)
+          .filter((id): id is string => typeof id === 'string' && id.length > 0)
+      ),
+    ];
+    const authors = authorIds.length > 0
+      ? await prisma.user.findMany({
+          where: { id: { in: authorIds } },
+          select: { id: true, name: true, image: true },
+        })
+      : [];
+    const authorMap = new Map(authors.map((u) => [u.id, u]));
+
+    const items = rawItems.map((item) => ({
+      ...item,
+      author: (item.created_by_auth_user_id ? authorMap.get(item.created_by_auth_user_id) : null) ?? null,
+    }));
 
     return {
       items,
@@ -55,7 +88,7 @@ export class PrismaNewsRepository {
   }
 
   async findPublicPublishedArticleBySlug(slug: string) {
-    return prisma.newsItem.findFirst({
+    const item = await prisma.newsItem.findFirst({
       where: {
         type: 'article',
         status: 'published',
@@ -63,6 +96,20 @@ export class PrismaNewsRepository {
         published_at: { lte: new Date() },
       },
     });
+
+    if (!item) return null;
+
+    const author = item.created_by_auth_user_id
+      ? await prisma.user.findUnique({
+          where: { id: item.created_by_auth_user_id },
+          select: { id: true, name: true, image: true },
+        })
+      : null;
+
+    return {
+      ...item,
+      author,
+    };
   }
 
   async listAdminNews(opts: ListAdminNewsOptions) {

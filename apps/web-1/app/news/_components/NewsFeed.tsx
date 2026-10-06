@@ -51,12 +51,14 @@ function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
   const targetUrl = isVideo
     ? `https://www.youtube.com/watch?v=${item.youtube_video_id}`
     : `/news/${item.slug}`;
+  const authorName = item.author_byline || (isVideo ? 'Nexus Video' : 'Nexus Team');
+  const authorInitials = authorName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || (isVideo ? 'YT' : 'NX');
 
   return (
-    <article className="group mb-10 bg-surface-app border border-border-app rounded-2xl p-5 sm:p-7 hover:border-brand/50 transition-all duration-200">
+    <article className="group mb-10 bg-surface-app border border-border-app rounded-lg p-5 sm:p-7 hover:border-brand/50 transition-all duration-200">
       <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 items-center">
         {/* Featured Image */}
-        <div className="relative w-full lg:w-[480px] aspect-video rounded-xl overflow-hidden bg-surface-soft shrink-0">
+        <div className="relative w-full lg:w-[480px] aspect-video rounded-md overflow-hidden bg-surface-soft shrink-0">
           {isVideo ? (
             <a href={targetUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full relative">
               <Image
@@ -91,14 +93,20 @@ function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
         <div className="flex-1 flex flex-col justify-between w-full">
           <div>
             <div className="flex items-center justify-between gap-3 mb-3">
-              <div className="flex items-center gap-2">
-                <Avatar color={isVideo ? 'red' : 'blue'} radius="xl" size="sm" className="text-xs font-bold">
-                  {isVideo ? 'YT' : 'NX'}
+              <div className="flex items-center gap-2 min-w-0">
+                <Avatar
+                  src={item.author_avatar_url}
+                  color={isVideo ? 'red' : 'blue'}
+                  radius="xl"
+                  size="sm"
+                  className="text-xs font-bold shrink-0"
+                >
+                  {authorInitials}
                 </Avatar>
-                <span className="text-sm font-semibold text-text-app">
-                  {isVideo ? 'Nexus Video' : 'Nexus Team'}
+                <span className="text-sm font-semibold text-text-app truncate">
+                  {authorName}
                 </span>
-                <span className="text-xs text-text-muted">
+                <span className="text-xs text-text-muted shrink-0">
                   {formatDate(item.published_at)}
                 </span>
               </div>
@@ -190,7 +198,7 @@ export function NewsFeed({ data, currentType, currentSearch }: NewsFeedProps) {
             onChange={(e) => setSearchInput(e.currentTarget.value)}
             placeholder="Tìm kiếm bài viết, video chia sẻ theo tiêu đề..."
             size="lg"
-            radius="sm"
+            radius="md"
             className="flex-1"
             classNames={{
               input:
@@ -216,7 +224,7 @@ export function NewsFeed({ data, currentType, currentSearch }: NewsFeedProps) {
             variant={currentType ? 'light' : 'default'}
             color={currentType ? 'brand' : 'gray'}
             size="lg"
-            radius="sm"
+            radius="md"
             onClick={() => {
               setSelectedType(currentType || '');
               setFilterOpened(true);
@@ -230,7 +238,7 @@ export function NewsFeed({ data, currentType, currentSearch }: NewsFeedProps) {
           <Button
             type="submit"
             size="lg"
-            radius="sm"
+            radius="md"
             color="brand"
             className="h-12 sm:h-14 px-5 sm:px-7 text-sm sm:text-base font-semibold shadow-none whitespace-nowrap shrink-0"
           >
@@ -366,7 +374,7 @@ export function NewsFeed({ data, currentType, currentSearch }: NewsFeedProps) {
 
       {/* Empty State */}
       {items.length === 0 ? (
-        <div className="text-center py-36 bg-surface-app rounded-2xl border border-border-app">
+        <div className="text-center py-36 bg-surface-app rounded-lg border border-border-app">
           <Text size="lg" fw={500} className="text-text-app mb-1">
             Chưa có nội dung nào
           </Text>

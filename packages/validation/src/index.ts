@@ -1167,6 +1167,8 @@ export const NewsArticlePublicCardSchema = z.object({
   cover_image_url: z.string().nullable(),
   cover_image_alt: z.string().nullable(),
   published_at: z.string(),
+  author_byline: z.string().optional(),
+  author_avatar_url: z.string().nullable().optional(),
 });
 
 export const NewsVideoPublicCardSchema = z.object({
@@ -1177,6 +1179,8 @@ export const NewsVideoPublicCardSchema = z.object({
   youtube_video_id: z.string(),
   youtube_thumbnail_url: z.string(),
   published_at: z.string(),
+  author_byline: z.string().optional(),
+  author_avatar_url: z.string().nullable().optional(),
 });
 
 export const NewsItemPublicCardSchema = z.discriminatedUnion('type', [
@@ -1196,7 +1200,8 @@ export const NewsArticlePublicDetailSchema = z.object({
   cover_image_url: z.string().nullable(),
   cover_image_alt: z.string().nullable(),
   published_at: z.string(),
-  author_byline: z.literal('Nexus Team'),
+  author_byline: z.string(),
+  author_avatar_url: z.string().nullable().optional(),
 });
 
 export type NewsArticlePublicDetail = z.infer<typeof NewsArticlePublicDetailSchema>;

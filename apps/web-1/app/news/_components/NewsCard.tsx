@@ -27,18 +27,28 @@ function formatDate(isoString: string): string {
 }
 
 export function NewsCard({ item }: { item: NewsItemPublicCard }) {
+  const isVideo = item.type === 'video';
+  const authorName = item.author_byline || (isVideo ? 'Nexus Video' : 'Nexus Team');
+  const authorInitials = authorName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || (isVideo ? 'YT' : 'NX');
+
   if (item.type === 'video') {
     const youtubeUrl = `https://www.youtube.com/watch?v=${item.youtube_video_id}`;
     return (
-      <article className="group bg-surface-app border border-border-app rounded-xl p-4 sm:p-5 hover:border-brand/40 transition-all duration-200 flex flex-col justify-between">
+      <article className="group bg-surface-app border border-border-app rounded-lg p-4 sm:p-5 hover:border-brand/40 transition-all duration-200 flex flex-col justify-between">
         {/* Card Header: Author info on left, Badge on top right */}
         <div className="flex items-center justify-between gap-2 mb-3">
-          <div className="flex items-center gap-2">
-            <Avatar color="red" radius="xl" size="sm" className="text-xs font-bold">
-              YT
+          <div className="flex items-center gap-2 min-w-0">
+            <Avatar
+              src={item.author_avatar_url}
+              color="red"
+              radius="xl"
+              size="sm"
+              className="text-xs font-bold shrink-0"
+            >
+              {authorInitials}
             </Avatar>
-            <span className="text-sm font-semibold text-text-app">Nexus Video</span>
-            <span className="text-xs text-text-muted">{formatDate(item.published_at)}</span>
+            <span className="text-sm font-semibold text-text-app truncate">{authorName}</span>
+            <span className="text-xs text-text-muted shrink-0">{formatDate(item.published_at)}</span>
           </div>
           <Badge
             color="red"
@@ -75,7 +85,7 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
             href={youtubeUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="relative w-full sm:w-44 md:w-48 aspect-video rounded-lg overflow-hidden bg-surface-soft shrink-0 block"
+            className="relative w-full sm:w-44 md:w-48 aspect-video rounded-md overflow-hidden bg-surface-soft shrink-0 block"
           >
             <Image
               src={item.youtube_thumbnail_url}
@@ -96,15 +106,21 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
   }
 
   return (
-    <article className="group bg-surface-app border border-border-app rounded-xl p-4 sm:p-5 hover:border-brand/40 transition-all duration-200 flex flex-col justify-between">
+    <article className="group bg-surface-app border border-border-app rounded-lg p-4 sm:p-5 hover:border-brand/40 transition-all duration-200 flex flex-col justify-between">
       {/* Card Header: Author info on left, Badge on top right */}
       <div className="flex items-center justify-between gap-2 mb-3">
-        <div className="flex items-center gap-2">
-          <Avatar color="blue" radius="xl" size="sm" className="text-xs font-bold">
-            NX
+        <div className="flex items-center gap-2 min-w-0">
+          <Avatar
+            src={item.author_avatar_url}
+            color="blue"
+            radius="xl"
+            size="sm"
+            className="text-xs font-bold shrink-0"
+          >
+            {authorInitials}
           </Avatar>
-          <span className="text-sm font-semibold text-text-app">Nexus Team</span>
-          <span className="text-xs text-text-muted">{formatDate(item.published_at)}</span>
+          <span className="text-sm font-semibold text-text-app truncate">{authorName}</span>
+          <span className="text-xs text-text-muted shrink-0">{formatDate(item.published_at)}</span>
         </div>
         <Badge
           color="blue"
@@ -135,7 +151,7 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
         {item.cover_image_url ? (
           <Link
             href={`/news/${item.slug}`}
-            className="relative w-full sm:w-44 md:w-48 aspect-video rounded-lg overflow-hidden bg-surface-soft shrink-0 block"
+            className="relative w-full sm:w-44 md:w-48 aspect-video rounded-md overflow-hidden bg-surface-soft shrink-0 block"
           >
             <Image
               src={item.cover_image_url}
@@ -146,7 +162,7 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
             />
           </Link>
         ) : (
-          <div className="hidden sm:flex w-44 md:w-48 aspect-video rounded-lg bg-surface-soft items-center justify-center text-text-muted shrink-0">
+          <div className="hidden sm:flex w-44 md:w-48 aspect-video rounded-md bg-surface-soft items-center justify-center text-text-muted shrink-0">
             <Newspaper size={28} />
           </div>
         )}

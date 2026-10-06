@@ -83,9 +83,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     // Graceful fallback if related articles fail
   }
 
-  const authorInitials = article.author_byline
-    ? article.author_byline.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
-    : 'NX';
+  const authorName = article.author_byline || 'Nexus Team';
+  const authorInitials = authorName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase() || 'NX';
 
   return (
     <article className="max-w-[700px] mx-auto px-4 sm:px-6 py-6 sm:py-10">
@@ -130,12 +134,18 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         {/* Byline row: Avatar + Author + Date + Share Action (No borders, no icons, no read time, no bullets) */}
         <div className="flex items-center justify-between mb-8 sm:mb-10">
           <div className="flex items-center gap-3">
-            <Avatar color="blue" radius="xl" size="md" className="font-semibold text-xs border border-border-app">
+            <Avatar
+              src={article.author_avatar_url}
+              color="blue"
+              radius="xl"
+              size="md"
+              className="font-semibold text-xs border border-border-app"
+            >
               {authorInitials}
             </Avatar>
             <div className="flex flex-col">
               <span className="text-sm font-bold text-text-app hover:text-[#288ad6] transition-colors">
-                {article.author_byline}
+                {authorName}
               </span>
               <span className="text-xs text-text-muted">
                 {formatDate(article.published_at)}
@@ -186,13 +196,19 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         </div>
 
         {/* Spiderum-style Author Bio Card */}
-        <div className="mt-8 p-6 rounded-xl bg-surface-app border border-border-app flex items-start gap-4">
-          <Avatar color="blue" radius="xl" size="lg" className="font-semibold text-base border border-border-app shrink-0">
+        <div className="mt-8 p-6 rounded-lg bg-surface-app border border-border-app flex items-start gap-4">
+          <Avatar
+            src={article.author_avatar_url}
+            color="blue"
+            radius="xl"
+            size="lg"
+            className="font-semibold text-base border border-border-app shrink-0"
+          >
             {authorInitials}
           </Avatar>
           <div className="flex-1">
             <div className="flex items-center justify-between mb-1">
-              <h4 className="font-bold text-text-app text-base">{article.author_byline}</h4>
+              <h4 className="font-bold text-text-app text-base">{authorName}</h4>
               <span className="text-xs text-brand font-medium bg-brand/10 px-2 py-0.5 rounded">Tác giả</span>
             </div>
             <p className="text-sm text-text-muted leading-relaxed font-serif">
