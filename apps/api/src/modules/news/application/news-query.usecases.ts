@@ -13,6 +13,7 @@ export async function getPublicNewsListUseCase(query: PublicNewsListQuery) {
     page: query.page,
     limit: query.limit,
     type: query.type,
+    search: query.search,
   });
 
   const mappedItems: NewsItemPublicCard[] = result.items.map((item) => {
@@ -75,6 +76,7 @@ export async function getAdminNewsListUseCase(query: AdminNewsListQuery) {
     type: query.type,
     status: query.status,
     sort: query.sort,
+    search: query.search,
   });
 
   const mappedItems: NewsItemAdmin[] = result.items.map((item) => ({

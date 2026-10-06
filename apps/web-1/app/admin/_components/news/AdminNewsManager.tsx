@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Button, Group, Select, Text, Pagination } from '@mantine/core';
+import { Button, Group, Select, Text, Pagination, TextInput } from '@mantine/core';
+import { useDebouncedValue } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { Plus } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
 import {
   useAdminNewsList,
   usePublishNewsItem,
@@ -20,6 +21,8 @@ export function AdminNewsManager() {
   const [type, setType] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [sort, setSort] = useState<string | null>('newest');
+  const [search, setSearch] = useState('');
+  const [debouncedSearch] = useDebouncedValue(search, 300);
 
   const { data, isLoading, isError } = useAdminNewsList({
     page,
@@ -27,6 +30,7 @@ export function AdminNewsManager() {
     type: type === 'article' || type === 'video' ? type : undefined,
     status: status === 'draft' || status === 'published' ? status : undefined,
     sort: sort === 'oldest' ? 'oldest' : 'newest',
+    search: debouncedSearch.trim() || undefined,
   });
 
   const publishMutation = usePublishNewsItem();
@@ -107,37 +111,8 @@ export function AdminNewsManager() {
 
   return (
     <div className="space-y-4">
-      {/* Top action & filter bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <Group gap="sm" wrap="wrap">
-          <Select
-            placeholder="Loại nội dung"
-            data={[{ value: '', label: 'Tất cả loại' }, { value: 'article', label: 'Bài viết' }, { value: 'video', label: 'Video' }]}
-            value={type ?? ''}
-            onChange={(val) => { setType(val || null); setPage(1); }}
-            clearable
-            radius="md"
-            style={{ width: 170 }}
-          />
-          <Select
-            placeholder="Trạng thái"
-            data={[{ value: '', label: 'Tất cả trạng thái' }, { value: 'draft', label: 'Bản nháp' }, { value: 'published', label: 'Đã xuất bản' }]}
-            value={status ?? ''}
-            onChange={(val) => { setStatus(val || null); setPage(1); }}
-            clearable
-            radius="md"
-            style={{ width: 180 }}
-          />
-          <Select
-            placeholder="Sắp xếp"
-            data={[{ value: 'newest', label: 'Mới cập nhật' }, { value: 'oldest', label: 'Cũ nhất' }]}
-            value={sort ?? 'newest'}
-            onChange={(val) => setSort(val || 'newest')}
-            radius="md"
-            style={{ width: 170 }}
-          />
-        </Group>
-
+      {/* Top action row */}
+      <div className="flex items-center justify-end">
         <Button
           component={Link}
           href="/admin/news/new"
@@ -148,6 +123,59 @@ export function AdminNewsManager() {
         >
           Tạo nội dung
         </Button>
+      </div>
+
+      {/* Filter row: search bar dài hơn + toàn bộ selectbox dồn hết sang bên trái */}
+      <div className="flex flex-wrap items-center gap-3">
+        <TextInput
+          placeholder="Tìm theo tiêu đề bài viết, video..."
+          leftSection={<Search size={16} className="text-text-muted" />}
+          rightSection={
+            search ? (
+              <button
+                type="button"
+                onClick={() => { setSearch(''); setPage(1); }}
+                className="text-text-muted hover:text-text-app p-1 cursor-pointer"
+                aria-label="Xóa tìm kiếm"
+              >
+                <X size={14} />
+              </button>
+            ) : null
+          }
+          value={search}
+          onChange={(e) => {
+            setSearch(e.currentTarget.value);
+            setPage(1);
+          }}
+          radius="md"
+          className="w-full sm:w-72 md:w-80 lg:w-96"
+        />
+        <Select
+          placeholder="Loại nội dung"
+          data={[{ value: '', label: 'Tất cả loại' }, { value: 'article', label: 'Bài viết' }, { value: 'video', label: 'Video' }]}
+          value={type ?? ''}
+          onChange={(val) => { setType(val || null); setPage(1); }}
+          clearable
+          radius="md"
+          style={{ width: 160 }}
+        />
+        <Select
+          placeholder="Trạng thái"
+          data={[{ value: '', label: 'Tất cả trạng thái' }, { value: 'draft', label: 'Bản nháp' }, { value: 'published', label: 'Đã xuất bản' }]}
+          value={status ?? ''}
+          onChange={(val) => { setStatus(val || null); setPage(1); }}
+          clearable
+          radius="md"
+          style={{ width: 170 }}
+        />
+        <Select
+          placeholder="Sắp xếp"
+          data={[{ value: 'newest', label: 'Mới cập nhật' }, { value: 'oldest', label: 'Cũ nhất' }]}
+          value={sort ?? 'newest'}
+          onChange={(val) => setSort(val || 'newest')}
+          radius="md"
+          style={{ width: 160 }}
+        />
       </div>
 
       {/* Main Table */}

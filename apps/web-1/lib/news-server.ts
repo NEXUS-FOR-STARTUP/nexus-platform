@@ -15,6 +15,7 @@ export interface FetchNewsListParams {
   page?: number;
   limit?: number;
   type?: 'article' | 'video';
+  search?: string;
 }
 
 export interface NewsListResult {
@@ -32,6 +33,7 @@ export async function fetchPublicNewsList(
   if (params.page) searchParams.set('page', String(params.page));
   if (params.limit) searchParams.set('limit', String(params.limit));
   if (params.type) searchParams.set('type', params.type);
+  if (params.search) searchParams.set('search', params.search);
 
   const url = `${API_BASE_URL}/api/news?${searchParams.toString()}`;
 

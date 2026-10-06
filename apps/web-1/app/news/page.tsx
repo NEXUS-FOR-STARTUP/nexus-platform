@@ -4,14 +4,15 @@ import { NewsFeed } from './_components/NewsFeed';
 import { NewsPoller } from './_components/NewsPoller';
 
 export const metadata: Metadata = {
-  title: 'Tin tức & Khởi nghiệp',
-  description: 'Tin tức, bài viết chuyên sâu và video hướng dẫn khởi nghiệp từ Nexus.',
+  title: 'Bài viết',
+  description: 'Bài viết chuyên sâu, góc nhìn và video chia sẻ khởi nghiệp từ Nexus.',
 };
 
 interface NewsPageProps {
   searchParams: Promise<{
     page?: string;
     type?: string;
+    search?: string;
   }>;
 }
 
@@ -22,12 +23,19 @@ export default async function NewsPage({ searchParams }: NewsPageProps) {
     params.type === 'article' || params.type === 'video'
       ? params.type
       : undefined;
+  const search = params.search?.trim() || undefined;
 
   const data = await fetchPublicNewsList({
     page: isNaN(page) || page < 1 ? 1 : page,
     type,
+    search,
     limit: 12,
   });
 
-  return <><NewsPoller /><NewsFeed data={data} currentType={type} /></>;
+  return (
+    <>
+      <NewsPoller />
+      <NewsFeed data={data} currentType={type} currentSearch={search} />
+    </>
+  );
 }

@@ -5,6 +5,7 @@ export interface ListPublicNewsOptions {
   page: number;
   limit: number;
   type?: 'article' | 'video';
+  search?: string;
 }
 
 export interface ListAdminNewsOptions {
@@ -13,6 +14,7 @@ export interface ListAdminNewsOptions {
   type?: 'article' | 'video';
   status?: 'draft' | 'published';
   sort?: 'newest' | 'oldest';
+  search?: string;
 }
 
 export class PrismaNewsRepository {
@@ -21,6 +23,14 @@ export class PrismaNewsRepository {
       status: 'published',
       published_at: { lte: new Date() },
       ...(opts.type ? { type: opts.type } : {}),
+      ...(opts.search?.trim()
+        ? {
+            title: {
+              contains: opts.search.trim(),
+              mode: 'insensitive',
+            },
+          }
+        : {}),
     };
 
     const skip = (opts.page - 1) * opts.limit;
@@ -59,6 +69,14 @@ export class PrismaNewsRepository {
     const where: Prisma.NewsItemWhereInput = {
       ...(opts.type ? { type: opts.type } : {}),
       ...(opts.status ? { status: opts.status } : {}),
+      ...(opts.search?.trim()
+        ? {
+            title: {
+              contains: opts.search.trim(),
+              mode: 'insensitive',
+            },
+          }
+        : {}),
     };
 
     const orderBy: Prisma.NewsItemOrderByWithRelationInput[] =

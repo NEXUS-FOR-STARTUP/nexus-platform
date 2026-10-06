@@ -110,18 +110,25 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           color="blue"
           variant="light"
           size="lg"
-          radius="xs"
-          className="font-bold tracking-wider uppercase mb-5 px-3 py-1.5 !text-xs sm:!text-[13px] bg-blue-50 text-[#288ad6] !border-0"
+          radius="sm"
+          className="font-bold tracking-wider uppercase mb-5 px-3.5 py-1.5 !text-xs sm:!text-sm bg-blue-50 text-[#288ad6] !border-0"
         >
           Khởi nghiệp & Công nghệ
         </Badge>
 
-        <h1 className="text-2xl sm:text-3xl md:text-[34px] font-black text-text-app tracking-tight leading-snug mb-8 sm:mb-10">
+        <h1 className="text-2xl sm:text-3xl md:text-[34px] font-black text-text-app tracking-tight leading-snug mb-4 sm:mb-5">
           {article.title}
         </h1>
 
+        {/* Excerpt / Tóm tắt: nằm ngay dưới tiêu đề, tô mờ, font nhỏ lại, giữ italic */}
+        {article.excerpt && (
+          <p className="font-serif italic text-base sm:text-[17px] leading-[1.75] text-text-muted mb-7 sm:mb-8">
+            {article.excerpt}
+          </p>
+        )}
+
         {/* Byline row: Avatar + Author + Date + Share Action (No borders, no icons, no read time, no bullets) */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-8 sm:mb-10">
           <div className="flex items-center gap-3">
             <Avatar color="blue" radius="xl" size="md" className="font-semibold text-xs border border-border-app">
               {authorInitials}
@@ -138,13 +145,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
           <ArticleShareButton title={article.title} />
         </div>
-
-        {/* Excerpt / Sapo (Merriweather Serif, no left border line) */}
-        {article.excerpt && (
-          <p className="font-serif italic text-[19px] leading-[1.85] text-text-app mb-10">
-            {article.excerpt}
-          </p>
-        )}
       </header>
 
       {/* Cover Image */}
@@ -173,7 +173,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         <NewsTipTapRenderer content={article.content_json} />
 
         {/* Article Tags */}
-        <div className="mt-12 pt-6 border-t border-border-app flex flex-wrap gap-2 items-center">
+        <div className="mt-12 flex flex-wrap gap-2 items-center">
           <span className="text-xs font-semibold text-text-muted mr-1">Chủ đề:</span>
           {['#KhởiNghiệp', '#CôngNghệAI', '#ProductMarketFit', '#GócNhìnFounder'].map((tag) => (
             <span
@@ -203,7 +203,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
         {/* Related / Next Reads */}
         {relatedArticles.length > 0 && (
-          <div className="mt-14 pt-8 border-t border-border-app">
+          <div className="mt-16">
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-sans font-bold text-xl text-text-app tracking-tight">
                 Bài viết cùng chủ đề

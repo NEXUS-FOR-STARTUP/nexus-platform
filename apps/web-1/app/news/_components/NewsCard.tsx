@@ -31,13 +31,24 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
     const youtubeUrl = `https://www.youtube.com/watch?v=${item.youtube_video_id}`;
     return (
       <article className="group bg-surface-app border border-border-app rounded-xl p-4 sm:p-5 hover:border-brand/40 transition-all duration-200 flex flex-col justify-between">
-        {/* Card Header: Author info */}
-        <div className="flex items-center gap-2 mb-3">
-          <Avatar color="red" radius="xl" size="xs" className="text-[10px] font-bold">
-            YT
-          </Avatar>
-          <span className="text-xs font-semibold text-text-app">Nexus Video</span>
-          <span className="text-xs text-text-muted">{formatDate(item.published_at)}</span>
+        {/* Card Header: Author info on left, Badge on top right */}
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2">
+            <Avatar color="red" radius="xl" size="sm" className="text-xs font-bold">
+              YT
+            </Avatar>
+            <span className="text-sm font-semibold text-text-app">Nexus Video</span>
+            <span className="text-xs text-text-muted">{formatDate(item.published_at)}</span>
+          </div>
+          <Badge
+            color="red"
+            variant="light"
+            size="md"
+            radius="sm"
+            className="font-bold uppercase tracking-wider text-xs px-2.5 py-1"
+          >
+            Video
+          </Badge>
         </div>
 
         {/* Card Content & Thumbnail */}
@@ -80,36 +91,30 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
             </div>
           </a>
         </div>
-
-        {/* Card Footer */}
-        <div className="flex items-center justify-between pt-2 border-t border-border-app/60 text-xs">
-          <div className="flex items-center gap-2">
-            <Badge color="red" variant="light" size="xs" radius="xs" className="font-semibold uppercase tracking-wider text-[10px]">
-              Video
-            </Badge>
-          </div>
-          <a
-            href={youtubeUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-brand font-medium hover:underline"
-          >
-            Xem YouTube
-          </a>
-        </div>
       </article>
     );
   }
 
   return (
     <article className="group bg-surface-app border border-border-app rounded-xl p-4 sm:p-5 hover:border-brand/40 transition-all duration-200 flex flex-col justify-between">
-      {/* Card Header: Author info */}
-      <div className="flex items-center gap-2 mb-3">
-        <Avatar color="blue" radius="xl" size="xs" className="text-[10px] font-bold">
-          NX
-        </Avatar>
-        <span className="text-xs font-semibold text-text-app">Nexus Team</span>
-        <span className="text-xs text-text-muted">{formatDate(item.published_at)}</span>
+      {/* Card Header: Author info on left, Badge on top right */}
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2">
+          <Avatar color="blue" radius="xl" size="sm" className="text-xs font-bold">
+            NX
+          </Avatar>
+          <span className="text-sm font-semibold text-text-app">Nexus Team</span>
+          <span className="text-xs text-text-muted">{formatDate(item.published_at)}</span>
+        </div>
+        <Badge
+          color="blue"
+          variant="light"
+          size="md"
+          radius="sm"
+          className="font-bold uppercase tracking-wider text-xs px-2.5 py-1"
+        >
+          Bài viết
+        </Badge>
       </div>
 
       {/* Card Content & Thumbnail */}
@@ -145,21 +150,6 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
             <Newspaper size={28} />
           </div>
         )}
-      </div>
-
-      {/* Card Footer */}
-      <div className="flex items-center justify-between pt-2 border-t border-border-app/60 text-xs">
-        <div className="flex items-center gap-2">
-          <Badge color="blue" variant="light" size="xs" radius="xs" className="font-semibold uppercase tracking-wider text-[10px]">
-            Bài viết
-          </Badge>
-        </div>
-        <Link
-          href={`/news/${item.slug}`}
-          className="text-xs text-brand font-medium hover:underline"
-        >
-          Đọc tiếp
-        </Link>
       </div>
     </article>
   );

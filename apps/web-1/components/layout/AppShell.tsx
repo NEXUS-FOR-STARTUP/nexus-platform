@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import {
   Group,
   Button,
@@ -14,7 +15,6 @@ import {
   ActionIcon,
   Container,
   Text,
-  useMantineTheme,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import ThemeToggler from "../ui/ThemeToggler";
@@ -55,6 +55,8 @@ interface AppShellProps {
 }
 
 export default function AppShell({ children }: AppShellProps) {
+  const pathname = usePathname();
+  const isNewsActive = pathname?.startsWith("/news");
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =
     useDisclosure(false);
 
@@ -73,22 +75,32 @@ export default function AppShell({ children }: AppShellProps) {
       <header className="sticky top-0 z-50 border-b border-border-app bg-surface-app/80 backdrop-blur-md h-16">
         <div className="w-full h-full px-6">
           <div className="flex items-center justify-between h-full w-full">
-            {/* Logo */}
-            <Link
-              href="/"
-              className="flex items-center"
-            >
-              <Logo height={62} />
-            </Link>
-            {/* Desktop Nav */}
-            <nav aria-label="Điều hướng chính" className="hidden md:flex items-center gap-6">
+            {/* Left Group: Logo + Desktop Nav */}
+            <div className="flex items-center gap-8 sm:gap-10">
               <Link
-                href="/news"
-                className="text-sm font-medium text-text-muted hover:text-text-app transition-colors"
+                href="/"
+                className="flex items-center"
               >
-                Tin tức
+                <Logo height={62} />
               </Link>
-            </nav>
+
+              {/* Desktop Nav */}
+              <nav aria-label="Điều hướng chính" className="hidden md:flex items-center pl-8 sm:pl-12">
+                <Link
+                  href="/news"
+                  className={`relative py-1 text-base font-semibold transition-colors duration-200 group ${
+                    isNewsActive ? "text-text-app" : "text-text-muted hover:text-text-app"
+                  }`}
+                >
+                  Bài viết
+                  <span
+                    className={`absolute left-0 -bottom-1 h-0.5 bg-brand transition-all duration-300 ease-out rounded-full ${
+                      isNewsActive ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  />
+                </Link>
+              </nav>
+            </div>
 
             {/* Desktop Actions */}
             <Group visibleFrom="md" gap={12}>
@@ -174,7 +186,7 @@ export default function AppShell({ children }: AppShellProps) {
               onClick={closeDrawer}
               className="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-lg text-sm font-medium text-text-app hover:bg-surface-soft active:bg-surface-soft transition-colors"
             >
-              Tin tức
+              Bài viết
             </Link>
 
             <Divider my="sm" />

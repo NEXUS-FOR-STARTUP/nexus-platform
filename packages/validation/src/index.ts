@@ -1104,7 +1104,7 @@ export type TipTapMark = z.infer<typeof TipTapMarkSchema>;
 
 export interface TipTapNode {
   type: string;
-  attrs?: Record<string, any>;
+  attrs?: Record<string, unknown>;
   content?: TipTapNode[];
   marks?: TipTapMark[];
   text?: string;
@@ -1264,6 +1264,7 @@ export const PublicNewsListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(NEWS_PUBLIC_MAX_LIMIT).default(NEWS_PUBLIC_DEFAULT_LIMIT),
   type: NewsTypeSchema.optional(),
+  search: z.string().trim().max(100).optional(),
 });
 
 export type PublicNewsListQuery = z.infer<typeof PublicNewsListQuerySchema>;
@@ -1274,6 +1275,7 @@ export const AdminNewsListQuerySchema = z.object({
   type: NewsTypeSchema.optional(),
   status: NewsStatusSchema.optional(),
   sort: z.enum(['newest', 'oldest']).default('newest'),
+  search: z.string().trim().max(100).optional(),
 });
 
 export type AdminNewsListQuery = z.infer<typeof AdminNewsListQuerySchema>;
