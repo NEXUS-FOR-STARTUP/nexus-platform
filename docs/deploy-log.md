@@ -61,3 +61,4 @@ Sau khi xác minh, ghi 1 dòng theo format trên (ví dụ: `2026-08-03 HH:MM | 
 | 2026-09-23 22:50 | 7c71852 | staging | fix(credit): compute price per credit on refund to prevent double-refunding 79k package | 🔵 api |
 | 2026-09-24 00:44 | e77da80 | staging | Merge commit 'd5026cd' into refactor/mobile-responsive | 🟢 web |
 | 2026-09-28 22:08 | 874e37a | dev | feat(ai-engine): refine resubmit and logic prompts with pure Vietnamese and UX mindset | 🔵 api |
+| 2026-10-06 20:03 | 971cda3 | staging | Merge branch 'dev' of https://github.com/NEXUS-FOR-STARTUP/nexus-platform into staging | 🔵 api 🟢 web |
