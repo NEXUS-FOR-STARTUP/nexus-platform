@@ -10,7 +10,7 @@ import { useAdminNewsDetail, useUpdateNewsItem, usePublishNewsItem, useUnpublish
 import { NewsRichTextEditor } from '@/app/admin/_components/news/NewsRichTextEditor';
 import { YouTubePreviewSection, ArticleCoverSection } from '@/app/admin/_components/news/NewsEditorFormSections';
 import {
-  NEWS_CATEGORIES,
+  SORTED_NEWS_CATEGORIES,
   NEWS_EXCERPT_MAX_LENGTH,
   NEWS_TITLE_MAX_LENGTH,
   NEWS_SLUG_MAX_LENGTH,
@@ -395,7 +395,7 @@ export default function EditWriterNewsItemPage({ params }: { params: Promise<{ i
       </Group>
 
       <form className="w-full" onSubmit={handleOpenSaveModal} onKeyDown={(e) => { if (e.key === 'Enter' && (e.target as HTMLElement)?.tagName === 'INPUT') e.preventDefault(); }}>
-        <Card withBorder radius="xl" padding="lg" className="w-full space-y-6 bg-surface-app border-border-app">
+        <Card withBorder radius="md" padding="lg" className="w-full space-y-6 bg-surface-app border-border-app">
           {/* Title with Character Limit and Red Warning */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
@@ -438,7 +438,7 @@ export default function EditWriterNewsItemPage({ params }: { params: Promise<{ i
             <Select
               label="Chuyên mục"
               description="Chọn chuyên mục chính cho bài viết"
-              data={NEWS_CATEGORIES.map((c) => ({ value: c.slug, label: c.name }))}
+              data={SORTED_NEWS_CATEGORIES.map((c) => ({ value: c.slug, label: c.name }))}
               value={category}
               onChange={(val) => setCategory(val || 'khoi-nghiep')}
               required

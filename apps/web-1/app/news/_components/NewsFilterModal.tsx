@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, Modal, Radio } from '@mantine/core';
-import { NEWS_CATEGORIES } from '@repo/validation';
+import { SORTED_NEWS_CATEGORIES } from '@repo/validation';
 
 interface NewsFilterModalProps {
   opened: boolean;
@@ -91,7 +91,7 @@ export function NewsFilterModal({
                   radio: 'cursor-pointer',
                 }}
               />
-              {NEWS_CATEGORIES.map((cat) => (
+              {SORTED_NEWS_CATEGORIES.map((cat) => (
                 <Radio
                   key={cat.slug}
                   value={cat.slug}

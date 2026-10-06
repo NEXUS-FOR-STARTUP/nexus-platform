@@ -1045,6 +1045,10 @@ export const NEWS_CATEGORIES = [
 
 export type NewsCategorySlug = (typeof NEWS_CATEGORIES)[number]['slug'];
 
+export const SORTED_NEWS_CATEGORIES: ReadonlyArray<(typeof NEWS_CATEGORIES)[number]> = [
+  ...NEWS_CATEGORIES,
+].sort((a, b) => a.name.localeCompare(b.name, 'vi', { sensitivity: 'base' }));
+
 export function getNewsCategoryName(slug: string | null | undefined): string {
   if (!slug) return 'Khởi nghiệp';
   const normalized = slug.trim().toLowerCase();

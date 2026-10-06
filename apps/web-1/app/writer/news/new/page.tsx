@@ -9,7 +9,7 @@ import { useCreateNewsItem, useUploadNewsCover, usePublishNewsItem } from '@/app
 import { NewsRichTextEditor } from '@/app/admin/_components/news/NewsRichTextEditor';
 import { YouTubePreviewSection, ArticleCoverSection } from '@/app/admin/_components/news/NewsEditorFormSections';
 import {
-  NEWS_CATEGORIES,
+  SORTED_NEWS_CATEGORIES,
   NEWS_EXCERPT_MAX_LENGTH,
   NEWS_TITLE_MAX_LENGTH,
   NEWS_SLUG_MAX_LENGTH,
@@ -323,7 +323,7 @@ export default function NewWriterNewsItemPage() {
           <Select
             label="Chuyên mục"
             description="Chọn chuyên mục chính cho bài viết"
-            data={NEWS_CATEGORIES.map((c) => ({ value: c.slug, label: c.name }))}
+            data={SORTED_NEWS_CATEGORIES.map((c) => ({ value: c.slug, label: c.name }))}
             value={category}
             onChange={(val) => setCategory(val || 'khoi-nghiep')}
             searchable
