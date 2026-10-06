@@ -38,28 +38,20 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(import.meta.dirname ?? __dirname, "../../"),
     resolveAlias: {
-      'prosemirror-model': path.resolve(import.meta.dirname ?? __dirname, '../../node_modules/prosemirror-model'),
-      'prosemirror-view': path.resolve(import.meta.dirname ?? __dirname, '../../node_modules/prosemirror-view'),
-      'prosemirror-state': path.resolve(import.meta.dirname ?? __dirname, '../../node_modules/prosemirror-state'),
-      'prosemirror-transform': path.resolve(import.meta.dirname ?? __dirname, '../../node_modules/prosemirror-transform'),
-      '@tiptap/pm/model': path.resolve(import.meta.dirname ?? __dirname, '../../node_modules/prosemirror-model'),
-      '@tiptap/pm/view': path.resolve(import.meta.dirname ?? __dirname, '../../node_modules/prosemirror-view'),
-      '@tiptap/pm/state': path.resolve(import.meta.dirname ?? __dirname, '../../node_modules/prosemirror-state'),
-      '@tiptap/pm/transform': path.resolve(import.meta.dirname ?? __dirname, '../../node_modules/prosemirror-transform'),
+      '@tiptap/pm/model': 'prosemirror-model',
+      '@tiptap/pm/view': 'prosemirror-view',
+      '@tiptap/pm/state': 'prosemirror-state',
+      '@tiptap/pm/transform': 'prosemirror-transform',
     },
   },
   webpack: (config) => {
     config.resolve = config.resolve || {};
     config.resolve.alias = {
       ...config.resolve.alias,
-      'prosemirror-model': path.resolve(import.meta.dirname ?? __dirname, '../../node_modules/prosemirror-model'),
-      'prosemirror-view': path.resolve(import.meta.dirname ?? __dirname, '../../node_modules/prosemirror-view'),
-      'prosemirror-state': path.resolve(import.meta.dirname ?? __dirname, '../../node_modules/prosemirror-state'),
-      'prosemirror-transform': path.resolve(import.meta.dirname ?? __dirname, '../../node_modules/prosemirror-transform'),
-      '@tiptap/pm/model': path.resolve(import.meta.dirname ?? __dirname, '../../node_modules/prosemirror-model'),
-      '@tiptap/pm/view': path.resolve(import.meta.dirname ?? __dirname, '../../node_modules/prosemirror-view'),
-      '@tiptap/pm/state': path.resolve(import.meta.dirname ?? __dirname, '../../node_modules/prosemirror-state'),
-      '@tiptap/pm/transform': path.resolve(import.meta.dirname ?? __dirname, '../../node_modules/prosemirror-transform'),
+      '@tiptap/pm/model': 'prosemirror-model',
+      '@tiptap/pm/view': 'prosemirror-view',
+      '@tiptap/pm/state': 'prosemirror-state',
+      '@tiptap/pm/transform': 'prosemirror-transform',
     };
     return config;
   },
