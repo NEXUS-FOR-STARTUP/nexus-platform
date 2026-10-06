@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Avatar, Badge } from '@mantine/core';
+import { Avatar } from '@mantine/core';
 import { Play, Newspaper } from 'lucide-react';
 import type { NewsItemPublicCard } from '@repo/validation';
 
@@ -16,76 +16,54 @@ function formatDate(isoString: string): string {
     if (diffHours < 24) return `${diffHours} giờ trước`;
     if (diffHours < 48) return 'Hôm qua';
 
+    const isCurrentYear = d.getFullYear() === now.getFullYear();
     return d.toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
+      day: 'numeric',
+      month: 'short',
+      ...(isCurrentYear ? {} : { year: 'numeric' }),
     });
   } catch {
     return '';
   }
 }
 
+function getCategoryTag(item: NewsItemPublicCard): string {
+  const text = `${item.title} ${item.excerpt || ''}`.toLowerCase();
+  if (/\b(ai|llm|gpt|mô hình ngôn ngữ)\b/i.test(text) || text.includes('công nghệ') || text.includes('trí tuệ nhân tạo') || text.includes('deep learning')) {
+    return 'CÔNG NGHỆ';
+  }
+  if (text.includes('khởi nghiệp') || text.includes('startup') || text.includes('founder') || text.includes('sản phẩm') || text.includes('mvp') || text.includes('pmf')) {
+    return 'KHỞI NGHIỆP';
+  }
+  if (text.includes('vốn') || text.includes('đầu tư') || text.includes('tài chính') || text.includes('kinh doanh') || text.includes('doanh thu')) {
+    return 'TÀI CHÍNH';
+  }
+  if (text.includes('sách') || text.includes('đọc sách')) {
+    return 'SÁCH';
+  }
+  if (text.includes('bài học') || text.includes('triết lý') || text.includes('phát triển') || text.includes('góc nhìn') || text.includes('tư duy')) {
+    return 'GÓC NHÌN';
+  }
+  return item.type === 'video' ? 'VIDEO CHIA SẺ' : 'KHỞI NGHIỆP';
+}
+
 export function NewsCard({ item }: { item: NewsItemPublicCard }) {
   const isVideo = item.type === 'video';
   const authorName = item.author_byline || (isVideo ? 'Nexus Video' : 'Nexus Team');
   const authorInitials = authorName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || (isVideo ? 'YT' : 'NX');
+  const categoryTag = getCategoryTag(item);
 
   if (item.type === 'video') {
     const youtubeUrl = `https://www.youtube.com/watch?v=${item.youtube_video_id}`;
     return (
-      <article className="group bg-surface-app border border-border-app rounded-lg p-4 sm:p-5 hover:border-brand/40 transition-all duration-200 flex flex-col justify-between">
-        {/* Card Header: Author info on left, Badge on top right */}
-        <div className="flex items-center justify-between gap-2 mb-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <Avatar
-              src={item.author_avatar_url}
-              color="red"
-              radius="xl"
-              size="sm"
-              className="text-xs font-bold shrink-0"
-            >
-              {authorInitials}
-            </Avatar>
-            <span className="text-sm font-semibold text-text-app truncate">{authorName}</span>
-            <span className="text-xs text-text-muted shrink-0">{formatDate(item.published_at)}</span>
-          </div>
-          <Badge
-            color="red"
-            variant="light"
-            size="md"
-            radius="sm"
-            className="font-bold uppercase tracking-wider text-xs px-2.5 py-1"
-          >
-            Video
-          </Badge>
-        </div>
-
-        {/* Card Content & Thumbnail */}
-        <div className="flex flex-col-reverse sm:flex-row gap-4 items-start flex-1 mb-3">
-          <div className="flex-1 min-w-0">
-            <a
-              href={youtubeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block"
-            >
-              <h3 className="text-base sm:text-lg font-bold text-text-app group-hover:text-brand transition-colors line-clamp-2 leading-snug mb-2">
-                {item.title}
-              </h3>
-            </a>
-            {item.excerpt && (
-              <p className="font-serif text-sm text-text-app/85 line-clamp-2 leading-relaxed mb-3">
-                {item.excerpt}
-              </p>
-            )}
-          </div>
-
+      <article className="group bg-surface-app border border-border-app rounded-lg p-4 sm:p-5 hover:border-brand/40 transition-all duration-200 h-full">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 items-stretch h-full">
+          {/* Thumbnail bên trái */}
           <a
             href={youtubeUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="relative w-full sm:w-44 md:w-48 aspect-video rounded-md overflow-hidden bg-surface-soft shrink-0 block"
+            className="relative w-full sm:w-44 md:w-48 aspect-video sm:aspect-auto rounded-md overflow-hidden bg-surface-soft shrink-0 block"
           >
             <Image
               src={item.youtube_thumbnail_url}
@@ -100,58 +78,61 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
               </div>
             </div>
           </a>
+
+          {/* Cột nội dung bên phải */}
+          <div className="flex-1 flex flex-col justify-between min-w-0">
+            <div>
+              {/* Tag/Phân loại: góc trên bên trái, viết hoa, không màu, không badge, font-serif nhỏ ngang description */}
+              <span className="font-serif text-xs text-text-muted uppercase font-normal tracking-normal mb-1.5 block">
+                {categoryTag}
+              </span>
+
+              <a
+                href={youtubeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block"
+              >
+                <h3 className="text-base sm:text-lg font-bold text-text-app group-hover:text-brand transition-colors line-clamp-2 leading-snug mb-2">
+                  {item.title}
+                </h3>
+              </a>
+              {item.excerpt && (
+                <p className="font-serif text-sm text-text-app/80 line-clamp-2 leading-relaxed mb-3">
+                  {item.excerpt}
+                </p>
+              )}
+            </div>
+
+            {/* Profile và ngày đăng ở dưới description */}
+            <div className="flex items-center gap-2 pt-2 text-xs text-text-muted">
+              <Avatar
+                src={item.author_avatar_url}
+                color="red"
+                radius="xl"
+                size="xs"
+                className="font-bold shrink-0"
+              >
+                {authorInitials}
+              </Avatar>
+              <span className="font-semibold text-text-app truncate max-w-[140px]">{authorName}</span>
+              <span>•</span>
+              <span className="shrink-0">{formatDate(item.published_at)}</span>
+            </div>
+          </div>
         </div>
       </article>
     );
   }
 
   return (
-    <article className="group bg-surface-app border border-border-app rounded-lg p-4 sm:p-5 hover:border-brand/40 transition-all duration-200 flex flex-col justify-between">
-      {/* Card Header: Author info on left, Badge on top right */}
-      <div className="flex items-center justify-between gap-2 mb-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <Avatar
-            src={item.author_avatar_url}
-            color="blue"
-            radius="xl"
-            size="sm"
-            className="text-xs font-bold shrink-0"
-          >
-            {authorInitials}
-          </Avatar>
-          <span className="text-sm font-semibold text-text-app truncate">{authorName}</span>
-          <span className="text-xs text-text-muted shrink-0">{formatDate(item.published_at)}</span>
-        </div>
-        <Badge
-          color="blue"
-          variant="light"
-          size="md"
-          radius="sm"
-          className="font-bold uppercase tracking-wider text-xs px-2.5 py-1"
-        >
-          Bài viết
-        </Badge>
-      </div>
-
-      {/* Card Content & Thumbnail */}
-      <div className="flex flex-col-reverse sm:flex-row gap-4 items-start flex-1 mb-3">
-        <div className="flex-1 min-w-0">
-          <Link href={`/news/${item.slug}`} className="block">
-            <h3 className="text-base sm:text-lg font-bold text-text-app group-hover:text-brand transition-colors line-clamp-2 leading-snug mb-2">
-              {item.title}
-            </h3>
-          </Link>
-          {item.excerpt && (
-            <p className="font-serif text-sm text-text-app/85 line-clamp-2 leading-relaxed mb-3">
-              {item.excerpt}
-            </p>
-          )}
-        </div>
-
+    <article className="group bg-surface-app border border-border-app rounded-lg p-4 sm:p-5 hover:border-brand/40 transition-all duration-200 h-full">
+      <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 items-stretch h-full">
+        {/* Thumbnail bên trái */}
         {item.cover_image_url ? (
           <Link
             href={`/news/${item.slug}`}
-            className="relative w-full sm:w-44 md:w-48 aspect-video rounded-md overflow-hidden bg-surface-soft shrink-0 block"
+            className="relative w-full sm:w-44 md:w-48 aspect-video sm:aspect-auto rounded-md overflow-hidden bg-surface-soft shrink-0 block"
           >
             <Image
               src={item.cover_image_url}
@@ -162,10 +143,47 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
             />
           </Link>
         ) : (
-          <div className="hidden sm:flex w-44 md:w-48 aspect-video rounded-md bg-surface-soft items-center justify-center text-text-muted shrink-0">
+          <div className="hidden sm:flex w-44 md:w-48 aspect-video sm:aspect-auto rounded-md bg-surface-soft items-center justify-center text-text-muted shrink-0">
             <Newspaper size={28} />
           </div>
         )}
+
+        {/* Cột nội dung bên phải */}
+        <div className="flex-1 flex flex-col justify-between min-w-0">
+          <div>
+            {/* Tag/Phân loại: góc trên bên trái, viết hoa, không màu, không badge, font-serif nhỏ ngang description */}
+            <span className="font-serif text-xs text-text-muted uppercase font-normal tracking-normal mb-1.5 block">
+              {categoryTag}
+            </span>
+
+            <Link href={`/news/${item.slug}`} className="block">
+              <h3 className="text-base sm:text-lg font-bold text-text-app group-hover:text-brand transition-colors line-clamp-2 leading-snug mb-2">
+                {item.title}
+              </h3>
+            </Link>
+            {item.excerpt && (
+              <p className="font-serif text-sm text-text-app/80 line-clamp-2 leading-relaxed mb-3">
+                {item.excerpt}
+              </p>
+            )}
+          </div>
+
+          {/* Profile và ngày đăng ở dưới description */}
+          <div className="flex items-center gap-2 pt-2 text-xs text-text-muted">
+            <Avatar
+              src={item.author_avatar_url}
+              color="blue"
+              radius="xl"
+              size="xs"
+              className="font-bold shrink-0"
+            >
+              {authorInitials}
+            </Avatar>
+            <span className="font-semibold text-text-app truncate max-w-[140px]">{authorName}</span>
+            <span>•</span>
+            <span className="shrink-0">{formatDate(item.published_at)}</span>
+          </div>
+        </div>
       </div>
     </article>
   );

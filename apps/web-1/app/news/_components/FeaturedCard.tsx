@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Badge, Avatar } from '@mantine/core';
+import { Avatar } from '@mantine/core';
 import { Play } from 'lucide-react';
 import type { NewsItemPublicCard } from '@repo/validation';
 
@@ -16,14 +16,35 @@ function formatDate(isoString: string): string {
     if (diffHours < 24) return `${diffHours} giờ trước`;
     if (diffHours < 48) return 'Hôm qua';
 
+    const isCurrentYear = d.getFullYear() === now.getFullYear();
     return d.toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
+      day: 'numeric',
+      month: 'short',
+      ...(isCurrentYear ? {} : { year: 'numeric' }),
     });
   } catch {
     return '';
   }
+}
+
+function getCategoryTag(item: NewsItemPublicCard): string {
+  const text = `${item.title} ${item.excerpt || ''}`.toLowerCase();
+  if (/\b(ai|llm|gpt|mô hình ngôn ngữ)\b/i.test(text) || text.includes('công nghệ') || text.includes('trí tuệ nhân tạo') || text.includes('deep learning')) {
+    return 'CÔNG NGHỆ NỔI BẬT';
+  }
+  if (text.includes('khởi nghiệp') || text.includes('startup') || text.includes('founder') || text.includes('sản phẩm') || text.includes('mvp') || text.includes('pmf')) {
+    return 'KHỞI NGHIỆP NỔI BẬT';
+  }
+  if (text.includes('vốn') || text.includes('đầu tư') || text.includes('tài chính') || text.includes('kinh doanh') || text.includes('doanh thu')) {
+    return 'TÀI CHÍNH NỔI BẬT';
+  }
+  if (text.includes('sách') || text.includes('đọc sách')) {
+    return 'SÁCH HAY NỔI BẬT';
+  }
+  if (text.includes('bài học') || text.includes('triết lý') || text.includes('phát triển') || text.includes('góc nhìn') || text.includes('tư duy')) {
+    return 'GÓC NHÌN NỔI BẬT';
+  }
+  return item.type === 'video' ? 'VIDEO NỔI BẬT' : 'KHỞI NGHIỆP NỔI BẬT';
 }
 
 export function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
@@ -33,11 +54,12 @@ export function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
     : `/news/${item.slug}`;
   const authorName = item.author_byline || (isVideo ? 'Nexus Video' : 'Nexus Team');
   const authorInitials = authorName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || (isVideo ? 'YT' : 'NX');
+  const categoryTag = getCategoryTag(item);
 
   return (
     <article className="group mb-10 bg-surface-app border border-border-app rounded-lg p-5 sm:p-7 hover:border-brand/50 transition-all duration-200">
-      <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 items-center">
-        {/* Featured Image */}
+      <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 items-stretch">
+        {/* Featured Image bên trái */}
         <div className="relative w-full lg:w-[480px] aspect-video rounded-md overflow-hidden bg-surface-soft shrink-0">
           {isVideo ? (
             <a href={targetUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full relative">
@@ -69,37 +91,13 @@ export function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
           ) : null}
         </div>
 
-        {/* Featured Info */}
+        {/* Featured Info bên phải */}
         <div className="flex-1 flex flex-col justify-between w-full">
           <div>
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <div className="flex items-center gap-2 min-w-0">
-                <Avatar
-                  src={item.author_avatar_url}
-                  color={isVideo ? 'red' : 'blue'}
-                  radius="xl"
-                  size="sm"
-                  className="text-xs font-bold shrink-0"
-                >
-                  {authorInitials}
-                </Avatar>
-                <span className="text-sm font-semibold text-text-app truncate">
-                  {authorName}
-                </span>
-                <span className="text-xs text-text-muted shrink-0">
-                  {formatDate(item.published_at)}
-                </span>
-              </div>
-              <Badge
-                color={isVideo ? 'red' : 'blue'}
-                variant="light"
-                size="md"
-                radius="xs"
-                className="font-bold uppercase tracking-wider text-xs px-2.5 py-1"
-              >
-                {isVideo ? 'Video nổi bật' : 'Bài viết mới nhất'}
-              </Badge>
-            </div>
+            {/* Tag/Phân loại: góc trên bên trái, viết hoa, không màu, không badge, font-serif nhỏ ngang description */}
+            <span className="font-serif text-xs sm:text-sm text-text-muted uppercase font-normal tracking-normal mb-2 block">
+              {categoryTag}
+            </span>
 
             <Link href={targetUrl} target={isVideo ? '_blank' : undefined} rel={isVideo ? 'noopener noreferrer' : undefined}>
               <h2 className="text-xl sm:text-2xl lg:text-[26px] font-bold text-text-app group-hover:text-brand transition-colors leading-snug tracking-tight mb-3">
@@ -108,10 +106,30 @@ export function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
             </Link>
 
             {item.excerpt && (
-              <p className="font-serif text-base text-text-app/85 line-clamp-3 leading-relaxed">
+              <p className="font-serif text-base text-text-app/80 line-clamp-3 leading-relaxed mb-4">
                 {item.excerpt}
               </p>
             )}
+          </div>
+
+          {/* Profile và ngày đăng ở dưới description */}
+          <div className="flex items-center gap-2 pt-2 text-xs sm:text-sm text-text-muted">
+            <Avatar
+              src={item.author_avatar_url}
+              color={isVideo ? 'red' : 'blue'}
+              radius="xl"
+              size="xs"
+              className="font-bold shrink-0"
+            >
+              {authorInitials}
+            </Avatar>
+            <span className="font-semibold text-text-app truncate">
+              {authorName}
+            </span>
+            <span>•</span>
+            <span className="shrink-0">
+              {formatDate(item.published_at)}
+            </span>
           </div>
         </div>
       </div>
