@@ -16,8 +16,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if (!session) {
         router.push("/auth");
       } else if (pathname.startsWith("/dashboard")) {
-        const role = (session.user as any).role;
-        if (role === "admin" || role === "supporter") {
+        const role = (session.user as { role?: string } | undefined)?.role;
+        if (role === "writer") {
+          router.push("/writer");
+        } else if (role === "admin" || role === "supporter") {
           const match = pathname.match(/^\/dashboard\/case\/([^\/]+)$/);
           if (match) {
             router.push(`/supporter/case/${match[1]}`);
@@ -37,10 +39,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return null;
   }
 
-  // Render-phase role guard: prevent content flash for admin/supporter
+  // Render-phase role guard: prevent content flash for admin/supporter/writer
   // on /dashboard routes before useEffect redirect fires
-  const role = (session.user as any).role;
-  if (role === "admin" || role === "supporter") {
+  const role = (session.user as { role?: string } | undefined)?.role;
+  if (role === "admin" || role === "supporter" || role === "writer") {
     return null;
   }
 
