@@ -82,8 +82,8 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
           {/* Cột nội dung bên phải */}
           <div className="flex-1 flex flex-col justify-between min-w-0">
             <div>
-              {/* Tag/Phân loại: góc trên bên trái, bằng font size với description (text-sm / 14px) */}
-              <span className="text-sm text-text-muted uppercase font-medium tracking-wide mb-1.5 block">
+              {/* Tag/Phân loại: góc trên bên trái, 12px (text-xs) */}
+              <span className="text-xs text-text-muted uppercase font-medium tracking-wide mb-1.5 block">
                 {categoryTag}
               </span>
 
@@ -151,8 +151,8 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
         {/* Cột nội dung bên phải */}
         <div className="flex-1 flex flex-col justify-between min-w-0">
           <div>
-            {/* Tag/Phân loại: góc trên bên trái, bằng font size với description (text-sm / 14px) */}
-            <span className="text-sm text-text-muted uppercase font-medium tracking-wide mb-1.5 block">
+            {/* Tag/Phân loại: góc trên bên trái, 12px (text-xs) */}
+            <span className="text-xs text-text-muted uppercase font-medium tracking-wide mb-1.5 block">
               {categoryTag}
             </span>
 
