@@ -1277,6 +1277,7 @@ export const NewsArticlePublicDetailSchema = z.object({
   cover_image_url: z.string().nullable(),
   cover_image_alt: z.string().nullable(),
   published_at: z.string(),
+  updated_at: z.string().optional(),
   author_byline: z.string(),
   author_avatar_url: z.string().nullable().optional(),
 });

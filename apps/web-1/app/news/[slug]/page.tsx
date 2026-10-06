@@ -30,6 +30,25 @@ function formatDate(isoString: string): string {
   }
 }
 
+function formatUpdateDate(isoString?: string | null): string | null {
+  if (!isoString) return null;
+  try {
+    const d = new Date(isoString);
+    const dateStr = d.toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+    const timeStr = d.toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    return `${timeStr} ngày ${dateStr}`;
+  } catch {
+    return null;
+  }
+}
+
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
   const { slug } = await params;
   const article = await fetchPublicArticleDetail(slug);
@@ -117,6 +136,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         authorInitials={authorInitials}
         authorAvatarUrl={article.author_avatar_url}
         publishedDate={formatDate(article.published_at)}
+        updatedDate={formatUpdateDate(article.updated_at)}
       />
 
       {/* Main Cover Image (Vuông góc, max-w-[700px] khớp 100% lề chữ) */}

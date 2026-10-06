@@ -83,6 +83,7 @@ export async function getPublicArticleDetailUseCase(slug: string): Promise<NewsA
     cover_image_url: item.cover_image_url,
     cover_image_alt: item.cover_image_alt,
     published_at: item.published_at?.toISOString() ?? item.created_at.toISOString(),
+    updated_at: item.updated_at.toISOString(),
     author_byline: authorByline,
     author_avatar_url: authorAvatarUrl,
   };

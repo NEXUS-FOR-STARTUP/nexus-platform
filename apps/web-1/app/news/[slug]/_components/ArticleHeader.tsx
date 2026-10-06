@@ -11,6 +11,7 @@ interface ArticleHeaderProps {
   authorInitials: string;
   authorAvatarUrl?: string | null;
   publishedDate: string;
+  updatedDate?: string | null;
 }
 
 export function ArticleHeader({
@@ -21,6 +22,7 @@ export function ArticleHeader({
   authorInitials,
   authorAvatarUrl,
   publishedDate,
+  updatedDate,
 }: ArticleHeaderProps) {
   return (
     <header className="mb-10">
@@ -63,7 +65,15 @@ export function ArticleHeader({
             <span className="text-sm font-bold text-text-app hover:text-[#288ad6] transition-colors">
               {authorName}
             </span>
-            <span className="text-xs text-text-muted">{publishedDate}</span>
+            <div className="flex flex-wrap items-center gap-x-2 text-xs text-text-muted">
+              <span>{publishedDate}</span>
+              {updatedDate && (
+                <>
+                  <span>•</span>
+                  <span>Cập nhật lần cuối: {updatedDate}</span>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
