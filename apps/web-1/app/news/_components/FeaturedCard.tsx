@@ -1,5 +1,14 @@
 'use client';
 
+/**
+ * ============================================================================
+ * THÔNG SỐ QUAN TRỌNG, ĐỪNG NÊN THAY ĐỔI
+ * Các kích thước font của FeaturedCard (tag 16px, title 26px, description 16px, profile 16px)
+ * đã được khóa cố định theo chuẩn Spiderum qua CSS variables (--news-featured-*)
+ * và các class tương ứng (.news-featured-tag, .news-featured-title, .news-featured-desc, .news-featured-meta).
+ * ============================================================================
+ */
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Avatar } from '@mantine/core';
@@ -94,26 +103,26 @@ export function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
         {/* Featured Info bên phải */}
         <div className="flex-1 flex flex-col justify-between w-full">
           <div>
-            {/* Tag/Phân loại: góc trên bên trái, 16px */}
-            <span className="text-[16px] text-text-muted uppercase font-medium tracking-wide mb-2 block">
+            {/* Tag/Phân loại: góc trên bên trái, khóa cố định qua .news-featured-tag */}
+            <span className="news-featured-tag text-text-muted uppercase font-medium tracking-wide mb-2 block">
               {categoryTag}
             </span>
 
             <Link href={targetUrl} target={isVideo ? '_blank' : undefined} rel={isVideo ? 'noopener noreferrer' : undefined}>
-              <h2 className="text-xl sm:text-2xl lg:text-[26px] font-bold text-text-app group-hover:text-brand transition-colors leading-snug tracking-tight mb-3">
+              <h2 className="news-featured-title font-bold text-text-app group-hover:text-brand transition-colors leading-snug tracking-tight mb-3">
                 {item.title}
               </h2>
             </Link>
 
             {item.excerpt && (
-              <p className="text-[15px] sm:text-[16px] text-text-app/75 line-clamp-3 leading-relaxed mb-4">
+              <p className="news-featured-desc text-text-app/75 line-clamp-3 leading-relaxed mb-4">
                 {item.excerpt}
               </p>
             )}
           </div>
 
-          {/* Profile và ngày đăng ở dưới description: 16px */}
-          <div className="flex items-center gap-2.5 pt-2 text-[16px] text-text-muted">
+          {/* Profile và ngày đăng ở dưới description: khóa cố định qua .news-featured-meta */}
+          <div className="news-featured-meta flex items-center gap-2.5 pt-2 text-text-muted">
             <Avatar
               src={item.author_avatar_url}
               color={isVideo ? 'red' : 'blue'}
@@ -123,11 +132,11 @@ export function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
             >
               {authorInitials}
             </Avatar>
-            <span className="font-semibold text-text-app truncate text-[16px] leading-none">
+            <span className="font-semibold text-text-app truncate leading-none">
               {authorName}
             </span>
             <span className="leading-none">•</span>
-            <span className="shrink-0 text-[16px] leading-none">
+            <span className="shrink-0 leading-none">
               {formatDate(item.published_at)}
             </span>
           </div>

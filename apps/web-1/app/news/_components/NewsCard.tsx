@@ -1,5 +1,14 @@
 'use client';
 
+/**
+ * ============================================================================
+ * THÔNG SỐ QUAN TRỌNG, ĐỪNG NÊN THAY ĐỔI
+ * Các kích thước font của NewsCard (tag 14px, description 14px, profile 14px)
+ * đã được khóa cố định theo chuẩn Spiderum qua CSS variables (--news-card-*)
+ * và các class tương ứng (.news-card-tag, .news-card-title, .news-card-desc, .news-card-meta).
+ * ============================================================================
+ */
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Avatar } from '@mantine/core';
@@ -82,8 +91,8 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
           {/* Cột nội dung bên phải */}
           <div className="flex-1 flex flex-col justify-between min-w-0">
             <div>
-              {/* Tag/Phân loại: góc trên bên trái, 14px */}
-              <span className="text-[14px] text-text-muted uppercase font-medium tracking-wide mb-1.5 block">
+              {/* Tag/Phân loại: góc trên bên trái, khóa cố định qua .news-card-tag */}
+              <span className="news-card-tag text-text-muted uppercase font-medium tracking-wide mb-1.5 block">
                 {categoryTag}
               </span>
 
@@ -93,19 +102,19 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
                 rel="noopener noreferrer"
                 className="block"
               >
-                <h3 className="text-[18px] sm:text-[20px] font-bold text-text-app group-hover:text-brand transition-colors line-clamp-2 leading-snug mb-2">
+                <h3 className="news-card-title font-bold text-text-app group-hover:text-brand transition-colors line-clamp-2 leading-snug mb-2">
                   {item.title}
                 </h3>
               </a>
               {item.excerpt && (
-                <p className="text-[14px] text-text-app/75 line-clamp-2 leading-relaxed mb-3">
+                <p className="news-card-desc text-text-app/75 line-clamp-2 leading-relaxed mb-3">
                   {item.excerpt}
                 </p>
               )}
             </div>
 
-            {/* Profile và ngày đăng ở dưới description: 14px */}
-            <div className="flex items-center gap-2.5 pt-2 text-[14px] text-text-muted">
+            {/* Profile và ngày đăng ở dưới description: khóa cố định qua .news-card-meta */}
+            <div className="news-card-meta flex items-center gap-2.5 pt-2 text-text-muted">
               <Avatar
                 src={item.author_avatar_url}
                 color="red"
@@ -115,9 +124,9 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
               >
                 {authorInitials}
               </Avatar>
-              <span className="font-semibold text-text-app truncate max-w-[140px] text-[14px] leading-none">{authorName}</span>
+              <span className="font-semibold text-text-app truncate max-w-[140px] leading-none">{authorName}</span>
               <span className="leading-none">•</span>
-              <span className="shrink-0 text-[14px] leading-none">{formatDate(item.published_at)}</span>
+              <span className="shrink-0 leading-none">{formatDate(item.published_at)}</span>
             </div>
           </div>
         </div>
@@ -151,25 +160,25 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
         {/* Cột nội dung bên phải */}
         <div className="flex-1 flex flex-col justify-between min-w-0">
           <div>
-            {/* Tag/Phân loại: góc trên bên trái, 14px */}
-            <span className="text-[14px] text-text-muted uppercase font-medium tracking-wide mb-1.5 block">
+            {/* Tag/Phân loại: góc trên bên trái, khóa cố định qua .news-card-tag */}
+            <span className="news-card-tag text-text-muted uppercase font-medium tracking-wide mb-1.5 block">
               {categoryTag}
             </span>
 
             <Link href={`/news/${item.slug}`} className="block">
-              <h3 className="text-[18px] sm:text-[20px] font-bold text-text-app group-hover:text-brand transition-colors line-clamp-2 leading-snug mb-2">
+              <h3 className="news-card-title font-bold text-text-app group-hover:text-brand transition-colors line-clamp-2 leading-snug mb-2">
                 {item.title}
               </h3>
             </Link>
             {item.excerpt && (
-              <p className="text-[14px] text-text-app/75 line-clamp-2 leading-relaxed mb-3">
+              <p className="news-card-desc text-text-app/75 line-clamp-2 leading-relaxed mb-3">
                 {item.excerpt}
               </p>
             )}
           </div>
 
-          {/* Profile và ngày đăng ở dưới description: 14px */}
-          <div className="flex items-center gap-2.5 pt-2 text-[14px] text-text-muted">
+          {/* Profile và ngày đăng ở dưới description: khóa cố định qua .news-card-meta */}
+          <div className="news-card-meta flex items-center gap-2.5 pt-2 text-text-muted">
             <Avatar
               src={item.author_avatar_url}
               color="blue"
@@ -179,9 +188,9 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
             >
               {authorInitials}
             </Avatar>
-            <span className="font-semibold text-text-app truncate max-w-[140px] text-[14px] leading-none">{authorName}</span>
+            <span className="font-semibold text-text-app truncate max-w-[140px] leading-none">{authorName}</span>
             <span className="leading-none">•</span>
-            <span className="shrink-0 text-[14px] leading-none">{formatDate(item.published_at)}</span>
+            <span className="shrink-0 leading-none">{formatDate(item.published_at)}</span>
           </div>
         </div>
       </div>
