@@ -5,11 +5,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sqlite3 git ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Oh My Pi globally with Bun (pinned to stable version)
-ARG OMP_VERSION=18.2.6
-RUN bun add -g @oh-my-pi/pi-coding-agent@${OMP_VERSION}
+# OMP SDK is a bundled dependency (apps/worker-omp/package.json) — no global CLI install needed.
 
-ENV PATH="/root/.bun/bin:${PATH}"
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 WORKDIR /app
 

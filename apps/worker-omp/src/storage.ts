@@ -68,10 +68,6 @@ export function logJob(jobId: string, message: string, caseId?: string): void {
   }
 }
 
-export function flushLogsToStorage(): void {
-  // No-op for Redis-backed real-time logging
-}
-
 export function updateJobInStorage(
   jobId: string,
   updater: (job: EvaluationJob) => void,

@@ -101,12 +101,9 @@ export class ProcessResourceTracker {
       this.intervalId = null;
     }
 
-    // Try unregistering from pidusage
-    try {
-      pidusage.clear();
-    } catch {
-      // Ignore
-    }
+    // NOTE: no pidusage.clear() here on purpose. It is process-global, so with
+    // concurrent jobs (concurrency 2) one job's stop() would wipe the other
+    // job's in-flight samples. The cache is keyed by pid and harmless to keep.
 
     const durationMs = Math.max(100, Date.now() - this.startTime);
     const durationSec = durationMs / 1000;

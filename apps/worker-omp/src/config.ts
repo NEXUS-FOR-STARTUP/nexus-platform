@@ -25,23 +25,6 @@ export const STORAGE_DIR = process.env.STORAGE_DIR
 
 export const DEFAULT_MODEL = process.env.OMP_MODEL || "opencode-go/deepseek-v4-pro";
 
-/**
- * Resolve the agent runtime for Linux container execution.
- * Checks global pi-coding-agent CLI via Bun first, falls back to "omp" binary in PATH.
- */
-export function resolveAgentRuntime(): { runCmd: string; baseArgs: string[] } {
-  const homeDir = process.env.HOME || "/root";
-  const ompCli = resolve(
-    homeDir,
-    ".bun/install/global/node_modules/@oh-my-pi/pi-coding-agent/dist/cli.js"
-  );
-  const isDirectCli = existsSync(ompCli);
-  return {
-    runCmd: isDirectCli ? "bun" : "omp",
-    baseArgs: isDirectCli ? [ompCli] : [],
-  };
-}
-
 export function getProvidersPath(): string {
   const p1 = resolve(ROOT_DIR, "data/providers.json");
   if (existsSync(p1)) return p1;

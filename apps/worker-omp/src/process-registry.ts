@@ -1,23 +1,17 @@
-import type { ChildProcess } from "node:child_process";
 import Redis from "ioredis";
 
-export interface ActiveProcessEntry {
-  proc: ChildProcess;
+export interface ActiveJobEntry {
   cancel: () => void;
 }
 
-const activeProcesses = new Map<string, ActiveProcessEntry>();
+const activeJobs = new Map<string, ActiveJobEntry>();
 
-export function registerActiveProcess(jobId: string, entry: ActiveProcessEntry): void {
-  activeProcesses.set(jobId, entry);
+export function registerActiveJob(jobId: string, entry: ActiveJobEntry): void {
+  activeJobs.set(jobId, entry);
 }
 
-export function unregisterActiveProcess(jobId: string): void {
-  activeProcesses.delete(jobId);
-}
-
-export function getActiveProcess(jobId: string): ActiveProcessEntry | undefined {
-  return activeProcesses.get(jobId);
+export function unregisterActiveJob(jobId: string): void {
+  activeJobs.delete(jobId);
 }
 
 export function initCancellationListener(redisConfig: {
@@ -36,13 +30,18 @@ export function initCancellationListener(redisConfig: {
     if (err) console.error("[Worker-OMP] Redis sub error:", err);
   });
 
+  // Unhandled 'error' on an EventEmitter throws — that would crash the whole daemon.
+  redisSub.on("error", (err) => {
+    console.error("[Worker-OMP] Redis sub connection error:", err);
+  });
+
   redisSub.on("message", (channel, message) => {
     if (channel === "job-cancellation") {
       try {
         const data = JSON.parse(message);
         if (data?.jobId || data?.caseId) {
-          const entry = (data.jobId ? activeProcesses.get(data.jobId) : undefined) ||
-                        (data.caseId ? activeProcesses.get(data.caseId) : undefined);
+          const entry = (data.jobId ? activeJobs.get(data.jobId) : undefined) ||
+                        (data.caseId ? activeJobs.get(data.caseId) : undefined);
           if (entry) {
             entry.cancel();
           }
