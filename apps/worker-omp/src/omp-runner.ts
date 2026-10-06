@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { AgentExecutionResult, StartupReport } from "@app/shared";
-import { STORAGE_DIR, DEFAULT_MODEL, PROMPT_CONFIG, resolveAgentRuntime } from "./config.js";
+import { STORAGE_DIR, DEFAULT_MODEL, PROMPT_CONFIG } from "./config.js";
 import { logJob, updateJobInStorage } from "./storage.js";
 import {
   prepareJobDirectories,
@@ -9,7 +9,7 @@ import {
   syncOutputFiles,
   readJobInputDocuments,
 } from "./job-sandbox.js";
-import { spawnOmpProcess } from "./process-spawner.js";
+import { runOmpSession } from "./session-runner.js";
 
 export interface OmpJobPayload {
   jobId: string;
@@ -51,7 +51,6 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
   const outputDir = resolve(jobDir, "output");
   prepareJobDirectories(jobDir, outputDir);
 
-  const { runCmd, baseArgs } = resolveAgentRuntime();
   const mode = data.promptMode === "lite" ? "lite" : "full";
   const submissionType = data.submissionType ?? "initial";
 
@@ -89,32 +88,19 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
       ? `\n\n--- HƯỚNG DẪN BỔ SUNG (${submissionType}) ---\n${submissionInstructions}\n--- KẾT THÚC HƯỚNG DẪN ---\n\n`
       : "") +
     ` Sau đó thực hiện chuẩn xác Step 1 xuất output/triad_handoff_packet.md, rồi Step 2 xuất output/input_clarification_audit.md và output/report.json theo đúng cấu trúc quy định.`;
-  const args = [
-    ...baseArgs,
-    "--mode",
-    "json",
-    "-p",
-    prompt,
-    "--cwd",
-    jobDir,
-    "--model",
-    selectedModel,
-    "--auto-approve",
-    "--approval-mode",
-    "yolo",
-    "--no-session",
-  ];
-
-  const executionResult = await spawnOmpProcess({
+  const executionResult = await runOmpSession({
     jobId,
+    caseId,
     jobDir,
     outputDir,
-    runCmd,
-    args,
+    model: selectedModel,
+    prompt,
   });
 
   if (executionResult.error === "CANCELLED") {
     logJob(jobId, "🛑 [HỦY] Hoàn tất hủy job OMP theo yêu cầu.", caseId);
+    // Stop the tracker to clear its sampling interval (no metrics recorded for cancelled jobs).
+    await executionResult.tracker?.stop();
     const cancelledResult: AgentExecutionResult = {
       agent: "omp",
       modelUsed: selectedModel,
