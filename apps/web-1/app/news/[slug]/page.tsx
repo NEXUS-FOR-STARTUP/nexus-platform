@@ -2,11 +2,13 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Badge, Avatar, Button } from '@mantine/core';
+import { Button } from '@mantine/core';
 import { ArrowLeft } from 'lucide-react';
 import { fetchPublicArticleDetail, fetchPublicNewsList } from '@/lib/news-server';
 import { NewsTipTapRenderer } from './_components/NewsTipTapRenderer';
-import { ArticleShareButton } from './_components/ArticleShareButton';
+import { ArticleHeader } from './_components/ArticleHeader';
+import { ArticleAuthorBio } from './_components/ArticleAuthorBio';
+import { ArticleRelatedList } from './_components/ArticleRelatedList';
 
 interface ArticlePageProps {
   params: Promise<{
@@ -63,14 +65,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     notFound();
   }
 
-  // Fetch related recent articles (excluding current article)
   let relatedArticles: Array<{
     id: string;
     title: string;
     slug: string;
     published_at: string;
-    cover_image_url: string | null;
-    cover_image_alt: string | null;
     excerpt: string | null;
   }> = [];
 
@@ -108,70 +107,31 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         </Link>
       </div>
 
-      {/* Spiderum-style Header (thống nhất 700px với toàn bộ bài viết) */}
-      <header className="mb-10">
-        <Badge
-          color="blue"
-          variant="light"
-          size="lg"
-          radius="sm"
-          className="font-bold tracking-wider uppercase mb-5 px-3.5 py-1.5 !text-xs sm:!text-sm bg-blue-50 text-[#288ad6] !border-0"
-        >
-          Khởi nghiệp & Công nghệ
-        </Badge>
+      {/* Spiderum-style Header */}
+      <ArticleHeader
+        title={article.title}
+        excerpt={article.excerpt}
+        authorName={authorName}
+        authorInitials={authorInitials}
+        authorAvatarUrl={article.author_avatar_url}
+        publishedDate={formatDate(article.published_at)}
+      />
 
-        <h1 className="text-2xl sm:text-3xl md:text-[34px] font-black text-text-app tracking-tight leading-snug mb-4 sm:mb-5">
-          {article.title}
-        </h1>
-
-        {/* Excerpt / Tóm tắt: nằm ngay dưới tiêu đề, tô mờ, font nhỏ lại, giữ italic */}
-        {article.excerpt && (
-          <p className="font-serif italic text-base sm:text-[17px] leading-[1.75] text-text-muted mb-7 sm:mb-8">
-            {article.excerpt}
-          </p>
-        )}
-
-        {/* Byline row: Avatar + Author + Date + Share Action (No borders, no icons, no read time, no bullets) */}
-        <div className="flex items-center justify-between mb-8 sm:mb-10">
-          <div className="flex items-center gap-3">
-            <Avatar
-              src={article.author_avatar_url}
-              color="blue"
-              radius="xl"
-              size="md"
-              className="font-semibold text-xs border border-border-app"
-            >
-              {authorInitials}
-            </Avatar>
-            <div className="flex flex-col">
-              <span className="text-sm font-bold text-text-app hover:text-[#288ad6] transition-colors">
-                {authorName}
-              </span>
-              <span className="text-xs text-text-muted">
-                {formatDate(article.published_at)}
-              </span>
-            </div>
-          </div>
-
-          <ArticleShareButton title={article.title} />
-        </div>
-      </header>
-
-      {/* Cover Image */}
+      {/* Main Cover Image (Vuông góc, max-w-[700px] khớp 100% lề chữ) */}
       {article.cover_image_url && (
-        <div className="w-full mb-10">
-          <div className="relative aspect-video w-full overflow-hidden bg-surface-soft border border-border-app">
+        <div className="w-full mb-10 overflow-hidden bg-surface-soft">
+          <div className="relative aspect-[16/10] w-full">
             <Image
               src={article.cover_image_url}
               alt={article.cover_image_alt || article.title}
               fill
               priority
-              sizes="(max-width: 1024px) 100vw, 700px"
+              sizes="(max-width: 768px) 100vw, 700px"
               className="object-cover"
             />
           </div>
           {article.cover_image_alt && (
-            <p className="text-center text-xs text-text-muted mt-2 italic font-serif">
+            <p className="text-center text-xs text-text-muted mt-2 font-serif italic">
               {article.cover_image_alt}
             </p>
           )}
@@ -196,66 +156,17 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         </div>
 
         {/* Spiderum-style Author Bio Card */}
-        <div className="mt-8 p-6 rounded-lg bg-surface-app border border-border-app flex items-start gap-4">
-          <Avatar
-            src={article.author_avatar_url}
-            color="blue"
-            radius="xl"
-            size="lg"
-            className="font-semibold text-base border border-border-app shrink-0"
-          >
-            {authorInitials}
-          </Avatar>
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-1">
-              <h4 className="font-bold text-text-app text-base">{authorName}</h4>
-              <span className="text-xs text-brand font-medium bg-brand/10 px-2 py-0.5 rounded">Tác giả</span>
-            </div>
-            <p className="text-sm text-text-muted leading-relaxed font-serif">
-              Ban biên tập nội dung & cố vấn chuyên môn tại Nexus Platform. Đồng hành cùng các nhà sáng lập trẻ trên hành trình biến ý tưởng thành hiện thực.
-            </p>
-          </div>
-        </div>
+        <ArticleAuthorBio
+          authorName={authorName}
+          authorInitials={authorInitials}
+          authorAvatarUrl={article.author_avatar_url}
+        />
 
         {/* Related / Next Reads */}
-        {relatedArticles.length > 0 && (
-          <div className="mt-16">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-sans font-bold text-xl text-text-app tracking-tight">
-                Bài viết cùng chủ đề
-              </h3>
-              <Link href="/news" className="text-xs text-brand hover:underline font-medium">
-                Xem tất cả
-              </Link>
-            </div>
-
-            <div className="space-y-4">
-              {relatedArticles.map((rel) => (
-                <Link
-                  key={rel.id}
-                  href={`/news/${rel.slug}`}
-                  className="group block p-4 rounded-xl border border-border-app bg-surface-app hover:border-brand/40 transition-all"
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-text-app text-base line-clamp-1 group-hover:text-brand transition-colors mb-1">
-                        {rel.title}
-                      </h4>
-                      {rel.excerpt && (
-                        <p className="text-xs text-text-muted line-clamp-1 font-serif">
-                          {rel.excerpt}
-                        </p>
-                      )}
-                    </div>
-                    <span className="text-xs text-text-muted shrink-0">
-                      {formatDate(rel.published_at)}
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
+        <ArticleRelatedList
+          articles={relatedArticles}
+          formatDate={formatDate}
+        />
       </div>
     </article>
   );

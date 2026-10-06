@@ -1,34 +1,11 @@
 'use client';
 
-import { useState } from 'react';
 import { ActionIcon, Tooltip } from '@mantine/core';
 import { Share2, Check } from 'lucide-react';
+import { useArticleShare } from '../../hooks';
 
 export function ArticleShareButton({ title }: { title: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleShare = async () => {
-    try {
-      if (typeof window !== 'undefined') {
-        if (navigator.share) {
-          try {
-            await navigator.share({
-              title,
-              url: window.location.href,
-            });
-            return;
-          } catch {
-            // fallback to clipboard if user dismissed native share
-          }
-        }
-        await navigator.clipboard.writeText(window.location.href);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2500);
-      }
-    } catch {
-      // ignore clipboard error
-    }
-  };
+  const { copied, handleShare } = useArticleShare({ title });
 
   return (
     <Tooltip label={copied ? 'Đã sao chép liên kết!' : 'Chia sẻ'} withArrow position="top">
