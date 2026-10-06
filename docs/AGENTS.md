@@ -29,9 +29,13 @@
 - `ci-guide.md` — hướng dẫn CI/CD với GitHub Actions.
 - `deploy-log.md` — log các lần deploy image lên Docker Hub (commit/branch/message).
 
-## Tài liệu legacy
+## Tài liệu legacy & tham khảo lịch sử (Non-canonical)
 
-- `archive/` - legacy reference, không phải source of truth.
+> ⛔ **CẢNH BÁO CHO AI AGENTS:** Các thư mục dưới đây KHÔNG PHẢI source of truth cho code. Tuyệt đối KHÔNG trích dẫn các quyết định kỹ thuật từ các khu vực này làm căn cứ triển khai hệ thống:
+- `archive/` — Bản lưu trữ specs và architecture cũ đã bị thay thế (bao gồm `archive/reference/` chứa các ghi chép tham khảo nghiệp vụ).
+- `research/` — Các nghiên cứu giải pháp, root-cause analysis (RCA), và benchmark quá khứ.
+- `nexus-document/` — Kho tài liệu học thuật (CP1-CP4, slide, biên bản phỏng vấn, mentor feedback).
+- `journals/` — Nhật ký công việc hằng ngày của team dev (53 files); chỉ mang tính ghi nhận lịch sử commit/deploy, không phải đặc tả kỹ thuật hiện hành.
 
 ## Quy tắc đặt tài liệu mới
 
@@ -53,7 +57,7 @@
 
 ## backlog/
 
-`backlog/` chứa structured future work items — mỗi file là một ý tưởng/việc cần làm kèm context, decisions, notes, gotchas. Phân biệt với `plans/` (execution workspace) và `requirements/` (feature canonical). File có status (Draft → Researching → Planned → In Progress → Done → Deferred → Rejected). Khi item chuyển sang Planned → tạo plan trong `plans/`. Khi Done → update `project-changelog.md`, xem xét archive.
+`backlog/` chứa structured future work items — mỗi file là một ý tưởng/việc cần làm kèm context, decisions, notes, gotchas. Phân biệt với `plans/` (execution workspace) và `requirements/` (feature canonical). File có status (Draft → Researching → Planned → In Progress → Done → Deferred → Rejected). Khi item chuyển sang Planned → tạo plan trong `plans/`. Khi Done → update `CHANGELOG.md` ở root, xem xét archive.
 
 ## journals/
 

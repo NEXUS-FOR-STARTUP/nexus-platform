@@ -3,23 +3,25 @@
 - Prefer `caveman` skill lite mode + `sequential-thinking` for structured reasoning.
 - **CodeGraph**: Project indexed with CodeGraph. Use `codegraph_explore` MCP or `codegraph explore` CLI BEFORE `grep` or Read.
 
-**Generated:** 2026-08-24
+**Generated:** 2026-10-04
 
 ## OVERVIEW
 
-Turborepo monorepo. Stack: Next.js 16, Hono, Better Auth, Prisma 7, Mantine UI v9, TanStack Query/Form/Virtual, Lucide React, Vercel AI SDK (OpenAI/Google), shared `@repo/*` packages.
+Turborepo monorepo. Stack: Next.js 16, Hono, Better Auth, Prisma 7, Mantine UI v9, TanStack Query/Form/Virtual, Lucide React, Vercel AI SDK (@ai-sdk/google), BullMQ + Redis, shared `@repo/*` and `@app/*` packages.
 
 ## STRUCTURE
 
 ```
 root/
-├── apps/api/         # Hono backend (13 modules, 79 endpoints: 75 module + 4 system)
+├── apps/api/         # Hono backend (15 modules, 112 endpoints)
 ├── apps/web-1/       # Next.js 16 product app (port 3001)
+├── apps/worker-omp/  # AI evaluation daemon (BullMQ + Redis sandbox)
 ├── packages/         # Shared packages
+│   ├── shared/       # Shared telemetry & worker metrics (@app/shared)
 │   ├── validation/   # Zod schemas (shared frontend↔backend)
 │   ├── eslint-config/# ESLint 9 flat configs
 │   └── typescript-config/ # tsconfig presets
-├── prisma/           # Root Prisma schema (30 models)
+├── prisma/           # Root Prisma schema (32 models, 31 migrations)
 ├── docs/             # Product + technical documentation
 ├── .agents/rules/    # Agent development rules
 ├── .codegraph/       # Code intelligence index
@@ -31,16 +33,17 @@ root/
 | Task            | Location                                              | Notes                                                        |
 | --------------- | ----------------------------------------------------- | ------------------------------------------------------------ |
 | Backend/API     | `apps/api/src/index.ts`, `auth.ts`, `db.ts`, `env.ts` | Hono entry, auth mount, DB wiring                            |
+| Worker OMP      | `apps/worker-omp/src/index.ts`, `storage.ts`          | BullMQ daemon, Redis Pub/Sub, sandbox execution              |
 | Web UI          | `apps/web-1/app/*`                                    | Mantine UI v9 app; read `apps/web-1/AGENTS.md` first         |
 | Shared UI       | Mantine UI v9                                          | Real design system for web-1                                 |
-| DB schema       | `prisma/schema-*.md` or `prisma/schema.prisma`        | 30 models, plural snake_case fields                          |
+| DB schema       | `prisma/schema-*.md` or `prisma/schema.prisma`        | 32 models, plural snake_case fields (31 migrations)          |
 | DB migration    | `docs/db-migration-guide.md`                          | Prisma migration workflow, generate/migrate/deploy          |
 | Tech docs       | `docs/tech-doc-urls.txt`                              | Source of truth for external docs                            |
 | CI/CD           | `docs/ci-guide.md`                                    | GitHub Actions workflow, automate build/test/deploy          |
 | Workspace rules | `package.json`, `turbo.json`                          | Root scripts + Turbo task graph                              |
-| Shared packages | `packages/validation/src/`                             | Zod schemas (shared FE↔BE)                                   |
+| Shared packages | `packages/validation/src/`, `packages/shared/src/`    | Zod schemas (shared FE↔BE) & telemetry metrics               |
 | Agent rules     | `.agents/rules/`                                      | Development, docs, orchestration, workflow, prisma-migration |
-| Test infra      | `apps/api/src/shared/infrastructure/tests/`           | 22 files (21 *.test.ts + coverage-report.ts), node:test only in apps/api |
+| Test infra      | `apps/api/src/shared/infrastructure/tests/`           | 48 files (47 *.test.ts + coverage-report.ts), node:test in api |
 | Realtime chat   | `apps/api/src/modules/realtime/`                      | Centrifugo v6; ops: `docs/realtime-centrifugo-guide.md`     |
 | DB query (prod) | `docs/db-query-guide.md`                              | Read-only query via READONLY_DATABASE_URL, guest account     |
 | DB backup       | `docs/db-backup-guide.md`                             | pg_dump via Docker, safe SQL on VPS, restore                 |
@@ -80,6 +83,8 @@ root/
 - try/catch in component code (delegate to hook/query layer).
 - Files exceeding 200-line limit (20 files across API and web-1).
 - Shadows on Mantine Card/Paper (`shadow-sm`, `shadow-md` on 22 files).
+- Adding responsive mobile layouts to Admin or Supporter interfaces (violates Desktop-only design enforced by `DesktopOnlyNotice`).
+- Assuming frontend has no server-side auth guard (Next.js 16 `proxy.ts` performs server-side route guarding and maintenance mode).
 
 ## UNIQUE STYLES
 
@@ -137,14 +142,17 @@ Nếu DATABASE_URL trỏ host remote VPS, IP production (hoặc domain ngoài lo
 ## NOTES
 
 - `apps/web-1/AGENTS.md` is child-specific Mantine UI note; sync with web work.
+- `apps/worker-omp/AGENTS.md` covers the BullMQ AI worker daemon and sandbox environment.
 - **Agent Rules**: [.agents/rules/](.agents/rules/) contains project-wide guidelines:
   - [development-rules.md](.agents/rules/development-rules.md): Coding standards, file sizes, visual aids, no direct `apiClient` calls in UI.
   - [documentation-management.md](.agents/rules/documentation-management.md): Roadmaps, changelogs, plan files.
   - [orchestration-protocol.md](.agents/rules/orchestration-protocol.md): Subagent delegation and parallel execution — **includes DB Safety Protocol**.
   - [primary-workflow.md](.agents/rules/primary-workflow.md): Planning, implementation, testing, code quality, integration, visual explanations — **includes DB Migration Safety Gate**.
-- Apps/api: 79 endpoints (75 module + 4 system) across 13 modules (cases, reports, payments, packages, ai-engine, admin, supporter, documents, notifications, realtime, wallet, orders, deposits). Clean Architecture (domain/application/infrastructure/http). Some modules lack infrastructure layer (admin, supporter). Event bus (`shared/domain/domain-events.ts`) dùng cho notifications (14 event types); còn lại phần lớn là direct module-to-module calls.
-- Apps/web-1: 21 custom hooks across route groups. Auth entirely client-side (no middleware guard). Vietnamese-first UI.
+- Apps/api: 112 endpoints (108 module routes + 4 system) across 15 modules (`admin, ai-engine, auth, cases, deposits, documents, notifications, orders, packages, payments, profile, realtime, reports, supporter, wallet`). Clean Architecture (domain/application/infrastructure/http). Event bus (`shared/domain/domain-events.ts`, 14 event types) + 2 Outbox Relays (`DomainEventOutbox` 5s tick crash recovery, `NotificationOutbox` 2s tick). BullMQ `omp-queue` producer for AI jobs.
+- Apps/web-1: 37 custom hooks across route groups. Auth server-side guard via Next.js 16 `proxy.ts` (with `MAINTENANCE_MODE`). Case workspace has 7 tabs (`overview, documents, report, discussion, timeline, settings, credits`) with URL sync `?tab=`. Student workspace is mobile-responsive; Admin & Supporter are strictly Desktop-only (`DesktopOnlyNotice.tsx` < 1024px). Canonical UX wording reference: `design-system/wording/`. Vietnamese-first UI.
+- Apps/worker-omp: Dedicated BullMQ worker daemon on Bun. Consumes `omp-queue`, isolates runs in `storage/jobs/${caseId}/${jobId}/`, dual-publishes logs to Redis (`job:logs:${jobId}` and `job:logs:${caseId}`), listens to `job-cancellation`. Typst PDF generation is handled in `apps/api`, not worker.
 - Packages/validation: Zod v4, shared schemas for IdeaInput, TeamMemberInput, TeamFitInput.
+- Packages/shared: Shared worker telemetry, CPU/RAM/disk metrics (`@app/shared`).
 - No `packages/ui` package exists; Mantine UI v9 is the real design system for web-1.
 
 ## UI-UX-PRO-MAX USAGE RULE

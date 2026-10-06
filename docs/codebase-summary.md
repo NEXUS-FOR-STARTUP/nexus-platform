@@ -1,6 +1,6 @@
 # Tóm tắt codebase
 
-_Cập nhật: 2026-09-20. Tổng hợp từ codebase hiện tại và docs canonical trong `docs/`._
+_Cập nhật: 2026-10-04. Tổng hợp từ codebase hiện tại và docs canonical trong `docs/`._
 
 ## Repo này là gì
 
@@ -10,27 +10,30 @@ Công cụ hỗ trợ: **CodeGraph** (`.codegraph/`) — index code symbol, call
 
 ## Khu vực chính
 
-### `apps/api` (148 files src, ~15,300 LOC)
+### `apps/api` (260 files src, ~31,000 LOC)
 
 Backend Hono với:
-- modules: cases (24 routes: triage, details, messages, chat/read, chat/unread, settings, status, intake, v.v.), admin (19 routes: case triage, documents, stats, packages, service-types, users), payments (2 routes: proof + sepay-webhook), reports (4 routes), supporter (4 routes), notifications (5 routes: list, unread-count, read, read-all, SSE stream), realtime (2 routes: connection-token, cases/:caseId/subscribe-token), ai-engine (2 routes), packages (2 routes), documents (1 route), wallet (4 routes: balance, history, purchase-credits [deprecated], topups [410 GONE]), deposits (5 routes), orders (3 routes), profile (5 routes: avatar, account deletion, sessions list, session revoke, revoke-others), system (4 routes: `/`, `/health`, `/stream`, `/session`)
-- shared infra: AppError, requireAuth, requireCaseAccess, audit-logger, **event-bus + domain-events** (14 event types) + **outbox pattern** cho notifications
-- services: Cloudinary (file upload), Google Generative AI
-- ~86 API endpoints (82 module routes + 4 system), Hono + Better Auth + Prisma 7 + Vercel AI SDK
-- Kiến trúc: modular monolith + Clean Architecture (domain/application/infrastructure/presentation)
+- 16 modules: cases (28 routes), admin (34 routes: case triage, documents, stats, packages, users, worker monitoring KPI & jobs, news management), news (2 public routes: list, detail), reports (8 routes: critique draft, edit, approve, latest, Typst PDF download), payments (7 routes: proof + sepay-webhook), wallet (7 routes: balance, history, credit lock/unlock), notifications (7 routes: list, unread-count, read, read-all, SSE stream, preferences), deposits (6 routes: list, detail, verify, user deposits), orders (6 routes: create, status, user orders), supporter (5 routes), profile (2 routes: avatar, account deletion), realtime (2 routes: connection-token, cases/:caseId/subscribe-token), ai-engine (2 routes), packages (3 routes), documents (3 routes), auth (session & admin plugin)
+- shared infra: AppError, requireAuth, requireCaseAccess, audit-logger, **event-bus + domain-events** (14 event types) + **2 Outbox Relays**: `NotificationOutbox` (2s tick cho email/telegram) và `DomainEventOutbox` (5s tick lưu trữ crash recovery)
+- services: Cloudinary (file upload), Google Generative AI (@ai-sdk/google), Typst PDF Engine (`src/modules/reports/infrastructure/pdf/`)
+- 122 API endpoints (118 module routes + 4 system), Hono + Better Auth + Prisma 7 + Vercel AI SDK
+- AI Job Dispatch: Hàng đợi BullMQ `omp-queue` chuyển giao tác vụ thẩm định cho `apps/worker-omp`
+- Kiến trúc: modular monolith + Clean Architecture (domain/application/infrastructure/http)
 - Auth: Better Auth (email/password, Google OAuth, admin plugin)
 - DB: Prisma + PostgreSQL, PgBouncer adapter
 - Imports: ESM với `.js` suffix
 
-### `apps/web-1` (127 files, ~16,800 LOC)
+### `apps/web-1` (135 files, ~18,500 LOC)
 
 Next.js 16.2.0 product app với:
-- 3 persona surfaces: Student (dashboard + case workspace), Supporter (case workspace + output upload), Admin (triage dashboard + package management)
-- Data fetching: TanStack Query + Axios; polling (10s case details; chat realtime Centrifugo + REST polling 60s fallback)
+- 3 persona surfaces: Student (dashboard + case workspace, hỗ trợ mobile-responsive), Supporter (case workspace + output upload, desktop-only), Admin (triage dashboard + package management + worker monitoring, desktop-only)
+- Device Persona Scope: Student dashboard hỗ trợ mobile responsive hoàn chỉnh (drawer nav, card view table); Admin & Supporter là **Desktop-only tuyệt đối** (chặn màn hình < 1024px bởi `DesktopOnlyNotice.tsx`)
+- Data fetching: TanStack Query + Axios; polling (10s case details; chat realtime Centrifugo + REST polling 60s fallback; worker KPI 10s)
 - Forms: TanStack Form everywhere
-- Auth: Better Auth client (`useSession`), role-based layout guards
-- State: server state qua TanStack Query, không Redux/Zustand
-- Pages: landing (`/`), auth (`/auth`), dashboard (`/dashboard`), intake (`/dashboard/intake` — trang riêng, submit/resubmit), team-fit (`/dashboard/team-fit`), case workspace (`/dashboard/case/[id]`), payment (`/dashboard/payment`), wallet (`/dashboard/wallet` — số dư VND, lịch sử giao dịch, nạp tiền SePay), settings (`/dashboard/settings` — Thông tin cơ bản `/dashboard/settings/profile`, Đổi mật khẩu `/dashboard/settings/password`, Thiết bị & Phiên đăng nhập `/dashboard/settings/sessions`, sidebar pattern Facebook; route cũ `/dashboard/profile` → redirect), admin (`/admin`), supporter (`/supporter`, bao gồm `/supporter/settings/sessions`)
+- Auth: Server-side route guard (`proxy.ts`) chặn theo role và xử lý `MAINTENANCE_MODE` trước khi render; client-side dùng Better Auth client (`useSession`)
+- State: server state qua TanStack Query, không Redux/Zustand; 37 custom hooks
+- Pages: landing (`/`), auth (`/auth`), news (`/news`, `/news/[slug]`), dashboard (`/dashboard`), intake (`/dashboard/intake`), team-fit (`/dashboard/team-fit`), case workspace (`/dashboard/case/[id]` — 7 tabs: `overview, documents, report, discussion, timeline, settings, credits` đồng bộ qua URL `?tab=`), payment (`/dashboard/payment`), wallet (`/dashboard/wallet`), settings (`/dashboard/settings`), admin (`/admin` — 8 tabs: `stats, payments, cases, documents, packages, users, workers, news`), supporter (`/supporter`)
+- Wording: Toàn bộ thuật ngữ UX tiếng Việt bám sát quy chuẩn tại `design-system/wording/`
 - UI: Mantine UI v9, Lucide React, Recharts, TipTap, Tailwind CSS v4
 - Port: 3001
 
@@ -42,16 +45,17 @@ Worker daemon độc lập xử lý tác vụ thẩm định AI chuyên sâu:
 - Ghi log real-time và lịch sử qua hợp đồng Dual-publish Redis (`job:log:${jobId}` & `job:log:${caseId}`)
 - Tích hợp bộ lắng nghe hủy tiến trình (cancellation listener) qua Redis Pub/Sub
 
-### `packages/` (3 packages)
+### `packages/` (4 packages)
 
 | Package | Mô tả |
 |---------|-------|
+| `shared` | `@app/shared` — Quản lý telemetry, metrics tài nguyên CPU/RAM/disk dùng chung giữa worker và admin |
 | `validation` | Zod schemas & shared report naming helpers (`report-naming.ts` — `buildStandardReportPdfFilename`) — shared giữa api và web-1 |
 | `eslint-config` | 3 ESLint 9 flat configs (base, next.js, react-internal) |
 | `typescript-config` | 3 tsconfig presets (base, nextjs, react-library) |
 ### `prisma/schema.prisma`
 
-30 models: 5 auth (User, Session, Account, Verification, TwoFactor) + 25 business (ServicePackage, ServiceType, ServicePricing, UserWallet, WalletTransaction, WalletTopup [deprecated], Deposit, Order, OrderItem, DomainEventOutbox, Case, CaseMember, Checkpoint, LifecycleUnit, DocumentRecord, DocumentType, Report, Payment [deprecated], CaseMessage, CaseEvent, AiJob, TeamFitReport, CreditLedger, Notification, NotificationOutbox). 23 migrations (mới nhất: `20260819171456_case_messages_pagination_index`).
+33 models: 5 auth (User, Session, Account, Verification, TwoFactor) + 28 business (NewsItem, ServicePackage, ServiceType, ServicePricing, UserWallet, WalletTransaction, WalletTopup [deprecated], Deposit, Order, OrderItem, DomainEventOutbox, Case, CaseMember, Checkpoint, LifecycleUnit, DocumentRecord, DocumentType, Report, Payment [deprecated], CaseMessage, CaseChatReadState, CaseEvent, AiJob, TeamFitReport, CreditLedger, Notification, NotificationPreference, NotificationOutbox). 32 migrations (mới nhất: `20261006120000_add_news_items`).
 
 > Ghi chú: migration `20260722000000_add_audit_rounds` vẫn còn trong lịch sử migrations (tạo bảng `audit_rounds`), nhưng model `AuditRound` không còn trong schema hiện tại — luồng vòng sửa đã chuyển sang stage-based + credit ledger. Mọi tham chiếu tài liệu tới model `AuditRound` là stale.
 

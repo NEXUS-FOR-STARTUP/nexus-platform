@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where([data-mantine-color-scheme="dark"], [data-mantine-color-scheme="dark"] *));
 @import "@mantine/core/styles.css";
 @import "@mantine/dates/styles.css";
 @import "@mantine/notifications/styles.css";
@@ -45,11 +46,32 @@
   --font-sans: var(--font-google-sans-flex), sans-serif;
   --font-heading: var(--font-google-sans-flex), sans-serif;
   --font-body: var(--font-google-sans-flex), sans-serif;
+  --font-serif: var(--font-merriweather), Georgia, Cambria, "Times New Roman", Times, serif;
   --text-xs: var(--app-text-xs);
   --text-sm: var(--app-text-sm);
 }
 
 :root {
+  /* ==========================================================================
+     THÔNG SỐ QUAN TRỌNG, ĐỪNG NÊN THAY ĐỔI
+     Locked News Feed Typography Tokens (Spiderum Style)
+     ========================================================================== */
+  --news-card-tag-size: 14px;
+  --news-card-title-size: 18px;
+  --news-card-title-size-sm: 20px;
+  --news-card-desc-size: 14px;
+  --news-card-meta-size: 14px;
+  --news-card-avatar-size: 28px;
+
+  --news-featured-tag-size: 16px;
+  --news-featured-title-size: 20px;
+  --news-featured-title-size-sm: 24px;
+  --news-featured-title-size-lg: 26px;
+  --news-featured-desc-size: 15px;
+  --news-featured-desc-size-sm: 16px;
+  --news-featured-meta-size: 16px;
+  --news-featured-avatar-size: 32px;
+
   /* Font sizes: Mobile defaults */
   --app-text-xs: 0.8125rem;
   --app-text-sm: 0.875rem;
@@ -185,5 +207,101 @@ h1, h2, h3, h4, h5, h6 {
 .mantine-Table-th,
 .mantine-Table-td {
   border-color: var(--color-border) !important;
+}
+
+/* ==========================================================================
+   THÔNG SỐ QUAN TRỌNG, ĐỪNG NÊN THAY ĐỔI
+   News Cards Typography Classes
+   ========================================================================== */
+.news-card-tag {
+  font-size: var(--news-card-tag-size);
+}
+.news-card-title {
+  font-size: var(--news-card-title-size);
+}
+@media (min-width: 640px) {
+  .news-card-title {
+    font-size: var(--news-card-title-size-sm);
+  }
+}
+.news-card-desc {
+  font-size: var(--news-card-desc-size);
+}
+.news-card-meta {
+  font-size: var(--news-card-meta-size);
+}
+
+.news-featured-tag {
+  font-size: var(--news-featured-tag-size);
+}
+.news-featured-title {
+  font-size: var(--news-featured-title-size);
+}
+@media (min-width: 640px) {
+  .news-featured-title {
+    font-size: var(--news-featured-title-size-sm);
+  }
+}
+@media (min-width: 1024px) {
+  .news-featured-title {
+    font-size: var(--news-featured-title-size-lg);
+  }
+}
+.news-featured-desc {
+  font-size: var(--news-featured-desc-size);
+}
+@media (min-width: 640px) {
+  .news-featured-desc {
+    font-size: var(--news-featured-desc-size-sm);
+  }
+}
+.news-featured-meta {
+  font-size: var(--news-featured-meta-size);
+}
+
+/* ==========================================================================
+   Global Interactive Cursor: Pointer for all clickable / hoverable elements
+   ========================================================================== */
+button,
+[role="button"],
+[type="button"],
+[type="submit"],
+[type="reset"],
+a,
+select,
+summary,
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"],
+label[for],
+.mantine-Button-root,
+.mantine-ActionIcon-root,
+.mantine-UnstyledButton-root,
+.mantine-Tabs-tab,
+.mantine-Pagination-control,
+.mantine-SegmentedControl-label,
+.mantine-Checkbox-root,
+.mantine-Checkbox-input,
+.mantine-Radio-root,
+.mantine-Radio-input,
+.mantine-Switch-root,
+.mantine-Switch-input,
+.mantine-MenuItem-root,
+.mantine-Accordion-control,
+.mantine-Breadcrumbs-breadcrumb,
+.mantine-NavLink-root,
+.mantine-Select-option,
+.mantine-Combobox-option,
+.mantine-Chip-label,
+.mantine-Pill-root {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"],
+[disabled],
+.mantine-Button-root[data-disabled="true"],
+.mantine-ActionIcon-root[data-disabled="true"] {
+  cursor: not-allowed;
 }
 

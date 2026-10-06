@@ -24,7 +24,7 @@ Backlog là nơi capture 3 loại thông tin:
 2. **Cần research** → `docs/research/`, update status = `Researching`
 3. **Chốt plan** → `plans/<timestamp>-<name>/`, update status = `Planned`
 4. **Đang làm** → status = `In Progress`, link tới plan
-5. **Xong** → update `docs/project-changelog.md`, move về `docs/archive/backlog/` hoặc giữ lại đánh dấu `Done`
+5. **Xong** → update `CHANGELOG.md` ở root, move về `docs/archive/backlog/` hoặc giữ lại đánh dấu `Done`
 
 ## Trạng thái backlog item
 

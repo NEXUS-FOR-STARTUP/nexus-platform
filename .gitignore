@@ -59,6 +59,7 @@ nul
 .claude/worktrees/
 # Scratch file
 note.txt
+.pi/
 
 # SQLite temporary files
 *.db-wal

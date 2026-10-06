@@ -15,8 +15,10 @@ import { getAdminStatsUseCase } from "../application/get-admin-stats.usecase.js"
 import { listServiceTypesUseCase, createServiceTypeUseCase, updateServiceTypeUseCase } from "../../packages/application/service-type.usecase.js";
 import { setCurrentPricingUseCase, getPricingHistoryUseCase } from "../../packages/application/service-pricing.usecase.js";
 import { createAdminUserUseCase } from "../application/create-admin-user.usecase.js";
+import { listAdminUsersUseCase } from "../application/list-admin-users.usecase.js";
 import { banUserUseCase } from "../application/ban-user.usecase.js";
 import { unbanUserUseCase } from "../application/unban-user.usecase.js";
+import { assignUserRoleUseCase } from "../application/assign-user-role.usecase.js";
 import { exportAdminDataUseCase, parseExportResource } from "../application/export-admin-data.usecase.js";
 
 
@@ -335,6 +337,25 @@ export async function setPricingHandler(c: Context) {
 }
 
 // ---------------------------------------------------------------------------
+// GET /api/admin/users — List users with search, filter, pagination
+// ---------------------------------------------------------------------------
+
+export async function listAdminUsersHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  try {
+    const query = c.req.query();
+    const result = await listAdminUsersUseCase(query);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // POST /api/admin/users — Create user account + send welcome email
 // ---------------------------------------------------------------------------
 
@@ -396,6 +417,31 @@ export async function unbanUserHandler(c: Context) {
 
   try {
     const result = await unbanUserUseCase(userId);
+    return c.json(result);
+  } catch (error: any) {
+    return handleError(c, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// PATCH /api/admin/users/:id/role — Assign role (user | supporter | admin)
+// ---------------------------------------------------------------------------
+
+export async function assignUserRoleHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  const userId = c.req.param("id")!;
+
+  try {
+    const body = (await readJsonBody(c)) as { role?: string } | null;
+    if (!body?.role) {
+      return c.json({ code: "MISSING_ROLE", message: "Vui lòng cung cấp vai trò cần gán" }, 400);
+    }
+
+    const result = await assignUserRoleUseCase(authResult.session.user.id, userId, body.role);
     return c.json(result);
   } catch (error: any) {
     return handleError(c, error);

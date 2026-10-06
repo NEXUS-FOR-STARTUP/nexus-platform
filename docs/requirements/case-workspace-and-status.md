@@ -28,10 +28,10 @@
 - supporter/admin case detail
 - history theo round
 
-### Out of scope
+### Out of scope (MVP ban đầu)
 
 - analytics dashboard sau
-- chat realtime day du
+- chat tự do ngoài phạm vi case (hệ thống hiện tại đã hỗ trợ tab Trao đổi realtime qua Centrifugo v6 cho các gói có chuyên viên hỗ trợ)
 
 ## 4. Actors
 
@@ -77,7 +77,7 @@
 - Mot case co nhieu round, khong tao case moi cho moi vong sua.
 - Khong ghi de report cu; report cu chi tro thanh lich su.
 - User luon thay next action.
-- Phase 1 khong co tab hoi dap tu do trong case.
+- Ban đầu không có tab hỏi đáp tự do; hiện tại đã hỗ trợ tab Trao đổi trực tiếp qua Centrifugo realtime cho các gói có chuyên viên hỗ trợ (ẩn với gói thuần AI `pkg_ai_audit`).
 
 ## 9. User stories
 
@@ -122,8 +122,8 @@
 
 ## 13. Missing / unclear
 
-- Locked for phase 1: khong co tab hoi dap tu do trong case.
-- Locked for phase 1: user-facing stage labels uu tien cach noi de hieu:
+- Ghi chú cập nhật: Hiện tại hệ thống đã hỗ trợ tab Trao đổi (Centrifugo WebSocket realtime + REST polling fallback) đối với các gói có supporter.
+- User-facing stage labels uu tien cach noi de hieu:
   - `Nexus da nhan case`
   - `Can bo sung thong tin`
   - `Dang duoc xem xet`

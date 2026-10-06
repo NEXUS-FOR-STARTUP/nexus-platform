@@ -10,8 +10,7 @@ Quy tắc:
 
 ## Nhánh legacy
 
-- `archive/web-spec/` - spec cũ
 - `archive/architecture/` - ghi chú kiến trúc legacy
 - `archive/standards/` - quy ước boundary + authz legacy
 - `archive/notes/` - ghi chú phụ trợ + feedback legacy
-- `archive/system-architecture.md` - summary platform legacy
+- `archive/reference/` - tài liệu tham khảo nghiệp vụ khởi nghiệp

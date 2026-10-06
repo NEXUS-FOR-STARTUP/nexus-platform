@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import {
   Group,
   Button,
@@ -14,7 +15,6 @@ import {
   ActionIcon,
   Container,
   Text,
-  useMantineTheme,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import ThemeToggler from "../ui/ThemeToggler";
@@ -55,6 +55,8 @@ interface AppShellProps {
 }
 
 export default function AppShell({ children }: AppShellProps) {
+  const pathname = usePathname();
+  const isNewsActive = pathname?.startsWith("/news");
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =
     useDisclosure(false);
 
@@ -73,15 +75,32 @@ export default function AppShell({ children }: AppShellProps) {
       <header className="sticky top-0 z-50 border-b border-border-app bg-surface-app/80 backdrop-blur-md h-16">
         <div className="w-full h-full px-6">
           <div className="flex items-center justify-between h-full w-full">
-            {/* Logo */}
-            <Link
-              href="/"
-              className="flex items-center"
-            >
-              <Logo height={62} />
-            </Link>
+            {/* Left Group: Logo + Desktop Nav */}
+            <div className="flex items-center gap-8 sm:gap-10">
+              <Link
+                href="/"
+                className="flex items-center"
+              >
+                <Logo height={62} />
+              </Link>
 
-
+              {/* Desktop Nav */}
+              <nav aria-label="Điều hướng chính" className="hidden md:flex items-center pl-8 sm:pl-12">
+                <Link
+                  href="/news"
+                  className={`relative py-1 text-base font-semibold transition-colors duration-200 group ${
+                    isNewsActive ? "text-text-app" : "text-text-muted hover:text-text-app"
+                  }`}
+                >
+                  Bài viết
+                  <span
+                    className={`absolute left-0 -bottom-1 h-0.5 bg-brand transition-all duration-300 ease-out rounded-full ${
+                      isNewsActive ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  />
+                </Link>
+              </nav>
+            </div>
 
             {/* Desktop Actions */}
             <Group visibleFrom="md" gap={12}>
@@ -162,6 +181,13 @@ export default function AppShell({ children }: AppShellProps) {
             >
               Hỗ trợ & Liên hệ
             </Link>
+            <Link
+              href="/news"
+              onClick={closeDrawer}
+              className="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-lg text-sm font-medium text-text-app hover:bg-surface-soft active:bg-surface-soft transition-colors"
+            >
+              Bài viết
+            </Link>
 
             <Divider my="sm" />
 
@@ -185,21 +211,21 @@ export default function AppShell({ children }: AppShellProps) {
       <main className="flex-grow">{children}</main>
 
       {/* ── Footer Centered ── */}
-      <footer className="border-t border-border-app bg-surface-app py-12">
+      <footer className="border-t border-border-app bg-surface-app py-6 sm:py-7">
         <Container
           size="lg"
-          className="flex flex-col items-center gap-6 text-center"
+          className="flex flex-col items-center gap-4 text-center"
         >
           {/* Logo Centered */}
           <Link
             href="/"
             className="flex items-center"
           >
-            <Logo height={44} />
+            <Logo height={38} />
           </Link>
 
           {/* Centered Navigation Links */}
-          <Group gap="xl" justify="center" className="flex-wrap">
+          <Group gap="lg" justify="center" className="flex-wrap">
             {footerLinks.map((link) => (
               <Anchor
                 component={Link}
@@ -219,21 +245,21 @@ export default function AppShell({ children }: AppShellProps) {
               href="https://www.facebook.com/profile.php?id=61591506814865"
               target="_blank"
               rel="noopener noreferrer"
-              size="xl"
+              size="lg"
               color="gray"
               variant="subtle"
               radius="xl"
               className="cursor-pointer"
               aria-label="Nexus Facebook Page"
             >
-              <FacebookIcon className="w-6 h-6 text-brand" />
+              <FacebookIcon className="w-5 h-5 text-brand" />
             </ActionIcon>
             <ActionIcon
               component="a"
               href="https://zalo.me/g/wgadhwpaxd05vykpnxqb"
               target="_blank"
               rel="noopener noreferrer"
-              size="xl"
+              size="lg"
               color="gray"
               variant="subtle"
               radius="xl"
@@ -243,9 +269,9 @@ export default function AppShell({ children }: AppShellProps) {
               <Image
                 src="/logo/zalo.png"
                 alt="Zalo"
-                width={24}
-                height={24}
-                className="w-6 h-6"
+                width={20}
+                height={20}
+                className="w-5 h-5"
               />
             </ActionIcon>
             <ActionIcon
@@ -253,14 +279,14 @@ export default function AppShell({ children }: AppShellProps) {
               href="https://www.tiktok.com/@nexus.for.startup?_r=1&_t=ZS-99uXWT84gk9"
               target="_blank"
               rel="noopener noreferrer"
-              size="xl"
+              size="lg"
               color="gray"
               variant="subtle"
               radius="xl"
               className="cursor-pointer"
               aria-label="Nexus TikTok"
             >
-              <TikTokIcon className="w-5 h-5 text-text-app hover:text-brand transition-colors" />
+              <TikTokIcon className="w-4 h-4 text-text-app hover:text-brand transition-colors" />
             </ActionIcon>
           </Group>
 

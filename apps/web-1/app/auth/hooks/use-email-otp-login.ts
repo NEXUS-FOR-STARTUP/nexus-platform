@@ -79,7 +79,7 @@ export function useEmailOtpLogin(returnUrl: string) {
       }
       setVerifying(true);
       try {
-        const { error: verifyError } = await signIn.emailOtp({
+        const { data: verifyData, error: verifyError } = await signIn.emailOtp({
           email,
           otp,
           name: (email.split("@")[0]?.trim() || "User").slice(0, 32),
@@ -90,7 +90,18 @@ export function useEmailOtpLogin(returnUrl: string) {
           return false;
         }
 
-        router.push(returnUrl);
+        const role = (verifyData?.user as { role?: string } | undefined)?.role;
+        if (returnUrl && returnUrl !== "/dashboard") {
+          router.push(returnUrl);
+        } else if (role === "admin") {
+          router.push("/admin");
+        } else if (role === "supporter") {
+          router.push("/supporter");
+        } else if (role === "writer") {
+          router.push("/writer");
+        } else {
+          router.push("/dashboard");
+        }
         return true;
       } catch {
         setError(translateAuthError());
