@@ -65,15 +65,9 @@ export function ArticleHeader({
             <span className="text-sm font-bold text-text-app hover:text-[#288ad6] transition-colors">
               {authorName}
             </span>
-            <div className="flex flex-wrap items-center gap-x-2 text-xs text-text-muted">
-              <span>{publishedDate}</span>
-              {updatedDate && (
-                <>
-                  <span>•</span>
-                  <span>Cập nhật lần cuối: {updatedDate}</span>
-                </>
-              )}
-            </div>
+            <span className="text-xs text-text-muted">
+              {updatedDate ? `Cập nhật lần cuối: ${updatedDate}` : publishedDate}
+            </span>
           </div>
         </div>
 
