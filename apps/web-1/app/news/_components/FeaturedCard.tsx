@@ -94,8 +94,8 @@ export function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
         {/* Featured Info bên phải */}
         <div className="flex-1 flex flex-col justify-between w-full">
           <div>
-            {/* Tag/Phân loại kiểu Spiderum: góc trên bên trái, viết hoa nhẹ, 12px-13px */}
-            <span className="text-xs sm:text-[13px] text-text-muted uppercase font-medium tracking-wide mb-2 block">
+            {/* Tag/Phân loại: góc trên bên trái, bằng font size với description (text-base / 16px) */}
+            <span className="text-base text-text-muted uppercase font-medium tracking-wide mb-2 block">
               {categoryTag}
             </span>
 
