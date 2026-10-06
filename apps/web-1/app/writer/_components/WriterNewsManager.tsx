@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { Button, Select, Text, Pagination, TextInput, Tabs, Paper, ThemeIcon } from '@mantine/core';
+import { Button, Group, Select, Text, Pagination, TextInput } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { Plus, Search, X, ExternalLink, FileText, CheckCircle2, Clock, Video, PenSquare, Sparkles } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
 import {
   useAdminNewsList,
   usePublishNewsItem,
@@ -15,13 +15,8 @@ import {
 import { NewsTable } from '@/app/admin/_components/news/NewsTable';
 import LoadingSkeleton from '@/components/ui/LoadingSkeleton';
 import { NEWS_CATEGORIES, type NewsItemAdmin } from '@repo/validation';
-import { useSession } from '@/lib/auth-client';
 
 export function WriterNewsManager() {
-  const { data: session } = useSession();
-  const currentUserId = session?.user?.id;
-
-  const [activeTab, setActiveTab] = useState<string | null>('all');
   const [page, setPage] = useState(1);
   const [type, setType] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -80,14 +75,15 @@ export function WriterNewsManager() {
         expected_updated_at: item.updated_at,
       });
       notifications.show({
-        title: 'Đã hủy xuất bản',
-        message: `Bài viết "${item.title}" đã chuyển về bản nháp`,
+        title: 'Hủy xuất bản thành công',
+        message: `Đã chuyển bài viết "${item.title}" về bản nháp`,
         color: 'orange',
       });
-    } catch {
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Không thể hủy xuất bản bài viết. Vui lòng kiểm tra lại.';
       notifications.show({
         title: 'Lỗi hủy xuất bản',
-        message: 'Không thể hủy xuất bản bài viết.',
+        message: msg,
         color: 'red',
       });
     }
@@ -116,116 +112,20 @@ export function WriterNewsManager() {
   const isMutating =
     publishMutation.isPending || unpublishMutation.isPending || deleteMutation.isPending;
 
-  // Lọc items theo tab "Bài viết của tôi" nếu chọn tab "my"
-  const displayedItems = useMemo(() => {
-    if (!data?.items) return [];
-    if (activeTab === 'my' && currentUserId) {
-      return data.items.filter((item) => item.created_by_auth_user_id === currentUserId);
-    }
-    return data.items;
-  }, [data?.items, activeTab, currentUserId]);
-
-  // Thống kê nhanh
-  const stats = useMemo(() => {
-    const items = data?.items || [];
-    return {
-      total: data?.total || 0,
-      published: items.filter((i) => i.status === 'published').length,
-      draft: items.filter((i) => i.status === 'draft').length,
-      video: items.filter((i) => i.type === 'video').length,
-      myItems: currentUserId ? items.filter((i) => i.created_by_auth_user_id === currentUserId).length : 0,
-    };
-  }, [data, currentUserId]);
-
   return (
-    <div className="space-y-6">
-      {/* KPI Cards cho Writer */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Paper p="md" radius="md" withBorder className="bg-surface-app border-border-app">
-          <div className="flex items-center justify-between">
-            <div>
-              <Text size="xs" c="dimmed" fw={500}>Tổng nội dung</Text>
-              <Text size="xl" fw={700} className="text-text-app mt-1">{stats.total}</Text>
-            </div>
-            <ThemeIcon color="blue" variant="light" size="lg" radius="md">
-              <FileText size={20} />
-            </ThemeIcon>
-          </div>
-        </Paper>
-
-        <Paper p="md" radius="md" withBorder className="bg-surface-app border-border-app">
-          <div className="flex items-center justify-between">
-            <div>
-              <Text size="xs" c="dimmed" fw={500}>Đã xuất bản</Text>
-              <Text size="xl" fw={700} className="text-teal-600 dark:text-teal-400 mt-1">{stats.published}</Text>
-            </div>
-            <ThemeIcon color="teal" variant="light" size="lg" radius="md">
-              <CheckCircle2 size={20} />
-            </ThemeIcon>
-          </div>
-        </Paper>
-
-        <Paper p="md" radius="md" withBorder className="bg-surface-app border-border-app">
-          <div className="flex items-center justify-between">
-            <div>
-              <Text size="xs" c="dimmed" fw={500}>Bản nháp</Text>
-              <Text size="xl" fw={700} className="text-yellow-600 dark:text-yellow-400 mt-1">{stats.draft}</Text>
-            </div>
-            <ThemeIcon color="yellow" variant="light" size="lg" radius="md">
-              <Clock size={20} />
-            </ThemeIcon>
-          </div>
-        </Paper>
-
-        <Paper p="md" radius="md" withBorder className="bg-surface-app border-border-app">
-          <div className="flex items-center justify-between">
-            <div>
-              <Text size="xs" c="dimmed" fw={500}>Video chia sẻ</Text>
-              <Text size="xl" fw={700} className="text-red-600 dark:text-red-400 mt-1">{stats.video}</Text>
-            </div>
-            <ThemeIcon color="red" variant="light" size="lg" radius="md">
-              <Video size={20} />
-            </ThemeIcon>
-          </div>
-        </Paper>
-      </div>
-
-      {/* Tabs & Action row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-app pb-3">
-        <Tabs value={activeTab} onChange={setActiveTab} variant="pills" radius="md">
-          <Tabs.List>
-            <Tabs.Tab value="all" leftSection={<FileText size={15} />}>
-              Tất cả nội dung
-            </Tabs.Tab>
-            <Tabs.Tab value="my" leftSection={<PenSquare size={15} />}>
-              Nội dung của tôi ({stats.myItems})
-            </Tabs.Tab>
-          </Tabs.List>
-        </Tabs>
-
-        <div className="flex items-center gap-2.5">
-          <Button
-            component={Link}
-            href="/news"
-            target="_blank"
-            variant="default"
-            size="sm"
-            radius="md"
-            leftSection={<ExternalLink size={15} />}
-          >
-            Xem trang tin tức
-          </Button>
-          <Button
-            component={Link}
-            href="/writer/news/new"
-            color="brand"
-            size="sm"
-            radius="md"
-            leftSection={<Plus size={16} />}
-          >
-            Tạo nội dung mới
-          </Button>
-        </div>
+    <div className="space-y-4">
+      {/* Top action row */}
+      <div className="flex items-center justify-end">
+        <Button
+          component={Link}
+          href="/writer/news/new"
+          color="brand"
+          size="sm"
+          radius="md"
+          leftSection={<Plus size={16} />}
+        >
+          Tạo nội dung
+        </Button>
       </div>
 
       {/* Filter row */}
@@ -270,10 +170,9 @@ export function WriterNewsManager() {
           ]}
           value={category ?? ''}
           onChange={(val) => { setCategory(val || null); setPage(1); }}
-          searchable
           clearable
           radius="md"
-          style={{ width: 220 }}
+          style={{ width: 180 }}
         />
         <Select
           placeholder="Trạng thái"
@@ -282,75 +181,54 @@ export function WriterNewsManager() {
           onChange={(val) => { setStatus(val || null); setPage(1); }}
           clearable
           radius="md"
-          style={{ width: 160 }}
+          style={{ width: 170 }}
         />
         <Select
           placeholder="Sắp xếp"
-          data={[{ value: 'newest', label: 'Mới nhất' }, { value: 'oldest', label: 'Cũ nhất' }]}
+          data={[{ value: 'newest', label: 'Mới cập nhật' }, { value: 'oldest', label: 'Cũ nhất' }]}
           value={sort ?? 'newest'}
-          onChange={(val) => { setSort(val || 'newest'); setPage(1); }}
+          onChange={(val) => setSort(val || 'newest')}
           radius="md"
-          style={{ width: 130 }}
+          style={{ width: 160 }}
         />
       </div>
 
-      {/* Main content table */}
+      {/* Main Table */}
       {isLoading ? (
-        <LoadingSkeleton variant="table-row" count={5} />
+        <LoadingSkeleton variant="table-row" count={4} />
       ) : isError ? (
-        <Paper p="xl" radius="md" withBorder className="text-center py-12">
-          <Text c="red" mb="sm" fw={600}>Không thể tải danh sách bài viết</Text>
-          <Text size="sm" c="dimmed">Đã xảy ra lỗi khi kết nối với máy chủ. Vui lòng tải lại trang.</Text>
-        </Paper>
-      ) : displayedItems.length === 0 ? (
-        <Paper p="xl" radius="md" withBorder className="text-center py-16 bg-surface-soft/40 border-dashed border-border-app">
-          <div className="flex flex-col items-center justify-center gap-3 max-w-md mx-auto">
-            <div className="w-12 h-12 rounded-full bg-brand-soft flex items-center justify-center text-brand">
-              <Sparkles size={24} />
-            </div>
-            <Text fw={600} size="md" className="text-text-app">
-              {activeTab === 'my' ? 'Bạn chưa có bài viết nào' : 'Chưa có bài viết nào phù hợp'}
-            </Text>
-            <Text size="sm" c="dimmed" className="text-center">
-              {activeTab === 'my'
-                ? 'Hãy bắt đầu chia sẻ ý tưởng khởi nghiệp, kiến thức công nghệ hoặc bài học kinh nghiệm đầu tiên của bạn.'
-                : 'Thử điều chỉnh lại bộ lọc hoặc từ khóa tìm kiếm để xem các nội dung khác.'}
-            </Text>
-            <Button
-              component={Link}
-              href="/writer/news/new"
-              color="brand"
-              size="sm"
-              radius="md"
-              leftSection={<Plus size={16} />}
-              className="mt-2"
-            >
-              Viết bài mới ngay
-            </Button>
-          </div>
-        </Paper>
-      ) : (
-        <NewsTable
-          items={displayedItems}
-          onPublish={handlePublish}
-          onUnpublish={handleUnpublish}
-          onDelete={handleDelete}
-          isActionLoading={isMutating}
-          basePath="/writer/news"
-        />
-      )}
-
-      {/* Pagination */}
-      {data && data.total_pages > 1 && (
-        <div className="flex justify-center pt-2">
-          <Pagination
-            total={data.total_pages}
-            value={page}
-            onChange={setPage}
-            color="brand"
-            radius="md"
-          />
+        <div className="p-4 bg-danger-soft border border-danger/20 text-danger rounded-xl text-sm">
+          Không thể tải danh sách tin tức. Vui lòng kiểm tra lại.
         </div>
+      ) : !data || data.items.length === 0 ? (
+        <div className="text-center py-12 border border-border-app rounded-xl bg-surface-app">
+          <Text size="sm" c="dimmed">
+            Chưa có mục tin tức nào theo bộ lọc đã chọn.
+          </Text>
+        </div>
+      ) : (
+        <>
+          <NewsTable
+            items={data.items}
+            onPublish={handlePublish}
+            onUnpublish={handleUnpublish}
+            onDelete={handleDelete}
+            isActionLoading={isMutating}
+            basePath="/writer/news"
+          />
+
+          {data.total_pages > 1 && (
+            <Group justify="flex-end" mt="md">
+              <Pagination
+                value={page}
+                onChange={setPage}
+                total={data.total_pages}
+                size="sm"
+                radius="md"
+              />
+            </Group>
+          )}
+        </>
       )}
     </div>
   );

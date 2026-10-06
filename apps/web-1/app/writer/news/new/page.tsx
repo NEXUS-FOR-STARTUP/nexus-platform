@@ -149,40 +149,43 @@ export default function NewWriterNewsItemPage() {
             maxLength={160}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Select
               label="Chuyên mục"
+              description="Chọn chuyên mục chính cho bài viết"
               data={NEWS_CATEGORIES.map((c) => ({ value: c.slug, label: c.name }))}
               value={category}
               onChange={(val) => setCategory(val || 'khoi-nghiep')}
               searchable
               radius="md"
               required
+              withAsterisk
             />
 
             <TagsInput
-              label="Thẻ từ khóa (Tags)"
-              placeholder="Nhập tag rồi gõ Enter"
+              label="Chủ đề và thẻ"
+              description="Nhấn Enter để thêm thẻ, ví dụ KhởiNghiệp, AI, PMF"
+              placeholder="Thêm thẻ..."
               value={tags}
               onChange={setTags}
-              maxTags={5}
+              maxTags={10}
               radius="md"
             />
           </div>
 
           <Textarea
-            label="Tóm tắt ngắn (Excerpt)"
-            placeholder="Đoạn văn ngắn giới thiệu nội dung hiển thị ở danh sách bài viết..."
+            label="Tóm tắt nội dung"
+            placeholder="Mô tả ngắn gọn hiển thị trên thẻ xem trước, tối đa 320 ký tự"
             value={excerpt}
             onChange={(e) => setExcerpt(e.currentTarget.value)}
             rows={3}
-            maxLength={300}
+            maxLength={320}
           />
 
           {type === 'article' ? (
             <Stack gap="md">
               <TextInput
-                label="Đường dẫn tĩnh (Slug)"
+                label="Đường dẫn tĩnh"
                 description="Tự động tạo từ tiêu đề. Có thể chỉnh sửa thủ công."
                 placeholder="duong-dan-bai-viet"
                 value={slug}
