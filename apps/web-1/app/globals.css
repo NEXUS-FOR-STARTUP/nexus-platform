@@ -259,3 +259,49 @@ h1, h2, h3, h4, h5, h6 {
   font-size: var(--news-featured-meta-size);
 }
 
+/* ==========================================================================
+   Global Interactive Cursor: Pointer for all clickable / hoverable elements
+   ========================================================================== */
+button,
+[role="button"],
+[type="button"],
+[type="submit"],
+[type="reset"],
+a,
+select,
+summary,
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"],
+label[for],
+.mantine-Button-root,
+.mantine-ActionIcon-root,
+.mantine-UnstyledButton-root,
+.mantine-Tabs-tab,
+.mantine-Pagination-control,
+.mantine-SegmentedControl-label,
+.mantine-Checkbox-root,
+.mantine-Checkbox-input,
+.mantine-Radio-root,
+.mantine-Radio-input,
+.mantine-Switch-root,
+.mantine-Switch-input,
+.mantine-MenuItem-root,
+.mantine-Accordion-control,
+.mantine-Breadcrumbs-breadcrumb,
+.mantine-NavLink-root,
+.mantine-Select-option,
+.mantine-Combobox-option,
+.mantine-Chip-label,
+.mantine-Pill-root {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"],
+[disabled],
+.mantine-Button-root[data-disabled="true"],
+.mantine-ActionIcon-root[data-disabled="true"] {
+  cursor: not-allowed;
+}
+

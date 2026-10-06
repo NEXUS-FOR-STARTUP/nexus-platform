@@ -10,6 +10,8 @@ import { NewsTipTapRenderer } from './_components/NewsTipTapRenderer';
 import { ArticleHeader } from './_components/ArticleHeader';
 import { ArticleAuthorBio } from './_components/ArticleAuthorBio';
 import { ArticleRelatedList } from './_components/ArticleRelatedList';
+import { NewsReactionPanel } from '../_components/NewsReactionPanel';
+import { NewsCommentList } from '../_components/NewsCommentList';
 
 interface ArticlePageProps {
   params: Promise<{
@@ -91,13 +93,36 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     slug: string;
     published_at: string;
     excerpt: string | null;
+    cover_image_url?: string | null;
+    cover_image_alt?: string | null;
+    category?: string;
+    author_byline?: string;
+    author_avatar_url?: string | null;
   }> = [];
 
   try {
-    const newsData = await fetchPublicNewsList({ limit: 4, type: 'article' });
-    relatedArticles = newsData.items
-      .filter((item): item is Extract<typeof item, { type: 'article' }> => item.type === 'article' && item.slug !== slug)
-      .slice(0, 3);
+    let newsData = await fetchPublicNewsList({ limit: 5, type: 'article', category: article.category });
+    let items = newsData.items.filter(
+      (item): item is Extract<typeof item, { type: 'article' }> => item.type === 'article' && item.slug !== slug
+    );
+    if (items.length < 2) {
+      newsData = await fetchPublicNewsList({ limit: 5, type: 'article' });
+      items = newsData.items.filter(
+        (item): item is Extract<typeof item, { type: 'article' }> => item.type === 'article' && item.slug !== slug
+      );
+    }
+    relatedArticles = items.slice(0, 4).map((item) => ({
+      id: item.id,
+      title: item.title,
+      slug: item.slug,
+      published_at: item.published_at,
+      excerpt: item.excerpt,
+      cover_image_url: item.cover_image_url,
+      cover_image_alt: item.cover_image_alt,
+      category: item.category,
+      author_byline: item.author_byline,
+      author_avatar_url: item.author_avatar_url,
+    }));
   } catch {
     // Graceful fallback if related articles fail
   }
@@ -184,12 +209,18 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </div>
         )}
 
+        {/* Reaction Bar (Thích / Không thích) */}
+        <NewsReactionPanel idOrSlug={article.id} />
+
         {/* Spiderum-style Author Bio Card */}
         <ArticleAuthorBio
           authorName={authorName}
           authorInitials={authorInitials}
           authorAvatarUrl={article.author_avatar_url}
         />
+
+        {/* Comments Section */}
+        <NewsCommentList idOrSlug={article.id} />
 
         {/* Related / Next Reads */}
         <ArticleRelatedList

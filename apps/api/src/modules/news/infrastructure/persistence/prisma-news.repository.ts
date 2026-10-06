@@ -1,4 +1,5 @@
 import { prisma } from '../../../../db.js';
+import { AppError } from '../../../../shared/domain/app-error.js';
 import type { Prisma } from '@prisma/client';
 
 export interface ListPublicNewsOptions {
@@ -246,6 +247,351 @@ export class PrismaNewsRepository {
     if (!item) return false;
     if (excludeId && item.id === excludeId) return false;
     return true;
+  }
+
+  async resolveNewsId(idOrSlug: string): Promise<string | null> {
+    const item = await prisma.newsItem.findFirst({
+      where: {
+        OR: [{ id: idOrSlug }, { slug: idOrSlug }],
+      },
+      select: { id: true },
+    });
+    return item?.id ?? null;
+  }
+
+  async toggleReaction(newsId: string, userId: string, type: 'LIKE' | 'DISLIKE') {
+    return prisma.$transaction(async (tx) => {
+      const existing = await tx.newsReaction.findUnique({
+        where: {
+          news_id_user_id: {
+            news_id: newsId,
+            user_id: userId,
+          },
+        },
+      });
+
+      if (existing) {
+        if (existing.type !== type) {
+          // Switch reaction: LIKE <-> DISLIKE (no undo/delete)
+          await tx.newsReaction.update({
+            where: { id: existing.id },
+            data: { type },
+          });
+        }
+        // If clicking the same reaction, no-op (keep the reaction, no undo)
+      } else {
+        await tx.newsReaction.create({
+          data: {
+            news_id: newsId,
+            user_id: userId,
+            type,
+          },
+        });
+      }
+
+      const [likes, dislikes, current] = await Promise.all([
+        tx.newsReaction.count({ where: { news_id: newsId, type: 'LIKE' } }),
+        tx.newsReaction.count({ where: { news_id: newsId, type: 'DISLIKE' } }),
+        tx.newsReaction.findUnique({
+          where: { news_id_user_id: { news_id: newsId, user_id: userId } },
+        }),
+      ]);
+
+      return {
+        likes,
+        dislikes,
+        user_reaction: current?.type ?? null,
+      };
+    });
+  }
+
+  async getReactionSummary(newsId: string, userId?: string | null) {
+    const [likes, dislikes, current] = await Promise.all([
+      prisma.newsReaction.count({ where: { news_id: newsId, type: 'LIKE' } }),
+      prisma.newsReaction.count({ where: { news_id: newsId, type: 'DISLIKE' } }),
+      userId
+        ? prisma.newsReaction.findUnique({
+            where: { news_id_user_id: { news_id: newsId, user_id: userId } },
+          })
+        : null,
+    ]);
+
+    return {
+      likes,
+      dislikes,
+      user_reaction: current?.type ?? null,
+    };
+  }
+
+  async listCommentsByNewsId(newsId: string, currentUserId?: string | null) {
+    const comments = await prisma.newsComment.findMany({
+      where: {
+        news_id: newsId,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            role: true,
+          },
+        },
+      },
+      orderBy: {
+        created_at: 'asc',
+      },
+    });
+
+    const userReactionMap = new Map<string, 'LIKE' | 'DISLIKE'>();
+    if (currentUserId && comments.length > 0) {
+      const userReactions = await prisma.newsCommentReaction.findMany({
+        where: {
+          comment_id: { in: comments.map((c) => c.id) },
+          user_id: currentUserId,
+        },
+        select: {
+          comment_id: true,
+          type: true,
+        },
+      });
+      for (const ur of userReactions) {
+        userReactionMap.set(ur.comment_id, ur.type);
+      }
+    }
+
+    const parents: typeof comments = [];
+    const repliesMap = new Map<string, typeof comments>();
+
+    for (const comment of comments) {
+      if (!comment.parent_id) {
+        parents.push(comment);
+      } else {
+        const list = repliesMap.get(comment.parent_id) || [];
+        list.push(comment);
+        repliesMap.set(comment.parent_id, list);
+      }
+    }
+
+    parents.sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
+
+    const formatUser = (u: (typeof comments)[number]['user']) => ({
+      id: u.id,
+      name: u.name,
+      avatar_url: u.image,
+      role: u.role,
+    });
+
+    const formatContent = (c: (typeof comments)[number]) =>
+      c.deleted_at ? 'Bình luận này đã bị xóa.' : c.content;
+
+    const items = parents.map((p) => {
+      const replies = (repliesMap.get(p.id) || []).map((r) => ({
+        id: r.id,
+        news_id: r.news_id,
+        user_id: r.user_id,
+        parent_id: r.parent_id,
+        content: formatContent(r),
+        created_at: r.created_at.toISOString(),
+        updated_at: r.updated_at.toISOString(),
+        deleted_at: r.deleted_at?.toISOString() ?? null,
+        user: formatUser(r.user),
+        likes: r.likes,
+        dislikes: r.dislikes,
+        user_reaction: userReactionMap.get(r.id) ?? null,
+      }));
+
+      return {
+        id: p.id,
+        news_id: p.news_id,
+        user_id: p.user_id,
+        parent_id: p.parent_id,
+        content: formatContent(p),
+        created_at: p.created_at.toISOString(),
+        updated_at: p.updated_at.toISOString(),
+        deleted_at: p.deleted_at?.toISOString() ?? null,
+        user: formatUser(p.user),
+        likes: p.likes,
+        dislikes: p.dislikes,
+        user_reaction: userReactionMap.get(p.id) ?? null,
+        replies,
+      };
+    });
+
+    return {
+      items,
+      total: comments.filter((c) => !c.deleted_at).length,
+    };
+  }
+
+  async createComment(data: {
+    newsId: string;
+    userId: string;
+    content: string;
+    parentId?: string | null;
+  }) {
+    let parentId = data.parentId || null;
+    if (parentId) {
+      const parent = await prisma.newsComment.findUnique({
+        where: { id: parentId },
+      });
+      if (!parent || parent.news_id !== data.newsId) {
+        throw new AppError(404, 'NOT_FOUND', 'Bình luận cha không tồn tại');
+      }
+      if (parent.parent_id) {
+        parentId = parent.parent_id;
+      }
+    }
+
+    const created = await prisma.newsComment.create({
+      data: {
+        news_id: data.newsId,
+        user_id: data.userId,
+        parent_id: parentId,
+        content: data.content,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    return {
+      id: created.id,
+      news_id: created.news_id,
+      user_id: created.user_id,
+      parent_id: created.parent_id,
+      content: created.content,
+      created_at: created.created_at.toISOString(),
+      updated_at: created.updated_at.toISOString(),
+      deleted_at: null,
+      user: {
+        id: created.user.id,
+        name: created.user.name,
+        avatar_url: created.user.image,
+        role: created.user.role,
+      },
+      likes: 0,
+      dislikes: 0,
+      user_reaction: null,
+      replies: [],
+    };
+  }
+
+  async deleteComment(commentId: string, actorId: string, actorRole?: string | null) {
+    const comment = await prisma.newsComment.findUnique({
+      where: { id: commentId },
+    });
+
+    if (!comment) {
+      throw new AppError(404, 'NOT_FOUND', 'Bình luận không tồn tại');
+    }
+
+    const isAdminOrWriter = actorRole === 'admin' || actorRole === 'writer';
+    const isAuthor = comment.user_id === actorId;
+
+    if (!isAuthor && !isAdminOrWriter) {
+      throw new AppError(403, 'FORBIDDEN', 'Bạn không có quyền xóa bình luận này');
+    }
+
+    await prisma.newsComment.update({
+      where: { id: commentId },
+      data: { deleted_at: new Date() },
+    });
+
+    return { success: true };
+  }
+
+  async toggleCommentReaction(commentId: string, userId: string, type: 'LIKE' | 'DISLIKE') {
+    return prisma.$transaction(async (tx) => {
+      const comment = await tx.newsComment.findUnique({
+        where: { id: commentId },
+        select: { id: true, deleted_at: true, likes: true, dislikes: true },
+      });
+
+      if (!comment || comment.deleted_at) {
+        throw new AppError(404, 'NOT_FOUND', 'Bình luận không tồn tại hoặc đã bị xóa');
+      }
+
+      const existing = await tx.newsCommentReaction.findUnique({
+        where: {
+          comment_id_user_id: {
+            comment_id: commentId,
+            user_id: userId,
+          },
+        },
+      });
+
+      let updatedLikes = comment.likes;
+      let updatedDislikes = comment.dislikes;
+
+      if (existing) {
+        if (existing.type !== type) {
+          // Switch reaction: LIKE <-> DISLIKE
+          await tx.newsCommentReaction.update({
+            where: { id: existing.id },
+            data: { type },
+          });
+
+          if (type === 'LIKE') {
+            await tx.newsComment.update({
+              where: { id: commentId },
+              data: {
+                likes: { increment: 1 },
+                dislikes: { decrement: 1 },
+              },
+            });
+            updatedLikes += 1;
+            updatedDislikes = Math.max(0, updatedDislikes - 1);
+          } else {
+            await tx.newsComment.update({
+              where: { id: commentId },
+              data: {
+                likes: { decrement: 1 },
+                dislikes: { increment: 1 },
+              },
+            });
+            updatedLikes = Math.max(0, updatedLikes - 1);
+            updatedDislikes += 1;
+          }
+        }
+        // If clicking the same reaction, no-op (keep reaction)
+      } else {
+        await tx.newsCommentReaction.create({
+          data: {
+            comment_id: commentId,
+            user_id: userId,
+            type,
+          },
+        });
+
+        if (type === 'LIKE') {
+          await tx.newsComment.update({
+            where: { id: commentId },
+            data: { likes: { increment: 1 } },
+          });
+          updatedLikes += 1;
+        } else {
+          await tx.newsComment.update({
+            where: { id: commentId },
+            data: { dislikes: { increment: 1 } },
+          });
+          updatedDislikes += 1;
+        }
+      }
+
+      return {
+        likes: updatedLikes,
+        dislikes: updatedDislikes,
+        user_reaction: type,
+      };
+    });
   }
 }
 

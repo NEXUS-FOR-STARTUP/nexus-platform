@@ -1391,3 +1391,82 @@ export const NewsErrorResponseSchema = z.object({
     details: z.any().optional(),
   }),
 });
+
+// ---------------------------------------------------------------------------
+// News Reactions & Comments Schemas
+// ---------------------------------------------------------------------------
+
+export const NewsReactionTypeSchema = z.enum(['LIKE', 'DISLIKE']);
+export type NewsReactionType = z.infer<typeof NewsReactionTypeSchema>;
+
+export const ToggleNewsReactionInputSchema = z.object({
+  type: NewsReactionTypeSchema,
+});
+export type ToggleNewsReactionInput = z.infer<typeof ToggleNewsReactionInputSchema>;
+
+export const NewsReactionSummarySchema = z.object({
+  likes: z.number().int().min(0),
+  dislikes: z.number().int().min(0),
+  user_reaction: NewsReactionTypeSchema.nullable(),
+});
+export type NewsReactionSummary = z.infer<typeof NewsReactionSummarySchema>;
+
+export const CreateNewsCommentInputSchema = z.object({
+  content: z.string().trim().min(1, 'Nội dung bình luận không được để trống').max(1000, 'Bình luận tối đa 1000 ký tự'),
+  parent_id: z.string().uuid().nullable().optional(),
+});
+export type CreateNewsCommentInput = z.infer<typeof CreateNewsCommentInputSchema>;
+
+export const NewsCommentAuthorSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  avatar_url: z.string().nullable().optional(),
+  role: z.string().optional(),
+});
+export type NewsCommentAuthor = z.infer<typeof NewsCommentAuthorSchema>;
+
+export const NewsCommentReplyItemSchema = z.object({
+  id: z.string().uuid(),
+  news_id: z.string().uuid(),
+  user_id: z.string(),
+  parent_id: z.string().uuid().nullable(),
+  content: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  deleted_at: z.string().nullable().optional(),
+  user: NewsCommentAuthorSchema,
+  likes: z.number().int().min(0).default(0),
+  dislikes: z.number().int().min(0).default(0),
+  user_reaction: NewsReactionTypeSchema.nullable().default(null),
+});
+export type NewsCommentReplyItem = z.infer<typeof NewsCommentReplyItemSchema>;
+
+export const NewsCommentItemSchema = z.object({
+  id: z.string().uuid(),
+  news_id: z.string().uuid(),
+  user_id: z.string(),
+  parent_id: z.string().uuid().nullable(),
+  content: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  deleted_at: z.string().nullable().optional(),
+  user: NewsCommentAuthorSchema,
+  likes: z.number().int().min(0).default(0),
+  dislikes: z.number().int().min(0).default(0),
+  user_reaction: NewsReactionTypeSchema.nullable().default(null),
+  replies: z.array(NewsCommentReplyItemSchema).default([]),
+});
+export type NewsCommentItem = z.infer<typeof NewsCommentItemSchema>;
+
+export const ToggleNewsCommentReactionInputSchema = ToggleNewsReactionInputSchema;
+export type ToggleNewsCommentReactionInput = ToggleNewsReactionInput;
+
+export const NewsCommentReactionSummarySchema = NewsReactionSummarySchema;
+export type NewsCommentReactionSummary = NewsReactionSummary;
+
+export const NewsCommentListResponseSchema = z.object({
+  items: z.array(NewsCommentItemSchema),
+  total: z.number().int().min(0),
+});
+export type NewsCommentListResponse = z.infer<typeof NewsCommentListResponseSchema>;
+

@@ -51,6 +51,9 @@ model User {
   deposits                 Deposit[]
   orders                   Order[]
   chat_read_states         CaseChatReadState[]
+  news_reactions           NewsReaction[]
+  news_comments            NewsComment[]
+  news_comment_reactions   NewsCommentReaction[]
 
   @@unique([email])
   @@unique([username])
@@ -747,6 +750,8 @@ model NewsItem {
   updated_at              DateTime  @updatedAt
 
   revisions               NewsItemRevision[]
+  reactions               NewsReaction[]
+  comments                NewsComment[]
 
   @@index([status, category, published_at(sort: Desc)])
   @@index([status, published_at(sort: Desc), id(sort: Desc)])
@@ -765,4 +770,63 @@ model NewsItemRevision {
 
   @@index([news_item_id, created_at(sort: Desc)])
   @@map("news_item_revisions")
+}
+
+enum NewsReactionType {
+  LIKE
+  DISLIKE
+}
+
+model NewsReaction {
+  id         String           @id @default(uuid())
+  news_id    String
+  user_id    String
+  type       NewsReactionType
+  created_at DateTime         @default(now())
+
+  news NewsItem @relation(fields: [news_id], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([news_id, user_id])
+  @@index([news_id, type])
+  @@map("news_reactions")
+}
+
+model NewsComment {
+  id         String    @id @default(uuid())
+  news_id    String
+  user_id    String
+  parent_id  String?
+  content    String    @db.Text
+  likes      Int       @default(0)
+  dislikes   Int       @default(0)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  news    NewsItem      @relation(fields: [news_id], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  parent    NewsComment?          @relation("CommentReplies", fields: [parent_id], references: [id], onDelete: Cascade)
+  replies   NewsComment[]         @relation("CommentReplies")
+  reactions NewsCommentReaction[]
+
+  @@index([news_id, parent_id, created_at])
+  @@index([user_id])
+  @@map("news_comments")
+}
+
+model NewsCommentReaction {
+  id         String           @id @default(uuid())
+  comment_id String
+  user_id    String
+  type       NewsReactionType
+  created_at DateTime         @default(now())
+
+  comment NewsComment @relation(fields: [comment_id], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([comment_id, user_id])
+  @@index([comment_id, type])
+  @@index([user_id])
+  @@map("news_comment_reactions")
 }

@@ -2,6 +2,7 @@ import { newsRepository } from '../infrastructure/persistence/prisma-news.reposi
 import { newsCoverGateway } from '../infrastructure/cloudinary/news-cover.gateway.js';
 import { validatePublishInvariants } from '../domain/news-rules.js';
 import { AppError } from '../../../shared/domain/app-error.js';
+import { ensureUniqueSlug } from '../../../shared/infrastructure/slug-helpers.js';
 import {
   generateNewsSlug,
   extractYouTubeVideoId,
@@ -12,12 +13,9 @@ import { Prisma } from '@prisma/client';
 
 export async function createNewsItemUseCase(actorId: string, input: CreateNewsItemInput) {
   if (input.type === 'article') {
-    const slug = input.slug?.trim() ? input.slug.trim() : generateNewsSlug(input.title);
+    let slug = input.slug?.trim() ? input.slug.trim() : generateNewsSlug(input.title);
     if (slug) {
-      const hasConflict = await newsRepository.findSlugConflict(slug);
-      if (hasConflict) {
-        throw new AppError(409, 'SLUG_CONFLICT', `Đường dẫn "${slug}" đã tồn tại`);
-      }
+      slug = await ensureUniqueSlug(slug, (candidate) => newsRepository.findSlugConflict(candidate));
     }
 
     const data: Prisma.NewsItemCreateInput = {
@@ -75,8 +73,7 @@ export async function updateNewsItemUseCase(actorId: string, id: string, input: 
     }
     targetSlug = input.slug.trim() || null;
     if (targetSlug && targetSlug !== current.slug) {
-      const conflict = await newsRepository.findSlugConflict(targetSlug, id);
-      if (conflict) throw new AppError(409, 'SLUG_CONFLICT', `Đường dẫn "${targetSlug}" đã tồn tại`);
+      targetSlug = await ensureUniqueSlug(targetSlug, (candidate) => newsRepository.findSlugConflict(candidate, id));
     }
   }
 
