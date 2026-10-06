@@ -119,7 +119,7 @@ export async function updateNewsItemUseCase(actorId: string, id: string, input: 
     updated_by_auth_user_id: actorId,
   };
 
-  const updated = await newsRepository.updateNewsItemConditional(id, expectedDate, updateData);
+  const updated = await newsRepository.updateNewsItemConditional(id, expectedDate, updateData, actorId);
   if (!updated) throw new AppError(409, 'CONCURRENCY_CONFLICT', 'Mục tin tức đã được sửa bởi người khác');
   return updated;
 }

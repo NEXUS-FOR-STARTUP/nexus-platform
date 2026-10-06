@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, use } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Card, Group, Stack, Text, TextInput, Textarea, Badge, Modal, Select, TagsInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { ArrowLeft, Save, Send, Undo2, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Save, Send, EyeOff, ExternalLink } from 'lucide-react';
 import { useAdminNewsDetail, useUpdateNewsItem, usePublishNewsItem, useUnpublishNewsItem, useUploadNewsCover } from '@/app/admin/hooks/useAdminNews';
 import { NewsRichTextEditor } from '@/app/admin/_components/news/NewsRichTextEditor';
 import { YouTubePreviewSection, ArticleCoverSection } from '@/app/admin/_components/news/NewsEditorFormSections';
@@ -33,6 +34,7 @@ function formatDate(dateStr: string | null | undefined): string {
 }
 
 export default function EditWriterNewsItemPage({ params }: { params: Promise<{ id: string }> }) {
+  const router = useRouter();
   const { id } = use(params);
   const { data: item, isLoading, isError, refetch } = useAdminNewsDetail(id);
 
@@ -52,7 +54,13 @@ export default function EditWriterNewsItemPage({ params }: { params: Promise<{ i
   const [coverUrl, setCoverUrl] = useState('');
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+
+  // Modals state
+  const [showSaveConfirmModal, setShowSaveConfirmModal] = useState(false);
+  const [showPublishConfirmModal, setShowPublishConfirmModal] = useState(false);
+  const [showUnpublishModal, setShowUnpublishModal] = useState(false);
+  const [showBackWarningModal, setShowBackWarningModal] = useState(false);
+
   const [errors, setErrors] = useState<{
     title?: string;
     slug?: string;
@@ -82,7 +90,7 @@ export default function EditWriterNewsItemPage({ params }: { params: Promise<{ i
   if (isError || !item) return (
     <div className="max-w-4xl mx-auto p-6 text-center">
       <Text c="red" mb="md">Không tìm thấy mục tin tức hoặc đã xảy ra lỗi tải dữ liệu.</Text>
-      <Button component={Link} href="/writer" variant="default">Quay lại</Button>
+      <Button component={Link} href="/writer" variant="default">Quay lại danh sách</Button>
     </div>
   );
 
@@ -104,8 +112,9 @@ export default function EditWriterNewsItemPage({ params }: { params: Promise<{ i
   const isTitleOverLimit = title.length > NEWS_TITLE_MAX_LENGTH;
   const isSlugOverLimit = slug.length > NEWS_SLUG_MAX_LENGTH;
 
-  const handleSaveInternal = async () => {
+  const validateForm = (isPublishCheck = false) => {
     const errs: { title?: string; slug?: string; youtube?: string; cover?: string; alt?: string; content?: string; excerpt?: string } = {};
+
     if (!title.trim()) {
       errs.title = 'Tiêu đề không được để trống';
     } else if (title.length > NEWS_TITLE_MAX_LENGTH) {
@@ -124,19 +133,21 @@ export default function EditWriterNewsItemPage({ params }: { params: Promise<{ i
       errs.youtube = 'Vui lòng nhập URL hoặc ID video YouTube hợp lệ';
     }
 
-    if (isPublished && item.type === 'article') {
-      const hasCover = Boolean(coverFile) || Boolean(coverUrl.trim()) || Boolean(item.cover_image_url);
-      if (!hasCover) errs.cover = 'Bài viết đã xuất bản phải có ảnh bìa';
-      if (!coverAlt.trim()) errs.alt = 'Bài viết đã xuất bản phải có mô tả ảnh bìa';
-      if (!contentJson) errs.content = 'Nội dung bài viết không được để trống';
+    if (isPublishCheck || isPublished) {
+      if (item.type === 'article') {
+        if (!slug.trim()) errs.slug = 'Đường dẫn tĩnh không được để trống';
+        const hasCover = Boolean(coverFile) || Boolean(coverUrl.trim()) || Boolean(item.cover_image_url);
+        if (!hasCover) errs.cover = 'Bài viết xuất bản bắt buộc phải có ảnh bìa';
+        if (!coverAlt.trim()) errs.alt = 'Bài viết xuất bản bắt buộc phải có mô tả ảnh bìa';
+        if (!contentJson) errs.content = 'Nội dung bài viết không được để trống';
+      }
     }
 
-    if (Object.keys(errs).length > 0) {
-      setErrors((p) => ({ ...p, ...errs }));
-      notifications.show({ title: 'Lỗi nhập liệu', message: 'Vui lòng kiểm tra các trường bị báo đỏ', color: 'red' });
-      return null;
-    }
+    return errs;
+  };
 
+  // Thực hiện lưu cập nhật vào DB (Backend tự động tạo snapshot lịch sử)
+  const executeSaveUpdate = async () => {
     setIsSubmitting(true);
     try {
       let updated = await updateMutation.mutateAsync({
@@ -154,6 +165,7 @@ export default function EditWriterNewsItemPage({ params }: { params: Promise<{ i
           expected_updated_at: item.updated_at,
         },
       });
+
       if (coverFile && item.type === 'article') {
         updated = await uploadCoverMutation.mutateAsync({
           id: item.id,
@@ -163,106 +175,196 @@ export default function EditWriterNewsItemPage({ params }: { params: Promise<{ i
         setCoverFile(null);
         setCoverUrl(updated.cover_image_url || '');
       }
-      notifications.show({ title: 'Thành công', message: 'Đã lưu thay đổi!', color: 'green' });
+
+      notifications.show({
+        title: 'Thành công',
+        message: 'Đã lưu thay đổi và tạo bản sao lưu snapshot lịch sử',
+        color: 'green',
+      });
       refetch();
       return updated.updated_at;
     } catch {
-      notifications.show({ title: 'Lỗi lưu', message: 'Dữ liệu có thể đã bị sửa bởi người khác hoặc thông tin không hợp lệ.', color: 'red' });
+      notifications.show({
+        title: 'Lỗi lưu',
+        message: 'Dữ liệu có thể đã bị sửa bởi người khác hoặc thông tin không hợp lệ.',
+        color: 'red',
+      });
       return null;
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+  // Nút Lưu thay đổi / Cập nhật xuất bản -> Mở modal confirm
+  const handleOpenSaveModal = (e: React.FormEvent) => {
     e.preventDefault();
-    await handleSaveInternal();
-  };
-
-  const handleDoPublish = async (latestUpdatedAt?: string) => {
-    setIsSubmitting(true);
-    try {
-      const ts = latestUpdatedAt ?? item.updated_at;
-      if (isPublished) {
-        await unpublishMutation.mutateAsync({ id: item.id, expected_updated_at: ts });
-        notifications.show({ title: 'Đã hủy xuất bản', message: 'Bài viết đã chuyển về bản nháp', color: 'orange' });
-      } else {
-        await publishMutation.mutateAsync({ id: item.id, expected_updated_at: ts });
-        notifications.show({ title: 'Xuất bản thành công', message: 'Nội dung đã được xuất bản công khai', color: 'green' });
-      }
-      refetch();
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Không thể thay đổi trạng thái xuất bản';
-      notifications.show({ title: 'Lỗi thao tác', message: msg, color: 'red' });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleTogglePublish = () => {
-    if (isPublished) {
-      void handleDoPublish();
+    const errs = validateForm(false);
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      notifications.show({ title: 'Lỗi nhập liệu', message: 'Vui lòng kiểm tra các trường bị báo đỏ', color: 'red' });
       return;
     }
-    const errs: { title?: string; slug?: string; cover?: string; alt?: string; youtube?: string; content?: string; excerpt?: string } = {};
-    if (!title.trim()) {
-      errs.title = 'Tiêu đề không được để trống';
-    } else if (title.length > NEWS_TITLE_MAX_LENGTH) {
-      errs.title = `Tiêu đề vượt quá ${title.length - NEWS_TITLE_MAX_LENGTH} ký tự cho phép`;
-    }
+    setErrors({});
+    setShowSaveConfirmModal(true);
+  };
 
-    if (excerpt.length > NEWS_EXCERPT_MAX_LENGTH) {
-      errs.excerpt = `Tóm tắt nội dung vượt quá ${excerpt.length - NEWS_EXCERPT_MAX_LENGTH} ký tự cho phép`;
-    }
+  const handleConfirmSave = async () => {
+    setShowSaveConfirmModal(false);
+    await executeSaveUpdate();
+  };
 
-    if (item.type === 'article') {
-      if (!slug.trim()) errs.slug = 'Đường dẫn tĩnh không được để trống khi xuất bản';
-      else if (slug.length > NEWS_SLUG_MAX_LENGTH) errs.slug = `Đường dẫn tĩnh vượt quá ${slug.length - NEWS_SLUG_MAX_LENGTH} ký tự cho phép`;
-
-      const hasCover = Boolean(coverFile) || Boolean(coverUrl.trim()) || Boolean(item.cover_image_url);
-      if (!hasCover) errs.cover = 'Bài viết xuất bản bắt buộc phải có ảnh bìa';
-      if (!coverAlt.trim()) errs.alt = 'Bài viết xuất bản bắt buộc phải có mô tả ảnh bìa';
-      if (!contentJson) errs.content = 'Nội dung bài viết không được để trống';
-    } else if (item.type === 'video') {
-      if (!youtubeVideoId) errs.youtube = 'Video xuất bản bắt buộc phải có ID hoặc URL YouTube hợp lệ';
-    }
+  // Nút Xuất bản (khi đang ở bản nháp)
+  const handleOpenPublishModal = () => {
+    const errs = validateForm(true);
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
       notifications.show({ title: 'Thiếu thông tin xuất bản', message: 'Vui lòng kiểm tra các trường bị báo đỏ', color: 'red' });
       return;
     }
     setErrors({});
-    if (isDirty) {
-      setShowUnsavedModal(true);
-      return;
-    }
-    void handleDoPublish();
+    setShowPublishConfirmModal(true);
   };
 
-  const handleConfirmSaveAndPublish = async () => {
-    setShowUnsavedModal(false);
-    const newUpdatedAt = await handleSaveInternal();
-    if (newUpdatedAt) await handleDoPublish(newUpdatedAt);
+  const handleConfirmPublish = async () => {
+    setShowPublishConfirmModal(false);
+    setIsSubmitting(true);
+    try {
+      let currentUpdatedAt = item.updated_at;
+      if (isDirty) {
+        const savedAt = await executeSaveUpdate();
+        if (!savedAt) return;
+        currentUpdatedAt = savedAt;
+      }
+
+      await publishMutation.mutateAsync({
+        id: item.id,
+        expected_updated_at: currentUpdatedAt,
+      });
+
+      notifications.show({ title: 'Thành công', message: 'Bài viết đã được xuất bản công khai lên website', color: 'green' });
+      refetch();
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Không thể xuất bản';
+      notifications.show({ title: 'Lỗi thao tác', message: msg, color: 'red' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Nút Hủy xuất bản (Gỡ bài về bản nháp)
+  const handleOpenUnpublishModal = () => {
+    setShowUnpublishModal(true);
+  };
+
+  const handleConfirmUnpublish = async () => {
+    setShowUnpublishModal(false);
+    setIsSubmitting(true);
+    try {
+      await unpublishMutation.mutateAsync({
+        id: item.id,
+        expected_updated_at: item.updated_at,
+      });
+      notifications.show({ title: 'Đã hủy xuất bản', message: 'Bài viết đã được gỡ xuống và chuyển về bản nháp', color: 'orange' });
+      refetch();
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Không thể hủy xuất bản';
+      notifications.show({ title: 'Lỗi thao tác', message: msg, color: 'red' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleBack = () => {
+    if (isDirty) {
+      setShowBackWarningModal(true);
+    } else {
+      router.push('/writer');
+    }
   };
 
   return (
     <div className="w-full max-w-4xl mx-auto p-6 space-y-6">
-      <Modal opened={showUnsavedModal} onClose={() => setShowUnsavedModal(false)} title="Bạn có thay đổi chưa lưu" centered>
-        <Text size="sm" mb="lg">Lưu các thay đổi và xuất bản ngay không? Bấm Hủy để kiểm tra lại.</Text>
+      {/* Modal xác nhận lưu thay đổi */}
+      <Modal
+        opened={showSaveConfirmModal}
+        onClose={() => setShowSaveConfirmModal(false)}
+        title={isPublished ? 'Xác nhận cập nhật nội dung xuất bản' : 'Xác nhận lưu thay đổi'}
+        centered
+      >
+        <Text size="sm" mb="lg">
+          {isPublished
+            ? 'Bạn có chắc chắn muốn lưu và cập nhật nội dung bài viết đang công khai? Hệ thống sẽ cập nhật trực tiếp và tự động lưu một bản sao lưu snapshot vào lịch sử.'
+            : 'Bạn có chắc chắn muốn lưu các thay đổi này? Một bản sao lưu snapshot của phiên bản trước sẽ được lưu lại tự động trong lịch sử.'}
+        </Text>
         <Group justify="flex-end" gap="sm">
-          <Button variant="default" onClick={() => setShowUnsavedModal(false)}>Hủy</Button>
-          <Button color="teal" loading={isSubmitting} onClick={handleConfirmSaveAndPublish}>Lưu và Xuất bản</Button>
+          <Button variant="default" onClick={() => setShowSaveConfirmModal(false)}>Hủy</Button>
+          <Button
+            color={isPublished ? 'teal' : 'brand'}
+            loading={isSubmitting}
+            onClick={handleConfirmSave}
+          >
+            {isPublished ? 'Cập nhật ngay' : 'Xác nhận lưu'}
+          </Button>
         </Group>
       </Modal>
 
+      {/* Modal xác nhận xuất bản */}
+      <Modal
+        opened={showPublishConfirmModal}
+        onClose={() => setShowPublishConfirmModal(false)}
+        title="Xác nhận xuất bản bài viết"
+        centered
+      >
+        <Text size="sm" mb="lg">
+          Bài viết sẽ được xuất bản công khai lên website ngay bây giờ. Bạn có chắc chắn muốn xuất bản?
+        </Text>
+        <Group justify="flex-end" gap="sm">
+          <Button variant="default" onClick={() => setShowPublishConfirmModal(false)}>Hủy</Button>
+          <Button color="teal" loading={isSubmitting} onClick={handleConfirmPublish}>Xác nhận xuất bản</Button>
+        </Group>
+      </Modal>
+
+      {/* Modal xác nhận hủy xuất bản (gỡ bài) */}
+      <Modal
+        opened={showUnpublishModal}
+        onClose={() => setShowUnpublishModal(false)}
+        title="Xác nhận hủy xuất bản"
+        centered
+      >
+        <Text size="sm" mb="lg">
+          Bài viết này sẽ không còn hiển thị công khai trên website nữa và được chuyển về trạng thái Bản nháp. Bạn có chắc chắn muốn hủy xuất bản bài viết này?
+        </Text>
+        <Group justify="flex-end" gap="sm">
+          <Button variant="default" onClick={() => setShowUnpublishModal(false)}>Đóng</Button>
+          <Button color="orange" loading={isSubmitting} onClick={handleConfirmUnpublish}>Đồng ý hủy xuất bản</Button>
+        </Group>
+      </Modal>
+
+      {/* Modal cảnh báo rời trang khi có thay đổi chưa lưu */}
+      <Modal
+        opened={showBackWarningModal}
+        onClose={() => setShowBackWarningModal(false)}
+        title="Thay đổi chưa được lưu"
+        centered
+      >
+        <Text size="sm" mb="lg">
+          Bạn có thay đổi chưa lưu trên bài viết. Bạn có chắc chắn muốn rời đi và bỏ qua các thay đổi này?
+        </Text>
+        <Group justify="flex-end" gap="sm">
+          <Button variant="default" onClick={() => setShowBackWarningModal(false)}>Ở lại tiếp tục soạn</Button>
+          <Button color="red" onClick={() => router.push('/writer')}>Bỏ qua và rời đi</Button>
+        </Group>
+      </Modal>
+
+      {/* Header bar */}
       <Group justify="space-between" align="center" wrap="wrap" gap="sm">
-        <Button component={Link} href="/writer" variant="subtle" color="gray" leftSection={<ArrowLeft size={16} />} size="sm">
+        <Button onClick={handleBack} variant="subtle" color="gray" leftSection={<ArrowLeft size={16} />} size="sm">
           Quay lại danh sách
         </Button>
         <Group gap="xs" align="center">
           {item.updated_at && (
             <Text size="xs" c="dimmed" className="hidden sm:inline-block">
-              Cập nhật: {formatDate(item.updated_at)}
+              Cập nhật lần cuối: {formatDate(item.updated_at)}
             </Text>
           )}
           {isDirty && (
@@ -292,7 +394,7 @@ export default function EditWriterNewsItemPage({ params }: { params: Promise<{ i
         </Group>
       </Group>
 
-      <form className="w-full" onSubmit={handleSave} onKeyDown={(e) => { if (e.key === 'Enter' && (e.target as HTMLElement)?.tagName === 'INPUT') e.preventDefault(); }}>
+      <form className="w-full" onSubmit={handleOpenSaveModal} onKeyDown={(e) => { if (e.key === 'Enter' && (e.target as HTMLElement)?.tagName === 'INPUT') e.preventDefault(); }}>
         <Card withBorder radius="xl" padding="lg" className="w-full space-y-6 bg-surface-app border-border-app">
           {/* Title with Character Limit and Red Warning */}
           <div>
@@ -467,27 +569,64 @@ export default function EditWriterNewsItemPage({ params }: { params: Promise<{ i
             />
           )}
 
+          {/* Thanh thao tác đáy trang: 
+              - Nếu đã xuất bản: Nút Hủy xuất bản ở góc trái riêng biệt, nút Cập nhật xuất bản ở góc phải.
+              - Nếu là bản nháp: Nút Lưu thay đổi và nút Xuất bản ở góc phải.
+          */}
           <Group justify="space-between" pt="md" className="border-t border-border-app">
-            <Button
-              type="button"
-              variant="light"
-              color={isPublished ? 'orange' : 'teal'}
-              onClick={handleTogglePublish}
-              loading={isSubmitting}
-              leftSection={isPublished ? <Undo2 size={16} /> : <Send size={16} />}
-            >
-              {isPublished ? 'Hủy xuất bản' : 'Xuất bản'}
-            </Button>
-            <Button
-              type="submit"
-              color="brand"
-              size="md"
-              radius="md"
-              loading={isSubmitting}
-              leftSection={<Save size={18} />}
-            >
-              Lưu thay đổi
-            </Button>
+            <div>
+              {isPublished && (
+                <Button
+                  type="button"
+                  variant="light"
+                  color="orange"
+                  onClick={handleOpenUnpublishModal}
+                  loading={isSubmitting}
+                  leftSection={<EyeOff size={16} />}
+                >
+                  Hủy xuất bản
+                </Button>
+              )}
+            </div>
+
+            <Group gap="sm">
+              {!isPublished ? (
+                <>
+                  <Button
+                    type="submit"
+                    color="brand"
+                    size="md"
+                    radius="md"
+                    loading={isSubmitting}
+                    leftSection={<Save size={18} />}
+                  >
+                    Lưu thay đổi
+                  </Button>
+                  <Button
+                    type="button"
+                    color="teal"
+                    size="md"
+                    radius="md"
+                    loading={isSubmitting}
+                    onClick={handleOpenPublishModal}
+                    leftSection={<Send size={18} />}
+                  >
+                    Xuất bản
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  type="submit"
+                  color="teal"
+                  size="md"
+                  radius="md"
+                  loading={isSubmitting}
+                  leftSection={<Save size={18} />}
+                >
+                  Cập nhật xuất bản
+                </Button>
+              )}
+            </Group>
           </Group>
         </Card>
       </form>

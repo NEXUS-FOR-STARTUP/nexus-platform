@@ -746,8 +746,23 @@ model NewsItem {
   created_at              DateTime  @default(now())
   updated_at              DateTime  @updatedAt
 
+  revisions               NewsItemRevision[]
+
   @@index([status, category, published_at(sort: Desc)])
   @@index([status, published_at(sort: Desc), id(sort: Desc)])
   @@index([updated_at(sort: Desc), id(sort: Desc)])
   @@map("news_items")
+}
+
+model NewsItemRevision {
+  id                      String    @id @default(uuid())
+  news_item_id            String
+  snapshot                Json
+  created_by_auth_user_id String
+  created_at              DateTime  @default(now())
+
+  news_item               NewsItem  @relation(fields: [news_item_id], references: [id], onDelete: Cascade)
+
+  @@index([news_item_id, created_at(sort: Desc)])
+  @@map("news_item_revisions")
 }

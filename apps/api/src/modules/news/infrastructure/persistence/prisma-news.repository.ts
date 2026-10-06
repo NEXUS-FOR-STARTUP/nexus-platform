@@ -177,22 +177,52 @@ export class PrismaNewsRepository {
   async updateNewsItemConditional(
     id: string,
     expectedUpdatedAt: Date,
-    data: Prisma.NewsItemUpdateInput
+    data: Prisma.NewsItemUpdateInput,
+    actorId?: string
   ) {
-    const result = await prisma.newsItem.updateMany({
-      where: {
-        id,
-        updated_at: expectedUpdatedAt,
-      },
-      data,
-    });
+    return prisma.$transaction(async (tx) => {
+      const current = await tx.newsItem.findFirst({
+        where: {
+          id,
+          updated_at: expectedUpdatedAt,
+        },
+      });
 
-    if (result.count === 0) {
-      return null;
-    }
+      if (!current) {
+        return null;
+      }
 
-    return prisma.newsItem.findUnique({
-      where: { id },
+      if (actorId) {
+        await tx.newsItemRevision.create({
+          data: {
+            news_item_id: id,
+            snapshot: {
+              type: current.type,
+              status: current.status,
+              title: current.title,
+              slug: current.slug,
+              excerpt: current.excerpt,
+              content_json: current.content_json,
+              category: current.category,
+              tags: current.tags,
+              youtube_video_id: current.youtube_video_id,
+              cover_image_url: current.cover_image_url,
+              cover_image_public_id: current.cover_image_public_id,
+              cover_image_alt: current.cover_image_alt,
+              published_at: current.published_at?.toISOString() ?? null,
+              created_by_auth_user_id: current.created_by_auth_user_id,
+              updated_by_auth_user_id: current.updated_by_auth_user_id,
+              updated_at: current.updated_at.toISOString(),
+            },
+            created_by_auth_user_id: actorId,
+          },
+        });
+      }
+
+      return tx.newsItem.update({
+        where: { id },
+        data,
+      });
     });
   }
 
