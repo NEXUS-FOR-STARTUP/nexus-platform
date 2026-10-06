@@ -82,8 +82,8 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
           {/* Cột nội dung bên phải */}
           <div className="flex-1 flex flex-col justify-between min-w-0">
             <div>
-              {/* Tag/Phân loại: góc trên bên trái, viết hoa, không màu, không badge, font-serif nhỏ ngang description */}
-              <span className="font-serif text-xs text-text-muted uppercase font-normal tracking-normal mb-1.5 block">
+              {/* Tag/Phân loại kiểu Spiderum: góc trên bên trái, viết hoa nhẹ, 12px */}
+              <span className="text-xs text-text-muted uppercase font-medium tracking-wide mb-1.5 block">
                 {categoryTag}
               </span>
 
@@ -93,12 +93,12 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
                 rel="noopener noreferrer"
                 className="block"
               >
-                <h3 className="text-base sm:text-lg font-bold text-text-app group-hover:text-brand transition-colors line-clamp-2 leading-snug mb-2">
+                <h3 className="text-lg sm:text-xl font-bold text-text-app group-hover:text-brand transition-colors line-clamp-2 leading-snug mb-2">
                   {item.title}
                 </h3>
               </a>
               {item.excerpt && (
-                <p className="font-serif text-sm text-text-app/80 line-clamp-2 leading-relaxed mb-3">
+                <p className="text-sm text-text-app/75 line-clamp-2 leading-relaxed mb-3">
                   {item.excerpt}
                 </p>
               )}
@@ -151,18 +151,18 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
         {/* Cột nội dung bên phải */}
         <div className="flex-1 flex flex-col justify-between min-w-0">
           <div>
-            {/* Tag/Phân loại: góc trên bên trái, viết hoa, không màu, không badge, font-serif nhỏ ngang description */}
-            <span className="font-serif text-xs text-text-muted uppercase font-normal tracking-normal mb-1.5 block">
+            {/* Tag/Phân loại kiểu Spiderum: góc trên bên trái, viết hoa nhẹ, 12px */}
+            <span className="text-xs text-text-muted uppercase font-medium tracking-wide mb-1.5 block">
               {categoryTag}
             </span>
 
             <Link href={`/news/${item.slug}`} className="block">
-              <h3 className="text-base sm:text-lg font-bold text-text-app group-hover:text-brand transition-colors line-clamp-2 leading-snug mb-2">
+              <h3 className="text-lg sm:text-xl font-bold text-text-app group-hover:text-brand transition-colors line-clamp-2 leading-snug mb-2">
                 {item.title}
               </h3>
             </Link>
             {item.excerpt && (
-              <p className="font-serif text-sm text-text-app/80 line-clamp-2 leading-relaxed mb-3">
+              <p className="text-sm text-text-app/75 line-clamp-2 leading-relaxed mb-3">
                 {item.excerpt}
               </p>
             )}
