@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Search, Ban, CheckCircle, UserPlus, Users, MoreVertical, X, RefreshCw } from "lucide-react";
+import { Search, Ban, CheckCircle, UserPlus, Users, MoreVertical, X, RefreshCw, ShieldCheck } from "lucide-react";
 import { Table, Pagination, Badge, TextInput, Select, Group, Button, ActionIcon, Tooltip, Menu, Skeleton, Loader } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
+import { useSession } from "@/lib/auth-client";
 import { useAdminUsers } from "../hooks/useAdminUsers";
 import CreateUserModal from "./CreateUserModal";
 import BanUserModal from "./BanUserModal";
+import AssignRoleModal from "./AssignRoleModal";
 
 const ROLE_FILTER_OPTIONS: { value: string; label: string }[] = [
   { value: "all", label: "Tất cả vai trò" },
@@ -50,6 +52,15 @@ export default function AdminUsersTable() {
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [banTarget, setBanTarget] = useState<{ userId: string; userName: string } | null>(null);
+  const [roleTarget, setRoleTarget] = useState<{
+    userId: string;
+    userName: string;
+    userEmail: string;
+    currentRole: string;
+  } | null>(null);
+
+  const { data: session } = useSession();
+  const currentAdminId = session?.user?.id;
 
   const params = useMemo(() => {
     const p: Record<string, string | number> = {
@@ -94,6 +105,8 @@ export default function AdminUsersTable() {
     isBanning,
     unbanUser,
     isUnbanning,
+    assignRole,
+    isAssigningRole,
   } = useAdminUsers(params);
 
   const totalPages = Math.max(1, Math.ceil(total / itemsPerPage));
@@ -155,6 +168,27 @@ export default function AdminUsersTable() {
         message: e?.response?.data?.message || "Không thể mở khóa tài khoản.",
         color: "red",
       });
+    }
+  };
+
+  const handleAssignRole = async (newRole: string) => {
+    if (!roleTarget) return;
+    try {
+      await assignRole({ userId: roleTarget.userId, role: newRole });
+      const targetName = roleTarget.userName;
+      setRoleTarget(null);
+      notifications.show({
+        title: "Cập nhật vai trò thành công",
+        message: `Đã đổi vai trò cho ${targetName} thành ${roleLabelMap[newRole] || newRole}.`,
+        color: "green",
+      });
+    } catch (e: any) {
+      notifications.show({
+        title: "Lỗi",
+        message: e?.response?.data?.message || "Không thể cập nhật vai trò.",
+        color: "red",
+      });
+      throw e;
     }
   };
 
@@ -307,6 +341,21 @@ export default function AdminUsersTable() {
                         </Menu.Target>
 
                         <Menu.Dropdown className="bg-surface-app border border-border-app p-1 rounded-lg">
+                          <Menu.Item
+                            leftSection={<ShieldCheck className="w-3.5 h-3.5 text-brand" />}
+                            onClick={() =>
+                              setRoleTarget({
+                                userId: user.id,
+                                userName: user.name,
+                                userEmail: user.email,
+                                currentRole: user.role,
+                              })
+                            }
+                            className="text-text-app hover:bg-surface-soft cursor-pointer text-xs font-semibold"
+                          >
+                            Đổi vai trò
+                          </Menu.Item>
+
                           {user.banned ? (
                             <Menu.Item
                               leftSection={<CheckCircle className="w-3.5 h-3.5 text-success" />}
@@ -358,6 +407,15 @@ export default function AdminUsersTable() {
         onClose={() => setBanTarget(null)}
         onConfirm={handleBanUser}
         isSubmitting={isBanning}
+      />
+
+      <AssignRoleModal
+        isOpen={roleTarget !== null}
+        user={roleTarget}
+        currentAdminId={currentAdminId}
+        onClose={() => setRoleTarget(null)}
+        onConfirm={handleAssignRole}
+        isSubmitting={isAssigningRole}
       />
     </div>
   );

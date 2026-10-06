@@ -20,6 +20,7 @@ import {
   createAdminUserHandler,
   banUserHandler,
   unbanUserHandler,
+  assignUserRoleHandler,
   exportAdminDataHandler,
 } from "./admin.controller.js";
 import {
@@ -64,6 +65,7 @@ adminRouter.get("/users", listAdminUsersHandler);
 adminRouter.post("/users", createAdminUserHandler);
 adminRouter.post("/users/:id/ban", banUserHandler);
 adminRouter.post("/users/:id/unban", unbanUserHandler);
+adminRouter.patch("/users/:id/role", assignUserRoleHandler);
 
 // Worker & Queue Monitoring
 adminRouter.get("/workers/stats", getAdminWorkerStatsHandler);

@@ -70,6 +70,22 @@ export function useAdminUsers(params: UseAdminUsersParams = {}) {
     },
   });
 
+  const assignRoleMutation = useMutation({
+    mutationFn: async ({
+      userId,
+      role,
+    }: {
+      userId: string;
+      role: string;
+    }) => {
+      const res = await apiClient.patch(`/admin/users/${userId}/role`, { role });
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
+
   return {
     users: usersQuery.data?.users || [],
     total: usersQuery.data?.total || 0,
@@ -86,5 +102,8 @@ export function useAdminUsers(params: UseAdminUsersParams = {}) {
 
     unbanUser: unbanUserMutation.mutateAsync,
     isUnbanning: unbanUserMutation.isPending,
+
+    assignRole: assignRoleMutation.mutateAsync,
+    isAssigningRole: assignRoleMutation.isPending,
   };
 }

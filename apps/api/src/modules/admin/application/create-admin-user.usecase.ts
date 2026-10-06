@@ -1,4 +1,5 @@
 import { auth } from "../../../auth.js";
+import { prisma } from "../../../db.js";
 import { emailService, renderEmailHtml } from "../../notifications/infrastructure/email.service.js";
 import logger from "../../../shared/infrastructure/logger.js";
 
@@ -8,16 +9,24 @@ export async function createAdminUserUseCase(
   role: string,
   headers: Headers,
 ) {
-  const safeRole = (role === "admin" || role === "user") ? role : "user";
+  const safeRole = (role === "admin" || role === "user" || role === "supporter") ? role : "user";
   // Auto-generate secure random password
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   const bytes = crypto.getRandomValues(new Uint8Array(12));
   const password = "Nx@" + Array.from(bytes).map((b) => chars[b % chars.length]).join("");
 
+  const authRole = safeRole === "admin" ? "admin" : "user";
   const newUser = await auth.api.createUser({
-    body: { email, password, name, role: safeRole || "user" },
+    body: { email, password, name, role: authRole },
     headers,
   });
+
+  if (safeRole === "supporter" && newUser.user?.id) {
+    await prisma.user.update({
+      where: { id: newUser.user.id },
+      data: { role: "supporter" },
+    });
+  }
 
   // Send welcome email with credentials
   const emailBody = [
