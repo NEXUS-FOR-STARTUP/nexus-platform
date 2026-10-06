@@ -1,6 +1,6 @@
 'use client';
 
-import { TextInput, Button, ActionIcon, Badge, Text } from '@mantine/core';
+import { TextInput, Button, ActionIcon, Badge, Text, Container } from '@mantine/core';
 import { Search, X, SlidersHorizontal } from 'lucide-react';
 import { NewsCard } from './NewsCard';
 import { FeaturedCard } from './FeaturedCard';
@@ -38,7 +38,7 @@ export function NewsFeed({ data, currentType, currentSearch }: NewsFeedProps) {
   const listItems = !isFiltering && page === 1 && items.length > 0 ? items.slice(1) : items;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <Container size="lg" className="py-8 sm:py-12">
       {/* Top Search & Filter Bar */}
       <div className="mb-8">
         <form onSubmit={handleSearchSubmit} className="flex items-center gap-2.5 sm:gap-3 w-full">
@@ -174,6 +174,6 @@ export function NewsFeed({ data, currentType, currentSearch }: NewsFeedProps) {
         currentType={currentType}
         currentSearch={currentSearch}
       />
-    </div>
+    </Container>
   );
 }

@@ -1,8 +1,8 @@
-import { Skeleton, SimpleGrid } from '@mantine/core';
+import { Skeleton, SimpleGrid, Container } from '@mantine/core';
 
 export default function NewsLoading() {
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <Container size="lg" className="py-8 sm:py-12">
       {/* Top Search Toolbar Skeleton */}
       <div className="flex items-center gap-2.5 sm:gap-3 w-full mb-8">
         <Skeleton height={52} radius="md" className="flex-1" />
@@ -78,6 +78,6 @@ export default function NewsLoading() {
           </div>
         ))}
       </SimpleGrid>
-    </div>
+    </Container>
   );
 }
