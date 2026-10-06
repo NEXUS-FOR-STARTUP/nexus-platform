@@ -14,6 +14,7 @@ import Image from 'next/image';
 import { Avatar } from '@mantine/core';
 import { Play } from 'lucide-react';
 import { getNewsCategoryName, type NewsItemPublicCard } from '@repo/validation';
+import { isOptimizedImageDomain } from '@/lib/image-utils';
 
 function formatDate(isoString: string): string {
   try {
@@ -28,7 +29,7 @@ function formatDate(isoString: string): string {
     const isCurrentYear = d.getFullYear() === now.getFullYear();
     return d.toLocaleDateString('vi-VN', {
       day: 'numeric',
-      month: 'short',
+      month: 'long',
       ...(isCurrentYear ? {} : { year: 'numeric' }),
     });
   } catch {
@@ -64,6 +65,7 @@ export function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
                 alt={item.title}
                 fill
                 priority
+                unoptimized={!isOptimizedImageDomain(item.youtube_thumbnail_url)}
                 sizes="(max-width: 1024px) 100vw, 480px"
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
               />
@@ -80,6 +82,7 @@ export function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
                 alt={item.cover_image_alt || item.title}
                 fill
                 priority
+                unoptimized={!isOptimizedImageDomain(item.cover_image_url)}
                 sizes="(max-width: 1024px) 100vw, 480px"
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
               />

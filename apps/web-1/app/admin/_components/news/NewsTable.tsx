@@ -5,6 +5,7 @@ import { Table, Badge, Menu, ActionIcon, Text } from '@mantine/core';
 import { NewsTableModals } from './NewsTableModals';
 import { MoreVertical, Edit, Send, Undo2, Trash2, Video, Newspaper } from 'lucide-react';
 import { getNewsCategoryName, type NewsItemAdmin } from '@repo/validation';
+import { isOptimizedImageDomain } from '@/lib/image-utils';
 
 interface NewsTableProps {
   items: NewsItemAdmin[];
@@ -70,6 +71,7 @@ export function NewsTable({
                           alt={item.title}
                           fill
                           sizes="96px"
+                          unoptimized={!isOptimizedImageDomain(thumbnailUrl)}
                           className="object-cover"
                         />
                       ) : (

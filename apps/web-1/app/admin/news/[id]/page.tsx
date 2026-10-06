@@ -28,6 +28,7 @@ export default function EditNewsItemPage({ params }: { params: Promise<{ id: str
   const [contentJson, setContentJson] = useState<unknown>({ type: 'doc', content: [{ type: 'paragraph' }] });
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [coverAlt, setCoverAlt] = useState('');
+  const [coverUrl, setCoverUrl] = useState('');
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
@@ -41,6 +42,7 @@ export default function EditNewsItemPage({ params }: { params: Promise<{ id: str
       setExcerpt(item.excerpt || '');
       setContentJson(item.content_json || { type: 'doc', content: [{ type: 'paragraph' }] });
       setYoutubeUrl(item.youtube_video_id ? `https://www.youtube.com/watch?v=${item.youtube_video_id}` : '');
+      setCoverUrl(item.cover_image_url || '');
       setCoverAlt(item.cover_image_alt || '');
       setErrors({});
     }
@@ -58,7 +60,11 @@ export default function EditNewsItemPage({ params }: { params: Promise<{ id: str
   const youtubeVideoId = item.type === 'video' ? extractYouTubeVideoId(youtubeUrl) : null;
 
   const origYt = item.youtube_video_id ? `https://www.youtube.com/watch?v=${item.youtube_video_id}` : '';
-  const isDirty = coverFile !== null || title !== item.title || excerpt !== (item.excerpt ?? '') || coverAlt !== (item.cover_image_alt ?? '')
+  const isDirty = coverFile !== null
+    || coverUrl !== (item.cover_image_url ?? '')
+    || title !== item.title
+    || excerpt !== (item.excerpt ?? '')
+    || coverAlt !== (item.cover_image_alt ?? '')
     || category !== (item.category ?? 'khoi-nghiep')
     || JSON.stringify(tags) !== JSON.stringify(item.tags ?? [])
     || (item.type === 'article' && (slug !== (item.slug ?? '') || JSON.stringify(contentJson) !== JSON.stringify(item.content_json))) || (item.type === 'video' && youtubeUrl !== origYt);
@@ -67,7 +73,8 @@ export default function EditNewsItemPage({ params }: { params: Promise<{ id: str
     if (!title.trim()) errs.title = 'Tiêu đề không được để trống';
     if (item.type === 'video' && !youtubeVideoId) errs.youtube = 'Vui lòng nhập URL hoặc ID video YouTube hợp lệ';
     if (isPublished && item.type === 'article') {
-      if (!item.cover_image_url && !coverFile) errs.cover = 'Bài viết đã xuất bản phải có ảnh bìa';
+      const hasCover = Boolean(coverFile) || Boolean(coverUrl.trim()) || Boolean(item.cover_image_url);
+      if (!hasCover) errs.cover = 'Bài viết đã xuất bản phải có ảnh bìa';
       if (!coverAlt.trim()) errs.alt = 'Bài viết đã xuất bản phải có mô tả ảnh bìa (alt)';
       if (!contentJson) errs.content = 'Nội dung bài viết không được để trống';
     }
@@ -80,12 +87,14 @@ export default function EditNewsItemPage({ params }: { params: Promise<{ id: str
         tags,
         excerpt: excerpt.trim(), content_json: item.type === 'article' ? contentJson : undefined,
         youtube_url_or_id: item.type === 'video' ? youtubeUrl.trim() : undefined,
+        cover_image_url: coverFile ? undefined : (coverUrl.trim() || null),
         cover_image_alt: item.type === 'article' ? coverAlt.trim() : undefined,
         expected_updated_at: item.updated_at,
       } });
       if (coverFile && item.type === 'article') {
         updated = await uploadCoverMutation.mutateAsync({ id: item.id, file: coverFile, expected_updated_at: updated.updated_at });
         setCoverFile(null);
+        setCoverUrl(updated.cover_image_url || '');
       }
       notifications.show({ title: 'Thành công', message: 'Đã lưu thay đổi!', color: 'green' });
       refetch(); return updated.updated_at;
@@ -120,7 +129,8 @@ export default function EditNewsItemPage({ params }: { params: Promise<{ id: str
     if (!title.trim()) errs.title = 'Tiêu đề không được để trống';
     if (item.type === 'article') {
       if (!slug.trim()) errs.slug = 'Đường dẫn (slug) không được để trống khi xuất bản';
-      if (!item.cover_image_url && !coverFile) errs.cover = 'Bài viết xuất bản bắt buộc phải có ảnh bìa';
+      const hasCover = Boolean(coverFile) || Boolean(coverUrl.trim()) || Boolean(item.cover_image_url);
+      if (!hasCover) errs.cover = 'Bài viết xuất bản bắt buộc phải có ảnh bìa';
       if (!coverAlt.trim()) errs.alt = 'Bài viết xuất bản bắt buộc phải có mô tả ảnh bìa (alt)';
       if (!contentJson) errs.content = 'Nội dung bài viết không được để trống';
     } else if (item.type === 'video') {
@@ -189,9 +199,16 @@ export default function EditNewsItemPage({ params }: { params: Promise<{ id: str
             <Stack gap="md">
               <TextInput label="Đường dẫn tĩnh (Slug)" withAsterisk description={isPublished ? 'Bài viết đã xuất bản — đường dẫn đã cố định' : 'Đường dẫn định danh bài viết'} value={slug} disabled={isPublished} onChange={(e) => { setSlug(e.currentTarget.value); setErrors((p) => ({ ...p, slug: undefined })); }} maxLength={160} error={errors.slug} />
               <ArticleCoverSection
-                file={coverFile} onFileChange={(f) => { setCoverFile(f); setErrors((p) => ({ ...p, cover: undefined })); }}
-                alt={coverAlt} onAltChange={(a) => { setCoverAlt(a); setErrors((p) => ({ ...p, alt: undefined })); }}
-                existingUrl={item.cover_image_url} fileError={errors.cover} altError={errors.alt} required
+                file={coverFile}
+                onFileChange={(f) => { setCoverFile(f); setErrors((p) => ({ ...p, cover: undefined })); }}
+                url={coverUrl}
+                onUrlChange={(u) => { setCoverUrl(u); setErrors((p) => ({ ...p, cover: undefined })); }}
+                alt={coverAlt}
+                onAltChange={(a) => { setCoverAlt(a); setErrors((p) => ({ ...p, alt: undefined })); }}
+                existingUrl={item.cover_image_url}
+                fileError={errors.cover}
+                altError={errors.alt}
+                required
               />
               <div>
                 <Text size="sm" fw={600} mb={2} className="text-text-app">Nội dung chi tiết <span className="text-red-500">*</span></Text>

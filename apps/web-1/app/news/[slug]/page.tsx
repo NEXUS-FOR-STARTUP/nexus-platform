@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { Button } from '@mantine/core';
 import { ArrowLeft } from 'lucide-react';
 import { fetchPublicArticleDetail, fetchPublicNewsList } from '@/lib/news-server';
+import { isOptimizedImageDomain } from '@/lib/image-utils';
 import { NewsTipTapRenderer } from './_components/NewsTipTapRenderer';
 import { ArticleHeader } from './_components/ArticleHeader';
 import { ArticleAuthorBio } from './_components/ArticleAuthorBio';
@@ -127,6 +128,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               alt={article.cover_image_alt || article.title}
               fill
               priority
+              unoptimized={!isOptimizedImageDomain(article.cover_image_url)}
               sizes="(max-width: 768px) 100vw, 700px"
               className="object-cover"
             />

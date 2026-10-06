@@ -1,22 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { isSafeHttpUrl } from '@repo/validation';
-
-const WHITELISTED_IMAGE_HOSTS = new Set([
-  'res.cloudinary.com',
-  'images.unsplash.com',
-  'img.youtube.com',
-  'i.ytimg.com',
-]);
-
-function isHostWhitelisted(urlStr: string): boolean {
-  try {
-    const parsed = new URL(urlStr, 'http://localhost');
-    return WHITELISTED_IMAGE_HOSTS.has(parsed.hostname);
-  } catch {
-    return false;
-  }
-}
+import { isOptimizedImageDomain } from '@/lib/image-utils';
 
 interface TipTapMark {
   type: string;
@@ -186,7 +171,7 @@ function renderNode(node: TipTapNode, index: number): React.ReactNode {
       const alt = typeof node.attrs?.alt === 'string' ? node.attrs.alt : '';
       if (!isSafeHttpUrl(src)) return null;
 
-      const isWhitelisted = isHostWhitelisted(src);
+      const isWhitelisted = isOptimizedImageDomain(src);
 
       return (
         <figure key={index} className="my-10 text-center">

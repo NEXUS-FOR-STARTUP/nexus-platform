@@ -25,6 +25,7 @@ export default function NewNewsItemPage() {
   const [excerpt, setExcerpt] = useState('');
   const [contentJson, setContentJson] = useState<unknown>({ type: 'doc', content: [{ type: 'paragraph' }] });
   const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [coverUrl, setCoverUrl] = useState('');
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverAlt, setCoverAlt] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,6 +62,7 @@ export default function NewNewsItemPage() {
               category,
               tags,
               content_json: contentJson,
+              cover_image_url: coverFile ? undefined : (coverUrl.trim() || undefined),
               cover_image_alt: coverAlt.trim() || undefined,
             }
           : {
@@ -193,6 +195,8 @@ export default function NewNewsItemPage() {
               <ArticleCoverSection
                 file={coverFile}
                 onFileChange={setCoverFile}
+                url={coverUrl}
+                onUrlChange={setCoverUrl}
                 alt={coverAlt}
                 onAltChange={setCoverAlt}
                 required
