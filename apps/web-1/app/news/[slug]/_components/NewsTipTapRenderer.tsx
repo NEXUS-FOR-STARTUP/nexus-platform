@@ -20,7 +20,7 @@ function renderMarks(text: string, marks?: TipTapMark[]): React.ReactNode {
   let element: React.ReactNode = text;
   for (const mark of marks) {
     if (mark.type === 'bold') {
-      element = <strong className="font-semibold text-text-app">{element}</strong>;
+      element = <strong className="font-bold text-text-app">{element}</strong>;
     } else if (mark.type === 'italic') {
       element = <em className="italic">{element}</em>;
     } else if (mark.type === 'strike') {
@@ -35,7 +35,7 @@ function renderMarks(text: string, marks?: TipTapMark[]): React.ReactNode {
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-brand hover:underline font-medium inline-flex items-center gap-0.5"
+            className="text-[#288ad6] hover:underline font-medium inline-flex items-center gap-0.5"
           >
             {element}
           </a>
@@ -61,52 +61,86 @@ function renderNode(node: TipTapNode, index: number): React.ReactNode {
 
   switch (node.type) {
     case 'doc':
-      return <div key={index} className="news-prose space-y-4">{children}</div>;
+      return <div key={index} className="news-prose font-serif">{children}</div>;
     case 'paragraph':
       return (
-        <p key={index} className="text-base sm:text-lg leading-relaxed text-text-app/90 mb-5">
-          {children && children.length > 0 ? children : <br />}
+        <p
+          key={index}
+          className="font-serif text-[19px] leading-[1.9] sm:leading-[1.95] text-text-app mb-8 sm:mb-9 tracking-normal"
+        >
+          {children && children.length > 0 ? children : null}
         </p>
       );
     case 'heading': {
       const level = node.attrs?.level === 3 ? 3 : 2;
       if (level === 3) {
         return (
-          <h3 key={index} className="text-xl font-semibold tracking-tight text-text-app mt-8 mb-3">
+          <h3
+            key={index}
+            className="font-sans text-[22px] font-bold text-text-app mt-12 mb-8 sm:mb-9 tracking-tight leading-snug"
+          >
             {children}
           </h3>
         );
       }
       return (
-        <h2 key={index} className="text-2xl sm:text-3xl font-bold tracking-tight text-text-app mt-10 mb-4">
+        <h2
+          key={index}
+          className="font-sans text-[22px] font-bold text-text-app mt-14 mb-8 sm:mb-9 tracking-tight leading-snug"
+        >
           {children}
         </h2>
       );
     }
     case 'bulletList':
       return (
-        <ul key={index} className="list-disc pl-6 my-4 space-y-2 text-text-app/90">
+        <ul
+          key={index}
+          className="font-serif list-disc pl-6 my-8 space-y-4 text-[19px] leading-[1.9] text-text-app"
+        >
           {children}
         </ul>
       );
     case 'orderedList':
       return (
-        <ol key={index} className="list-decimal pl-6 my-4 space-y-2 text-text-app/90">
+        <ol
+          key={index}
+          className="font-serif list-decimal pl-6 my-8 space-y-4 text-[19px] leading-[1.9] text-text-app"
+        >
           {children}
         </ol>
       );
     case 'listItem':
-      return <li key={index} className="leading-relaxed">{children}</li>;
+      return <li key={index} className="leading-relaxed pl-1 mb-2">{children}</li>;
     case 'blockquote':
       return (
-        <blockquote key={index} className="border-l-4 border-brand pl-4 py-1 italic text-text-muted my-6">
+        <blockquote
+          key={index}
+          className="border-l-4 border-[#3199d5] pl-6 py-1 my-10 font-serif italic text-[19px] leading-[1.9] text-text-app [&>p:last-child]:!mb-0"
+        >
           {children}
         </blockquote>
       );
     case 'horizontalRule':
-      return <hr key={index} className="border-border-app my-8" />;
+      return <div key={index} className="my-12" />;
+    case 'image': {
+      const src = typeof node.attrs?.src === 'string' ? node.attrs.src : '';
+      const alt = typeof node.attrs?.alt === 'string' ? node.attrs.alt : '';
+      if (!isSafeHttpUrl(src)) return null;
+      return (
+        <figure key={index} className="my-10 text-center">
+          <img
+            src={src}
+            alt={alt}
+            className="w-full max-w-[700px] mx-auto object-cover border border-border-app"
+            loading="lazy"
+          />
+          {alt && <figcaption className="mt-2 text-xs text-text-muted italic font-serif">{alt}</figcaption>}
+        </figure>
+      );
+    }
     case 'hardBreak':
-      return <br key={index} />;
+      return null;
     default:
       return null;
   }
@@ -116,5 +150,5 @@ export function NewsTipTapRenderer({ content }: { content: unknown }) {
   if (!content || typeof content !== 'object') {
     return null;
   }
-  return <div className="max-w-[720px] mx-auto">{renderNode(content as TipTapNode, 0)}</div>;
+  return <div className="max-w-[700px] mx-auto">{renderNode(content as TipTapNode, 0)}</div>;
 }

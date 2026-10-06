@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where([data-mantine-color-scheme="dark"], [data-mantine-color-scheme="dark"] *));
 @import "@mantine/core/styles.css";
 @import "@mantine/dates/styles.css";
 @import "@mantine/notifications/styles.css";
@@ -45,6 +46,7 @@
   --font-sans: var(--font-google-sans-flex), sans-serif;
   --font-heading: var(--font-google-sans-flex), sans-serif;
   --font-body: var(--font-google-sans-flex), sans-serif;
+  --font-serif: var(--font-merriweather), Georgia, Cambria, "Times New Roman", Times, serif;
   --text-xs: var(--app-text-xs);
   --text-sm: var(--app-text-sm);
 }

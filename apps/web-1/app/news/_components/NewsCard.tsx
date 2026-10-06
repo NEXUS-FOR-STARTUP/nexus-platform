@@ -1,15 +1,21 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Badge, Card, Group, Text } from '@mantine/core';
-import { ExternalLink, Play, Newspaper } from 'lucide-react';
+import { Avatar, Badge } from '@mantine/core';
+import { Play, Newspaper } from 'lucide-react';
 import type { NewsItemPublicCard } from '@repo/validation';
 
 function formatDate(isoString: string): string {
   try {
     const d = new Date(isoString);
+    const now = new Date();
+    const diffHours = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60));
+
+    if (diffHours < 1) return 'Vừa xong';
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+    if (diffHours < 48) return 'Hôm qua';
+
     return d.toLocaleDateString('vi-VN', {
       day: '2-digit',
       month: '2-digit',
@@ -24,119 +30,137 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
   if (item.type === 'video') {
     const youtubeUrl = `https://www.youtube.com/watch?v=${item.youtube_video_id}`;
     return (
-      <Card
-        component="a"
-        href={youtubeUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        radius="lg"
-        padding="md"
-        className="group flex flex-col h-full bg-surface-app border border-border-app hover:border-brand/40 transition-all duration-200"
-      >
-        <div className="relative aspect-video w-full rounded-md overflow-hidden bg-surface-soft mb-3.5">
-          <Image
-            src={item.youtube_thumbnail_url}
-            alt={item.title}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-          <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-colors">
-            <div className="w-11 h-11 rounded-full bg-red-600/90 flex items-center justify-center text-white shadow-md">
-              <Play size={20} className="fill-current ml-0.5" />
-            </div>
+      <article className="group bg-surface-app border border-border-app rounded-xl p-4 sm:p-5 hover:border-brand/40 transition-all duration-200 flex flex-col justify-between">
+        {/* Card Header: Author info */}
+        <div className="flex items-center gap-2 mb-3">
+          <Avatar color="red" radius="xl" size="xs" className="text-[10px] font-bold">
+            YT
+          </Avatar>
+          <span className="text-xs font-semibold text-text-app">Nexus Video</span>
+          <span className="text-xs text-text-muted">{formatDate(item.published_at)}</span>
+        </div>
+
+        {/* Card Content & Thumbnail */}
+        <div className="flex flex-col-reverse sm:flex-row gap-4 items-start flex-1 mb-3">
+          <div className="flex-1 min-w-0">
+            <a
+              href={youtubeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+            >
+              <h3 className="text-base sm:text-lg font-bold text-text-app group-hover:text-brand transition-colors line-clamp-2 leading-snug mb-2">
+                {item.title}
+              </h3>
+            </a>
+            {item.excerpt && (
+              <p className="font-serif text-sm text-text-app/85 line-clamp-2 leading-relaxed mb-3">
+                {item.excerpt}
+              </p>
+            )}
           </div>
-          <Badge
-            color="red"
-            variant="filled"
-            size="sm"
-            className="absolute top-2.5 left-2.5 font-medium"
+
+          <a
+            href={youtubeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative w-full sm:w-44 md:w-48 aspect-video rounded-lg overflow-hidden bg-surface-soft shrink-0 block"
           >
-            Video
-          </Badge>
+            <Image
+              src={item.youtube_thumbnail_url}
+              alt={item.title}
+              fill
+              sizes="(max-width: 640px) 100vw, 200px"
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <div className="absolute inset-0 bg-black/25 flex items-center justify-center group-hover:bg-black/35 transition-colors">
+              <div className="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center text-white shadow-md">
+                <Play size={16} className="fill-current ml-0.5" />
+              </div>
+            </div>
+          </a>
         </div>
 
-        <div className="flex flex-col flex-1">
-          <Group justify="space-between" mb={6}>
-            <Text size="xs" c="dimmed">
-              {formatDate(item.published_at)}
-            </Text>
-            <span className="inline-flex items-center gap-1 text-xs text-brand font-medium">
-              Mở YouTube
-              <ExternalLink size={12} />
-              <span className="sr-only">(mở trong tab mới)</span>
-            </span>
-          </Group>
-
-          <Text
-            fw={600}
-            size="md"
-            className="text-text-app line-clamp-2 group-hover:text-brand transition-colors mb-1.5"
+        {/* Card Footer */}
+        <div className="flex items-center justify-between pt-2 border-t border-border-app/60 text-xs">
+          <div className="flex items-center gap-2">
+            <Badge color="red" variant="light" size="xs" radius="xs" className="font-semibold uppercase tracking-wider text-[10px]">
+              Video
+            </Badge>
+          </div>
+          <a
+            href={youtubeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-brand font-medium hover:underline"
           >
-            {item.title}
-          </Text>
-
-          {item.excerpt && (
-            <Text size="sm" c="dimmed" className="line-clamp-2 mt-auto">
-              {item.excerpt}
-            </Text>
-          )}
+            Xem YouTube
+          </a>
         </div>
-      </Card>
+      </article>
     );
   }
 
   return (
-    <Card
-      component={Link}
-      href={`/news/${item.slug}`}
-      radius="lg"
-      padding="md"
-      className="group flex flex-col h-full bg-surface-app border border-border-app hover:border-brand/40 transition-all duration-200"
-    >
-      <div className="relative aspect-video w-full rounded-md overflow-hidden bg-surface-soft mb-3.5">
+    <article className="group bg-surface-app border border-border-app rounded-xl p-4 sm:p-5 hover:border-brand/40 transition-all duration-200 flex flex-col justify-between">
+      {/* Card Header: Author info */}
+      <div className="flex items-center gap-2 mb-3">
+        <Avatar color="blue" radius="xl" size="xs" className="text-[10px] font-bold">
+          NX
+        </Avatar>
+        <span className="text-xs font-semibold text-text-app">Nexus Team</span>
+        <span className="text-xs text-text-muted">{formatDate(item.published_at)}</span>
+      </div>
+
+      {/* Card Content & Thumbnail */}
+      <div className="flex flex-col-reverse sm:flex-row gap-4 items-start flex-1 mb-3">
+        <div className="flex-1 min-w-0">
+          <Link href={`/news/${item.slug}`} className="block">
+            <h3 className="text-base sm:text-lg font-bold text-text-app group-hover:text-brand transition-colors line-clamp-2 leading-snug mb-2">
+              {item.title}
+            </h3>
+          </Link>
+          {item.excerpt && (
+            <p className="font-serif text-sm text-text-app/85 line-clamp-2 leading-relaxed mb-3">
+              {item.excerpt}
+            </p>
+          )}
+        </div>
+
         {item.cover_image_url ? (
-          <Image
-            src={item.cover_image_url}
-            alt={item.cover_image_alt || item.title}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-          />
+          <Link
+            href={`/news/${item.slug}`}
+            className="relative w-full sm:w-44 md:w-48 aspect-video rounded-lg overflow-hidden bg-surface-soft shrink-0 block"
+          >
+            <Image
+              src={item.cover_image_url}
+              alt={item.cover_image_alt || item.title}
+              fill
+              sizes="(max-width: 640px) 100vw, 200px"
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          </Link>
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-text-muted">
-            <Newspaper size={32} />
+          <div className="hidden sm:flex w-44 md:w-48 aspect-video rounded-lg bg-surface-soft items-center justify-center text-text-muted shrink-0">
+            <Newspaper size={28} />
           </div>
         )}
-        <Badge
-          color="blue"
-          variant="filled"
-          size="sm"
-          className="absolute top-2.5 left-2.5 font-medium"
-        >
-          Bài viết
-        </Badge>
       </div>
 
-      <div className="flex flex-col flex-1">
-        <Text size="xs" c="dimmed" mb={6}>
-          {formatDate(item.published_at)}
-        </Text>
-
-        <Text
-          fw={600}
-          size="md"
-          className="text-text-app line-clamp-2 group-hover:text-brand transition-colors mb-1.5"
+      {/* Card Footer */}
+      <div className="flex items-center justify-between pt-2 border-t border-border-app/60 text-xs">
+        <div className="flex items-center gap-2">
+          <Badge color="blue" variant="light" size="xs" radius="xs" className="font-semibold uppercase tracking-wider text-[10px]">
+            Bài viết
+          </Badge>
+        </div>
+        <Link
+          href={`/news/${item.slug}`}
+          className="text-xs text-brand font-medium hover:underline"
         >
-          {item.title}
-        </Text>
-
-        {item.excerpt && (
-          <Text size="sm" c="dimmed" className="line-clamp-2 mt-auto">
-            {item.excerpt}
-          </Text>
-        )}
+          Đọc tiếp
+        </Link>
       </div>
-    </Card>
+    </article>
   );
 }
