@@ -109,31 +109,32 @@ export function AdminNewsManager() {
     <div className="space-y-4">
       {/* Top action & filter bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <Group gap="xs" wrap="wrap">
+        <Group gap="sm" wrap="wrap">
           <Select
-            size="xs"
             placeholder="Loại nội dung"
             data={[{ value: '', label: 'Tất cả loại' }, { value: 'article', label: 'Bài viết' }, { value: 'video', label: 'Video' }]}
             value={type ?? ''}
             onChange={(val) => { setType(val || null); setPage(1); }}
             clearable
-            className="w-32"
+            radius="md"
+            style={{ width: 170 }}
           />
           <Select
-            size="xs"
             placeholder="Trạng thái"
             data={[{ value: '', label: 'Tất cả trạng thái' }, { value: 'draft', label: 'Bản nháp' }, { value: 'published', label: 'Đã xuất bản' }]}
             value={status ?? ''}
             onChange={(val) => { setStatus(val || null); setPage(1); }}
             clearable
-            className="w-36"
+            radius="md"
+            style={{ width: 180 }}
           />
           <Select
-            size="xs"
+            placeholder="Sắp xếp"
             data={[{ value: 'newest', label: 'Mới cập nhật' }, { value: 'oldest', label: 'Cũ nhất' }]}
             value={sort ?? 'newest'}
             onChange={(val) => setSort(val || 'newest')}
-            className="w-32"
+            radius="md"
+            style={{ width: 170 }}
           />
         </Group>
 

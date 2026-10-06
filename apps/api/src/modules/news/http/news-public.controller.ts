@@ -12,7 +12,7 @@ export async function getPublicNewsListHandler(c: Context) {
     const query = PublicNewsListQuerySchema.parse(rawQuery);
     const result = await getPublicNewsListUseCase(query);
 
-    c.header('Cache-Control', 'public, max-age=0, must-revalidate, no-store');
+    c.header('Cache-Control', 'public, max-age=60, s-maxage=60, stale-while-revalidate=300');
     return c.json(result);
   } catch (error: unknown) {
     return handleError(c, error);
@@ -24,7 +24,7 @@ export async function getPublicArticleDetailHandler(c: Context) {
     const slug = c.req.param('slug') || '';
     const result = await getPublicArticleDetailUseCase(slug);
 
-    c.header('Cache-Control', 'public, max-age=0, must-revalidate, no-store');
+    c.header('Cache-Control', 'public, max-age=60, s-maxage=60, stale-while-revalidate=300');
     return c.json(result);
   } catch (error: unknown) {
     return handleError(c, error);
