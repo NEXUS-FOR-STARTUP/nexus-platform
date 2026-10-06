@@ -1,7 +1,7 @@
 ---
 title: "Nexus News Content Management"
 description: "Deliver secure article and YouTube publishing, a responsive public News experience, and desktop-only admin management."
-status: pending
+status: complete
 priority: P1
 effort: 72h
 branch: dev
@@ -41,11 +41,11 @@ flowchart LR
 
 | Phase | Name | Depends on | Effort | Status |
 |---|---|---|---:|---|
-| 1 | [Contracts and Database Foundation](./phase-01-contracts-database-foundation.md) | DB safety confirmations | 14h | Pending |
-| 2 | [News API and Security](./phase-02-news-api-and-security.md) | Phase 1 | 20h | Pending |
-| 3 | [Public News Experience](./phase-03-public-news-experience.md) | Phase 2 | 14h | Pending |
-| 4 | [Admin News Management](./phase-04-admin-news-management.md) | Phase 2 | 18h | Pending |
-| 5 | [Integration, Verification, and Docs](./phase-05-integration-verification-and-docs.md) | Phases 3 and 4 | 6h | Pending |
+| 1 | [Contracts and Database Foundation](./phase-01-contracts-database-foundation.md) | DB safety confirmations | 14h | Complete |
+| 2 | [News API and Security](./phase-02-news-api-and-security.md) | Phase 1 | 20h | Complete |
+| 3 | [Public News Experience](./phase-03-public-news-experience.md) | Phase 2 | 14h | Complete |
+| 4 | [Admin News Management](./phase-04-admin-news-management.md) | Phase 2 | 18h | Complete |
+| 5 | [Integration, Verification, and Docs](./phase-05-integration-verification-and-docs.md) | Phases 3 and 4 | 6h | Complete |
 
 ## Execution
 

@@ -10,7 +10,7 @@
 ## Overview
 
 - **Priority:** P1
-- **Status:** Pending
+- **Status:** Complete
 - **Depends on:** Phase 02 stable public API
 - **Parallel with:** Phase 04
 - **Output:** Responsive `/news` and article detail, News navigation, safe renderer, basic metadata.

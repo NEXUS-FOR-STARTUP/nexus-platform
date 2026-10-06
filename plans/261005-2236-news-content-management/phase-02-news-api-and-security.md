@@ -9,7 +9,7 @@
 ## Overview
 
 - **Priority:** P1
-- **Status:** Pending
+- **Status:** Complete
 - **Depends on:** Phase 01 contracts and approved database foundation
 - **Output:** Public/admin News endpoints, authorization, persistence/use cases, Cloudinary lifecycle, focused API tests.
 

@@ -10,7 +10,7 @@
 ## Overview
 
 - **Priority:** P1
-- **Status:** Pending; blocked until DB safety gates pass
+- **Status:** Complete
 - **Depends on:** Explicit user confirmations and usable backup
 - **Output:** One additive model, shared schemas/constants, explicit editor dependencies. No database command is part of planning.
 

@@ -9,7 +9,7 @@
 ## Overview
 
 - **Priority:** P1
-- **Status:** Pending
+- **Status:** Complete
 - **Depends on:** Phase 02 stable admin API
 - **Parallel with:** Phase 03
 - **Output:** Isolated desktop News list, create/edit routes, TipTap editor, cover and publication workflow.

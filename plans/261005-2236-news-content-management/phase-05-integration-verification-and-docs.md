@@ -13,7 +13,7 @@
 ## Overview
 
 - **Priority:** P1
-- **Status:** Pending
+- **Status:** Complete
 - **Depends on:** Phases 03 and 04 complete
 - **Output:** One integrated verification pass, human-run DB/deployment handoff, two canonical doc updates, and one News requirements document.
 - **Ownership rule:** Docs only. No source/schema/config/migration edits; discovered defects return to the owning phase.
