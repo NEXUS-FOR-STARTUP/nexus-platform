@@ -17,8 +17,10 @@ import {
   Text,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { useSession } from "@/lib/auth-client";
 import ThemeToggler from "../ui/ThemeToggler";
 import Logo from "../ui/Logo";
+import UserMenu from "./_components/UserMenu";
 
 const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -59,6 +61,18 @@ export default function AppShell({ children }: AppShellProps) {
   const isNewsActive = pathname?.startsWith("/news");
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =
     useDisclosure(false);
+  const { data: sessionData, isPending } = useSession();
+
+  const user = sessionData?.user
+    ? (sessionData.user as typeof sessionData.user & { role?: string })
+    : undefined;
+
+  const getDashboardLink = () => {
+    if (user?.role === "admin") return "/admin";
+    if (user?.role === "supporter") return "/supporter";
+    if (user?.role === "writer") return "/writer";
+    return "/dashboard";
+  };
 
 
 
@@ -105,21 +119,40 @@ export default function AppShell({ children }: AppShellProps) {
             {/* Desktop Actions */}
             <Group visibleFrom="md" gap={12}>
               <ThemeToggler />
-              <Button
-                component={Link}
-                href="/auth"
-                color="brand"
-                radius="md"
-                size="sm"
-                className="font-semibold font-body"
-              >
-                Đăng nhập
-              </Button>
+              {!isPending &&
+                (user ? (
+                  <div className="flex items-center gap-3">
+                    <Button
+                      component={Link}
+                      href={getDashboardLink()}
+                      variant="light"
+                      color="brand"
+                      radius="md"
+                      size="sm"
+                      className="font-semibold font-body"
+                    >
+                      Vào Dashboard
+                    </Button>
+                    <UserMenu />
+                  </div>
+                ) : (
+                  <Button
+                    component={Link}
+                    href="/auth"
+                    color="brand"
+                    radius="md"
+                    size="sm"
+                    className="font-semibold font-body"
+                  >
+                    Đăng nhập
+                  </Button>
+                ))}
             </Group>
 
             {/* Mobile Burger and Theme Toggle */}
             <Group hiddenFrom="md" gap={8}>
               <ThemeToggler />
+              {!isPending && user && <UserMenu />}
               <Burger
                 opened={drawerOpened}
                 onClick={toggleDrawer}
@@ -191,18 +224,34 @@ export default function AppShell({ children }: AppShellProps) {
 
             <Divider my="sm" />
 
-            <Button
-              component={Link}
-              href="/auth"
-              color="brand"
-              radius="md"
-              fullWidth
-              size="md"
-              onClick={closeDrawer}
-              className="font-semibold text-xs h-11"
-            >
-              Đăng nhập
-            </Button>
+            {!isPending &&
+              (user ? (
+                <Button
+                  component={Link}
+                  href={getDashboardLink()}
+                  color="brand"
+                  radius="md"
+                  fullWidth
+                  size="md"
+                  onClick={closeDrawer}
+                  className="font-semibold text-xs h-11"
+                >
+                  Vào Dashboard
+                </Button>
+              ) : (
+                <Button
+                  component={Link}
+                  href="/auth"
+                  color="brand"
+                  radius="md"
+                  fullWidth
+                  size="md"
+                  onClick={closeDrawer}
+                  className="font-semibold text-xs h-11"
+                >
+                  Đăng nhập
+                </Button>
+              ))}
           </nav>
         </ScrollArea>
       </Drawer>
