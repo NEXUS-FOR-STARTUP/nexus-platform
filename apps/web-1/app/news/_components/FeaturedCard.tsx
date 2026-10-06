@@ -39,9 +39,9 @@ function formatDate(isoString: string): string {
 
 function getCategoryTag(item: NewsItemPublicCard): string {
   if (item.category) {
-    return `${getNewsCategoryName(item.category).toUpperCase()} NỔI BẬT`;
+    return getNewsCategoryName(item.category).toUpperCase();
   }
-  return item.type === 'video' ? 'VIDEO NỔI BẬT' : 'KHỞI NGHIỆP NỔI BẬT';
+  return item.type === 'video' ? 'VIDEO' : 'KHỞI NGHIỆP';
 }
 
 export function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
