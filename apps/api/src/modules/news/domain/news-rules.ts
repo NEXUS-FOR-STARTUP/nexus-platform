@@ -33,13 +33,13 @@ export interface PublishableItem {
 export function validatePublishInvariants(item: PublishableItem): { ok: true } | { ok: false; error: string } {
   if (item.type === 'article') {
     if (!item.slug || item.slug.trim().length === 0) {
-      return { ok: false, error: 'Bài viết xuất bản bắt buộc phải có đường dẫn (slug)' };
+      return { ok: false, error: 'Bài viết xuất bản bắt buộc phải có đường dẫn tĩnh' };
     }
     if (!item.cover_image_url) {
       return { ok: false, error: 'Bài viết xuất bản bắt buộc phải có ảnh bìa' };
     }
     if (!item.cover_image_alt || item.cover_image_alt.trim().length === 0) {
-      return { ok: false, error: 'Bài viết xuất bản bắt buộc phải có mô tả ảnh bìa (alt)' };
+      return { ok: false, error: 'Bài viết xuất bản bắt buộc phải có mô tả ảnh bìa' };
     }
     if (!item.content_json) {
       return { ok: false, error: 'Bài viết xuất bản bắt buộc phải có nội dung' };

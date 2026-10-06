@@ -1010,6 +1010,8 @@ export const NEWS_CATEGORIES = [
   { slug: 'cong-nghe', name: 'Công nghệ & AI' },
   { slug: 'goc-nhin', name: 'Góc nhìn & Bài học' },
   { slug: 'san-pham', name: 'Sản phẩm & Tăng trưởng' },
+  { slug: 'huong-dan', name: 'Hướng dẫn' },
+  { slug: 'khac', name: 'Khác' },
 ] as const;
 
 export type NewsCategorySlug = (typeof NEWS_CATEGORIES)[number]['slug'];

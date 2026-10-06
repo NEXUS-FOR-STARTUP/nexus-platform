@@ -24,7 +24,7 @@ export function YouTubePreviewSection({ value, onChange, videoId, error }: YouTu
       />
       <div className="p-4 border border-border-app rounded-xl bg-surface-soft space-y-2">
         <Text size="xs" fw={600} c="dimmed">
-          Xem trước video YouTube {videoId ? `(ID: ${videoId})` : ''}
+          Xem trước video YouTube {videoId ? `mã ${videoId}` : ''}
         </Text>
         <div className="relative aspect-video w-full rounded-lg overflow-hidden border border-border-app bg-black flex items-center justify-center">
           {videoId ? (
@@ -104,7 +104,7 @@ export function ArticleCoverSection({
           {sourceType === 'upload' ? (
             <FileInput
               label="Chọn tệp ảnh từ máy"
-              placeholder="Chọn tệp ảnh (JPEG, PNG, WebP ≤ 5MB)"
+              placeholder="Chọn tệp ảnh định dạng JPEG, PNG, WebP tối đa 5MB"
               leftSection={<Upload size={16} />}
               value={file}
               onChange={(newFile) => {
@@ -152,9 +152,9 @@ export function ArticleCoverSection({
         </div>
 
         <TextInput
-          label="Mô tả ảnh bìa (Alt text)"
+          label="Mô tả ảnh bìa"
           withAsterisk={required}
-          placeholder="Mô tả ảnh cho người khiếm thị và SEO"
+          placeholder="Mô tả nội dung hình ảnh rõ ràng"
           value={alt}
           onChange={(e) => onAltChange(e.currentTarget.value)}
           maxLength={200}

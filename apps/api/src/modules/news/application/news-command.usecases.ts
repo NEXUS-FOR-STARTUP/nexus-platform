@@ -71,7 +71,7 @@ export async function updateNewsItemUseCase(actorId: string, id: string, input: 
 
   if (input.slug !== undefined && current.type === 'article') {
     if (isPublished && input.slug !== current.slug) {
-      throw new AppError(400, 'SLUG_IMMUTABLE', 'Không thể thay đổi đường dẫn (slug) của bài viết đã xuất bản');
+      throw new AppError(400, 'SLUG_IMMUTABLE', 'Không thể thay đổi đường dẫn tĩnh của bài viết đã xuất bản');
     }
     targetSlug = input.slug.trim() || null;
     if (targetSlug && targetSlug !== current.slug) {

@@ -75,7 +75,7 @@ export default function EditNewsItemPage({ params }: { params: Promise<{ id: str
     if (isPublished && item.type === 'article') {
       const hasCover = Boolean(coverFile) || Boolean(coverUrl.trim()) || Boolean(item.cover_image_url);
       if (!hasCover) errs.cover = 'Bài viết đã xuất bản phải có ảnh bìa';
-      if (!coverAlt.trim()) errs.alt = 'Bài viết đã xuất bản phải có mô tả ảnh bìa (alt)';
+      if (!coverAlt.trim()) errs.alt = 'Bài viết đã xuất bản phải có mô tả ảnh bìa';
       if (!contentJson) errs.content = 'Nội dung bài viết không được để trống';
     }
     if (Object.keys(errs).length > 0) { setErrors((p) => ({ ...p, ...errs })); notifications.show({ title: 'Lỗi nhập liệu', message: 'Vui lòng kiểm tra các trường bị báo đỏ', color: 'red' }); return null; }
@@ -128,10 +128,10 @@ export default function EditNewsItemPage({ params }: { params: Promise<{ id: str
     const errs: { title?: string; slug?: string; cover?: string; alt?: string; youtube?: string; content?: string } = {};
     if (!title.trim()) errs.title = 'Tiêu đề không được để trống';
     if (item.type === 'article') {
-      if (!slug.trim()) errs.slug = 'Đường dẫn (slug) không được để trống khi xuất bản';
+      if (!slug.trim()) errs.slug = 'Đường dẫn tĩnh không được để trống khi xuất bản';
       const hasCover = Boolean(coverFile) || Boolean(coverUrl.trim()) || Boolean(item.cover_image_url);
       if (!hasCover) errs.cover = 'Bài viết xuất bản bắt buộc phải có ảnh bìa';
-      if (!coverAlt.trim()) errs.alt = 'Bài viết xuất bản bắt buộc phải có mô tả ảnh bìa (alt)';
+      if (!coverAlt.trim()) errs.alt = 'Bài viết xuất bản bắt buộc phải có mô tả ảnh bìa';
       if (!contentJson) errs.content = 'Nội dung bài viết không được để trống';
     } else if (item.type === 'video') {
       if (!youtubeVideoId) errs.youtube = 'Video xuất bản bắt buộc phải có ID/URL YouTube hợp lệ';
@@ -184,20 +184,20 @@ export default function EditNewsItemPage({ params }: { params: Promise<{ id: str
               radius="md"
             />
             <TagsInput
-              label="Chủ đề / Tags"
-              description="Nhấn Enter để thêm tag (vd: KhởiNghiệp, AI, PMF)"
-              placeholder="Thêm tag..."
+              label="Chủ đề và thẻ"
+              description="Nhấn Enter để thêm thẻ, ví dụ KhởiNghiệp, AI, PMF"
+              placeholder="Thêm thẻ..."
               value={tags}
               onChange={setTags}
               maxTags={10}
               radius="md"
             />
           </div>
-          <Textarea label="Mô tả tóm tắt (Excerpt)" value={excerpt} onChange={(e) => setExcerpt(e.currentTarget.value)} maxLength={320} rows={3} />
+          <Textarea label="Tóm tắt nội dung" placeholder="Tóm tắt ngắn gọn hiển thị trên thẻ xem trước, tối đa 320 ký tự" value={excerpt} onChange={(e) => setExcerpt(e.currentTarget.value)} maxLength={320} rows={3} />
 
           {item.type === 'article' ? (
             <Stack gap="md">
-              <TextInput label="Đường dẫn tĩnh (Slug)" withAsterisk description={isPublished ? 'Bài viết đã xuất bản — đường dẫn đã cố định' : 'Đường dẫn định danh bài viết'} value={slug} disabled={isPublished} onChange={(e) => { setSlug(e.currentTarget.value); setErrors((p) => ({ ...p, slug: undefined })); }} maxLength={160} error={errors.slug} />
+              <TextInput label="Đường dẫn tĩnh" withAsterisk description={isPublished ? 'Bài viết đã xuất bản, đường dẫn đã cố định' : 'Đường dẫn định danh bài viết'} value={slug} disabled={isPublished} onChange={(e) => { setSlug(e.currentTarget.value); setErrors((p) => ({ ...p, slug: undefined })); }} maxLength={160} error={errors.slug} />
               <ArticleCoverSection
                 file={coverFile}
                 onFileChange={(f) => { setCoverFile(f); setErrors((p) => ({ ...p, cover: undefined })); }}
@@ -212,7 +212,7 @@ export default function EditNewsItemPage({ params }: { params: Promise<{ id: str
               />
               <div>
                 <Text size="sm" fw={600} mb={2} className="text-text-app">Nội dung chi tiết <span className="text-red-500">*</span></Text>
-                <Text size="xs" c="dimmed" mb="xs">Soạn thảo bài viết trực tiếp (tiêu đề H2/H3, in đậm, danh sách, liên kết).</Text>
+                <Text size="xs" c="dimmed" mb="xs">Soạn thảo bài viết trực tiếp gồm tiêu đề, in đậm, danh sách và liên kết.</Text>
                 <NewsRichTextEditor content={contentJson} onChange={(c) => { setContentJson(c); setErrors((p) => ({ ...p, content: undefined })); }} error={errors.content} />
               </div>
             </Stack>

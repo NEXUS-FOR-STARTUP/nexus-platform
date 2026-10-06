@@ -135,7 +135,7 @@ export default function NewNewsItemPage() {
           {/* Title */}
           <TextInput
             label="Tiêu đề"
-            placeholder="Nhập tiêu đề (tối đa 200 ký tự)"
+            placeholder="Nhập tiêu đề bài viết hoặc video, tối đa 200 ký tự"
             value={title}
             onChange={(e) => { handleTitleChange(e.currentTarget.value); setErrors((p) => ({ ...p, title: undefined })); }}
             required
@@ -157,9 +157,9 @@ export default function NewNewsItemPage() {
               radius="md"
             />
             <TagsInput
-              label="Chủ đề / Tags"
-              description="Nhấn Enter để thêm tag (vd: KhởiNghiệp, AI, PMF)"
-              placeholder="Thêm tag..."
+              label="Chủ đề và thẻ"
+              description="Nhấn Enter để thêm thẻ, ví dụ KhởiNghiệp, AI, PMF"
+              placeholder="Thêm thẻ..."
               value={tags}
               onChange={setTags}
               maxTags={10}
@@ -169,8 +169,8 @@ export default function NewNewsItemPage() {
 
           {/* Excerpt */}
           <Textarea
-            label="Mô tả tóm tắt (Excerpt)"
-            placeholder="Mô tả ngắn gọn hiển thị trên thẻ xem trước (tối đa 320 ký tự)"
+            label="Tóm tắt nội dung"
+            placeholder="Mô tả ngắn gọn hiển thị trên thẻ xem trước, tối đa 320 ký tự"
             value={excerpt}
             onChange={(e) => setExcerpt(e.currentTarget.value)}
             maxLength={320}
@@ -181,9 +181,9 @@ export default function NewNewsItemPage() {
           {type === 'article' ? (
             <Stack gap="md">
               <TextInput
-                label="Đường dẫn tĩnh (Slug)"
+                label="Đường dẫn tĩnh"
                 withAsterisk
-                description="Tự động tạo từ tiêu đề hoặc tùy chỉnh"
+                description="Tự động tạo từ tiêu đề hoặc nhập tùy chỉnh"
                 value={slug}
                 onChange={(e) => {
                   setSlug(e.currentTarget.value);
@@ -207,7 +207,7 @@ export default function NewNewsItemPage() {
                   Nội dung chi tiết <span className="text-red-500">*</span>
                 </Text>
                 <Text size="xs" c="dimmed" mb="xs">
-                  Soạn thảo bài viết trực tiếp (tiêu đề H2/H3, in đậm, danh sách, liên kết).
+                  Soạn thảo bài viết trực tiếp gồm tiêu đề, in đậm, danh sách và liên kết.
                 </Text>
                 <NewsRichTextEditor content={contentJson} onChange={setContentJson} />
               </div>

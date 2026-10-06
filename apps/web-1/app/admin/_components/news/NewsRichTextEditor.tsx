@@ -143,7 +143,7 @@ export function NewsRichTextEditor({
             withAsterisk
           />
           <TextInput
-            label="Mô tả ảnh / Chú thích (Alt text)"
+            label="Mô tả hình ảnh hoặc chú thích"
             placeholder="Ví dụ: Đồ thị tăng trưởng người dùng 2025"
             value={imageAlt}
             onChange={(e) => setImageAlt(e.currentTarget.value)}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Table, Badge, Menu, ActionIcon, Text } from '@mantine/core';
@@ -166,7 +166,7 @@ export function NewsTable({
                           disabled={isPublished}
                           onClick={() => setDeleteTarget(item)}
                         >
-                          {isPublished ? 'Xóa (cần hủy xuất bản)' : 'Xóa bài'}
+                          {isPublished ? 'Cần hủy xuất bản trước khi xóa' : 'Xóa bài'}
                         </Menu.Item>
                       </Menu.Dropdown>
                     </Menu>
