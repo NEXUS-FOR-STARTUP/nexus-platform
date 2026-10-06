@@ -94,8 +94,8 @@ export function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
         {/* Featured Info bên phải */}
         <div className="flex-1 flex flex-col justify-between w-full">
           <div>
-            {/* Tag/Phân loại: góc trên bên trái, 12px-13px */}
-            <span className="text-xs sm:text-[13px] text-text-muted uppercase font-medium tracking-wide mb-2 block">
+            {/* Tag/Phân loại: góc trên bên trái, 16px */}
+            <span className="text-[16px] text-text-muted uppercase font-medium tracking-wide mb-2 block">
               {categoryTag}
             </span>
 
@@ -106,28 +106,28 @@ export function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
             </Link>
 
             {item.excerpt && (
-              <p className="text-base text-text-app/75 line-clamp-3 leading-relaxed mb-4">
+              <p className="text-[15px] sm:text-[16px] text-text-app/75 line-clamp-3 leading-relaxed mb-4">
                 {item.excerpt}
               </p>
             )}
           </div>
 
-          {/* Profile và ngày đăng ở dưới description */}
-          <div className="flex items-center gap-2 pt-2 text-xs sm:text-sm text-text-muted">
+          {/* Profile và ngày đăng ở dưới description: 16px */}
+          <div className="flex items-center gap-2.5 pt-2 text-[16px] text-text-muted">
             <Avatar
               src={item.author_avatar_url}
               color={isVideo ? 'red' : 'blue'}
               radius="xl"
-              size="xs"
-              className="font-bold shrink-0"
+              size={32}
+              className="font-bold shrink-0 text-xs"
             >
               {authorInitials}
             </Avatar>
-            <span className="font-semibold text-text-app truncate">
+            <span className="font-semibold text-text-app truncate text-[16px] leading-none">
               {authorName}
             </span>
-            <span>•</span>
-            <span className="shrink-0">
+            <span className="leading-none">•</span>
+            <span className="shrink-0 text-[16px] leading-none">
               {formatDate(item.published_at)}
             </span>
           </div>

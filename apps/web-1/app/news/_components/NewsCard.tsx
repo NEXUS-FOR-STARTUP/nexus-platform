@@ -82,8 +82,8 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
           {/* Cột nội dung bên phải */}
           <div className="flex-1 flex flex-col justify-between min-w-0">
             <div>
-              {/* Tag/Phân loại: góc trên bên trái, 12px (text-xs) */}
-              <span className="text-xs text-text-muted uppercase font-medium tracking-wide mb-1.5 block">
+              {/* Tag/Phân loại: góc trên bên trái, 16px */}
+              <span className="text-[16px] text-text-muted uppercase font-medium tracking-wide mb-1.5 block">
                 {categoryTag}
               </span>
 
@@ -93,31 +93,31 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
                 rel="noopener noreferrer"
                 className="block"
               >
-                <h3 className="text-lg sm:text-xl font-bold text-text-app group-hover:text-brand transition-colors line-clamp-2 leading-snug mb-2">
+                <h3 className="text-[18px] sm:text-[20px] font-bold text-text-app group-hover:text-brand transition-colors line-clamp-2 leading-snug mb-2">
                   {item.title}
                 </h3>
               </a>
               {item.excerpt && (
-                <p className="text-sm text-text-app/75 line-clamp-2 leading-relaxed mb-3">
+                <p className="text-[16px] text-text-app/75 line-clamp-2 leading-relaxed mb-3">
                   {item.excerpt}
                 </p>
               )}
             </div>
 
-            {/* Profile và ngày đăng ở dưới description */}
-            <div className="flex items-center gap-2 pt-2 text-xs text-text-muted">
+            {/* Profile và ngày đăng ở dưới description: 16px */}
+            <div className="flex items-center gap-2.5 pt-2 text-[16px] text-text-muted">
               <Avatar
                 src={item.author_avatar_url}
                 color="red"
                 radius="xl"
-                size="xs"
-                className="font-bold shrink-0"
+                size={32}
+                className="font-bold shrink-0 text-xs"
               >
                 {authorInitials}
               </Avatar>
-              <span className="font-semibold text-text-app truncate max-w-[140px]">{authorName}</span>
-              <span>•</span>
-              <span className="shrink-0">{formatDate(item.published_at)}</span>
+              <span className="font-semibold text-text-app truncate max-w-[140px] text-[16px] leading-none">{authorName}</span>
+              <span className="leading-none">•</span>
+              <span className="shrink-0 text-[16px] leading-none">{formatDate(item.published_at)}</span>
             </div>
           </div>
         </div>
@@ -151,37 +151,37 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
         {/* Cột nội dung bên phải */}
         <div className="flex-1 flex flex-col justify-between min-w-0">
           <div>
-            {/* Tag/Phân loại: góc trên bên trái, 12px (text-xs) */}
-            <span className="text-xs text-text-muted uppercase font-medium tracking-wide mb-1.5 block">
+            {/* Tag/Phân loại: góc trên bên trái, 16px */}
+            <span className="text-[16px] text-text-muted uppercase font-medium tracking-wide mb-1.5 block">
               {categoryTag}
             </span>
 
             <Link href={`/news/${item.slug}`} className="block">
-              <h3 className="text-lg sm:text-xl font-bold text-text-app group-hover:text-brand transition-colors line-clamp-2 leading-snug mb-2">
+              <h3 className="text-[18px] sm:text-[20px] font-bold text-text-app group-hover:text-brand transition-colors line-clamp-2 leading-snug mb-2">
                 {item.title}
               </h3>
             </Link>
             {item.excerpt && (
-              <p className="text-sm text-text-app/75 line-clamp-2 leading-relaxed mb-3">
+              <p className="text-[16px] text-text-app/75 line-clamp-2 leading-relaxed mb-3">
                 {item.excerpt}
               </p>
             )}
           </div>
 
-          {/* Profile và ngày đăng ở dưới description */}
-          <div className="flex items-center gap-2 pt-2 text-xs text-text-muted">
+          {/* Profile và ngày đăng ở dưới description: 16px */}
+          <div className="flex items-center gap-2.5 pt-2 text-[16px] text-text-muted">
             <Avatar
               src={item.author_avatar_url}
               color="blue"
               radius="xl"
-              size="xs"
-              className="font-bold shrink-0"
+              size={32}
+              className="font-bold shrink-0 text-xs"
             >
               {authorInitials}
             </Avatar>
-            <span className="font-semibold text-text-app truncate max-w-[140px]">{authorName}</span>
-            <span>•</span>
-            <span className="shrink-0">{formatDate(item.published_at)}</span>
+            <span className="font-semibold text-text-app truncate max-w-[140px] text-[16px] leading-none">{authorName}</span>
+            <span className="leading-none">•</span>
+            <span className="shrink-0 text-[16px] leading-none">{formatDate(item.published_at)}</span>
           </div>
         </div>
       </div>
