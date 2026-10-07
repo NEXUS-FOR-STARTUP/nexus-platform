@@ -64,3 +64,4 @@ Sau khi xác minh, ghi 1 dòng theo format trên (ví dụ: `2026-08-03 HH:MM | 
 | 2026-10-06 20:03 | 971cda3 | staging | Merge branch 'dev' of https://github.com/NEXUS-FOR-STARTUP/nexus-platform into staging | 🔵 api 🟢 web |
 | 2026-10-06 21:24 | 2da8d82 | staging | fix(api): change file logging from prependToFile to append-only stream | 🔵 api |
 | 2026-10-06 21:51 | 849b34e | staging | feat(web-1): add articles nav to dashboard and sync auth state in app shell | 🟢 web |
+| 2026-10-08 00:30 | 142fd9b | staging | fix(web-1): responsive thanh tim kiem news tren mobile | 🟢 web |
