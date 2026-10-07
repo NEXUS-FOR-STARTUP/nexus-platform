@@ -59,6 +59,7 @@ nul
 .claude/worktrees/
 # Scratch file
 note.txt
+.pi/
 
 # SQLite temporary files
 *.db-wal
@@ -74,3 +75,4 @@ apps/api/storage/
 data/postgres/
 **/.bin/
 .pi
+.tmp

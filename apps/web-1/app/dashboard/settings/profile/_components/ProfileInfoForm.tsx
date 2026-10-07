@@ -19,9 +19,10 @@ interface ProfileInfoFormProps {
     image?: string | null;
   };
   refetch: () => Promise<void>;
+  hideDangerZone?: boolean;
 }
 
-export default function ProfileInfoForm({ user, refetch }: ProfileInfoFormProps) {
+export default function ProfileInfoForm({ user, refetch, hideDangerZone = false }: ProfileInfoFormProps) {
   const { updateName, changeAvatar, deleteAccount } = useProfileMutations();
   const [deleteModalOpened, { open: openDeleteModal, close: closeDeleteModal }] = useDisclosure(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -144,35 +145,39 @@ export default function ProfileInfoForm({ user, refetch }: ProfileInfoFormProps)
       </form>
       </Paper>
 
-      <Paper p="xl" radius="md" className="bg-surface-app border border-red-500/30">
-        <Stack gap="md">
-          <Group gap="xs">
-            <AlertTriangle className="w-5 h-5 text-red-500" />
-            <Text fw={600} size="sm" c="red" className="font-heading">
-              Vùng nguy hiểm
-            </Text>
-          </Group>
-          <Text size="xs" c="dimmed">
-            Xóa tài khoản của bạn và toàn bộ thông tin cá nhân. Hành động này không thể hoàn tác.
-          </Text>
-          <Button
-            color="red"
-            variant="light"
-            leftSection={<Trash2 className="w-4 h-4" />}
-            onClick={openDeleteModal}
-            className="self-start"
-          >
-            Xóa tài khoản
-          </Button>
-        </Stack>
-      </Paper>
+      {!hideDangerZone && (
+        <>
+          <Paper p="xl" radius="md" className="bg-surface-app border border-red-500/30">
+            <Stack gap="md">
+              <Group gap="xs">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+                <Text fw={600} size="sm" c="red" className="font-heading">
+                  Vùng nguy hiểm
+                </Text>
+              </Group>
+              <Text size="xs" c="dimmed">
+                Xóa tài khoản của bạn và toàn bộ thông tin cá nhân. Hành động này không thể hoàn tác.
+              </Text>
+              <Button
+                color="red"
+                variant="light"
+                leftSection={<Trash2 className="w-4 h-4" />}
+                onClick={openDeleteModal}
+                className="self-start"
+              >
+                Xóa tài khoản
+              </Button>
+            </Stack>
+          </Paper>
 
-      <DeleteAccountModal
-        opened={deleteModalOpened}
-        onClose={closeDeleteModal}
-        onConfirm={() => deleteAccount.mutate()}
-        loading={deleteAccount.isPending}
-      />
+          <DeleteAccountModal
+            opened={deleteModalOpened}
+            onClose={closeDeleteModal}
+            onConfirm={() => deleteAccount.mutate()}
+            loading={deleteAccount.isPending}
+          />
+        </>
+      )}
     </Stack>
   );
 }

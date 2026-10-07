@@ -6,7 +6,7 @@ import fs from 'node:fs'
  * Base Pino logger for Nexus API.
  *
  * - Timestamps in Asia/Ho_Chi_Minh (UTC+7)
- * - Combined.log + error.log: newest lines at TOP (prepend, not append)
+ * - Combined.log + error.log: append mode (rotated via logrotate copytruncate)
  * - Redacted: auth headers, passwords, tokens, secrets
  */
 const level = process.env.LOG_LEVEL ?? 'info'
@@ -19,16 +19,6 @@ function vietnamTimestamp(): string {
   const d = new Date()
   const vn = new Date(d.getTime() + 7 * 60 * 60 * 1000)
   return `,"time":"${vn.toISOString().replace('Z', '+07:00')}"`
-}
-
-/** Prepend a line to a file — newest line always at top */
-function prependToFile(filePath: string, line: string): void {
-  try {
-    const existing = fs.readFileSync(filePath, 'utf-8')
-    fs.writeFileSync(filePath, line + existing, 'utf-8')
-  } catch {
-    fs.writeFileSync(filePath, line, 'utf-8')
-  }
 }
 
 // --- Pino shared options ---
@@ -60,21 +50,23 @@ if (isDev) {
 
 const baseLogger = pino(pinoOpts, destination)
 
-// --- File logging — intercept at the logger level to prepend instead of append ---
+// --- File logging (append-only, rotated via logrotate copytruncate) ---
 if (!enableLoki) {
   fs.mkdirSync(logDir, { recursive: true })
-  const combinedPath = path.join(logDir, 'combined.log')
-  const errorPath = path.join(logDir, 'error.log')
+  const combinedStream = fs.createWriteStream(path.join(logDir, 'combined.log'), { flags: 'a' })
+  const errorStream = fs.createWriteStream(path.join(logDir, 'error.log'), { flags: 'a' })
+  combinedStream.on('error', () => {})
+  errorStream.on('error', () => {})
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const dest = destination as any
   const origWrite = dest.write.bind(dest)
-  dest.write = function (chunk: Buffer) {
-    const line = chunk.toString('utf-8')
-    prependToFile(combinedPath, line)
+  dest.write = function (chunk: Buffer | string) {
+    combinedStream.write(chunk)
     try {
+      const line = String(chunk)
       const parsed = JSON.parse(line)
-      if (parsed.level >= 50) prependToFile(errorPath, line)
+      if (parsed.level >= 50) errorStream.write(chunk)
     } catch { /* best-effort */ }
     return origWrite(chunk)
   }

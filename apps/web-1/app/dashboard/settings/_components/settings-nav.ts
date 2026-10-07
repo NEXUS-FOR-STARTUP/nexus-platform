@@ -15,7 +15,7 @@ const SETTINGS_NAV_SUB_ITEMS = [
 
 export function getSettingsNav(basePath: string): SettingsNavItem[] {
   return SETTINGS_NAV_SUB_ITEMS.filter(
-    (item) => !(basePath.startsWith("/supporter") && item.href === "/notifications"),
+    (item) => !(basePath !== "/dashboard/settings" && item.href === "/notifications"),
   ).map((item) => ({
     ...item,
     href: `${basePath}${item.href}`,
