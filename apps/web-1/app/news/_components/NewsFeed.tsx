@@ -49,19 +49,19 @@ export function NewsFeed({ data, currentType, currentCategory, currentTag, curre
     <Container size="lg" className="py-8 sm:py-12">
       {/* Top Search & Filter Bar */}
       <div className="mb-8">
-        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2.5 sm:gap-3 w-full">
+        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 sm:gap-3 w-full">
           <TextInput
             value={searchInput}
             onChange={(e) => setSearchInput(e.currentTarget.value)}
-            placeholder="Tìm kiếm bài viết, video chia sẻ theo tiêu đề..."
+            placeholder="Tìm kiếm bài viết, video chia sẻ..."
             size="lg"
             radius="md"
-            className="flex-1"
+            className="flex-1 min-w-0"
             classNames={{
               input:
-                'h-12 sm:h-14 text-base pl-11 sm:pl-12 pr-10 border-border-app focus:border-brand bg-surface-app shadow-none placeholder:text-text-muted/60',
+                'h-12 sm:h-14 text-sm sm:text-base pl-9 sm:pl-12 pr-4 sm:pr-10 border-border-app focus:border-brand bg-surface-app shadow-none placeholder:text-text-muted/60',
             }}
-            leftSection={<Search size={20} className="text-text-muted ml-0.5" />}
+            leftSection={<Search className="w-4 h-4 sm:w-5 sm:h-5 text-text-muted ml-0.5" />}
             rightSection={
               searchInput ? (
                 <ActionIcon
@@ -76,113 +76,158 @@ export function NewsFeed({ data, currentType, currentCategory, currentTag, curre
               ) : null
             }
           />
+
+          {/* Desktop Filter Button */}
           <Button
             type="button"
+            visibleFrom="sm"
             variant={activeFilterCount > 0 ? 'light' : 'default'}
             color={activeFilterCount > 0 ? 'brand' : 'gray'}
             size="lg"
             radius="md"
             onClick={handleOpenFilter}
             leftSection={<SlidersHorizontal size={17} />}
-            className="h-12 sm:h-14 px-3.5 sm:px-4 text-sm sm:text-base font-medium shadow-none whitespace-nowrap border-border-app text-text-app hover:bg-surface-soft shrink-0"
+            className="h-14 px-4 text-base font-medium shadow-none whitespace-nowrap border-border-app text-text-app hover:bg-surface-soft shrink-0"
           >
             Bộ lọc{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
           </Button>
 
+          {/* Mobile Search Button */}
           <Button
             type="submit"
+            hiddenFrom="sm"
             size="lg"
             radius="md"
             color="brand"
-            className="h-12 sm:h-14 px-5 sm:px-7 text-sm sm:text-base font-semibold shadow-none whitespace-nowrap shrink-0"
+            aria-label="Tìm kiếm"
+            className="h-12 w-12 p-0 shadow-none shrink-0 flex items-center justify-center"
+          >
+            <Search size={20} />
+          </Button>
+
+          {/* Desktop Search Button */}
+          <Button
+            type="submit"
+            visibleFrom="sm"
+            size="lg"
+            radius="md"
+            color="brand"
+            className="h-14 px-7 text-base font-semibold shadow-none whitespace-nowrap shrink-0"
           >
             Tìm kiếm
           </Button>
         </form>
 
-        {/* Active Filter Tags */}
-        {(currentSearch || currentType || currentCategory || currentTag) && (
-          <div className="flex items-center gap-2 flex-wrap text-sm text-text-muted mt-3 px-1">
-            {currentSearch && (
-              <span>
-                Tìm kiếm: <strong className="text-text-app">"{currentSearch}"</strong>
+        {/* Row 2: Active Filter Tags & Mobile Filter Button */}
+        <div className="flex items-center justify-between gap-2 flex-wrap mt-3">
+          {/* Active Filter Tags */}
+          {currentSearch || currentType || currentCategory || currentTag ? (
+            <div className="flex items-center gap-2 flex-wrap text-sm text-text-muted">
+              {currentSearch && (
+                <span>
+                  Tìm kiếm: <strong className="text-text-app">"{currentSearch}"</strong>
+                </span>
+              )}
+              {currentType && (
+                <Badge
+                  variant="light"
+                  color="brand"
+                  size="md"
+                  radius="sm"
+                  className="text-xs font-semibold px-2.5 py-1"
+                  rightSection={
+                    <ActionIcon
+                      variant="transparent"
+                      color="brand"
+                      size="xs"
+                      onClick={handleRemoveTypeFilter}
+                      aria-label="Bỏ lọc loại nội dung"
+                    >
+                      <X size={13} />
+                    </ActionIcon>
+                  }
+                >
+                  {currentType === 'article' ? 'Bài viết' : currentType === 'video' ? 'Video' : currentType}
+                </Badge>
+              )}
+              {currentCategory && (
+                <Badge
+                  variant="light"
+                  color="blue"
+                  size="md"
+                  radius="sm"
+                  className="text-xs font-semibold px-2.5 py-1"
+                  rightSection={
+                    <ActionIcon
+                      variant="transparent"
+                      color="blue"
+                      size="xs"
+                      onClick={handleRemoveCategoryFilter}
+                      aria-label="Bỏ lọc chuyên mục"
+                    >
+                      <X size={13} />
+                    </ActionIcon>
+                  }
+                >
+                  Chuyên mục: {getNewsCategoryName(currentCategory)}
+                </Badge>
+              )}
+              {currentTag && (
+                <Badge
+                  variant="light"
+                  color="teal"
+                  size="md"
+                  radius="sm"
+                  className="text-xs font-semibold px-2.5 py-1"
+                  rightSection={
+                    <ActionIcon
+                      variant="transparent"
+                      color="teal"
+                      size="xs"
+                      onClick={handleRemoveTagFilter}
+                      aria-label="Bỏ lọc chủ đề"
+                    >
+                      <X size={13} />
+                    </ActionIcon>
+                  }
+                >
+                  Chủ đề: #{currentTag}
+                </Badge>
+              )}
+              <button
+                type="button"
+                onClick={handleClearAllFilters}
+                className="text-brand hover:underline font-medium text-xs cursor-pointer ml-1"
+              >
+                Xóa tất cả
+              </button>
+            </div>
+          ) : (
+            <div className="hidden sm:block" />
+          )}
+
+          {/* Mobile Filter Button (Bottom Right) */}
+          <Button
+            type="button"
+            hiddenFrom="sm"
+            variant={activeFilterCount > 0 ? 'light' : 'default'}
+            color={activeFilterCount > 0 ? 'brand' : 'gray'}
+            radius="md"
+            onClick={handleOpenFilter}
+            aria-label="Bộ lọc"
+            size="lg"
+            className={`ml-auto h-12 ${
+              activeFilterCount > 0 ? 'px-3' : 'w-12 p-0'
+            } text-sm font-medium shadow-none whitespace-nowrap border-border-app text-text-app hover:bg-surface-soft shrink-0 flex items-center justify-center`}
+          >
+            <SlidersHorizontal size={18} />
+            {activeFilterCount > 0 && (
+              <span className="ml-1.5 text-xs font-semibold text-brand">
+                {activeFilterCount}
               </span>
             )}
-            {currentType && (
-              <Badge
-                variant="light"
-                color="brand"
-                size="md"
-                radius="sm"
-                className="text-xs font-semibold px-2.5 py-1"
-                rightSection={
-                  <ActionIcon
-                    variant="transparent"
-                    color="brand"
-                    size="xs"
-                    onClick={handleRemoveTypeFilter}
-                    aria-label="Bỏ lọc loại nội dung"
-                  >
-                    <X size={13} />
-                  </ActionIcon>
-                }
-              >
-                {currentType === 'article' ? 'Bài viết' : currentType === 'video' ? 'Video' : currentType}
-              </Badge>
-            )}
-            {currentCategory && (
-              <Badge
-                variant="light"
-                color="blue"
-                size="md"
-                radius="sm"
-                className="text-xs font-semibold px-2.5 py-1"
-                rightSection={
-                  <ActionIcon
-                    variant="transparent"
-                    color="blue"
-                    size="xs"
-                    onClick={handleRemoveCategoryFilter}
-                    aria-label="Bỏ lọc chuyên mục"
-                  >
-                    <X size={13} />
-                  </ActionIcon>
-                }
-              >
-                Chuyên mục: {getNewsCategoryName(currentCategory)}
-              </Badge>
-            )}
-            {currentTag && (
-              <Badge
-                variant="light"
-                color="teal"
-                size="md"
-                radius="sm"
-                className="text-xs font-semibold px-2.5 py-1"
-                rightSection={
-                  <ActionIcon
-                    variant="transparent"
-                    color="teal"
-                    size="xs"
-                    onClick={handleRemoveTagFilter}
-                    aria-label="Bỏ lọc chủ đề"
-                  >
-                    <X size={13} />
-                  </ActionIcon>
-                }
-              >
-                Chủ đề: #{currentTag}
-              </Badge>
-            )}
-            <button
-              type="button"
-              onClick={handleClearAllFilters}
-              className="text-brand hover:underline font-medium text-xs cursor-pointer ml-1"
-            >
-              Xóa tất cả bộ lọc
-            </button>
-          </div>
-        )}
+          </Button>
+        </div>
 
         {/* Filter Modal */}
         <NewsFilterModal
