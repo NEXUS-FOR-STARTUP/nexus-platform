@@ -75,3 +75,4 @@ apps/api/storage/
 data/postgres/
 **/.bin/
 .pi
+.tmp

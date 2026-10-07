@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { disconnectCentrifugeClient } from "@/lib/realtime/centrifuge-client";
 import ThemeToggler from "../ui/ThemeToggler";
@@ -15,6 +16,8 @@ interface DashboardShellProps {
 
 export default function DashboardShell({ children }: DashboardShellProps) {
   const { data: sessionData, isPending } = useSession();
+  const pathname = usePathname();
+  const isNewsActive = pathname?.startsWith("/news");
 
   // Disconnect Centrifugo khi đổi tài khoản (connection token sub cũ ≠ session mới)
   const prevUserId = useRef<string | null>(null);
@@ -41,10 +44,26 @@ export default function DashboardShell({ children }: DashboardShellProps) {
     <div className="flex flex-col min-h-screen min-h-dvh bg-bg-app transition-colors duration-200">
       {/* Top Navbar */}
       <nav className="border-b border-border-app bg-surface-app sticky top-0 z-40 h-16 flex items-center gap-4 px-4 sm:px-6 lg:px-8 shadow-sm">
-        <div className="flex items-center gap-4 min-w-0">
+        <div className="flex items-center gap-6 sm:gap-8 min-w-0">
           <Link href={getHomeLink()} className="flex items-center shrink-0">
             <Logo height={62} />
           </Link>
+
+          <nav aria-label="Điều hướng chính" className="flex items-center">
+            <Link
+              href="/news"
+              className={`relative py-1 text-sm sm:text-base font-semibold transition-colors duration-200 group ${
+                isNewsActive ? "text-text-app" : "text-text-muted hover:text-text-app"
+              }`}
+            >
+              Bài viết
+              <span
+                className={`absolute left-0 -bottom-1 h-0.5 bg-brand transition-all duration-300 ease-out rounded-full ${
+                  isNewsActive ? "w-full" : "w-0 group-hover:w-full"
+                }`}
+              />
+            </Link>
+          </nav>
         </div>
 
         <div className="ml-auto flex items-center gap-4 shrink-0">

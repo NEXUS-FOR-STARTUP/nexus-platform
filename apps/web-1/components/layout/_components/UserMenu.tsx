@@ -9,6 +9,7 @@ import {
   CreditCard,
   Home,
   LogOut,
+  Newspaper,
   Settings,
   type LucideIcon,
 } from "lucide-react";
@@ -70,6 +71,7 @@ export default function UserMenu() {
 
   const options: UserMenuOption[] = [
     { href: getHomeLink(user.role), label: "Trang chủ", icon: Home },
+    { href: "/news", label: "Bài viết", icon: Newspaper },
     ...(isStudent
       ? [{ href: "/dashboard/wallet", label: "Ví của tôi", icon: CreditCard }]
       : []),
