@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Google_Sans_Flex } from "next/font/google";
+import { Google_Sans_Flex, Merriweather } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 import { ColorSchemeScript } from "@mantine/core";
@@ -7,6 +7,14 @@ import { ColorSchemeScript } from "@mantine/core";
 const googleSansFlex = Google_Sans_Flex({
   variable: "--font-google-sans-flex",
   subsets: ["latin", "vietnamese"],
+});
+
+const merriweather = Merriweather({
+  variable: "--font-merriweather",
+  weight: ["300", "400", "700", "900"],
+  style: ["normal", "italic"],
+  subsets: ["latin", "vietnamese"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -25,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
-      className={`${googleSansFlex.variable} h-full antialiased`}
+      className={`${googleSansFlex.variable} ${merriweather.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

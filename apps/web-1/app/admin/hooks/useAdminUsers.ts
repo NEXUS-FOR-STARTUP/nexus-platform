@@ -1,8 +1,7 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
-import { admin } from "@/lib/auth-client";
 
 interface UseAdminUsersParams {
   searchValue?: string;
@@ -20,22 +19,21 @@ export function useAdminUsers(params: UseAdminUsersParams = {}) {
   const usersQuery = useQuery({
     queryKey: ["admin-users", params],
     queryFn: async () => {
-      const result = await admin.listUsers({
-        query: {
-          searchValue: params.searchValue,
-          searchField: "name",
-          searchOperator: "contains",
-          limit: params.limit || 20,
+      const response = await apiClient.get("/admin/users", {
+        params: {
+          search: params.searchValue,
+          role: params.filterField === "role" ? params.filterValue : undefined,
+          banned: params.filterField === "banned" ? params.filterValue : undefined,
+          limit: params.limit || 10,
           offset: params.offset || 0,
-          sortBy: params.sortBy || "created_at",
+          sortBy: params.sortBy || "createdAt",
           sortDirection: params.sortDirection || "desc",
-          filterField: params.filterField,
-          filterValue: params.filterValue,
         },
       });
-      return result.data;
+      return response.data;
     },
-    refetchInterval: 10000,
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
   });
 
   const createUserMutation = useMutation({
@@ -72,11 +70,29 @@ export function useAdminUsers(params: UseAdminUsersParams = {}) {
     },
   });
 
+  const assignRoleMutation = useMutation({
+    mutationFn: async ({
+      userId,
+      role,
+    }: {
+      userId: string;
+      role: string;
+    }) => {
+      const res = await apiClient.patch(`/admin/users/${userId}/role`, { role });
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
+
   return {
     users: usersQuery.data?.users || [],
     total: usersQuery.data?.total || 0,
     isLoading: usersQuery.isLoading,
+    isFetching: usersQuery.isFetching,
     error: usersQuery.error,
+    refetch: usersQuery.refetch,
 
     createUser: createUserMutation.mutateAsync,
     isCreating: createUserMutation.isPending,
@@ -86,5 +102,8 @@ export function useAdminUsers(params: UseAdminUsersParams = {}) {
 
     unbanUser: unbanUserMutation.mutateAsync,
     isUnbanning: unbanUserMutation.isPending,
+
+    assignRole: assignRoleMutation.mutateAsync,
+    isAssigningRole: assignRoleMutation.isPending,
   };
 }

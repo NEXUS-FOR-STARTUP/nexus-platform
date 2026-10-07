@@ -25,6 +25,18 @@
     "node": ">=18"
   },
   "packageManager": "bun@1.4.0",
+  "overrides": {
+    "prosemirror-model": "^1.25.12",
+    "prosemirror-view": "^1.42.3",
+    "prosemirror-state": "^1.4.4",
+    "prosemirror-transform": "^1.12.0"
+  },
+  "resolutions": {
+    "prosemirror-model": "^1.25.12",
+    "prosemirror-view": "^1.42.3",
+    "prosemirror-state": "^1.4.4",
+    "prosemirror-transform": "^1.12.0"
+  },
   "workspaces": [
     "apps/*",
     "packages/*"

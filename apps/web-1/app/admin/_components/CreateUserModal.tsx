@@ -92,6 +92,7 @@ export default function CreateUserModal({ isOpen, onClose, onConfirm, isSubmitti
           data={[
             { value: "user", label: "Student" },
             { value: "supporter", label: "Supporter" },
+            { value: "writer", label: "Writer" },
             { value: "admin", label: "Admin" },
           ]}
           radius="md"

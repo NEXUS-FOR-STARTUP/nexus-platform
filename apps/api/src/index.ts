@@ -23,6 +23,8 @@ import { orderRouter } from './modules/orders/infrastructure/http/order.routes.j
 import { depositRouter } from './modules/deposits/infrastructure/http/deposit.routes.js'
 import { profileRouter } from './modules/profile/http/profile.routes.js'
 import { authoringRouter } from './modules/authoring/http/authoring.routes.js'
+import { newsPublicRouter } from './modules/news/http/news-public.routes.js'
+import { newsAdminRouter } from './modules/news/http/news-admin.routes.js'
 import { registerNotificationListener } from './modules/notifications/application/notification-listener.js'
 import { startRelay } from './modules/notifications/application/notification-relay.js'
 import { startOutboxRelay, stopOutboxRelay } from "./shared/infrastructure/outbox-relay.js";
@@ -159,6 +161,7 @@ app.route('/api/payments', sepayRouter)
 app.route('/api/packages', packagesRouter)
 app.route('/api/ai-engine', aiEngineRouter)
 app.route('/api/admin', adminRouter)
+app.route('/api/writer/news', newsAdminRouter)
 app.route('/api/supporter', supporterRouter)
 app.route('/api/documents', documentsRouter)
 app.route('/api/notifications', notificationsRouter)
@@ -168,6 +171,7 @@ app.route('/api/orders', orderRouter)
 app.route('/api/deposits', depositRouter)
 app.route('/api/profile', profileRouter)
 app.route('/api/authoring', authoringRouter)
+app.route('/api/news', newsPublicRouter)
 
 // Global error handler — catches unhandled errors, no stack trace leak
 app.onError((err, c) => {

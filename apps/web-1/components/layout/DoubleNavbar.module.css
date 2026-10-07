@@ -63,16 +63,20 @@
 }
 
 .link {
-  display: block;
-  width: 100%;
-  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  min-height: 42px !important;
+  padding: 8px 12px !important;
   text-decoration: none;
-  font-size: var(--mantine-font-size-sm);
+  font-size: 16px !important;
+  line-height: 1.4 !important;
   color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-2));
-  border-radius: var(--mantine-radius-sm);
+  border-radius: 6px !important;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 150ms ease;
+  box-sizing: border-box !important;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
 .link:hover {
@@ -81,9 +85,9 @@
 }
 
 .link[data-active] {
-  background-color: light-dark(var(--mantine-color-blue-light), var(--mantine-color-blue-light-hover));
-  color: var(--mantine-color-blue-light-color);
-  font-weight: 600;
+  background-color: light-dark(var(--mantine-color-blue-light), var(--mantine-color-blue-light-hover)) !important;
+  color: var(--mantine-color-blue-light-color) !important;
+  font-weight: 600 !important;
 }
 
 .singleWidth {

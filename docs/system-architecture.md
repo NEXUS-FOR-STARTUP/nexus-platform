@@ -1,6 +1,6 @@
 # System Architecture
 
-_Cập nhật: 2026-10-04. Bám codebase hiện tại._
+_Cập nhật: 2026-10-06. Bám codebase hiện tại._
 
 ## 1. Mục tiêu tài liệu
 
@@ -10,14 +10,14 @@ Tài liệu này mô tả architecture hiện trạng phục vụ vận hành s�
 
 Nexus hiện là monorepo Turborepo với các vùng chính:
 - `apps/web-1`: product frontend Next.js 16 + Mantine UI v9 (port 3001)
-- `apps/api`: backend Hono + Better Auth + Prisma 7 (15 modules, 112 endpoints, port 8000)
+- `apps/api`: backend Hono + Better Auth + Prisma 7 (16 modules, 122 endpoints, port 8000)
 - `apps/worker-omp`: worker daemon Bun xử lý tác vụ AI nặng qua BullMQ + sandbox cô lập
 - `packages/shared`: `@app/shared` — module quản lý telemetry & metrics CPU/RAM/disk
 - `packages/validation`: Zod schemas & report naming helpers dùng chung (FE↔BE)
 - Redis: Message broker cho BullMQ (`omp-queue`), Pub/Sub real-time logs (`job:logs:*`), và kênh hủy job (`job-cancellation`)
 - Centrifugo v6: Realtime WebSocket message broker cho case chat (`chat:{caseId}`)
 
-Data model trung tâm nằm ở `prisma/schema.prisma` (32 models, 31 migrations), với auth, case, checkpoint, lifecycle unit, document record, report, payment, event, AI job, team-fit report, credit ledger, notification (Notification + NotificationPreference + NotificationOutbox), chat read state (CaseChatReadState), service catalog (ServiceType + ServicePricing), wallet (UserWallet + WalletTransaction + WalletTopup [deprecated]), deposit/order (Deposit + Order + OrderItem), và domain event outbox (DomainEventOutbox).
+Data model trung tâm nằm ở `prisma/schema.prisma` (33 models, 32 migrations), với auth, news (NewsItem), case, checkpoint, lifecycle unit, document record, report, payment, event, AI job, team-fit report, credit ledger, notification (Notification + NotificationPreference + NotificationOutbox), chat read state (CaseChatReadState), service catalog (ServiceType + ServicePricing), wallet (UserWallet + WalletTransaction + WalletTopup [deprecated]), deposit/order (Deposit + Order + OrderItem), và domain event outbox (DomainEventOutbox).
 
 ## 2.1 Sơ đồ kiến trúc (text-based)
 
@@ -37,16 +37,16 @@ Data model trung tâm nằm ở `prisma/schema.prisma` (32 models, 31 migrations
 ┌──────────────────────────┼────────────────────────────────────────────┐
 │  apps/api (Hono, Better Auth, Prisma 7, Typst PDF Engine)             │
 │  ┌──────────────────────────────────────────────────────────────────┐ │
-│  │ 15 Modules (Cases, Admin, Reports, Payments, Wallet,             │ │
+│  │ 16 Modules (Cases, Admin, News, Reports, Payments, Wallet,         │ │
 │  │ Deposits, Orders, Supporter, AI Engine, Profile, Realtime, etc.) │ │
-│  │ 112 Endpoints (108 module routes + 4 system routes)              │ │
+│  │ 122 Endpoints (118 module routes + 4 system routes)              │ │
 │  └──────────────┬──────────────────┬─────────────────┬──────────────┘ │
 │                 │ BullMQ Producer  │ Domain Events   │ Prisma         │
 └─────────────────┼──────────────────┼─────────────────┼────────────────┘
                   │                  │                 │
        ┌──────────┴──────────┐       │         ┌───────┴───────┐
        │   Redis 7           │       │         │  PostgreSQL   │
-       │  - omp-queue        │       │         │  (32 models)  │
+│         │  (33 models)  │
        │  - job:logs:*       │       │         │  - Outboxes   │
        │  - job-cancellation │       │         └───────────────┘
        └──────────┬──────────┘       │
@@ -306,6 +306,24 @@ Tham chiếu:
 - `apps/web-1/app/dashboard/case/[id]/_components/CreditQuantityModal.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/CreditTransactionHistory.tsx`
 - `apps/web-1/app/dashboard/case/[id]/_components/CreditBalanceCard.tsx`
+
+### 5.8 Quản lý tin tức & nội dung (News module)
+Hệ thống nội dung tin tức và chia sẻ kinh nghiệm khởi nghiệp đa kênh:
+- **Data model**: Bảng duy nhất `news_items` với trường phân biệt `type: "article" | "video"` và trạng thái `status: "draft" | "published"`. Không gắn foreign key cứng với bảng `User` để audit id (`created_by_auth_user_id`, `updated_by_auth_user_id`) không gây cascade lock khi thanh trừng tài khoản.
+- **Article (Bài viết)**: Định danh qua `slug` duy nhất, lưu cây TipTap JSON (closed grammar: heading level 2, 3, paragraph, lists, blockquote, horizontalRule, marks bold/italic/underline/strike/link với URL an toàn), ảnh bìa Cloudinary (JPEG/PNG/WebP ≤ 5MB) lưu `cover_image_url`, `cover_image_public_id`, `cover_image_alt`. Byline cố định public: `Nexus Team`.
+- **Video (YouTube)**: Chuẩn hóa và chỉ lưu YouTube Video ID 11 ký tự; thumbnail tự sinh trực tiếp từ `https://img.youtube.com/vi/<id>/hqdefault.jpg`; card mở liên kết ngoài sang YouTube với `target="_blank" rel="noopener noreferrer"`.
+- **API**: Hono module `apps/api/src/modules/news`:
+  - Public routes: `GET /api/news` (phân trang, lọc loại), `GET /api/news/:slug` (chi tiết). Headers: `Cache-Control: public, max-age=0, must-revalidate, no-store`.
+  - Admin routes: `GET /admin/news`, `GET /admin/news/:id`, `POST /admin/news`, `PUT /admin/news/:id`, `POST /admin/news/:id/cover`, `POST /admin/news/:id/publish`, `POST /admin/news/:id/unpublish`, `DELETE /admin/news/:id`. Guarded bởi `requireAdmin` và `verifyMutationOrigin`. Optimistic concurrency control qua `expected_updated_at`.
+- **Frontend**:
+  - Public: Next.js 16 Server Components (`/news`, `/news/[slug]`), responsive 390px, 768px, 1024px, 1440px. Format đọc bài viết cảm hứng từ Spiderum: header tiêu đề lớn + deck tóm tắt, hàng metadata `Nexus Team · DD/MM/YYYY · x phút đọc`, ảnh bìa rộng, thân bài co về chiều rộng đọc chuẩn 720px (`max-w-[720px] mx-auto`).
+  - Admin: Desktop-only tab `?tab=news` trong `/admin`, quản lý bảng lọc/trạng thái, trang soạn thảo riêng `/admin/news/new` và `/admin/news/[id]` tích hợp TipTap editor.
+
+Tham chiếu:
+- `apps/api/src/modules/news/`
+- `apps/web-1/app/news/`
+- `apps/web-1/app/admin/_components/news/`
+- `packages/validation/src/index.ts`
 - `apps/api/src/modules/payments/http/sepay.routes.ts`
 
 > Ghi chú: `PaymentDrawer` không còn tồn tại trong codebase — luồng thanh toán chuyển sang credit purchase.

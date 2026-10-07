@@ -16,9 +16,11 @@ import {
   updateServiceTypeHandler,
   getPricingHistoryHandler,
   setPricingHandler,
+  listAdminUsersHandler,
   createAdminUserHandler,
   banUserHandler,
   unbanUserHandler,
+  assignUserRoleHandler,
   exportAdminDataHandler,
 } from "./admin.controller.js";
 import {
@@ -31,6 +33,7 @@ import {
   cancelAdminWorkerJobHandler,
 } from "./admin-workers.controller.js";
 
+import { newsAdminRouter } from "../../news/http/news-admin.routes.js";
 
 export const adminRouter = new Hono();
 
@@ -58,9 +61,11 @@ adminRouter.patch("/service-types/:id", updateServiceTypeHandler);
 adminRouter.get("/packages/:id/pricing", getPricingHistoryHandler);
 adminRouter.post("/packages/:id/pricing", setPricingHandler);
 
+adminRouter.get("/users", listAdminUsersHandler);
 adminRouter.post("/users", createAdminUserHandler);
 adminRouter.post("/users/:id/ban", banUserHandler);
 adminRouter.post("/users/:id/unban", unbanUserHandler);
+adminRouter.patch("/users/:id/role", assignUserRoleHandler);
 
 // Worker & Queue Monitoring
 adminRouter.get("/workers/stats", getAdminWorkerStatsHandler);
@@ -70,3 +75,6 @@ adminRouter.get("/workers/jobs/:id/logs", getAdminWorkerJobLogsHandler);
 adminRouter.post("/workers/jobs/:id/retry", retryAdminWorkerJobHandler);
 adminRouter.post("/workers/jobs/:id/heal-stuck", healStuckAdminWorkerJobHandler);
 adminRouter.post("/workers/jobs/:id/cancel", cancelAdminWorkerJobHandler);
+
+// News Management
+adminRouter.route("/news", newsAdminRouter);
