@@ -99,11 +99,11 @@
 - **Nhập thông tin từ file** là thao tác riêng: hệ thống đề xuất nội dung theo câu hỏi (kèm nguồn trong file),
   user chọn phần muốn nhận; nội dung được nhận lưu thành **nháp**, không tự tick hoàn thành, không ghi đè câu đã có.
 
-## 7f. Sửa câu đầu vào thì câu phụ thuộc bị đánh dấu xem lại — ĐÃ CHỐT
+## 7f. Cơ chế phụ thuộc câu hỏi — CẬP NHẬT 2026-10-08 (Phương án Lai)
 
-- Không xoá nội dung, không tự bỏ tick câu phụ thuộc; gắn nhãn **"Cần xem lại"**.
-- User mở ra sửa hoặc xác nhận "Vẫn phù hợp"; nếu là câu bắt buộc thì phải xác nhận lại trước khi tạo tài liệu mới.
-- Chỉ áp dụng với quan hệ phụ thuộc đã cấu hình, không đoán bằng AI.
+- Giữ **khóa 1 chiều lúc tiến lên**: câu B phụ thuộc câu A thì câu B bị mờ/khóa nếu câu A chưa điền (để dắt tay sinh viên, chống ngợp).
+- **Bỏ hoàn toàn cơ chế "Cần xem lại" (needs_review)**: Khi user quay lại sửa câu A, câu B KHÔNG bị đánh dấu đỏ, KHÔNG bị vô hiệu hóa dây chuyền.
+- Chi tiết xem tại ADR: `reports/2026-10-08-architectural-decision-ponytail-simplification.md`.
 
 ## 7g. Đánh giá gắn với đúng phiên bản được gửi — ĐÃ CHỐT (Q12, 2026-10-05)
 
