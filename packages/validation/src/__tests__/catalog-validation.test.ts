@@ -1,7 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { cp1, cp2, validateCatalog, CATALOG_VERSION } from "../catalogs/index.js";
-import type { Template } from "../catalogs/types.js";
+import { cp1, cp2, validateCatalog, CATALOG_VERSION, type Template } from "../index.js";
 
 describe("Catalog validation (@repo/validation)", () => {
   it("validates the CP1 template", () => {

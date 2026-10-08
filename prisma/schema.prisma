@@ -355,6 +355,7 @@ model Case {
   credit_ledgers   CreditLedger[]
   notifications    Notification[]
   chat_read_states CaseChatReadState[]
+  project_answers  ProjectAnswer[]
 
   @@index([owner_auth_user_id])
   @@index([assigned_supporter_auth_user_id])
@@ -829,4 +830,18 @@ model NewsCommentReaction {
   @@index([comment_id, type])
   @@index([user_id])
   @@map("news_comment_reactions")
+}
+
+model ProjectAnswer {
+  id          String   @id @default(uuid())
+  case_id     String
+  question_id String
+  answer_text String   @db.Text
+  updated_at  DateTime @updatedAt
+
+  case Case @relation(fields: [case_id], references: [id], onDelete: Cascade)
+
+  @@unique([case_id, question_id])
+  @@index([case_id])
+  @@map("project_answers")
 }

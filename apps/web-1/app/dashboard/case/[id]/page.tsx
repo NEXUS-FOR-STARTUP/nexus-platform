@@ -20,6 +20,7 @@ import CaseOverviewPanel from "./_components/CaseOverviewPanel";
 import CreditQuantityModal from "./_components/CreditQuantityModal";
 import { PackageSelectionModal } from "@/app/dashboard/_components/PackageSelectionModal";
 import TabReportFindings from "./_components/TabReportFindings";
+import GuidedDocumentsWorkspace from "./_components/guided-documents/GuidedDocumentsWorkspace";
 import ActiveRadarScanning from "./_components/ActiveRadarScanning";
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
 import StudentDocumentUploadModal from "./_components/StudentDocumentUploadModal";
@@ -60,7 +61,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     await triggerAuditRaw({ submission_type: submissionType as "initial" | "resubmit" | "logic_check", lifecycle_unit_id: lifecycleUnitId });
   };
   const isAiPackage = caseData?.package_id === "pkg_ai_audit";
-  const VALID_WORKSPACE_TABS: WorkspaceTab[] = ["overview", "documents", "report", "discussion", "timeline", "settings", "credits"];
+  const VALID_WORKSPACE_TABS: WorkspaceTab[] = ["overview", "guided", "documents", "report", "discussion", "timeline", "settings", "credits"];
   const rawTabParam = searchParams.get("tab") as WorkspaceTab | null;
   const initialTab: WorkspaceTab = rawTabParam && VALID_WORKSPACE_TABS.includes(rawTabParam) ? rawTabParam : "overview";
   const [activeTab, setActiveTabState] = useState<WorkspaceTab>(initialTab);
@@ -212,6 +213,10 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                 onEditIntake={canEditIntake ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
               />
             </div>
+          )}
+
+          {activeTab === "guided" && (
+            <GuidedDocumentsWorkspace caseId={id} />
           )}
 
           {activeTab === "documents" && (

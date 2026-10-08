@@ -32,6 +32,12 @@ import {
   retryCaseAiAuditHandler,
 } from "./cases-ai.controller.js";
 import { downloadCaseReportPdfHandler } from "../../reports/http/reports.controller.js";
+import {
+  getAnswersHandler,
+  saveAnswersHandler,
+  importProposalHandler,
+  generateDocxHandler,
+} from "../../guided-documents/http/guided-documents.controller.js";
 
 export const casesRouter = new Hono();
 
@@ -66,3 +72,9 @@ casesRouter.get("/:id/ai-status", getCaseAiStatusHandler);
 casesRouter.get("/:id/ai-events", streamCaseAiEventsHandler);
 casesRouter.post("/:id/ai-cancel", cancelCaseAiAuditHandler);
 casesRouter.post("/:id/ai-retry", retryCaseAiAuditHandler);
+
+// Guided Documents (CP1/CP2)
+casesRouter.get("/:id/guided-documents/answers", getAnswersHandler);
+casesRouter.put("/:id/guided-documents/answers", saveAnswersHandler);
+casesRouter.post("/:id/guided-documents/import", importProposalHandler);
+casesRouter.post("/:id/guided-documents/generate", generateDocxHandler);
