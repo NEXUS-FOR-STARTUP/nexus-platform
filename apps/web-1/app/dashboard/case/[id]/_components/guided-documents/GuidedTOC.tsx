@@ -1,7 +1,11 @@
 "use client";
 
-import { CheckCircle2, Lock, Circle, ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { useMediaQuery } from "@mantine/hooks";
+import { CheckCircle2, Lock, Circle, ChevronRight, ChevronDown } from "lucide-react";
 import { QUESTION_REGISTRY, type Question, type Template } from "@repo/validation";
+
+const MOBILE_QUERY = "(max-width: 767px)";
 
 interface GuidedTOCProps {
   template: Template;
@@ -20,16 +24,38 @@ export default function GuidedTOC({
 }: GuidedTOCProps) {
   const questionIds = template.phases.flatMap((p) => p.questions.map((q) => q.question_id));
   const answeredCount = questionIds.filter((id) => answersMap[id]?.trim()).length;
+  const isMobile = useMediaQuery(MOBILE_QUERY);
+  // null = follow the viewport default (open on desktop, collapsed on phones); boolean = user's choice.
+  const [openedOverride, setOpenedOverride] = useState<boolean | null>(null);
+  const opened = openedOverride ?? !isMobile;
+
+  const handleSelect = (questionId: string) => {
+    onSelectQuestion(questionId);
+    if (isMobile) setOpenedOverride(false);
+  };
 
   return (
     <div className="w-full md:w-80 shrink-0 bg-surface-app border border-border-app rounded-xl p-4 flex flex-col gap-4">
-      <div className="flex items-center justify-between pb-3 border-b border-border-app">
-        <h3 className="font-semibold text-sm text-text-app">Mục lục</h3>
+      <button
+        type="button"
+        onClick={() => setOpenedOverride(!opened)}
+        aria-expanded={opened}
+        className={`flex items-center justify-between gap-2 cursor-pointer ${
+          opened ? "pb-3 border-b border-border-app" : ""
+        }`}
+      >
+        <span className="flex items-center gap-2">
+          <ChevronDown
+            className={`w-4 h-4 text-text-muted transition-transform ${opened ? "" : "-rotate-90"}`}
+          />
+          <span className="font-semibold text-sm text-text-app">Mục lục</span>
+        </span>
         <span className="text-xs text-text-muted">
           {answeredCount}/{questionIds.length} câu
         </span>
-      </div>
+      </button>
 
+      {opened && (
       <div className="flex flex-col gap-4 overflow-y-auto max-h-[600px] pr-1">
         {template.phases.map((phase, pIndex) => (
           <div key={phase.id} className="flex flex-col gap-1.5">
@@ -52,7 +78,7 @@ export default function GuidedTOC({
                     key={tq.question_id}
                     type="button"
                     disabled={!isUnlocked}
-                    onClick={() => onSelectQuestion(tq.question_id)}
+                    onClick={() => handleSelect(tq.question_id)}
                     className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium text-left transition-colors cursor-pointer ${
                       isActive
                         ? "bg-brand text-white font-semibold"
@@ -90,6 +116,7 @@ export default function GuidedTOC({
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 }

@@ -47,7 +47,7 @@ export default function GuidedQuestionCard({
   };
 
   return (
-    <div className="flex-1 bg-surface-app border border-border-app rounded-xl p-5 md:p-6 flex flex-col gap-6">
+    <div className="flex-1 min-w-0 w-full bg-surface-app border border-border-app rounded-xl p-4 sm:p-5 md:p-6 flex flex-col gap-5 md:gap-6">
       {/* Header & Question */}
       <div className="flex flex-col gap-2">
         <span className="text-xs font-semibold uppercase tracking-wider text-brand">
@@ -90,10 +90,11 @@ export default function GuidedQuestionCard({
       />
 
       {/* Actions */}
-      <div className="flex items-center justify-between pt-4 border-t border-border-app">
+      <div className="grid grid-cols-2 gap-2 pt-4 border-t border-border-app sm:flex sm:items-center">
         <Button
           variant="default"
           size="sm"
+          className="w-full sm:w-auto sm:order-1"
           disabled={!hasPrev}
           onClick={onNavigatePrev}
           leftSection={<ChevronLeft className="w-4 h-4" />}
@@ -101,12 +102,13 @@ export default function GuidedQuestionCard({
           Câu trước
         </Button>
 
-        <div className="flex items-center gap-2">
+        <div className="col-span-2 order-first flex items-center justify-between gap-3 sm:order-2 sm:ml-auto">
           {isDirty && <span className="text-xs text-amber-600 font-medium">Chưa lưu thay đổi</span>}
           <Button
             variant="filled"
             color="blue"
             size="sm"
+            className="ml-auto"
             loading={isSaving}
             disabled={!isDirty}
             onClick={handleSave}
@@ -114,17 +116,18 @@ export default function GuidedQuestionCard({
           >
             Lưu câu này
           </Button>
-
-          <Button
-            variant="default"
-            size="sm"
-            disabled={!hasNext}
-            onClick={onNavigateNext}
-            rightSection={<ChevronRight className="w-4 h-4" />}
-          >
-            Câu tiếp theo
-          </Button>
         </div>
+
+        <Button
+          variant="default"
+          size="sm"
+          className="w-full sm:w-auto sm:order-3"
+          disabled={!hasNext}
+          onClick={onNavigateNext}
+          rightSection={<ChevronRight className="w-4 h-4" />}
+        >
+          Câu tiếp theo
+        </Button>
       </div>
     </div>
   );
