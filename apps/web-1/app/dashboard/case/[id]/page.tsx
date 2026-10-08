@@ -168,31 +168,33 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               onVersionChange={() => {}}
               onSelectTab={(tab) => setActiveTab(tab)}
             />
-            <StatusGuidanceCard
-              caseData={caseData}
-              creditBalance={creditBalance}
-              openRequestsForMoreInfo={openRequestsForMoreInfo}
-              allowedTransitions={filteredTransitions}
-              onSelectTab={(tab) => setActiveTab(tab)}
-              onOpenPayment={
-                canBuyCredits &&
-                (isIntakePending || stage === "report_ready" || (stage === "submitted" && caseRequiresPayment(caseData)))
-                  ? () => {
-                      if (isCaseFree(caseData)) {
-                        setPackageSelectOpened(true);
-                      } else {
-                        setCreditBuyOpened(true);
+            {activeTab === "overview" && (
+              <StatusGuidanceCard
+                caseData={caseData}
+                creditBalance={creditBalance}
+                openRequestsForMoreInfo={openRequestsForMoreInfo}
+                allowedTransitions={filteredTransitions}
+                onSelectTab={(tab) => setActiveTab(tab)}
+                onOpenPayment={
+                  canBuyCredits &&
+                  (isIntakePending || stage === "report_ready" || (stage === "submitted" && caseRequiresPayment(caseData)))
+                    ? () => {
+                        if (isCaseFree(caseData)) {
+                          setPackageSelectOpened(true);
+                        } else {
+                          setCreditBuyOpened(true);
+                        }
                       }
-                    }
-                  : undefined
-              }
-              onOpenIntake={canOpenIntake ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
-              onSubmitRevision={() => setIsStudentUploadOpen(true)}
-              onConfirmComplete={confirmComplete}
-              isConfirmingComplete={isConfirmingComplete}
-              onTriggerAudit={triggerAudit}
-              isTriggeringAudit={isTriggering}
-            />
+                    : undefined
+                }
+                onOpenIntake={canOpenIntake ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
+                onSubmitRevision={() => setIsStudentUploadOpen(true)}
+                onConfirmComplete={confirmComplete}
+                isConfirmingComplete={isConfirmingComplete}
+                onTriggerAudit={triggerAudit}
+                isTriggeringAudit={isTriggering}
+              />
+            )}
           </>
         )}
 
