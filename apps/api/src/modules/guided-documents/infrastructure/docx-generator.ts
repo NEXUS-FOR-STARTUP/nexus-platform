@@ -70,7 +70,76 @@ export async function generateGuidedDocumentDocx(
     }),
   );
 
-  // 2. Iterate Phases & Questions
+  // 2. Table of Contents (Mục lục tài liệu)
+  children.push(
+    new Paragraph({
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 200, after: 150 },
+      children: [
+        new TextRun({
+          text: 'MỤC LỤC TÀI LIỆU',
+          bold: true,
+          size: 26, // 13pt
+          color: '1A365D',
+        }),
+      ],
+    }),
+  );
+
+  let tocPhaseIdx = 1;
+  for (const phase of template.phases) {
+    children.push(
+      new Paragraph({
+        spacing: { before: 120, after: 60 },
+        children: [
+          new TextRun({
+            text: `Phần ${tocPhaseIdx}: ${phase.title}`,
+            bold: true,
+            size: 22,
+            color: '2B6CB0',
+          }),
+        ],
+      }),
+    );
+
+    let tocQIdx = 1;
+    for (const tq of phase.questions) {
+      const q = questionsRecord[tq.question_id];
+      const qText = q ? q.text : tq.question_id;
+
+      children.push(
+        new Paragraph({
+          spacing: { after: 40 },
+          indent: { left: 280 },
+          children: [
+            new TextRun({
+              text: `${tocPhaseIdx}.${tocQIdx}. ${qText}`,
+              size: 20,
+              color: '4A5568',
+            }),
+          ],
+        }),
+      );
+      tocQIdx++;
+    }
+    tocPhaseIdx++;
+  }
+
+  children.push(
+    new Paragraph({
+      spacing: { before: 200, after: 400 },
+      border: {
+        bottom: {
+          style: BorderStyle.SINGLE,
+          size: 6,
+          color: 'E2E8F0',
+        },
+      },
+      children: [],
+    }),
+  );
+
+  // 3. Iterate Phases & Questions Details
   let phaseIndex = 1;
   for (const phase of template.phases) {
     children.push(
@@ -167,5 +236,5 @@ export async function generateGuidedDocumentDocx(
     ],
   });
 
-  return await Packer.toBuffer(doc);
+  return Packer.toBuffer(doc);
 }

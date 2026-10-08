@@ -79,12 +79,21 @@ export function useGuidedDocuments(caseId: string) {
         message: 'Đã xuất file DOCX và lưu vào danh sách tài liệu của hồ sơ.',
         color: 'teal',
       });
-      if (data?.document?.file_url && typeof data.document.file_url === 'string') {
+      const downloadTarget = data?.document?.download_url || data?.document?.file_url;
+      if (downloadTarget && typeof downloadTarget === 'string') {
+        const targetFilename =
+          data.document.canonical_name ||
+          data.document.original_name ||
+          `${templateKey.toUpperCase()}_guided_document.docx`;
+        const finalName = targetFilename.endsWith('.docx') ? targetFilename : `${targetFilename}.docx`;
+
         const link = document.createElement('a');
-        link.href = data.document.file_url;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
+        link.href = downloadTarget;
+        link.download = finalName;
+        // Never set target = '_blank'. The attachment header triggers direct file download in the current window without opening tabs.
+        document.body.append(link);
         link.click();
+        link.remove();
       }
     },
     onError: (err: any) => {

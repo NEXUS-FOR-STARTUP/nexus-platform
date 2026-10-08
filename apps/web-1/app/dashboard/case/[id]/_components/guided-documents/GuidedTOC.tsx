@@ -1,8 +1,7 @@
 "use client";
 
-import React from "react";
 import { CheckCircle2, Lock, Circle, ChevronRight } from "lucide-react";
-import type { Template } from "@repo/validation";
+import { QUESTION_REGISTRY, type Question, type Template } from "@repo/validation";
 
 interface GuidedTOCProps {
   template: Template;
@@ -41,6 +40,10 @@ export default function GuidedTOC({
                 const isUnlocked = isQuestionUnlocked(pIndex, qIndex);
                 const hasAnswer = (answersMap[tq.question_id]?.trim().length ?? 0) > 0;
                 const isActive = activeQuestionId === tq.question_id;
+                const questionMeta = (
+                  QUESTION_REGISTRY as Record<string, Question | undefined>
+                )[tq.question_id];
+                const questionTitle = questionMeta?.text || tq.question_id;
 
                 return (
                   <button
@@ -72,8 +75,8 @@ export default function GuidedTOC({
                           }`}
                         />
                       )}
-                      <span className="truncate">
-                        {pIndex + 1}.{qIndex + 1} {tq.question_id}
+                      <span className="truncate" title={questionTitle}>
+                        {pIndex + 1}.{qIndex + 1} {questionTitle}
                       </span>
                     </div>
 

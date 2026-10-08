@@ -1,5 +1,5 @@
 import { prisma } from '../../../db.js';
-import { uploadFile } from '../../../services/cloudinary.js';
+import { uploadFile, generateSignedUrl } from '../../../services/cloudinary.js';
 import { generateGuidedDocumentDocx } from '../infrastructure/docx-generator.js';
 import { AppError } from '../../../shared/domain/app-error.js';
 
@@ -62,7 +62,7 @@ export async function generateDocxUseCase(input: GenerateDocxInput) {
     .replace(/[^a-zA-Z0-9-_]/g, '_')
     .slice(0, 40);
   const filename = `${targetCode}_${safeTitle}_${timestamp}.docx`;
-  const publicId = `${targetCode}_${safeTitle}_${timestamp}`;
+  const publicId = `${targetCode}_${safeTitle}_${timestamp}.docx`;
 
   // Upload to Cloudinary
   const uploadResult = await uploadFile(
@@ -70,6 +70,16 @@ export async function generateDocxUseCase(input: GenerateDocxInput) {
     'nexus-platform/guided-documents',
     publicId,
     'raw',
+  );
+
+  const fullPublicId = uploadResult.publicId.startsWith('nexus-platform/guided-documents/')
+    ? uploadResult.publicId
+    : `nexus-platform/guided-documents/${uploadResult.publicId}`;
+
+  const downloadUrl = generateSignedUrl(
+    fullPublicId,
+    3600 * 24 * 7, // 7 days
+    filename,
   );
 
   // Compute seq
@@ -92,8 +102,8 @@ export async function generateDocxUseCase(input: GenerateDocxInput) {
       mime_type:
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       file_url: uploadResult.fileUrl,
-      download_url: uploadResult.fileUrl,
-      cloudinary_public_id: uploadResult.publicId,
+      download_url: downloadUrl,
+      cloudinary_public_id: fullPublicId,
       seq,
       uploaded_by_auth_user_id: userId,
     },
@@ -104,7 +114,9 @@ export async function generateDocxUseCase(input: GenerateDocxInput) {
     document: {
       id: docRecord.id,
       file_url: docRecord.file_url,
+      download_url: downloadUrl,
       original_name: docRecord.original_name,
+      canonical_name: docRecord.canonical_name,
       created_at: docRecord.created_at,
     },
   };
