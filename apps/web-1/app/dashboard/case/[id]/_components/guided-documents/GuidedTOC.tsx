@@ -18,13 +18,15 @@ export default function GuidedTOC({
   onSelectQuestion,
   isQuestionUnlocked,
 }: GuidedTOCProps) {
+  const questionIds = template.phases.flatMap((p) => p.questions.map((q) => q.question_id));
+  const answeredCount = questionIds.filter((id) => answersMap[id]?.trim()).length;
+
   return (
     <div className="w-full md:w-80 shrink-0 bg-surface-app border border-border-app rounded-xl p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between pb-3 border-b border-border-app">
-        <h3 className="font-semibold text-sm text-text-app">Mục lục tài liệu</h3>
+        <h3 className="font-semibold text-sm text-text-app">Mục lục</h3>
         <span className="text-xs text-text-muted">
-          {Object.keys(answersMap).filter((k) => answersMap[k]?.trim().length > 0).length} /{" "}
-          {template.phases.reduce((sum, p) => sum + p.questions.length, 0)} câu
+          {answeredCount}/{questionIds.length} câu
         </span>
       </div>
 

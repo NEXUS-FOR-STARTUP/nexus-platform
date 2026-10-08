@@ -2,7 +2,6 @@
 
 import React from "react";
 import { Loader, SimpleGrid } from "@mantine/core";
-import { FileEdit } from "lucide-react";
 import { TEMPLATE_KEYS, TEMPLATE_REGISTRY, type Template, type TemplateKey } from "@repo/validation";
 import { useGuidedAnswers } from "../../hooks/useGuidedAnswers";
 import GuidedTemplateCard from "./GuidedTemplateCard";
@@ -34,11 +33,8 @@ export default function GuidedTemplateGallery({ caseId, onOpen }: GuidedTemplate
 
   return (
     <div className="flex flex-col gap-5 w-full">
-      <div className="bg-surface-app border border-border-app rounded-xl p-4 sm:p-5 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <FileEdit className="w-5 h-5 text-brand" />
-          <h2 className="font-bold text-base md:text-lg text-text-app">Soạn thảo tài liệu</h2>
-        </div>
+      <div className="flex flex-col gap-1">
+        <h2 className="font-bold text-lg md:text-xl text-text-app">Soạn thảo tài liệu</h2>
         <p className="text-xs text-text-muted">
           Chọn biểu mẫu để bắt đầu trả lời từng câu hỏi và xuất file DOCX.
         </p>

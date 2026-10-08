@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { Button, Loader } from "@mantine/core";
-import { Download, UploadCloud, FileEdit, ChevronLeft } from "lucide-react";
+import { Download, UploadCloud, ChevronLeft } from "lucide-react";
 import type { TemplateKey } from "@repo/validation";
 import { useGuidedDocuments } from "../../hooks/useGuidedDocuments";
 import GuidedTOC from "./GuidedTOC";
@@ -103,11 +103,11 @@ export default function GuidedDocumentsEditor({
 
   return (
     <div className="flex flex-col gap-5 w-full">
-      <div className="bg-surface-app border border-border-app rounded-xl p-4 sm:p-5 flex flex-col gap-3">
+      <div className="flex flex-col gap-2">
         <div>
           <Button
             variant="subtle"
-            size="compact-sm"
+            size="sm"
             onClick={onBack}
             leftSection={<ChevronLeft className="w-4 h-4" />}
           >
@@ -115,14 +115,9 @@ export default function GuidedDocumentsEditor({
           </Button>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <FileEdit className="w-5 h-5 text-brand" />
-              <h2 className="font-bold text-base md:text-lg text-text-app">
-                {template.title}
-              </h2>
-            </div>
+            <h2 className="font-bold text-lg md:text-xl text-text-app">{template.title}</h2>
             <p className="text-xs text-text-muted">{template.description}</p>
           </div>
 
@@ -164,6 +159,7 @@ export default function GuidedDocumentsEditor({
           <GuidedQuestionCard
             key={currentItem.question_id}
             questionId={currentItem.question_id}
+            questionNumber={`${currentItem.phaseIndex + 1}.${currentItem.questionIndex + 1}`}
             initialValue={answersMap[currentItem.question_id] || ""}
             onSave={handleSaveQuestion}
             onNavigatePrev={handleNavigatePrev}

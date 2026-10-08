@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { Button, Textarea } from "@mantine/core";
-import { Lightbulb, Check, ChevronLeft, ChevronRight, Save } from "lucide-react";
+import { ChevronLeft, ChevronRight, Save } from "lucide-react";
 import { QUESTION_REGISTRY, type Question } from "@repo/validation";
 
 interface GuidedQuestionCardProps {
   questionId: string;
+  /** Display number in "phase.question" form, matching the table of contents. */
+  questionNumber: string;
   initialValue: string;
   onSave: (questionId: string, value: string) => Promise<void>;
   onNavigatePrev?: () => void;
@@ -25,6 +27,7 @@ export default function GuidedQuestionCard({
   hasPrev,
   hasNext,
   isSaving,
+  questionNumber,
 }: GuidedQuestionCardProps) {
   const [value, setValue] = useState(initialValue);
   const [isDirty, setIsDirty] = useState(false);
@@ -43,14 +46,12 @@ export default function GuidedQuestionCard({
     setIsDirty(false);
   };
 
-  const wordCount = value.trim() ? value.trim().split(/\s+/).length : 0;
-
   return (
     <div className="flex-1 bg-surface-app border border-border-app rounded-xl p-5 md:p-6 flex flex-col gap-6">
       {/* Header & Question */}
       <div className="flex flex-col gap-2">
         <span className="text-xs font-semibold uppercase tracking-wider text-brand">
-          Mã câu hỏi: {questionId}
+          Câu {questionNumber}
         </span>
         <h2 className="text-lg md:text-xl font-bold text-text-app">
           {question?.text || questionId}
@@ -59,48 +60,34 @@ export default function GuidedQuestionCard({
 
       {/* Explanation & Guidance */}
       {question?.explanation && (
-        <div className="bg-surface-soft border border-border-app/60 rounded-xl p-4 flex gap-3 text-sm text-text-muted">
-          <Lightbulb className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-          <div className="flex flex-col gap-2">
-            <p className="leading-relaxed">{question.explanation}</p>
-            {question.suggested_actions && question.suggested_actions.length > 0 && (
-              <ul className="list-disc list-inside space-y-1 text-xs text-text-app pt-1">
-                {question.suggested_actions.map((act, i) => (
-                  <li key={i}>{act}</li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
+        <blockquote className="m-0 bg-warning-soft border-l-4 border-warning rounded-r-lg px-4 py-3 text-sm text-text-app flex flex-col gap-2">
+          <p className="leading-relaxed">{question.explanation}</p>
+          {question.suggested_actions && question.suggested_actions.length > 0 && (
+            <ul className="list-disc list-inside space-y-1 text-xs pt-1">
+              {question.suggested_actions.map((act, i) => (
+                <li key={i}>{act}</li>
+              ))}
+            </ul>
+          )}
+        </blockquote>
       )}
 
       {/* Answer Input */}
-      <div className="flex flex-col gap-2">
-        <Textarea
-          label="Nội dung trả lời của nhóm bạn"
-          placeholder="Nhập chi tiết nội dung trả lời tại đây..."
-          minRows={8}
-          autosize
-          maxRows={16}
-          value={value}
-          onChange={(e) => {
-            setValue(e.currentTarget.value);
-            setIsDirty(true);
-          }}
-          classNames={{
-            input: "font-body text-sm leading-relaxed",
-          }}
-        />
-
-        <div className="flex items-center justify-between text-xs text-text-muted pt-1">
-          <span>
-            {wordCount} từ ({value.length} ký tự)
-          </span>
-          {isDirty && (
-            <span className="text-amber-600 font-medium">Chưa lưu thay đổi</span>
-          )}
-        </div>
-      </div>
+      <Textarea
+        aria-label={`Câu trả lời cho câu ${questionNumber}`}
+        placeholder="Nhập câu trả lời của nhóm bạn..."
+        minRows={8}
+        autosize
+        maxRows={16}
+        value={value}
+        onChange={(e) => {
+          setValue(e.currentTarget.value);
+          setIsDirty(true);
+        }}
+        classNames={{
+          input: "font-body text-sm leading-relaxed",
+        }}
+      />
 
       {/* Actions */}
       <div className="flex items-center justify-between pt-4 border-t border-border-app">
@@ -115,6 +102,7 @@ export default function GuidedQuestionCard({
         </Button>
 
         <div className="flex items-center gap-2">
+          {isDirty && <span className="text-xs text-amber-600 font-medium">Chưa lưu thay đổi</span>}
           <Button
             variant="filled"
             color="blue"
