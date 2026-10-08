@@ -39,6 +39,10 @@ export type TemplatePhase = Phase;
 export interface Template {
   template_key: string;
   title: string;
+  /** One-line Vietnamese summary shown on the template gallery card. */
+  description: string;
+  /** Optional public path of the gallery cover screenshot (A4 portrait). Omit to use the CSS cover. */
+  cover_image?: string;
   phases: Phase[];
 }
 
@@ -78,6 +82,8 @@ export const PhaseSchema = z.object({
 export const TemplateSchema = z.object({
   template_key: z.string().min(1),
   title: z.string().min(1),
+  description: z.string().min(1),
+  cover_image: z.string().min(1).optional(),
   phases: z.array(PhaseSchema),
 });
 

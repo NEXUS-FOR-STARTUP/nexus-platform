@@ -10,7 +10,9 @@ import type { Template } from "./types.js";
 
 export const cp2: Template = {
   template_key: "cp2",
-  title: "Startup Checkpoint 2 — Nghiên cứu thị trường & Debate",
+  title: "Nghiên cứu thị trường và chuẩn bị debate",
+  description: "Nghiên cứu thị trường, khách hàng và chuẩn bị debate.",
+  cover_image: "/cp2.png",
   phases: [
     {
       id: "tong_quan_y_tuong",

@@ -11,10 +11,10 @@ import {
   TableCell,
   WidthType,
 } from 'docx';
-import { cp1, cp2, QUESTION_REGISTRY, type Template } from '@repo/validation';
+import { TEMPLATE_REGISTRY, QUESTION_REGISTRY, type Template, type TemplateKey } from '@repo/validation';
 
 export interface DocxGenerationInput {
-  templateKey: 'cp1' | 'cp2';
+  templateKey: TemplateKey;
   answersMap: Record<string, string>;
   caseTitle: string;
 }
@@ -22,7 +22,7 @@ export interface DocxGenerationInput {
 export async function generateGuidedDocumentDocx(
   input: DocxGenerationInput,
 ): Promise<Buffer> {
-  const template: Template = input.templateKey === 'cp2' ? cp2 : cp1;
+  const template: Template = TEMPLATE_REGISTRY[input.templateKey];
   const questionsRecord = QUESTION_REGISTRY as Record<
     string,
     { text: string; explanation?: string }

@@ -1,0 +1,64 @@
+"use client";
+
+import React from "react";
+import { Loader, SimpleGrid } from "@mantine/core";
+import { FileEdit } from "lucide-react";
+import { TEMPLATE_KEYS, TEMPLATE_REGISTRY, type Template, type TemplateKey } from "@repo/validation";
+import { useGuidedAnswers } from "../../hooks/useGuidedAnswers";
+import GuidedTemplateCard from "./GuidedTemplateCard";
+
+interface GuidedTemplateGalleryProps {
+  caseId: string;
+  onOpen: (key: TemplateKey) => void;
+}
+
+function countProgress(template: Template, answersMap: Record<string, string>) {
+  const ids = template.phases.flatMap((p) => p.questions.map((q) => q.question_id));
+  return {
+    total: ids.length,
+    answered: ids.filter((id) => answersMap[id]?.trim()).length,
+  };
+}
+
+export default function GuidedTemplateGallery({ caseId, onOpen }: GuidedTemplateGalleryProps) {
+  const { answersMap, isLoading } = useGuidedAnswers(caseId);
+
+  if (isLoading) {
+    return (
+      <div className="bg-surface-app border border-border-app rounded-xl p-12 flex flex-col items-center justify-center gap-3">
+        <Loader size="md" color="blue" />
+        <p className="text-sm text-text-muted">Đang tải biểu mẫu hướng dẫn...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-5 w-full">
+      <div className="bg-surface-app border border-border-app rounded-xl p-4 sm:p-5 flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <FileEdit className="w-5 h-5 text-brand" />
+          <h2 className="font-bold text-base md:text-lg text-text-app">Soạn thảo tài liệu</h2>
+        </div>
+        <p className="text-xs text-text-muted">
+          Chọn biểu mẫu để bắt đầu trả lời từng câu hỏi và xuất file DOCX.
+        </p>
+      </div>
+
+      <SimpleGrid cols={{ base: 2, sm: 3, lg: 4 }} spacing="md">
+        {TEMPLATE_KEYS.map((key) => {
+          const template = TEMPLATE_REGISTRY[key];
+          const { answered, total } = countProgress(template, answersMap);
+          return (
+            <GuidedTemplateCard
+              key={key}
+              template={template}
+              answered={answered}
+              total={total}
+              onOpen={() => onOpen(key)}
+            />
+          );
+        })}
+      </SimpleGrid>
+    </div>
+  );
+}

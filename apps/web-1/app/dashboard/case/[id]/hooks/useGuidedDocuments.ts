@@ -1,33 +1,14 @@
-import { useState, useCallback, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import { notifications } from '@mantine/notifications';
-import { cp1, cp2, type Template } from '@repo/validation';
+import { TEMPLATE_REGISTRY, type Template, type TemplateKey } from '@repo/validation';
+import { useGuidedAnswers, guidedAnswersQueryKey } from './useGuidedAnswers';
 
-export function useGuidedDocuments(caseId: string) {
+export function useGuidedDocuments(caseId: string, templateKey: TemplateKey) {
   const queryClient = useQueryClient();
-  const [templateKey, setTemplateKey] = useState<'cp1' | 'cp2'>('cp1');
-  const template: Template = templateKey === 'cp2' ? cp2 : cp1;
-
-  // 1. Fetch saved answers
-  const answersQuery = useQuery({
-    queryKey: ['guided-documents-answers', caseId],
-    queryFn: async () => {
-      const res = await apiClient.get(`/cases/${caseId}/guided-documents/answers`);
-      return res.data;
-    },
-    enabled: !!caseId,
-  });
-
-  const answersMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    if (answersQuery.data?.items) {
-      for (const item of answersQuery.data.items) {
-        map[item.question_id] = item.answer_text;
-      }
-    }
-    return map;
-  }, [answersQuery.data]);
+  const template: Template = TEMPLATE_REGISTRY[templateKey];
+  const { answersMap, isLoading, refetch } = useGuidedAnswers(caseId);
 
   // 2. Save mutation (batch upsert)
   const saveMutation = useMutation({
@@ -36,7 +17,7 @@ export function useGuidedDocuments(caseId: string) {
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['guided-documents-answers', caseId] });
+      queryClient.invalidateQueries({ queryKey: guidedAnswersQueryKey(caseId) });
       notifications.show({
         title: 'Đã lưu',
         message: 'Nội dung câu trả lời đã được lưu thành công.',
@@ -144,11 +125,9 @@ export function useGuidedDocuments(caseId: string) {
   );
 
   return {
-    templateKey,
-    setTemplateKey,
     template,
     answersMap,
-    isLoading: answersQuery.isLoading,
+    isLoading,
     isSaving: saveMutation.isPending,
     isImporting: importMutation.isPending,
     isGenerating: generateMutation.isPending,
@@ -156,6 +135,6 @@ export function useGuidedDocuments(caseId: string) {
     importFile: importMutation.mutateAsync,
     generateDocx: generateMutation.mutateAsync,
     isQuestionUnlocked,
-    refetch: answersQuery.refetch,
+    refetch,
   };
 }

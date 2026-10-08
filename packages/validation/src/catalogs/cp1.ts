@@ -11,7 +11,9 @@ import type { Template } from "./types.js";
 
 export const cp1: Template = {
   template_key: "cp1",
-  title: "Startup Checkpoint 1 — Mô tả ý tưởng",
+  title: "Mô tả ý tưởng khởi nghiệp",
+  description: "Mô tả ý tưởng, khách hàng, vấn đề và giải pháp ban đầu.",
+  cover_image: "/cp1.png",
   phases: [
     {
       id: "thong_tin_nhom",

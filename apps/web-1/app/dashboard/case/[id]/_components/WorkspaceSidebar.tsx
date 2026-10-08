@@ -41,7 +41,7 @@ export default function WorkspaceSidebar({
     },
     {
       id: "guided" as const,
-      label: "Soạn thảo CP1/CP2",
+      label: "Soạn thảo tài liệu",
       icon: FileEdit,
     },
     ...(!isIntakePending

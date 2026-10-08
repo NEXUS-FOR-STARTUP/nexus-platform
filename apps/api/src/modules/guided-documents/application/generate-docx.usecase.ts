@@ -2,11 +2,12 @@ import { prisma } from '../../../db.js';
 import { uploadFile, generateSignedUrl } from '../../../services/cloudinary.js';
 import { generateGuidedDocumentDocx } from '../infrastructure/docx-generator.js';
 import { AppError } from '../../../shared/domain/app-error.js';
+import type { TemplateKey } from '@repo/validation';
 
 export interface GenerateDocxInput {
   caseId: string;
   userId: string;
-  templateKey?: 'cp1' | 'cp2';
+  templateKey?: TemplateKey;
 }
 
 export async function generateDocxUseCase(input: GenerateDocxInput) {

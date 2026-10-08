@@ -8,7 +8,7 @@ import { getAnswersUseCase } from '../application/get-answers.usecase.js';
 import { saveAnswersUseCase } from '../application/save-answers.usecase.js';
 import { importProposalUseCase } from '../application/import-proposal.usecase.js';
 import { generateDocxUseCase } from '../application/generate-docx.usecase.js';
-import { BatchUpsertProjectAnswersInputSchema } from '@repo/validation';
+import { BatchUpsertProjectAnswersInputSchema, isTemplateKey } from '@repo/validation';
 
 export async function getAnswersHandler(c: Context) {
   const caseId = c.req.param('id') || '';
@@ -78,17 +78,22 @@ export async function generateDocxHandler(c: Context) {
   }
 
   try {
-    let body: any = {};
+    let body: { templateKey?: unknown } = {};
     try {
-      body = await readJsonBody(c);
+      body = (await readJsonBody(c)) as { templateKey?: unknown };
     } catch {
       body = {};
     }
 
-    const templateKey =
-      (body?.templateKey as 'cp1' | 'cp2') ||
-      (c.req.query('templateKey') as 'cp1' | 'cp2') ||
-      'cp1';
+    const rawKey = body?.templateKey ?? c.req.query('templateKey');
+    // Missing key keeps legacy clients working; an unknown key is a client bug → 400.
+    if (rawKey !== undefined && (typeof rawKey !== 'string' || !isTemplateKey(rawKey))) {
+      return c.json(
+        { code: 'INVALID_TEMPLATE_KEY', message: 'Biểu mẫu không hợp lệ' },
+        400,
+      );
+    }
+    const templateKey = rawKey ?? 'cp1';
 
     const result = await generateDocxUseCase({
       caseId,

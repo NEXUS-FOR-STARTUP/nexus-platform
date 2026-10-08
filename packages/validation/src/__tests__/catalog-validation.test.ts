@@ -15,6 +15,7 @@ describe("Catalog validation (@repo/validation)", () => {
     const cycle: Template = {
       template_key: "cycle",
       title: "Cycle",
+      description: "x",
       phases: [
         {
           id: "phase_a",
@@ -37,6 +38,7 @@ describe("Catalog validation (@repo/validation)", () => {
     const missing: Template = {
       template_key: "missing",
       title: "Missing",
+      description: "x",
       phases: [
         {
           id: "phase_a",
@@ -53,6 +55,7 @@ describe("Catalog validation (@repo/validation)", () => {
     const invalid: Template = {
       template_key: "invalid",
       title: "Invalid",
+      description: "x",
       phases: [
         {
           id: "phase_a",
