@@ -10,6 +10,7 @@ import {
   unpublishNewsItemUseCase,
   deleteNewsItemUseCase,
   uploadArticleCoverUseCase,
+  uploadNewsContentImageUseCase,
 } from '../application/news-command.usecases.js';
 import { handleError } from '../../../shared/infrastructure/http-helpers.js';
 import {
@@ -145,6 +146,27 @@ export async function uploadCoverHandler(c: Context) {
 
     c.header('Cache-Control', 'private, no-store');
     return c.json(result);
+  } catch (error: unknown) {
+    return handleError(c, error);
+  }
+}
+
+export async function uploadContentImageHandler(c: Context) {
+  try {
+    const user = c.get('user');
+    const body = await c.req.parseBody();
+    const file = body['image'];
+
+    if (!file || typeof file !== 'object' || !('arrayBuffer' in file)) {
+      throw new AppError(400, 'FILE_REQUIRED', 'Tệp ảnh là bắt buộc');
+    }
+
+    const fileObj = file as File;
+    const buffer = Buffer.from(await fileObj.arrayBuffer());
+    const result = await uploadNewsContentImageUseCase(user.id, buffer, fileObj.type || 'image/jpeg');
+
+    c.header('Cache-Control', 'private, no-store');
+    return c.json({ url: result.url });
   } catch (error: unknown) {
     return handleError(c, error);
   }

@@ -181,3 +181,4 @@ export async function deleteNewsItemUseCase(id: string, expectedUpdatedAt: strin
 }
 
 export { uploadArticleCoverUseCase } from './news-cover.usecase.js';
+export { uploadNewsContentImageUseCase } from './upload-news-content-image.usecase.js';

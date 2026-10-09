@@ -1,3 +1,4 @@
+import { isAxiosError } from 'axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import type {
@@ -135,6 +136,26 @@ export function useUploadNewsCover() {
     onSuccess: (updated) => {
       qc.invalidateQueries({ queryKey: ['admin-news-list'] });
       qc.invalidateQueries({ queryKey: ['admin-news-detail', updated.id] });
+    },
+  });
+}
+
+export function useUploadNewsContentImage() {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('image', file);
+      try {
+        const res = await apiClient.post<{ url: string }>('/admin/news/images', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return res.data.url;
+      } catch (error) {
+        const apiMessage = isAxiosError<{ message?: string }>(error)
+          ? error.response?.data?.message
+          : undefined;
+        throw new Error(apiMessage ?? 'Không thể tải ảnh lên. Vui lòng thử lại.', { cause: error });
+      }
     },
   });
 }

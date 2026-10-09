@@ -11,8 +11,9 @@ import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import ImageExtension from '@tiptap/extension-image';
 import { RichTextEditor } from '@mantine/tiptap';
-import { Skeleton, Modal, TextInput, Button, Group } from '@mantine/core';
+import { Skeleton } from '@mantine/core';
 import { Image as ImageIcon } from 'lucide-react';
+import { NewsImageInsertModal } from './NewsImageInsertModal';
 
 interface NewsRichTextEditorProps {
   content: unknown;
@@ -30,9 +31,6 @@ export function NewsRichTextEditor({
   error,
 }: NewsRichTextEditorProps) {
   const [imageModalOpen, setImageModalOpen] = useState(false);
-  const [imageUrl, setImageUrl] = useState('');
-  const [imageAlt, setImageAlt] = useState('');
-  const [imageError, setImageError] = useState('');
 
   const extensions = useMemo(
     () => [
@@ -94,88 +92,13 @@ export function NewsRichTextEditor({
     return <Skeleton height={minHeight} radius="xl" />;
   }
 
-  const handleInsertImage = () => {
-    if (!imageUrl.trim()) {
-      setImageError('Vui lòng nhập URL hình ảnh');
-      return;
-    }
-    try {
-      const url = new URL(imageUrl.trim());
-      if (!['http:', 'https:'].includes(url.protocol)) {
-        setImageError('URL hình ảnh phải bắt đầu bằng http:// hoặc https://');
-        return;
-      }
-    } catch {
-      setImageError('URL hình ảnh không hợp lệ');
-      return;
-    }
-
-    editor.chain().focus().setImage({ src: imageUrl.trim(), alt: imageAlt.trim() }).run();
-    setImageUrl('');
-    setImageAlt('');
-    setImageError('');
-    setImageModalOpen(false);
-  };
-
   return (
     <div className="news-editor-container">
-      {/* Modal chèn hình ảnh vào nội dung */}
-      <Modal
+      <NewsImageInsertModal
         opened={imageModalOpen}
-        onClose={() => {
-          setImageModalOpen(false);
-          setImageError('');
-        }}
-        title="Chèn hình ảnh vào bài viết"
-        centered
-        size="md"
-      >
-        <div className="space-y-4">
-          <TextInput
-            label="URL hình ảnh"
-            placeholder="https://example.com/image.jpg"
-            value={imageUrl}
-            onChange={(e) => {
-              setImageUrl(e.currentTarget.value);
-              setImageError('');
-            }}
-            error={imageError}
-            withAsterisk
-          />
-          <TextInput
-            label="Mô tả hình ảnh hoặc chú thích"
-            placeholder="Ví dụ: Đồ thị tăng trưởng người dùng 2025"
-            value={imageAlt}
-            onChange={(e) => setImageAlt(e.currentTarget.value)}
-          />
-          {imageUrl && !imageError && (
-            <div className="mt-2 border border-border-app rounded-md overflow-hidden bg-surface-soft p-2">
-              <p className="text-xs text-text-muted mb-1 font-medium">Xem trước:</p>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={imageUrl}
-                alt="Preview"
-                className="max-h-48 max-w-full mx-auto object-contain rounded"
-                onError={() => setImageError('Không thể tải ảnh từ URL này. Vui lòng kiểm tra lại link.')}
-              />
-            </div>
-          )}
-          <Group justify="flex-end" gap="sm" pt="xs">
-            <Button
-              variant="default"
-              onClick={() => {
-                setImageModalOpen(false);
-                setImageError('');
-              }}
-            >
-              Hủy
-            </Button>
-            <Button color="brand" onClick={handleInsertImage}>
-              Chèn ảnh
-            </Button>
-          </Group>
-        </div>
-      </Modal>
+        onClose={() => setImageModalOpen(false)}
+        onInsert={(src, alt) => editor.chain().focus().setImage({ src, alt }).run()}
+      />
 
       <style>{`
         .news-editor-container .ProseMirror {
@@ -316,12 +239,7 @@ export function NewsRichTextEditor({
             <RichTextEditor.Link />
             <RichTextEditor.Unlink />
             <RichTextEditor.Control
-              onClick={() => {
-                setImageUrl('');
-                setImageAlt('');
-                setImageError('');
-                setImageModalOpen(true);
-              }}
+              onClick={() => setImageModalOpen(true)}
               aria-label="Chèn hình ảnh vào bài viết"
               title="Chèn hình ảnh"
             >

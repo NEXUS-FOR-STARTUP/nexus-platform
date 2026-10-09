@@ -1,6 +1,8 @@
+import { randomUUID } from 'node:crypto';
 import { uploadFile, deleteFile } from '../../../../services/cloudinary.js';
 import { AppError } from '../../../../shared/domain/app-error.js';
 
+const CONTENT_IMAGE_FOLDER = 'nexus/news-content';
 const MAX_COVER_SIZE_BYTES = 5 * 1024 * 1024; // 5 MiB
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
@@ -10,13 +12,9 @@ export interface UploadCoverResult {
 }
 
 export class NewsCoverGateway {
-  async uploadCover(
-    buffer: Buffer,
-    mimeType: string,
-    articleId: string
-  ): Promise<UploadCoverResult> {
+  private validateImage(buffer: Buffer, mimeType: string, label: string): void {
     if (buffer.length > MAX_COVER_SIZE_BYTES) {
-      throw new AppError(400, 'FILE_TOO_LARGE', 'Ảnh bìa không được vượt quá 5MB');
+      throw new AppError(400, 'FILE_TOO_LARGE', `${label} không được vượt quá 5MB`);
     }
 
     if (!ALLOWED_MIME_TYPES.includes(mimeType.toLowerCase())) {
@@ -26,6 +24,14 @@ export class NewsCoverGateway {
         'Định dạng ảnh không hỗ trợ. Vui lòng chọn JPEG, PNG hoặc WebP'
       );
     }
+  }
+
+  async uploadCover(
+    buffer: Buffer,
+    mimeType: string,
+    articleId: string
+  ): Promise<UploadCoverResult> {
+    this.validateImage(buffer, mimeType, 'Ảnh bìa');
 
     const publicId = `cover_${articleId}_${Date.now()}`;
     const result = await uploadFile(
@@ -42,6 +48,22 @@ export class NewsCoverGateway {
     };
   }
 
+  async uploadContentImage(buffer: Buffer, mimeType: string): Promise<UploadCoverResult> {
+    this.validateImage(buffer, mimeType, 'Ảnh');
+
+    const result = await uploadFile(
+      buffer,
+      CONTENT_IMAGE_FOLDER,
+      `content_${randomUUID()}`,
+      'image',
+      false
+    );
+
+    return {
+      url: result.fileUrl,
+      publicId: result.publicId,
+    };
+  }
   async deleteCover(publicId: string): Promise<void> {
     if (!publicId) return;
     await deleteFile(publicId, 'image');
