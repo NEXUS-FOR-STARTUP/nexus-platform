@@ -43,6 +43,7 @@ export function useFulfillCreditAfterDeposit(deposit?: DepositDetail) {
           quantity: intent.quantity,
           packageId: intent.packageId,
           manualTrigger: intent.manualTrigger ?? false,
+          discountCode: intent.discountCode,
         });
 
         clearBuyCreditAfterDepositIntent(depositId);

@@ -1,3 +1,4 @@
+import type { CreditBalances } from "@/lib/credit-balances";
 import { User } from "./user";
 import { ServicePackage } from "./package";
 import { Payment, Order } from "./payment";
@@ -17,7 +18,7 @@ export interface Case {
   user_facing_stage: "intake_pending" | "intake_ready" | "submitted" | "need_more_information" | "under_review" | "report_ready" | "waiting_for_revision" | "revision_submitted" | "completed" | "rejected" | "closed" | string;
   internal_status: "triage_pending" | "accepted_unassigned" | "assigned" | "waiting_user" | "supporter_working" | "report_ready_to_publish" | "done" | "cancelled" | string;
   payment_status: "unpaid" | "pending_verification" | "paid" | "rejected" | string;
-  credit_balance?: number;              // NEW — derived from CreditLedger
+  credit_balances?: CreditBalances;     // theo dịch vụ, derived from CreditLedger
   credit_ledger?: CreditLedger[];
   sla_deadline_at?: string | null;      // NEW — from case.sla_deadline_at
   allowed_transitions?: string[];       // NEW — valid XState transitions

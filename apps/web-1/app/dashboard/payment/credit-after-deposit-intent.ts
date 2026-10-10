@@ -7,6 +7,8 @@ export interface BuyCreditAfterDepositIntent {
   packageId: string;
   /** true = mua lượt cho đánh giá lần 2+, user tự trigger từ UI (không auto-trigger). */
   manualTrigger?: boolean;
+  /** Mã giảm giá đã áp trong modal; áp lại khi mua sau nạp tiền. */
+  discountCode?: string;
 }
 
 function getKey(depositId: string): string {
@@ -67,6 +69,7 @@ export function readBuyCreditAfterDepositIntent(
       orderIdempotencyKey: parsed.orderIdempotencyKey!,
       packageId: parsed.packageId!,
       manualTrigger: parsed.manualTrigger === true,
+      ...(typeof parsed.discountCode === "string" && parsed.discountCode ? { discountCode: parsed.discountCode } : {}),
     };
   } catch {
     clearBuyCreditAfterDepositIntent(depositId);

@@ -8,7 +8,7 @@ import {
   findLifecycleUnits,
   findOpenRequestsForMoreInfo,
 } from "../infrastructure/persistence/case.repository.js";
-import { CP1_AUDIT_SERVICE_CODE, getCreditBalances, getCreditLedgerByCaseId } from "../infrastructure/persistence/credit-ledger.repository.js";
+import { getCreditBalances, getCreditLedgerByCaseId } from "../infrastructure/persistence/credit-ledger.repository.js";
 import { getAvailableTransitions } from "../domain/case-machine.js";
 import { prisma } from "../../../db.js";
 
@@ -153,8 +153,6 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
   // is the latest report.
   const reports = (caseDetails.reports || []).filter((r) => r.status === "APPROVED");
   const latest_report = reports[0] ?? null;
-  // credit_balance (CP1 only) stays for the old web client until phase 7 reads credit_balances.
-  const credit_balance = credit_balances[CP1_AUDIT_SERVICE_CODE] ?? 0;
 
   const team_submissions = lifecycleUnits.filter((u) => u.unit_type === "version" && u.unit_code === "v00");
   const team_revisions = lifecycleUnits.filter((u) => u.unit_type === "version" && u.unit_code !== "v00");
@@ -201,7 +199,6 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
   // ── Derived fields ────────────────────────────────────────────────────────
   const allowed_transitions = getAvailableTransitions(caseDetails.internal_status);
 
-  (caseResponse as Record<string, unknown>).credit_balance = credit_balance;
   (caseResponse as Record<string, unknown>).credit_balances = credit_balances;
   (caseResponse as Record<string, unknown>).credit_ledger = credit_ledger;
   (caseResponse as Record<string, unknown>).allowed_transitions = allowed_transitions;

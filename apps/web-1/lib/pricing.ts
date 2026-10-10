@@ -3,6 +3,7 @@ import { notifications } from "@mantine/notifications";
 export const PACKAGE_KEYS = {
   FREE: "pkg_tf_free",
   AI_AUDIT: "pkg_ai_audit",
+  CP2_AUDIT: "pkg_cp2_audit",
   SUPPORTER_AUDIT: "pkg_supporter_audit",
 } as const;
 

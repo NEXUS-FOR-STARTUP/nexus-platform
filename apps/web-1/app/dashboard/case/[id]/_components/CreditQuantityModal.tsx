@@ -44,7 +44,8 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
   const { data: walletData } = useWalletBalance();
 
   const walletBalance = walletData?.balance ?? 0;
-  const isAiAudit = packageId === PACKAGE_KEYS.AI_AUDIT || pkg?.id === PACKAGE_KEYS.AI_AUDIT || pkg?.price === 79000;
+  const isCp2Pack = packageId === PACKAGE_KEYS.CP2_AUDIT;
+  const isAiAudit = isCp2Pack || packageId === PACKAGE_KEYS.AI_AUDIT || pkg?.id === PACKAGE_KEYS.AI_AUDIT || pkg?.price === 79000;
   const effectiveQuantity = isAiAudit ? 1 : quantity;
   const listUnitPrice = pkg?.price ?? (isAiAudit ? 79000 : 0);
   const unitPrice = appliedDiscount?.discounted_price ?? listUnitPrice;
@@ -88,7 +89,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
       if (errData?.code === "INSUFFICIENT_BALANCE") {
         const needed = errData.details ? Math.max(Number(errData.details.required) - Number(errData.details.current), 0) : totalAmount;
         const suggestedTopup = Math.max(needed, MIN_TOPUP_AMOUNT);
-        void startShortageDeposit({ quantity: effectiveQuantity, suggestedTopup, packageId, manualTrigger: isManual }).finally(handleClose);
+        void startShortageDeposit({ quantity: effectiveQuantity, suggestedTopup, packageId, manualTrigger: isManual, discountCode: appliedDiscount?.code }).finally(handleClose);
         return;
       }
       notifications.show({
@@ -110,7 +111,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
       mutation.mutate();
     } else {
       const suggestedTopup = Math.max(shortage, MIN_TOPUP_AMOUNT);
-      void startShortageDeposit({ quantity: effectiveQuantity, suggestedTopup, packageId, manualTrigger: isManual }).finally(handleClose);
+      void startShortageDeposit({ quantity: effectiveQuantity, suggestedTopup, packageId, manualTrigger: isManual, discountCode: appliedDiscount?.code }).finally(handleClose);
     }
   };
 
@@ -138,7 +139,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
         ) : (
           <div className="flex justify-between items-center text-sm py-1">
             <span className="text-text-muted">Gói dịch vụ</span>
-            <span className="font-semibold text-text-app">Đánh giá Dự án Tự động (2 lượt)</span>
+            <span className="font-semibold text-text-app">{isCp2Pack ? "Gói chấm Checkpoint 2 (4 lượt)" : "Đánh giá Dự án Tự động (2 lượt)"}</span>
           </div>
         )}
 

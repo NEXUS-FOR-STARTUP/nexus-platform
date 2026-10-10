@@ -8,6 +8,7 @@ export interface CreateCreditOrderInput {
   packageId: string;
   /** true = user tự trigger audit từ UI sau khi mua. Default: auto-trigger. */
   manualTrigger?: boolean;
+  discountCode?: string;
 }
 
 export interface CreateCreditOrderResponse {
@@ -18,7 +19,7 @@ export interface CreateCreditOrderResponse {
 
 export function useCreateCreditOrder() {
   return useMutation<CreateCreditOrderResponse, Error, CreateCreditOrderInput>({
-    mutationFn: async ({ orderIdempotencyKey, caseId, quantity, packageId, manualTrigger = false }) => {
+    mutationFn: async ({ orderIdempotencyKey, caseId, quantity, packageId, manualTrigger = false, discountCode }) => {
       const res = await apiClient.post("/orders", {
         idempotency_key: orderIdempotencyKey,
         items: [
@@ -29,6 +30,7 @@ export function useCreateCreditOrder() {
             metadata_json: { case_id: caseId },
           },
         ],
+        ...(discountCode ? { discount_code: discountCode } : {}),
       });
       return res.data;
     },

@@ -4,10 +4,12 @@ import React from "react";
 import { Button } from "@mantine/core";
 import CreditBalanceCard from "./CreditBalanceCard";
 import CreditTransactionHistory from "./CreditTransactionHistory";
+import type { CreditBalances } from "@/lib/credit-balances";
 import type { Order } from "@/types/payment";
 
 interface CreditPanelProps {
   creditBalance: number | null | undefined;
+  creditBalances?: CreditBalances;
   creditLedger?: Array<{
     id: string;
     amount: number;
@@ -24,6 +26,7 @@ interface CreditPanelProps {
 
 export default function CreditPanel({
   creditBalance,
+  creditBalances,
   creditLedger,
   orders,
   packageName,
@@ -63,6 +66,7 @@ export default function CreditPanel({
     <div className="space-y-4 animate-fade-in">
       <CreditBalanceCard
         creditBalance={balance}
+        creditBalances={creditBalances}
         packageName={packageName}
         pricePerCredit={pricePerCredit}
         onBuyCredits={onBuyCredits}

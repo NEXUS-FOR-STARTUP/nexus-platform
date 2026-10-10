@@ -9,6 +9,7 @@ interface StartShortageDepositParams {
   suggestedTopup: number;
   packageId: string;
   manualTrigger?: boolean;
+  discountCode?: string;
 }
 
 export function useShortageDepositRedirect(caseId: string) {
@@ -20,6 +21,7 @@ export function useShortageDepositRedirect(caseId: string) {
     suggestedTopup,
     packageId,
     manualTrigger = false,
+    discountCode,
   }: StartShortageDepositParams) => {
     try {
       const deposit = await createDeposit.mutateAsync({
@@ -33,6 +35,7 @@ export function useShortageDepositRedirect(caseId: string) {
         orderIdempotencyKey: crypto.randomUUID(),
         packageId,
         manualTrigger,
+        discountCode,
       });
 
       router.push(`/dashboard/payment?pid=${deposit.depositId}`);
