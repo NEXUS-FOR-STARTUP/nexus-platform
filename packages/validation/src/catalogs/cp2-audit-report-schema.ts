@@ -5,7 +5,6 @@ export const CP2_CHECK_STATUSES = ["pass", "partial", "fail", "missing", "not_ap
 export type Cp2CheckStatus = (typeof CP2_CHECK_STATUSES)[number];
 
 const EvidenceSchema = z.object({ source: z.string().min(1), quote: z.string().min(1) });
-export type Cp2Evidence = z.infer<typeof EvidenceSchema>;
 
 const CheckSchema = z.object({
   id: z.string().min(1),

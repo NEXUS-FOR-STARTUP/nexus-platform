@@ -1,4 +1,4 @@
-import { getAuditScopeEntry, type AuditCheckpointCode, type AuditScopeEntry, AUDIT_CHECKPOINTS } from "@app/shared";
+import { getAuditScopeEntry, type AuditCheckpointCode, type AuditScopeEntry, type AuditSubmissionType } from "@app/shared";
 import { AppError } from "../../../shared/domain/app-error.js";
 import type { OmpAuditInputFile } from "../omp-audit.service.js";
 import { assembleCp1InputFiles } from "./cp1-audit-input.js";
@@ -7,7 +7,7 @@ import { postProcessCp1Legacy, postProcessCp2Scored, type PostProcessor } from "
 
 export interface InputRequest {
   caseId: string;
-  submissionType: "initial" | "resubmit" | "logic_check";
+  submissionType: AuditSubmissionType;
   lifecycleUnitId: string | null;
   changeSummary?: string;
 }
@@ -38,6 +38,3 @@ export function resolveAuditPlan(checkpoint: AuditCheckpointCode, scope: string,
   }
   return { ...entry, checkpoint, scope };
 }
-
-/** Service type codes of every audit checkpoint, for refund lookups. */
-export const AUDIT_SERVICE_TYPES: readonly string[] = Object.values(AUDIT_CHECKPOINTS).map((cp) => cp.serviceType);

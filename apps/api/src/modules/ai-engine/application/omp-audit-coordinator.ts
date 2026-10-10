@@ -30,16 +30,14 @@ import { prepareSandbox, resolveRepoRoot, type SandboxOptions } from "../omp-aud
 import { finalizeOmpAuditResult } from "./omp-audit-finalizer.js";
 import { getCaseAiAuditStatus } from "./omp-audit-status.js";
 import { findLatestCp2FullReport } from "../../reports/infrastructure/persistence/report.repository.js";
-import { INPUT_ASSEMBLERS, resolveAuditPlan, AUDIT_SERVICE_TYPES } from "./audit-registry.js";
+import { INPUT_ASSEMBLERS, resolveAuditPlan } from "./audit-registry.js";
 import { CP2_CHECKPOINT_CODE } from "./cp2-audit-input.js";
 import { consumeAuditCredit, grantAuditRefund } from "./audit-credit.js";
-import { TriggerOptsSchema, type TriggerAuditOpts } from "./trigger-opts.js";
+import { TriggerOptsSchema } from "./trigger-opts.js";
 
 export { finalizeOmpAuditResult, getCaseAiAuditStatus };
 
 const CP2_OPENED_STATUS = "draft";
-
-export { TriggerOptsSchema, type TriggerAuditOpts };
 
 let queueEventsInitialized = false;
 
@@ -76,7 +74,7 @@ export async function refundAuditCreditIfNoReport(caseId: string, reason: string
     }
     const refundKey = `audit-refund-${caseId}-${startedAt ?? "unknown"}`;
     // Refund the service type that was charged; jobs queued before CP2 carry none and were CP1.
-    const chargedCode = AUDIT_SERVICE_TYPES.includes(inputJson?.service_type ?? "") ? (inputJson?.service_type as string) : CP1_AUDIT_SERVICE_CODE;
+    const chargedCode = inputJson?.service_type ?? CP1_AUDIT_SERVICE_CODE;
     await prisma.$transaction((tx) =>
       grantAuditRefund(tx, { caseId, serviceTypeCode: chargedCode, idempotencyKey: refundKey, reason }),
     );

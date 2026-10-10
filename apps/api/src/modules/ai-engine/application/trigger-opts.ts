@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { AUDIT_CHECKPOINT_CODES } from "@app/shared";
 
-export const SubmissionTypeSchema = z.enum(["initial", "resubmit", "logic_check"]);
-export const CHANGE_SUMMARY_MAX_CHARS = 5000;
+const SubmissionTypeSchema = z.enum(["initial", "resubmit", "logic_check"]);
+const CHANGE_SUMMARY_MAX_CHARS = 5000;
 
 /** Body of `POST /cases/:id/ai-retry` and every internal trigger. No `checkpoint` = CP1, as before CP2 existed. */
 export const TriggerOptsSchema = z
@@ -31,4 +31,3 @@ export const TriggerOptsSchema = z
     }
   });
 
-export type TriggerAuditOpts = z.infer<typeof TriggerOptsSchema>;

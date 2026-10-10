@@ -84,8 +84,6 @@ export const CP2_VERDICTS = {
   questionnaire: { ready: "SẴN SÀNG ĐI KHẢO SÁT", needs_work: "CẦN SỬA TRƯỚC KHI PHÁT", blocked: "CHƯA NÊN PHÁT" },
 } as const;
 
-export type Cp2ReportKind = keyof typeof CP2_VERDICTS;
-
 /** `schema` value written by the model in report.json -> how it is checked and scored. */
 export const CP2_SCHEMAS = {
   cp2_questionnaire_v1: {
