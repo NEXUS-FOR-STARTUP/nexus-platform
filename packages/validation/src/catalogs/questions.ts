@@ -2,6 +2,7 @@ import type { Question } from "./types.js";
 import { CP1_QUESTIONS } from "./questions-cp1.js";
 import { CP2_QUESTIONS } from "./questions-cp2.js";
 import { CP3_QUESTIONS } from "./questions-cp3.js";
+import { CP4_QUESTIONS } from "./questions-cp4.js";
 
 // ---------------------------------------------------------------------------
 // Canonical question registry (plan section 5). One entry per stable question
@@ -19,6 +20,7 @@ export const QUESTION_REGISTRY = {
   ...CP1_QUESTIONS,
   ...CP2_QUESTIONS,
   ...CP3_QUESTIONS,
+  ...CP4_QUESTIONS,
 } satisfies Record<string, Question>;
 
 export type QuestionId = keyof typeof QUESTION_REGISTRY;

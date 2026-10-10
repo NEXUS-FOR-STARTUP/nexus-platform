@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { cp1, cp2, cp3, validateCatalog, CATALOG_VERSION, type Template } from "../index.js";
+import { cp1, cp2, cp3, cp4, validateCatalog, CATALOG_VERSION, type Template } from "../index.js";
 
 describe("Catalog validation (@repo/validation)", () => {
   it("validates the CP1 template", () => {
@@ -13,6 +13,10 @@ describe("Catalog validation (@repo/validation)", () => {
 
   it("validates the CP3 template", () => {
     assert.doesNotThrow(() => validateCatalog(cp3));
+  });
+
+  it("validates the CP4 template", () => {
+    assert.doesNotThrow(() => validateCatalog(cp4));
   });
 
   it("rejects a template with a dependency cycle", () => {
