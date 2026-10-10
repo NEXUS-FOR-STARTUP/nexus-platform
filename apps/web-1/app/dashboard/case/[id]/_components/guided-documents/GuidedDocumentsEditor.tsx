@@ -9,6 +9,7 @@ import { useGuidedDocuments } from "../../hooks/useGuidedDocuments";
 import { useGuidedDrafts } from "../../hooks/useGuidedDrafts";
 import GuidedTOC from "./GuidedTOC";
 import GuidedQuestionCard from "./GuidedQuestionCard";
+import Cp2ReadinessPanel from "./Cp2ReadinessPanel";
 import GuidedImportModal from "./GuidedImportModal";
 
 interface GuidedDocumentsEditorProps {
@@ -148,6 +149,17 @@ export default function GuidedDocumentsEditor({
           </div>
         </div>
       </div>
+
+      {templateKey === "cp2" && (
+        <Cp2ReadinessPanel
+          caseId={caseId}
+          template={template}
+          answersMap={answersMap}
+          isSaving={isSaving}
+          onSaveAnswers={saveAnswers}
+          onSelectQuestion={setActiveQuestionId}
+        />
+      )}
 
       {/* Main Content: TOC on Left, Question Editor on Right */}
       <div className="flex flex-col md:flex-row items-start gap-5 w-full">
