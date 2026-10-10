@@ -356,6 +356,7 @@ model Case {
   notifications    Notification[]
   chat_read_states CaseChatReadState[]
   project_answers  ProjectAnswer[]
+  finance_plan     FinancePlan?
 
   @@index([owner_auth_user_id])
   @@index([assigned_supporter_auth_user_id])
@@ -844,4 +845,15 @@ model ProjectAnswer {
   @@unique([case_id, question_id])
   @@index([case_id])
   @@map("project_answers")
+}
+
+model FinancePlan {
+  id         String   @id @default(uuid())
+  case_id    String   @unique
+  data       Json
+  updated_at DateTime @updatedAt
+
+  case Case @relation(fields: [case_id], references: [id], onDelete: Cascade)
+
+  @@map("finance_plans")
 }
