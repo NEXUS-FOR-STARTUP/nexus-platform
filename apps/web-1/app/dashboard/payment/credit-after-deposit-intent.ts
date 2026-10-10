@@ -4,8 +4,9 @@ export interface BuyCreditAfterDepositIntent {
   caseId: string;
   quantity: number;
   orderIdempotencyKey: string;
-  /** "credit_audit" = auto-trigger sau khi mua. "credit_audit_manual" = user tự trigger từ UI. Default: "credit_audit" */
-  serviceType?: "credit_audit" | "credit_audit_manual";
+  packageId: string;
+  /** true = mua lượt cho đánh giá lần 2+, user tự trigger từ UI (không auto-trigger). */
+  manualTrigger?: boolean;
 }
 
 function getKey(depositId: string): string {
@@ -53,7 +54,9 @@ export function readBuyCreditAfterDepositIntent(
       typeof parsed?.orderIdempotencyKey === "string" &&
       parsed.orderIdempotencyKey.trim().length > 0;
 
-    if (!isValidQuantity || !isValidCaseId || !isValidKey) {
+    const isValidPackageId = typeof parsed?.packageId === "string" && parsed.packageId.trim().length > 0;
+
+    if (!isValidQuantity || !isValidCaseId || !isValidKey || !isValidPackageId) {
       clearBuyCreditAfterDepositIntent(depositId);
       return null;
     }
@@ -62,6 +65,8 @@ export function readBuyCreditAfterDepositIntent(
       caseId: parsed.caseId!,
       quantity: parsed.quantity!,
       orderIdempotencyKey: parsed.orderIdempotencyKey!,
+      packageId: parsed.packageId!,
+      manualTrigger: parsed.manualTrigger === true,
     };
   } catch {
     clearBuyCreditAfterDepositIntent(depositId);

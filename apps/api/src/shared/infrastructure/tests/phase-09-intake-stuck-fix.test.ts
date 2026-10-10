@@ -151,23 +151,27 @@ test('GA-02 createOrder — mua credit KHÔNG ghi user_facing_stage', async () =
   };
 
   const originalTransaction = mockablePrisma.$transaction;
-  const originalCaseFindUnique = mockablePrisma.case.findUnique;
   const originalPackageFindUnique = mockablePrisma.servicePackage.findUnique;
   const mockableWallet = walletService as unknown as { withdraw: (...args: unknown[]) => Promise<unknown> };
   const originalWithdraw = mockableWallet.withdraw;
 
   mockablePrisma.$transaction = (cb: (tx: unknown) => Promise<unknown>) => cb(fakeTx);
-  mockablePrisma.case.findUnique = async (): Promise<unknown> => ({ package_id: 'pkg-1' }); // resolveCreditAuditPrice
-  mockablePrisma.servicePackage.findUnique = async (): Promise<unknown> => ({ pricing_tiers: [{ price: 39000 }] });
+  mockablePrisma.servicePackage.findUnique = async (): Promise<unknown> => ({
+    id: 'pkg-1',
+    is_active: true,
+    price: 39000,
+    credits_granted: 1,
+    service_type: { id: 'st-cp1', code: 'cp1_audit' },
+    pricing_tiers: [{ price: 39000 }],
+  });
   mockableWallet.withdraw = async (): Promise<unknown> => undefined;
 
   try {
     await createOrderUseCase('user-1', {
-      items: [{ service_type: 'credit_audit', quantity: 1, metadata_json: { case_id: 'case-1' } }],
+      items: [{ package_id: 'pkg-1', quantity: 1, metadata_json: { case_id: 'case-1' } }],
     });
   } finally {
     mockablePrisma.$transaction = originalTransaction;
-    mockablePrisma.case.findUnique = originalCaseFindUnique;
     mockablePrisma.servicePackage.findUnique = originalPackageFindUnique;
     mockableWallet.withdraw = originalWithdraw;
     if (originalDualWritePayment === undefined) {

@@ -33,7 +33,20 @@ interface ActivePackageDef {
   price: number;
   features: unknown;
   is_active: boolean;
+  service_type_code: string;
+  credits_granted: number | null;
 }
+
+interface ServiceTypeDef {
+  code: string;
+  name: string;
+  description: string;
+}
+
+const SERVICE_TYPES: ServiceTypeDef[] = [
+  { code: "cp1_audit", name: "Chấm Checkpoint 1", description: "Lượt chấm AI cho ý tưởng ở Checkpoint 1" },
+  { code: "cp2_audit", name: "Chấm Checkpoint 2", description: "Lượt chấm AI cho bảng hỏi phỏng vấn và Checkpoint 2" },
+];
 
 const ACTIVE_PACKAGES: ActivePackageDef[] = [
   {
@@ -46,6 +59,8 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
       "Phân tích phân khúc khách hàng & vấn đề cơ bản",
     ],
     is_active: true,
+    service_type_code: "cp1_audit",
+    credits_granted: null,
   },
   {
     id: "pkg_tf_audit",
@@ -60,6 +75,8 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
       sla_hours: 48,
     },
     is_active: false,
+    service_type_code: "cp1_audit",
+    credits_granted: 2,
   },
   {
     id: "pkg_ai_audit",
@@ -75,9 +92,28 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
       sla_hours: 0,
       mode: "ai_automated",
       auto_delivery: true,
-      credits_granted: 2,
     },
     is_active: true,
+    service_type_code: "cp1_audit",
+    credits_granted: 2,
+  },
+  {
+    id: "pkg_cp2_audit",
+    name: "Gói chấm Checkpoint 2",
+    price: 79000,
+    features: {
+      items: [
+        "Chấm bảng hỏi phỏng vấn trước khi đi phỏng vấn thật",
+        "Chấm toàn bộ Checkpoint 2 theo rubric, kèm trích dẫn từ bài nộp",
+        "4 lượt dùng chung cho bảng hỏi và Checkpoint 2",
+      ],
+      sla_hours: 0,
+      mode: "ai_automated",
+      auto_delivery: true,
+    },
+    is_active: true,
+    service_type_code: "cp2_audit",
+    credits_granted: 4,
   },
   {
     id: "pkg_supporter_audit",
@@ -94,6 +130,8 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
       mode: "human_verified",
     },
     is_active: true,
+    service_type_code: "cp1_audit",
+    credits_granted: 1,
   },
 ];
 
@@ -107,8 +145,20 @@ export async function seedActivePackages(): Promise<void> {
   let created = 0;
   let updated = 0;
 
+  const serviceTypeIds = new Map<string, string>();
+  for (const st of SERVICE_TYPES) {
+    const row = await prisma.serviceType.upsert({
+      where: { code: st.code },
+      create: st,
+      update: { name: st.name, description: st.description },
+    });
+    serviceTypeIds.set(st.code, row.id);
+  }
+
   for (const pkg of ACTIVE_PACKAGES) {
-    const { id, name, price, features, is_active } = pkg;
+    const { id, name, price, features, is_active, credits_granted } = pkg;
+    const service_type_id = serviceTypeIds.get(pkg.service_type_code);
+    if (!service_type_id) throw new Error(`Unknown service type ${pkg.service_type_code}`);
     console.log(`📦 Upserting "${name}" (${id})...`);
 
     const existing = await prisma.servicePackage.findUnique({
@@ -124,12 +174,16 @@ export async function seedActivePackages(): Promise<void> {
         price,
         features,
         is_active,
+        credits_granted,
+        service_type_id,
       },
       update: {
         name,
         price,
         features,
         is_active,
+        credits_granted,
+        service_type_id,
       },
     });
 

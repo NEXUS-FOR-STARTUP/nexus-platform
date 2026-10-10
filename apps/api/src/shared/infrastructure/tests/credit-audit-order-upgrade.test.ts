@@ -6,10 +6,11 @@ import {
   applyPaidCreditCaseUpdate,
   generateOrderIdempotencyKey,
   FREE_PACKAGE_KEY,
-  AUDIT_PACKAGE_KEY,
 } from "../../../modules/orders/application/credit-audit-order.helpers.js";
 
 process.env.NODE_ENV = "test";
+
+const AUDIT_PACKAGE_KEY = "pkg_ai_audit";
 
 // ---------------------------------------------------------------------------
 // 1. applyPaidCreditCaseUpdate logic
@@ -45,6 +46,7 @@ await test("applyPaidCreditCaseUpdate - FREE case upgrades to audit and creates 
     caseId: "case-1",
     userId: "user-1",
     unitPrice: 579000,
+    packageId: AUDIT_PACKAGE_KEY,
     caseRecord,
   });
 
@@ -103,6 +105,7 @@ await test("applyPaidCreditCaseUpdate - case with locked_price === 0 upgrades ev
     caseId: "case-2",
     userId: "user-1",
     unitPrice: 579000,
+    packageId: AUDIT_PACKAGE_KEY,
     caseRecord,
   });
 
@@ -143,6 +146,7 @@ await test("applyPaidCreditCaseUpdate - already paid/audit case does NOT upgrade
     caseId: "case-3",
     userId: "user-1",
     unitPrice: 579000,
+    packageId: AUDIT_PACKAGE_KEY,
     caseRecord,
   });
 
@@ -163,10 +167,10 @@ await test("applyPaidCreditCaseUpdate - already paid/audit case does NOT upgrade
 
 await test("generateOrderIdempotencyKey - produces stable hash key", () => {
   const key1 = generateOrderIdempotencyKey("user-1", [
-    { service_type: "credit_audit", quantity: 1, metadata_json: { case_id: "case-1" } },
+    { package_id: AUDIT_PACKAGE_KEY, quantity: 1, metadata_json: { case_id: "case-1" } },
   ]);
   const key2 = generateOrderIdempotencyKey("user-1", [
-    { service_type: "credit_audit", quantity: 1, metadata_json: { case_id: "case-1" } },
+    { package_id: AUDIT_PACKAGE_KEY, quantity: 1, metadata_json: { case_id: "case-1" } },
   ]);
   assert.strictEqual(key1, key2);
   assert.ok(key1.startsWith("order-user-1-"));

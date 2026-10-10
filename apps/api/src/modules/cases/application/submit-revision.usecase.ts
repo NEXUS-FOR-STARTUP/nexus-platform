@@ -262,7 +262,7 @@ export async function submitSupporterOutputUploadUseCase(
         note: body.note,
         documents: normalizedDocuments,
       });
-      // D11: T11 trong cùng 1 tx — credit check + consume do machine lo (subtractCredit, idempotent)
+      // D11: T11 trong cùng 1 tx — credit check do transitionInTx lo (lượt chỉ bị trừ khi trigger audit)
       const transition = await transitionInTx(tx, {
         transition: "T11_SUBMIT_OUTPUT",
         caseId,

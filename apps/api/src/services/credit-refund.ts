@@ -2,6 +2,11 @@ import type { Prisma } from '@prisma/client'
 import { walletService } from '../modules/wallet/application/wallet.service.js'
 import { AppError } from '../shared/domain/app-error.js'
 import logger from '../shared/infrastructure/logger.js'
+import {
+  CP1_AUDIT_SERVICE_CODE,
+  getCreditBalanceRows,
+  type CreditBalanceRow,
+} from '../modules/cases/infrastructure/persistence/credit-ledger.repository.js'
 
 export const REFUND_CREDIT_KEY_PREFIX = 'refund-credit'
 export const REFUND_CASE_KEY_PREFIX = 'refund-case'
@@ -26,8 +31,15 @@ export function computeFifoRefund(
   return refundVnd
 }
 
-export function refundIdempotencyKey(caseId: string): string {
-  return `${REFUND_CREDIT_KEY_PREFIX}-${caseId}`
+// CP1 keeps the pre-service-type key so refunds already recorded stay idempotent.
+export function refundIdempotencyKey(caseId: string, serviceCode: string = CP1_AUDIT_SERVICE_CODE): string {
+  const base = `${REFUND_CREDIT_KEY_PREFIX}-${caseId}`
+  return serviceCode === CP1_AUDIT_SERVICE_CODE ? base : `${base}-${serviceCode}`
+}
+
+function readExplicitPricePerCredit(metadata: Record<string, unknown>): number | null {
+  const pricePerCredit = metadata['price_per_credit'] ?? metadata['pricePerCredit']
+  return typeof pricePerCredit === 'number' && pricePerCredit >= 0 ? pricePerCredit : null
 }
 
 export async function resolvePurchaseUnitPrice(
@@ -38,12 +50,11 @@ export async function resolvePurchaseUnitPrice(
 ): Promise<number> {
   const metadata = (metadataJson ?? {}) as Record<string, unknown>
 
-  // 1. Explicit per-credit price in metadata
-  const pricePerCredit = metadata['price_per_credit'] ?? metadata['pricePerCredit']
-  if (typeof pricePerCredit === 'number' && pricePerCredit > 0) {
-    return pricePerCredit
+  // 1. Explicit per-credit price in metadata (0 is a valid price: discounted/free purchase)
+  const explicitPrice = readExplicitPricePerCredit(metadata)
+  if (explicitPrice !== null) {
+    return explicitPrice
   }
-
   // 2. Metadata with credits_granted and unit_price (stored by create-order.usecase)
   // unit_price was package price, quantity is number of packages, credits_granted is total credits received.
   const metaCreditsGranted = metadata['credits_granted']
@@ -101,17 +112,109 @@ export async function resolvePurchaseUnitPrice(
   return 0
 }
 
+interface ServiceRefundPlan {
+  row: CreditBalanceRow
+  fifoVnd: number
+  hasPurchases: boolean
+  hasFreePurchase: boolean
+}
+
+// FIFO value of the unconsumed credits of ONE service type; other service types never mix in.
+async function planServiceRefund(
+  tx: Prisma.TransactionClient,
+  caseId: string,
+  row: CreditBalanceRow,
+): Promise<ServiceRefundPlan> {
+  const purchases = await tx.creditLedger.findMany({
+    where: { case_id: caseId, service_type_id: row.service_type_id, type: 'purchase', amount: { gt: 0 } },
+    orderBy: { created_at: 'desc' },
+    select: { amount: true, reference_id: true, metadata_json: true },
+  })
+  const priced: FifoPurchase[] = []
+  let hasFreePurchase = false
+  for (const purchase of purchases) {
+    const unitPrice = await resolvePurchaseUnitPrice(
+      tx,
+      purchase.metadata_json,
+      purchase.reference_id,
+      purchase.amount,
+    )
+    if (readExplicitPricePerCredit((purchase.metadata_json ?? {}) as Record<string, unknown>) === 0) {
+      hasFreePurchase = true
+    }
+    priced.push({ amount: purchase.amount, unit_price: unitPrice })
+  }
+  return {
+    row,
+    fifoVnd: row.balance > 0 ? computeFifoRefund(priced, row.balance) : 0,
+    hasPurchases: purchases.length > 0,
+    hasFreePurchase,
+  }
+}
+
+async function refundServiceRemaining(
+  tx: Prisma.TransactionClient,
+  caseId: string,
+  owner: string,
+  row: CreditBalanceRow,
+): Promise<void> {
+  const key = refundIdempotencyKey(caseId, row.code)
+  const existing = await tx.walletTransaction.findUnique({
+    where: { idempotency_key: key },
+  })
+  if (existing) {
+    logger.info({ caseId, key }, 'credit refund skipped — already processed')
+    return
+  }
+
+  const plan = await planServiceRefund(tx, caseId, row)
+  const refundVnd = plan.fifoVnd
+
+  // Zero-priced purchases (100% discount) legitimately refund 0đ and still zero the ledger.
+  if (refundVnd <= 0 && !plan.hasFreePurchase) {
+    logger.warn({ caseId, service: row.code, balance: row.balance }, 'credit refund skipped — no resolvable purchase price')
+    return
+  }
+
+  if (refundVnd > 0) {
+    try {
+      await walletService.refund(owner, refundVnd, 'case_refund', caseId, key, tx)
+    } catch (error) {
+      if (error instanceof AppError && error.code === 'WALLET_NOT_FOUND') {
+        logger.warn({ caseId, ownerId: owner }, 'credit refund skipped — wallet not found')
+        return
+      }
+      throw error
+    }
+  }
+
+  await tx.creditLedger.create({
+    data: {
+      case_id: caseId,
+      service_type_id: row.service_type_id,
+      amount: -row.balance,
+      balance_after: 0,
+      type: 'refund',
+      reference_type: 'case_refund',
+      reference_id: caseId,
+      idempotency_key: key,
+      metadata_json: { refund_vnd: refundVnd },
+    },
+  })
+
+  logger.info(
+    { caseId, ownerId: owner, service: row.code, refundVnd, creditsRefunded: row.balance },
+    'remaining credits refunded',
+  )
+}
+
 export async function refundRemainingCreditInTx(
   tx: Prisma.TransactionClient,
   caseId: string,
   ownerId?: string,
 ): Promise<void> {
-  const balResult = await tx.creditLedger.aggregate({
-    where: { case_id: caseId },
-    _sum: { amount: true },
-  })
-  const balance = balResult._sum.amount ?? 0
-  if (balance <= 0) {
+  const rows = (await getCreditBalanceRows(tx, caseId)).filter((r) => r.balance > 0)
+  if (rows.length === 0) {
     return
   }
 
@@ -128,74 +231,16 @@ export async function refundRemainingCreditInTx(
     return
   }
 
-  const key = refundIdempotencyKey(caseId)
-  const existing = await tx.walletTransaction.findUnique({
-    where: { idempotency_key: key },
-  })
-  if (existing) {
-    logger.info({ caseId, key }, 'credit refund skipped — already processed')
-    return
+  for (const row of rows) {
+    await refundServiceRemaining(tx, caseId, owner, row)
   }
-
-  const purchases = await tx.creditLedger.findMany({
-    where: { case_id: caseId, type: 'purchase' },
-    orderBy: { created_at: 'desc' },
-    select: { amount: true, reference_id: true, metadata_json: true },
-  })
-
-  const pricedPurchases: FifoPurchase[] = []
-  for (const purchase of purchases) {
-    pricedPurchases.push({
-      amount: purchase.amount,
-      unit_price: await resolvePurchaseUnitPrice(
-        tx,
-        purchase.metadata_json,
-        purchase.reference_id,
-        purchase.amount,
-      ),
-    })
-  }
-
-  const refundVnd = computeFifoRefund(pricedPurchases, balance)
-
-  if (refundVnd <= 0) {
-    logger.warn({ caseId, balance }, 'credit refund skipped — no resolvable purchase price')
-    return
-  }
-
-  try {
-    await walletService.refund(owner, refundVnd, 'case_refund', caseId, key, tx)
-  } catch (error) {
-    if (error instanceof AppError && error.code === 'WALLET_NOT_FOUND') {
-      logger.warn({ caseId, ownerId: owner }, 'credit refund skipped — wallet not found')
-      return
-    }
-    throw error
-  }
-
-  await tx.creditLedger.create({
-    data: {
-      case_id: caseId,
-      amount: -balance,
-      balance_after: 0,
-      type: 'refund',
-      reference_type: 'case_refund',
-      reference_id: caseId,
-      idempotency_key: key,
-      metadata_json: { refund_vnd: refundVnd },
-    },
-  })
-
-  logger.info(
-    { caseId, ownerId: owner, refundVnd, creditsRefunded: balance },
-    'remaining credits refunded',
-  )
 }
 
 /**
  * Unified refund for case cancellation (e.g. T13_VETO / T14_FULL_REFUND).
  * When credit purchases exist, refunds the FIFO value of remaining unconsumed credits (fifoVnd),
- * preventing double-refund since lockedPrice and credits originate from the same payment pot.
+ * computed per service type and summed into one wallet refund, preventing double-refund since
+ * lockedPrice and credits originate from the same payment pot.
  * Falls back to lockedPrice only for legacy cases with no credit purchases in CreditLedger.
  */
 export async function refundCaseAllInTx(
@@ -213,13 +258,13 @@ export async function refundCaseAllInTx(
     return
   }
 
-  // Compute FIFO value of remaining credits
-  const balResult = await tx.creditLedger.aggregate({
-    where: { case_id: caseId },
-    _sum: { amount: true },
-  })
-  const balance = balResult._sum.amount ?? 0
-  const { fifoVnd, hasPurchases } = await computeFifoRefundForCase(tx, caseId, balance)
+  const rows = await getCreditBalanceRows(tx, caseId)
+  const plans: ServiceRefundPlan[] = []
+  for (const row of rows) {
+    plans.push(await planServiceRefund(tx, caseId, row))
+  }
+  const fifoVnd = plans.reduce((sum, p) => sum + p.fifoVnd, 0)
+  const hasPurchases = plans.some((p) => p.hasPurchases)
 
   // When credit purchases exist in CreditLedger, all payments into this case are tracked via credits.
   // Refund the FIFO value of unconsumed credits (fifoVnd) so consumed credits are not refunded.
@@ -229,42 +274,23 @@ export async function refundCaseAllInTx(
     await walletService.refund(ownerId, totalRefund, 'case_refund', caseId, key, tx)
   }
 
-  // Zero out ledger if there were remaining credits
-  if (balance > 0) {
+  // Zero out each service type that still had credits
+  for (const plan of plans) {
+    if (plan.row.balance <= 0) continue
     await tx.creditLedger.create({
       data: {
         case_id: caseId,
-        amount: -balance,
+        service_type_id: plan.row.service_type_id,
+        amount: -plan.row.balance,
         balance_after: 0,
         type: 'refund',
         reference_type: 'case_refund',
         reference_id: caseId,
-        idempotency_key: `${REFUND_CREDIT_KEY_PREFIX}-${caseId}`,
-        metadata_json: { refund_vnd: fifoVnd },
+        idempotency_key: refundIdempotencyKey(caseId, plan.row.code),
+        metadata_json: { refund_vnd: plan.fifoVnd },
       },
     })
   }
 
-  logger.info({ caseId, ownerId, lockedPrice, fifoVnd, totalRefund, balance }, 'refundCaseAllInTx: completed')
-}
-
-async function computeFifoRefundForCase(
-  tx: Prisma.TransactionClient,
-  caseId: string,
-  balance: number,
-): Promise<{ fifoVnd: number; hasPurchases: boolean }> {
-  const purchases = await tx.creditLedger.findMany({
-    where: { case_id: caseId, type: 'purchase', amount: { gt: 0 } },
-    orderBy: { created_at: 'desc' },
-    select: { amount: true, metadata_json: true, reference_id: true },
-  })
-  const fifoPurchases: FifoPurchase[] = []
-  for (const p of purchases) {
-    const unitPrice = await resolvePurchaseUnitPrice(tx, p.metadata_json, p.reference_id, p.amount)
-    fifoPurchases.push({ amount: p.amount, unit_price: unitPrice })
-  }
-  return {
-    fifoVnd: balance > 0 ? computeFifoRefund(fifoPurchases, balance) : 0,
-    hasPurchases: purchases.length > 0,
-  }
+  logger.info({ caseId, ownerId, lockedPrice, fifoVnd, totalRefund }, 'refundCaseAllInTx: completed')
 }

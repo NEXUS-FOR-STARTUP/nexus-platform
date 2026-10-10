@@ -1,4 +1,9 @@
 import { prisma } from "../../../../db.js";
+import {
+  CP1_AUDIT_SERVICE_CODE,
+  getCreditBalance,
+  getServiceTypeId,
+} from "../../../cases/infrastructure/persistence/credit-ledger.repository.js";
 
 export const SYSTEM_USER_ID = "00000000-0000-0000-0000-000000000001";
 
@@ -200,18 +205,16 @@ export async function verifyPayment(data: {
           ? metaQuantity
           : Math.round((paymentRecord?.amount ?? 0) / 39000) || 1;
 
-        // Get current credit balance
-        const balResult = await tx.creditLedger.aggregate({
-          where: { case_id: caseId },
-          _sum: { amount: true },
-        });
-        const currentBalance = balResult._sum.amount ?? 0;
+        // Get current CP1 credit balance
+        const cp1ServiceTypeId = await getServiceTypeId(tx, CP1_AUDIT_SERVICE_CODE);
+        const currentBalance = await getCreditBalance(tx, caseId, cp1ServiceTypeId);
         const newBalance = currentBalance + quantity;
 
         // Create credit ledger purchase entry
         await tx.creditLedger.create({
           data: {
             case_id: caseId,
+            service_type_id: cp1ServiceTypeId,
             amount: quantity,
             balance_after: newBalance,
             type: "purchase",

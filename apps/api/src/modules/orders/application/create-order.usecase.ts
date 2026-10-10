@@ -2,20 +2,29 @@ import { AppError } from "../../../shared/domain/app-error.js";
 import { walletService } from "../../wallet/application/wallet.service.js";
 import { insertOutboxEvent } from "../../../shared/infrastructure/persistence/outbox.repository.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
-import { ALL_CREDIT_AUDIT_SERVICES, CREDIT_AUDIT_SERVICE } from "../domain/order.types.js";
 import logger from "../../../shared/infrastructure/logger.js";
 import type { CreateOrderItem, CreateOrderRequest } from "../domain/order.types.js";
 import type { CreateOrderResponse } from "./orders.dto.js";
 import { transitionInTx } from "../../../services/case-transition.service.js";
 import { prisma } from "../../../db.js";
 import {
-  resolveCreditAuditPrice,
-  getCreditBalanceInTx,
+  CP1_AUDIT_SERVICE_CODE,
+  getCreditBalance,
+} from "../../cases/infrastructure/persistence/credit-ledger.repository.js";
+import {
+  resolveOrderPackage,
   applyPaidCreditCaseUpdate,
   generateOrderIdempotencyKey,
-  AUDIT_PACKAGE_KEY,
-  FREE_PACKAGE_KEY,
+  type OrderPackage,
 } from "./credit-audit-order.helpers.js";
+
+const MAX_ORDER_ITEM_QUANTITY = 50;
+
+interface ResolvedOrderItem {
+  item: CreateOrderItem;
+  caseId: string;
+  pkg: OrderPackage;
+}
 
 export async function createOrderUseCase(
   userId: string,
@@ -25,25 +34,23 @@ export async function createOrderUseCase(
     throw new AppError(400, "INVALID_ORDER", "Đơn hàng phải có ít nhất 1 sản phẩm");
   }
 
-  const resolvedItems: { item: CreateOrderItem; unitPrice: number }[] = [];
+  const resolvedItems: ResolvedOrderItem[] = [];
   for (const item of request.items) {
-    if (item.quantity <= 0 || item.quantity > 50) {
-      throw new AppError(400, "INVALID_QUANTITY", "Số lượng không hợp lệ (1-50)");
+    if (!Number.isInteger(item.quantity) || item.quantity <= 0 || item.quantity > MAX_ORDER_ITEM_QUANTITY) {
+      throw new AppError(400, "INVALID_QUANTITY", `Số lượng không hợp lệ (1-${MAX_ORDER_ITEM_QUANTITY})`);
     }
-    if ((ALL_CREDIT_AUDIT_SERVICES as readonly string[]).includes(item.service_type)) {
-      const caseId = (item.metadata_json as Record<string, unknown> | undefined)?.["case_id"];
-      if (typeof caseId !== "string" || !caseId) {
-        throw new AppError(400, "INVALID_ORDER", "Thiếu case_id cho credit_audit");
-      }
-      const unitPrice = await resolveCreditAuditPrice(caseId);
-      resolvedItems.push({ item, unitPrice });
-    } else {
-      throw new AppError(400, "INVALID_SERVICE", `Chưa hỗ trợ service_type: ${item.service_type}`);
+    if (typeof item.package_id !== "string" || !item.package_id) {
+      throw new AppError(400, "INVALID_ORDER", "Thiếu package_id");
     }
+    const caseId = item.metadata_json?.["case_id"];
+    if (typeof caseId !== "string" || !caseId) {
+      throw new AppError(400, "INVALID_ORDER", "Thiếu case_id cho đơn mua lượt");
+    }
+    resolvedItems.push({ item, caseId, pkg: await resolveOrderPackage(item.package_id) });
   }
 
   const totalAmount = resolvedItems.reduce(
-    (sum, { item, unitPrice }) => sum + item.quantity * unitPrice,
+    (sum, { item, pkg }) => sum + item.quantity * pkg.unitPrice,
     0,
   );
   const idempotencyKey = request.idempotency_key ?? generateOrderIdempotencyKey(userId, request.items);
@@ -58,11 +65,12 @@ export async function createOrderUseCase(
           idempotency_key: idempotencyKey,
           metadata_json: {} as any,
           items: {
-            create: resolvedItems.map(({ item, unitPrice }) => ({
-              service_type: item.service_type,
+            create: resolvedItems.map(({ item, pkg }) => ({
+              service_type: pkg.serviceTypeCode,
+              package_id: pkg.id,
               quantity: item.quantity,
-              unit_price: unitPrice,
-              amount: item.quantity * unitPrice,
+              unit_price: pkg.unitPrice,
+              amount: item.quantity * pkg.unitPrice,
               metadata_json: (item.metadata_json ?? {}) as any,
             })),
           },
@@ -71,22 +79,19 @@ export async function createOrderUseCase(
       });
 
       if (process.env["DUAL_WRITE_PAYMENT"] === "true") {
-        const creditItem = request.items.find((i) => (ALL_CREDIT_AUDIT_SERVICES as readonly string[]).includes(i.service_type));
-        if (creditItem?.metadata_json?.["case_id"]) {
-          await tx.payment.create({
-            data: {
-              case_id: creditItem.metadata_json["case_id"] as string,
-              amount: totalAmount,
-              status: "paid",
-              verified_by_auth_user_id: "system",
-              verification_source: "auto",
-              verified_at: new Date(),
-              type: "deposit",
-              transfer_content: idempotencyKey,
-              currency: "VND",
-            },
-          });
-        }
+        await tx.payment.create({
+          data: {
+            case_id: resolvedItems[0]!.caseId,
+            amount: totalAmount,
+            status: "paid",
+            verified_by_auth_user_id: "system",
+            verification_source: "auto",
+            verified_at: new Date(),
+            type: "deposit",
+            transfer_content: idempotencyKey,
+            currency: "VND",
+          },
+        });
       }
 
       await walletService.withdraw(userId, totalAmount, idempotencyKey, {
@@ -102,12 +107,8 @@ export async function createOrderUseCase(
         },
       });
 
-      const grantedByItem: number[] = [];
-      for (const { item, unitPrice } of resolvedItems) {
-        if (!(ALL_CREDIT_AUDIT_SERVICES as readonly string[]).includes(item.service_type)) continue;
-        const caseId = (item.metadata_json as Record<string, unknown>)["case_id"] as string;
-        const currentBalance = await getCreditBalanceInTx(tx, caseId);
-
+      let totalCredits = 0;
+      for (const { item, caseId, pkg } of resolvedItems) {
         const caseRecord = await tx.case.findUnique({
           where: { id: caseId },
           select: {
@@ -124,54 +125,42 @@ export async function createOrderUseCase(
           throw new AppError(403, "FORBIDDEN", "Không thể mua credit cho dự án của người khác");
         }
 
-        // Resolve credits granted from package features (default to item.quantity for backward compat).
-        // BUG FIX: Case free (pkg_tf_free) sẽ được upgrade lên pkg_ai_audit sau khi thanh toán.
-        // Phải đọc credits_granted từ AUDIT_PACKAGE_KEY (package đích) chứ không phải pkg_tf_free
-        // vì pkg_tf_free không có credits_granted = 2 → sẽ grant sai 1 credit thay vì 2.
-        let creditsGranted = item.quantity;
-        const isFreeCase =
-          caseRecord.package_id === FREE_PACKAGE_KEY || caseRecord.locked_price === 0;
-        const effectivePackageId = isFreeCase ? AUDIT_PACKAGE_KEY : (caseRecord.package_id ?? AUDIT_PACKAGE_KEY);
-        if (effectivePackageId && (tx as any).servicePackage?.findUnique) {
-          const pkg = await tx.servicePackage.findUnique({ where: { id: effectivePackageId } });
-          const features = pkg?.features as Record<string, unknown> | undefined;
-          if (features && typeof features === "object" && typeof features["credits_granted"] === "number") {
-            creditsGranted = features["credits_granted"] * item.quantity;
-          } else if (effectivePackageId === "pkg_ai_audit" || effectivePackageId === "pkg_tf_audit" || unitPrice === 79000) {
-            creditsGranted = 2 * item.quantity;
-          }
-        } else if (unitPrice === 79000) {
-          creditsGranted = 2 * item.quantity;
-        }
-        grantedByItem.push(creditsGranted);
-        const pricePerCredit = creditsGranted > 0
-          ? Math.round((unitPrice * item.quantity) / creditsGranted)
-          : unitPrice;
+        const creditsGranted = pkg.creditsGranted * item.quantity;
+        totalCredits += creditsGranted;
+        const currentBalance = await getCreditBalance(tx, caseId, pkg.serviceTypeId);
+        const paidForPackage = pkg.unitPrice * item.quantity;
+        const pricePerCredit = Math.round(paidForPackage / creditsGranted);
 
         await tx.creditLedger.create({
           data: {
             case_id: caseId,
+            service_type_id: pkg.serviceTypeId,
             amount: creditsGranted,
             balance_after: currentBalance + creditsGranted,
             type: "purchase",
             reference_type: "order",
             reference_id: order.id,
-            idempotency_key: `credit-purchase-${order.id}-${item.service_type}-${caseId}`,
+            idempotency_key: `credit-purchase-${order.id}-${pkg.id}-${caseId}`,
             metadata_json: {
               order_id: order.id,
+              package_id: pkg.id,
               quantity: item.quantity,
               unit_price: pricePerCredit,
-              package_unit_price: unitPrice,
+              package_unit_price: pkg.unitPrice,
               price_per_credit: pricePerCredit,
               credits_granted: creditsGranted,
             },
           },
         });
 
+        // Only CP1 purchases touch the CP1 case (payment status, free-case upgrade, reopen).
+        if (pkg.serviceTypeCode !== CP1_AUDIT_SERVICE_CODE) continue;
+
         await applyPaidCreditCaseUpdate(tx, {
           caseId,
           userId,
-          unitPrice,
+          unitPrice: pkg.unitPrice,
+          packageId: pkg.id,
           caseRecord,
         });
 
@@ -186,39 +175,29 @@ export async function createOrderUseCase(
         }
       }
 
-      const creditAuditItem = resolvedItems.find((i) =>
-        (ALL_CREDIT_AUDIT_SERVICES as readonly string[]).includes(i.item.service_type)
-      );
-      const caseIdFromMeta =
-        creditAuditItem?.item.metadata_json &&
-        typeof creditAuditItem.item.metadata_json === "object" &&
-        "case_id" in creditAuditItem.item.metadata_json &&
-        typeof (creditAuditItem.item.metadata_json as Record<string, unknown>).case_id === "string"
-          ? ((creditAuditItem.item.metadata_json as Record<string, unknown>).case_id as string)
-          : undefined;
-      // serviceType dùng để listener phân biệt auto-trigger vs manual
-      const serviceType = creditAuditItem?.item.service_type ?? CREDIT_AUDIT_SERVICE;
-
+      const first = resolvedItems[0]!;
       await insertOutboxEvent(tx, {
         event_type: DOMAIN_EVENTS.ORDER_PAID,
         payload_json: {
           orderId: order.id,
           userId,
-          caseId: caseIdFromMeta,
-          serviceType,
+          caseId: first.caseId,
+          // Listener auto-triggers the audit only for CP1 purchases that are not manual.
+          serviceTypeCode: first.pkg.serviceTypeCode,
+          manualTrigger: first.item.manual_trigger === true,
           totalAmount,
-          totalCredits: grantedByItem.reduce((sum, g) => sum + g, 0),
-          items: request.items.map((i) => ({
-            service_type: i.service_type,
-            quantity: i.quantity,
-            metadata_json: i.metadata_json,
+          totalCredits,
+          items: resolvedItems.map(({ item, pkg }) => ({
+            package_id: pkg.id,
+            service_type: pkg.serviceTypeCode,
+            quantity: item.quantity,
+            metadata_json: item.metadata_json,
           })),
         },
       });
 
       logger.info({ orderId: order.id, userId, totalAmount, items: request.items.length }, "order created and paid");
 
-      const totalCredits = grantedByItem.reduce((sum, g) => sum + g, 0);
       return {
         orderId: order.id,
         totalAmount,

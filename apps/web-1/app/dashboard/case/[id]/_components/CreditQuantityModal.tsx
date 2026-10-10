@@ -36,8 +36,6 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
   const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState<number>(1);
 
-  const serviceType = isManual ? "credit_audit_manual" : "credit_audit";
-
   const { startShortageDeposit, isPending: isShortagePending } = useShortageDepositRedirect(caseId);
   const { data: pkg } = usePackagePrice(packageId, opened);
   const { data: walletData } = useWalletBalance();
@@ -54,7 +52,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
     mutationFn: async () => {
       const res = await apiClient.post<CreateOrderResponse>("/orders", {
         idempotency_key: crypto.randomUUID(),
-        items: [{ service_type: serviceType, quantity: effectiveQuantity, metadata_json: { case_id: caseId } }],
+        items: [{ package_id: packageId, quantity: effectiveQuantity, manual_trigger: isManual, metadata_json: { case_id: caseId } }],
       });
       return res.data;
     },
@@ -85,7 +83,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
       if (errData?.code === "INSUFFICIENT_BALANCE") {
         const needed = errData.details ? Math.max(Number(errData.details.required) - Number(errData.details.current), 0) : totalAmount;
         const suggestedTopup = Math.max(needed, MIN_TOPUP_AMOUNT);
-        void startShortageDeposit({ quantity: effectiveQuantity, suggestedTopup, serviceType }).finally(handleClose);
+        void startShortageDeposit({ quantity: effectiveQuantity, suggestedTopup, packageId, manualTrigger: isManual }).finally(handleClose);
         return;
       }
       notifications.show({
@@ -106,7 +104,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
       mutation.mutate();
     } else {
       const suggestedTopup = Math.max(shortage, MIN_TOPUP_AMOUNT);
-      void startShortageDeposit({ quantity: effectiveQuantity, suggestedTopup, serviceType }).finally(handleClose);
+      void startShortageDeposit({ quantity: effectiveQuantity, suggestedTopup, packageId, manualTrigger: isManual }).finally(handleClose);
     }
   };
 

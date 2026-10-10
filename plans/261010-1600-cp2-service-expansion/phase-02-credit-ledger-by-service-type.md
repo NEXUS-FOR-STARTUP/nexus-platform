@@ -51,14 +51,14 @@ flowchart LR
 8. Tests (`apps/api/src/shared/infrastructure/tests/`, node:test): grant đúng ServiceType; consume CP2 không chạm số dư CP1; refund hai ServiceType độc lập; lượt giá 0 hoàn 0đ; order với package inactive -> 400. Sửa test cũ gãy (`credit-audit-order-upgrade.test.ts`, `phase-09-intake-stuck-fix.test.ts`).
 
 ## Todo
-- [ ] Xác minh trừ lượt 2 nơi
-- [ ] Migration create-only + review
-- [ ] Seed
-- [ ] Module số dư + thay caller
-- [ ] Order theo package
-- [ ] Refund
-- [ ] Xóa purchase-credits
-- [ ] Tests
+- [x] Xác minh trừ lượt 2 nơi
+- [x] Migration create-only + review
+- [x] Seed
+- [x] Module số dư + thay caller
+- [x] Order theo package
+- [x] Refund
+- [x] Xóa purchase-credits
+- [x] Tests
 
 ## Success criteria
 - `grep` không còn `creditLedger.aggregate` ngoài module số dư.
@@ -71,3 +71,9 @@ flowchart LR
 
 ## Security
 Giá chỉ tính server; client không gửi giá. Owner check giữ nguyên.
+
+## Findings
+Step 1 (đã xác minh bằng đọc code, không phải lỗi trừ đôi):
+- Chỉ `omp-audit-coordinator.ts` (`triggerOmpAuditForCase`, trong tx có `SELECT ... FOR UPDATE` trên case) ghi dòng `consumption` -1 thật sự, idempotency key `audit-trigger-<caseId>-<startedAt>`; hoàn lại +1 qua `refundAuditCreditIfNoReport` khi job lỗi.
+- `case-transition.service.ts` `case 'subtractCredit'` là nhánh chết: không transition nào trong `case-machine.ts` gắn action `subtractCredit` (chỉ có khai báo ở bảng `actions` và `ActionName`). T11/T3 chỉ kiểm tra số dư (`creditGated`), không trừ. Comment ở `submit-revision.usecase.ts:265` ("machine lo subtractCredit") đã lỗi thời.
+- Xử lý: xóa nhánh chết `subtractCredit` thay vì migrate sang ServiceType (không đổi hành vi). Số dư dùng cho gate T11/T3/T5 lấy theo `cp1_audit`.

@@ -69,7 +69,7 @@ export function formatDateTime(dateStr: string): { date: string; time: string } 
 function getOrderItemSummary(order: Order): string {
   if (!order.items || order.items.length === 0) return "Mua credit";
   return order.items
-    .map((item) => `${item.service_type === "credit_audit" ? "Credit" : item.service_type} x${item.quantity}`)
+    .map((item) => `${item.service_type === "credit_audit" || item.service_type === "cp1_audit" ? "Credit" : item.service_type} x${item.quantity}`)
     .join(", ");
 }
 

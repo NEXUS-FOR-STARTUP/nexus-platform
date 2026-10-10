@@ -7,7 +7,8 @@ import { saveBuyCreditAfterDepositIntent } from "@/app/dashboard/payment/credit-
 interface StartShortageDepositParams {
   quantity: number;
   suggestedTopup: number;
-  serviceType?: "credit_audit" | "credit_audit_manual";
+  packageId: string;
+  manualTrigger?: boolean;
 }
 
 export function useShortageDepositRedirect(caseId: string) {
@@ -17,7 +18,8 @@ export function useShortageDepositRedirect(caseId: string) {
   const startShortageDeposit = async ({
     quantity,
     suggestedTopup,
-    serviceType = "credit_audit",
+    packageId,
+    manualTrigger = false,
   }: StartShortageDepositParams) => {
     try {
       const deposit = await createDeposit.mutateAsync({
@@ -29,7 +31,8 @@ export function useShortageDepositRedirect(caseId: string) {
         caseId,
         quantity,
         orderIdempotencyKey: crypto.randomUUID(),
-        serviceType,
+        packageId,
+        manualTrigger,
       });
 
       router.push(`/dashboard/payment?pid=${deposit.depositId}`);

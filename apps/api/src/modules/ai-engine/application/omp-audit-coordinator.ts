@@ -8,7 +8,9 @@ import { AppError } from "../../../shared/domain/app-error.js";
 import { findFirstIntakeUnit } from "../../cases/infrastructure/persistence/case.repository.js";
 import { findDocumentRecordsByCaseId } from "../../documents/infrastructure/persistence/document.repository.js";
 import {
-  getCreditBalanceForTx,
+  CP1_AUDIT_SERVICE_CODE,
+  getCreditBalance,
+  getServiceTypeId,
   createCreditEntry,
 } from "../../cases/infrastructure/persistence/credit-ledger.repository.js";
 import {
@@ -86,8 +88,10 @@ export async function refundAuditCreditIfNoReport(caseId: string, reason: string
     }
     const refundKey = `audit-refund-${caseId}-${startedAt ?? "unknown"}`;
     await prisma.$transaction(async (tx) => {
-      const currentBalance = await getCreditBalanceForTx(tx, caseId);
+      const cp1ServiceTypeId = await getServiceTypeId(tx, CP1_AUDIT_SERVICE_CODE);
+      const currentBalance = await getCreditBalance(tx, caseId, cp1ServiceTypeId);
       await createCreditEntry(tx, {
+        serviceTypeId: cp1ServiceTypeId,
         caseId,
         amount: 1,
         balanceAfter: currentBalance + 1,
@@ -533,12 +537,14 @@ export async function triggerOmpAuditForCase(
       }
 
       if (!skipCreditCheck) {
-        const inTxBalance = await getCreditBalanceForTx(tx, caseId);
+        const cp1ServiceTypeId = await getServiceTypeId(tx, CP1_AUDIT_SERVICE_CODE);
+        const inTxBalance = await getCreditBalance(tx, caseId, cp1ServiceTypeId);
         if (inTxBalance < 1) {
           throw new AppError(402, "NO_CREDITS", "Hết credit. Vui lòng mua thêm credit để tiếp tục.");
         }
 
         await createCreditEntry(tx, {
+          serviceTypeId: cp1ServiceTypeId,
           caseId,
           amount: -1,
           balanceAfter: inTxBalance - 1,
