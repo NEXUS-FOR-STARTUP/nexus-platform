@@ -104,7 +104,7 @@ export function useGuidedDocuments(caseId: string, templateKey: TemplateKey) {
         const targetFilename =
           data.document.canonical_name ||
           data.document.original_name ||
-          `${templateKey.toUpperCase()}_guided_document.docx`;
+          'tai_lieu_huong_dan.docx';
         const finalName = targetFilename.endsWith('.docx') ? targetFilename : `${targetFilename}.docx`;
 
         const link = document.createElement('a');

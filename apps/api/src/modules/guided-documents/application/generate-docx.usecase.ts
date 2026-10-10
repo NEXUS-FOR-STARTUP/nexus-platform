@@ -2,7 +2,10 @@ import { prisma } from '../../../db.js';
 import { uploadFile, generateSignedUrl } from '../../../services/cloudinary.js';
 import { generateGuidedDocumentDocx } from '../infrastructure/docx-generator.js';
 import { AppError } from '../../../shared/domain/app-error.js';
-import type { TemplateKey } from '@repo/validation';
+import { TEMPLATE_REGISTRY, type TemplateKey } from '@repo/validation';
+
+const FILENAME_TEAM_MAX_LENGTH = 40;
+const FILENAME_DOC_TYPE_MAX_LENGTH = 40;
 
 export interface GenerateDocxInput {
   caseId: string;
@@ -28,13 +31,27 @@ export async function generateDocxUseCase(input: GenerateDocxInput) {
 
   // Find corresponding checkpoint or first checkpoint
   const targetCode = templateKey.toUpperCase();
+  // Team-Fit-created cases have no checkpoint until intake is submitted. Create CP1
+  // lazily and set current_checkpoint so submit-intake reuses this row instead of
+  // inserting a second CP1.
   const checkpoint =
     caseRecord.checkpoints.find((cp) => cp.checkpoint_code === targetCode) ||
-    caseRecord.checkpoints[0];
-
-  if (!checkpoint) {
-    throw new AppError(400, 'CHECKPOINT_NOT_FOUND', 'Không tìm thấy checkpoint tương ứng');
-  }
+    caseRecord.checkpoints[0] ||
+    (await prisma.$transaction(async (tx) => {
+      const created = await tx.checkpoint.create({
+        data: {
+          case_id: caseId,
+          checkpoint_code: 'CP1',
+          checkpoint_status: 'submitted',
+          latest_version_no: 1,
+        },
+      });
+      await tx.case.update({
+        where: { id: caseId },
+        data: { current_checkpoint: 'CP1' },
+      });
+      return created;
+    }));
 
   // Fetch answers
   const answers = await prisma.projectAnswer.findMany({
@@ -55,15 +72,26 @@ export async function generateDocxUseCase(input: GenerateDocxInput) {
     caseTitle,
   });
 
-  // Safe filename & public ID
+  // Filename: case code + team name + document type + timestamp. The template key
+  // (CP1/CP2…) is internal and deliberately not exposed to users.
   const timestamp = Date.now();
-  const safeTitle = caseTitle
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9-_]/g, '_')
-    .slice(0, 40);
-  const filename = `${targetCode}_${safeTitle}_${timestamp}.docx`;
-  const publicId = `${targetCode}_${safeTitle}_${timestamp}.docx`;
+  const toSlug = (value: string, maxLength: number) =>
+    value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D')
+      .replace(/[^a-zA-Z0-9-]+/g, '_')
+      .slice(0, maxLength)
+      .replace(/^_+|_+$/g, '');
+  const filenameParts = [
+    caseRecord.case_code,
+    caseRecord.team_name ? toSlug(caseRecord.team_name, FILENAME_TEAM_MAX_LENGTH) : '',
+    toSlug(TEMPLATE_REGISTRY[templateKey].title, FILENAME_DOC_TYPE_MAX_LENGTH),
+    String(timestamp),
+  ].filter(Boolean);
+  const filename = `${filenameParts.join('_')}.docx`;
+  const publicId = filename;
 
   // Upload to Cloudinary
   const uploadResult = await uploadFile(
