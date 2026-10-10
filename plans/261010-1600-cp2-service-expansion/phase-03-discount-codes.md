@@ -47,3 +47,8 @@ Tests trên pass. Smoke local: tạo mã 100% ở admin, user nhập mã, nhận
 
 ## Security
 Admin-only (role check có sẵn). Mã không phân biệt hoa thường. Audit log tạo/sửa mã.
+
+## Verification (real DB, 2026-10-10)
+- Migration `20261010180000` đã `migrate deploy` lên DB local `nexus_platform`; `migrate status` sạch.
+- Kiểm trên Postgres thật bằng script tạm (đã xóa, không commit): race 2 user song song với `max_redemptions=1` -> đúng 1 thành công, lần còn lại 409 `DISCOUNT_EXHAUSTED`, `redeemed_count=1`; cùng user dùng 2 lần -> 409 `DISCOUNT_ALREADY_USED`; mã 100% -> đơn 0đ, ví không đổi, +4 lượt `cp2_audit`.
+- Dữ liệu rác của script đã dọn sạch (xác nhận count = 0).
