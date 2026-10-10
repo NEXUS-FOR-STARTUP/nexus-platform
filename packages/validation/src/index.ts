@@ -1480,6 +1480,7 @@ export type NewsCommentListResponse = z.infer<typeof NewsCommentListResponseSche
 // ---------------------------------------------------------------------------
 
 export * from "./catalogs/index.js";
+export * from "./finance/finance-plan.js";
 
 export const saveGuidedAnswersSchema = z.object({
   answers: z.array(
