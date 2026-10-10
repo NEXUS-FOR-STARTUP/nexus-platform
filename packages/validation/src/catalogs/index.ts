@@ -39,3 +39,7 @@ for (const [key, template] of Object.entries(TEMPLATE_REGISTRY)) {
   }
   validateCatalog(template);
 }
+export * from "./cp2-report-display.js";
+export * from "./cp2-audit-checks.js";
+export * from "./cp2-audit-report-schema.js";
+export * from "./cp2-audit-score.js";

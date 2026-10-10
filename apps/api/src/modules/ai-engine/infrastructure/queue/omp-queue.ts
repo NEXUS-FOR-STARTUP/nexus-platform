@@ -72,6 +72,10 @@ export interface OmpJobPayload {
   promptMode?: "full" | "lite";
   submissionType?: "initial" | "resubmit" | "logic_check";
   lifecycleUnitId?: string;
+  /** Defaults to CP1 when absent (jobs queued before CP2 existed). */
+  checkpoint?: "CP1" | "CP2";
+  /** Prompt scope inside the checkpoint: CP1 = prompt mode, CP2 = questionnaire | full. */
+  scope?: string;
 }
 
 /**

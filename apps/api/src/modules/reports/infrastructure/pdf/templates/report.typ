@@ -124,15 +124,26 @@
     ],
     [
       #set text(size: 12pt)
-      #grid(
-        columns: (1fr, auto),
-        row-gutter: 8pt,
-        [#text(fill: rgb(100, 116, 139))[Rõ ràng]], [#align(right)[#text(weight: "bold", fill: rgb(15, 23, 42))[#scores.problemClarity/100]]],
-        [#text(fill: rgb(100, 116, 139))[Thị trường]], [#align(right)[#text(weight: "bold", fill: rgb(15, 23, 42))[#scores.marketViability/100]]],
-        [#text(fill: rgb(100, 116, 139))[Kinh doanh]], [#align(right)[#text(weight: "bold", fill: rgb(15, 23, 42))[#scores.businessModel/100]]],
-        [#text(fill: rgb(100, 116, 139))[Cạnh tranh]], [#align(right)[#text(weight: "bold", fill: rgb(15, 23, 42))[#scores.competitiveMoat/100]]],
-        [#text(fill: rgb(100, 116, 139))[Thực thi]], [#align(right)[#text(weight: "bold", fill: rgb(15, 23, 42))[#scores.executionFeasibility/100]]],
-      )
+      #if "score_rows" in meta {
+        grid(
+          columns: (1fr, auto),
+          row-gutter: 8pt,
+          ..meta.score_rows.map(r => (
+            text(fill: rgb(100, 116, 139))[#r.label],
+            align(right)[#text(weight: "bold", fill: rgb(15, 23, 42))[#r.score/100]],
+          )).flatten(),
+        )
+      } else {
+        grid(
+          columns: (1fr, auto),
+          row-gutter: 8pt,
+          [#text(fill: rgb(100, 116, 139))[Rõ ràng]], [#align(right)[#text(weight: "bold", fill: rgb(15, 23, 42))[#scores.problemClarity/100]]],
+          [#text(fill: rgb(100, 116, 139))[Thị trường]], [#align(right)[#text(weight: "bold", fill: rgb(15, 23, 42))[#scores.marketViability/100]]],
+          [#text(fill: rgb(100, 116, 139))[Kinh doanh]], [#align(right)[#text(weight: "bold", fill: rgb(15, 23, 42))[#scores.businessModel/100]]],
+          [#text(fill: rgb(100, 116, 139))[Cạnh tranh]], [#align(right)[#text(weight: "bold", fill: rgb(15, 23, 42))[#scores.competitiveMoat/100]]],
+          [#text(fill: rgb(100, 116, 139))[Thực thi]], [#align(right)[#text(weight: "bold", fill: rgb(15, 23, 42))[#scores.executionFeasibility/100]]],
+        )
+      }
     ],
   )
 ]

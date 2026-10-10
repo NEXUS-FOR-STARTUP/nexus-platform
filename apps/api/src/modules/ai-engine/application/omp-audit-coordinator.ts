@@ -5,14 +5,8 @@ import { z } from "zod";
 import logger from "../../../shared/infrastructure/logger.js";
 import { prisma } from "../../../db.js";
 import { AppError } from "../../../shared/domain/app-error.js";
-import { findFirstIntakeUnit } from "../../cases/infrastructure/persistence/case.repository.js";
-import { findDocumentRecordsByCaseId } from "../../documents/infrastructure/persistence/document.repository.js";
-import {
-  CP1_AUDIT_SERVICE_CODE,
-  getCreditBalance,
-  getServiceTypeId,
-  createCreditEntry,
-} from "../../cases/infrastructure/persistence/credit-ledger.repository.js";
+import { findFirstIntakeUnit, ensureCheckpoint } from "../../cases/infrastructure/persistence/case.repository.js";
+import { CP1_AUDIT_SERVICE_CODE } from "../../cases/infrastructure/persistence/credit-ledger.repository.js";
 import {
   dispatchOmpJob,
   cancelOmpJob,
@@ -32,27 +26,20 @@ import {
   findLatestAiJobByCase,
 } from "../infrastructure/persistence/ai-job.repository.js";
 import { jobStore } from "../infrastructure/persistence/job-store.repository.js";
-import { prepareSandbox, resolveRepoRoot, type OmpAuditInputFile } from "../omp-audit.service.js";
+import { prepareSandbox, resolveRepoRoot, type SandboxOptions } from "../omp-audit.service.js";
 import { finalizeOmpAuditResult } from "./omp-audit-finalizer.js";
 import { getCaseAiAuditStatus } from "./omp-audit-status.js";
-import { findApprovedReports } from "../../reports/infrastructure/persistence/report.repository.js";
+import { findLatestCp2FullReport } from "../../reports/infrastructure/persistence/report.repository.js";
+import { INPUT_ASSEMBLERS, resolveAuditPlan, AUDIT_SERVICE_TYPES } from "./audit-registry.js";
+import { CP2_CHECKPOINT_CODE } from "./cp2-audit-input.js";
+import { consumeAuditCredit, grantAuditRefund } from "./audit-credit.js";
+import { TriggerOptsSchema, type TriggerAuditOpts } from "./trigger-opts.js";
 
 export { finalizeOmpAuditResult, getCaseAiAuditStatus };
 
-const SubmissionTypeSchema = z.enum(["initial", "resubmit", "logic_check"]);
-type SubmissionType = z.infer<typeof SubmissionTypeSchema>;
+const CP2_OPENED_STATUS = "draft";
 
-const TriggerOptsSchema = z.object({
-  submission_type: SubmissionTypeSchema.default("initial"),
-  lifecycle_unit_id: z.string().uuid().optional(),
-  model: z.string().optional(),
-  prompt_mode: z.enum(["full", "lite"]).optional(),
-  skip_credit_check: z.boolean().optional(),
-  admin_triggered: z.boolean().optional(),
-  force_supersede: z.boolean().optional(),
-});
-
-export type TriggerAuditOpts = z.infer<typeof TriggerOptsSchema>;
+export { TriggerOptsSchema, type TriggerAuditOpts };
 
 let queueEventsInitialized = false;
 
@@ -69,6 +56,7 @@ export async function refundAuditCreditIfNoReport(caseId: string, reason: string
       startedAt?: string;
       admin_triggered?: boolean;
       skip_credit_check?: boolean;
+      service_type?: string;
     } | null;
 
     if (inputJson?.skip_credit_check === true || inputJson?.admin_triggered === true) {
@@ -87,20 +75,11 @@ export async function refundAuditCreditIfNoReport(caseId: string, reason: string
       }
     }
     const refundKey = `audit-refund-${caseId}-${startedAt ?? "unknown"}`;
-    await prisma.$transaction(async (tx) => {
-      const cp1ServiceTypeId = await getServiceTypeId(tx, CP1_AUDIT_SERVICE_CODE);
-      const currentBalance = await getCreditBalance(tx, caseId, cp1ServiceTypeId);
-      await createCreditEntry(tx, {
-        serviceTypeId: cp1ServiceTypeId,
-        caseId,
-        amount: 1,
-        balanceAfter: currentBalance + 1,
-        type: "refund",
-        referenceId: caseId,
-        idempotencyKey: refundKey,
-        metadataJson: { reason },
-      });
-    });
+    // Refund the service type that was charged; jobs queued before CP2 carry none and were CP1.
+    const chargedCode = AUDIT_SERVICE_TYPES.includes(inputJson?.service_type ?? "") ? (inputJson?.service_type as string) : CP1_AUDIT_SERVICE_CODE;
+    await prisma.$transaction((tx) =>
+      grantAuditRefund(tx, { caseId, serviceTypeCode: chargedCode, idempotencyKey: refundKey, reason }),
+    );
     logger.warn({ caseId, reason }, "Refunded 1 audit credit after system failure");
     return true;
   } catch (err: unknown) {
@@ -233,145 +212,6 @@ function cleanDirectory(dirPath: string): void {
   }
 }
 
-/**
- * Assemble input files scoped by submission type.
- *
- * - initial:    intake unit docs + intake_submission.md
- * - resubmit:   target unit docs + previous_report + change_summary (NO intake baseline, NO full history)
- * - logic_check: latest unit docs (+ previous_report if available)
- */
-async function assembleScopedInputFiles(
-  caseId: string,
-  submissionType: SubmissionType,
-  lifecycleUnitId: string | null,
-): Promise<{ inputFiles: OmpAuditInputFile[]; resolvedLifecycleUnitId: string | null }> {
-  const inputFiles: OmpAuditInputFile[] = [];
-
-  if (submissionType === "initial") {
-    // Initial → intake unit (v00) docs + intake_submission.md
-    const intakeUnit = await findFirstIntakeUnit(caseId);
-    if (intakeUnit?.content) {
-      inputFiles.push({ name: "intake_submission.md", content: intakeUnit.content });
-    }
-
-    // Include Team Fit Report if available (for cases originating from Team Fit flow)
-    const teamFit = await prisma.teamFitReport.findUnique({ where: { case_id: caseId } });
-    if (teamFit) {
-      const idea = (teamFit.idea_snapshot as Record<string, unknown>) || {};
-      const team = (teamFit.team_snapshot as Record<string, unknown>) || {};
-
-      const teamFitMd = `# Báo cáo phân tích Team Fit ban đầu (Team Fit Report)
-
-## 1. Thông tin ý tưởng (Idea Snapshot)
-- **Tên dự án:** ${String(idea["projectName"] || "Chưa cập nhật")}
-- **Lĩnh vực:** ${String(idea["field"] || "Chưa cập nhật")}
-- **Vấn đề:** ${String(idea["problem"] || "Chưa cập nhật")}
-- **Giải pháp:** ${String(idea["solution"] || "Chưa cập nhật")}
-- **Khách hàng mục tiêu:** ${String(idea["targetCustomer"] || "Chưa cập nhật")}
-- **MVP / Thử nghiệm:** ${String(idea["mvp"] || "Chưa cập nhật")}
-
-## 2. Khảo sát Đội ngũ (Team Snapshot)
-\`\`\`json
-${JSON.stringify(team, null, 2)}
-\`\`\`
-`;
-      inputFiles.push({ name: "team_fit_report.md", content: teamFitMd });
-    }
-
-    const documents = await findDocumentRecordsByCaseId(caseId);
-    for (const doc of documents) {
-      if (doc.download_url) {
-        try {
-          const res = await fetch(doc.download_url);
-          if (res.ok) {
-            const arrayBuf = await res.arrayBuffer();
-            const fileName = doc.original_name || doc.canonical_name || `document_${doc.id}.${doc.extension || "bin"}`;
-            inputFiles.push({ name: fileName, content: Buffer.from(arrayBuf) });
-          }
-        } catch (fetchErr) {
-          logger.warn({ docId: doc.id, fetchErr }, "Could not fetch document for audit input");
-        }
-      }
-    }
-    return { inputFiles, resolvedLifecycleUnitId: intakeUnit?.id ?? null };
-  }
-
-  // For resubmit and logic_check, we need a lifecycle unit
-  let resolvedUnitId = lifecycleUnitId;
-
-  if (submissionType === "logic_check" && !resolvedUnitId) {
-    // logic_check: use latest unit if not specified
-    const latestUnit = await prisma.lifecycleUnit.findFirst({
-      where: { case_id: caseId, unit_type: "version" },
-      orderBy: { version_no: "desc" },
-    });
-    resolvedUnitId = latestUnit?.id ?? null;
-  }
-
-  if (submissionType === "resubmit" && !resolvedUnitId) {
-    throw new AppError(409, "RESUBMIT_REQUIRES_UPLOAD", "Vui lòng upload tài liệu sửa đổi trước khi yêu cầu thẩm định lại.");
-  }
-
-  // Fetch docs scoped to the lifecycle unit
-  if (resolvedUnitId) {
-    const unitDocs = await prisma.documentRecord.findMany({
-      where: { lifecycle_unit_id: resolvedUnitId, superseded_at: null },
-      orderBy: [{ seq: "asc" }, { created_at: "asc" }],
-    });
-    for (const doc of unitDocs) {
-      if (doc.download_url) {
-        try {
-          const res = await fetch(doc.download_url);
-          if (res.ok) {
-            const arrayBuf = await res.arrayBuffer();
-            const fileName = doc.original_name || doc.canonical_name || `document_${doc.id}.${doc.extension || "bin"}`;
-            inputFiles.push({ name: fileName, content: Buffer.from(arrayBuf) });
-          }
-        } catch (fetchErr) {
-          logger.warn({ docId: doc.id, fetchErr }, "Could not fetch document for audit input");
-        }
-      }
-    }
-  }
-
-  // For resubmit: add previous report + change_summary
-  if (submissionType === "resubmit") {
-    const reports = await findApprovedReports(caseId);
-    if (reports.length > 0) {
-      const latestReport = reports[0]; // desc order, first = latest
-      if (latestReport.content_md) {
-        inputFiles.push({ name: "previous_report.md", content: latestReport.content_md });
-      }
-    }
-    // change_summary: stored in lifecycle_unit.content as JSON { change_summary, documents, remaining_blockers }
-    if (resolvedUnitId) {
-      const unit = await prisma.lifecycleUnit.findUnique({ where: { id: resolvedUnitId } });
-      if (unit?.content) {
-        try {
-          const parsed = JSON.parse(unit.content);
-          const changeSummary = parsed.change_summary || parsed.reason || unit.content;
-          inputFiles.push({ name: "change_summary.md", content: changeSummary });
-        } catch {
-          // Not JSON, use raw content
-          inputFiles.push({ name: "change_summary.md", content: unit.content });
-        }
-      }
-    }
-  }
-
-  // For logic_check: add previous report if available (optional)
-  if (submissionType === "logic_check") {
-    const reports = await findApprovedReports(caseId);
-    if (reports.length > 0) {
-      const latestReport = reports[0];
-      if (latestReport.content_md) {
-        inputFiles.push({ name: "previous_report.md", content: latestReport.content_md });
-      }
-    }
-  }
-
-  return { inputFiles, resolvedLifecycleUnitId: resolvedUnitId };
-}
 
 /**
  * Prepare sandbox files and trigger OMP Audit via BullMQ Queue.
@@ -392,6 +232,9 @@ export async function triggerOmpAuditForCase(
   }
   const {
     submission_type: submissionType,
+    checkpoint: checkpointCode,
+    scope,
+    change_summary: changeSummary,
     lifecycle_unit_id: lifecycleUnitId,
     model,
     prompt_mode: promptMode = "full",
@@ -400,6 +243,7 @@ export async function triggerOmpAuditForCase(
     force_supersede: forceSupersede = false,
   } = parsed.data;
   const resolvedModel = model?.trim() || process.env.OMP_MODEL || "opencode-go/deepseek-v4-pro";
+  const plan = resolveAuditPlan(checkpointCode, checkpointCode === "CP1" ? promptMode : (scope as string), submissionType);
   // 2. Validate lifecycle_unit belongs to case (if provided)
   if (lifecycleUnitId) {
     const unit = await prisma.lifecycleUnit.findUnique({ where: { id: lifecycleUnitId } });
@@ -476,7 +320,7 @@ export async function triggerOmpAuditForCase(
   // report_type 'input_clarification', so query by that invariant.
   // If the first initial FAILED (no report saved), the guard finds nothing
   // and the trigger proceeds — P2002 skipCharge below handles free retry.
-  if (submissionType === "initial") {
+  if (checkpointCode === "CP1" && submissionType === "initial") {
     const intakeUnit = await findFirstIntakeUnit(caseId);
     if (intakeUnit) {
       const existingInitial = await prisma.report.findFirst({
@@ -493,6 +337,15 @@ export async function triggerOmpAuditForCase(
     }
   }
 
+  // 4c. CP2: the checkpoint row must exist (files and reports hang off it) and a resubmit needs a
+  // full report to compare with. Checked before charging so a rejected trigger costs nothing.
+  if (checkpointCode === "CP2") {
+    await ensureCheckpoint(prisma, caseId, CP2_CHECKPOINT_CODE, CP2_OPENED_STATUS);
+    if (submissionType === "resubmit" && !(await findLatestCp2FullReport(caseId))) {
+      throw new AppError(409, "CP2_NO_PREVIOUS_REPORT", "Chưa có báo cáo CP2 toàn bộ trước đó để chấm lại.");
+    }
+  }
+
   // 5-6. Balance check + deduct 1 credit + register job atomically. The
   // balance is read INSIDE the transaction so concurrent triggers cannot
   // both pass the check on a single remaining credit (TOCTOU).
@@ -502,6 +355,21 @@ export async function triggerOmpAuditForCase(
   // cleanly consume 1 credit from the restored balance without P2002 collision.
   const startedAt = new Date().toISOString();
   const idempotencyKey = `audit-trigger-${caseId}-${startedAt}`;
+  // Stored on the job so the finalizer, refunds and retries read one source of truth.
+  const jobInput = {
+    submission_type: submissionType,
+    lifecycle_unit_id: lifecycleUnitId ?? null,
+    startedAt,
+    model: resolvedModel,
+    prompt_mode: promptMode,
+    skip_credit_check: skipCreditCheck,
+    admin_triggered: adminTriggered,
+    checkpoint: checkpointCode,
+    scope: plan.scope,
+    service_type: plan.serviceType,
+  };
+  const sandboxOpts: SandboxOptions =
+    checkpointCode === "CP1" ? {} : { promptFiles: plan.prompts, includeKnowledge: false };
   let newAiJob!: AiJob;
 
   try {
@@ -537,21 +405,7 @@ export async function triggerOmpAuditForCase(
       }
 
       if (!skipCreditCheck) {
-        const cp1ServiceTypeId = await getServiceTypeId(tx, CP1_AUDIT_SERVICE_CODE);
-        const inTxBalance = await getCreditBalance(tx, caseId, cp1ServiceTypeId);
-        if (inTxBalance < 1) {
-          throw new AppError(402, "NO_CREDITS", "Hết credit. Vui lòng mua thêm credit để tiếp tục.");
-        }
-
-        await createCreditEntry(tx, {
-          serviceTypeId: cp1ServiceTypeId,
-          caseId,
-          amount: -1,
-          balanceAfter: inTxBalance - 1,
-          type: "consumption",
-          referenceId: caseId,
-          idempotencyKey,
-        });
+        await consumeAuditCredit(tx, { caseId, serviceTypeCode: plan.serviceType, idempotencyKey });
       }
 
       // Count existing jobs for this case to set attempt_no = existingCount + 1
@@ -561,16 +415,7 @@ export async function triggerOmpAuditForCase(
       // Register in ai_jobs table with auto-generated UUID
       newAiJob = await createAiJobQueued(
         caseId,
-        {
-          submission_type: submissionType,
-          lifecycle_unit_id: lifecycleUnitId ?? null,
-          startedAt,
-          model: resolvedModel,
-          prompt_mode: promptMode,
-          skip_credit_check: skipCreditCheck,
-          admin_triggered: adminTriggered,
-          attempt_no: attemptNo,
-        },
+        { ...jobInput, attempt_no: attemptNo },
         tx
       );
     });
@@ -604,12 +449,13 @@ export async function triggerOmpAuditForCase(
       cleanDirectory(resolve(sandboxStorage, "jobs", newAiJob.id, "input"));
       cleanDirectory(resolve(sandboxStorage, "jobs", newAiJob.id, "output"));
     }
-    // 9. Assemble scoped input files per submission type
-    const { inputFiles, resolvedLifecycleUnitId } = await assembleScopedInputFiles(
+    // 9. Assemble input files through the registry (checkpoint decides the assembler)
+    const { inputFiles, resolvedLifecycleUnitId } = await INPUT_ASSEMBLERS[plan.input]({
       caseId,
       submissionType,
-      lifecycleUnitId ?? null,
-    );
+      lifecycleUnitId: lifecycleUnitId ?? null,
+      changeSummary,
+    });
 
     // 9b. Persist resolved unit into aiJob.input_json so the guard (phase-01)
     // and finalizer read the true identity, not the pre-resolve request value.
@@ -620,13 +466,8 @@ export async function triggerOmpAuditForCase(
           where: { id: newAiJob.id },
           data: {
             input_json: {
-              submission_type: submissionType,
+              ...jobInput,
               lifecycle_unit_id: resolvedLifecycleUnitId,
-              startedAt,
-              model: resolvedModel,
-              prompt_mode: promptMode,
-              skip_credit_check: skipCreditCheck,
-              admin_triggered: adminTriggered,
               attempt_no: newAiJob.attempt_count,
             },
           },
@@ -637,22 +478,22 @@ export async function triggerOmpAuditForCase(
     }
 
     // 10. Prepare sandbox (nested as primary, flat as compatibility mirror for immutable worker image)
-    prepareSandbox(jobDir, inputFiles);
+    prepareSandbox(jobDir, inputFiles, sandboxOpts);
 
     try {
-      prepareSandbox(flatJobDir, inputFiles);
+      prepareSandbox(flatJobDir, inputFiles, sandboxOpts);
     } catch (flatErr) {
       logger.warn({ caseId, jobId: newAiJob.id, flatErr }, "Failed to mirror sandbox to flat path for worker compatibility");
     }
 
     if (existsSync(sandboxStorage)) {
       try {
-        prepareSandbox(resolve(sandboxStorage, "jobs", caseId, newAiJob.id), inputFiles);
+        prepareSandbox(resolve(sandboxStorage, "jobs", caseId, newAiJob.id), inputFiles, sandboxOpts);
       } catch (err) {
         logger.warn({ caseId, err }, "Failed to mirror sandbox to OMP_SANDBOX_MIRROR_ROOT (nested)");
       }
       try {
-        prepareSandbox(resolve(sandboxStorage, "jobs", newAiJob.id), inputFiles);
+        prepareSandbox(resolve(sandboxStorage, "jobs", newAiJob.id), inputFiles, sandboxOpts);
       } catch (err) {
         logger.warn({ caseId, err }, "Failed to mirror sandbox to OMP_SANDBOX_MIRROR_ROOT (flat)");
       }
@@ -672,6 +513,8 @@ export async function triggerOmpAuditForCase(
       promptMode: promptMode,
       submissionType,
       lifecycleUnitId: resolvedLifecycleUnitId ?? undefined,
+      checkpoint: checkpointCode,
+      scope: plan.scope,
     });
 
     // 12. Sync into jobStore for real-time SSE logs

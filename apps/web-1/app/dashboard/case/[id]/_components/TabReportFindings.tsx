@@ -2,7 +2,8 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { Download, ExternalLink, FileText, ChevronDown, ChevronUp } from "lucide-react";
-import { Button, Stack, Tooltip, LoadingOverlay } from "@mantine/core";
+import { Button, SegmentedControl, Stack, Tooltip, LoadingOverlay } from "@mantine/core";
+import { isCp2ReportType } from "@repo/validation";
 import { useDownloadReportPdf } from "../hooks/useDownloadReportPdf";
 import type { RoundHistoryEntry } from "@/types/case";
 import RoundCard from "./RoundCard";
@@ -21,6 +22,7 @@ interface TabReportFindingsProps {
 export default function TabReportFindings({ report, caseId, roundHistory }: TabReportFindingsProps) {
   const [pdfLoading, setPdfLoading] = useState(true);
   const [isSingleExpanded, setIsSingleExpanded] = useState(true);
+  const [checkpointFilter, setCheckpointFilter] = useState<"CP1" | "CP2">("CP1");
 
   const parsedReport = useMemo<RichReportData | null>(() => {
     if (report?.metadata_json && typeof report.metadata_json === "object") {
@@ -74,16 +76,32 @@ export default function TabReportFindings({ report, caseId, roundHistory }: TabR
 
   // Has round history — render round list with first round expanded and others collapsed
   if (roundHistory && roundHistory.length > 0) {
+    const cp2Rounds = roundHistory.filter((round) => isCp2ReportType(round.report?.report_type));
+    const cp1Rounds = roundHistory.filter((round) => !isCp2ReportType(round.report?.report_type));
+    const showCheckpointFilter = cp2Rounds.length > 0;
+    const activeCheckpoint = showCheckpointFilter && (checkpointFilter === "CP2" || cp1Rounds.length === 0) ? "CP2" : "CP1";
+    const visibleRounds = activeCheckpoint === "CP2" ? cp2Rounds : cp1Rounds;
     return (
       <Stack gap="md" className="animate-fade-in font-body pb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <h3 className="font-heading font-semibold text-sm text-text-app">
-            Lịch sử các lần đánh giá ({roundHistory.length} phiên bản)
+            Lịch sử các lần đánh giá ({visibleRounds.length} phiên bản)
           </h3>
+          {showCheckpointFilter && (
+            <SegmentedControl
+              size="xs"
+              value={activeCheckpoint}
+              onChange={(value) => setCheckpointFilter(value as "CP1" | "CP2")}
+              data={[
+                { label: "Checkpoint 1", value: "CP1" },
+                { label: "Checkpoint 2", value: "CP2" },
+              ]}
+            />
+          )}
         </div>
 
         <Stack gap="sm">
-          {roundHistory.map((round, index) => (
+          {visibleRounds.map((round, index) => (
             <RoundCard
               key={round.report_id}
               round={round}

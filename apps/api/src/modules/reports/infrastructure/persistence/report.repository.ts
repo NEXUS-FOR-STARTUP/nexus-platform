@@ -1,3 +1,4 @@
+import { CP2_REPORT_TYPES } from "@repo/validation";
 import { prisma } from "../../../../db.js";
 import type { Prisma } from "@prisma/client";
 import { upsertReportArtifactDocumentRecord } from "../../../documents/infrastructure/persistence/document.repository.js";
@@ -128,9 +129,10 @@ export async function findLatestApprovedReport(caseId: string) {
   });
 }
 
+/** CP1 baseline lookup: CP2 reports belong to another checkpoint and must never feed a CP1 resubmit. */
 export async function findApprovedReports(caseId: string) {
   return await prisma.report.findMany({
-    where: { case_id: caseId, status: "APPROVED" },
+    where: { case_id: caseId, status: "APPROVED", report_type: { notIn: [...CP2_REPORT_TYPES] } },
     orderBy: { created_at: "desc" },
   });
 }
@@ -196,19 +198,24 @@ export async function saveOmpAuditReport(
     lifecycleUnitId?: string | null;
     contentMd: string;
     metadataJson?: Record<string, unknown> | null;
+    /** CP2 passes both; CP1 omits them and keeps the legacy routing + `input_clarification`. */
+    checkpointCode?: string;
+    reportType?: string;
   },
   db: Pick<typeof prisma, "checkpoint" | "report" | "lifecycleUnit" | "case"> = prisma,
 ) {
-  const { caseId, lifecycleUnitId, contentMd, metadataJson } = params;
+  const { caseId, lifecycleUnitId, contentMd, metadataJson, checkpointCode, reportType } = params;
 
   // Route to the checkpoint the audit actually belongs to, not the oldest row.
-  const checkpoint = await resolveOmpAuditCheckpoint(caseId, lifecycleUnitId, db);
+  const checkpoint = checkpointCode
+    ? await ensureCheckpoint(db, caseId, checkpointCode)
+    : await resolveOmpAuditCheckpoint(caseId, lifecycleUnitId, db);
 
   return await db.report.create({
     data: {
       case_id: caseId,
       checkpoint_id: checkpoint.id,
-      report_type: "input_clarification",
+      report_type: reportType ?? "input_clarification",
       lifecycle_unit_id: lifecycleUnitId ?? null,
       content_md: contentMd,
       metadata_json: (metadataJson as Prisma.InputJsonValue) ?? undefined,
@@ -216,5 +223,13 @@ export async function saveOmpAuditReport(
       created_by: "omp_worker",
       sent_at: new Date(),
     },
+  });
+}
+
+/** Latest CP2 full-scope report (first or resubmit): the baseline a CP2 resubmit compares against. */
+export async function findLatestCp2FullReport(caseId: string) {
+  return await prisma.report.findFirst({
+    where: { case_id: caseId, report_type: { in: ["cp2_full", "cp2_full_resubmit"] } },
+    orderBy: { created_at: "desc" },
   });
 }

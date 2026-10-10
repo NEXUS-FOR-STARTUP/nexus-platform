@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### CP2 audit (backend)
+- `POST /api/cases/:id/ai-retry` nhận `checkpoint` (`CP1` mặc định | `CP2`), `scope` (`questionnaire` | `full`, bắt buộc với CP2), `change_summary` (CP2 resubmit). Thiếu `checkpoint` = hành vi CP1 cũ.
+- `packages/shared/src/audit-checkpoints.ts`: bảng tra checkpoint duy nhất cho API và worker (service type, prompt, report type, input, hậu xử lý). Xóa `PROMPT_CONFIG` (worker) và `resolveAuditPromptFileName` + `runOmpAudit` (API).
+- CP2: input `cp2_answers.md`/`self_checks.md`/`attachments/`, hậu xử lý zod -> kiểm trích dẫn -> `scoreCp2Report` (`packages/validation/src/catalogs/cp2-audit-*.ts`), report_type `cp2_questionnaire|cp2_full|cp2_full_resubmit`, trừ/hoàn lượt `cp2_audit`.
+- Biến môi trường mới: `OMP_INPUT_FETCH_TIMEOUT_MS` (mặc định 30000).
+
 ## [1.2.0] - 2026-10-04
 
 ### 2026-10-04 — Documentation & Operating Rules Alignment

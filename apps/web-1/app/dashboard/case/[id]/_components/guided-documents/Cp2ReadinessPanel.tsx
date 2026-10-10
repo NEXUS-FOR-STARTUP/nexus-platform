@@ -4,6 +4,7 @@ import { Checkbox, List, Progress } from "@mantine/core";
 import { CheckCircle2, CircleAlert } from "lucide-react";
 import { QUESTION_REGISTRY, type Template } from "@repo/validation";
 import { useCp2Readiness } from "../../hooks/useCp2Readiness";
+import Cp2AuditActions from "./Cp2AuditActions";
 
 interface Cp2ReadinessPanelProps {
   caseId: string;
@@ -76,6 +77,8 @@ export default function Cp2ReadinessPanel({
           Phần này do nhóm tự khai, hệ thống chưa kiểm chứng. Thiếu một mục có thể khiến báo cáo bị trượt.
         </p>
       </div>
+
+      <Cp2AuditActions caseId={caseId} readiness={readiness} />
 
       <p className="text-xs text-text-muted">
         Phỏng vấn thật có giá trị hơn khảo sát Google Form. Hãy ưu tiên nói chuyện trực tiếp với khách hàng và chuyên gia.
