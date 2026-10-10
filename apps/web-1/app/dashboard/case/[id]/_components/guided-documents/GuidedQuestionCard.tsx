@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { Button, Textarea } from "@mantine/core";
-import { Save } from "lucide-react";
+import { Anchor, Button, Textarea } from "@mantine/core";
+import { ExternalLink, Save } from "lucide-react";
 import { QUESTION_REGISTRY, type Question } from "@repo/validation";
 
 interface GuidedQuestionCardProps {
@@ -55,6 +55,27 @@ export default function GuidedQuestionCard({
               <ul className="list-disc list-inside space-y-1 text-xs">
                 {question.suggested_actions.map((act, i) => (
                   <li key={i}>{act}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {question.further_reading && question.further_reading.length > 0 && (
+            <div className="flex flex-col gap-1 pt-1">
+              <p className="text-xs font-semibold">Đọc thêm:</p>
+              <ul className="list-disc list-inside space-y-1 text-xs">
+                {question.further_reading.map((link) => (
+                  <li key={link.url}>
+                    <Anchor
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      size="xs"
+                      className="inline-flex items-center gap-1"
+                    >
+                      {link.title}
+                      <ExternalLink className="w-3 h-3" aria-hidden />
+                    </Anchor>
+                  </li>
                 ))}
               </ul>
             </div>

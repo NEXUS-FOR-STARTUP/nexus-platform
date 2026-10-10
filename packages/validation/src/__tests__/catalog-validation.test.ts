@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { cp1, cp2, cp3, cp4, validateCatalog, CATALOG_VERSION, type Template } from "../index.js";
+import { validateFurtherReading } from "../catalogs/validate-catalog.js";
 
 describe("Catalog validation (@repo/validation)", () => {
   it("validates the CP1 template", () => {
@@ -76,6 +77,28 @@ describe("Catalog validation (@repo/validation)", () => {
       ],
     };
     assert.throws(() => validateCatalog(invalid), /classification/i);
+  });
+
+  describe("further_reading", () => {
+    const link = (url: string, title = "Bài viết") => ({ url, title });
+    const check = (further_reading: { url: string; title: string }[]) =>
+      validateFurtherReading({ id: "q", text: "q", explanation: "", suggested_actions: [], further_reading });
+
+    it("accepts https links and questions without links", () => {
+      assert.doesNotThrow(() => check([link("https://example.com/a")]));
+      assert.doesNotThrow(() => check([]));
+    });
+
+    it("rejects http and javascript urls", () => {
+      assert.throws(() => check([link("http://example.com/a")]), /https/);
+      assert.throws(() => check([link("javascript:alert(1)")]), /https/);
+    });
+
+    it("rejects unparsable urls, blank titles and duplicate urls", () => {
+      assert.throws(() => check([link("not a url")]), /valid URL/);
+      assert.throws(() => check([link("https://example.com/a", "  ")]), /title/);
+      assert.throws(() => check([link("https://example.com/a"), link("https://example.com/a", "B")]), /duplicate/);
+    });
   });
 
   it("exports a non-empty CATALOG_VERSION", () => {

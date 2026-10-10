@@ -140,6 +140,21 @@ export const CP2_QUESTIONS = {
     ],
   },
 
+  cp2_question_bank: {
+    id: "cp2_question_bank",
+    text: "Bộ câu hỏi phỏng vấn khách hàng, câu hỏi chuyên gia và bảng hỏi khảo sát (bản nháp)",
+    explanation:
+      "Ghi lại bản nháp bộ câu hỏi nhóm dùng, chia làm 3 phần:\n" +
+      "- Phần 1: câu hỏi phỏng vấn khách hàng\n" +
+      "- Phần 2: câu hỏi phỏng vấn chuyên gia\n" +
+      "- Phần 3: bảng hỏi khảo sát; với mỗi câu ghi loại câu (trắc nghiệm, thang đo, câu hỏi mở) và các phương án trả lời\n" +
+      "Với mỗi câu, chỉ ra câu phục vụ câu hỏi nghiên cứu nào ở mục mục tiêu nghiên cứu. Nexus dùng phần này để góp ý bảng hỏi trước khi nhóm đi hỏi thật.",
+    suggested_actions: [
+      "Mỗi câu có ghi câu hỏi nghiên cứu mà nó phục vụ.",
+      "Mỗi câu khảo sát có ghi loại câu và đủ phương án trả lời.",
+    ],
+  },
+
   cp2_pain_point_interviews: {
     id: "cp2_pain_point_interviews",
     text: "[Không bắt buộc] Nhóm đã phỏng vấn pain point chưa?",
@@ -158,12 +173,17 @@ export const CP2_QUESTIONS = {
       "Ước lượng ba tầng, mỗi tầng kèm cách tính và nguồn số liệu:\n" +
       "- TAM (tổng thị trường): toàn bộ khách hàng có thể có × giá dịch vụ\n" +
       "- SAM (thị trường có thể phục vụ): phần của TAM nhóm thực sự tiếp cận được ở giai đoạn đầu (theo khu vực, nhóm khách hàng, kênh)\n" +
-      "- SOM (thị trường có thể chiếm): số khách hàng nhóm phục vụ được thực tế, tính từ năng lực vận hành\n" +
-      "Nên tính SOM theo cách bottom-up: năng lực phục vụ mỗi kỳ × số kỳ mỗi năm × giá.\n" +
-      "Không viết kiểu \"chỉ cần chiếm 1% thị trường\" mà không có căn cứ.",
+      "- SOM (thị trường có thể chiếm): tính bottom-up theo chuỗi: kênh tiếp cận → số người tiếp cận được qua mỗi kênh → tỷ lệ tải/dùng thử → tỷ lệ trả phí → × giá\n" +
+      "Không viết kiểu \"chỉ cần chiếm 1% thị trường\" mà không có căn cứ. Mỗi con số trong chuỗi cần có căn cứ (số liệu đã tra hoặc kết quả phỏng vấn, khảo sát của nhóm).",
     suggested_actions: [
       "Mỗi con số có nguồn trích dẫn hoặc công thức tính kèm theo.",
       "Chỉ rõ SOM nhỏ hơn SAM và lý do.",
+    ],
+    further_reading: [
+      {
+        url: "https://nexusforstartup.site/news/cach-tinh-tam-sam-som-cuc-don-gian-cho-du-an-khoi-nghiep",
+        title: "Cách tính TAM, SAM, SOM cực đơn giản cho dự án khởi nghiệp",
+      },
     ],
   },
 
@@ -301,6 +321,12 @@ export const CP2_QUESTIONS = {
     suggested_actions: [
       "Mỗi mục đích dùng AI đi kèm prompt tương ứng.",
     ],
+    further_reading: [
+      {
+        url: "https://nexusforstartup.site/news/lam-sao-de-viet-tot-hon-trong-thoi-dai-ai-slop-bk5t",
+        title: "Làm sao để viết tốt hơn trong thời đại AI slop?",
+      },
+    ],
   },
 
   cp2_harvard_referencing: {
@@ -318,10 +344,12 @@ export const CP2_QUESTIONS = {
     id: "cp2_appendix",
     text: "Phụ lục (Appendix) của nhóm gồm những gì?",
     explanation:
-      "BẮT BUỘC. Đính kèm:\n" +
-      "- Hồ sơ chuyên gia đã phỏng vấn\n" +
-      "- Dữ liệu khảo sát gốc (raw data)\n" +
-      "Ẩn thông tin cá nhân và thông tin nhạy cảm của người trả lời khi cần.",
+      "BẮT BUỘC: nhóm vẫn phải trả lời phụ lục của mình gồm những gì, hoặc ghi rõ chưa có tệp.\n" +
+      "Phụ lục giúp người đọc đối chiếu khi nhóm có tài liệu, có thể gồm:\n" +
+      "- Hồ sơ tóm tắt của chuyên gia đã phỏng vấn\n" +
+      "- Bảng hỏi và dữ liệu khảo sát đã ẩn thông tin cá nhân\n\n" +
+      "Nếu nhóm trao đổi bằng lời hoặc chưa có tệp, hãy trình bày rõ người đã hỏi, cách thực hiện, điều học được và số liệu trong phần thân bài. " +
+      "Nexus không bắt buộc tải lên ghi âm, thông tin liên hệ hay dữ liệu khảo sát gốc để được chấm.",
     suggested_actions: [
       "Phần thân bài có chỗ tham chiếu đến phụ lục (ví dụ \"xem Phụ lục A\").",
     ],

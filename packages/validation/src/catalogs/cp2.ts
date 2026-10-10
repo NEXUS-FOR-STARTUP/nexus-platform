@@ -35,6 +35,7 @@ export const cp2: Template = {
         { question_id: "cp2_customer_discovery_process", classification: "required" },
         { question_id: "cp2_expert_interviews", classification: "required" },
         { question_id: "cp2_survey", classification: "required" },
+        { question_id: "cp2_question_bank", classification: "recommended" },
         { question_id: "cp2_pain_point_interviews", classification: "supplemental" },
       ],
     },

@@ -14,6 +14,29 @@ const registry = QUESTION_REGISTRY as Record<string, Question | undefined>;
 // Also rejects duplicate question placement and cross-template dependencies.
 // ---------------------------------------------------------------------------
 
+/** Rejects non-https, unparsable or duplicate links and blank titles in a question's further_reading. */
+export function validateFurtherReading(question: Question): void {
+  const seen = new Set<string>();
+  for (const { url, title } of question.further_reading ?? []) {
+    let protocol: string;
+    try {
+      protocol = new URL(url).protocol;
+    } catch {
+      throw new Error(`validateCatalog: further_reading url "${url}" on question "${question.id}" is not a valid URL`);
+    }
+    if (protocol !== "https:") {
+      throw new Error(`validateCatalog: further_reading url "${url}" on question "${question.id}" must use https`);
+    }
+    if (title.trim() === "") {
+      throw new Error(`validateCatalog: further_reading title is empty for url "${url}" on question "${question.id}"`);
+    }
+    if (seen.has(url)) {
+      throw new Error(`validateCatalog: duplicate further_reading url "${url}" on question "${question.id}"`);
+    }
+    seen.add(url);
+  }
+}
+
 export function validateCatalog(template: Template): void {
   // Map each question_id in this template to the phase that owns it.
   const phaseByQuestion = new Map<string, string>();
@@ -36,6 +59,7 @@ export function validateCatalog(template: Template): void {
         );
       }
       phaseByQuestion.set(question_id, phase.id);
+      validateFurtherReading(registry[question_id]!);
     }
   }
 

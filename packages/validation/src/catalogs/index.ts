@@ -29,7 +29,7 @@ export function isTemplateKey(value: string | null | undefined): value is Templa
 }
 
 // Single monotonic string stamped on every ProjectAnswer write.
-export const CATALOG_VERSION = "2026-10-10.2";
+export const CATALOG_VERSION = "2026-10-10.3";
 
 // Fail fast at module load — a catalog bug must surface in CI/tests, not at runtime.
 for (const [key, template] of Object.entries(TEMPLATE_REGISTRY)) {
