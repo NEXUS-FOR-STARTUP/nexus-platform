@@ -6,6 +6,7 @@ import { Button, Loader } from "@mantine/core";
 import { Download, ChevronLeft } from "lucide-react";
 import type { TemplateKey } from "@repo/validation";
 import { useGuidedDocuments } from "../../hooks/useGuidedDocuments";
+import { useGuidedDrafts } from "../../hooks/useGuidedDrafts";
 import GuidedTOC from "./GuidedTOC";
 import GuidedQuestionCard from "./GuidedQuestionCard";
 import GuidedImportModal from "./GuidedImportModal";
@@ -62,8 +63,16 @@ export default function GuidedDocumentsEditor({
   );
   const currentItem = flatQuestions[currentIndex] || flatQuestions[0];
 
+  const { drafts, setDraft, clearDraft } = useGuidedDrafts(caseId);
+
+  const handleChange = (qId: string, text: string) => {
+    if (text === (answersMap[qId] ?? "")) clearDraft(qId);
+    else setDraft(qId, text);
+  };
+
   const handleSaveQuestion = async (qId: string, answerText: string) => {
     await saveAnswers([{ question_id: qId, answer_text: answerText }]);
+    clearDraft(qId);
   };
 
   const handleApplyProposals = async (
@@ -143,7 +152,9 @@ export default function GuidedDocumentsEditor({
             key={currentItem.question_id}
             questionId={currentItem.question_id}
             questionNumber={`${currentItem.phaseIndex + 1}.${currentItem.questionIndex + 1}`}
-            initialValue={answersMap[currentItem.question_id] || ""}
+            value={drafts[currentItem.question_id] ?? answersMap[currentItem.question_id] ?? ""}
+            isDirty={currentItem.question_id in drafts}
+            onChange={(text) => handleChange(currentItem.question_id, text)}
             onSave={handleSaveQuestion}
             isSaving={isSaving}
           />

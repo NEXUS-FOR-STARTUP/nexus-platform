@@ -16,8 +16,8 @@ export function useGuidedDocuments(caseId: string, templateKey: TemplateKey) {
       const res = await apiClient.put(`/cases/${caseId}/guided-documents/answers`, { answers });
       return res.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: guidedAnswersQueryKey(caseId) });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: guidedAnswersQueryKey(caseId) });
       notifications.show({
         title: 'Đã lưu',
         message: 'Nội dung câu trả lời đã được lưu thành công.',

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Button, Textarea } from "@mantine/core";
 import { Save } from "lucide-react";
 import { QUESTION_REGISTRY, type Question } from "@repo/validation";
@@ -9,33 +9,28 @@ interface GuidedQuestionCardProps {
   questionId: string;
   /** Display number in "phase.question" form, matching the table of contents. */
   questionNumber: string;
-  initialValue: string;
+  value: string;
+  isDirty: boolean;
+  onChange: (value: string) => void;
   onSave: (questionId: string, value: string) => Promise<void>;
   isSaving: boolean;
 }
 
 export default function GuidedQuestionCard({
   questionId,
-  initialValue,
+  value,
+  isDirty,
+  onChange,
   onSave,
   isSaving,
   questionNumber,
 }: GuidedQuestionCardProps) {
-  const [value, setValue] = useState(initialValue);
-  const [isDirty, setIsDirty] = useState(false);
-
-  useEffect(() => {
-    setValue(initialValue);
-    setIsDirty(false);
-  }, [initialValue, questionId]);
-
   const question = (
     QUESTION_REGISTRY as Record<string, Question | undefined>
   )[questionId];
 
   const handleSave = async () => {
     await onSave(questionId, value);
-    setIsDirty(false);
   };
 
   return (
@@ -75,10 +70,7 @@ export default function GuidedQuestionCard({
         autosize
         maxRows={16}
         value={value}
-        onChange={(e) => {
-          setValue(e.currentTarget.value);
-          setIsDirty(true);
-        }}
+        onChange={(e) => onChange(e.currentTarget.value)}
         classNames={{
           input: "font-body text-sm leading-relaxed",
         }}
