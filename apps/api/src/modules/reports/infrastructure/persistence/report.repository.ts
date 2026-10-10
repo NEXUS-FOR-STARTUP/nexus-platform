@@ -1,6 +1,7 @@
 import { prisma } from "../../../../db.js";
 import type { Prisma } from "@prisma/client";
 import { upsertReportArtifactDocumentRecord } from "../../../documents/infrastructure/persistence/document.repository.js";
+import { ensureCheckpoint } from "../../../cases/infrastructure/persistence/case.repository.js";
 
 export async function findDraftReportByCaseId(caseId: string) {
   return await prisma.report.findFirst({
@@ -180,14 +181,7 @@ async function resolveOmpAuditCheckpoint(
   });
   if (latestCheckpoint) return latestCheckpoint;
 
-  return await db.checkpoint.create({
-    data: {
-      case_id: caseId,
-      checkpoint_code: "CP1",
-      checkpoint_status: "submitted",
-      latest_version_no: 1,
-    },
-  });
+  return await ensureCheckpoint(db, caseId, "CP1");
 }
 
 /**

@@ -4,6 +4,28 @@ import { createDocumentRecordsForUnit } from "../../../documents/infrastructure/
 import { AppError } from "../../../../shared/domain/app-error.js";
 import { MESSAGE_PAGE_DEFAULT, encodeMessageCursor } from "../../application/message-cursor.js";
 
+/**
+ * Single place that creates a checkpoint row. Idempotent via the
+ * (case_id, checkpoint_code) unique key, so concurrent callers share one row.
+ */
+export async function ensureCheckpoint(
+  db: Pick<Prisma.TransactionClient, "checkpoint">,
+  caseId: string,
+  code: string,
+  status = "submitted",
+) {
+  return await db.checkpoint.upsert({
+    where: { case_id_checkpoint_code: { case_id: caseId, checkpoint_code: code } },
+    update: {},
+    create: {
+      case_id: caseId,
+      checkpoint_code: code,
+      checkpoint_status: status,
+      latest_version_no: 1,
+    },
+  });
+}
+
 
 
 export async function findCaseById(id: string) {
@@ -181,14 +203,7 @@ export async function createCaseWithCheckpointAndIntake(data: {
       },
     });
 
-    const checkpoint = await tx.checkpoint.create({
-      data: {
-        case_id: newCase.id,
-        checkpoint_code: "CP1",
-        checkpoint_status: "submitted",
-        latest_version_no: 1,
-      },
-    });
+    const checkpoint = await ensureCheckpoint(tx, newCase.id, "CP1");
 
     const intakeUnit = await tx.lifecycleUnit.create({
       data: {

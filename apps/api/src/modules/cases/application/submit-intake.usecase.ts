@@ -1,7 +1,7 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import type { Prisma } from "@prisma/client";
 import { Cp1IntakeCaps } from "@repo/validation";
-import { findCaseByIdWithMembersAndCheckpoints, findLatestCaseEventByType } from "../infrastructure/persistence/case.repository.js";
+import { ensureCheckpoint, findCaseByIdWithMembersAndCheckpoints, findLatestCaseEventByType } from "../infrastructure/persistence/case.repository.js";
 import { upsertDocumentRecordsForUnit } from "../../documents/infrastructure/persistence/document.repository.js";
 import { prisma } from "../../../db.js";
 import logger from "../../../shared/infrastructure/logger.js";
@@ -55,14 +55,7 @@ async function updateIntakeDataOnly(
   }
 
   if (!checkpointId) {
-    const cp = await client.checkpoint.create({
-      data: {
-        case_id: caseId,
-        checkpoint_code: "CP1",
-        checkpoint_status: "submitted",
-        latest_version_no: 1,
-      },
-    });
+    const cp = await ensureCheckpoint(client, caseId, "CP1");
     checkpointId = cp.id;
     await client.case.update({
       where: { id: caseId },

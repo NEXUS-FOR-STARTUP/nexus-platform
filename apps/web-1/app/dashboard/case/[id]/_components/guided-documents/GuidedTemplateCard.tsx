@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Badge, Box, Group, Progress, Stack, Text, UnstyledButton } from "@mantine/core";
+import { Badge, Box, Button, Group, Progress, Stack, Text, UnstyledButton } from "@mantine/core";
 import type { Template } from "@repo/validation";
 import classes from "./GuidedTemplateCard.module.css";
 
@@ -21,6 +21,9 @@ interface GuidedTemplateCardProps {
   onOpen: () => void;
   /** Khi true: thẻ mờ đi, có chữ "Coming soon" và không mở được. */
   comingSoon?: boolean;
+  /** Khi có: thẻ hiện nút bắt đầu thay cho tiến độ (checkpoint chưa mở). */
+  startLabel?: string;
+  starting?: boolean;
 }
 
 function getStatus(answered: number, total: number) {
@@ -35,6 +38,8 @@ export default function GuidedTemplateCard({
   total,
   onOpen,
   comingSoon = false,
+  startLabel,
+  starting = false,
 }: GuidedTemplateCardProps) {
   const pct = total > 0 ? Math.round((answered / total) * PERCENT) : 0;
   const status = getStatus(answered, total);
@@ -80,14 +85,21 @@ export default function GuidedTemplateCard({
             {template.title}
           </Text>
           <Progress value={pct} size="sm" radius="xl" color={status.color} />
-          <Group gap={8} wrap="nowrap">
-            <Badge variant="light" color={status.color}>
-              {status.label}
-            </Badge>
-            <Text size="sm" fw={600}>
-              {answered}/{total} câu
-            </Text>
-          </Group>
+          {startLabel ? (
+            // span, not button: the whole card is already a button.
+            <Button component="span" size="xs" loading={starting}>
+              {startLabel}
+            </Button>
+          ) : (
+            <Group gap={8} wrap="nowrap">
+              <Badge variant="light" color={status.color}>
+                {status.label}
+              </Badge>
+              <Text size="sm" fw={600}>
+                {answered}/{total} câu
+              </Text>
+            </Group>
+          )}
         </Stack>
       </Stack>
     </UnstyledButton>

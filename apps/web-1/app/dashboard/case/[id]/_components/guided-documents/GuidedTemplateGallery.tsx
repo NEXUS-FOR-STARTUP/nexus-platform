@@ -12,6 +12,8 @@ import {
   type TemplateKey,
 } from "@repo/validation";
 import { useGuidedAnswers } from "../../hooks/useGuidedAnswers";
+import { useCaseDetails } from "../../hooks/useCaseDetails";
+import { useOpenCheckpoint } from "../../hooks/useOpenCheckpoint";
 import GuidedFileTemplateCard from "./GuidedFileTemplateCard";
 import GuidedTemplateCard from "./GuidedTemplateCard";
 
@@ -19,6 +21,9 @@ import GuidedTemplateCard from "./GuidedTemplateCard";
 const COMING_SOON_TEMPLATES: readonly TemplateKey[] = ["cp3", "cp4"];
 // Template tài chính (P&L) cũng chưa mở. Bỏ khóa khỏi danh sách khi sẵn sàng mở.
 const COMING_SOON_FILE_TEMPLATES: readonly FileTemplateKey[] = ["finance"];
+
+const CP2_KEY: TemplateKey = "cp2";
+const CP2_CODE = "CP2";
 
 interface GuidedTemplateGalleryProps {
   caseId: string;
@@ -35,6 +40,10 @@ function countProgress(template: Template, answersMap: Record<string, string>) {
 
 export default function GuidedTemplateGallery({ caseId, onOpen }: GuidedTemplateGalleryProps) {
   const { answersMap, isLoading } = useGuidedAnswers(caseId);
+  const { documentWorkspace } = useCaseDetails(caseId);
+  const { openCheckpoint, isOpening } = useOpenCheckpoint(caseId);
+  const cp2Open = (documentWorkspace?.checkpoints ?? []).some((cp) => cp.checkpoint_code === CP2_CODE);
+  const startCp2 = () => openCheckpoint(CP2_CODE, { onSuccess: () => onOpen(CP2_KEY) });
 
   if (isLoading) {
     return (
@@ -58,13 +67,16 @@ export default function GuidedTemplateGallery({ caseId, onOpen }: GuidedTemplate
         {TEMPLATE_KEYS.map((key) => {
           const template = TEMPLATE_REGISTRY[key];
           const { answered, total } = countProgress(template, answersMap);
+          const needsStart = key === CP2_KEY && !cp2Open;
           return (
             <GuidedTemplateCard
               key={key}
               template={template}
               answered={answered}
               total={total}
-              onOpen={() => onOpen(key)}
+              onOpen={needsStart ? startCp2 : () => onOpen(key)}
+              startLabel={needsStart ? "Bắt đầu Checkpoint 2" : undefined}
+              starting={needsStart && isOpening}
               comingSoon={COMING_SOON_TEMPLATES.includes(key)}
             />
           );
