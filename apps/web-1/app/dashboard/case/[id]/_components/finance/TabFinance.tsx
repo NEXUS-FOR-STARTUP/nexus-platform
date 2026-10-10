@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Alert, Button, Loader, Text, Textarea, TextInput } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { CheckCircle2, Info, Save } from "lucide-react";
+import { CheckCircle2, Download, Info, Save } from "lucide-react";
 import {
   FINANCE_MAX_PERIODS,
   checkFinancePlan,
@@ -13,6 +13,7 @@ import {
 } from "@repo/validation";
 import { useFinancePlan } from "../../hooks/useFinancePlan";
 import FinanceTable from "./FinanceTable";
+import { downloadFinanceXlsx } from "./export-finance-xlsx";
 import { defaultPeriods, toPlan, toTexts, type CellTexts, type InvalidCell } from "./finance-cells";
 
 interface FinanceEditorProps {
@@ -59,6 +60,11 @@ function FinanceEditor({ initial, isSaving, onSave }: FinanceEditorProps) {
   const handleSave = async () => {
     const plan = build();
     if (plan) await onSave(plan);
+  };
+
+  const handleExport = async () => {
+    const plan = build();
+    if (plan) await downloadFinanceXlsx(plan);
   };
 
   const addPeriod = () => {
@@ -148,6 +154,9 @@ function FinanceEditor({ initial, isSaving, onSave }: FinanceEditorProps) {
         </Button>
         <Button loading={isSaving} leftSection={<Save className="w-4 h-4" />} onClick={handleSave}>
           Lưu
+        </Button>
+        <Button variant="default" leftSection={<Download className="w-4 h-4" />} onClick={handleExport}>
+          Xuất Excel
         </Button>
       </div>
     </div>
