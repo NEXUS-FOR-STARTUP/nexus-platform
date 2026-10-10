@@ -344,7 +344,6 @@ export const CP2_QUESTIONS = {
     id: "cp2_appendix",
     text: "Phụ lục (Appendix) của nhóm gồm những gì?",
     explanation:
-      "BẮT BUỘC: nhóm vẫn phải trả lời phụ lục của mình gồm những gì, hoặc ghi rõ chưa có tệp.\n" +
       "Phụ lục giúp người đọc đối chiếu khi nhóm có tài liệu, có thể gồm:\n" +
       "- Hồ sơ tóm tắt của chuyên gia đã phỏng vấn\n" +
       "- Bảng hỏi và dữ liệu khảo sát đã ẩn thông tin cá nhân\n\n" +
