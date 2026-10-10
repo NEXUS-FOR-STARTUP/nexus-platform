@@ -39,6 +39,10 @@ import {
   generateDocxHandler,
   getSyncProposalsHandler,
 } from "../../guided-documents/http/guided-documents.controller.js";
+import {
+  getFinancePlanHandler,
+  saveFinancePlanHandler,
+} from "../../finance/http/finance.controller.js";
 
 export const casesRouter = new Hono();
 
@@ -80,3 +84,5 @@ casesRouter.put("/:id/guided-documents/answers", saveAnswersHandler);
 casesRouter.post("/:id/guided-documents/import", importProposalHandler);
 casesRouter.post("/:id/guided-documents/generate", generateDocxHandler);
 casesRouter.get("/:id/guided-documents/sync", getSyncProposalsHandler);
+casesRouter.get("/:id/finance", getFinancePlanHandler);
+casesRouter.put("/:id/finance", saveFinancePlanHandler);
