@@ -67,6 +67,18 @@ export const SYNC_RULES: Record<string, SyncRule[]> = {
     },
     { target: "cp3_bmc_revenue_streams", from: [ans("cp1_revenue_model")] },
   ],
+  cp4: [
+    { target: "cp4_team_profile", from: [ans("cp1_team_members"), { kind: "team" }] },
+    { target: "cp4_pmf_problem", from: [ans("cp2_problem_need"), ans("cp1_main_problem"), idea("problem")] },
+    { target: "cp4_pmf_solution_tech", from: [ans("cp2_solution"), ans("cp1_solution_description"), idea("solution")] },
+    { target: "cp4_pmf_market_size", from: [ans("cp2_tam_sam_som")] },
+    { target: "cp4_pmf_customer_validation", from: [ans("cp2_pmf_signals")] },
+    { target: "cp4_pmf_competitors", from: [ans("cp2_competitive_analysis")] },
+    { target: "cp4_pmf_usp", from: [ans("cp3_bmc_value_proposition")] },
+    { target: "cp4_pmf_mvp_demo", from: [ans("cp3_mvp_demo_script"), ans("cp2_mvp_demo")] },
+    { target: "cp4_bm_revenue_streams", from: [ans("cp3_bmc_revenue_streams"), ans("cp1_revenue_model")] },
+    { target: "cp4_op_marketing_4p", from: [ans("cp2_marketing_4p")] },
+  ],
 };
 
 function formatTeam(team: NonNullable<SyncSources["team"]>): string {
