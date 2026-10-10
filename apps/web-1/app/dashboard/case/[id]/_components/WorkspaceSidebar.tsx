@@ -2,10 +2,10 @@
 
 import React, { useState } from "react";
 import { Tooltip, UnstyledButton } from "@mantine/core";
-import { FileText, MessageCircle, History, Settings, CreditCard, Info, Award, ChevronLeft, ChevronRight, FileEdit } from "lucide-react";
+import { FileText, MessageCircle, History, Settings, CreditCard, Info, Award, ChevronLeft, ChevronRight, FileEdit, Calculator } from "lucide-react";
 import classes from "../../../../../components/layout/DoubleNavbar.module.css";
 
-export type WorkspaceTab = "overview" | "guided" | "documents" | "report" | "discussion" | "timeline" | "settings" | "credits";
+export type WorkspaceTab = "overview" | "guided" | "finance" | "documents" | "report" | "discussion" | "timeline" | "settings" | "credits";
 
 interface WorkspaceSidebarProps {
   activeTab: WorkspaceTab;
@@ -43,6 +43,11 @@ export default function WorkspaceSidebar({
       id: "guided" as const,
       label: "Soạn thảo tài liệu",
       icon: FileEdit,
+    },
+    {
+      id: "finance" as const,
+      label: "Tài chính",
+      icon: Calculator,
     },
     ...(!isIntakePending
       ? [

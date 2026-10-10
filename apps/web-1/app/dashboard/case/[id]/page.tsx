@@ -21,6 +21,7 @@ import CreditQuantityModal from "./_components/CreditQuantityModal";
 import { PackageSelectionModal } from "@/app/dashboard/_components/PackageSelectionModal";
 import TabReportFindings from "./_components/TabReportFindings";
 import GuidedDocumentsWorkspace from "./_components/guided-documents/GuidedDocumentsWorkspace";
+import TabFinance from "./_components/finance/TabFinance";
 import ActiveRadarScanning from "./_components/ActiveRadarScanning";
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
 import StudentDocumentUploadModal from "./_components/StudentDocumentUploadModal";
@@ -61,7 +62,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     await triggerAuditRaw({ submission_type: submissionType as "initial" | "resubmit" | "logic_check", lifecycle_unit_id: lifecycleUnitId });
   };
   const isAiPackage = caseData?.package_id === "pkg_ai_audit";
-  const VALID_WORKSPACE_TABS: WorkspaceTab[] = ["overview", "guided", "documents", "report", "discussion", "timeline", "settings", "credits"];
+  const VALID_WORKSPACE_TABS: WorkspaceTab[] = ["overview", "guided", "finance", "documents", "report", "discussion", "timeline", "settings", "credits"];
   const rawTabParam = searchParams.get("tab") as WorkspaceTab | null;
   const initialTab: WorkspaceTab = rawTabParam && VALID_WORKSPACE_TABS.includes(rawTabParam) ? rawTabParam : "overview";
   const [activeTab, setActiveTabState] = useState<WorkspaceTab>(initialTab);
@@ -133,8 +134,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const isTabAvailable = (tab: WorkspaceTab): boolean => {
     if (isAiPackage && tab === "discussion") return false;
     if (!isPreSubmission) return true;
-    if (stage === "intake_pending") return tab === "overview" || tab === "guided" || tab === "timeline" || tab === "settings" || tab === "credits";
-    if (stage === "intake_ready") return tab === "overview" || tab === "guided" || tab === "documents" || tab === "timeline" || tab === "settings" || tab === "credits";
+    if (stage === "intake_pending") return tab === "overview" || tab === "guided" || tab === "finance" || tab === "timeline" || tab === "settings" || tab === "credits";
+    if (stage === "intake_ready") return tab === "overview" || tab === "guided" || tab === "finance" || tab === "documents" || tab === "timeline" || tab === "settings" || tab === "credits";
     return true;
   };
 
@@ -220,6 +221,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           {activeTab === "guided" && (
             <GuidedDocumentsWorkspace caseId={id} />
           )}
+
+          {activeTab === "finance" && <TabFinance caseId={id} />}
 
           {activeTab === "documents" && (
             <>
