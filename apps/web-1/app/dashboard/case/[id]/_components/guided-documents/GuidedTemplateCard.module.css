@@ -8,10 +8,15 @@
   transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
 }
 
-.card:hover,
+.card:hover:not([data-disabled]),
 .card:focus-visible {
   border-color: var(--color-brand);
   box-shadow: 0 0 0 3px var(--color-brand-soft);
+}
+
+.card[data-disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .card:focus-visible {
@@ -20,9 +25,24 @@
 }
 
 .thumb {
+  position: relative;
   overflow: hidden;
   border-radius: var(--mantine-radius-sm);
   background-color: var(--color-surface-soft);
+}
+
+.comingSoon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: color-mix(in srgb, var(--color-surface-app) 70%, transparent);
+  color: var(--color-text-app);
+  font-size: var(--mantine-font-size-lg);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .title {
@@ -30,7 +50,7 @@
   transition: color 150ms ease-out;
 }
 
-.card:hover .title,
+.card:hover:not([data-disabled]) .title,
 .card:focus-visible .title {
   color: var(--color-brand);
 }

@@ -19,6 +19,8 @@ interface GuidedTemplateCardProps {
   answered: number;
   total: number;
   onOpen: () => void;
+  /** Khi true: thẻ mờ đi, có chữ "Coming soon" và không mở được. */
+  comingSoon?: boolean;
 }
 
 function getStatus(answered: number, total: number) {
@@ -32,6 +34,7 @@ export default function GuidedTemplateCard({
   answered,
   total,
   onOpen,
+  comingSoon = false,
 }: GuidedTemplateCardProps) {
   const pct = total > 0 ? Math.round((answered / total) * PERCENT) : 0;
   const status = getStatus(answered, total);
@@ -39,9 +42,10 @@ export default function GuidedTemplateCard({
   return (
     <UnstyledButton
       onClick={onOpen}
+      disabled={comingSoon}
       className={classes.card}
       style={{ alignSelf: "start" }}
-      aria-label={`Mở biểu mẫu ${template.title}`}
+      aria-label={comingSoon ? `Biểu mẫu ${template.title} (Coming soon)` : `Mở biểu mẫu ${template.title}`}
     >
       <Stack gap="sm">
         <Box className={classes.thumb} style={{ aspectRatio: THUMB_RATIO }}>
@@ -68,6 +72,7 @@ export default function GuidedTemplateCard({
               ))}
             </Stack>
           )}
+          {comingSoon && <span className={classes.comingSoon}>Coming soon</span>}
         </Box>
 
         <Stack gap={8}>
