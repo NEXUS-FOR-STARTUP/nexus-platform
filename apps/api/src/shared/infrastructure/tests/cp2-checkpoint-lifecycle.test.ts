@@ -1,4 +1,4 @@
-import { test, mock } from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../../../db.js';
 import { AppError } from '../../../shared/domain/app-error.js';
@@ -7,6 +7,17 @@ import { openCheckpointUseCase } from '../../../modules/cases/application/open-c
 import { generateDocxUseCase } from '../../../modules/guided-documents/application/generate-docx.usecase.js';
 
 process.env.NODE_ENV = 'test';
+
+// Prisma delegates are not plain objects, so node:test mock.method cannot wrap them: swap by assignment and restore.
+const swaps: Array<() => void> = [];
+function swap(target: object, key: string, impl: unknown) {
+  const original = Reflect.get(target, key);
+  Reflect.set(target, key, impl);
+  swaps.push(() => Reflect.set(target, key, original));
+}
+function restoreAll() {
+  while (swaps.length) swaps.pop()!();
+}
 
 const CASE_ID = 'case-1';
 const OWNER_ID = 'owner-1';
@@ -62,12 +73,12 @@ test('open CP2: owner only, idempotent, never moves current_checkpoint', async (
   const rows: CheckpointRow[] = [];
   const { db } = fakeCheckpointDb(rows);
   let caseUpdates = 0;
-  mock.method(prisma.case, 'findUnique', (async () => ({ id: CASE_ID, owner_auth_user_id: OWNER_ID })) as never);
-  mock.method(prisma.case, 'update', (async () => {
+  swap(prisma.case, 'findUnique', (async () => ({ id: CASE_ID, owner_auth_user_id: OWNER_ID })) as never);
+  swap(prisma.case, 'update', (async () => {
     caseUpdates += 1;
     return {};
   }) as never);
-  mock.method(prisma.checkpoint, 'upsert', db.checkpoint.upsert as never);
+  swap(prisma.checkpoint, 'upsert', db.checkpoint.upsert as never);
 
   try {
     const first = await openCheckpointUseCase(OWNER_ID, CASE_ID, 'CP2');
@@ -84,7 +95,7 @@ test('open CP2: owner only, idempotent, never moves current_checkpoint', async (
     );
     assert.equal(rows.length, 1);
   } finally {
-    mock.restoreAll();
+    restoreAll();
   }
 });
 
@@ -94,17 +105,17 @@ test('docx for cp2 resolves/creates CP2 and never falls back to the first checkp
   ];
   const { db, upsertCalls } = fakeCheckpointDb(rows);
   const STOP = new Error('stop-before-upload');
-  mock.method(prisma.case, 'findUnique', (async () => ({
+  swap(prisma.case, 'findUnique', (async () => ({
     id: CASE_ID,
     case_code: 'C-1',
     team_name: 'Team',
     current_checkpoint: 'CP1',
     checkpoints: [...rows],
   })) as never);
-  mock.method(prisma, '$transaction', (async (fn: (tx: unknown) => Promise<unknown>) =>
+  swap(prisma, '$transaction', (async (fn: (tx: unknown) => Promise<unknown>) =>
     fn({ ...db, case: { update: async () => ({}) } })) as never);
   // Aborts right after checkpoint resolution so no docx is built or uploaded.
-  mock.method(prisma.projectAnswer, 'findMany', (async () => {
+  swap(prisma.projectAnswer, 'findMany', (async () => {
     throw STOP;
   }) as never);
 
@@ -114,6 +125,6 @@ test('docx for cp2 resolves/creates CP2 and never falls back to the first checkp
     assert.ok(rows.some((r) => r.checkpoint_code === 'CP2'));
     assert.equal(rows.filter((r) => r.checkpoint_code === 'CP1').length, 1);
   } finally {
-    mock.restoreAll();
+    restoreAll();
   }
 });

@@ -1,5 +1,6 @@
 import { test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
+import { AsyncLocalStorage } from "node:async_hooks";
 
 process.env.NODE_ENV = "test";
 
@@ -125,7 +126,7 @@ function makeFakeTx(undo: (() => void)[]) {
     },
     case: {
       findUnique: async () => ({
-        owner_auth_user_id: currentUser,
+        owner_auth_user_id: currentUser.getStore(),
         internal_status: "intake",
         package_id: null,
         locked_price: null,
@@ -147,7 +148,8 @@ function makeFakeTx(undo: (() => void)[]) {
   };
 }
 
-let currentUser = "user-1";
+// Per-call identity so parallel orders each see their own owner.
+const currentUser = new AsyncLocalStorage<string>();
 
 /** Undo journal so a thrown error discards only this transaction's writes, like Postgres would. */
 async function fakeTransaction<T>(cb: (tx: ReturnType<typeof makeFakeTx>) => Promise<T>): Promise<T> {
@@ -167,7 +169,6 @@ function patch(target: object, key: string, impl: unknown) {
 
 beforeEach(() => {
   state = { codes: [], redemptions: [], orders: [], ledger: [], outbox: [], withdraws: [], orderSeq: 0 };
-  currentUser = "user-1";
   resetDiscountCheckRateLimitForTests();
 
   patch(prisma, "$transaction", fakeTransaction);
@@ -204,12 +205,13 @@ afterEach(() => {
 
 let keySeq = 0;
 function order(userId: string, discountCode?: string) {
-  currentUser = userId;
-  return createOrderUseCase(userId, {
-    idempotency_key: `key-${++keySeq}`,
-    items: [{ package_id: "pkg-cp2", quantity: 1, metadata_json: { case_id: "case-1" } }],
-    ...(discountCode !== undefined ? { discount_code: discountCode } : {}),
-  });
+  return currentUser.run(userId, () =>
+    createOrderUseCase(userId, {
+      idempotency_key: `key-${++keySeq}`,
+      items: [{ package_id: "pkg-cp2", quantity: 1, metadata_json: { case_id: "case-1" } }],
+      ...(discountCode !== undefined ? { discount_code: discountCode } : {}),
+    }),
+  );
 }
 
 async function assertAppError(promise: Promise<unknown>, status: number, code: string) {
