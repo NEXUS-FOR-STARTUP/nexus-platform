@@ -8,13 +8,13 @@
   transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
 }
 
-.card:hover:not([data-disabled]),
+.card:not(:disabled):hover,
 .card:focus-visible {
   border-color: var(--color-brand);
   box-shadow: 0 0 0 3px var(--color-brand-soft);
 }
 
-.card[data-disabled] {
+.card:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
@@ -50,7 +50,7 @@
   transition: color 150ms ease-out;
 }
 
-.card:hover:not([data-disabled]) .title,
+.card:not(:disabled):hover .title,
 .card:focus-visible .title {
   color: var(--color-brand);
 }

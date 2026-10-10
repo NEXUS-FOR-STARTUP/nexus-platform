@@ -63,7 +63,7 @@ export default function GuidedTemplateCard({
                 filter: `blur(${COVER_BLUR_PX}px)`,
               }}
             />
-          ) : (
+          ) : comingSoon ? null : (
             <Stack h="100%" gap="xs" p="md">
               {template.phases.slice(0, MAX_COVER_PHASES).map((phase) => (
                 <Text key={phase.id} size="sm" c="dimmed" lineClamp={1}>
