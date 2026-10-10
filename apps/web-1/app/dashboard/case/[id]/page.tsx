@@ -133,8 +133,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const isTabAvailable = (tab: WorkspaceTab): boolean => {
     if (isAiPackage && tab === "discussion") return false;
     if (!isPreSubmission) return true;
-    if (stage === "intake_pending") return tab === "overview" || tab === "timeline" || tab === "settings" || tab === "credits";
-    if (stage === "intake_ready") return tab === "overview" || tab === "documents" || tab === "timeline" || tab === "settings" || tab === "credits";
+    if (stage === "intake_pending") return tab === "overview" || tab === "guided" || tab === "timeline" || tab === "settings" || tab === "credits";
+    if (stage === "intake_ready") return tab === "overview" || tab === "guided" || tab === "documents" || tab === "timeline" || tab === "settings" || tab === "credits";
     return true;
   };
 
