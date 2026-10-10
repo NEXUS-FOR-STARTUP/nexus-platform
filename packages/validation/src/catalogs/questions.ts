@@ -1,4 +1,5 @@
 import type { Question } from "./types.js";
+import { CP3_QUESTIONS } from "./questions-cp3.js";
 
 // ---------------------------------------------------------------------------
 // Canonical question registry (plan section 5). One entry per stable question
@@ -680,6 +681,9 @@ export const QUESTION_REGISTRY = {
       "Mỗi câu hỏi có thể đọc thành lời trong dưới 20 giây.",
     ],
   },
+
+  // ── CP3 — Startup Checkpoint 3 (MVP/UX, BMC, SWOT) ───────────────────────
+  ...CP3_QUESTIONS,
 } satisfies Record<string, Question>;
 
 export type QuestionId = keyof typeof QUESTION_REGISTRY;
