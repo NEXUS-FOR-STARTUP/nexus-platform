@@ -8,6 +8,7 @@ import { getAnswersUseCase } from '../application/get-answers.usecase.js';
 import { saveAnswersUseCase } from '../application/save-answers.usecase.js';
 import { importProposalUseCase } from '../application/import-proposal.usecase.js';
 import { generateDocxUseCase } from '../application/generate-docx.usecase.js';
+import { getSyncProposalsUseCase } from '../application/get-sync-proposals.usecase.js';
 import { BatchUpsertProjectAnswersInputSchema, isTemplateKey } from '@repo/validation';
 
 export async function getAnswersHandler(c: Context) {
@@ -102,6 +103,28 @@ export async function generateDocxHandler(c: Context) {
     });
 
     return c.json(result);
+  } catch (error: unknown) {
+    return handleError(c, error);
+  }
+}
+
+export async function getSyncProposalsHandler(c: Context) {
+  const caseId = c.req.param('id') || '';
+  const access = await requireCaseAccess(c, caseId);
+  if (!access.ok) {
+    return access.response;
+  }
+
+  try {
+    const templateKey = c.req.query('templateKey');
+    if (!isTemplateKey(templateKey)) {
+      return c.json(
+        { code: 'INVALID_TEMPLATE_KEY', message: 'Biểu mẫu không hợp lệ' },
+        400,
+      );
+    }
+
+    return c.json(await getSyncProposalsUseCase(caseId, templateKey));
   } catch (error: unknown) {
     return handleError(c, error);
   }

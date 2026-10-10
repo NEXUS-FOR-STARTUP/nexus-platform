@@ -37,6 +37,7 @@ import {
   saveAnswersHandler,
   importProposalHandler,
   generateDocxHandler,
+  getSyncProposalsHandler,
 } from "../../guided-documents/http/guided-documents.controller.js";
 
 export const casesRouter = new Hono();
@@ -78,3 +79,4 @@ casesRouter.get("/:id/guided-documents/answers", getAnswersHandler);
 casesRouter.put("/:id/guided-documents/answers", saveAnswersHandler);
 casesRouter.post("/:id/guided-documents/import", importProposalHandler);
 casesRouter.post("/:id/guided-documents/generate", generateDocxHandler);
+casesRouter.get("/:id/guided-documents/sync", getSyncProposalsHandler);
