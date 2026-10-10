@@ -2,8 +2,15 @@
 
 import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { isTemplateKey, type TemplateKey } from "@repo/validation";
+import {
+  FILE_TEMPLATE_REGISTRY,
+  isFileTemplateKey,
+  isTemplateKey,
+  type FileTemplateKey,
+  type TemplateKey,
+} from "@repo/validation";
 import GuidedDocumentsEditor from "./GuidedDocumentsEditor";
+import GuidedFileTemplateView from "./GuidedFileTemplateView";
 import GuidedTemplateGallery from "./GuidedTemplateGallery";
 
 interface GuidedDocumentsWorkspaceProps {
@@ -18,7 +25,7 @@ export default function GuidedDocumentsWorkspace({
   const rawTemplate = searchParams.get("template");
 
   // push (not replace) so the browser Back button returns to the gallery.
-  const navigate = (key: TemplateKey | null) => {
+  const navigate = (key: TemplateKey | FileTemplateKey | null) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", "guided");
     if (key) params.set("template", key);
@@ -35,6 +42,10 @@ export default function GuidedDocumentsWorkspace({
         onBack={() => navigate(null)}
       />
     );
+  }
+
+  if (isFileTemplateKey(rawTemplate)) {
+    return <GuidedFileTemplateView template={FILE_TEMPLATE_REGISTRY[rawTemplate]} onBack={() => navigate(null)} />;
   }
 
   return <GuidedTemplateGallery caseId={caseId} onOpen={navigate} />;

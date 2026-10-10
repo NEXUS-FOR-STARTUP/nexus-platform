@@ -2,8 +2,17 @@
 
 import React from "react";
 import { Loader, SimpleGrid } from "@mantine/core";
-import { TEMPLATE_KEYS, TEMPLATE_REGISTRY, type Template, type TemplateKey } from "@repo/validation";
+import {
+  FILE_TEMPLATE_KEYS,
+  FILE_TEMPLATE_REGISTRY,
+  TEMPLATE_KEYS,
+  TEMPLATE_REGISTRY,
+  type FileTemplateKey,
+  type Template,
+  type TemplateKey,
+} from "@repo/validation";
 import { useGuidedAnswers } from "../../hooks/useGuidedAnswers";
+import GuidedFileTemplateCard from "./GuidedFileTemplateCard";
 import GuidedTemplateCard from "./GuidedTemplateCard";
 
 // CP3 và CP4 đã có đủ câu hỏi nhưng chưa mở cho người dùng. Bỏ khóa khỏi danh sách khi sẵn sàng mở.
@@ -11,7 +20,7 @@ const COMING_SOON_TEMPLATES: readonly TemplateKey[] = ["cp3", "cp4"];
 
 interface GuidedTemplateGalleryProps {
   caseId: string;
-  onOpen: (key: TemplateKey) => void;
+  onOpen: (key: TemplateKey | FileTemplateKey) => void;
 }
 
 function countProgress(template: Template, answersMap: Record<string, string>) {
@@ -58,6 +67,9 @@ export default function GuidedTemplateGallery({ caseId, onOpen }: GuidedTemplate
             />
           );
         })}
+        {FILE_TEMPLATE_KEYS.map((key) => (
+          <GuidedFileTemplateCard key={key} template={FILE_TEMPLATE_REGISTRY[key]} onOpen={() => onOpen(key)} />
+        ))}
       </SimpleGrid>
     </div>
   );
