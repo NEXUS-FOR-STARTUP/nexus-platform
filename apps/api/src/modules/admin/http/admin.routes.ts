@@ -22,6 +22,9 @@ import {
   unbanUserHandler,
   assignUserRoleHandler,
   exportAdminDataHandler,
+  listDiscountCodesHandler,
+  createDiscountCodeHandler,
+  updateDiscountCodeHandler,
 } from "./admin.controller.js";
 import {
   getAdminWorkerStatsHandler,
@@ -60,6 +63,10 @@ adminRouter.patch("/service-types/:id", updateServiceTypeHandler);
 
 adminRouter.get("/packages/:id/pricing", getPricingHistoryHandler);
 adminRouter.post("/packages/:id/pricing", setPricingHandler);
+
+adminRouter.get("/discount-codes", listDiscountCodesHandler);
+adminRouter.post("/discount-codes", createDiscountCodeHandler);
+adminRouter.patch("/discount-codes/:id", updateDiscountCodeHandler);
 
 adminRouter.get("/users", listAdminUsersHandler);
 adminRouter.post("/users", createAdminUserHandler);

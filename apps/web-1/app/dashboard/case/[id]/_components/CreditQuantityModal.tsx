@@ -11,6 +11,8 @@ import { formatPrice, PACKAGE_KEYS } from "@/lib/pricing";
 import { usePackagePrice } from "@/lib/usePackagePrice";
 import { useWalletBalance } from "@/app/dashboard/wallet/hooks/useWallet";
 import { useShortageDepositRedirect } from "./use-shortage-deposit-redirect";
+import type { DiscountCodeCheckResult } from "@repo/validation";
+import DiscountCodeInput from "./DiscountCodeInput";
 
 interface CreditQuantityModalProps {
   caseId: string;
@@ -35,6 +37,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
   const router = useRouter();
   const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState<number>(1);
+  const [appliedDiscount, setAppliedDiscount] = useState<DiscountCodeCheckResult | null>(null);
 
   const { startShortageDeposit, isPending: isShortagePending } = useShortageDepositRedirect(caseId);
   const { data: pkg } = usePackagePrice(packageId, opened);
@@ -43,7 +46,8 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
   const walletBalance = walletData?.balance ?? 0;
   const isAiAudit = packageId === PACKAGE_KEYS.AI_AUDIT || pkg?.id === PACKAGE_KEYS.AI_AUDIT || pkg?.price === 79000;
   const effectiveQuantity = isAiAudit ? 1 : quantity;
-  const unitPrice = pkg?.price ?? (isAiAudit ? 79000 : 0);
+  const listUnitPrice = pkg?.price ?? (isAiAudit ? 79000 : 0);
+  const unitPrice = appliedDiscount?.discounted_price ?? listUnitPrice;
   const totalAmount = effectiveQuantity * unitPrice;
   const shortage = Math.max(totalAmount - walletBalance, 0);
   const hasSufficientBalance = shortage === 0;
@@ -53,6 +57,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
       const res = await apiClient.post<CreateOrderResponse>("/orders", {
         idempotency_key: crypto.randomUUID(),
         items: [{ package_id: packageId, quantity: effectiveQuantity, manual_trigger: isManual, metadata_json: { case_id: caseId } }],
+        ...(appliedDiscount ? { discount_code: appliedDiscount.code } : {}),
       });
       return res.data;
     },
@@ -96,6 +101,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
 
   const handleClose = () => {
     mutation.reset();
+    setAppliedDiscount(null);
     onClose();
   };
 
@@ -136,10 +142,23 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
           </div>
         )}
 
+        <DiscountCodeInput
+          key={packageId}
+          packageId={packageId}
+          applied={appliedDiscount}
+          onChange={setAppliedDiscount}
+          disabled={mutation.isPending}
+        />
+
         <div className="bg-surface-soft rounded-lg p-4 space-y-2 border border-border-app text-sm">
           <div className="flex justify-between">
             <span className="text-text-muted">Đơn giá</span>
-            <span className="font-semibold">{formatPrice(unitPrice)}</span>
+            <span className="font-semibold">
+              {appliedDiscount && (
+                <span className="text-text-muted line-through mr-2">{formatPrice(listUnitPrice)}</span>
+              )}
+              {formatPrice(unitPrice)}
+            </span>
           </div>
           {!isAiAudit && (
             <div className="flex justify-between">

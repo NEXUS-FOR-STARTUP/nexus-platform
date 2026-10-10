@@ -1512,3 +1512,10 @@ export const ProjectAnswerSchema = z.object({
   updated_at: z.union([z.date(), z.string()]),
 });
 export type ProjectAnswerEntity = z.infer<typeof ProjectAnswerSchema>;
+
+// Only CP2 can be opened on demand; CP1 is created with the case.
+export const OpenCheckpointParamsSchema = z.object({
+  code: z.literal('CP2'),
+});
+export type OpenCheckpointParams = z.infer<typeof OpenCheckpointParamsSchema>;
+export * from "./discount.js";

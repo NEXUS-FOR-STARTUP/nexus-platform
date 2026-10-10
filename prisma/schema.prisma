@@ -54,6 +54,8 @@ model User {
   news_reactions           NewsReaction[]
   news_comments            NewsComment[]
   news_comment_reactions   NewsCommentReaction[]
+  discount_codes_created   DiscountCode[]        @relation("DiscountCodeCreator")
+  discount_redemptions     DiscountRedemption[]
 
   @@unique([email])
   @@unique([username])
@@ -173,6 +175,7 @@ model ServiceType {
 
   packages      ServicePackage[]
   credit_ledger CreditLedger[]
+  discount_codes DiscountCode[]
 
   @@map("service_types")
 }
@@ -283,6 +286,7 @@ model Order {
   updated_at            DateTime @updatedAt
 
   items OrderItem[]
+  discount_redemption DiscountRedemption?
 
   @@index([user_id, created_at])
   @@index([status, created_at])
@@ -409,6 +413,7 @@ model Checkpoint {
 
   document_records DocumentRecord[]
 
+  @@unique([case_id, checkpoint_code])
   @@index([case_id])
   @@map("checkpoints")
 }
@@ -868,4 +873,41 @@ model FinancePlan {
   case Case @relation(fields: [case_id], references: [id], onDelete: Cascade)
 
   @@map("finance_plans")
+}
+
+model DiscountCode {
+  id              String    @id @default(uuid())
+  code            String    @unique
+  percent_off     Int
+  service_type_id String
+  max_redemptions Int?
+  redeemed_count  Int       @default(0)
+  expires_at      DateTime?
+  is_active       Boolean   @default(true)
+  created_by      String
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  service_type ServiceType          @relation(fields: [service_type_id], references: [id])
+  creator      User                 @relation("DiscountCodeCreator", fields: [created_by], references: [id])
+  redemptions  DiscountRedemption[]
+
+  @@index([service_type_id])
+  @@map("discount_codes")
+}
+
+model DiscountRedemption {
+  id         String   @id @default(uuid())
+  code_id    String
+  user_id    String
+  order_id   String   @unique
+  created_at DateTime @default(now())
+
+  code  DiscountCode @relation(fields: [code_id], references: [id])
+  user  User         @relation(fields: [user_id], references: [id])
+  order Order        @relation(fields: [order_id], references: [id])
+
+  @@unique([code_id, user_id])
+  @@index([user_id])
+  @@map("discount_redemptions")
 }

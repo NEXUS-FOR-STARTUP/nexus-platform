@@ -9,6 +9,7 @@ export interface CreateOrderItem {
 export interface CreateOrderRequest {
   items: CreateOrderItem[];
   idempotency_key?: string;
+  discount_code?: string;
 }
 
 export type OrderStatus = "pending" | "paid" | "refunded" | "cancelled";

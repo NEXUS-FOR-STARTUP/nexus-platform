@@ -17,6 +17,12 @@ import {
   generateOrderIdempotencyKey,
   type OrderPackage,
 } from "./credit-audit-order.helpers.js";
+import {
+  applyPercentOff,
+  redeemDiscountInTx,
+  resolveDiscountCode,
+  type ResolvedDiscount,
+} from "./discount.helpers.js";
 
 const MAX_ORDER_ITEM_QUANTITY = 50;
 
@@ -24,6 +30,8 @@ interface ResolvedOrderItem {
   item: CreateOrderItem;
   caseId: string;
   pkg: OrderPackage;
+  /** Price per package after the discount code (equals pkg.unitPrice when none applies). */
+  unitPrice: number;
 }
 
 export async function createOrderUseCase(
@@ -46,13 +54,29 @@ export async function createOrderUseCase(
     if (typeof caseId !== "string" || !caseId) {
       throw new AppError(400, "INVALID_ORDER", "Thiếu case_id cho đơn mua lượt");
     }
-    resolvedItems.push({ item, caseId, pkg: await resolveOrderPackage(item.package_id) });
+    resolvedItems.push({ item, caseId, pkg: await resolveOrderPackage(item.package_id), unitPrice: 0 });
   }
 
-  const totalAmount = resolvedItems.reduce(
-    (sum, { item, pkg }) => sum + item.quantity * pkg.unitPrice,
-    0,
-  );
+  let discount: ResolvedDiscount | null = null;
+  if (request.discount_code !== undefined && typeof request.discount_code !== "string") {
+    throw new AppError(400, "DISCOUNT_INVALID", "Mã giảm giá không hợp lệ hoặc đã hết hạn");
+  }
+  if (request.discount_code?.trim()) {
+    discount = await resolveDiscountCode(
+      request.discount_code,
+      userId,
+      resolvedItems.map(({ pkg }) => pkg.serviceTypeId),
+    );
+  }
+  for (const resolved of resolvedItems) {
+    resolved.unitPrice =
+      discount && resolved.pkg.serviceTypeId === discount.serviceTypeId
+        ? applyPercentOff(resolved.pkg.unitPrice, discount.percentOff)
+        : resolved.pkg.unitPrice;
+  }
+
+  const totalAmount = resolvedItems.reduce((sum, { item, unitPrice }) => sum + item.quantity * unitPrice, 0);
+  const listTotal = resolvedItems.reduce((sum, { item, pkg }) => sum + item.quantity * pkg.unitPrice, 0);
   const idempotencyKey = request.idempotency_key ?? generateOrderIdempotencyKey(userId, request.items);
 
   try {
@@ -63,14 +87,16 @@ export async function createOrderUseCase(
           total_amount: totalAmount,
           status: "pending",
           idempotency_key: idempotencyKey,
-          metadata_json: {} as any,
+          metadata_json: discount
+            ? { list_price: listTotal, discount_code: discount.code, percent_off: discount.percentOff }
+            : {},
           items: {
-            create: resolvedItems.map(({ item, pkg }) => ({
+            create: resolvedItems.map(({ item, pkg, unitPrice }) => ({
               service_type: pkg.serviceTypeCode,
               package_id: pkg.id,
               quantity: item.quantity,
-              unit_price: pkg.unitPrice,
-              amount: item.quantity * pkg.unitPrice,
+              unit_price: unitPrice,
+              amount: item.quantity * unitPrice,
               metadata_json: (item.metadata_json ?? {}) as any,
             })),
           },
@@ -94,21 +120,33 @@ export async function createOrderUseCase(
         });
       }
 
-      await walletService.withdraw(userId, totalAmount, idempotencyKey, {
-        referenceType: "order",
-        referenceId: order.id,
-      }, tx);
+      if (discount) {
+        await redeemDiscountInTx(tx, {
+          discountId: discount.id,
+          userId,
+          orderId: order.id,
+          limited: discount.limited,
+        });
+      }
+
+      // A fully discounted order moves no money: skip the wallet but still mark it paid.
+      if (totalAmount > 0) {
+        await walletService.withdraw(userId, totalAmount, idempotencyKey, {
+          referenceType: "order",
+          referenceId: order.id,
+        }, tx);
+      }
 
       await tx.order.update({
         where: { id: order.id },
         data: {
           status: "paid",
-          wallet_transaction_id: order.id,
+          wallet_transaction_id: totalAmount > 0 ? order.id : null,
         },
       });
 
       let totalCredits = 0;
-      for (const { item, caseId, pkg } of resolvedItems) {
+      for (const { item, caseId, pkg, unitPrice } of resolvedItems) {
         const caseRecord = await tx.case.findUnique({
           where: { id: caseId },
           select: {
@@ -128,7 +166,7 @@ export async function createOrderUseCase(
         const creditsGranted = pkg.creditsGranted * item.quantity;
         totalCredits += creditsGranted;
         const currentBalance = await getCreditBalance(tx, caseId, pkg.serviceTypeId);
-        const paidForPackage = pkg.unitPrice * item.quantity;
+        const paidForPackage = unitPrice * item.quantity;
         const pricePerCredit = Math.round(paidForPackage / creditsGranted);
 
         await tx.creditLedger.create({
