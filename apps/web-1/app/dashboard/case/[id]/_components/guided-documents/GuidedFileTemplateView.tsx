@@ -12,7 +12,7 @@ interface GuidedFileTemplateViewProps {
 
 export default function GuidedFileTemplateView({ template, onBack }: GuidedFileTemplateViewProps) {
   return (
-    <div className="flex flex-col gap-5 w-full max-w-3xl">
+    <div className="flex flex-col gap-5 w-full">
       <div>
         <Button variant="subtle" size="compact-sm" leftSection={<ChevronLeft className="w-4 h-4" />} onClick={onBack}>
           Tất cả biểu mẫu
@@ -31,7 +31,7 @@ export default function GuidedFileTemplateView({ template, onBack }: GuidedFileT
           download={template.file_name}
           leftSection={<Download className="w-4 h-4" />}
         >
-          Tải file mẫu
+          Tải {template.file_name}
         </Button>
       </div>
 

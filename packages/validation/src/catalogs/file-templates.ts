@@ -28,7 +28,7 @@ const financeInstructions = [
   "5. Các dòng còn lại là kết quả tính. Đối chiếu từng dòng với công thức bên dưới.",
   "",
   "Công thức theo hướng dẫn của giảng viên",
-  "- Total Net Revenue = Revenue 1 + Revenue 2 − Refunds",
+  "- Total Net Revenue = Revenue 1 + Revenue 2 + Refunds (Refunds nhập số âm nên thực chất là trừ đi)",
   "- Gross Profit = Total Net Revenue − COGS",
   "- Gross Profit Margin = Gross Profit ÷ Total Net Revenue",
   "- Total Expenses = tổng các dòng chi phí vận hành",
