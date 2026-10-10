@@ -45,7 +45,7 @@ export const cp1: Template = {
     },
     {
       id: "pain_point",
-      title: "Pain Point",
+      title: "Vấn đề của khách hàng (Pain Point)",
       unlock_requires: ["cp1_primary_customer"],
       questions: [
         { question_id: "cp1_main_problem", classification: "required" },
@@ -70,7 +70,7 @@ export const cp1: Template = {
         { question_id: "cp1_solution_description", classification: "required" },
         { question_id: "cp1_solution_mechanism", classification: "required", unlock_requires: ["cp1_solution_description"] },
         { question_id: "cp1_core_features", classification: "recommended", unlock_requires: ["cp1_solution_description"] },
-        { question_id: "cp1_out_of_scope", classification: "recommended", unlock_requires: ["cp1_solution_description"] },
+        { question_id: "cp1_out_of_scope", classification: "required", unlock_requires: ["cp1_solution_description"] },
       ],
     },
     {

@@ -28,7 +28,7 @@ export const cp2: Template = {
     },
     {
       id: "customer_discovery",
-      title: "Customer Discovery",
+      title: "Khám phá khách hàng (Customer Discovery)",
       unlock_requires: ["cp2_problem_need"],
       questions: [
         { question_id: "cp2_research_objectives", classification: "required" },
@@ -71,7 +71,7 @@ export const cp2: Template = {
     },
     {
       id: "cross_cutting",
-      title: "Yêu cầu bắt buộc (Cross-cutting)",
+      title: "Yêu cầu bắt buộc của báo cáo",
       unlock_requires: [],
       questions: [
         { question_id: "cp2_ai_disclosure", classification: "required" },

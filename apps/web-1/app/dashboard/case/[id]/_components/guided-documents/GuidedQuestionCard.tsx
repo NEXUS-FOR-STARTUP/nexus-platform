@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Button, Textarea } from "@mantine/core";
-import { ChevronLeft, ChevronRight, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { QUESTION_REGISTRY, type Question } from "@repo/validation";
 
 interface GuidedQuestionCardProps {
@@ -11,10 +11,6 @@ interface GuidedQuestionCardProps {
   questionNumber: string;
   initialValue: string;
   onSave: (questionId: string, value: string) => Promise<void>;
-  onNavigatePrev?: () => void;
-  onNavigateNext?: () => void;
-  hasPrev: boolean;
-  hasNext: boolean;
   isSaving: boolean;
 }
 
@@ -22,10 +18,6 @@ export default function GuidedQuestionCard({
   questionId,
   initialValue,
   onSave,
-  onNavigatePrev,
-  onNavigateNext,
-  hasPrev,
-  hasNext,
   isSaving,
   questionNumber,
 }: GuidedQuestionCardProps) {
@@ -61,13 +53,16 @@ export default function GuidedQuestionCard({
       {/* Explanation & Guidance */}
       {question?.explanation && (
         <blockquote className="m-0 bg-warning-soft border-l-4 border-warning rounded-r-lg px-4 py-3 text-sm text-text-app flex flex-col gap-2">
-          <p className="leading-relaxed">{question.explanation}</p>
+          <p className="leading-relaxed whitespace-pre-line">{question.explanation}</p>
           {question.suggested_actions && question.suggested_actions.length > 0 && (
-            <ul className="list-disc list-inside space-y-1 text-xs pt-1">
-              {question.suggested_actions.map((act, i) => (
-                <li key={i}>{act}</li>
-              ))}
-            </ul>
+            <div className="flex flex-col gap-1 pt-1">
+              <p className="text-xs font-semibold">Tự kiểm tra trước khi lưu:</p>
+              <ul className="list-disc list-inside space-y-1 text-xs">
+                {question.suggested_actions.map((act, i) => (
+                  <li key={i}>{act}</li>
+                ))}
+              </ul>
+            </div>
           )}
         </blockquote>
       )}
@@ -90,43 +85,18 @@ export default function GuidedQuestionCard({
       />
 
       {/* Actions */}
-      <div className="grid grid-cols-2 gap-2 pt-4 border-t border-border-app sm:flex sm:items-center">
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-border-app">
+        {isDirty && <span className="text-xs text-amber-600 font-medium">Chưa lưu thay đổi</span>}
         <Button
-          variant="default"
+          variant="filled"
+          color="blue"
           size="sm"
-          className="w-full sm:w-auto sm:order-1"
-          disabled={!hasPrev}
-          onClick={onNavigatePrev}
-          leftSection={<ChevronLeft className="w-4 h-4" />}
+          loading={isSaving}
+          disabled={!isDirty}
+          onClick={handleSave}
+          leftSection={<Save className="w-4 h-4" />}
         >
-          Câu trước
-        </Button>
-
-        <div className="col-span-2 order-first flex items-center justify-between gap-3 sm:order-2 sm:ml-auto">
-          {isDirty && <span className="text-xs text-amber-600 font-medium">Chưa lưu thay đổi</span>}
-          <Button
-            variant="filled"
-            color="blue"
-            size="sm"
-            className="ml-auto"
-            loading={isSaving}
-            disabled={!isDirty}
-            onClick={handleSave}
-            leftSection={<Save className="w-4 h-4" />}
-          >
-            Lưu câu này
-          </Button>
-        </div>
-
-        <Button
-          variant="default"
-          size="sm"
-          className="w-full sm:w-auto sm:order-3"
-          disabled={!hasNext}
-          onClick={onNavigateNext}
-          rightSection={<ChevronRight className="w-4 h-4" />}
-        >
-          Câu tiếp theo
+          Lưu câu này
         </Button>
       </div>
     </div>

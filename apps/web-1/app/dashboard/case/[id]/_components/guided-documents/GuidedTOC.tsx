@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMediaQuery } from "@mantine/hooks";
-import { CheckCircle2, Lock, Circle, ChevronRight, ChevronDown } from "lucide-react";
+import { Check, Lock, Circle, ChevronRight, ChevronDown } from "lucide-react";
 import { QUESTION_REGISTRY, type Question, type Template } from "@repo/validation";
 
 const MOBILE_QUERY = "(max-width: 767px)";
@@ -91,11 +91,18 @@ export default function GuidedTOC({
                       {!isUnlocked ? (
                         <Lock className="w-3.5 h-3.5 shrink-0 text-text-muted" />
                       ) : hasAnswer ? (
-                        <CheckCircle2
-                          className={`w-3.5 h-3.5 shrink-0 ${
-                            isActive ? "text-white" : "text-emerald-500"
+                        <span
+                          className={`w-3.5 h-3.5 shrink-0 rounded-full flex items-center justify-center ${
+                            isActive ? "bg-white" : "bg-emerald-500"
                           }`}
-                        />
+                        >
+                          <Check
+                            className={`w-2.5 h-2.5 ${
+                              isActive ? "text-brand" : "text-white"
+                            }`}
+                            strokeWidth={3}
+                          />
+                        </span>
                       ) : (
                         <Circle
                           className={`w-3.5 h-3.5 shrink-0 ${

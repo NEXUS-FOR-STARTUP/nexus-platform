@@ -2,7 +2,8 @@
 
 import React, { useState, useMemo } from "react";
 import { Button, Loader } from "@mantine/core";
-import { Download, UploadCloud, ChevronLeft } from "lucide-react";
+// UploadCloud tạm ẩn cùng nút nhập file
+import { Download, ChevronLeft } from "lucide-react";
 import type { TemplateKey } from "@repo/validation";
 import { useGuidedDocuments } from "../../hooks/useGuidedDocuments";
 import GuidedTOC from "./GuidedTOC";
@@ -71,27 +72,6 @@ export default function GuidedDocumentsEditor({
     await saveAnswers(answers);
   };
 
-  const hasPrev = currentIndex > 0;
-  const hasNext =
-    currentIndex >= 0 &&
-    currentIndex < flatQuestions.length - 1 &&
-    isQuestionUnlocked(
-      flatQuestions[currentIndex + 1].phaseIndex,
-      flatQuestions[currentIndex + 1].questionIndex
-    );
-
-  const handleNavigatePrev = () => {
-    if (hasPrev) {
-      setActiveQuestionId(flatQuestions[currentIndex - 1].question_id);
-    }
-  };
-
-  const handleNavigateNext = () => {
-    if (hasNext) {
-      setActiveQuestionId(flatQuestions[currentIndex + 1].question_id);
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="bg-surface-app border border-border-app rounded-xl p-12 flex flex-col items-center justify-center gap-3">
@@ -122,6 +102,8 @@ export default function GuidedDocumentsEditor({
           </div>
 
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {/* Tạm ẩn nút nhập file: bộ trích xuất hiện chỉ khớp từ khóa, gán nhầm tiêu đề mục
+                làm câu trả lời. Bật lại khi có bước xử lý bằng AI.
             <Button
               variant="default"
               size="sm"
@@ -130,6 +112,7 @@ export default function GuidedDocumentsEditor({
             >
               Nhập file
             </Button>
+            */}
 
             <Button
               variant="filled"
@@ -162,10 +145,6 @@ export default function GuidedDocumentsEditor({
             questionNumber={`${currentItem.phaseIndex + 1}.${currentItem.questionIndex + 1}`}
             initialValue={answersMap[currentItem.question_id] || ""}
             onSave={handleSaveQuestion}
-            onNavigatePrev={handleNavigatePrev}
-            onNavigateNext={handleNavigateNext}
-            hasPrev={hasPrev}
-            hasNext={hasNext}
             isSaving={isSaving}
           />
         )}
