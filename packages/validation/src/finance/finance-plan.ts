@@ -1,3 +1,4 @@
+// DEPRECATED (2026-10-10): only used by the hidden Finance tab. Replaced by the downloadable FINANCE TEMPLATE. Do not extend.
 import { z } from "zod";
 
 // ---------------------------------------------------------------------------

@@ -1,3 +1,4 @@
+// DEPRECATED (2026-10-10): the finance endpoints are not mounted. Replaced by the downloadable FINANCE TEMPLATE. Do not extend.
 import { prisma } from '../../../db.js';
 import { FinancePlanSchema, type FinancePlan } from '@repo/validation';
 

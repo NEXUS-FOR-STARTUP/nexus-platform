@@ -1,3 +1,4 @@
+// DEPRECATED (2026-10-10): part of the hidden Finance tab, replaced by the downloadable FINANCE TEMPLATE. Do not extend.
 import { FINANCE_ROWS, type FinancePlan } from "@repo/validation";
 
 /** Cell text per row key, one entry per period. Text (not numbers) so "29." survives while typing. */

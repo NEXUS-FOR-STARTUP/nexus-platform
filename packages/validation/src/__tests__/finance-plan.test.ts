@@ -1,3 +1,4 @@
+// DEPRECATED (2026-10-10): tests the hidden Finance tab's checker. Remove together with finance-plan.ts.
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { FinancePlanSchema, checkFinancePlan, type FinancePlan } from "../index.js";

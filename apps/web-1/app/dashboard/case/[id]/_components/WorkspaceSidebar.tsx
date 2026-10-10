@@ -2,10 +2,10 @@
 
 import React, { useState } from "react";
 import { Tooltip, UnstyledButton } from "@mantine/core";
-import { FileText, MessageCircle, History, Settings, CreditCard, Info, Award, ChevronLeft, ChevronRight, FileEdit, Calculator } from "lucide-react";
+import { FileText, MessageCircle, History, Settings, CreditCard, Info, Award, ChevronLeft, ChevronRight, FileEdit } from "lucide-react";
 import classes from "../../../../../components/layout/DoubleNavbar.module.css";
 
-export type WorkspaceTab = "overview" | "guided" | "finance" | "documents" | "report" | "discussion" | "timeline" | "settings" | "credits";
+export type WorkspaceTab = "overview" | "guided" | "documents" | "report" | "discussion" | "timeline" | "settings" | "credits";
 
 interface WorkspaceSidebarProps {
   activeTab: WorkspaceTab;
@@ -44,11 +44,13 @@ export default function WorkspaceSidebar({
       label: "Soạn thảo tài liệu",
       icon: FileEdit,
     },
-    {
-      id: "finance" as const,
-      label: "Tài chính",
-      icon: Calculator,
-    },
+    // DEPRECATED (2026-10-10): Finance tab hidden, replaced by the FINANCE TEMPLATE in the guided-documents gallery.
+    // Re-enable with the "finance" tab id, the Calculator icon from lucide-react and the page.tsx wiring.
+    // {
+    //   id: "finance" as const,
+    //   label: "Tài chính",
+    //   icon: Calculator,
+    // },
     ...(!isIntakePending
       ? [
           {

@@ -1,3 +1,5 @@
+// DEPRECATED (2026-10-10): the Finance tab is hidden. Teams now download the lecturer's Excel file instead
+// (see FILE_TEMPLATE_REGISTRY in @repo/validation). Kept for reference, not wired anywhere. Do not extend.
 "use client";
 
 import React, { useState } from "react";

@@ -1,3 +1,4 @@
+// DEPRECATED (2026-10-10): part of the hidden Finance tab, replaced by the downloadable FINANCE TEMPLATE. Do not extend.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { apiClient } from '@/lib/api-client';

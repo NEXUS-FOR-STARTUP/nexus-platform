@@ -1,3 +1,4 @@
+// DEPRECATED (2026-10-10): the finance endpoints are not mounted. Replaced by the downloadable FINANCE TEMPLATE. Do not extend.
 import type { Context } from 'hono';
 import { readJsonBody, handleError } from '../../../shared/infrastructure/http-helpers.js';
 import { requireCaseAccess } from '../../../shared/infrastructure/authorization.js';
