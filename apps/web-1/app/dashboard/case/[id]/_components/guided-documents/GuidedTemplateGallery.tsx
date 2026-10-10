@@ -6,8 +6,8 @@ import { TEMPLATE_KEYS, TEMPLATE_REGISTRY, type Template, type TemplateKey } fro
 import { useGuidedAnswers } from "../../hooks/useGuidedAnswers";
 import GuidedTemplateCard from "./GuidedTemplateCard";
 
-// CP3 đã có đủ câu hỏi nhưng chưa mở cho người dùng. Bỏ khóa này khỏi danh sách khi sẵn sàng mở.
-const COMING_SOON_TEMPLATES: readonly TemplateKey[] = ["cp3"];
+// CP3 và CP4 đã có đủ câu hỏi nhưng chưa mở cho người dùng. Bỏ khóa khỏi danh sách khi sẵn sàng mở.
+const COMING_SOON_TEMPLATES: readonly TemplateKey[] = ["cp3", "cp4"];
 
 interface GuidedTemplateGalleryProps {
   caseId: string;
