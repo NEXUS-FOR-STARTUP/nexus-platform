@@ -45,7 +45,8 @@ export function useGuidedDrafts(caseId: string) {
     (questionId: string) => {
       setDrafts((prev) => {
         if (!(questionId in prev)) return prev;
-        const { [questionId]: _removed, ...rest } = prev;
+        const rest = { ...prev };
+        delete rest[questionId];
         writeDrafts(caseId, rest);
         return rest;
       });

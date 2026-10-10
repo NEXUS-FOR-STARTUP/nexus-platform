@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { Button, Loader } from "@mantine/core";
 // UploadCloud tạm ẩn cùng nút nhập file
-import { Download, ChevronLeft } from "lucide-react";
+import { Download, ChevronLeft, RefreshCw } from "lucide-react";
 import type { TemplateKey } from "@repo/validation";
 import { useGuidedDocuments } from "../../hooks/useGuidedDocuments";
 import { useGuidedDrafts } from "../../hooks/useGuidedDrafts";
@@ -28,7 +28,9 @@ export default function GuidedDocumentsEditor({
     isLoading,
     isSaving,
     isGenerating,
+    isSyncing,
     saveAnswers,
+    syncAnswers,
     importFile,
     generateDocx,
     isQuestionUnlocked,
@@ -122,6 +124,16 @@ export default function GuidedDocumentsEditor({
               Nhập file
             </Button>
             */}
+
+            <Button
+              variant="default"
+              size="sm"
+              loading={isSyncing}
+              onClick={() => syncAnswers(Object.keys(drafts))}
+              leftSection={<RefreshCw className="w-4 h-4" />}
+            >
+              Đồng bộ thông tin
+            </Button>
 
             <Button
               variant="filled"

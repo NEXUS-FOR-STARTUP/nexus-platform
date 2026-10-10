@@ -33,6 +33,45 @@ export function useGuidedDocuments(caseId: string, templateKey: TemplateKey) {
     },
   });
 
+  // Đồng bộ: server đề xuất nội dung từ dữ liệu đã lưu chính thức; chỉ điền câu còn trống.
+  // `skipQuestionIds` là các câu người dùng đang gõ dở (bản nháp) để không đè lên.
+  const syncMutation = useMutation({
+    mutationFn: async (skipQuestionIds: string[]) => {
+      const res = await apiClient.get<{
+        proposals: Array<{ question_id: string; answer_text: string }>;
+        skipped_filled: number;
+      }>(`/cases/${caseId}/guided-documents/sync`, { params: { templateKey } });
+      const skip = new Set(skipQuestionIds);
+      const usable = res.data.proposals.filter((p) => !skip.has(p.question_id));
+      if (usable.length > 0) {
+        await apiClient.put(`/cases/${caseId}/guided-documents/answers`, { answers: usable });
+        await queryClient.invalidateQueries({ queryKey: guidedAnswersQueryKey(caseId) });
+      }
+      return {
+        filled: usable.length,
+        kept: res.data.skipped_filled + (res.data.proposals.length - usable.length),
+      };
+    },
+    onSuccess: ({ filled, kept }) => {
+      const keptNote = kept > 0 ? ` Giữ nguyên ${kept} câu đã có nội dung.` : '';
+      notifications.show({
+        title: filled > 0 ? 'Đã đồng bộ' : 'Không có gì để đồng bộ',
+        message:
+          filled > 0
+            ? `Đã điền ${filled} câu từ thông tin đã lưu.${keptNote}`
+            : `Chưa có thông tin mới để điền vào các câu còn trống.${keptNote}`,
+        color: filled > 0 ? 'teal' : 'blue',
+      });
+    },
+    onError: (err: { response?: { data?: { message?: string } } }) => {
+      notifications.show({
+        title: 'Lỗi khi đồng bộ',
+        message: err?.response?.data?.message || 'Không thể đồng bộ thông tin.',
+        color: 'red',
+      });
+    },
+  });
+
   // 3. Import proposal mutation
   const importMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -131,7 +170,9 @@ export function useGuidedDocuments(caseId: string, templateKey: TemplateKey) {
     isSaving: saveMutation.isPending,
     isImporting: importMutation.isPending,
     isGenerating: generateMutation.isPending,
+    isSyncing: syncMutation.isPending,
     saveAnswers: saveMutation.mutateAsync,
+    syncAnswers: syncMutation.mutateAsync,
     importFile: importMutation.mutateAsync,
     generateDocx: generateMutation.mutateAsync,
     isQuestionUnlocked,
