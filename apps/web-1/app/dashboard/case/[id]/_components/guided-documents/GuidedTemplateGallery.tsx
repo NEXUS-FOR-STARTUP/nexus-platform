@@ -17,6 +17,8 @@ import GuidedTemplateCard from "./GuidedTemplateCard";
 
 // CP3 và CP4 đã có đủ câu hỏi nhưng chưa mở cho người dùng. Bỏ khóa khỏi danh sách khi sẵn sàng mở.
 const COMING_SOON_TEMPLATES: readonly TemplateKey[] = ["cp3", "cp4"];
+// Template tài chính (P&L) cũng chưa mở. Bỏ khóa khỏi danh sách khi sẵn sàng mở.
+const COMING_SOON_FILE_TEMPLATES: readonly FileTemplateKey[] = ["finance"];
 
 interface GuidedTemplateGalleryProps {
   caseId: string;
@@ -68,7 +70,12 @@ export default function GuidedTemplateGallery({ caseId, onOpen }: GuidedTemplate
           );
         })}
         {FILE_TEMPLATE_KEYS.map((key) => (
-          <GuidedFileTemplateCard key={key} template={FILE_TEMPLATE_REGISTRY[key]} onOpen={() => onOpen(key)} />
+          <GuidedFileTemplateCard
+            key={key}
+            template={FILE_TEMPLATE_REGISTRY[key]}
+            onOpen={() => onOpen(key)}
+            comingSoon={COMING_SOON_FILE_TEMPLATES.includes(key)}
+          />
         ))}
       </SimpleGrid>
     </div>
