@@ -21,6 +21,7 @@ export async function uploadStageDocumentsHandler(c: Context) {
   const access = await requireCaseAccess(c, c.req.param("id") || "");
   if (!access.ok) return access.response;
 
+  const isOwner = access.caseRecord.owner_auth_user_id === access.session.user.id;
   let publicIds: string[] = [];
   try {
     const body = (await readJsonBody(c)) as { documents?: Array<{ cloudinary_public_id?: string }> } | null;
@@ -33,7 +34,8 @@ export async function uploadStageDocumentsHandler(c: Context) {
     );
     return c.json(result, 201);
   } catch (error: unknown) {
-    await Promise.all(publicIds.map((id) => deleteManagedDocumentFile(id)));
+    // Cloudinary ids come from the client: only the owner may trigger cleanup of them.
+    if (isOwner) await Promise.all(publicIds.map((id) => deleteManagedDocumentFile(id)));
     return handleError(c, error);
   }
 }

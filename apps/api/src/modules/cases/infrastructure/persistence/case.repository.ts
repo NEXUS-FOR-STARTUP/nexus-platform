@@ -536,28 +536,22 @@ export async function submitCaseRevisionInTx(
 /**
  * Student file upload into a stage (checkpoint) with no case transition.
  * Own unit_type so CP1 resubmit / finalizer lookups on `unit_type: "version"`
- * never treat it as a submitted revision. Counter is bumped atomically so
- * concurrent uploads never share a unit code.
+ * never treat it as a submitted revision, and the checkpoint's version counter
+ * (vNN / aNN-vMM codes) is left alone. The random unit code needs no counter,
+ * so concurrent uploads cannot collide.
  */
 export async function createStageUploadInTx(
   tx: Prisma.TransactionClient,
   data: { caseId: string; checkpointId: string; userId: string; documents: PostIntakeDocumentInput[] },
 ) {
   const { caseId, checkpointId, userId, documents } = data;
-  const checkpoint = await tx.checkpoint.update({
-    where: { id: checkpointId },
-    data: { latest_version_no: { increment: 1 } },
-    select: { latest_version_no: true },
-  });
-  const uploadNo = checkpoint.latest_version_no;
-
   const unit = await tx.lifecycleUnit.create({
     data: {
       case_id: caseId,
       checkpoint_id: checkpointId,
-      unit_code: `s${String(uploadNo).padStart(2, "0")}`,
+      unit_code: `s-${crypto.randomUUID().slice(0, 8)}`,
       unit_type: STAGE_UPLOAD_UNIT_TYPE,
-      version_no: uploadNo,
+      version_no: 0,
       content: JSON.stringify({ documents }),
       file_url: documents[0]?.file_url || null,
     },
