@@ -119,15 +119,15 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={<Text fw={700} size="sm">Mua gói đánh giá dự án</Text>}
+      title={<Text fw={700} size="sm">Thanh toán</Text>}
       size="md"
       radius="md"
       centered
     >
       <Stack gap="md" className="pt-3">
-        {!isAiAudit ? (
+        {!isAiAudit && (
           <NumberInput
-            label="Số lượng gói (79.000đ / gói 2 lượt)"
+            label="Số lượng gói"
             description="Từ 1 đến 50 gói"
             value={quantity}
             onChange={(val) => setQuantity(Number(val) || 1)}
@@ -136,20 +136,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
             allowDecimal={false}
             allowNegative={false}
           />
-        ) : (
-          <div className="flex justify-between items-center text-sm py-1">
-            <span className="text-text-muted">Gói dịch vụ</span>
-            <span className="font-semibold text-text-app">{isCp2Pack ? "Gói chấm Checkpoint 2 (4 lượt)" : "Đánh giá Dự án Tự động (2 lượt)"}</span>
-          </div>
         )}
-
-        <DiscountCodeInput
-          key={packageId}
-          packageId={packageId}
-          applied={appliedDiscount}
-          onChange={setAppliedDiscount}
-          disabled={mutation.isPending}
-        />
 
         <div className="bg-surface-soft rounded-lg p-4 space-y-2 border border-border-app text-sm">
           <div className="flex justify-between">
@@ -186,13 +173,21 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
             <div className="pt-1 border-t border-border-app flex justify-between items-center">
               <span className="text-text-muted">Tình trạng ví</span>
               <span className={hasSufficientBalance ? "text-teal-600 font-semibold" : "text-red-600 font-semibold"}>
-                {hasSufficientBalance ? "Đủ số dư ví" : `Số dư chưa đủ — cần nạp thêm ${formatPrice(shortage)} để mua gói đánh giá`}
+                {hasSufficientBalance ? "Đủ số dư ví" : `Số dư chưa đủ — cần nạp thêm ${formatPrice(shortage)} để thanh toán`}
               </span>
             </div>
           </Stack>
         </Paper>
 
+        <DiscountCodeInput
+          key={packageId}
+          packageId={packageId}
+          applied={appliedDiscount}
+          onChange={setAppliedDiscount}
+          disabled={mutation.isPending}
+        />
         <Group justify="flex-end" mt="sm">
+
           <Button variant="default" onClick={handleClose} disabled={mutation.isPending || isShortagePending}>
             Hủy
           </Button>
@@ -202,7 +197,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
             loading={mutation.isPending || isShortagePending}
             disabled={mutation.isPending || isShortagePending}
           >
-            {hasSufficientBalance ? `Thanh toán ${formatPrice(totalAmount)}` : "Nạp tiền & Mua gói qua VietQR"}
+            {hasSufficientBalance ? `Thanh toán ${formatPrice(totalAmount)}` : "Nạp tiền & Thanh toán qua VietQR"}
           </Button>
         </Group>
 
