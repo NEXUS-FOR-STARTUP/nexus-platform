@@ -7,6 +7,7 @@ export interface CreditEntry {
   type: "purchase" | "consumption" | "refund";
   reference_id: string | null;
   created_at: string;
+  service_type_code?: string | null;
 }
 
 export interface CreditTransactionHistoryProps {

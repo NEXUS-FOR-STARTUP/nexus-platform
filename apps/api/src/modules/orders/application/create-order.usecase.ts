@@ -162,6 +162,9 @@ export async function createOrderUseCase(
         if (caseRecord.owner_auth_user_id !== userId) {
           throw new AppError(403, "FORBIDDEN", "Không thể mua credit cho dự án của người khác");
         }
+        if (caseRecord.internal_status === "cancelled") {
+          throw new AppError(409, "CASE_CLOSED", "Dự án đã đóng, không thể mua thêm lượt");
+        }
 
         const creditsGranted = pkg.creditsGranted * item.quantity;
         totalCredits += creditsGranted;
@@ -202,15 +205,6 @@ export async function createOrderUseCase(
           caseRecord,
         });
 
-        if (caseRecord.internal_status === "done") {
-          await transitionInTx(tx, {
-            transition: "T19_REOPEN",
-            caseId,
-            actorId: userId,
-            roleVerified: "CUSTOMER",
-            data: {},
-          });
-        }
       }
 
       const first = resolvedItems[0]!;

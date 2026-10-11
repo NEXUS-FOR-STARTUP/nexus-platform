@@ -42,7 +42,7 @@ export function useFulfillCreditAfterDeposit(deposit?: DepositDetail) {
           caseId: intent.caseId,
           quantity: intent.quantity,
           packageId: intent.packageId,
-          manualTrigger: intent.manualTrigger ?? false,
+          manualTrigger: true,
           discountCode: intent.discountCode,
         });
 

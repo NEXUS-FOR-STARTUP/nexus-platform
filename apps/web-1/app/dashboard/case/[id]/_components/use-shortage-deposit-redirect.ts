@@ -34,7 +34,7 @@ export function useShortageDepositRedirect(caseId: string) {
         quantity,
         orderIdempotencyKey: crypto.randomUUID(),
         packageId,
-        manualTrigger,
+        manualTrigger: true,
         discountCode,
       });
 
