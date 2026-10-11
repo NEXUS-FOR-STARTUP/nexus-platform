@@ -24,7 +24,7 @@ export default function ZaloSupportCard({ url = ZALO_GROUP_URL }: ZaloSupportCar
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          size="xs"
+          size="sm"
           variant="light"
           rightSection={<ExternalLink size={14} />}
         >

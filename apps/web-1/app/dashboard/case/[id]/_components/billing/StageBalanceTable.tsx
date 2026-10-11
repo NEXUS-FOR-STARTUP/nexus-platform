@@ -13,14 +13,73 @@ interface StageBalanceTableProps {
   balances?: CreditBalances | null;
 }
 
-export default function StageBalanceTable({ caseId, balances }: StageBalanceTableProps) {
-  const { data: allPackages } = useServiceCatalog();
-  const [selectedStage, setSelectedStage] = useState<StageDefinition | null>(null);
-
+function StageBalanceMobileCard({
+  stage,
+  count,
+  canBuy,
+  onBuy,
+}: {
+  stage: StageDefinition;
+  count: number;
+  canBuy: boolean;
+  onBuy: () => void;
+}) {
   return (
-    <>
+    <div className="p-3.5 space-y-2.5 bg-surface-app">
+      <div className="flex items-center justify-between gap-2">
+        <Text size="sm" fw={600}>{stage.name}</Text>
+        {stage.available ? (
+          <Badge color="green" variant="light" size="sm">Đang mở</Badge>
+        ) : (
+          <Badge color="gray" variant="light" size="sm">Sắp ra mắt</Badge>
+        )}
+      </div>
+      <div className="flex items-center justify-between gap-2 pt-2 border-t border-border-app/40">
+        <Text size="sm" fw={600} c={count > 0 ? "blue" : "dimmed"}>
+          {count} lượt
+        </Text>
+        {canBuy ? (
+          <Button
+            size="sm"
+            variant="light"
+            leftSection={<Plus size={14} />}
+            onClick={onBuy}
+          >
+            Mua thêm
+          </Button>
+        ) : (
+          <Text size="xs" c="dimmed">
+            {stage.available ? "Chưa mở bán" : "Chưa khả dụng"}
+          </Text>
+        )}
+      </div>
+    </div>
+  );
+}
+
+ export default function StageBalanceTable({ caseId, balances }: StageBalanceTableProps) {
+   const { data: allPackages } = useServiceCatalog();
+   const [selectedStage, setSelectedStage] = useState<StageDefinition | null>(null);
+
+   return (
+     <>
       <Paper withBorder radius="md" p="md">
-        <Text fw={600} size="sm" mb="sm">Lượt chấm bài theo giai đoạn</Text>
+        <div className="md:hidden -mx-4 -mb-4 divide-y divide-border-app/60 border-t border-border-app/60">
+          {STAGES.map((stage) => {
+            const count = stage.serviceType ? balances?.[stage.serviceType] ?? 0 : 0;
+            const hasPackage = stage.serviceType ? filterPackagesByService(allPackages, stage.serviceType).length > 0 : false;
+            return (
+              <StageBalanceMobileCard
+                key={stage.code}
+                stage={stage}
+                count={count}
+                canBuy={stage.available && hasPackage}
+                onBuy={() => setSelectedStage(stage)}
+              />
+            );
+          })}
+        </div>
+        <div className="hidden md:block">
         <Table verticalSpacing="sm" striped highlightOnHover>
           <Table.Thead>
             <Table.Tr>
@@ -77,6 +136,7 @@ export default function StageBalanceTable({ caseId, balances }: StageBalanceTabl
             })}
           </Table.Tbody>
         </Table>
+        </div>
       </Paper>
 
       {selectedStage && selectedStage.serviceType && (

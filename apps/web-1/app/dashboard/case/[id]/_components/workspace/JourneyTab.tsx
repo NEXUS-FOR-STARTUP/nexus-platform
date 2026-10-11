@@ -1,13 +1,11 @@
-"use client";
+ "use client";
 
-import { useState } from "react";
-import { Stack, Text, Tabs, SimpleGrid } from "@mantine/core";
-import { STAGES } from "@app/shared/stages";
-import StageCard from "./StageCard";
-import ExtraServiceList from "./ExtraServiceList";
-import type { StageSummary } from "../../hooks/useStageSummaries";
-import type { CreditBalances } from "@/lib/credit-balances";
-
+ import { useState } from "react";
+ import { Stack, Text, Group, Select, SimpleGrid } from "@mantine/core";
+ import { STAGES } from "@app/shared/stages";
+ import StageCard from "./StageCard";
+ import type { StageSummary } from "../../hooks/useStageSummaries";
+ import type { CreditBalances } from "@/lib/credit-balances";
 interface JourneyTabProps {
   stages?: StageSummary[];
   balances?: CreditBalances | null;
@@ -39,27 +37,27 @@ export default function JourneyTab({ stages, balances, onOpenStage }: JourneyTab
 
   return (
     <Stack gap="lg">
-      <div>
-        <Text fw={700} size="xl">Hành trình dự án</Text>
-        <Text size="sm" c="dimmed">
-          4 giai đoạn phát triển ý tưởng khởi nghiệp từ sơ khai tới gọi vốn.
-        </Text>
-      </div>
-
-      <Tabs
-        variant="pills"
-        radius="xl"
-        value={filter}
-        onChange={(val) => setFilter((val as Filter) || "all")}
-      >
-        <Tabs.List>
-          <Tabs.Tab value="all">Tất cả</Tabs.Tab>
-          <Tabs.Tab value="working">Đang làm</Tabs.Tab>
-          <Tabs.Tab value="done">Đã xong</Tabs.Tab>
-          <Tabs.Tab value="coming_soon">Sắp ra mắt</Tabs.Tab>
-        </Tabs.List>
-      </Tabs>
-
+      <Group justify="space-between" align="flex-end" wrap="wrap" gap="sm">
+        <div>
+          <Text fw={700} size="xl">Hành trình dự án</Text>
+          <Text size="sm" c="dimmed">
+            {STAGES.length} giai đoạn phát triển ý tưởng khởi nghiệp từ sơ khai tới gọi vốn.
+          </Text>
+        </div>
+        <Select
+          value={filter}
+          onChange={(val) => setFilter((val as Filter) || "all")}
+          size="sm"
+          allowDeselect={false}
+          data={[
+            { value: "all", label: "Tất cả" },
+            { value: "working", label: "Đang làm" },
+            { value: "done", label: "Đã xong" },
+            { value: "coming_soon", label: "Sắp ra mắt" },
+          ]}
+          className="w-auto max-w-full ml-auto shrink-0 [&_input]:w-auto [&_input]:min-w-28"
+        />
+      </Group>
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
         {filteredStages.map((stage) => {
           const summary = summaryByCode.get(stage.code);
@@ -75,8 +73,6 @@ export default function JourneyTab({ stages, balances, onOpenStage }: JourneyTab
           );
         })}
       </SimpleGrid>
-
-      <ExtraServiceList />
     </Stack>
   );
-}
+ }

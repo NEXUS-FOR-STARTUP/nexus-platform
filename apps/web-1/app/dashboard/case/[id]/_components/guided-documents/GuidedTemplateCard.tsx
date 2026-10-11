@@ -87,7 +87,7 @@ export default function GuidedTemplateCard({
           <Progress value={pct} size="sm" radius="xl" color={status.color} />
           {startLabel ? (
             // span, not button: the whole card is already a button.
-            <Button component="span" size="xs" loading={starting}>
+            <Button component="span" size="sm" loading={starting}>
               {startLabel}
             </Button>
           ) : (

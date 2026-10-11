@@ -95,7 +95,7 @@ export default function GuidedImportModal({
           </div>
           <FileButton onChange={handleFileChange} accept=".docx,.pdf,.md,.txt">
             {(props) => (
-              <Button {...props} variant="default" size="xs" loading={isLoading}>
+              <Button {...props} variant="default" size="sm" loading={isLoading}>
                 Chọn tệp
               </Button>
             )}

@@ -24,7 +24,7 @@ export default function Cp2AuditActions({ caseId, readiness }: Cp2AuditActionsPr
 
       <div className="flex flex-wrap gap-2">
         <Button
-          size="xs"
+          size="sm"
           variant="default"
           leftSection={<ClipboardCheck className="w-4 h-4" />}
           disabled={disabled || !readiness.interviewAuditReady}
@@ -33,7 +33,7 @@ export default function Cp2AuditActions({ caseId, readiness }: Cp2AuditActionsPr
           Chấm bảng hỏi
         </Button>
         <Button
-          size="xs"
+          size="sm"
           color={readiness.missing.length > 0 ? "orange" : "blue"}
           leftSection={<FileSearch className="w-4 h-4" />}
           disabled={disabled}
@@ -43,7 +43,7 @@ export default function Cp2AuditActions({ caseId, readiness }: Cp2AuditActionsPr
         </Button>
         {hasFullReport && (
           <Button
-            size="xs"
+            size="sm"
             variant="light"
             leftSection={<RefreshCw className="w-4 h-4" />}
             disabled={disabled}

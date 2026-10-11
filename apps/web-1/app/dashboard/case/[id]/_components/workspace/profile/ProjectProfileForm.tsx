@@ -15,7 +15,7 @@ import {
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Info, ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import type { Case } from "@/types";
 
@@ -96,7 +96,7 @@ export default function ProjectProfileForm({
   return (
     <form onSubmit={handleSubmit}>
       <Stack gap="lg" max-w="3xl">
-        <Group justify="space-between" align="center">
+        <Group justify="flex-start" align="center">
           <Button
             variant="subtle"
             size="xs"
@@ -104,9 +104,6 @@ export default function ProjectProfileForm({
             onClick={() => router.push(`/dashboard/case/${caseId}?tab=overview`)}
           >
             Quay lại Tổng quan
-          </Button>
-          <Button type="submit" size="xs" leftSection={<Save size={14} />} loading={saveMutation.isPending}>
-            Lưu hồ sơ
           </Button>
         </Group>
 
@@ -193,7 +190,7 @@ export default function ProjectProfileForm({
 
         <Paper p="md" withBorder radius="md">
           <Text fw={600} size="sm" mb="xs">4. Ghi chú thêm cho AI</Text>
-          <Blockquote icon={<Info size={18} />} color="blue" p="sm" mb="sm">
+          <Blockquote icon={null} color="blue" p="sm" mb="sm">
             <Text size="xs">
               &ldquo;Nhắn AI điều bạn muốn được góp ý nhất: nhóm đang vướng gì, giảng viên đã nhận xét gì, bạn kỳ vọng nhận được gì.&rdquo;
             </Text>

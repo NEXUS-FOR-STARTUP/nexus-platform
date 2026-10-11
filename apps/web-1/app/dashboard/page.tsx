@@ -62,7 +62,7 @@ export default function StudentDashboard() {
               onClick={open}
               className="inline-flex items-center justify-center gap-2 font-body text-xs sm:text-sm font-semibold bg-surface-app border border-border-app hover:border-brand/40 text-text-app px-3 sm:px-4 py-2 h-9 sm:h-10 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
             >
-              <span>Mua gói kiểm tra</span>
+              <span>Tạo dự án</span>
             </button>
           </div>
         )}

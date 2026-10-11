@@ -31,7 +31,7 @@ export default function NextActions({ actions, onOpenStage }: NextActionsProps) 
                 <Text size="xs" c="dimmed">{act.description}</Text>
               </Stack>
               <Button
-                size="xs"
+                size="sm"
                 rightSection={<ArrowRight size={14} />}
                 onClick={() => onOpenStage(act.stageSlug, act.view)}
               >

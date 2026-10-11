@@ -78,10 +78,10 @@ Core hooks across routes:
 - **Supporter Workspace**: `useSupporterCases`, `useSupporterActions`, `useSupporterReportDraft`.
 - **Shared / Settings**: `useNotifications`, `useProfileMutations`, `useUserPreferences`.
 
-## MANTINE UI STYLING RULE
+ ## MANTINE UI STYLING RULE
 
-- **Không tự thêm Tailwind positioning classes** (`fixed`, `inset-0`, `flex`, `items-center`, `justify-center`) vào Mantine UI components (`Modal`, `Drawer`, v.v.). Mantine đã có layout mặc định. Override class gây xung đột hiển thị, lệch modal khỏi giữa màn hình.
-
+ - **Không tự thêm Tailwind positioning classes** (`fixed`, `inset-0`, `flex`, `items-center`, `justify-center`) vào Mantine UI components (`Modal`, `Drawer`, v.v.). Mantine đã có layout mặc định. Override class gây xung đột hiển thị, lệch modal khỏi giữa màn hình.
+ - **Độ dày control đồng nhất**: mọi `Button`, `Select`, `TextInput`, `NumberInput` tương tác cùng hàng phải dùng chung `size="sm"` trở lên (cấm `size="xs"` cho control lọc/bấm). Chiều cao các control đứng cạnh nhau phải bằng nhau trên cả desktop và mobile.
 ## UI CONVENTIONS & WORDING
 
 - Vietnamese-first (all labels, messages, notifications).

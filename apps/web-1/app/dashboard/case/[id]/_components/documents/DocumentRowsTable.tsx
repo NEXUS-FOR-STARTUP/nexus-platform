@@ -122,7 +122,7 @@ function DocumentMobileCard({
             target="_blank"
             rel="noopener noreferrer"
             variant="subtle"
-            size="compact-sm"
+            size="sm"
             color="brand"
             leftSection={<Download className="w-3.5 h-3.5" />}
             className="min-h-[44px] font-medium"

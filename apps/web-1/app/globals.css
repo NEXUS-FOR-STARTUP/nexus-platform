@@ -189,18 +189,23 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
 }
 
-/* Direct layout overrides for Mantine elements to match our color system */
-.mantine-Card-root,
-.mantine-Paper-root,
-.mantine-Menu-dropdown,
-.mantine-Modal-content,
-.mantine-Drawer-content,
-.mantine-Select-dropdown,
-.mantine-Combobox-dropdown,
-.mantine-Popover-dropdown {
-  background-color: var(--color-surface) !important;
-  border-color: var(--color-border) !important;
-}
+ /* Direct layout overrides for Mantine elements to match our color system */
+ .mantine-Card-root,
+ .mantine-Paper-root,
+ .mantine-Menu-dropdown,
+ .mantine-Modal-content,
+ .mantine-Drawer-content,
+ .mantine-Select-dropdown,
+ .mantine-Combobox-dropdown,
+ .mantine-Popover-dropdown {
+   background-color: var(--color-surface) !important;
+   border-color: var(--color-border) !important;
+ }
+
+ /* Stage cards carry their own accent border, beating the default above */
+ .mantine-Paper-root.stage-card {
+   border: 1.5px solid var(--stage-color) !important;
+ }
 
 /* Keep table borders clean */
 .mantine-Table-tr,

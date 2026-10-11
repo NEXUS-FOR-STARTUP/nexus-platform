@@ -1,11 +1,9 @@
-"use client";
+ "use client";
 
-import { Group, Text } from "@mantine/core";
-import { LayoutDashboard, Compass, CreditCard, History, Settings, ExternalLink, HelpCircle } from "lucide-react";
-import type { ReactNode } from "react";
-import classes from "./JourneySidebar.module.css";
-import { ZALO_GROUP_URL } from "@/lib/zalo";
-
+ import type { ReactNode } from "react";
+ import { Compass, CreditCard, History, Settings, LayoutDashboard, HelpCircle, ExternalLink } from "lucide-react";
+ import { ZALO_GROUP_URL } from "@/lib/zalo";
+ import classes from "./JourneySidebar.module.css";
 export type WorkspaceTabKey = "overview" | "journey" | "billing" | "timeline" | "settings";
 
 interface NavItem {
@@ -47,11 +45,6 @@ export default function JourneySidebar({ activeTab, onTabChange }: JourneySideba
   return (
     <nav className={classes.navbar}>
       <div className={classes.navbarMain}>
-        <Group className={classes.header} justify="space-between">
-          <Text fw={700} size="sm" c="white">
-            NEXUS WORKSPACE
-          </Text>
-        </Group>
         {links}
       </div>
 

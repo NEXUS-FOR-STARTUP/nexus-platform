@@ -37,42 +37,20 @@ export function WalletTransactionCardList({
         return (
           <div
             key={tx.id}
-            className="p-4 flex items-start justify-between gap-3"
+            className="p-3.5 space-y-2 bg-surface-app"
           >
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                <Badge
-                  variant="light"
-                  color={badgeColor}
-                  size="md"
-                  radius="xl"
-                  className="font-medium text-base"
-                >
-                  {typeLabel}
-                </Badge>
-                <span className="text-base text-text-muted">
-                  {time} · {date}
-                </span>
-              </div>
-
-              <Text className="text-base font-medium text-text-app">
-                {description}
-              </Text>
-
-              <div className="mt-1">
-                <WalletRowDetailAction href={depositHref} />
-              </div>
-
-              {tx.balance_after != null && (
-                <Text c="dimmed" className="text-base mt-1 tabular-nums">
-                  Số dư sau giao dịch: {formatVND(tx.balance_after)}
-                </Text>
-              )}
-            </div>
-
-            <div className="text-right shrink-0">
+            <div className="flex items-center justify-between gap-2">
+              <Badge
+                variant="light"
+                color={badgeColor}
+                size="sm"
+                radius="md"
+                className="font-medium text-xs whitespace-nowrap"
+              >
+                {typeLabel}
+              </Badge>
               <span
-                className={`text-base font-semibold tabular-nums ${
+                className={`text-sm font-semibold tabular-nums ${
                   isPositive
                     ? "text-emerald-600 dark:text-emerald-400"
                     : "text-text-app"
@@ -82,9 +60,27 @@ export function WalletTransactionCardList({
                 {formatVND(tx.amount)}
               </span>
             </div>
+
+            <div className="flex items-start justify-between gap-2">
+              <Text className="text-sm font-medium text-text-app line-clamp-2 flex-1 min-w-0">
+                {description}
+              </Text>
+              <WalletRowDetailAction href={depositHref} />
+            </div>
+
+            <div className="flex items-center justify-between text-xs text-text-muted pt-1 border-t border-border-app/40">
+              <span>
+                {time} · {date}
+              </span>
+              {tx.balance_after != null && (
+                <span>
+                  Số dư: <span className="text-text-app font-medium tabular-nums">{formatVND(tx.balance_after)}</span>
+                </span>
+              )}
+            </div>
           </div>
         );
       })}
     </div>
   );
-}
+ }

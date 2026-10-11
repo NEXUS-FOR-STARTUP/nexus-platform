@@ -120,7 +120,7 @@ export default function DocumentWorkspaceHeader({
           <Select
             value={filterRole}
             onChange={(val) => setFilterRole((val as FilterRole) || "all")}
-            size="xs"
+            size="sm"
             radius="md"
             className="w-[125px] sm:w-[170px]"
             data={[
@@ -135,7 +135,7 @@ export default function DocumentWorkspaceHeader({
           <Select
             value={selectedCheckpointId}
             onChange={(val) => val && onSelectCheckpoint(val)}
-            size="xs"
+            size="sm"
             radius="md"
             className="w-[110px] sm:w-[150px]"
             data={checkpoints.map((cp) => ({

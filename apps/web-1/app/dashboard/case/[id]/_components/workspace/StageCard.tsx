@@ -44,14 +44,14 @@ const STAGE_META: Record<
   },
   "san-pham-mo-hinh": {
     icon: Package,
-    color: "var(--mantine-color-amber-6)",
-    lightBg: "var(--mantine-color-amber-0)",
+    color: "var(--mantine-color-orange-6)",
+    lightBg: "var(--mantine-color-orange-0)",
     description: "Định hình sản phẩm, mô hình vận hành và lộ trình phát triển.",
   },
   "goi-von-tai-chinh": {
     icon: Banknote,
-    color: "var(--mantine-color-emerald-6)",
-    lightBg: "var(--mantine-color-emerald-0)",
+    color: "var(--mantine-color-teal-6)",
+    lightBg: "var(--mantine-color-teal-0)",
     description: "Chuẩn bị tài chính, kế hoạch gọi vốn và định giá.",
   },
 };
@@ -97,61 +97,45 @@ export default function StageCard({
   return (
     <Paper
       p="lg"
-      withBorder
       radius="md"
-      className={`relative overflow-hidden transition-colors duration-200 ${
+      className={`stage-card relative overflow-hidden transition-colors duration-200 ${
         isAvailable ? "hover:border-opacity-80" : "opacity-70"
       }`}
-      styles={{
-        root: {
-          borderTopWidth: 3,
-          borderTopColor: isAvailable ? meta.color : "var(--mantine-color-gray-4)",
-          backgroundColor: isAvailable ? "var(--mantine-color-white)" : "var(--mantine-color-gray-0)",
-        },
+      style={{
+        ["--stage-color" as string]: isAvailable ? meta.color : "var(--mantine-color-gray-3)",
+        backgroundColor: isAvailable ? "var(--mantine-color-white)" : "var(--mantine-color-gray-0)",
       }}
     >
       <Stack justify="space-between" h="100%" gap="md">
         <Stack gap="sm">
-          <Group justify="space-between" align="flex-start" wrap="nowrap">
-            <Group gap="sm" wrap="nowrap">
-              <ThemeIcon
-                size="xl"
-                radius="xl"
-                styles={{
-                  root: {
-                    backgroundColor: meta.lightBg,
-                    color: meta.color,
-                    border: `2px solid ${meta.color}`,
-                  },
-                }}
-              >
-                <StageIcon size={24} />
-              </ThemeIcon>
+          <Group gap="sm" wrap="nowrap">
+            <ThemeIcon
+              size="xl"
+              radius="xl"
+              styles={{
+                root: {
+                  backgroundColor: meta.lightBg,
+                  color: meta.color,
+                  border: `2px solid ${meta.color}`,
+                },
+              }}
+            >
+              <StageIcon size={24} />
+            </ThemeIcon>
 
-              <div>
-                <Group gap={6} align="center">
-                  <Text fw={800} size="lg" c={meta.color}>
-                    {stageNumber}
-                  </Text>
-                  <Text fw={700} size="md" lh={1.3}>
-                    {stage.name}
-                  </Text>
-                </Group>
-                <Text size="xs" c="dimmed" lineClamp={1}>
-                  {isAvailable ? meta.description : "Sẵn sàng khi bạn hoàn thành các giai đoạn trước."}
+            <div>
+              <Group gap={6} align="center">
+                <Text fw={800} size="lg" c={meta.color}>
+                  {stageNumber}
                 </Text>
-              </div>
-            </Group>
-
-            {isAvailable ? (
-              <Badge color={statusInfo.color} variant="filled" size="sm">
-                {statusInfo.label}
-              </Badge>
-            ) : (
-              <Badge color="gray" variant="outline" size="sm" leftSection={<Lock size={12} />}>
-                Sắp ra mắt
-              </Badge>
-            )}
+                <Text fw={700} size="md" lh={1.3}>
+                  {stage.name}
+                </Text>
+              </Group>
+              <Text size="xs" c="dimmed" lineClamp={1}>
+                {isAvailable ? meta.description : "Sẵn sàng khi bạn hoàn thành các giai đoạn trước."}
+              </Text>
+            </div>
           </Group>
 
           {isAvailable && (
@@ -160,16 +144,21 @@ export default function StageCard({
                 {summary?.answered_count ?? 0}/
                 {TEMPLATE_REGISTRY[stage.templateKey as TemplateKey]?.phases.flatMap((p) => p.questions).length ?? 0}
               </Text>{" "}
-              câu đã điền
-              <Text span mx={6} c="gray.4">·</Text>
-              <Text span fw={600} c="dark">{summary?.file_count ?? 0}</Text> tài liệu
-              <Text span mx={6} c="gray.4">·</Text>
-              Còn <Text span fw={600} c={creditsRemaining > 0 ? "blue" : "dimmed"}>{creditsRemaining}</Text> lượt chấm
+              câu đã trả lời · <Text span fw={600} c="dark">{summary?.file_count ?? 0}</Text> tài liệu
             </Text>
           )}
         </Stack>
 
-        <Group justify="flex-end">
+        <Group justify="space-between" align="center">
+          {isAvailable ? (
+            <Badge color={statusInfo.color} variant="filled" size="sm" className="whitespace-nowrap">
+              {statusInfo.label}
+            </Badge>
+          ) : (
+            <Badge color="gray" variant="outline" size="sm" leftSection={<Lock size={12} />} className="whitespace-nowrap">
+              Sắp ra mắt
+            </Badge>
+          )}
           {isAvailable ? (
             <Button
               size="sm"
@@ -186,6 +175,7 @@ export default function StageCard({
             </Button>
           )}
         </Group>
+
       </Stack>
     </Paper>
   );

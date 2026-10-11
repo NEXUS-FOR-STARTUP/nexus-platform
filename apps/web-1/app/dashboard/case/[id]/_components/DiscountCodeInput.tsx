@@ -35,7 +35,7 @@ export default function DiscountCodeInput({ packageId, applied, onChange, disabl
           <Text size="sm" fw={600}>{applied.code}</Text>
           <Text size="sm" c="teal">Giảm {applied.percent_off}%</Text>
         </Group>
-        <Button variant="subtle" size="xs" color="gray" leftSection={<X size={14} />} onClick={handleRemove} disabled={disabled}>
+        <Button variant="subtle" size="sm" color="gray" leftSection={<X size={14} />} onClick={handleRemove} disabled={disabled}>
           Bỏ mã
         </Button>
       </Group>

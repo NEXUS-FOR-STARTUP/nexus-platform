@@ -2,7 +2,7 @@
 
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Box, Group, Text } from "@mantine/core";
+ import { Box, Group, Stack, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import JourneySidebar, { type WorkspaceTabKey } from "./JourneySidebar";
 import JourneyMobileNav from "./JourneyMobileNav";
@@ -15,23 +15,25 @@ import TabCaseSettings from "../TabCaseSettings";
 import { useStageSummaries } from "../../hooks/useStageSummaries";
 import { findStageBySlug } from "@app/shared/stages";
 import type { Case } from "@/types";
-import type { DocumentWorkspace, RoundHistoryEntry } from "@/types/case";
+ import type { DocumentWorkspace, RoundHistoryEntry, TeamFitReport } from "@/types/case";
 
-interface JourneyWorkspaceShellProps {
-  caseId: string;
-  caseData?: Case;
-  intakeSnapshot?: unknown;
-  documentWorkspace?: DocumentWorkspace | null;
-  roundHistory?: RoundHistoryEntry[] | null;
-}
+ interface JourneyWorkspaceShellProps {
+   caseId: string;
+   caseData?: Case;
+   intakeSnapshot?: unknown;
+   teamFitReport?: TeamFitReport | null;
+   documentWorkspace?: DocumentWorkspace | null;
+   roundHistory?: RoundHistoryEntry[] | null;
+ }
 
-export default function JourneyWorkspaceShell({
-  caseId,
-  caseData,
-  intakeSnapshot,
-  documentWorkspace,
-  roundHistory,
-}: JourneyWorkspaceShellProps) {
+ export default function JourneyWorkspaceShell({
+   caseId,
+   caseData,
+   intakeSnapshot,
+   teamFitReport,
+   documentWorkspace,
+   roundHistory,
+ }: JourneyWorkspaceShellProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawTab = searchParams.get("tab") || "overview";
@@ -91,26 +93,26 @@ export default function JourneyWorkspaceShell({
           <JourneySidebar activeTab={activeTab} onTabChange={handleTabChange} />
         </div>
 
-        <div className="flex-1 min-w-0 px-4 pb-4 pt-16 md:p-6 bg-gray-50/70">
+        <div className="flex-1 min-w-0 px-4 pb-4 pt-16 md:p-6 bg-surface-app">
           <button
             type="button"
             onClick={toggleMobileNav}
             aria-label="Mở menu dự án"
-            className="fixed top-20 left-4 z-50 md:hidden w-12 h-12 rounded-full border-2 border-blue-500 bg-white hover:bg-blue-50 active:bg-blue-100 transition-colors flex items-center justify-center"
+            className="md:hidden fixed bottom-6 left-4 z-50 w-12 h-12 rounded-full border border-border-app bg-surface-app shadow-md hover:bg-surface-soft active:bg-surface-muted transition-colors items-center justify-center flex"
           >
             <div className="relative w-5 h-4 flex flex-col justify-between">
               <span
-                className={`block h-0.5 bg-blue-600 rounded transition-transform duration-200 origin-center ${
+                className={`block h-0.5 bg-text-app rounded transition-transform duration-200 origin-center ${
                   mobileNavOpened ? "rotate-45 translate-y-[7px]" : ""
                 }`}
               />
               <span
-                className={`block h-0.5 bg-blue-600 rounded transition-opacity duration-200 ${
+                className={`block h-0.5 bg-text-app rounded transition-opacity duration-200 ${
                   mobileNavOpened ? "opacity-0" : ""
                 }`}
               />
               <span
-                className={`block h-0.5 bg-blue-600 rounded transition-transform duration-200 origin-center ${
+                className={`block h-0.5 bg-text-app rounded transition-transform duration-200 origin-center ${
                   mobileNavOpened ? "-rotate-45 -translate-y-[7px]" : ""
                 }`}
               />
@@ -119,10 +121,14 @@ export default function JourneyWorkspaceShell({
 
           {activeTab === "overview" && (
             <OverviewTab
+              caseId={caseId}
               caseData={caseData}
               stages={stageSummariesData?.stages}
+              roundHistory={roundHistory}
+              documentWorkspace={documentWorkspace}
+              intakeSnapshot={intakeSnapshot}
+              teamFitReport={teamFitReport}
               onOpenStage={handleOpenStage}
-              onEditProfile={() => router.push(`/dashboard/case/${caseId}/profile`)}
             />
           )}
 
@@ -159,7 +165,15 @@ export default function JourneyWorkspaceShell({
             />
           )}
 
-          {activeTab === "timeline" && <ActivityTimeline caseData={caseData!} />}
+          {activeTab === "timeline" && (
+            <Stack gap="xs">
+              <div>
+                <Text fw={700} size="xl">Lịch sử hoạt động</Text>
+                <Text size="sm" c="dimmed">Mọi thay đổi trạng thái, lần chấm và cập nhật của dự án theo thời gian.</Text>
+              </div>
+              <ActivityTimeline caseData={caseData!} />
+            </Stack>
+          )}
 
           {activeTab === "settings" && <TabCaseSettings caseData={caseData!} intakeSnapshot={intakeSnapshot} />}
         </div>

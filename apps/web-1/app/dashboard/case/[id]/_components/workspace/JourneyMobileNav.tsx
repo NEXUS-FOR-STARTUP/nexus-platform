@@ -26,11 +26,11 @@ export default function JourneyMobileNav({
     <Drawer
       opened={opened}
       onClose={onClose}
-      title="Menu dự án"
+      withCloseButton
       size="xs"
-      classNames={{ header: classes.mobileDrawerHeader, body: classes.mobileDrawerBody }}
+      classNames={{ header: classes.mobileDrawerHeader, body: classes.mobileDrawerBody, content: classes.mobileDrawerContent, close: classes.mobileDrawerClose }}
     >
-      <Stack gap={4} py="sm">
+      <Stack gap={4} py="sm" style={{ flex: 1 }}>
         {WORKSPACE_NAV_ITEMS.map((item) => {
           const isActive = activeTab === item.key;
           return (
@@ -39,9 +39,9 @@ export default function JourneyMobileNav({
               onClick={() => handleSelect(item.key)}
               className={isActive ? classes.mobileNavButtonActive : classes.mobileNavButton}
             >
-              <Group gap="xs">
+              <Group gap="sm">
                 {item.icon}
-                <Text size="sm">{item.label}</Text>
+                <Text size="md" fw={600}>{item.label}</Text>
               </Group>
             </UnstyledButton>
           );
