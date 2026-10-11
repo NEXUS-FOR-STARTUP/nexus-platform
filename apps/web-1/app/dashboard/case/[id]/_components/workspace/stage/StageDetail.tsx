@@ -10,7 +10,7 @@ import StageFilesView from "./StageFilesView";
 import StageResultsView from "./StageResultsView";
 import AuditConfirmModal from "./AuditConfirmModal";
 import ServiceCheckoutModal from "../../billing/ServiceCheckoutModal";
-import { useStageAudit } from "../../../hooks/useStageAudit";
+import { useTriggerAudit } from "../../../hooks/useTriggerAudit";
 import { useGuidedDocuments } from "../../../hooks/useGuidedDocuments";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
 import type { TemplateKey } from "@repo/validation";
@@ -47,7 +47,7 @@ export default function StageDetail({
     : undefined;
   const [auditConfirmOpen, setAuditConfirmOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const { triggerAudit, isPending: isAuditPending } = useStageAudit(caseId);
+  const { triggerAudit, isTriggering: isAuditPending } = useTriggerAudit(caseId);
 
   const templateKey = (stage?.templateKey ?? "cp1") as TemplateKey;
   const { generateDocx, isGenerating } = useGuidedDocuments(caseId, templateKey);
@@ -73,8 +73,8 @@ export default function StageDetail({
 
   const handleConfirmAudit = async (scope: string) => {
     await triggerAudit({
-      checkpoint: stage.code,
-      scope,
+      checkpoint: stage.code as "CP1" | "CP2",
+      scope: scope === "questionnaire" ? "questionnaire" : "full",
       submission_type: summary?.status === "has_result" ? "resubmit" : "initial",
     });
   };
