@@ -194,6 +194,12 @@ export function initOmpQueueListener(): void {
   logger.info("BullMQ OMP QueueEvents listener initialized");
 }
 
+/** Jobs created before CP2 carry no checkpoint in input_json; they are CP1 jobs. */
+function runningCheckpointCode(inputJson: unknown): string {
+  const checkpoint = (inputJson as { checkpoint?: unknown } | null)?.checkpoint;
+  return typeof checkpoint === "string" ? checkpoint : "CP1";
+}
+
 /**
  * Helper: delete all files inside a directory (non-recursive, best-effort).
  */
@@ -308,7 +314,7 @@ export async function triggerOmpAuditForCase(
           logger.warn({ caseId, err: hErr?.message }, "Failed to persist auto-healed stale ai_job status");
         }
       } else {
-        throw new AppError(409, "AUDIT_IN_PROGRESS", "Đã có tiến trình thẩm định đang chạy. Vui lòng đợi hoàn thành.");
+        throw new AppError(409, "AUDIT_IN_PROGRESS", "Đã có tiến trình thẩm định đang chạy. Vui lòng đợi hoàn thành.", { checkpoint_code: runningCheckpointCode(latestJob.input_json) });
       }
     }
   }
@@ -397,7 +403,7 @@ export async function triggerOmpAuditForCase(
               },
             });
           } else {
-            throw new AppError(409, "AUDIT_IN_PROGRESS", "Đã có tiến trình thẩm định đang chạy. Vui lòng đợi hoàn thành.");
+            throw new AppError(409, "AUDIT_IN_PROGRESS", "Đã có tiến trình thẩm định đang chạy. Vui lòng đợi hoàn thành.", { checkpoint_code: runningCheckpointCode(inTxJob.input_json) });
           }
         }
       }

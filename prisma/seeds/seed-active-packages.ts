@@ -44,8 +44,8 @@ interface ServiceTypeDef {
 }
 
 const SERVICE_TYPES: ServiceTypeDef[] = [
-  { code: "cp1_audit", name: "Chấm Checkpoint 1", description: "Lượt chấm AI cho ý tưởng ở Checkpoint 1" },
-  { code: "cp2_audit", name: "Chấm Checkpoint 2", description: "Lượt chấm AI cho bảng hỏi phỏng vấn và Checkpoint 2" },
+  { code: "cp1_audit", name: "Chấm bài Ý tưởng", description: "Lượt chấm AI cho ý tưởng giai đoạn Ý tưởng" },
+  { code: "cp2_audit", name: "Chấm bài Thị trường", description: "Lượt chấm AI cho bảng hỏi phỏng vấn giai đoạn Thị trường" },
 ];
 
 const ACTIVE_PACKAGES: ActivePackageDef[] = [

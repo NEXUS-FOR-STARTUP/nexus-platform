@@ -1,0 +1,90 @@
+import { STAGES, type StageCode } from "@app/shared";
+import { prisma } from "../../../db.js";
+
+const NON_STUDENT_DOC_TYPES = ["assessment_report", "supporter_output", "supporter_attachment", "payment_proof"];
+const ACTIVE_JOB_STATUSES = ["queued", "processing"];
+const AUDIT_JOB_TYPE = "omp_audit";
+const SELF_CHECK_ID_FRAGMENT = "_selfcheck_";
+
+export type StageStatus = "not_started" | "drafting" | "files_submitted" | "grading" | "has_result";
+
+export interface StageSummary {
+  checkpoint_code: StageCode;
+  status: StageStatus;
+  answered_count: number;
+  file_count: number;
+  latest_report: { id: string; report_type: string; created_at: Date } | null;
+}
+
+export interface StageSummariesResult {
+  stages: StageSummary[];
+  active_audit: { checkpoint_code: string } | null;
+}
+
+/** Jobs created before CP2 carry no checkpoint in input_json; they are CP1 jobs. */
+function jobCheckpoint(inputJson: unknown): string {
+  const checkpoint = (inputJson as { checkpoint?: unknown } | null)?.checkpoint;
+  return typeof checkpoint === "string" ? checkpoint : "CP1";
+}
+
+export function pickStageStatus(input: { grading: boolean; hasReport: boolean; fileCount: number; answeredCount: number }): StageStatus {
+  if (input.grading) return "grading";
+  if (input.hasReport) return "has_result";
+  if (input.fileCount > 0) return "files_submitted";
+  if (input.answeredCount > 0) return "drafting";
+  return "not_started";
+}
+
+/** Answer ids are prefixed by their template (`cp1_…`, `cp2_…`); self-checks are not answers. */
+export function countAnswersByStage(answers: Array<{ question_id: string; answer_text: string }>): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const answer of answers) {
+    if (answer.answer_text.trim() === "" || answer.question_id.includes(SELF_CHECK_ID_FRAGMENT)) continue;
+    const stage = STAGES.find((s) => answer.question_id.startsWith(`${s.templateKey}_`));
+    if (stage) counts.set(stage.code, (counts.get(stage.code) ?? 0) + 1);
+  }
+  return counts;
+}
+
+export async function deriveStageSummaries(caseId: string): Promise<StageSummariesResult> {
+  const [checkpoints, docCounts, answers, activeJob, reports] = await Promise.all([
+    prisma.checkpoint.findMany({ where: { case_id: caseId }, select: { id: true, checkpoint_code: true } }),
+    prisma.documentRecord.groupBy({
+      by: ["checkpoint_id"],
+      where: { case_id: caseId, superseded_at: null, source_kind: { not: "generated" }, doc_type: { notIn: NON_STUDENT_DOC_TYPES } },
+      _count: { _all: true },
+    }),
+    prisma.projectAnswer.findMany({ where: { case_id: caseId }, select: { question_id: true, answer_text: true } }),
+    prisma.aiJob.findFirst({
+      where: { case_id: caseId, job_type: AUDIT_JOB_TYPE, status: { in: ACTIVE_JOB_STATUSES } },
+      orderBy: { created_at: "desc" },
+      select: { input_json: true },
+    }),
+    prisma.report.findMany({
+      where: { case_id: caseId },
+      orderBy: { created_at: "desc" },
+      select: { id: true, report_type: true, created_at: true, checkpoint_id: true },
+    }),
+  ]);
+
+  const idByCode = new Map(checkpoints.map((c) => [c.checkpoint_code, c.id]));
+  const fileCountById = new Map(docCounts.map((d) => [d.checkpoint_id, d._count._all]));
+  const answerCounts = countAnswersByStage(answers);
+  const grading = activeJob ? jobCheckpoint(activeJob.input_json) : null;
+
+  const stages = STAGES.map((stage): StageSummary => {
+    const checkpointId = idByCode.get(stage.code);
+    const latest = checkpointId ? reports.find((r) => r.checkpoint_id === checkpointId) : undefined;
+    const fileCount = checkpointId ? (fileCountById.get(checkpointId) ?? 0) : 0;
+    const answeredCount = answerCounts.get(stage.code) ?? 0;
+    return {
+      checkpoint_code: stage.code,
+      status: pickStageStatus({ grading: grading === stage.code, hasReport: Boolean(latest), fileCount, answeredCount }),
+      answered_count: answeredCount,
+      file_count: fileCount,
+      latest_report: latest ? { id: latest.id, report_type: latest.report_type, created_at: latest.created_at } : null,
+    };
+  });
+
+  return { stages, active_audit: grading ? { checkpoint_code: grading } : null };
+}

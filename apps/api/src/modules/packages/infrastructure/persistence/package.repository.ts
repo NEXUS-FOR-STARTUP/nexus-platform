@@ -1,9 +1,15 @@
 import { prisma } from "../../../../db.js";
 
+export const PACKAGE_DTO_INCLUDE = {
+  service_type: { select: { code: true, name: true } },
+  pricing_tiers: { where: { is_current: true }, take: 1 },
+} as const;
+
 export async function findActivePackages() {
   return await prisma.servicePackage.findMany({
     where: { is_active: true },
     orderBy: { price: "asc" },
+    include: PACKAGE_DTO_INCLUDE,
   });
 }
 

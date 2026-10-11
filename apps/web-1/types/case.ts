@@ -58,6 +58,7 @@ export interface CreditLedger {
   reference_type: string | null;
   reference_id: string | null;
   created_at: string;
+  service_type_code: string | null;
 }
 
 export interface CaseMember {

@@ -62,7 +62,7 @@ export async function getCreditBalances(db: LedgerDb, caseId: string): Promise<R
 }
 
 export async function getCreditLedgerByCaseId(caseId: string) {
-  return await prisma.creditLedger.findMany({
+  const rows = await prisma.creditLedger.findMany({
     where: { case_id: caseId },
     orderBy: { created_at: "desc" },
     select: {
@@ -73,8 +73,10 @@ export async function getCreditLedgerByCaseId(caseId: string) {
       reference_type: true,
       reference_id: true,
       created_at: true,
+      service_type: { select: { code: true } },
     },
   });
+  return rows.map(({ service_type, ...row }) => ({ ...row, service_type_code: service_type?.code ?? null }));
 }
 
 // First param accepts the global client or a $transaction client so callers

@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { createDocumentRecordsForUnit } from "../../../documents/infrastructure/persistence/document.repository.js";
 import { AppError } from "../../../../shared/domain/app-error.js";
 import { MESSAGE_PAGE_DEFAULT, encodeMessageCursor } from "../../application/message-cursor.js";
+import type { PostIntakeDocumentInput } from "../../../documents/application/validate-document-write.js";
 
 /**
  * Single place that creates a checkpoint row. Idempotent via the
@@ -25,6 +26,8 @@ export async function ensureCheckpoint(
     },
   });
 }
+
+export const STAGE_UPLOAD_UNIT_TYPE = "stage_upload";
 
 
 
@@ -528,6 +531,42 @@ export async function submitCaseRevisionInTx(
   });
 
   return revisionUnit;
+}
+
+/**
+ * Student file upload into a stage (checkpoint) with no case transition.
+ * Own unit_type so CP1 resubmit / finalizer lookups on `unit_type: "version"`
+ * never treat it as a submitted revision. Counter is bumped atomically so
+ * concurrent uploads never share a unit code.
+ */
+export async function createStageUploadInTx(
+  tx: Prisma.TransactionClient,
+  data: { caseId: string; checkpointId: string; userId: string; documents: PostIntakeDocumentInput[] },
+) {
+  const { caseId, checkpointId, userId, documents } = data;
+  const checkpoint = await tx.checkpoint.update({
+    where: { id: checkpointId },
+    data: { latest_version_no: { increment: 1 } },
+    select: { latest_version_no: true },
+  });
+  const uploadNo = checkpoint.latest_version_no;
+
+  const unit = await tx.lifecycleUnit.create({
+    data: {
+      case_id: caseId,
+      checkpoint_id: checkpointId,
+      unit_code: `s${String(uploadNo).padStart(2, "0")}`,
+      unit_type: STAGE_UPLOAD_UNIT_TYPE,
+      version_no: uploadNo,
+      content: JSON.stringify({ documents }),
+      file_url: documents[0]?.file_url || null,
+    },
+  });
+
+  await createDocumentRecordsForUnit(
+    caseId, checkpointId, unit.id, unit.unit_code, documents, userId, "revision_document", "outbound", tx,
+  );
+  return unit;
 }
 
 export async function createSupporterOutputDocs(

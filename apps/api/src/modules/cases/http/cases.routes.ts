@@ -33,6 +33,7 @@ import {
 } from "./cases-ai.controller.js";
 import { downloadCaseReportPdfHandler } from "../../reports/http/reports.controller.js";
 import { openCheckpointHandler } from "./checkpoints.controller.js";
+import { getStageSummariesHandler, uploadStageDocumentsHandler } from "./stages.controller.js";
 import {
   getAnswersHandler,
   saveAnswersHandler,
@@ -76,6 +77,8 @@ casesRouter.post("/:id/complete", completeCaseHandler);
 casesRouter.post("/:id/upgrade-package", upgradePackageHandler);
 casesRouter.post("/:id/resubmit", resubmitCaseHandler);
 casesRouter.post("/:id/checkpoints/:code/open", openCheckpointHandler);
+casesRouter.get("/:id/stages", getStageSummariesHandler);
+casesRouter.post("/:id/stages/:code/documents", uploadStageDocumentsHandler);
 casesRouter.get("/:id/ai-status", getCaseAiStatusHandler);
 casesRouter.get("/:id/ai-events", streamCaseAiEventsHandler);
 casesRouter.post("/:id/ai-cancel", cancelCaseAiAuditHandler);

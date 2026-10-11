@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 1120" font-family="Be Vietnam Pro, Segoe UI, Arial, sans-serif">
+  <rect width="1280" height="1120" fill="#F8FAFC"/>
+  <rect width="1280" height="56" fill="#fff" stroke="#E2E8F0"/>
+  <text x="24" y="36" font-size="20" font-weight="800" fill="#0F172A" letter-spacing="2">NEXUS</text>
+  <circle cx="1232" cy="28" r="16" fill="#E2E8F0"/><text x="1232" y="33" font-size="12" text-anchor="middle">PH</text>
+
+  <!-- sidebar -->
+  <rect x="0" y="56" width="232" height="1064" fill="#fff" stroke="#E2E8F0"/>
+  <text x="20" y="90" font-size="12" fill="#64748B">DỰ ÁN</text>
+  <text x="20" y="112" font-size="15" font-weight="700" fill="#0F172A">EcoCup Campus</text>
+  <g font-size="14" fill="#334155">
+    <text x="44" y="160">Tổng quan dự án</text>
+    <rect x="12" y="176" width="208" height="38" rx="8" fill="#EFF6FF"/><text x="44" y="200" fill="#2563EB" font-weight="700">Hành trình</text>
+    <text x="44" y="242">Lượt chấm &amp; thanh toán</text>
+    <text x="44" y="282">Thảo luận</text>
+    <text x="44" y="322">Lịch sử hoạt động</text>
+    <text x="44" y="362">Cài đặt</text>
+  </g>
+
+  <!-- header giai đoạn -->
+  <text x="260" y="88" font-size="13" fill="#64748B">Hành trình  /  <tspan fill="#0F172A">Thị trường</tspan></text>
+  <text x="260" y="124" font-size="24" font-weight="700" fill="#0F172A">Nghiên cứu thị trường</text>
+  <rect x="260" y="138" width="84" height="24" rx="12" fill="#FFF7ED"/><text x="302" y="154" font-size="12" text-anchor="middle" fill="#EA580C">Đang soạn</text>
+  <text x="356" y="155" font-size="13" fill="#64748B">6/27 câu · Còn 3 lượt chấm</text>
+  <rect x="980" y="100" width="120" height="38" rx="8" fill="#fff" stroke="#E2E8F0"/><text x="1040" y="124" font-size="14" text-anchor="middle" fill="#0F172A">Xuất DOCX</text>
+  <rect x="1112" y="100" width="124" height="38" rx="8" fill="#2563EB"/><text x="1174" y="124" font-size="14" text-anchor="middle" fill="#fff" font-weight="700">Chấm bài</text>
+
+  <!-- sub tabs -->
+  <g font-size="14">
+    <text x="260" y="200" fill="#2563EB" font-weight="700">Soạn thảo</text>
+    <rect x="260" y="210" width="68" height="3" fill="#2563EB"/>
+    <text x="356" y="200" fill="#64748B">Tài liệu nộp (2)</text>
+    <text x="490" y="200" fill="#64748B">Kết quả chấm (1)</text>
+  </g>
+  <line x1="260" y1="213" x2="1236" y2="213" stroke="#E2E8F0"/>
+
+  <!-- TOC -->
+  <rect x="260" y="232" width="290" height="560" rx="12" fill="#fff" stroke="#E2E8F0"/>
+  <text x="280" y="262" font-size="15" font-weight="700" fill="#0F172A">Mục lục</text><text x="530" y="262" font-size="13" text-anchor="end" fill="#64748B">6/27 câu</text>
+  <g font-size="13">
+    <text x="280" y="296" font-weight="700" fill="#334155">1. Bối cảnh</text>
+    <text x="292" y="322" fill="#16A34A">✓</text><text x="312" y="322" fill="#334155">Giải pháp của nhóm</text>
+    <text x="292" y="348" fill="#16A34A">✓</text><text x="312" y="348" fill="#334155">Cơ hội thị trường</text>
+    <text x="280" y="384" font-weight="700" fill="#334155">2. Khám phá khách hàng</text>
+    <text x="292" y="410" fill="#94A3B8">○</text><text x="312" y="410" fill="#334155">Hồ sơ khách hàng</text>
+    <rect x="272" y="422" width="266" height="30" rx="6" fill="#2563EB"/>
+    <text x="292" y="442" fill="#fff">●</text><text x="312" y="442" fill="#fff">Phỏng vấn chuyên gia</text>
+    <rect x="452" y="428" width="78" height="18" rx="4" fill="#fff"/><text x="491" y="441" font-size="10" text-anchor="middle" fill="#2563EB" font-weight="700">Điều kiện đậu</text>
+    <text x="292" y="474" fill="#94A3B8">○</text><text x="312" y="474" fill="#334155">Khảo sát</text>
+    <rect x="452" y="462" width="78" height="18" rx="4" fill="#FFEDD5"/><text x="491" y="475" font-size="10" text-anchor="middle" fill="#C2410C" font-weight="700">Điều kiện đậu</text>
+    <text x="292" y="500" fill="#94A3B8">○</text><text x="312" y="500" fill="#334155">Demo MVP / Prototype</text>
+    <text x="280" y="536" font-weight="700" fill="#334155">3. Chiến lược</text>
+    <text x="292" y="562" fill="#94A3B8">○</text><text x="312" y="562" fill="#334155">Chiến lược 4P</text>
+    <text x="292" y="588" fill="#94A3B8">○</text><text x="312" y="588" fill="#334155">Công bố dùng AI</text>
+    <rect x="452" y="576" width="78" height="18" rx="4" fill="#FFEDD5"/><text x="491" y="589" font-size="10" text-anchor="middle" fill="#C2410C" font-weight="700">Điều kiện đậu</text>
+    <text x="280" y="624" font-weight="700" fill="#334155">4. Hoàn thiện</text>
+    <text x="292" y="650" fill="#CBD5E1">🔒</text><text x="312" y="650" fill="#94A3B8">Tài liệu tham khảo</text>
+  </g>
+  <text x="280" y="770" font-size="12" fill="#94A3B8">Mục lục = nơi duy nhất báo câu nào thiếu</text>
+
+  <!-- question card -->
+  <rect x="566" y="232" width="670" height="560" rx="12" fill="#fff" stroke="#E2E8F0"/>
+  <text x="590" y="266" font-size="13" font-weight="700" fill="#2563EB">CÂU 2.2</text>
+  <text x="590" y="296" font-size="19" font-weight="700" fill="#0F172A">Nhóm đã phỏng vấn chuyên gia nào và học được gì?</text>
+  <rect x="590" y="314" width="622" height="74" rx="8" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="606" y="338" font-size="13" fill="#334155">Gợi ý: tên, vai trò, số năm kinh nghiệm, 3 điều rút ra. Phỏng vấn thật có giá trị</text>
+  <text x="606" y="358" font-size="13" fill="#334155">hơn khảo sát Google Form, hãy ưu tiên nói chuyện trực tiếp.</text>
+  <text x="606" y="378" font-size="12" fill="#2563EB">Đọc thêm: Cách phỏng vấn chuyên gia ›</text>
+  <rect x="590" y="404" width="622" height="210" rx="8" fill="#fff" stroke="#CBD5E1"/>
+  <text x="606" y="430" font-size="13" fill="#94A3B8">Nhập câu trả lời…</text>
+  <rect x="590" y="630" width="622" height="78" rx="8" fill="#FFF7ED" stroke="#FED7AA"/>
+  <rect x="606" y="648" width="16" height="16" rx="3" fill="#fff" stroke="#EA580C"/>
+  <text x="632" y="661" font-size="14" fill="#0F172A" font-weight="600">Nhóm đã phỏng vấn ít nhất 2 chuyên gia có từ 6 tháng kinh nghiệm</text>
+  <text x="632" y="684" font-size="12" fill="#9A3412">Điều kiện đậu của rubric. Nhóm tự xác nhận, AI chấm sẽ đọc xác nhận này.</text>
+  <text x="632" y="700" font-size="12" fill="#9A3412">Không tick: tiêu chí này bị tính chưa đạt.</text>
+  <rect x="590" y="732" width="110" height="38" rx="8" fill="#fff" stroke="#E2E8F0"/><text x="645" y="756" font-size="14" text-anchor="middle" fill="#334155">‹ Câu trước</text>
+  <rect x="1072" y="732" width="140" height="38" rx="8" fill="#2563EB"/><text x="1142" y="756" font-size="14" text-anchor="middle" fill="#fff" font-weight="700">Lưu &amp; câu tiếp</text>
+
+  <!-- previews: 2 tab con còn lại -->
+  <text x="260" y="842" font-size="13" font-weight="700" fill="#64748B">HAI TAB CON CÒN LẠI (cùng trang, cùng header)</text>
+  <rect x="260" y="856" width="480" height="240" rx="12" fill="#fff" stroke="#E2E8F0"/>
+  <text x="280" y="886" font-size="15" font-weight="700" fill="#0F172A">Tài liệu nộp</text>
+  <rect x="280" y="902" width="440" height="70" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-dasharray="5 4"/>
+  <text x="500" y="932" font-size="13" text-anchor="middle" fill="#334155">Kéo thả file khảo sát, ghi âm phỏng vấn, slide…</text>
+  <text x="500" y="954" font-size="12" text-anchor="middle" fill="#64748B">Xóa email, số điện thoại người trả lời trước khi tải lên</text>
+  <text x="280" y="1000" font-size="13" fill="#0F172A">khao-sat-sinh-vien.xlsx</text><text x="720" y="1000" font-size="12" text-anchor="end" fill="#64748B">12/10 · 240 KB</text>
+  <line x1="280" y1="1012" x2="720" y2="1012" stroke="#F1F5F9"/>
+  <text x="280" y="1036" font-size="13" fill="#0F172A">bien-ban-phong-van-CG1.docx</text><text x="720" y="1036" font-size="12" text-anchor="end" fill="#64748B">11/10 · 88 KB</text>
+  <text x="280" y="1074" font-size="12" fill="#94A3B8">Hoặc: bản DOCX xuất từ Soạn thảo tự lưu vào đây</text>
+
+  <rect x="756" y="856" width="480" height="240" rx="12" fill="#fff" stroke="#E2E8F0"/>
+  <text x="776" y="886" font-size="15" font-weight="700" fill="#0F172A">Kết quả chấm</text>
+  <rect x="776" y="902" width="440" height="96" rx="8" fill="#fff" stroke="#E2E8F0"/>
+  <text x="792" y="928" font-size="14" font-weight="700" fill="#0F172A">Chấm toàn bộ · Lần 1</text><text x="1200" y="928" font-size="12" text-anchor="end" fill="#64748B">12/10/2026</text>
+  <text x="792" y="954" font-size="22" font-weight="700" fill="#EA580C">5.8<tspan font-size="13" fill="#64748B">/10</tspan></text>
+  <text x="870" y="950" font-size="12" fill="#334155">3 tiêu chí chưa đạt · 7 việc cần sửa</text>
+  <text x="792" y="982" font-size="13" fill="#2563EB">Xem chi tiết ›</text><text x="1200" y="982" font-size="13" text-anchor="end" fill="#2563EB">Tải PDF</text>
+  <rect x="776" y="1016" width="210" height="36" rx="8" fill="#fff" stroke="#2563EB"/><text x="881" y="1039" font-size="13" text-anchor="middle" fill="#2563EB">Chấm lại bản đã sửa</text>
+  <text x="776" y="1080" font-size="12" fill="#94A3B8">Chưa có kết quả → "Chưa chấm lần nào. Chấm bài" (empty state có hành động)</text>
+</svg>

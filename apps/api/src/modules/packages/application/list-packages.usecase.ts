@@ -1,6 +1,7 @@
 import {
   findActivePackages as defaultFindActivePackages,
 } from "../infrastructure/persistence/package.repository.js";
+import { toPackageDto } from "./package-dto.js";
 
 type ListPackagesDeps = {
   findActivePackages?: typeof defaultFindActivePackages;
@@ -20,5 +21,5 @@ export async function listPackagesUseCase(deps: ListPackagesDeps = {}) {
   };
 
   const packages = await findActivePackages();
-  return packages;
+  return packages.map(toPackageDto);
 }
