@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Hành trình Workspace Redesign (2026-10-11)
+**Breaking Changes / Deprecations**
+- Case Workspace đổi từ 7 tab theo loại dữ liệu sang 5 tab hành trình (`overview`, `journey`, `billing`, `timeline`, `settings`). Các URL tab cũ tự động chuyển hướng sang tab mới tương ứng.
+- Tạo dự án không còn yêu cầu chọn gói trả phí; mặc định sử dụng gói `pkg_tf_free`. Trả phí thực hiện theo từng giai đoạn khi cần chấm bài.
+- Bỏ cơ chế tự động trigger chấm bài sau khi thanh toán đơn hàng (`ORDER_PAID`) và sau khi nộp hồ sơ (`submit-intake`). Mọi hành vi chấm bài do sinh viên chủ động bấm từ giao diện (hoặc admin trigger).
+- Đóng băng toàn bộ luồng Supporter: gỡ mount route `/api/supporter`, gỡ route `/supporter` khỏi web proxy, role `supporter` chuyển hướng về `/dashboard` sinh viên thông thường.
+- Ẩn luồng chat trực tiếp (`TabDiscussionChat`), thay thế bằng liên kết cộng đồng nhóm Zalo qua biến môi trường `NEXT_PUBLIC_ZALO_GROUP_URL`.
+- Endpoint upload mới theo giai đoạn: `POST /api/cases/:id/stages/:checkpoint_code/documents` (không chuyển đổi trạng thái case).
+
 ### CP2 audit (backend)
 - `POST /api/cases/:id/ai-retry` nhận `checkpoint` (`CP1` mặc định | `CP2`), `scope` (`questionnaire` | `full`, bắt buộc với CP2), `change_summary` (CP2 resubmit). Thiếu `checkpoint` = hành vi CP1 cũ.
 - `packages/shared/src/audit-checkpoints.ts`: bảng tra checkpoint duy nhất cho API và worker (service type, prompt, report type, input, hậu xử lý). Xóa `PROMPT_CONFIG` (worker) và `resolveAuditPromptFileName` + `runOmpAudit` (API).

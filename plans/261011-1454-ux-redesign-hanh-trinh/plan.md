@@ -42,13 +42,13 @@ Thiết kế: [docs/ux-redesign/](../../docs/ux-redesign/) (`00`–`06` SVG).
 
 | Phase | Name | Status |
 |-------|------|--------|
-| 1 | [Stage API foundation](./phase-01-stage-api-foundation.md) | Pending |
-| 2 | [Audit input rules](./phase-02-audit-input-rules.md) | Pending |
-| 3 | [Service checkout and billing tab](./phase-03-service-checkout-and-billing.md) | Pending |
-| 4 | [Journey workspace shell](./phase-04-journey-workspace-shell.md) | Pending |
-| 5 | [Project profile and free case creation](./phase-05-project-profile-and-free-case.md) | Pending |
-| 6 | [Supporter freeze and Zalo contact](./phase-06-supporter-freeze-and-zalo.md) | Pending |
-| 7 | [Docs, wording, changelog](./phase-07-docs-wording-changelog.md) | Pending |
+| 1 | [Stage API foundation](./phase-01-stage-api-foundation.md) | Done |
+| 2 | [Audit input rules](./phase-02-audit-input-rules.md) | Done |
+| 3 | [Service checkout and billing tab](./phase-03-service-checkout-and-billing.md) | Done |
+| 4 | [Journey workspace shell](./phase-04-journey-workspace-shell.md) | Done |
+| 5 | [Project profile and free case creation](./phase-05-project-profile-and-free-case.md) | Done |
+| 6 | [Supporter freeze and Zalo contact](./phase-06-supporter-freeze-and-zalo.md) | Done |
+| 7 | [Docs, wording, changelog](./phase-07-docs-wording-changelog.md) | In Progress |
 
 ```mermaid
 flowchart LR
