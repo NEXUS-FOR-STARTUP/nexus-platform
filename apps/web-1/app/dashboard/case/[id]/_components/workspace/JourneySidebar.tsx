@@ -1,9 +1,10 @@
 "use client";
 
-import { Box, Stack } from "@mantine/core";
-import { LayoutDashboard, Compass, CreditCard, History, Settings } from "lucide-react";
+import { Group, Text, Code } from "@mantine/core";
+import { LayoutDashboard, Compass, CreditCard, History, Settings, ExternalLink, HelpCircle } from "lucide-react";
 import type { ReactNode } from "react";
 import classes from "./JourneySidebar.module.css";
+import { ZALO_GROUP_URL } from "@/lib/zalo";
 
 export type WorkspaceTabKey = "overview" | "journey" | "billing" | "timeline" | "settings";
 
@@ -14,11 +15,11 @@ interface NavItem {
 }
 
 export const WORKSPACE_NAV_ITEMS: NavItem[] = [
-  { key: "overview", label: "Tổng quan dự án", icon: <LayoutDashboard size={20} /> },
-  { key: "journey", label: "Hành trình", icon: <Compass size={20} /> },
-  { key: "billing", label: "Lượt chấm & thanh toán", icon: <CreditCard size={20} /> },
-  { key: "timeline", label: "Lịch sử hoạt động", icon: <History size={20} /> },
-  { key: "settings", label: "Cài đặt", icon: <Settings size={20} /> },
+  { key: "overview", label: "Tổng quan dự án", icon: <LayoutDashboard className={classes.linkIcon} /> },
+  { key: "journey", label: "Hành trình", icon: <Compass className={classes.linkIcon} /> },
+  { key: "billing", label: "Lượt chấm & thanh toán", icon: <CreditCard className={classes.linkIcon} /> },
+  { key: "timeline", label: "Lịch sử hoạt động", icon: <History className={classes.linkIcon} /> },
+  { key: "settings", label: "Cài đặt", icon: <Settings className={classes.linkIcon} /> },
 ];
 
 interface JourneySidebarProps {
@@ -27,28 +28,46 @@ interface JourneySidebarProps {
 }
 
 export default function JourneySidebar({ activeTab, onTabChange }: JourneySidebarProps) {
+  const links = WORKSPACE_NAV_ITEMS.map((item) => (
+    <a
+      className={classes.link}
+      data-active={activeTab === item.key || undefined}
+      href="#"
+      key={item.key}
+      onClick={(event) => {
+        event.preventDefault();
+        onTabChange(item.key);
+      }}
+    >
+      {item.icon}
+      <span>{item.label}</span>
+    </a>
+  ));
+
   return (
-    <Box component="nav" aria-label="Menu không gian dự án" className={classes.navbar}>
-      <Stack gap="xs">
-        {WORKSPACE_NAV_ITEMS.map((item) => {
-          const isActive = activeTab === item.key;
-          return (
-            <a
-              key={item.key}
-              className={classes.link}
-              data-active={isActive ? true : undefined}
-              href="#"
-              onClick={(event) => {
-                event.preventDefault();
-                onTabChange(item.key);
-              }}
-            >
-              <span className={classes.linkIcon}>{item.icon}</span>
-              <span>{item.label}</span>
-            </a>
-          );
-        })}
-      </Stack>
-    </Box>
+    <nav className={classes.navbar}>
+      <div className={classes.navbarMain}>
+        <Group className={classes.header} justify="space-between">
+          <Text fw={700} size="sm" c="blue">
+            NEXUS WORKSPACE
+          </Text>
+          <Code fw={700}>v2.0</Code>
+        </Group>
+        {links}
+      </div>
+
+      <div className={classes.footer}>
+        <a
+          href={ZALO_GROUP_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={classes.link}
+        >
+          <HelpCircle className={classes.linkIcon} />
+          <span>Hỗ trợ Zalo</span>
+          <ExternalLink size={14} style={{ marginLeft: "auto", opacity: 0.6 }} />
+        </a>
+      </div>
+    </nav>
   );
 }
