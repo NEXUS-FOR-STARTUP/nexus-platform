@@ -8,6 +8,7 @@ import { findApprovedReports } from "../../reports/infrastructure/persistence/re
 import type { OmpAuditInputFile } from "../omp-audit.service.js";
 import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
 import { renderStageAnswers } from "./stage-audit-input.js";
+import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-types.js";
 
 type SubmissionType = AuditSubmissionType;
 
@@ -62,8 +63,11 @@ ${JSON.stringify(team, null, 2)}
       if (stageAnswers.answered > 0) inputFiles.push({ name: "cp1_answers.md", content: stageAnswers.markdown });
     }
 
+    // Guided docx exports are system output derived from the same answers
+    // already in cp1_answers.md — feeding them back is a self-loop.
     const documents = await findDocumentRecordsByCaseId(caseId);
-    for (const doc of documents) {
+    const submitted = documents.filter((d) => !(SUBMITTED_DOC_EXCLUDED_KINDS as readonly string[]).includes(d.source_kind));
+    for (const doc of submitted) {
       if (doc.download_url) {
         try {
           const res = await fetch(doc.download_url);
@@ -99,7 +103,7 @@ ${JSON.stringify(team, null, 2)}
   // Fetch docs scoped to the lifecycle unit
   if (resolvedUnitId) {
     const unitDocs = await prisma.documentRecord.findMany({
-      where: { lifecycle_unit_id: resolvedUnitId, superseded_at: null },
+      where: { lifecycle_unit_id: resolvedUnitId, superseded_at: null, source_kind: { notIn: [...SUBMITTED_DOC_EXCLUDED_KINDS] } },
       orderBy: [{ seq: "asc" }, { created_at: "asc" }],
     });
     for (const doc of unitDocs) {
