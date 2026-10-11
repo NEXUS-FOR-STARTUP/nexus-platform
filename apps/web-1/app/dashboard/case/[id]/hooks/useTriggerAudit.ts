@@ -51,6 +51,7 @@ export function useTriggerAudit(caseId: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["case", caseId] });
+      queryClient.invalidateQueries({ queryKey: ["case", caseId, "stages"] });
       queryClient.invalidateQueries({ queryKey: ["case-ai-status", caseId] });
       notifications.show({
         title: "Đã gửi đánh giá",
@@ -80,6 +81,15 @@ export function useTriggerAudit(caseId: string) {
           title: "Cần tải tài liệu sửa đổi",
           message: "Vui lòng tải lên tài liệu đã sửa trước khi gửi đánh giá lại.",
           color: "orange",
+        });
+        return;
+      }
+
+      if (status === 409 && errData?.code === "STAGE_INPUT_REQUIRED") {
+        notifications.show({
+          title: "Chưa có nội dung để chấm",
+          message: errData?.message || "Vui lòng trả lời ít nhất một câu trong mẫu hoặc tải tài liệu lên trước khi chấm.",
+          color: "red",
         });
         return;
       }
