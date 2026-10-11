@@ -10,6 +10,7 @@ import { transitionInTx } from "../../../services/case-transition.service.js";
 import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 import { triggerOmpAuditForCase } from "../../ai-engine/application/omp-audit-coordinator.js";
+import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
 type DbClient = Prisma.TransactionClient | typeof prisma
 
 export function buildSupersedeUpdateArgs(
@@ -236,6 +237,11 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
       },
     });
     logger.info({ caseId, transition, actorId: userId, duration_ms: Date.now() - startTime }, 'intake submitted');
+
+    // Journey workspace: grading is a student action, never a side effect of saving the profile.
+    if (AUDIT_STAGE_INPUT_RULES) {
+      return { success: true, case_id: caseId, stage: result.stage, status: result.status };
+    }
 
     // Auto-trigger OMP audit if case is paid and has available credits
     try {

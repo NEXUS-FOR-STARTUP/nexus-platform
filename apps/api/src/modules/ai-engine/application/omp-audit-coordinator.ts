@@ -34,6 +34,8 @@ import { INPUT_ASSEMBLERS, resolveAuditPlan } from "./audit-registry.js";
 import { CP2_CHECKPOINT_CODE } from "./cp2-audit-input.js";
 import { consumeAuditCredit, grantAuditRefund } from "./audit-credit.js";
 import { TriggerOptsSchema } from "./trigger-opts.js";
+import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
+import { countStageInputs } from "./stage-audit-input.js";
 
 export { finalizeOmpAuditResult, getCaseAiAuditStatus };
 
@@ -324,7 +326,9 @@ export async function triggerOmpAuditForCase(
   // report_type 'input_clarification', so query by that invariant.
   // If the first initial FAILED (no report saved), the guard finds nothing
   // and the trigger proceeds — P2002 skipCharge below handles free retry.
-  if (checkpointCode === "CP1" && submissionType === "initial") {
+  // Under AUDIT_STAGE_INPUT_RULES the student re-grades from the stage page with the same "initial"
+  // input (current answers + files), so a prior report no longer blocks it.
+  if (checkpointCode === "CP1" && submissionType === "initial" && !AUDIT_STAGE_INPUT_RULES) {
     const intakeUnit = await findFirstIntakeUnit(caseId);
     if (intakeUnit) {
       const existingInitial = await prisma.report.findFirst({
@@ -347,6 +351,15 @@ export async function triggerOmpAuditForCase(
     await ensureCheckpoint(prisma, caseId, CP2_CHECKPOINT_CODE, CP2_OPENED_STATUS);
     if (submissionType === "resubmit" && !(await findLatestCp2FullReport(caseId))) {
       throw new AppError(409, "CP2_NO_PREVIOUS_REPORT", "Chưa có báo cáo CP2 toàn bộ trước đó để chấm lại.");
+    }
+  }
+
+  // 4d. Stage input rule: a stage is graded on template answers or files, never on nothing.
+  // Checked before charging so a rejected trigger costs nothing.
+  if (AUDIT_STAGE_INPUT_RULES && !skipCreditCheck && (checkpointCode === "CP1" || checkpointCode === "CP2")) {
+    const inputs = await countStageInputs(caseId, checkpointCode);
+    if (inputs.answers === 0 && inputs.files === 0) {
+      throw new AppError(409, "STAGE_INPUT_REQUIRED", "Trả lời ít nhất một câu trong mẫu hoặc tải tài liệu của giai đoạn này lên trước khi chấm.", { checkpoint_code: checkpointCode });
     }
   }
 

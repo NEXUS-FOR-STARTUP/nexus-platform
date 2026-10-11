@@ -1,7 +1,7 @@
 import { STAGES, type StageCode } from "@app/shared";
 import { prisma } from "../../../db.js";
+import { STAGE_DOC_EXCLUDED_TYPES } from "../../ai-engine/application/stage-audit-input.js";
 
-const NON_STUDENT_DOC_TYPES = ["assessment_report", "supporter_output", "supporter_attachment", "payment_proof"];
 const ACTIVE_JOB_STATUSES = ["queued", "processing"];
 const AUDIT_JOB_TYPE = "omp_audit";
 const SELF_CHECK_ID_FRAGMENT = "_selfcheck_";
@@ -51,7 +51,7 @@ export async function deriveStageSummaries(caseId: string): Promise<StageSummari
     prisma.checkpoint.findMany({ where: { case_id: caseId }, select: { id: true, checkpoint_code: true } }),
     prisma.documentRecord.groupBy({
       by: ["checkpoint_id"],
-      where: { case_id: caseId, superseded_at: null, source_kind: { not: "generated" }, doc_type: { notIn: NON_STUDENT_DOC_TYPES } },
+      where: { case_id: caseId, superseded_at: null, source_kind: { not: "generated" }, doc_type: { notIn: STAGE_DOC_EXCLUDED_TYPES } },
       _count: { _all: true },
     }),
     prisma.projectAnswer.findMany({ where: { case_id: caseId }, select: { question_id: true, answer_text: true } }),

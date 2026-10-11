@@ -6,6 +6,8 @@ import { findFirstIntakeUnit } from "../../cases/infrastructure/persistence/case
 import { findDocumentRecordsByCaseId } from "../../documents/infrastructure/persistence/document.repository.js";
 import { findApprovedReports } from "../../reports/infrastructure/persistence/report.repository.js";
 import type { OmpAuditInputFile } from "../omp-audit.service.js";
+import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
+import { renderStageAnswers } from "./stage-audit-input.js";
 
 type SubmissionType = AuditSubmissionType;
 
@@ -52,6 +54,12 @@ ${JSON.stringify(team, null, 2)}
 \`\`\`
 `;
       inputFiles.push({ name: "team_fit_report.md", content: teamFitMd });
+    }
+
+    if (AUDIT_STAGE_INPUT_RULES) {
+      const answerRows = await prisma.projectAnswer.findMany({ where: { case_id: caseId }, select: { question_id: true, answer_text: true } });
+      const stageAnswers = renderStageAnswers("CP1", Object.fromEntries(answerRows.map((r) => [r.question_id, r.answer_text])));
+      if (stageAnswers.answered > 0) inputFiles.push({ name: "cp1_answers.md", content: stageAnswers.markdown });
     }
 
     const documents = await findDocumentRecordsByCaseId(caseId);
@@ -117,6 +125,9 @@ ${JSON.stringify(team, null, 2)}
       const latestReport = reports[0]; // desc order, first = latest
       if (latestReport.content_md) {
         inputFiles.push({ name: "previous_report.md", content: latestReport.content_md });
+      }
+      if (AUDIT_STAGE_INPUT_RULES && latestReport.metadata_json) {
+        inputFiles.push({ name: "previous_report.json", content: JSON.stringify(latestReport.metadata_json, null, 2) });
       }
     }
     // change_summary: stored in lifecycle_unit.content as JSON { change_summary, documents, remaining_blockers }

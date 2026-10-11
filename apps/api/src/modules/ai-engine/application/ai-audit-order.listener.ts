@@ -6,6 +6,7 @@ import {
   triggerOmpAuditForCase,
 } from "./omp-audit-coordinator.js";
 import { findFirstIntakeUnit } from "../../cases/infrastructure/persistence/case.repository.js";
+import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
 import { CP1_AUDIT_SERVICE_CODE } from "../../cases/infrastructure/persistence/credit-ledger.repository.js";
 
 /**
@@ -31,6 +32,9 @@ async function handleOrderPaidForAiAudit(event: DomainEvent): Promise<void> {
   const orderId = typeof payload["orderId"] === "string" ? (payload["orderId"] as string) : undefined;
   const serviceTypeCode = typeof payload["serviceTypeCode"] === "string" ? payload["serviceTypeCode"] : undefined;
   const manualTrigger = payload["manualTrigger"] === true;
+
+  // Journey workspace: grading is always a student action, never a side effect of paying.
+  if (AUDIT_STAGE_INPUT_RULES) return;
 
   if (!caseId) {
     logger.debug({ orderId }, "ORDER_PAID event has no associated caseId, skipping AI audit");

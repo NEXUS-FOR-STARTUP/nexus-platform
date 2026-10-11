@@ -5,6 +5,8 @@ import { AppError } from "../../../shared/domain/app-error.js";
 import logger from "../../../shared/infrastructure/logger.js";
 import { findLatestCp2FullReport } from "../../reports/infrastructure/persistence/report.repository.js";
 import type { OmpAuditInputFile } from "../omp-audit.service.js";
+import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
+import { STAGE_DOC_EXCLUDED_TYPES, renderStageAnswers } from "./stage-audit-input.js";
 
 export const CP2_CHECKPOINT_CODE = "CP2";
 export const CP2_ANSWERS_FILE = "cp2_answers.md";
@@ -13,7 +15,6 @@ export const CP2_ATTACHMENTS_DIR = "attachments";
 const UNANSWERED_TEXT = "(Nhóm chưa trả lời)";
 const NO_CHANGE_SUMMARY_TEXT = "(Nhóm không ghi tóm tắt thay đổi)";
 const ATTACHMENT_FETCH_TIMEOUT_MS = Number(process.env.OMP_INPUT_FETCH_TIMEOUT_MS ?? 30_000);
-const NON_ATTACHMENT_DOC_TYPES = ["assessment_report", "supporter_output", "supporter_attachment", "payment_proof"];
 /** Fields the worker/API add around the model's own report.json; not part of the earlier decisions. */
 const PROVENANCE_KEYS = ["pdfUrl", "pdfPublicId", "submission_type", "prompt_version", "prompt_mode", "triggerStartedAt", "model", "checkpoint", "scope", "evidenceUnverified", "evidenceUnchecked"];
 
@@ -59,7 +60,7 @@ async function loadAttachments(caseId: string): Promise<OmpAuditInputFile[]> {
       checkpoint_id: checkpoint.id,
       superseded_at: null,
       source_kind: { not: "generated" },
-      doc_type: { notIn: NON_ATTACHMENT_DOC_TYPES },
+      doc_type: { notIn: STAGE_DOC_EXCLUDED_TYPES },
     },
     orderBy: [{ created_at: "asc" }],
   });
@@ -92,7 +93,7 @@ export async function assembleCp2InputFiles(req: Cp2InputRequest): Promise<{ inp
   const answers = Object.fromEntries(rows.map((r) => [r.question_id, r.answer_text]));
 
   const inputFiles: OmpAuditInputFile[] = [
-    { name: CP2_ANSWERS_FILE, content: renderCp2Answers(answers) },
+    { name: CP2_ANSWERS_FILE, content: AUDIT_STAGE_INPUT_RULES ? renderStageAnswers(CP2_CHECKPOINT_CODE, answers).markdown : renderCp2Answers(answers) },
     { name: CP2_SELF_CHECKS_FILE, content: renderSelfChecks(answers) },
     ...(await loadAttachments(req.caseId)),
   ];
