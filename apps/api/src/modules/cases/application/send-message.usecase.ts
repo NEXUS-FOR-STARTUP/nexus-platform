@@ -1,7 +1,8 @@
 import { AppError } from "../../../shared/domain/app-error.js";
+import { prisma } from "../../../db.js";
 import logger from "../../../shared/infrastructure/logger.js";
 import { createCaseMessage, findCaseById, findLatestCaseEventByType } from "../infrastructure/persistence/case.repository.js";
-import { getCreditBalance, getCreditLedgerByCaseId } from "../infrastructure/persistence/credit-ledger.repository.js";
+import { CP1_AUDIT_SERVICE_CODE, getCreditBalance, getCreditLedgerByCaseId, getServiceTypeId } from "../infrastructure/persistence/credit-ledger.repository.js";
 import { evaluateChatAccess } from "./chat-access.js";
 import { claimMessageSendSlot } from "./message-send-rate-limit.js";
 import { publishToChannel } from "../../realtime/infrastructure/centrifugo.service.js";
@@ -33,7 +34,7 @@ export async function sendMessageUseCase(
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy hồ sơ");
   }
 
-  const creditBalance = await getCreditBalance(caseId);
+  const creditBalance = await getCreditBalance(prisma, caseId, await getServiceTypeId(prisma, CP1_AUDIT_SERVICE_CODE));
   const completedEvent =
     caseItem.user_facing_stage === "completed"
       ? await findLatestCaseEventByType(caseId, "T14_COMPLETE")

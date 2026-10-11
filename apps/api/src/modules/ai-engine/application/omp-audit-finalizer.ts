@@ -2,10 +2,6 @@ import { existsSync, readFileSync, mkdirSync, copyFileSync } from "node:fs";
 import { resolve } from "node:path";
 import logger from "../../../shared/infrastructure/logger.js";
 import {
-  generateReportPdfBuffer,
-  buildReportPdfFilename,
-} from "../../reports/infrastructure/pdf/pdfService.js";
-import {
   findCaseDetailForPdf,
   findLatestAiJobByCase,
   updateAiJobStatus,
@@ -13,9 +9,10 @@ import {
   updateCaseAuditStage,
 } from "../infrastructure/persistence/ai-job.repository.js";
 import { saveOmpAuditReport } from "../../reports/infrastructure/persistence/report.repository.js";
-import { upsertReportArtifactDocumentRecord } from "../../documents/infrastructure/persistence/document.repository.js";
-import { uploadFile } from "../../../services/cloudinary.js";
-import { resolveRepoRoot, resolveAuditPromptFileName } from "../omp-audit.service.js";
+import type { AuditCheckpointCode } from "@app/shared";
+import { resolveRepoRoot } from "../omp-audit.service.js";
+import { generateAndUploadReportPdf, syncReportArtifact } from "./omp-audit-pdf.js";
+import { POST_PROCESSORS, resolveAuditPlan } from "./audit-registry.js";
 import { prisma } from "../../../db.js";
 import { ompQueue } from "../infrastructure/queue/omp-queue.js";
 
@@ -106,7 +103,7 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
   }
   const reportJsonRaw = readFileSync(reportJsonPath, "utf-8");
   const reportMd = readFileSync(reportMdPath, "utf-8");
-  const reportJson = JSON.parse(reportJsonRaw) as Record<string, any>;
+  let reportJson = JSON.parse(reportJsonRaw) as Record<string, any>;
 
   // Compile Typst PDF
   const caseRecord = await findCaseDetailForPdf(caseId);
@@ -126,6 +123,13 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
     logger.warn({ caseId, triggerStartedAt }, "trigger startedAt missing or invalid, using Date.now() fallback");
   }
   const startedAtMs = Number.isFinite(parsedStartedAtMs) ? parsedStartedAtMs : Date.now();
+
+  // Checkpoint, scope and submission type come from the job input; the lookup table decides
+  // prompts, report type and post-processing. Jobs without a checkpoint are CP1 (legacy rows).
+  const checkpointCode = ((aiJobInput?.checkpoint as string | undefined) ?? "CP1") as AuditCheckpointCode;
+  const scope = (aiJobInput?.scope as string | undefined) ?? (aiJobInput?.prompt_mode as string | undefined) ?? "full";
+  const plan = resolveAuditPlan(checkpointCode, scope, submissionType);
+  reportJson = await POST_PROCESSORS[plan.postProcess]({ caseId, aiJobId, jobDir, scope, submissionType, reportJson });
 
   // Resolve target lifecycle_unit_id early (needed for PDF versioning).
   // Priority: BullMQ job.data (freshest per-trigger identity, avoids TOCTOU
@@ -149,9 +153,9 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
     logger.warn({ caseId, jobErr }, "Failed to read BullMQ job.data for lifecycle_unit_id, using input_json fallback");
   }
   let lifecycleUnitId: string | null =
-    jobDataLifecycleUnitId ?? (aiJobInput?.lifecycle_unit_id as string | undefined) ?? null;
+    checkpointCode === "CP1" ? (jobDataLifecycleUnitId ?? (aiJobInput?.lifecycle_unit_id as string | undefined) ?? null) : null;
 
-  if (!lifecycleUnitId) {
+  if (!lifecycleUnitId && checkpointCode === "CP1") {
     const latestUnit = await prisma.lifecycleUnit.findFirst({
       where: { case_id: caseId, unit_type: "version" },
       orderBy: { version_no: "desc" },
@@ -188,76 +192,24 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
     versionNo = unit?.version_no ?? null;
   }
 
-  let pdfBuffer: Buffer | null = null;
-  try {
-    pdfBuffer = await generateReportPdfBuffer({
-      markdown: reportMd,
-      meta: {
-        projectName,
-        jobId: caseId,
-        agentName: "omp",
-        createdAt: new Date().toISOString(),
-        overallScore: typeof reportJson.overallScore === "number" ? reportJson.overallScore : 70,
-        verdict: typeof reportJson.verdict === "string" ? reportJson.verdict : "READY FOR REALITY CHECK",
-        categoryScores: reportJson.categoryScores || {
-          problemClarity: 70,
-          marketViability: 70,
-          businessModel: 70,
-          competitiveMoat: 70,
-          executionFeasibility: 70,
-        },
-      },
-      storageDir: resolve(projectRoot, "storage"),
-      force: true,
-    });
-  } catch (pdfErr) {
-    logger.error({ caseId, pdfErr }, "Failed to generate Typst PDF during finalization");
-  }
-
-  // Upload PDF to Cloudinary if generated
-  let pdfUrl: string | null = null;
-  let pdfPublicId: string | null = null;
-  if (pdfBuffer) {
-    const versionSuffix = versionNo != null ? `_v${String(versionNo).padStart(2, "0")}` : "";
-    const cloudinaryName = `audit_report${versionSuffix}_${startedAtMs}.pdf`;
-    try {
-      const uploadRes = await uploadFile(
-        pdfBuffer,
-        `nexus/reports/${caseId}`,
-        cloudinaryName,
-        "raw",
-      );
-      if (uploadRes?.fileUrl) {
-        pdfUrl = uploadRes.fileUrl;
-        pdfPublicId = uploadRes.publicId;
-        logger.info({ caseId, pdfUrl }, "Uploaded A4 PDF report to Cloudinary");
-      }
-    } catch (uploadErr) {
-      logger.warn({ caseId, uploadErr }, "Cloudinary upload failed during finalization, retrying once...");
-      try {
-        const retryRes = await uploadFile(
-          pdfBuffer,
-          `nexus/reports/${caseId}`,
-          cloudinaryName,
-          "raw",
-        );
-        if (retryRes?.fileUrl) {
-          pdfUrl = retryRes.fileUrl;
-          pdfPublicId = retryRes.publicId;
-          logger.info({ caseId, pdfUrl }, "Uploaded A4 PDF report to Cloudinary on retry");
-        }
-      } catch (retryErr) {
-        logger.error({ caseId, retryErr }, "Cloudinary retry also failed, continuing with local PDF");
-      }
-    }
-  }
+  const { pdfUrl, pdfPublicId } = await generateAndUploadReportPdf({
+    caseId,
+    projectName,
+    reportMd,
+    reportJson,
+    reportType: checkpointCode === "CP1" ? undefined : plan.reportType,
+    versionNo,
+    startedAtMs,
+  });
 
   const metadataJson: Record<string, unknown> = {
     ...reportJson,
     pdfUrl,
     pdfPublicId,
     submission_type: submissionType,
-    prompt_version: resolveAuditPromptFileName(submissionType),
+    checkpoint: checkpointCode,
+    scope: plan.scope,
+    prompt_version: plan.prompts[plan.prompts.length - 1],
     prompt_mode: (aiJobInput?.prompt_mode as string | undefined) ?? "full",
     triggerStartedAt,
     model: (aiJobInput?.model as string | undefined) ?? process.env.OMP_MODEL ?? "mimo/mimo-v2.5-pro",
@@ -274,6 +226,13 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
   // no migration.
   const savedReport = await prisma.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "cases" WHERE id = ${caseId} FOR UPDATE`;
+    if (checkpointCode !== "CP1" && triggerStartedAt) {
+      // Non-CP1 reports have no lifecycle unit; trigger identity alone dedupes a duplicate `completed` event.
+      const existingByTrigger = await tx.report.findFirst({
+        where: { case_id: caseId, report_type: plan.reportType, metadata_json: { path: ["triggerStartedAt"], equals: triggerStartedAt } },
+      });
+      if (existingByTrigger) return existingByTrigger;
+    }
     if (lifecycleUnitId) {
       // Global dedupe: same unit + same trigger = return existing (any type).
       // Trigger identity is stored in metadata_json.triggerStartedAt (written by
@@ -317,39 +276,23 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
         lifecycleUnitId,
         contentMd: reportMd,
         metadataJson,
+        ...(checkpointCode === "CP1" ? {} : { checkpointCode, reportType: plan.reportType }),
       },
       tx,
     );
   });
 
   // Sync artifact record so it appears in "Tài liệu" tab
-  try {
-    const reportFilename = buildReportPdfFilename({
-      projectName,
-      submissionType,
-      createdAt: savedReport.created_at,
-      versionNo,
-    });
-    await upsertReportArtifactDocumentRecord(
-      caseId,
-      savedReport.checkpoint_id,
-      savedReport.lifecycle_unit_id,
-      null,
-      savedReport.id,
-      savedReport.created_by,
-      prisma,
-      {
-        fileUrl: pdfUrl,
-        downloadUrl: pdfUrl,
-        cloudinaryPublicId: pdfPublicId,
-        originalName: reportFilename,
-        extension: "pdf",
-        mimeType: "application/pdf",
-      },
-    );
-  } catch (docErr) {
-    logger.warn({ caseId, docErr }, "Failed to upsert report artifact document record");
-  }
+  await syncReportArtifact({
+    caseId,
+    savedReport,
+    projectName,
+    submissionType,
+    reportType: checkpointCode === "CP1" ? undefined : plan.reportType,
+    versionNo,
+    pdfUrl,
+    pdfPublicId,
+  });
 
   // Update AI Job status via repository
   if (aiJobId) {

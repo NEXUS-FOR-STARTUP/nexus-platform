@@ -8,6 +8,9 @@ export type SubmissionType = "initial" | "resubmit" | "logic_check";
 interface TriggerAuditPayload {
   submission_type: SubmissionType;
   lifecycle_unit_id?: string;
+  /** Omitted = CP1 (API default). CP2 requires `scope`. */
+  checkpoint?: "CP1" | "CP2";
+  scope?: "questionnaire" | "full";
 }
 
 interface TriggerAuditErrorResponse {
@@ -23,6 +26,7 @@ export function useTriggerAudit(caseId: string) {
       const response = await apiClient.post(`/cases/${caseId}/ai-retry`, {
         submission_type: payload.submission_type,
         ...(payload.lifecycle_unit_id ? { lifecycle_unit_id: payload.lifecycle_unit_id } : {}),
+        ...(payload.checkpoint ? { checkpoint: payload.checkpoint, scope: payload.scope } : {}),
       });
       return response.data;
     },
@@ -47,6 +51,7 @@ export function useTriggerAudit(caseId: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["case", caseId] });
+      queryClient.invalidateQueries({ queryKey: ["case", caseId, "stages"] });
       queryClient.invalidateQueries({ queryKey: ["case-ai-status", caseId] });
       notifications.show({
         title: "Đã gửi đánh giá",
@@ -76,6 +81,15 @@ export function useTriggerAudit(caseId: string) {
           title: "Cần tải tài liệu sửa đổi",
           message: "Vui lòng tải lên tài liệu đã sửa trước khi gửi đánh giá lại.",
           color: "orange",
+        });
+        return;
+      }
+
+      if (status === 409 && errData?.code === "STAGE_INPUT_REQUIRED") {
+        notifications.show({
+          title: "Chưa có nội dung để chấm",
+          message: errData?.message || "Vui lòng trả lời ít nhất một câu trong mẫu hoặc tải tài liệu lên trước khi chấm.",
+          color: "red",
         });
         return;
       }

@@ -3,6 +3,7 @@ import { uploadFile, generateSignedUrl } from '../../../services/cloudinary.js';
 import { generateGuidedDocumentDocx } from '../infrastructure/docx-generator.js';
 import { AppError } from '../../../shared/domain/app-error.js';
 import { TEMPLATE_REGISTRY, type TemplateKey } from '@repo/validation';
+import { ensureCheckpoint } from '../../cases/infrastructure/persistence/case.repository.js';
 
 const FILENAME_TEAM_MAX_LENGTH = 40;
 const FILENAME_DOC_TYPE_MAX_LENGTH = 40;
@@ -29,28 +30,22 @@ export async function generateDocxUseCase(input: GenerateDocxInput) {
     throw new AppError(404, 'CASE_NOT_FOUND', 'Không tìm thấy hồ sơ');
   }
 
-  // Find corresponding checkpoint or first checkpoint
+  // Never fall back to another checkpoint: a CP2 docx must land on CP2. Cases created
+  // without intake have no checkpoint yet, so ensure the target and (only when the
+  // case has no active checkpoint) point current_checkpoint at it so submit-intake
+  // reuses the row.
   const targetCode = templateKey.toUpperCase();
-  // Team-Fit-created cases have no checkpoint until intake is submitted. Create CP1
-  // lazily and set current_checkpoint so submit-intake reuses this row instead of
-  // inserting a second CP1.
   const checkpoint =
     caseRecord.checkpoints.find((cp) => cp.checkpoint_code === targetCode) ||
-    caseRecord.checkpoints[0] ||
     (await prisma.$transaction(async (tx) => {
-      const created = await tx.checkpoint.create({
-        data: {
-          case_id: caseId,
-          checkpoint_code: 'CP1',
-          checkpoint_status: 'submitted',
-          latest_version_no: 1,
-        },
-      });
-      await tx.case.update({
-        where: { id: caseId },
-        data: { current_checkpoint: 'CP1' },
-      });
-      return created;
+      const ensured = await ensureCheckpoint(tx, caseId, targetCode);
+      if (!caseRecord.current_checkpoint) {
+        await tx.case.update({
+          where: { id: caseId },
+          data: { current_checkpoint: targetCode },
+        });
+      }
+      return ensured;
     }));
 
   // Fetch answers
@@ -111,14 +106,17 @@ export async function generateDocxUseCase(input: GenerateDocxInput) {
     filename,
   );
 
-  // Compute seq
+  // Compute seq + supersede previous guided exports of this checkpoint so the
+  // workspace count doesn't grow by one on every export press.
   const lastDoc = await prisma.documentRecord.findFirst({
     where: { case_id: caseId, checkpoint_id: checkpoint.id },
     orderBy: { seq: 'desc' },
   });
   const seq = (lastDoc?.seq ?? 0) + 1;
-
-  // Create DocumentRecord
+  await prisma.documentRecord.updateMany({
+    where: { case_id: caseId, checkpoint_id: checkpoint.id, doc_type: `guided_${templateKey}`, superseded_at: null },
+    data: { superseded_at: new Date() },
+  });
   const docRecord = await prisma.documentRecord.create({
     data: {
       case_id: caseId,

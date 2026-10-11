@@ -95,9 +95,7 @@ export function useEmailOtpLogin(returnUrl: string) {
           router.push(returnUrl);
         } else if (role === "admin") {
           router.push("/admin");
-        } else if (role === "supporter") {
-          router.push("/supporter");
-        } else if (role === "writer") {
+                } else if (role === "writer") {
           router.push("/writer");
         } else {
           router.push("/dashboard");

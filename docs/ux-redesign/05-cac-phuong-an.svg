@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 1000" font-family="Be Vietnam Pro, Segoe UI, Arial, sans-serif">
+  <rect width="1280" height="1000" fill="#F8FAFC"/>
+  <text x="40" y="48" font-size="24" font-weight="700" fill="#0F172A">4 cách tổ chức workspace</text>
+  <text x="40" y="74" font-size="14" fill="#64748B">A tổ chức theo giai đoạn. B, C giữ tư duy theo loại dữ liệu. D là trang "việc cần làm", ghép được với A.</text>
+
+  <!-- A -->
+  <rect x="40" y="96" width="590" height="430" rx="14" fill="#fff" stroke="#2563EB" stroke-width="2"/>
+  <text x="64" y="130" font-size="17" font-weight="700" fill="#0F172A">A. Hành trình → chi tiết giai đoạn</text>
+  <rect x="512" y="114" width="96" height="24" rx="12" fill="#2563EB"/><text x="560" y="131" font-size="12" text-anchor="middle" fill="#fff" font-weight="700">Đề xuất</text>
+  <rect x="64" y="150" width="110" height="200" rx="6" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <g font-size="11" fill="#334155"><text x="74" y="172">Tổng quan</text><rect x="68" y="180" width="102" height="20" rx="4" fill="#EFF6FF"/><text x="74" y="194" fill="#2563EB" font-weight="700">Hành trình</text><text x="74" y="216">Lượt &amp; thanh toán</text><text x="74" y="236">Lịch sử</text><text x="74" y="256">Cài đặt</text></g>
+  <g>
+    <rect x="186" y="150" width="96" height="70" rx="6" fill="#fff" stroke="#E2E8F0"/><text x="194" y="170" font-size="11" fill="#0F172A" font-weight="700">Ý tưởng</text><text x="194" y="188" font-size="10" fill="#16A34A">Có kết quả</text>
+    <rect x="290" y="150" width="96" height="70" rx="6" fill="#fff" stroke="#2563EB"/><text x="298" y="170" font-size="11" fill="#0F172A" font-weight="700">Thị trường</text><text x="298" y="188" font-size="10" fill="#EA580C">Đang soạn</text>
+    <rect x="394" y="150" width="96" height="70" rx="6" fill="#F8FAFC" stroke="#E2E8F0"/><text x="402" y="170" font-size="11" fill="#94A3B8" font-weight="700">Sản phẩm</text>
+    <rect x="186" y="230" width="304" height="20" rx="4" fill="#F8FAFC" stroke="#E2E8F0"/><text x="194" y="244" font-size="10" fill="#64748B">Dịch vụ thêm (danh sách)…</text>
+    <text x="500" y="200" font-size="18" fill="#2563EB">→</text>
+    <rect x="522" y="150" width="86" height="200" rx="6" fill="#fff" stroke="#E2E8F0"/>
+    <text x="530" y="168" font-size="10" fill="#0F172A" font-weight="700">Thị trường</text>
+    <text x="530" y="186" font-size="9" fill="#2563EB">Soạn·Nộp·Kết quả</text>
+    <rect x="530" y="196" width="70" height="140" rx="4" fill="#F8FAFC"/>
+  </g>
+  <g font-size="13">
+    <text x="64" y="384" fill="#16A34A" font-weight="700">+</text><text x="82" y="384" fill="#334155">Khớp cách sinh viên làm: xong giai đoạn này mới sang giai đoạn kia</text>
+    <text x="64" y="408" fill="#16A34A" font-weight="700">+</text><text x="82" y="408" fill="#334155">Sidebar cố định, thêm 20 dịch vụ vẫn gọn</text>
+    <text x="64" y="432" fill="#16A34A" font-weight="700">+</text><text x="82" y="432" fill="#334155">Mọi thứ của 1 giai đoạn ở 1 chỗ, không nhảy tab</text>
+    <text x="64" y="456" fill="#DC2626" font-weight="700">−</text><text x="82" y="456" fill="#334155">Thêm 1 cú bấm (Hành trình → giai đoạn)</text>
+    <text x="64" y="480" fill="#DC2626" font-weight="700">−</text><text x="82" y="480" fill="#334155">Xem tất cả file / báo cáo của dự án cùng lúc khó hơn</text>
+    <text x="64" y="508" fill="#64748B" font-size="12">Breaking: lớn (bỏ tab guided/report/documents, đổi trạng thái theo giai đoạn)</text>
+  </g>
+
+  <!-- B -->
+  <rect x="650" y="96" width="590" height="430" rx="14" fill="#fff" stroke="#E2E8F0"/>
+  <text x="674" y="130" font-size="17" font-weight="700" fill="#0F172A">B. Loại dữ liệu + bộ chọn giai đoạn</text>
+  <rect x="674" y="150" width="542" height="30" rx="6" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <rect x="682" y="155" width="170" height="20" rx="4" fill="#fff" stroke="#2563EB"/><text x="690" y="169" font-size="11" fill="#2563EB" font-weight="700">Giai đoạn: Thị trường ▾</text>
+  <text x="1206" y="170" font-size="11" text-anchor="end" fill="#64748B">Còn 3 lượt · Chấm bài</text>
+  <rect x="674" y="188" width="110" height="162" rx="6" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <g font-size="11" fill="#334155"><text x="684" y="210">Tổng quan</text><rect x="678" y="218" width="102" height="20" rx="4" fill="#EFF6FF"/><text x="684" y="232" fill="#2563EB" font-weight="700">Soạn thảo</text><text x="684" y="254">Tài liệu</text><text x="684" y="274">Kết quả chấm</text><text x="684" y="294">Lượt &amp; thanh toán</text></g>
+  <rect x="796" y="188" width="420" height="162" rx="6" fill="#fff" stroke="#E2E8F0"/><text x="810" y="210" font-size="11" fill="#64748B">Nội dung lọc theo giai đoạn đang chọn</text>
+  <g font-size="13">
+    <text x="674" y="384" fill="#16A34A" font-weight="700">+</text><text x="692" y="384" fill="#334155">Gần cấu trúc tab hiện tại, ít đổi thói quen</text>
+    <text x="674" y="408" fill="#16A34A" font-weight="700">+</text><text x="692" y="408" fill="#334155">Sidebar cố định, giống bộ chọn workspace/branch</text>
+    <text x="674" y="432" fill="#DC2626" font-weight="700">−</text><text x="692" y="432" fill="#334155">Ngữ cảnh "đang ở giai đoạn nào" dễ bị quên → nộp nhầm</text>
+    <text x="674" y="456" fill="#DC2626" font-weight="700">−</text><text x="692" y="456" fill="#334155">Dropdown ẩn mất giai đoạn sắp ra mắt và dịch vụ thêm</text>
+    <text x="674" y="480" fill="#DC2626" font-weight="700">−</text><text x="692" y="480" fill="#334155">Người mới không thấy toàn cảnh hành trình</text>
+    <text x="674" y="508" fill="#64748B" font-size="12">Breaking: vừa (giữ tab, thêm state giai đoạn toàn cục)</text>
+  </g>
+
+  <!-- C -->
+  <rect x="40" y="546" width="590" height="430" rx="14" fill="#fff" stroke="#E2E8F0"/>
+  <text x="64" y="580" font-size="17" font-weight="700" fill="#0F172A">C. Loại dữ liệu thuần + chip lọc</text>
+  <rect x="64" y="600" width="110" height="200" rx="6" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <g font-size="11" fill="#334155"><text x="74" y="622">Tổng quan</text><text x="74" y="642">Soạn thảo</text><rect x="68" y="650" width="102" height="20" rx="4" fill="#EFF6FF"/><text x="74" y="664" fill="#2563EB" font-weight="700">Tài liệu</text><text x="74" y="686">Báo cáo</text><text x="74" y="706">Lượt</text></g>
+  <rect x="186" y="600" width="420" height="200" rx="6" fill="#fff" stroke="#E2E8F0"/>
+  <g font-size="10"><rect x="196" y="610" width="44" height="18" rx="9" fill="#0F172A"/><text x="218" y="623" text-anchor="middle" fill="#fff">Tất cả</text><rect x="246" y="610" width="54" height="18" rx="9" fill="#fff" stroke="#E2E8F0"/><text x="273" y="623" text-anchor="middle" fill="#334155">Ý tưởng</text><rect x="306" y="610" width="64" height="18" rx="9" fill="#fff" stroke="#E2E8F0"/><text x="338" y="623" text-anchor="middle" fill="#334155">Thị trường</text></g>
+  <g fill="#F1F5F9"><rect x="196" y="640" width="400" height="22" rx="4"/><rect x="196" y="668" width="400" height="22" rx="4"/><rect x="196" y="696" width="400" height="22" rx="4"/></g>
+  <g font-size="13">
+    <text x="64" y="834" fill="#16A34A" font-weight="700">+</text><text x="82" y="834" fill="#334155">Ít breaking nhất; xem chéo mọi file/báo cáo dễ</text>
+    <text x="64" y="858" fill="#DC2626" font-weight="700">−</text><text x="82" y="858" fill="#334155">Làm 1 việc phải nhảy 3 tab (soạn → nộp → xem kết quả)</text>
+    <text x="64" y="882" fill="#DC2626" font-weight="700">−</text><text x="82" y="882" fill="#334155">Nút "Chấm bài" và số lượt không có nhà tự nhiên → lại rải rác</text>
+    <text x="64" y="906" fill="#DC2626" font-weight="700">−</text><text x="82" y="906" fill="#334155">Đây chính là gốc của tình trạng hiện tại</text>
+    <text x="64" y="940" fill="#64748B" font-size="12">Breaking: nhỏ</text>
+  </g>
+
+  <!-- D -->
+  <rect x="650" y="546" width="590" height="430" rx="14" fill="#fff" stroke="#E2E8F0"/>
+  <text x="674" y="580" font-size="17" font-weight="700" fill="#0F172A">D. "Việc tiếp theo" (hub hành động)</text>
+  <rect x="674" y="600" width="542" height="200" rx="6" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <g font-size="12">
+    <rect x="688" y="614" width="514" height="52" rx="6" fill="#fff" stroke="#2563EB"/>
+    <text x="702" y="636" fill="#0F172A" font-weight="700">Thị trường · trả lời 3 câu điều kiện đậu</text><text x="702" y="655" fill="#64748B">Thiếu các câu này bài sẽ trượt</text><text x="1188" y="645" text-anchor="end" fill="#2563EB">Làm ngay ›</text>
+    <rect x="688" y="674" width="514" height="52" rx="6" fill="#fff" stroke="#E2E8F0"/>
+    <text x="702" y="696" fill="#0F172A" font-weight="700">Ý tưởng · có kết quả chấm mới</text><text x="702" y="715" fill="#64748B">5.8/10 · 7 việc cần sửa</text><text x="1188" y="705" text-anchor="end" fill="#2563EB">Xem ›</text>
+    <rect x="688" y="734" width="514" height="52" rx="6" fill="#fff" stroke="#E2E8F0"/>
+    <text x="702" y="756" fill="#0F172A" font-weight="700">Thị trường · tải file khảo sát lên</text><text x="702" y="775" fill="#64748B">AI chấm sẽ đọc file này</text><text x="1188" y="765" text-anchor="end" fill="#2563EB">Tải lên ›</text>
+  </g>
+  <g font-size="13">
+    <text x="674" y="834" fill="#16A34A" font-weight="700">+</text><text x="692" y="834" fill="#334155">Người mới biết ngay phải làm gì, ít đọc nhất</text>
+    <text x="674" y="858" fill="#16A34A" font-weight="700">+</text><text x="692" y="858" fill="#334155">Thay StatusGuidanceCard dài theo stage</text>
+    <text x="674" y="882" fill="#DC2626" font-weight="700">−</text><text x="692" y="882" fill="#334155">Không phải nơi làm việc, vẫn cần A/B/C phía sau</text>
+    <text x="674" y="906" fill="#DC2626" font-weight="700">−</text><text x="692" y="906" fill="#334155">Cần luật sinh gợi ý cho từng giai đoạn</text>
+    <text x="674" y="940" fill="#64748B" font-size="12">Dùng làm trang Tổng quan của A</text>
+  </g>
+</svg>

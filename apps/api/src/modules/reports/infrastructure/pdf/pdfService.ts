@@ -5,7 +5,7 @@ import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
 import { marked } from "marked";
-import { buildStandardReportPdfFilename } from "@repo/validation";
+import { buildStandardReportPdfFilename, getCp2ScoreRows, isCp2ReportType } from "@repo/validation";
 import { localizeAndCleanMarkdown } from "./mdNormalizer.js";
 import { markdownToTypst } from "./mdToTypst.js";
 import { resolveTypstBinary } from "./typstRunner.js";
@@ -68,13 +68,8 @@ export interface GeneratePdfOptions {
     createdAt: string;
     overallScore: number;
     verdict: string;
-    categoryScores: {
-      problemClarity: number;
-      marketViability: number;
-      businessModel: number;
-      competitiveMoat: number;
-      executionFeasibility: number;
-    };
+    /** CP1: the five legacy keys. CP2: group keys of report.json (see getCp2ScoreRows). */
+    categoryScores: Record<string, number>;
     reportType?: string;
   };
   storageDir: string;
@@ -251,7 +246,9 @@ export async function generateReportPdfBuffer(opts: GeneratePdfOptions): Promise
     }
   }
 
-  const cleanMd = localizeAndCleanMarkdown(markdownToUse);
+  // CP2 reports are free-form audit markdown: the 13-item CP1 normalizer would rewrite their headings.
+  const cp2ReportType = isCp2ReportType(opts.meta.reportType) ? opts.meta.reportType : null;
+  const cleanMd = cp2ReportType ? markdownToUse : localizeAndCleanMarkdown(markdownToUse);
   const bodyTypst = markdownToTypst(cleanMd);
   const filledTypst = templateRaw.replace("{{BODY_CONTENT}}", bodyTypst);
 
@@ -270,8 +267,10 @@ export async function generateReportPdfBuffer(opts: GeneratePdfOptions): Promise
     agent_name: agent,
     created_at: formatReportDateTime(opts.meta.createdAt),
     overall_score: opts.meta.overallScore,
-    verdict: formatVerdictDisplay(opts.meta.verdict, opts.meta.overallScore),
+    // CP2 verdict is computed in code and stored in report.json; show it verbatim.
+    verdict: cp2ReportType ? opts.meta.verdict : formatVerdictDisplay(opts.meta.verdict, opts.meta.overallScore),
     scores: opts.meta.categoryScores,
+    ...(cp2ReportType ? { score_rows: getCp2ScoreRows(cp2ReportType, opts.meta.categoryScores) } : {}),
   }), "utf-8");
 
   writeFileSync(tempTyp, filledTypst, "utf-8");

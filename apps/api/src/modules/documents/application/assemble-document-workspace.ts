@@ -341,14 +341,15 @@ function parseLinkedVersionNo(unitCode: string): number | null {
   const match = /^a\d+-v(\d+)$/.exec(unitCode);
   return match ? Number.parseInt(match[1], 10) : null;
 }
-
 function buildSupportFlowDocuments(
   units: PrismaCaseWithRelations['lifecycle_units'],
   records: PrismaCaseWithRelations['document_records'],
   docTypes?: Array<{ code: string; label: string }>,
 ): DocumentUnit[] {
-  const versionUnits = units.filter((u) => u.unit_type === 'version');
-  const supportDocTypes = ['intake_document', 'revision_document', 'revision_attachment', 'supporter_output', 'supporter_attachment', 'evidence', 'generic'];
+  // Stage uploads (`stage_upload` units from the files tab) are student
+  // submissions too — without this the table says 0 while the count says N.
+  const versionUnits = units.filter((u) => u.unit_type === 'version' || u.unit_type === 'stage_upload');
+  const supportDocTypes = ['intake_document', 'revision_document', 'revision_attachment', 'supporter_output', 'supporter_attachment', 'evidence', 'generic', 'pitch_deck'];
 
   return versionUnits
     .map((unit): DocumentUnit | null => {

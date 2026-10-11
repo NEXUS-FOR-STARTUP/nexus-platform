@@ -116,7 +116,9 @@ export async function cancelCaseAiAuditHandler(c: Context) {
 
 /**
  * POST /api/cases/:id/ai-retry — Retry OMP Audit for case
- * Body: { submission_type: 'initial' | 'resubmit' | 'logic_check', lifecycle_unit_id?: string }
+ * Body: { submission_type?: 'initial' | 'resubmit' | 'logic_check', lifecycle_unit_id?: string,
+ *         checkpoint?: 'CP1' | 'CP2', scope?: 'questionnaire' | 'full' (CP2 only, required there),
+ *         change_summary?: string (CP2 resubmit) }
  */
 export async function retryCaseAiAuditHandler(c: Context) {
   const caseId = c.req.param("id") || "";
@@ -130,9 +132,13 @@ export async function retryCaseAiAuditHandler(c: Context) {
     const submissionType = body?.submission_type;
     const lifecycleUnitId = body?.lifecycle_unit_id;
 
+    // checkpoint/scope/change_summary are validated by TriggerOptsSchema; absent checkpoint = CP1.
     await triggerOmpAuditForCase(caseId, {
       submission_type: submissionType,
       lifecycle_unit_id: lifecycleUnitId,
+      checkpoint: body?.checkpoint,
+      scope: body?.scope,
+      change_summary: body?.change_summary,
     });
 
     return c.json({ success: true, message: "Đã kích hoạt thẩm định Nexus AI Engine" });

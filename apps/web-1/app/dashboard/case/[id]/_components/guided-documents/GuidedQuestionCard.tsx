@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
-import { Button, Textarea } from "@mantine/core";
-import { Save } from "lucide-react";
+import React, { type ReactNode } from "react";
+import { Anchor, Button, Textarea } from "@mantine/core";
+import { ExternalLink } from "lucide-react";
 import { QUESTION_REGISTRY, type Question } from "@repo/validation";
 
 interface GuidedQuestionCardProps {
@@ -14,6 +14,8 @@ interface GuidedQuestionCardProps {
   onChange: (value: string) => void;
   onSave: (questionId: string, value: string) => Promise<void>;
   isSaving: boolean;
+  /** Extra content rendered between the answer box and the save button. */
+  children?: ReactNode;
 }
 
 export default function GuidedQuestionCard({
@@ -24,6 +26,7 @@ export default function GuidedQuestionCard({
   onSave,
   isSaving,
   questionNumber,
+  children,
 }: GuidedQuestionCardProps) {
   const question = (
     QUESTION_REGISTRY as Record<string, Question | undefined>
@@ -34,7 +37,7 @@ export default function GuidedQuestionCard({
   };
 
   return (
-    <div className="flex-1 min-w-0 w-full bg-surface-app border border-border-app rounded-xl p-4 sm:p-5 md:p-6 flex flex-col gap-5 md:gap-6">
+    <div className="flex-1 min-w-0 w-full bg-surface-app border border-border-app rounded-xl p-4 sm:p-5 flex flex-col gap-4">
       {/* Header & Question */}
       <div className="flex flex-col gap-2">
         <span className="text-xs font-semibold uppercase tracking-wider text-brand">
@@ -47,7 +50,7 @@ export default function GuidedQuestionCard({
 
       {/* Explanation & Guidance */}
       {question?.explanation && (
-        <blockquote className="m-0 bg-warning-soft border-l-4 border-warning rounded-r-lg px-4 py-3 text-sm text-text-app flex flex-col gap-2">
+        <blockquote className="m-0 bg-warning-soft border-l-4 border-warning rounded-r-lg px-4 py-4 text-sm text-text-app flex flex-col gap-2">
           <p className="leading-relaxed whitespace-pre-line">{question.explanation}</p>
           {question.suggested_actions && question.suggested_actions.length > 0 && (
             <div className="flex flex-col gap-1 pt-1">
@@ -55,6 +58,27 @@ export default function GuidedQuestionCard({
               <ul className="list-disc list-inside space-y-1 text-xs">
                 {question.suggested_actions.map((act, i) => (
                   <li key={i}>{act}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {question.further_reading && question.further_reading.length > 0 && (
+            <div className="flex flex-col gap-1 pt-1">
+              <p className="text-xs font-semibold">Đọc thêm:</p>
+              <ul className="list-disc list-inside space-y-1 text-xs">
+                {question.further_reading.map((link) => (
+                  <li key={link.url}>
+                    <Anchor
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      size="xs"
+                      className="inline-flex items-center gap-1"
+                    >
+                      {link.title}
+                      <ExternalLink className="w-3 h-3" aria-hidden />
+                    </Anchor>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -76,9 +100,10 @@ export default function GuidedQuestionCard({
         }}
       />
 
+      {children}
+
       {/* Actions */}
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-border-app">
-        {isDirty && <span className="text-xs text-amber-600 font-medium">Chưa lưu thay đổi</span>}
+      <div className="flex items-center justify-end pt-4 border-t border-border-app">
         <Button
           variant="filled"
           color="blue"
@@ -86,9 +111,8 @@ export default function GuidedQuestionCard({
           loading={isSaving}
           disabled={!isDirty}
           onClick={handleSave}
-          leftSection={<Save className="w-4 h-4" />}
         >
-          Lưu câu này
+          Lưu
         </Button>
       </div>
     </div>

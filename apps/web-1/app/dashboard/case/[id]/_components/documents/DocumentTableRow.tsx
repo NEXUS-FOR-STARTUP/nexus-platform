@@ -127,7 +127,7 @@ export default function DocumentTableRow({ row, activeTab }: DocumentTableRowPro
               href={row.url}
               target="_blank"
               rel="noopener noreferrer"
-              size="compact-sm"
+              size="sm"
               variant="subtle"
               color="gray"
               className="cursor-pointer shrink-0"

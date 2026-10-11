@@ -17,6 +17,7 @@ interface DocumentWorkspaceHeaderProps {
   checkpoints: DocumentCheckpoint[];
   selectedCheckpointId: string;
   onSelectCheckpoint: (id: string) => void;
+  hideCheckpointSelector?: boolean;
 }
 
 export default function DocumentWorkspaceHeader({
@@ -32,6 +33,7 @@ export default function DocumentWorkspaceHeader({
   checkpoints,
   selectedCheckpointId,
   onSelectCheckpoint,
+  hideCheckpointSelector = false,
 }: DocumentWorkspaceHeaderProps) {
   return (
     <div className="px-3 sm:px-4 py-2.5 sm:py-3 border-b border-border-app flex items-center justify-between gap-2 bg-surface-app">
@@ -118,7 +120,7 @@ export default function DocumentWorkspaceHeader({
           <Select
             value={filterRole}
             onChange={(val) => setFilterRole((val as FilterRole) || "all")}
-            size="xs"
+            size="sm"
             radius="md"
             className="w-[125px] sm:w-[170px]"
             data={[
@@ -129,11 +131,11 @@ export default function DocumentWorkspaceHeader({
           />
         )}
 
-        {checkpoints.length > 1 && (
+        {!hideCheckpointSelector && checkpoints.length > 1 && (
           <Select
             value={selectedCheckpointId}
             onChange={(val) => val && onSelectCheckpoint(val)}
-            size="xs"
+            size="sm"
             radius="md"
             className="w-[110px] sm:w-[150px]"
             data={checkpoints.map((cp) => ({

@@ -27,8 +27,9 @@ export default function UnpaidAlertBanner({ creditBalance, onBuyCredits }: Unpai
       <Button
         onClick={onBuyCredits}
         color="brand"
+        size="sm"
         leftSection={<Coins className="w-4 h-4" />}
-        className="font-body font-semibold text-xs h-9 px-4 shrink-0 cursor-pointer"
+        className="font-body font-semibold shrink-0 cursor-pointer"
       >
         Mua lượt đánh giá ngay
       </Button>

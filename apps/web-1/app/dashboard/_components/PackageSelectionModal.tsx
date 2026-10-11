@@ -1,7 +1,6 @@
 "use client";
 
 import { Modal, Card, Text, Button, Stack, Badge, ThemeIcon, List, SimpleGrid } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { PACKAGE_KEYS } from "@/lib/pricing";
@@ -16,15 +15,6 @@ export function PackageSelectionModal({ opened, onClose, onSelectPackage }: Pack
   const router = useRouter();
 
   const handleSelect = (packageId: string) => {
-    if (packageId === PACKAGE_KEYS.SUPPORTER_AUDIT) {
-      notifications.show({
-        title: "Tính năng đang được phát triển",
-        message: "Gói Premium Mentor Audit hiện đang được hoàn thiện. Vui lòng chọn gói Basic AI Audit (79.000đ) để được hỗ trợ tức thì!",
-        color: "blue",
-      });
-      return;
-    }
-
     if (onSelectPackage) {
       onSelectPackage(packageId);
     } else {

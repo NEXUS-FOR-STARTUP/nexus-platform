@@ -16,9 +16,7 @@ export default function AuthPage() {
       const role = (session.user as { role?: string } | undefined)?.role;
       if (role === "admin") {
         router.push("/admin");
-      } else if (role === "supporter") {
-        router.push("/supporter");
-      } else if (role === "writer") {
+            } else if (role === "writer") {
         router.push("/writer");
       } else {
         router.push("/dashboard");

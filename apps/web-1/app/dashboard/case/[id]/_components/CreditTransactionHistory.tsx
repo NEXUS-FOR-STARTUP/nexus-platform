@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Table, Badge, Text, Select, Loader } from "@mantine/core";
+ import { Table, Badge, Text, Select, Loader } from "@mantine/core";
 import {
   CreditTransactionHistoryProps,
   DateFilter,
@@ -177,7 +177,6 @@ export default function CreditTransactionHistory({
 
   return (
     <div className="bg-surface-app border border-border-app rounded-xl overflow-hidden">
-      {/* Modern Filter Toolbar */}
       <div className="px-3.5 sm:px-4 py-3 border-b border-border-app flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3 bg-surface-app">
         {/* Quick Filter Pill Tabs */}
         <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
@@ -218,7 +217,7 @@ export default function CreditTransactionHistory({
           <Select
             value={dateFilter}
             onChange={(val) => setDateFilter((val as DateFilter) || "all")}
-            size="xs"
+            size="sm"
             radius="md"
             className="w-full sm:w-[180px]"
             data={[

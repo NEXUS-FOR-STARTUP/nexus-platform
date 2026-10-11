@@ -41,7 +41,9 @@ export function useFulfillCreditAfterDeposit(deposit?: DepositDetail) {
           orderIdempotencyKey: intent.orderIdempotencyKey,
           caseId: intent.caseId,
           quantity: intent.quantity,
-          serviceType: intent.serviceType ?? "credit_audit",
+          packageId: intent.packageId,
+          manualTrigger: true,
+          discountCode: intent.discountCode,
         });
 
         clearBuyCreditAfterDepositIntent(depositId);

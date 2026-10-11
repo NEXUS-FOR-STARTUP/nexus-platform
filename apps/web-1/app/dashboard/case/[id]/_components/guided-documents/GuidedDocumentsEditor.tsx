@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Button, Loader } from "@mantine/core";
+import { Button, Loader, Modal, Text } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 // UploadCloud tạm ẩn cùng nút nhập file
 import { Download, ChevronLeft, RefreshCw } from "lucide-react";
 import type { TemplateKey } from "@repo/validation";
@@ -9,18 +10,22 @@ import { useGuidedDocuments } from "../../hooks/useGuidedDocuments";
 import { useGuidedDrafts } from "../../hooks/useGuidedDrafts";
 import GuidedTOC from "./GuidedTOC";
 import GuidedQuestionCard from "./GuidedQuestionCard";
+import Cp2AuditMenu from "./Cp2AuditMenu";
+import Cp2SelfCheck, { CP2_SELF_CHECK_BY_QUESTION } from "./Cp2SelfCheck";
 import GuidedImportModal from "./GuidedImportModal";
 
 interface GuidedDocumentsEditorProps {
   caseId: string;
   templateKey: TemplateKey;
   onBack: () => void;
+  hideBackButton?: boolean;
 }
 
 export default function GuidedDocumentsEditor({
   caseId,
   templateKey,
   onBack,
+  hideBackButton = false,
 }: GuidedDocumentsEditorProps) {
   const {
     template,
@@ -40,6 +45,27 @@ export default function GuidedDocumentsEditor({
     template.phases[0]?.questions[0]?.question_id || ""
   );
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [confirmBackOpen, { open: openConfirmBack, close: closeConfirmBack }] = useDisclosure(false);
+  const { drafts, setDraft, clearDraft, clearDrafts } = useGuidedDrafts(caseId);
+
+  const handleBack = () => {
+    if (isSaving) return;
+    if (templateDraftIds.length > 0) openConfirmBack();
+    else onBack();
+  };
+
+  const handleSaveBack = async () => {
+    await saveAnswers(templateDraftIds.map((question_id) => ({ question_id, answer_text: drafts[question_id] })));
+    clearDrafts(templateDraftIds);
+    closeConfirmBack();
+    onBack();
+  };
+
+  const handleDiscardBack = () => {
+    clearDrafts(templateDraftIds);
+    closeConfirmBack();
+    onBack();
+  };
 
   // Flat list of all questions in current template
   const flatQuestions = useMemo(() => {
@@ -64,8 +90,7 @@ export default function GuidedDocumentsEditor({
     (q) => q.question_id === activeQuestionId
   );
   const currentItem = flatQuestions[currentIndex] || flatQuestions[0];
-
-  const { drafts, setDraft, clearDraft } = useGuidedDrafts(caseId);
+  const templateDraftIds = flatQuestions.map((q) => q.question_id).filter((id) => id in drafts);
 
   const handleChange = (qId: string, text: string) => {
     if (text === (answersMap[qId] ?? "")) clearDraft(qId);
@@ -93,18 +118,37 @@ export default function GuidedDocumentsEditor({
   }
 
   return (
-    <div className="flex flex-col gap-5 w-full">
-      <div className="flex flex-col gap-2">
-        <div>
-          <Button
-            variant="subtle"
-            size="sm"
-            onClick={onBack}
-            leftSection={<ChevronLeft className="w-4 h-4" />}
-          >
-            Tất cả biểu mẫu
+    <div className="flex flex-col gap-4 w-full">
+      <Modal
+        opened={confirmBackOpen}
+        onClose={closeConfirmBack}
+        title="Chưa lưu thay đổi"
+        centered
+        size="sm"
+      >
+        <Text size="sm">Bạn có thay đổi chưa lưu. Muốn lưu trước khi quay về?</Text>
+        <div className="flex items-center justify-end gap-2 pt-4">
+          <Button variant="default" size="sm" disabled={isSaving} onClick={handleDiscardBack}>
+            Bỏ thay đổi
+          </Button>
+          <Button size="sm" loading={isSaving} onClick={handleSaveBack}>
+            Lưu và quay về
           </Button>
         </div>
+      </Modal>
+      <div className="flex flex-col gap-2">
+        {!hideBackButton && (
+          <div>
+            <Button
+              variant="subtle"
+              size="sm"
+              onClick={handleBack}
+              leftSection={<ChevronLeft className="w-4 h-4" />}
+            >
+              Tất cả biểu mẫu
+            </Button>
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex flex-col gap-1">
@@ -124,6 +168,10 @@ export default function GuidedDocumentsEditor({
               Nhập file
             </Button>
             */}
+
+            {templateKey === "cp2" && (
+              <Cp2AuditMenu caseId={caseId} template={template} answersMap={answersMap} />
+            )}
 
             <Button
               variant="default"
@@ -150,13 +198,14 @@ export default function GuidedDocumentsEditor({
       </div>
 
       {/* Main Content: TOC on Left, Question Editor on Right */}
-      <div className="flex flex-col md:flex-row items-start gap-5 w-full">
+      <div className="flex flex-col md:flex-row items-start gap-4 w-full">
         <GuidedTOC
           template={template}
           answersMap={answersMap}
           activeQuestionId={activeQuestionId || currentItem?.question_id || ""}
           onSelectQuestion={(qId) => setActiveQuestionId(qId)}
           isQuestionUnlocked={isQuestionUnlocked}
+          criticalQuestionIds={templateKey === "cp2" ? Object.keys(CP2_SELF_CHECK_BY_QUESTION) : undefined}
         />
 
         {currentItem && (
@@ -169,7 +218,16 @@ export default function GuidedDocumentsEditor({
             onChange={(text) => handleChange(currentItem.question_id, text)}
             onSave={handleSaveQuestion}
             isSaving={isSaving}
-          />
+          >
+            {templateKey === "cp2" && (
+              <Cp2SelfCheck
+                questionId={currentItem.question_id}
+                answersMap={answersMap}
+                isSaving={isSaving}
+                onSaveAnswers={saveAnswers}
+              />
+            )}
+          </GuidedQuestionCard>
         )}
       </div>
 

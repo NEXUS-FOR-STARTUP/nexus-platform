@@ -46,7 +46,7 @@ export default function FinanceTable({
               <Table.Th key={period} w={CELL_WIDTH}>
                 <div className="flex items-center gap-1">
                   <TextInput
-                    size="xs"
+                    size="sm"
                     value={name}
                     aria-label={`Tên cột ${period + 1}`}
                     onChange={(e) => onPeriodRename(period, e.currentTarget.value)}
@@ -68,7 +68,7 @@ export default function FinanceTable({
             <Table.Th w={CELL_WIDTH}>
               <Button
                 variant="light"
-                size="xs"
+                size="sm"
                 leftSection={<Plus className="w-3.5 h-3.5" />}
                 disabled={periods.length >= FINANCE_MAX_PERIODS}
                 onClick={onPeriodAdd}
@@ -104,7 +104,7 @@ export default function FinanceTable({
                   return (
                     <Table.Td key={period}>
                       <TextInput
-                        size="xs"
+                        size="sm"
                         inputMode="decimal"
                         value={texts[row.key]?.[period] ?? ""}
                         error={

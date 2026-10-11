@@ -11,6 +11,11 @@ import { deleteAdminDocumentUseCase } from "../application/delete-admin-document
 import { listAdminPackagesUseCase } from "../application/list-admin-packages.usecase.js";
 import { updatePackagePriceUseCase } from "../application/update-package-price.usecase.js";
 import { updatePackageStatusUseCase } from "../application/update-package-status.usecase.js";
+import {
+  listDiscountCodesUseCase,
+  createDiscountCodeUseCase,
+  updateDiscountCodeUseCase,
+} from "../application/discount-codes.usecase.js";
 import { getAdminStatsUseCase } from "../application/get-admin-stats.usecase.js";
 import { listServiceTypesUseCase, createServiceTypeUseCase, updateServiceTypeUseCase } from "../../packages/application/service-type.usecase.js";
 import { setCurrentPricingUseCase, getPricingHistoryUseCase } from "../../packages/application/service-pricing.usecase.js";
@@ -467,3 +472,52 @@ export async function exportAdminDataHandler(c: Context) {
   }
 }
 
+
+// ---------------------------------------------------------------------------
+// /api/admin/discount-codes — list / create / update (no delete: keeps history)
+// ---------------------------------------------------------------------------
+
+export async function listDiscountCodesHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  try {
+    return c.json({ ok: true, data: await listDiscountCodesUseCase() });
+  } catch (error: unknown) {
+    return handleError(c, error);
+  }
+}
+
+export async function createDiscountCodeHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  try {
+    const result = await createDiscountCodeUseCase(authResult.session.user.id, await readJsonBody(c));
+    return c.json({ ok: true, data: result }, 201);
+  } catch (error: unknown) {
+    return handleError(c, error);
+  }
+}
+
+export async function updateDiscountCodeHandler(c: Context) {
+  const authResult = await getAdminSession(c);
+  if (!authResult.ok) {
+    return c.json({ code: "FORBIDDEN", message: authResult.error }, authResult.status);
+  }
+
+  try {
+    const result = await updateDiscountCodeUseCase(
+      authResult.session.user.id,
+      c.req.param("id") || "",
+      await readJsonBody(c),
+    );
+    return c.json({ ok: true, data: result });
+  } catch (error: unknown) {
+    return handleError(c, error);
+  }
+}

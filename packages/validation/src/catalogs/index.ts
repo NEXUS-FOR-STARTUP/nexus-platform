@@ -13,6 +13,7 @@ export type { QuestionId } from "./questions.js";
 export { cp1, cp2, cp3, cp4, validateCatalog };
 export * from "./sync-rules.js";
 export * from "./file-templates.js";
+export * from "./cp2-readiness.js";
 
 export const CATALOG_QUESTIONS = QUESTION_REGISTRY;
 export const VALID_QUESTION_IDS = Object.keys(QUESTION_REGISTRY) as Array<keyof typeof QUESTION_REGISTRY>;
@@ -29,7 +30,7 @@ export function isTemplateKey(value: string | null | undefined): value is Templa
 }
 
 // Single monotonic string stamped on every ProjectAnswer write.
-export const CATALOG_VERSION = "2026-10-10.2";
+export const CATALOG_VERSION = "2026-10-10.3";
 
 // Fail fast at module load — a catalog bug must surface in CI/tests, not at runtime.
 for (const [key, template] of Object.entries(TEMPLATE_REGISTRY)) {
@@ -38,3 +39,7 @@ for (const [key, template] of Object.entries(TEMPLATE_REGISTRY)) {
   }
   validateCatalog(template);
 }
+export * from "./cp2-report-display.js";
+export * from "./cp2-audit-checks.js";
+export * from "./cp2-audit-report-schema.js";
+export * from "./cp2-audit-score.js";

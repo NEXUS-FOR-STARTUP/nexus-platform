@@ -40,7 +40,6 @@ export function useGuidedDrafts(caseId: string) {
     },
     [caseId],
   );
-
   const clearDraft = useCallback(
     (questionId: string) => {
       setDrafts((prev) => {
@@ -53,6 +52,22 @@ export function useGuidedDrafts(caseId: string) {
     },
     [caseId],
   );
+  const clearDrafts = useCallback((questionIds: readonly string[]) => {
+    const ids = new Set(questionIds);
+    setDrafts((prev) => {
+      const rest = { ...prev };
+      let changed = false;
+      for (const id of ids) {
+        if (id in rest) {
+          delete rest[id];
+          changed = true;
+        }
+      }
+      if (!changed) return prev;
+      writeDrafts(caseId, rest);
+      return rest;
+    });
+  }, [caseId]);
 
-  return { drafts, setDraft, clearDraft };
+  return { drafts, setDraft, clearDraft, clearDrafts };
 }

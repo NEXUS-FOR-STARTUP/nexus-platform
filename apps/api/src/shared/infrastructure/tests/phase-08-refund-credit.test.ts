@@ -214,7 +214,7 @@ test("phase-08 refund regression — refundRemainingCreditInTx hoàn đúng 79k 
   try {
     const mockTx = {
       creditLedger: {
-        aggregate: async () => ({ _sum: { amount: 2 } }),
+        groupBy: async () => [{ service_type_id: "st-cp1", _sum: { amount: 2 } }],
         findMany: async () => [
           {
             amount: 2,
@@ -235,6 +235,7 @@ test("phase-08 refund regression — refundRemainingCreditInTx hoàn đúng 79k 
       case: {
         findUnique: async () => ({ owner_auth_user_id: "user-123" }),
       },
+      serviceType: { findMany: async () => [{ id: "st-cp1", code: "cp1_audit" }] },
       walletTransaction: {
         findUnique: async () => null,
       },
@@ -268,7 +269,7 @@ test("phase-08 refund regression — refundCaseAllInTx không cộng trùng lock
     try {
       const mockTx = {
         creditLedger: {
-          aggregate: async () => ({ _sum: { amount: 2 } }),
+          groupBy: async () => [{ service_type_id: "st-cp1", _sum: { amount: 2 } }],
           findMany: async () => [
             {
               amount: 2,
@@ -283,6 +284,7 @@ test("phase-08 refund regression — refundCaseAllInTx không cộng trùng lock
           ],
           create: async (data: any) => data,
         },
+        serviceType: { findMany: async () => [{ id: "st-cp1", code: "cp1_audit" }] },
         walletTransaction: {
           findUnique: async () => null,
         },
@@ -309,7 +311,7 @@ test("phase-08 refund regression — refundCaseAllInTx không cộng trùng lock
     try {
       const mockTx = {
         creditLedger: {
-          aggregate: async () => ({ _sum: { amount: 1 } }),
+          groupBy: async () => [{ service_type_id: "st-cp1", _sum: { amount: 1 } }],
           findMany: async () => [
             {
               amount: 2,
@@ -324,6 +326,7 @@ test("phase-08 refund regression — refundCaseAllInTx không cộng trùng lock
           ],
           create: async (data: any) => data,
         },
+        serviceType: { findMany: async () => [{ id: "st-cp1", code: "cp1_audit" }] },
         walletTransaction: {
           findUnique: async () => null,
         },
@@ -349,7 +352,7 @@ test("phase-08 refund regression — refundCaseAllInTx không cộng trùng lock
     try {
       const mockTx = {
         creditLedger: {
-          aggregate: async () => ({ _sum: { amount: 4 } }),
+          groupBy: async () => [{ service_type_id: "st-cp1", _sum: { amount: 4 } }],
           findMany: async () => [
             {
               amount: 4,
@@ -364,6 +367,7 @@ test("phase-08 refund regression — refundCaseAllInTx không cộng trùng lock
           ],
           create: async (data: any) => data,
         },
+        serviceType: { findMany: async () => [{ id: "st-cp1", code: "cp1_audit" }] },
         walletTransaction: {
           findUnique: async () => null,
         },
@@ -389,10 +393,11 @@ test("phase-08 refund regression — refundCaseAllInTx không cộng trùng lock
     try {
       const mockTx = {
         creditLedger: {
-          aggregate: async () => ({ _sum: { amount: 0 } }),
+          groupBy: async () => [{ service_type_id: "st-cp1", _sum: { amount: 0 } }],
           findMany: async () => [],
           create: async (data: any) => data,
         },
+        serviceType: { findMany: async () => [{ id: "st-cp1", code: "cp1_audit" }] },
         walletTransaction: {
           findUnique: async () => null,
         },

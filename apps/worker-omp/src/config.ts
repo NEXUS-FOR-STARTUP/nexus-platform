@@ -64,8 +64,3 @@ export function syncAgentProviders(): void {
     // Silently ignore if read-only mount
   }
 }
-
-export const PROMPT_CONFIG: Record<"full" | "lite", readonly string[]> = {
-  full: ["triad_framework_v1_1.md", "input_clarification_gate_v4_1.md"],
-  lite: ["triad_framework_v1_1.md", "input_clarification_gate_lite_v1_1.md"],
-} as const;

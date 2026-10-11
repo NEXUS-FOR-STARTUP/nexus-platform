@@ -13,6 +13,8 @@ interface GuidedTOCProps {
   activeQuestionId: string;
   onSelectQuestion: (questionId: string) => void;
   isQuestionUnlocked: (phaseIndex: number, questionIndex: number) => boolean;
+  /** Questions whose absence can fail the rubric outright; flagged in the list. */
+  criticalQuestionIds?: readonly string[];
 }
 
 export default function GuidedTOC({
@@ -21,6 +23,7 @@ export default function GuidedTOC({
   activeQuestionId,
   onSelectQuestion,
   isQuestionUnlocked,
+  criticalQuestionIds,
 }: GuidedTOCProps) {
   const questionIds = template.phases.flatMap((p) => p.questions.map((q) => q.question_id));
   const answeredCount = questionIds.filter((id) => answersMap[id]?.trim()).length;
@@ -115,7 +118,18 @@ export default function GuidedTOC({
                       </span>
                     </div>
 
-                    {isActive && <ChevronRight className="w-3.5 h-3.5 shrink-0 text-white" />}
+                    {criticalQuestionIds?.includes(tq.question_id) ? (
+                      <span
+                        title="Mục quan trọng khi chấm điểm"
+                        className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+                          isActive ? "bg-white text-brand" : "bg-orange-100 text-orange-700"
+                        }`}
+                      >
+                        Quan trọng
+                      </span>
+                    ) : (
+                      isActive && <ChevronRight className="w-3.5 h-3.5 shrink-0 text-white" />
+                    )}
                   </button>
                 );
               })}

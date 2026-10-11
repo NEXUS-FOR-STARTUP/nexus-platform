@@ -1,7 +1,6 @@
 import { Hono } from 'hono'
 import { requireAuth, type AuthEnv } from '../../../../shared/infrastructure/middlewares/auth.js'
 import { walletService } from '../../application/wallet.service.js'
-import { purchaseCreditsUseCase } from '../../application/purchase-credits.usecase.js'
 import { describeTransaction } from '../../domain/wallet-display.constants.js'
 
 const walletRoutes = new Hono<AuthEnv>()
@@ -37,19 +36,6 @@ walletRoutes.get('/history', async (c) => {
     source_description: describeTransaction(tx.source_type, tx.amount),
   }))
   return c.json({ transactions: enriched, total, page, limit })
-})
-
-walletRoutes.post('/purchase-credits', async (c) => {
-  const user = c.get('user')
-  const body = await c.req.json()
-  const { packageId, caseId, quantity } = body as { packageId: string; caseId: string; quantity: number }
-
-  if (!packageId || !caseId || !quantity || quantity < 1) {
-    return c.json({ code: 'VALIDATION_ERROR', message: 'packageId, caseId, quantity >= 1 là bắt buộc' }, 400)
-  }
-
-  const result = await purchaseCreditsUseCase(user.id, packageId, caseId, quantity)
-  return c.json(result)
 })
 
 walletRoutes.post('/topups', (c) =>

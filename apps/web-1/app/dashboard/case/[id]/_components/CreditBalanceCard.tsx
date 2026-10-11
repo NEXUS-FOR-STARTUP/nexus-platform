@@ -1,10 +1,12 @@
 "use client";
 
 import React from "react";
+import { formatCreditBalances, type CreditBalances } from "@/lib/credit-balances";
 import { Badge, Button } from "@mantine/core";
 
 interface CreditBalanceCardProps {
   creditBalance: number;
+  creditBalances?: CreditBalances;
   packageName?: string;
   pricePerCredit?: number;
   onBuyCredits?: () => void;
@@ -12,6 +14,7 @@ interface CreditBalanceCardProps {
 
 export default function CreditBalanceCard({
   creditBalance,
+  creditBalances,
   packageName,
   pricePerCredit,
   onBuyCredits,
@@ -41,10 +44,10 @@ export default function CreditBalanceCard({
               )}
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold tracking-tight text-text-app tabular-nums">
-                {creditBalance}
+              <span className={`${creditBalances ? "text-xl" : "text-3xl"} font-bold tracking-tight text-text-app tabular-nums`}>
+                {creditBalances ? formatCreditBalances(creditBalances) : creditBalance}
               </span>
-              <span className="text-base font-medium text-text-muted">lượt</span>
+              {!creditBalances && <span className="text-base font-medium text-text-muted">lượt</span>}
             </div>
           </div>
 

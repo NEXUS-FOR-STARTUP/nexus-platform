@@ -31,6 +31,7 @@ import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Button } from "@mantine/core";
 import type { Report, RoundHistoryEntry } from "@/types/case";
 import { useTriggerAudit } from "./hooks/useTriggerAudit";
+import JourneyWorkspaceShell from "./_components/workspace/JourneyWorkspaceShell";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -82,7 +83,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const [selectedPackageId, setSelectedPackageId] = useState<string>(PACKAGE_KEYS.AI_AUDIT);
 
   const stage = caseData?.user_facing_stage;
-  const creditBalance = caseData?.credit_balance ?? null;
+  const creditBalances = caseData?.credit_balances;
+  const creditBalance = caseData ? (creditBalances?.cp1_audit ?? 0) : null;
   const creditLedger = caseData?.credit_ledger ?? undefined;
   const packageName = caseData?.package?.name ?? undefined;
   const pricePerCredit = caseData?.package?.price ?? undefined;
@@ -110,6 +112,19 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           Không thể tải dữ liệu không gian làm việc của hồ sơ. Vui lòng thử lại sau.
         </div>
       </div>
+    );
+  }
+
+  if (process.env.NEXT_PUBLIC_JOURNEY_WORKSPACE === "true") {
+    return (
+      <JourneyWorkspaceShell
+        caseId={id}
+        caseData={caseData}
+        intakeSnapshot={intakeSnapshot}
+        teamFitReport={teamFitReport}
+        documentWorkspace={documentWorkspace}
+        roundHistory={roundHistory}
+      />
     );
   }
 
@@ -286,6 +301,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           {activeTab === "credits" && (
             <CreditPanel
               creditBalance={creditBalance}
+              creditBalances={creditBalances}
               creditLedger={creditLedger}
               orders={caseData.orders}
               packageName={packageName}

@@ -17,8 +17,9 @@ export default function CreditActions({ onBuyCredits, onViewHistory, hasCredits 
         <Button
           onClick={onBuyCredits}
           color="brand"
+          size="sm"
           leftSection={<CreditCard className="w-4 h-4" />}
-          className="font-semibold text-xs h-9 cursor-pointer"
+          className="font-semibold cursor-pointer"
         >
           {hasCredits ? "Mua thêm lượt đánh giá" : "Mua lượt đánh giá"}
         </Button>
@@ -27,8 +28,9 @@ export default function CreditActions({ onBuyCredits, onViewHistory, hasCredits 
           <Button
             onClick={onViewHistory}
             variant="default"
+            size="sm"
             leftSection={<Clock className="w-4 h-4" />}
-            className="font-semibold text-xs h-9 cursor-pointer"
+            className="font-semibold cursor-pointer"
           >
             Lịch sử giao dịch
           </Button>

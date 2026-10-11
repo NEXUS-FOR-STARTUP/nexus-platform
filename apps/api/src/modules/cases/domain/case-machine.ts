@@ -44,7 +44,6 @@ export const caseMachine = setup({
 
   actions: {
     upsertDoc:         () => {},
-    subtractCredit:    () => {},
     refundCredit:      () => {},
     refundRemainingCredit: () => {},
     refundAll:         () => {},

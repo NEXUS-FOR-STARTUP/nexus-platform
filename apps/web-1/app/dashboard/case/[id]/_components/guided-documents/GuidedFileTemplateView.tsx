@@ -14,7 +14,7 @@ export default function GuidedFileTemplateView({ template, onBack }: GuidedFileT
   return (
     <div className="flex flex-col gap-5 w-full">
       <div>
-        <Button variant="subtle" size="compact-sm" leftSection={<ChevronLeft className="w-4 h-4" />} onClick={onBack}>
+        <Button variant="subtle" size="sm" leftSection={<ChevronLeft className="w-4 h-4" />} onClick={onBack}>
           Tất cả biểu mẫu
         </Button>
       </div>

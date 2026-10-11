@@ -1,3 +1,4 @@
+/** @deprecated Supporter flow frozen 2026-10-11; not mounted. See plans/261011-1454-ux-redesign-hanh-trinh. */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { useEffect, useRef, useCallback } from "react";

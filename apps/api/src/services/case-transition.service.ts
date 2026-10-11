@@ -14,6 +14,11 @@ import { DOMAIN_EVENTS } from '../shared/domain/domain-events.js'
 import logger from '../shared/infrastructure/logger.js'
 import { walletService } from '../modules/wallet/application/wallet.service.js'
 import { refundRemainingCreditInTx, refundCaseAllInTx } from './credit-refund.js'
+import {
+  CP1_AUDIT_SERVICE_CODE,
+  getCreditBalance,
+  getServiceTypeId,
+} from '../modules/cases/infrastructure/persistence/credit-ledger.repository.js'
 
 function targetStageFor(transition: TransitionName): CaseStage {
   const stage = TARGET_STAGE[transition]
@@ -31,17 +36,6 @@ function pickAllowedMetadata(data: Record<string, unknown>): Record<string, unkn
     if (key in data) out[key] = data[key]
   }
   return out
-}
-
-async function getCreditBalanceInTx(
-  tx: Prisma.TransactionClient,
-  caseId: string,
-): Promise<number> {
-  const result = await tx.creditLedger.aggregate({
-    where: { case_id: caseId },
-    _sum: { amount: true },
-  })
-  return result._sum.amount ?? 0
 }
 
 async function executeAction(
@@ -98,34 +92,6 @@ async function executeAction(
         'outbound',
         tx as any,
       )
-      break
-    }
-
-    case 'subtractCredit': {
-      const lockedPrice = context.data?.lockedPrice as number | undefined
-      if ((lockedPrice ?? 0) === 0) break
-      const unitCode = context.unitCode ?? `case-${caseId}`
-      const key = `consume-${unitCode}-${caseId}`
-      const balResult = await tx.creditLedger.aggregate({
-        where: { case_id: caseId },
-        _sum: { amount: true },
-      })
-      const currentBalance = balResult._sum.amount ?? 0
-      if (currentBalance < 1) {
-        throw new AppError(402, 'NO_CREDITS', 'Hết credit. Vui lòng mua thêm.')
-      }
-      const newBalance = currentBalance - 1
-      await tx.creditLedger.create({
-        data: {
-          case_id: caseId,
-          amount: -1,
-          balance_after: newBalance,
-          type: 'consumption',
-          reference_type: 'audit_round',
-          reference_id: unitCode,
-          idempotency_key: key,
-        },
-      })
       break
     }
 
@@ -222,7 +188,7 @@ export async function transitionInTx(
   const currentStatus = caseRecord.internal_status as InternalStatus
 
   const creditBalance = ['T11_SUBMIT_OUTPUT', 'T5_ACCEPT', 'T3_RESUBMIT_AFTER_REJECT'].includes(transitionName)
-    ? await getCreditBalanceInTx(tx, caseId)
+    ? await getCreditBalance(tx, caseId, await getServiceTypeId(tx, CP1_AUDIT_SERVICE_CODE))
     : 0
 
   const creditGated = transitionName === 'T11_SUBMIT_OUTPUT' || transitionName === 'T3_RESUBMIT_AFTER_REJECT'

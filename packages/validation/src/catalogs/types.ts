@@ -10,12 +10,19 @@ import { z } from "zod";
 export const CLASSIFICATIONS = ["required", "recommended", "supplemental"] as const;
 export type Classification = (typeof CLASSIFICATIONS)[number];
 
+/** An external reading link shown under a question's explanation. Must be an https URL. */
+export interface FurtherReading {
+  url: string;
+  title: string;
+}
+
 /** A canonical question. `id` matches its key in the question registry. */
 export interface Question {
   id: string;
   text: string;
   explanation: string;
   suggested_actions: string[];
+  further_reading?: readonly FurtherReading[];
 }
 
 /** A question reference inside a template phase, with its per-template classification. */
@@ -64,6 +71,9 @@ export const QuestionSchema = z.object({
   text: z.string().min(1),
   explanation: z.string(),
   suggested_actions: z.array(z.string()),
+  further_reading: z
+    .array(z.object({ url: z.url({ protocol: /^https$/ }), title: z.string().trim().min(1) }))
+    .optional(),
 });
 
 export const TemplateQuestionSchema = z.object({

@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" font-family="Be Vietnam Pro, Segoe UI, Arial, sans-serif">
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#EA580C"/></marker></defs>
+  <rect width="1280" height="800" fill="#475569"/>
+  <text x="40" y="44" font-size="20" font-weight="700" fill="#fff">Bấm "Chấm bài" → một trong hai hộp, cùng khung, cùng vị trí</text>
+
+  <!-- modal xác nhận -->
+  <rect x="40" y="76" width="560" height="690" rx="14" fill="#fff"/>
+  <text x="68" y="118" font-size="20" font-weight="700" fill="#0F172A">Chấm bài · Thị trường</text>
+  <text x="572" y="118" font-size="20" text-anchor="end" fill="#94A3B8">×</text>
+  <text x="68" y="146" font-size="13" fill="#64748B">Chọn điều bạn muốn AI kiểm tra</text>
+
+  <rect x="68" y="164" width="504" height="92" rx="10" fill="#EFF6FF" stroke="#2563EB" stroke-width="2"/>
+  <circle cx="92" cy="192" r="8" fill="#fff" stroke="#2563EB" stroke-width="2"/><circle cx="92" cy="192" r="4" fill="#2563EB"/>
+  <text x="112" y="197" font-size="15" font-weight="700" fill="#0F172A">Toàn bộ bài</text>
+  <text x="112" y="220" font-size="13" fill="#334155">Chấm theo rubric của giảng viên: điểm từng tiêu chí,</text>
+  <text x="112" y="238" font-size="13" fill="#334155">chỗ yếu và việc cần sửa trước khi nộp.</text>
+
+  <rect x="68" y="268" width="504" height="92" rx="10" fill="#fff" stroke="#E2E8F0"/>
+  <circle cx="92" cy="296" r="8" fill="#fff" stroke="#94A3B8" stroke-width="2"/>
+  <text x="112" y="301" font-size="15" font-weight="700" fill="#0F172A">Bộ câu hỏi phỏng vấn</text>
+  <text x="112" y="324" font-size="13" fill="#334155">Kiểm tra câu hỏi phỏng vấn và bảng khảo sát</text>
+  <text x="112" y="342" font-size="13" fill="#334155">trước khi bạn đi gặp khách hàng.</text>
+
+  <rect x="68" y="380" width="504" height="110" rx="10" fill="#FFF7ED" stroke="#FED7AA"/>
+  <text x="88" y="408" font-size="14" font-weight="700" fill="#9A3412">Còn 16 câu bắt buộc chưa trả lời</text>
+  <text x="88" y="432" font-size="13" fill="#9A3412">Bạn vẫn chấm được. Phần thiếu sẽ bị tính là chưa đạt,</text>
+  <text x="88" y="452" font-size="13" fill="#9A3412">nên kết quả sẽ thấp hơn thực lực của nhóm.</text>
+  <text x="88" y="476" font-size="13" fill="#2563EB">Quay lại soạn tiếp ›</text>
+
+  <text x="68" y="530" font-size="13" fill="#64748B">AI sẽ đọc</text>
+  <text x="68" y="554" font-size="13" fill="#0F172A">• 11 câu trả lời đã lưu   • 2 tài liệu nộp   • 1/3 điều kiện đã tự xác nhận</text>
+
+  <line x1="68" y1="588" x2="572" y2="588" stroke="#E2E8F0"/>
+  <text x="68" y="620" font-size="14" fill="#0F172A">Dùng <tspan font-weight="700">1 lượt</tspan> · còn 3 → 2 lượt chấm Thị trường</text>
+  <text x="68" y="644" font-size="12" fill="#64748B">Kết quả có sau khoảng 3–5 phút, ở tab Kết quả chấm.</text>
+  <rect x="300" y="690" width="120" height="44" rx="8" fill="#fff" stroke="#E2E8F0"/><text x="360" y="717" font-size="14" text-anchor="middle" fill="#334155">Để sau</text>
+  <rect x="432" y="690" width="140" height="44" rx="8" fill="#2563EB"/><text x="502" y="717" font-size="14" text-anchor="middle" fill="#fff" font-weight="700">Chấm ngay</text>
+
+  <!-- arrow -->
+  <path d="M600,140 C640,140 640,140 676,140" stroke="#EA580C" stroke-width="2" fill="none" marker-end="url(#a)"/>
+  <text x="604" y="128" font-size="12" fill="#FDBA74">hết lượt</text>
+
+  <!-- modal mua -->
+  <rect x="680" y="76" width="560" height="690" rx="14" fill="#fff"/>
+  <text x="708" y="118" font-size="20" font-weight="700" fill="#0F172A">Mua lượt chấm · Thị trường</text>
+  <text x="1212" y="118" font-size="20" text-anchor="end" fill="#94A3B8">×</text>
+  <text x="708" y="146" font-size="13" fill="#64748B">Bạn đã dùng hết lượt chấm Thị trường. Mua thêm để tiếp tục.</text>
+
+  <rect x="708" y="164" width="504" height="96" rx="10" fill="#fff" stroke="#2563EB" stroke-width="2"/>
+  <text x="728" y="194" font-size="16" font-weight="700" fill="#0F172A">Gói 4 lượt chấm</text>
+  <text x="1192" y="194" font-size="16" text-anchor="end" font-weight="700" fill="#2563EB">79,000 VND</text>
+  <text x="728" y="218" font-size="13" fill="#64748B">Khoảng 19,750 VND/lượt · dùng cho mọi kiểu chấm của Thị trường</text>
+  <text x="728" y="244" font-size="12" fill="#64748B">Lượt không hết hạn, không dùng chéo sang giai đoạn khác</text>
+
+  <text x="708" y="296" font-size="14" fill="#0F172A">Số gói</text>
+  <rect x="1088" y="276" width="124" height="34" rx="8" fill="#fff" stroke="#E2E8F0"/>
+  <text x="1108" y="299" font-size="16" fill="#64748B">−</text><text x="1150" y="299" font-size="14" text-anchor="middle" fill="#0F172A">1</text><text x="1192" y="299" font-size="16" text-anchor="end" fill="#64748B">+</text>
+
+  <rect x="708" y="328" width="390" height="38" rx="8" fill="#fff" stroke="#E2E8F0"/><text x="722" y="352" font-size="13" fill="#94A3B8">Mã giảm giá</text>
+  <rect x="1108" y="328" width="104" height="38" rx="8" fill="#fff" stroke="#E2E8F0"/><text x="1160" y="352" font-size="13" text-anchor="middle" fill="#334155">Áp dụng</text>
+
+  <g font-size="14">
+    <text x="708" y="410" fill="#334155">Tạm tính</text><text x="1212" y="410" text-anchor="end" fill="#0F172A">79,000 VND</text>
+    <text x="708" y="438" fill="#334155">Giảm giá</text><text x="1212" y="438" text-anchor="end" fill="#0F172A">0 VND</text>
+    <line x1="708" y1="454" x2="1212" y2="454" stroke="#E2E8F0"/>
+    <text x="708" y="482" fill="#0F172A" font-weight="700">Tổng</text><text x="1212" y="482" text-anchor="end" fill="#0F172A" font-weight="700">79,000 VND</text>
+    <text x="708" y="514" fill="#334155">Số dư ví</text><text x="1212" y="514" text-anchor="end" fill="#0F172A">50,000 VND</text>
+  </g>
+  <rect x="708" y="532" width="504" height="64" rx="10" fill="#FFF7ED" stroke="#FED7AA"/>
+  <text x="728" y="558" font-size="14" font-weight="700" fill="#9A3412">Ví còn thiếu 29,000 VND</text>
+  <text x="728" y="580" font-size="12" fill="#9A3412">Nạp qua VietQR. Tiền về là hệ thống tự mua gói, không cần làm lại.</text>
+
+  <text x="708" y="640" font-size="12" fill="#64748B">Ví đủ tiền: nút đổi thành "Thanh toán 79,000 VND bằng ví".</text>
+  <rect x="852" y="690" width="120" height="44" rx="8" fill="#fff" stroke="#E2E8F0"/><text x="912" y="717" font-size="14" text-anchor="middle" fill="#334155">Hủy</text>
+  <rect x="984" y="690" width="228" height="44" rx="8" fill="#2563EB"/><text x="1098" y="717" font-size="14" text-anchor="middle" fill="#fff" font-weight="700">Nạp 29,000 VND &amp; mua</text>
+</svg>
