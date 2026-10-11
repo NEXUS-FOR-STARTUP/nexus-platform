@@ -52,7 +52,7 @@ export default function CreditPanel({
               onClick={onBuyCredits}
               color="brand"
               size="sm"
-              className="font-semibold shrink-0 cursor-pointer h-9 px-4 text-xs"
+              className="font-semibold shrink-0 cursor-pointer"
             >
               Mua lượt đánh giá
             </Button>

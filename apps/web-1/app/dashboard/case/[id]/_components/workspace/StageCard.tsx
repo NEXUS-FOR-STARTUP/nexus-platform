@@ -11,6 +11,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import type { StageDefinition } from "@app/shared/stages";
+import { TEMPLATE_REGISTRY, type TemplateKey } from "@repo/validation";
 import type { StageSummary } from "../../hooks/useStageSummaries";
 
 interface StageCardProps {
@@ -155,7 +156,11 @@ export default function StageCard({
 
           {isAvailable && (
             <Text size="xs" c="dimmed">
-              <Text span fw={600} c="dark">{summary?.answered_count ?? 0}</Text> câu đã điền
+              <Text span fw={600} c="dark">
+                {summary?.answered_count ?? 0}/
+                {TEMPLATE_REGISTRY[stage.templateKey as TemplateKey]?.phases.flatMap((p) => p.questions).length ?? 0}
+              </Text>{" "}
+              câu đã điền
               <Text span mx={6} c="gray.4">·</Text>
               <Text span fw={600} c="dark">{summary?.file_count ?? 0}</Text> tài liệu
               <Text span mx={6} c="gray.4">·</Text>
@@ -167,16 +172,16 @@ export default function StageCard({
         <Group justify="flex-end">
           {isAvailable ? (
             <Button
-              size="xs"
+              size="sm"
               variant={isDone ? "outline" : "filled"}
               color={isDone ? "green" : "blue"}
-              rightSection={isDone ? <CheckCircle2 size={14} /> : <ArrowRight size={14} />}
+              rightSection={isDone ? <CheckCircle2 size={16} /> : <ArrowRight size={16} />}
               onClick={onOpen}
             >
               {ctaLabel}
             </Button>
           ) : (
-            <Button size="xs" variant="default" disabled>
+            <Button size="sm" variant="default" disabled>
               Chưa mở
             </Button>
           )}

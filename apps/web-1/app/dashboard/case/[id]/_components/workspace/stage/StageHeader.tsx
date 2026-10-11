@@ -1,8 +1,9 @@
 "use client";
 
-import { Group, Stack, Text, Badge, Button, Anchor } from "@mantine/core";
-import { ArrowLeft, Sparkles, FileDown, Plus } from "lucide-react";
+import { Group, Stack, Text, Badge, Button } from "@mantine/core";
+import { ChevronLeft, Sparkles, Plus } from "lucide-react";
 import type { StageDefinition } from "@app/shared/stages";
+import { TEMPLATE_REGISTRY } from "@repo/validation";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
 
 interface StageHeaderProps {
@@ -12,8 +13,6 @@ interface StageHeaderProps {
   onBack: () => void;
   onAudit: () => void;
   onBuyCredits: () => void;
-  onExportDocx?: () => void;
-  isExportingDocx?: boolean;
 }
 
 export default function StageHeader({
@@ -23,16 +22,18 @@ export default function StageHeader({
   onBack,
   onAudit,
   onBuyCredits,
-  onExportDocx,
-  isExportingDocx = false,
 }: StageHeaderProps) {
   const isGrading = summary?.status === "grading";
+  const hasResult = summary?.status === "has_result";
+  const auditLabel = hasResult ? "Chấm lại" : "Chấm bài";
 
   return (
-    <Stack gap="xs" mb="md">
-      <Anchor onClick={onBack} size="xs" c="dimmed" style={{ display: "inline-flex", alignItems: "center", gap: 4, cursor: "pointer" }}>
-        <ArrowLeft size={14} /> Quay lại Hành trình
-      </Anchor>
+    <Stack gap="xs">
+      <div>
+        <Button variant="subtle" size="sm" leftSection={<ChevronLeft className="w-4 h-4" />} onClick={onBack}>
+          Quay lại
+        </Button>
+      </div>
 
       <Group justify="space-between" align="center" wrap="wrap" gap="md">
         <Stack gap={2}>
@@ -45,38 +46,28 @@ export default function StageHeader({
             ) : null}
           </Group>
           <Text size="xs" c="dimmed">
-            {summary?.answered_count ?? 0} câu đã trả lời · {summary?.file_count ?? 0} tệp đính kèm · Còn {creditsRemaining} lượt chấm
+            {summary?.answered_count ?? 0}/
+            {TEMPLATE_REGISTRY[stage.templateKey]?.phases.flatMap((p) => p.questions).length ?? 0}{" "}
+            câu đã trả lời · {summary?.file_count ?? 0} tệp đính kèm · Còn {creditsRemaining} lượt chấm
           </Text>
         </Stack>
 
         <Group gap="xs">
-          {onExportDocx && (
-            <Button
-              size="xs"
-              variant="default"
-              leftSection={<FileDown size={14} />}
-              loading={isExportingDocx}
-              onClick={onExportDocx}
-            >
-              Xuất DOCX
-            </Button>
-          )}
-
           {creditsRemaining > 0 ? (
             <Button
-              size="xs"
+              size="sm"
               color="blue"
-              leftSection={<Sparkles size={14} />}
+              leftSection={<Sparkles size={16} />}
               disabled={isGrading}
               onClick={onAudit}
             >
-              Chấm bài
+              {auditLabel}
             </Button>
           ) : (
             <Button
-              size="xs"
+              size="sm"
               color="orange"
-              leftSection={<Plus size={14} />}
+              leftSection={<Plus size={16} />}
               onClick={onBuyCredits}
             >
               Mua lượt chấm

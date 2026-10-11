@@ -26,7 +26,7 @@ export default function Cp2PackageCard({ caseId }: Cp2PackageCardProps) {
       <p className="text-xs text-text-muted">Chưa tới 20,000 VND/lượt</p>
       <Button
         color="brand"
-        size="xs"
+        size="sm"
         leftSection={<ShoppingCart className="w-4 h-4" />}
         onClick={() => setOpened(true)}
         disabled={!pkg}

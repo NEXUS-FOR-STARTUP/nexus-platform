@@ -17,6 +17,7 @@ export default function StageDraftView({ caseId, templateKey, onBack }: StageDra
         caseId={caseId}
         templateKey={templateKey}
         onBack={onBack}
+        hideBackButton
       />
     </Box>
   );

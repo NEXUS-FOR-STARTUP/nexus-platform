@@ -20,10 +20,10 @@ export default function WalletSummaryCard() {
           </Stack>
         </Group>
         <Group gap="xs">
-          <Button component={Link} href="/dashboard/wallet" variant="light" size="xs">
+          <Button component={Link} href="/dashboard/wallet" variant="light" size="sm">
             Lịch sử ví
           </Button>
-          <Button component={Link} href="/dashboard/wallet?action=deposit" size="xs" leftSection={<Plus size={14} />}>
+          <Button component={Link} href="/dashboard/wallet?action=deposit" size="sm" leftSection={<Plus size={16} />}>
             Nạp tiền
           </Button>
         </Group>

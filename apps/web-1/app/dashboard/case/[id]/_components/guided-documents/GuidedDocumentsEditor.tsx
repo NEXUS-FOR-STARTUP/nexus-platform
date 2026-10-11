@@ -18,12 +18,14 @@ interface GuidedDocumentsEditorProps {
   caseId: string;
   templateKey: TemplateKey;
   onBack: () => void;
+  hideBackButton?: boolean;
 }
 
 export default function GuidedDocumentsEditor({
   caseId,
   templateKey,
   onBack,
+  hideBackButton = false,
 }: GuidedDocumentsEditorProps) {
   const {
     template,
@@ -116,7 +118,7 @@ export default function GuidedDocumentsEditor({
   }
 
   return (
-    <div className="flex flex-col gap-5 w-full">
+    <div className="flex flex-col gap-4 w-full">
       <Modal
         opened={confirmBackOpen}
         onClose={closeConfirmBack}
@@ -135,16 +137,18 @@ export default function GuidedDocumentsEditor({
         </div>
       </Modal>
       <div className="flex flex-col gap-2">
-        <div>
-          <Button
-            variant="subtle"
-            size="sm"
-            onClick={handleBack}
-            leftSection={<ChevronLeft className="w-4 h-4" />}
-          >
-            Tất cả biểu mẫu
-          </Button>
-        </div>
+        {!hideBackButton && (
+          <div>
+            <Button
+              variant="subtle"
+              size="sm"
+              onClick={handleBack}
+              leftSection={<ChevronLeft className="w-4 h-4" />}
+            >
+              Tất cả biểu mẫu
+            </Button>
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex flex-col gap-1">
@@ -194,7 +198,7 @@ export default function GuidedDocumentsEditor({
       </div>
 
       {/* Main Content: TOC on Left, Question Editor on Right */}
-      <div className="flex flex-col md:flex-row items-start gap-5 w-full">
+      <div className="flex flex-col md:flex-row items-start gap-4 w-full">
         <GuidedTOC
           template={template}
           answersMap={answersMap}

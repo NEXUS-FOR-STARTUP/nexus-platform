@@ -59,9 +59,9 @@ export default function StageBalanceTable({ caseId, balances }: StageBalanceTabl
                   <Table.Td style={{ textAlign: "right" }}>
                     {canBuy ? (
                       <Button
-                        size="xs"
+                        size="sm"
                         variant="light"
-                        leftSection={<Plus size={14} />}
+                        leftSection={<Plus size={16} />}
                         onClick={() => setSelectedStage(stage)}
                       >
                         Mua thêm

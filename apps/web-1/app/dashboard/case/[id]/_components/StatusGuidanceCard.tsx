@@ -314,7 +314,7 @@ export default function StatusGuidanceCard({
 
           <div className="flex flex-wrap items-center gap-3 pt-1">
             {onOpenPayment && (
-              <Button size="sm" color="brand" className="shrink-0 cursor-pointer font-semibold text-xs" onClick={onOpenPayment}>
+              <Button size="sm" color="brand" className="shrink-0 cursor-pointer font-semibold" onClick={onOpenPayment}>
                 {isFree ? "Chọn gói đánh giá" : "Mua lượt đánh giá"}
               </Button>
             )}
@@ -481,7 +481,7 @@ export default function StatusGuidanceCard({
               </p>
               {onOpenPayment && (
                 <Button
-                  size="xs"
+                  size="sm"
                   color="red"
                   variant="filled"
                   className="shrink-0 font-semibold cursor-pointer"

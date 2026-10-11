@@ -37,7 +37,7 @@ export default function GuidedQuestionCard({
   };
 
   return (
-    <div className="flex-1 min-w-0 w-full bg-surface-app border border-border-app rounded-xl p-4 sm:p-5 md:p-6 flex flex-col gap-5 md:gap-6">
+    <div className="flex-1 min-w-0 w-full bg-surface-app border border-border-app rounded-xl p-4 sm:p-5 flex flex-col gap-4">
       {/* Header & Question */}
       <div className="flex flex-col gap-2">
         <span className="text-xs font-semibold uppercase tracking-wider text-brand">
@@ -50,7 +50,7 @@ export default function GuidedQuestionCard({
 
       {/* Explanation & Guidance */}
       {question?.explanation && (
-        <blockquote className="m-0 bg-warning-soft border-l-4 border-warning rounded-r-lg px-4 py-3 text-sm text-text-app flex flex-col gap-2">
+        <blockquote className="m-0 bg-warning-soft border-l-4 border-warning rounded-r-lg px-4 py-4 text-sm text-text-app flex flex-col gap-2">
           <p className="leading-relaxed whitespace-pre-line">{question.explanation}</p>
           {question.suggested_actions && question.suggested_actions.length > 0 && (
             <div className="flex flex-col gap-1 pt-1">

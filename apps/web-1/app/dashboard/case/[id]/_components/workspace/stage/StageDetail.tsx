@@ -88,12 +88,10 @@ export default function StageDetail({
         onBack={onBack}
         onAudit={handleAuditClick}
         onBuyCredits={() => setCheckoutOpen(true)}
-        onExportDocx={generateDocx}
-        isExportingDocx={isGenerating}
       />
 
-      <Tabs value={view} onChange={(val) => onViewChange(val as "draft" | "files" | "results")}>
-        <Tabs.List>
+      <Tabs value={view} onChange={(val) => onViewChange(val as "draft" | "files" | "results")} variant="pills" radius="md">
+        <Tabs.List justify="flex-start">
           <Tabs.Tab value="draft" leftSection={<FileEdit size={16} />}>
             Soạn thảo
           </Tabs.Tab>
@@ -127,8 +125,6 @@ export default function StageDetail({
           <StageResultsView
             caseId={caseId}
             summary={summary}
-            onAudit={handleAuditClick}
-            canAudit={creditsRemaining > 0}
             roundHistory={roundHistory}
             checkpointId={checkpointId}
             projectName={caseData?.team_name || undefined}

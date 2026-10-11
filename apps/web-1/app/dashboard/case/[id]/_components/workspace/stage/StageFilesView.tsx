@@ -144,7 +144,7 @@ export default function StageFilesView({
           </Stack>
           <FileButton onChange={handleUploadFile} accept=".pdf,.docx,.xlsx,.pptx,.txt">
             {(props) => (
-              <Button {...props} size="xs" leftSection={<Upload size={14} />} loading={uploading}>
+              <Button {...props} size="sm" leftSection={<Upload size={16} />} loading={uploading}>
                 Tải tài liệu mới
               </Button>
             )}

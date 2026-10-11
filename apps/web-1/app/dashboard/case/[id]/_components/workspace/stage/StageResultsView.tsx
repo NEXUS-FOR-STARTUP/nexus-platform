@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { Stack, Paper, Text, Button, Group } from "@mantine/core";
-import { FileCheck, Sparkles } from "lucide-react";
+import { Stack, Paper, Text } from "@mantine/core";
+import { FileCheck } from "lucide-react";
 import { isCp2ReportType } from "@repo/validation";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
 import type { RoundHistoryEntry, Report } from "@/types";
@@ -11,8 +11,6 @@ import TabReportFindings from "../../TabReportFindings";
 interface StageResultsViewProps {
   caseId: string;
   summary?: StageSummary;
-  onAudit: () => void;
-  canAudit: boolean;
   roundHistory?: RoundHistoryEntry[] | null;
   checkpointId?: string;
   projectName?: string;
@@ -22,8 +20,6 @@ interface StageResultsViewProps {
 export default function StageResultsView({
   caseId,
   summary,
-  onAudit,
-  canAudit,
   roundHistory,
   checkpointId,
 }: StageResultsViewProps) {
@@ -61,35 +57,20 @@ export default function StageResultsView({
           <Stack gap={2}>
             <Text fw={600} size="md">Chưa có kết quả chấm bài</Text>
             <Text size="xs" c="dimmed">
-              Sau khi bạn hoàn thành việc soạn thảo hoặc tải tài liệu lên, hãy bấm Chấm bài để nhận đánh giá từ AI.
+              Sau khi bạn hoàn thành việc soạn thảo hoặc tải tài liệu lên, hãy bấm Chấm bài ở góc trên bên phải để nhận đánh giá từ AI.
             </Text>
           </Stack>
-          {canAudit && (
-            <Button size="xs" color="blue" leftSection={<Sparkles size={16} />} onClick={onAudit}>
-              Chấm bài ngay
-            </Button>
-          )}
         </Stack>
       </Paper>
     );
   }
 
   return (
-    <Stack gap="md">
-      <Group justify="flex-end" gap="sm">
-        {canAudit && (
-          <Button size="xs" color="blue" leftSection={<Sparkles size={14} />} onClick={onAudit}>
-            Chấm lại bản đã sửa
-          </Button>
-        )}
-      </Group>
-
-      <TabReportFindings
-        report={report}
-        caseId={caseId}
-        roundHistory={stageRoundHistory}
-        hideCheckpointFilter
-      />
-    </Stack>
+    <TabReportFindings
+      report={report}
+      caseId={caseId}
+      roundHistory={stageRoundHistory}
+      hideCheckpointFilter
+    />
   );
 }
