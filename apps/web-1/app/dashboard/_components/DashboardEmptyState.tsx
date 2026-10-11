@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Users } from "lucide-react";
 import { useDisclosure } from "@mantine/hooks";
-import { PackageSelectionModal } from "./PackageSelectionModal";
+import { CreateProjectModal } from "./CreateProjectModal";
 
 export default function DashboardEmptyState() {
   const [opened, { open, close }] = useDisclosure(false);
@@ -32,7 +32,7 @@ export default function DashboardEmptyState() {
           <span>Bắt đầu kiểm tra dự án</span>
         </button>
       </div>
-      <PackageSelectionModal opened={opened} onClose={close} />
+      <CreateProjectModal opened={opened} onClose={close} />
     </div>
   );
 }

@@ -7,7 +7,7 @@ import type {
 } from "../../documents/domain/document-types.js";
 
 export interface CreateCaseRequest {
-  package_id: string;
+  package_id?: string;
   school?: string;
   course_context?: string;
   deadline?: string;

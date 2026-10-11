@@ -62,11 +62,8 @@ export async function createCaseUseCase(
     throw new AppError(400, "VALIDATION_ERROR", documentValidation.error);
   }
 
-  const { package_id, deadline, team_context } = normalizedBody;
-
-  if (!asNonEmptyString(package_id)) {
-    throw new AppError(400, "VALIDATION_ERROR", "Thiếu gói dịch vụ (package_id)");
-  }
+  const package_id = asNonEmptyString(normalizedBody.package_id) ? normalizedBody.package_id : "pkg_tf_free";
+  const { deadline, team_context } = normalizedBody;
 
   const parsedDeadline = deadline ? new Date(deadline) : null;
   if (deadline && Number.isNaN(parsedDeadline?.getTime())) {

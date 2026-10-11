@@ -168,8 +168,17 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
     );
   }
 
-  if (!["triage_pending", "cancelled"].includes(status)) {
+  if (!["triage_pending", "cancelled"].includes(status) && !AUDIT_STAGE_INPUT_RULES) {
     throw new AppError(400, "INVALID_CASE_STAGE", "Hồ sơ đang được xử lý, không thể chỉnh sửa");
+  }
+
+  // Under journey redesign: updating profile on an active case upserts v00 without re-triggering T2
+  if (AUDIT_STAGE_INPUT_RULES && status !== "triage_pending" && status !== "cancelled") {
+    await prisma.$transaction(async (tx) => {
+      await updateIntakeDataOnly(tx, caseId, caseRecord, body);
+    });
+    logger.info({ caseId, actorId: userId }, "project profile updated in-place");
+    return { success: true, case_id: caseId, stage: caseRecord.user_facing_stage, status: caseRecord.internal_status };
   }
 
   try {

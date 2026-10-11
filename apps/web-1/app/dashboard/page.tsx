@@ -6,7 +6,7 @@ import { Pagination } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useDisclosure } from "@mantine/hooks";
 import { useCasesList } from "./hooks/useCasesList";
-import { PackageSelectionModal } from "./_components/PackageSelectionModal";
+import { CreateProjectModal } from "./_components/CreateProjectModal";
 import CaseCard from "./_components/CaseCard";
 import CaseListFilters from "./_components/CaseListFilters";
 import DashboardEmptyState from "./_components/DashboardEmptyState";
@@ -112,7 +112,7 @@ export default function StudentDashboard() {
           )}
         </>
       )}
-      <PackageSelectionModal opened={opened} onClose={close} />
+      <CreateProjectModal opened={opened} onClose={close} />
     </div>
   );
 }
