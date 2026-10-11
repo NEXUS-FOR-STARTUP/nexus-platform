@@ -61,7 +61,7 @@ export default function Cp2AuditActions({ caseId, readiness }: Cp2AuditActionsPr
       )}
       {readiness.missing.length > 0 && (
         <p className="text-xs text-orange-600">
-          Còn {readiness.missing.length} câu bắt buộc chưa điền. Bạn vẫn có thể chấm, nhưng các mục thiếu sẽ bị tính là chưa đạt.
+          Còn {readiness.missing.length} câu bắt buộc chưa điền. Bạn vẫn có thể chấm, nhưng các mục thiếu sẽ bị tính là chưa đạt yêu cầu.
         </p>
       )}
 

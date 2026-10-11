@@ -16,7 +16,7 @@ export const cp2: Template = {
   phases: [
     {
       id: "tong_quan_y_tuong",
-      title: "Tổng quan ý tưởng & cơ hội",
+      title: "Tổng quan ý tưởng và cơ hội",
       unlock_requires: [],
       questions: [
         { question_id: "cp2_problem_need", classification: "required" },
@@ -28,7 +28,7 @@ export const cp2: Template = {
     },
     {
       id: "customer_discovery",
-      title: "Khám phá khách hàng (Customer Discovery)",
+      title: "Khám phá khách hàng",
       unlock_requires: ["cp2_problem_need"],
       questions: [
         { question_id: "cp2_research_objectives", classification: "required" },
@@ -41,7 +41,7 @@ export const cp2: Template = {
     },
     {
       id: "quy_mo_thi_truong",
-      title: "Quy mô thị trường & cấu trúc",
+      title: "Quy mô và cấu trúc thị trường",
       unlock_requires: ["cp2_research_objectives"],
       questions: [
         { question_id: "cp2_tam_sam_som", classification: "required" },
@@ -53,7 +53,7 @@ export const cp2: Template = {
     },
     {
       id: "mvp_demo",
-      title: "Trình diễn MVP & vòng lặp tinh chỉnh",
+      title: "Trình diễn MVP và tinh chỉnh",
       unlock_requires: ["cp2_solution"],
       questions: [
         { question_id: "cp2_mvp_demo", classification: "required" },
@@ -63,7 +63,7 @@ export const cp2: Template = {
     },
     {
       id: "pmf_4p",
-      title: "PMF ban đầu & 4P",
+      title: "Product-Market Fit và 4P",
       unlock_requires: ["cp2_mvp_demo"],
       questions: [
         { question_id: "cp2_pmf_signals", classification: "required" },
@@ -83,7 +83,7 @@ export const cp2: Template = {
     },
     {
       id: "debate_prep",
-      title: "Chuẩn bị phản biện (Debate)",
+      title: "Chuẩn bị phản biện",
       unlock_requires: ["cp2_expert_interviews"],
       questions: [
         { question_id: "cp2_debate_defense", classification: "recommended" },

@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { type ReactNode } from "react";
 import { Anchor, Button, Textarea } from "@mantine/core";
-import { ExternalLink, Save } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { QUESTION_REGISTRY, type Question } from "@repo/validation";
 
 interface GuidedQuestionCardProps {
@@ -14,6 +14,8 @@ interface GuidedQuestionCardProps {
   onChange: (value: string) => void;
   onSave: (questionId: string, value: string) => Promise<void>;
   isSaving: boolean;
+  /** Extra content rendered between the answer box and the save button. */
+  children?: ReactNode;
 }
 
 export default function GuidedQuestionCard({
@@ -24,6 +26,7 @@ export default function GuidedQuestionCard({
   onSave,
   isSaving,
   questionNumber,
+  children,
 }: GuidedQuestionCardProps) {
   const question = (
     QUESTION_REGISTRY as Record<string, Question | undefined>
@@ -97,9 +100,10 @@ export default function GuidedQuestionCard({
         }}
       />
 
+      {children}
+
       {/* Actions */}
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-border-app">
-        {isDirty && <span className="text-xs text-amber-600 font-medium">Chưa lưu thay đổi</span>}
+      <div className="flex items-center justify-end pt-4 border-t border-border-app">
         <Button
           variant="filled"
           color="blue"
@@ -107,9 +111,8 @@ export default function GuidedQuestionCard({
           loading={isSaving}
           disabled={!isDirty}
           onClick={handleSave}
-          leftSection={<Save className="w-4 h-4" />}
         >
-          Lưu câu này
+          Lưu
         </Button>
       </div>
     </div>
