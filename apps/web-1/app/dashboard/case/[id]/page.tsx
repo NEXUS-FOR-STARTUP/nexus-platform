@@ -31,6 +31,7 @@ import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Button } from "@mantine/core";
 import type { Report, RoundHistoryEntry } from "@/types/case";
 import { useTriggerAudit } from "./hooks/useTriggerAudit";
+import JourneyWorkspaceShell from "./_components/workspace/JourneyWorkspaceShell";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -111,6 +112,16 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           Không thể tải dữ liệu không gian làm việc của hồ sơ. Vui lòng thử lại sau.
         </div>
       </div>
+    );
+  }
+
+  if (process.env.NEXT_PUBLIC_JOURNEY_WORKSPACE === "true") {
+    return (
+      <JourneyWorkspaceShell
+        caseId={id}
+        caseData={caseData}
+        intakeSnapshot={intakeSnapshot}
+      />
     );
   }
 
