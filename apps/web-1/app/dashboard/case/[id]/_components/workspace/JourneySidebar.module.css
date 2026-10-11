@@ -1,45 +1,48 @@
-.sidebarCard {
+.navbar {
   width: 250px;
   flex-shrink: 0;
-  background-color: light-dark(#ffffff, var(--mantine-color-dark-7));
-  border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
-  border-radius: var(--mantine-radius-lg);
-  padding: 12px;
-  box-shadow: light-dark(0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.3));
-  position: sticky;
-  top: 80px;
-  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
 }
 
-.item {
+.link {
   display: flex;
   align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: var(--mantine-radius-md);
-  font-size: 14px;
-  font-weight: 500;
-  color: light-dark(#4b5563, var(--mantine-color-gray-3));
   text-decoration: none;
+  font-size: var(--mantine-font-size-sm);
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-sm);
+  font-weight: 500;
   cursor: pointer;
-  transition: all 150ms ease;
+  transition: background-color 150ms ease, color 150ms ease;
+  width: 100%;
 }
 
-.item:hover {
-  background-color: light-dark(#f3f4f6, var(--mantine-color-dark-6));
-  color: light-dark(#111827, #ffffff);
+.link:hover {
+  background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+  color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
 }
 
-.item[data-active] {
-  background-color: light-dark(#ebf5ff, rgba(29, 78, 216, 0.18));
-  color: light-dark(#1d4ed8, #60a5fa);
-  font-weight: 600;
+.link[data-active] {
+  &,
+  &:hover {
+    background-color: var(--mantine-color-blue-light);
+    color: var(--mantine-color-blue-light-color);
+
+    .linkIcon {
+      color: var(--mantine-color-blue-light-color);
+    }
+  }
 }
 
-.iconWrapper {
+.linkIcon {
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+  margin-right: var(--mantine-spacing-sm);
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }

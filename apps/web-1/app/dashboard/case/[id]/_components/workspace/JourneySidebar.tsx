@@ -1,6 +1,6 @@
 "use client";
 
-import { Stack, UnstyledButton, Text, Box } from "@mantine/core";
+import { Box, Stack } from "@mantine/core";
 import { LayoutDashboard, Compass, CreditCard, History, Settings } from "lucide-react";
 import type { ReactNode } from "react";
 import classes from "./JourneySidebar.module.css";
@@ -14,11 +14,11 @@ interface NavItem {
 }
 
 export const WORKSPACE_NAV_ITEMS: NavItem[] = [
-  { key: "overview", label: "Tổng quan dự án", icon: <LayoutDashboard size={19} /> },
-  { key: "journey", label: "Hành trình", icon: <Compass size={19} /> },
-  { key: "billing", label: "Lượt chấm & thanh toán", icon: <CreditCard size={19} /> },
-  { key: "timeline", label: "Lịch sử hoạt động", icon: <History size={19} /> },
-  { key: "settings", label: "Cài đặt", icon: <Settings size={19} /> },
+  { key: "overview", label: "Tổng quan dự án", icon: <LayoutDashboard size={20} /> },
+  { key: "journey", label: "Hành trình", icon: <Compass size={20} /> },
+  { key: "billing", label: "Lượt chấm & thanh toán", icon: <CreditCard size={20} /> },
+  { key: "timeline", label: "Lịch sử hoạt động", icon: <History size={20} /> },
+  { key: "settings", label: "Cài đặt", icon: <Settings size={20} /> },
 ];
 
 interface JourneySidebarProps {
@@ -28,20 +28,24 @@ interface JourneySidebarProps {
 
 export default function JourneySidebar({ activeTab, onTabChange }: JourneySidebarProps) {
   return (
-    <Box component="nav" aria-label="Menu không gian dự án" className={classes.sidebarCard}>
-      <Stack gap={4}>
+    <Box component="nav" aria-label="Menu không gian dự án" className={classes.navbar}>
+      <Stack gap="xs">
         {WORKSPACE_NAV_ITEMS.map((item) => {
           const isActive = activeTab === item.key;
           return (
-            <UnstyledButton
+            <a
               key={item.key}
-              onClick={() => onTabChange(item.key)}
-              className={classes.item}
+              className={classes.link}
               data-active={isActive ? true : undefined}
+              href="#"
+              onClick={(event) => {
+                event.preventDefault();
+                onTabChange(item.key);
+              }}
             >
-              <span className={classes.iconWrapper}>{item.icon}</span>
-              <Text size="sm">{item.label}</Text>
-            </UnstyledButton>
+              <span className={classes.linkIcon}>{item.icon}</span>
+              <span>{item.label}</span>
+            </a>
           );
         })}
       </Stack>
