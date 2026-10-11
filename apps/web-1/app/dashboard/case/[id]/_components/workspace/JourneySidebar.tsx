@@ -14,11 +14,11 @@ interface NavItem {
 }
 
 export const WORKSPACE_NAV_ITEMS: NavItem[] = [
-  { key: "overview", label: "Tổng quan dự án", icon: <LayoutDashboard size={18} /> },
-  { key: "journey", label: "Hành trình", icon: <Compass size={18} /> },
-  { key: "billing", label: "Lượt chấm & thanh toán", icon: <CreditCard size={18} /> },
-  { key: "timeline", label: "Lịch sử hoạt động", icon: <History size={18} /> },
-  { key: "settings", label: "Cài đặt", icon: <Settings size={18} /> },
+  { key: "overview", label: "Tổng quan dự án", icon: <LayoutDashboard size={19} /> },
+  { key: "journey", label: "Hành trình", icon: <Compass size={19} /> },
+  { key: "billing", label: "Lượt chấm & thanh toán", icon: <CreditCard size={19} /> },
+  { key: "timeline", label: "Lịch sử hoạt động", icon: <History size={19} /> },
+  { key: "settings", label: "Cài đặt", icon: <Settings size={19} /> },
 ];
 
 interface JourneySidebarProps {
@@ -28,8 +28,8 @@ interface JourneySidebarProps {
 
 export default function JourneySidebar({ activeTab, onTabChange }: JourneySidebarProps) {
   return (
-    <Box component="nav" aria-label="Menu không gian dự án" className={classes.sidebar}>
-      <Stack gap={6}>
+    <Box component="nav" aria-label="Menu không gian dự án" className={classes.sidebarCard}>
+      <Stack gap={4}>
         {WORKSPACE_NAV_ITEMS.map((item) => {
           const isActive = activeTab === item.key;
           return (
@@ -39,7 +39,7 @@ export default function JourneySidebar({ activeTab, onTabChange }: JourneySideba
               className={classes.item}
               data-active={isActive ? true : undefined}
             >
-              {item.icon}
+              <span className={classes.iconWrapper}>{item.icon}</span>
               <Text size="sm">{item.label}</Text>
             </UnstyledButton>
           );
