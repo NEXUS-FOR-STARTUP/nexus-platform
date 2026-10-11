@@ -2,14 +2,13 @@
 
 import { Paper, Group, Stack, Text, Button } from "@mantine/core";
 import { MessageCircle, ExternalLink } from "lucide-react";
+import { ZALO_GROUP_URL } from "@/lib/zalo";
 
 interface ZaloSupportCardProps {
   url?: string;
 }
 
-const DEFAULT_ZALO_URL = process.env.NEXT_PUBLIC_ZALO_GROUP_URL || "https://zalo.me/g/nexus-support";
-
-export default function ZaloSupportCard({ url = DEFAULT_ZALO_URL }: ZaloSupportCardProps) {
+export default function ZaloSupportCard({ url = ZALO_GROUP_URL }: ZaloSupportCardProps) {
   return (
     <Paper p="md" withBorder radius="md">
       <Group justify="space-between" align="center" wrap="wrap" gap="sm">

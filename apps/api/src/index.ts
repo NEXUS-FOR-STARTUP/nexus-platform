@@ -14,7 +14,6 @@ import { sepayRouter } from './modules/payments/http/sepay.routes.js'
 import { packagesRouter } from './modules/packages/http/packages.routes.js'
 import { aiEngineRouter } from './modules/ai-engine/http/ai-engine.routes.js'
 import { adminRouter } from './modules/admin/http/admin.routes.js'
-import { supporterRouter } from './modules/supporter/http/supporter.routes.js'
 import { documentsRouter } from './modules/documents/http/documents.routes.js'
 import { notificationsRouter } from './modules/notifications/http/notifications.routes.js'
 import { realtimeRouter } from './modules/realtime/http/realtime.routes.js'
@@ -161,7 +160,6 @@ app.route('/api/packages', packagesRouter)
 app.route('/api/ai-engine', aiEngineRouter)
 app.route('/api/admin', adminRouter)
 app.route('/api/writer/news', newsAdminRouter)
-app.route('/api/supporter', supporterRouter)
 app.route('/api/documents', documentsRouter)
 app.route('/api/notifications', notificationsRouter)
 app.route('/api/realtime', realtimeRouter)

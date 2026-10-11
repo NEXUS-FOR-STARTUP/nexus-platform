@@ -129,7 +129,7 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
       sla_hours: 48,
       mode: "human_verified",
     },
-    is_active: true,
+    is_active: false,
     service_type_code: "cp1_audit",
     credits_granted: 1,
   },

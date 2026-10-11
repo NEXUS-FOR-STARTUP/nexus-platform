@@ -19,12 +19,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         const role = (session.user as { role?: string } | undefined)?.role;
         if (role === "writer") {
           router.push("/writer");
-        } else if (role === "admin" || role === "supporter") {
+        } else if (role === "admin") {
           const match = pathname.match(/^\/dashboard\/case\/([^\/]+)$/);
           if (match) {
             router.push(`/supporter/case/${match[1]}`);
           } else {
-            router.push(role === "admin" ? "/admin" : "/supporter");
+            router.push(role === "admin" ? "/admin" : "/dashboard");
           }
         }
       }
@@ -42,7 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // Render-phase role guard: prevent content flash for admin/supporter/writer
   // on /dashboard routes before useEffect redirect fires
   const role = (session.user as { role?: string } | undefined)?.role;
-  if (role === "admin" || role === "supporter" || role === "writer") {
+  if (role === "admin" || role === "writer") {
     return null;
   }
 

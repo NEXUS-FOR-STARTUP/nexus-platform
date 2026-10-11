@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Container, Title, Text, Card, ThemeIcon, Group, Stack, Divider } from "@mantine/core";
 import { Mail, Phone, ArrowUpRight } from "lucide-react";
+import { ZALO_GROUP_URL } from "@/lib/zalo";
 
 const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -63,7 +64,7 @@ export default function ContactUs() {
     {
       title: "Zalo Group",
       value: "Nhóm hỗ trợ Nexus",
-      href: "https://zalo.me/g/wgadhwpaxd05vykpnxqb",
+      href: ZALO_GROUP_URL,
       icon: ZaloIcon,
       color: "blue",
       actionText: "Tham gia nhóm",
