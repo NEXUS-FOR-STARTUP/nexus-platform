@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Stack, Text, SegmentedControl, SimpleGrid } from "@mantine/core";
+import { Stack, Text, Tabs, SimpleGrid } from "@mantine/core";
 import { STAGES } from "@app/shared/stages";
 import StageCard from "./StageCard";
 import ExtraServiceList from "./ExtraServiceList";
@@ -46,16 +46,19 @@ export default function JourneyTab({ stages, balances, onOpenStage }: JourneyTab
         </Text>
       </div>
 
-      <SegmentedControl
+      <Tabs
+        variant="pills"
+        radius="xl"
         value={filter}
-        onChange={(val) => setFilter(val as Filter)}
-        data={[
-          { label: "Tất cả", value: "all" },
-          { label: "Đang làm", value: "working" },
-          { label: "Đã xong", value: "done" },
-          { label: "Sắp ra mắt", value: "coming_soon" },
-        ]}
-      />
+        onChange={(val) => setFilter((val as Filter) || "all")}
+      >
+        <Tabs.List>
+          <Tabs.Tab value="all">Tất cả</Tabs.Tab>
+          <Tabs.Tab value="working">Đang làm</Tabs.Tab>
+          <Tabs.Tab value="done">Đã xong</Tabs.Tab>
+          <Tabs.Tab value="coming_soon">Sắp ra mắt</Tabs.Tab>
+        </Tabs.List>
+      </Tabs>
 
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
         {filteredStages.map((stage) => {
