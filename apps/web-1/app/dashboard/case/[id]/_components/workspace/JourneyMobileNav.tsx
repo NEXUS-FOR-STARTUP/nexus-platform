@@ -2,6 +2,7 @@
 
 import { Drawer, Stack, UnstyledButton, Group, Text } from "@mantine/core";
 import { WORKSPACE_NAV_ITEMS, type WorkspaceTabKey } from "./JourneySidebar";
+import classes from "./JourneySidebar.module.css";
 
 interface JourneyMobileNavProps {
   opened: boolean;
@@ -22,7 +23,13 @@ export default function JourneyMobileNav({
   };
 
   return (
-    <Drawer opened={opened} onClose={onClose} title="Menu dự án" size="xs">
+    <Drawer
+      opened={opened}
+      onClose={onClose}
+      title="Menu dự án"
+      size="xs"
+      classNames={{ header: classes.mobileDrawerHeader, body: classes.mobileDrawerBody }}
+    >
       <Stack gap={4} py="sm">
         {WORKSPACE_NAV_ITEMS.map((item) => {
           const isActive = activeTab === item.key;
@@ -30,11 +37,7 @@ export default function JourneyMobileNav({
             <UnstyledButton
               key={item.key}
               onClick={() => handleSelect(item.key)}
-              className={`w-full px-3 py-2.5 rounded-md text-sm ${
-                isActive
-                  ? "bg-blue-50 text-blue-700 font-medium"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
+              className={isActive ? classes.mobileNavButtonActive : classes.mobileNavButton}
             >
               <Group gap="xs">
                 {item.icon}

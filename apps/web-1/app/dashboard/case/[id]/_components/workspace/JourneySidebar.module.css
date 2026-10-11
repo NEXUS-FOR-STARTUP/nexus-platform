@@ -4,8 +4,8 @@
   padding: var(--mantine-spacing-md);
   display: flex;
   flex-direction: column;
-  border-right: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
   flex-shrink: 0;
+  background-color: var(--mantine-color-blue-filled);
 }
 
 .navbarMain {
@@ -15,13 +15,13 @@
 .header {
   padding-bottom: var(--mantine-spacing-md);
   margin-bottom: calc(var(--mantine-spacing-md) * 1.5);
-  border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .footer {
   padding-top: var(--mantine-spacing-md);
   margin-top: var(--mantine-spacing-md);
-  border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .link {
@@ -29,38 +29,72 @@
   align-items: center;
   text-decoration: none;
   font-size: var(--mantine-font-size-sm);
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+  color: rgba(255, 255, 255, 0.7);
   padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
   border-radius: var(--mantine-radius-sm);
   font-weight: 500;
   cursor: pointer;
 
   &:hover {
-    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
-    color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--mantine-color-white);
 
     .linkIcon {
-      color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+      color: var(--mantine-color-white);
     }
   }
 
   &[data-active] {
     &,
     &:hover {
-      background-color: var(--mantine-color-blue-light);
-      color: var(--mantine-color-blue-light-color);
+      background-color: var(--mantine-color-white);
+      color: var(--mantine-color-blue-filled);
 
       .linkIcon {
-        color: var(--mantine-color-blue-light-color);
+        color: var(--mantine-color-blue-filled);
       }
     }
   }
 }
 
 .linkIcon {
-  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+  color: rgba(255, 255, 255, 0.7);
   margin-right: var(--mantine-spacing-sm);
   width: 20px;
   height: 20px;
   flex-shrink: 0;
+}
+
+.mobileDrawerHeader {
+  background-color: var(--mantine-color-blue-filled) !important;
+  color: var(--mantine-color-white) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+.mobileDrawerBody {
+  background-color: var(--mantine-color-blue-filled) !important;
+}
+
+.mobileNavButton {
+  width: 100%;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-sm);
+  font-size: var(--mantine-font-size-sm);
+  color: rgba(255, 255, 255, 0.7);
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--mantine-color-white);
+  }
+}
+
+.mobileNavButtonActive {
+  composes: mobileNavButton;
+  background-color: var(--mantine-color-white) !important;
+  color: var(--mantine-color-blue-filled) !important;
+
+  &:hover {
+    background-color: var(--mantine-color-white) !important;
+    color: var(--mantine-color-blue-filled) !important;
+  }
 }

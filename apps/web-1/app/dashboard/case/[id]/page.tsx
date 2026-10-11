@@ -121,6 +121,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         caseId={id}
         caseData={caseData}
         intakeSnapshot={intakeSnapshot}
+        documentWorkspace={documentWorkspace}
+        roundHistory={roundHistory}
       />
     );
   }

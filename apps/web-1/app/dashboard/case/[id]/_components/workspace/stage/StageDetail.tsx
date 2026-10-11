@@ -14,6 +14,7 @@ import { useStageAudit } from "../../../hooks/useStageAudit";
 import { useGuidedDocuments } from "../../../hooks/useGuidedDocuments";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
 import type { TemplateKey } from "@repo/validation";
+import type { Case, DocumentWorkspace, RoundHistoryEntry } from "@/types";
 
 interface StageDetailProps {
   caseId: string;
@@ -23,6 +24,9 @@ interface StageDetailProps {
   onBack: () => void;
   summary?: StageSummary;
   creditsRemaining: number;
+  documentWorkspace?: DocumentWorkspace | null;
+  roundHistory?: RoundHistoryEntry[] | null;
+  caseData?: Case;
 }
 
 export default function StageDetail({
@@ -33,8 +37,14 @@ export default function StageDetail({
   onBack,
   summary,
   creditsRemaining,
+  documentWorkspace,
+  roundHistory,
+  caseData,
 }: StageDetailProps) {
   const stage = findStageBySlug(stageSlug);
+  const checkpointId = stage
+    ? documentWorkspace?.checkpoints.find((cp) => cp.checkpoint_code === stage.code)?.checkpoint_id
+    : undefined;
   const [auditConfirmOpen, setAuditConfirmOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const { triggerAudit, isPending: isAuditPending } = useStageAudit(caseId);
@@ -107,7 +117,9 @@ export default function StageDetail({
           <StageFilesView
             caseId={caseId}
             checkpointCode={stage.code}
+            checkpointId={checkpointId}
             fileCount={summary?.file_count ?? 0}
+            documentWorkspace={documentWorkspace}
           />
         </Tabs.Panel>
 
@@ -117,6 +129,10 @@ export default function StageDetail({
             summary={summary}
             onAudit={handleAuditClick}
             canAudit={creditsRemaining > 0}
+            roundHistory={roundHistory}
+            checkpointId={checkpointId}
+            projectName={caseData?.team_name || undefined}
+            caseCode={caseData?.case_code || undefined}
           />
         </Tabs.Panel>
       </Tabs>

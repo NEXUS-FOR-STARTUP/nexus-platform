@@ -17,9 +17,10 @@ interface TabReportFindingsProps {
   } | null;
   caseId?: string;
   roundHistory?: RoundHistoryEntry[] | null;
+  hideCheckpointFilter?: boolean;
 }
 
-export default function TabReportFindings({ report, caseId, roundHistory }: TabReportFindingsProps) {
+export default function TabReportFindings({ report, caseId, roundHistory, hideCheckpointFilter = false }: TabReportFindingsProps) {
   const [pdfLoading, setPdfLoading] = useState(true);
   const [isSingleExpanded, setIsSingleExpanded] = useState(true);
   const [checkpointFilter, setCheckpointFilter] = useState<"CP1" | "CP2">("CP1");
@@ -78,9 +79,9 @@ export default function TabReportFindings({ report, caseId, roundHistory }: TabR
   if (roundHistory && roundHistory.length > 0) {
     const cp2Rounds = roundHistory.filter((round) => isCp2ReportType(round.report?.report_type));
     const cp1Rounds = roundHistory.filter((round) => !isCp2ReportType(round.report?.report_type));
-    const showCheckpointFilter = cp2Rounds.length > 0;
+    const showCheckpointFilter = !hideCheckpointFilter && cp2Rounds.length > 0;
     const activeCheckpoint = showCheckpointFilter && (checkpointFilter === "CP2" || cp1Rounds.length === 0) ? "CP2" : "CP1";
-    const visibleRounds = activeCheckpoint === "CP2" ? cp2Rounds : cp1Rounds;
+    const visibleRounds = hideCheckpointFilter ? roundHistory : (activeCheckpoint === "CP2" ? cp2Rounds : cp1Rounds);
     return (
       <Stack gap="md" className="animate-fade-in font-body pb-8">
         <div className="flex items-center justify-between gap-2">

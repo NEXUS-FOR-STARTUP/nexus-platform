@@ -2,7 +2,7 @@
 
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Box, Group, Burger, Text } from "@mantine/core";
+import { Box, Group, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import JourneySidebar, { type WorkspaceTabKey } from "./JourneySidebar";
 import JourneyMobileNav from "./JourneyMobileNav";
@@ -15,17 +15,22 @@ import TabCaseSettings from "../TabCaseSettings";
 import { useStageSummaries } from "../../hooks/useStageSummaries";
 import { findStageBySlug } from "@app/shared/stages";
 import type { Case } from "@/types";
+import type { DocumentWorkspace, RoundHistoryEntry } from "@/types/case";
 
 interface JourneyWorkspaceShellProps {
   caseId: string;
   caseData?: Case;
   intakeSnapshot?: unknown;
+  documentWorkspace?: DocumentWorkspace | null;
+  roundHistory?: RoundHistoryEntry[] | null;
 }
 
 export default function JourneyWorkspaceShell({
   caseId,
   caseData,
   intakeSnapshot,
+  documentWorkspace,
+  roundHistory,
 }: JourneyWorkspaceShellProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -74,16 +79,6 @@ export default function JourneyWorkspaceShell({
 
   return (
     <Box className="w-full">
-      {/* Mobile Header Bar */}
-      <Box className="md:hidden flex items-center justify-between pb-3 border-b border-[var(--mantine-color-gray-2)] mb-4">
-        <Group gap="xs">
-          <Burger opened={mobileNavOpened} onClick={toggleMobileNav} size="sm" />
-          <Text size="sm" fw={600}>
-            {activeTab === "journey" && currentStage ? currentStage.name : "Không gian dự án"}
-          </Text>
-        </Group>
-      </Box>
-
       <JourneyMobileNav
         opened={mobileNavOpened}
         onClose={closeMobileNav}
@@ -96,7 +91,32 @@ export default function JourneyWorkspaceShell({
           <JourneySidebar activeTab={activeTab} onTabChange={handleTabChange} />
         </div>
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 px-4 pb-4 pt-16 md:p-6 bg-gray-50/70">
+          <button
+            type="button"
+            onClick={toggleMobileNav}
+            aria-label="Mở menu dự án"
+            className="fixed top-20 left-4 z-50 md:hidden w-12 h-12 rounded-full border-2 border-blue-500 bg-white hover:bg-blue-50 active:bg-blue-100 transition-colors flex items-center justify-center"
+          >
+            <div className="relative w-5 h-4 flex flex-col justify-between">
+              <span
+                className={`block h-0.5 bg-blue-600 rounded transition-transform duration-200 origin-center ${
+                  mobileNavOpened ? "rotate-45 translate-y-[7px]" : ""
+                }`}
+              />
+              <span
+                className={`block h-0.5 bg-blue-600 rounded transition-opacity duration-200 ${
+                  mobileNavOpened ? "opacity-0" : ""
+                }`}
+              />
+              <span
+                className={`block h-0.5 bg-blue-600 rounded transition-transform duration-200 origin-center ${
+                  mobileNavOpened ? "-rotate-45 -translate-y-[7px]" : ""
+                }`}
+              />
+            </div>
+          </button>
+
           {activeTab === "overview" && (
             <OverviewTab
               caseData={caseData}
@@ -116,6 +136,9 @@ export default function JourneyWorkspaceShell({
                 onBack={handleBackToJourney}
                 summary={currentSummary}
                 creditsRemaining={stageCredits}
+                documentWorkspace={documentWorkspace}
+                roundHistory={roundHistory}
+                caseData={caseData}
               />
             ) : (
               <JourneyTab

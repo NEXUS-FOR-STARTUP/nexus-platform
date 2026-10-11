@@ -1,6 +1,6 @@
 "use client";
 
-import { Group, Text, Code } from "@mantine/core";
+import { Group, Text } from "@mantine/core";
 import { LayoutDashboard, Compass, CreditCard, History, Settings, ExternalLink, HelpCircle } from "lucide-react";
 import type { ReactNode } from "react";
 import classes from "./JourneySidebar.module.css";
@@ -48,10 +48,9 @@ export default function JourneySidebar({ activeTab, onTabChange }: JourneySideba
     <nav className={classes.navbar}>
       <div className={classes.navbarMain}>
         <Group className={classes.header} justify="space-between">
-          <Text fw={700} size="sm" c="blue">
+          <Text fw={700} size="sm" c="white">
             NEXUS WORKSPACE
           </Text>
-          <Code fw={700}>v2.0</Code>
         </Group>
         {links}
       </div>

@@ -1,7 +1,15 @@
 "use client";
 
-import { Paper, Stack, Group, Text, Badge, Button } from "@mantine/core";
-import { ArrowRight, Lock } from "lucide-react";
+import { Paper, Stack, Group, Text, Badge, Button, ThemeIcon } from "@mantine/core";
+import {
+  ArrowRight,
+  Lock,
+  Lightbulb,
+  Users,
+  Package,
+  Banknote,
+  CheckCircle2,
+} from "lucide-react";
 import type { StageDefinition } from "@app/shared/stages";
 import type { StageSummary } from "../../hooks/useStageSummaries";
 
@@ -12,7 +20,48 @@ interface StageCardProps {
   onOpen: () => void;
 }
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
+const STAGE_META: Record<
+  string,
+  {
+    icon: React.ElementType;
+    color: string;
+    lightBg: string;
+    description: string;
+  }
+> = {
+  "y-tuong": {
+    icon: Lightbulb,
+    color: "var(--mantine-color-blue-6)",
+    lightBg: "var(--mantine-color-blue-0)",
+    description: "Làm rõ ý tưởng, đối tượng khách hàng và giá trị cốt lõi.",
+  },
+  "thi-truong": {
+    icon: Users,
+    color: "var(--mantine-color-violet-6)",
+    lightBg: "var(--mantine-color-violet-0)",
+    description: "Phân tích thị trường, đối thủ và xác thực nhu cầu.",
+  },
+  "san-pham-mo-hinh": {
+    icon: Package,
+    color: "var(--mantine-color-amber-6)",
+    lightBg: "var(--mantine-color-amber-0)",
+    description: "Định hình sản phẩm, mô hình vận hành và lộ trình phát triển.",
+  },
+  "goi-von-tai-chinh": {
+    icon: Banknote,
+    color: "var(--mantine-color-emerald-6)",
+    lightBg: "var(--mantine-color-emerald-0)",
+    description: "Chuẩn bị tài chính, kế hoạch gọi vốn và định giá.",
+  },
+};
+
+const STATUS_META: Record<
+  string,
+  {
+    label: string;
+    color: string;
+  }
+> = {
   not_started: { label: "Chưa bắt đầu", color: "gray" },
   drafting: { label: "Đang soạn", color: "blue" },
   files_submitted: { label: "Đã nộp tệp", color: "cyan" },
@@ -27,21 +76,74 @@ export default function StageCard({
   onOpen,
 }: StageCardProps) {
   const isAvailable = stage.available;
-  const statusInfo = STATUS_LABELS[summary?.status ?? "not_started"] ?? STATUS_LABELS.not_started!;
+  const meta = STAGE_META[stage.slug] ?? STAGE_META["y-tuong"];
+  const StageIcon = meta.icon;
+  const status = summary?.status ?? "not_started";
+  const statusInfo = STATUS_META[status] ?? STATUS_META.not_started;
+  const stageNumber = stage.code.replace("CP", "").padStart(2, "0");
+  const isDone = status === "has_result";
+
+  const ctaLabel = isDone
+    ? "Xem đánh giá"
+    : status === "grading"
+      ? "Vào xem"
+      : status === "files_submitted"
+        ? "Vào xem"
+        : status === "drafting"
+          ? "Tiếp tục soạn"
+          : "Bắt đầu soạn";
 
   return (
     <Paper
-      p="md"
+      p="lg"
       withBorder
       radius="md"
-      className={`transition-shadow ${isAvailable ? "hover:shadow-sm" : "opacity-60 bg-gray-50"}`}
+      className={`relative overflow-hidden transition-colors duration-200 ${
+        isAvailable ? "hover:border-opacity-80" : "opacity-70"
+      }`}
+      styles={{
+        root: {
+          borderTopWidth: 3,
+          borderTopColor: isAvailable ? meta.color : "var(--mantine-color-gray-4)",
+          backgroundColor: isAvailable ? "var(--mantine-color-white)" : "var(--mantine-color-gray-0)",
+        },
+      }}
     >
       <Stack justify="space-between" h="100%" gap="md">
-        <Stack gap="xs">
-          <Group justify="space-between" align="flex-start">
-            <Text fw={600} size="md">{stage.name}</Text>
+        <Stack gap="sm">
+          <Group justify="space-between" align="flex-start" wrap="nowrap">
+            <Group gap="sm" wrap="nowrap">
+              <ThemeIcon
+                size="xl"
+                radius="xl"
+                styles={{
+                  root: {
+                    backgroundColor: meta.lightBg,
+                    color: meta.color,
+                    border: `2px solid ${meta.color}`,
+                  },
+                }}
+              >
+                <StageIcon size={24} />
+              </ThemeIcon>
+
+              <div>
+                <Group gap={6} align="center">
+                  <Text fw={800} size="lg" c={meta.color}>
+                    {stageNumber}
+                  </Text>
+                  <Text fw={700} size="md" lh={1.3}>
+                    {stage.name}
+                  </Text>
+                </Group>
+                <Text size="xs" c="dimmed" lineClamp={1}>
+                  {isAvailable ? meta.description : "Sẵn sàng khi bạn hoàn thành các giai đoạn trước."}
+                </Text>
+              </div>
+            </Group>
+
             {isAvailable ? (
-              <Badge color={statusInfo.color} variant="light" size="sm">
+              <Badge color={statusInfo.color} variant="filled" size="sm">
                 {statusInfo.label}
               </Badge>
             ) : (
@@ -51,23 +153,27 @@ export default function StageCard({
             )}
           </Group>
 
-          <Text size="xs" c="dimmed">
-            {isAvailable
-              ? `Đã trả lời ${summary?.answered_count ?? 0} câu · ${summary?.file_count ?? 0} tài liệu`
-              : "Nội dung đang được hoàn thiện, sẽ mở trong các phiên bản tiếp theo."}
-          </Text>
-
           {isAvailable && (
-            <Text size="xs" fw={500} c={creditsRemaining > 0 ? "blue" : "dimmed"}>
-              Còn {creditsRemaining} lượt chấm
+            <Text size="xs" c="dimmed">
+              <Text span fw={600} c="dark">{summary?.answered_count ?? 0}</Text> câu đã điền
+              <Text span mx={6} c="gray.4">·</Text>
+              <Text span fw={600} c="dark">{summary?.file_count ?? 0}</Text> tài liệu
+              <Text span mx={6} c="gray.4">·</Text>
+              Còn <Text span fw={600} c={creditsRemaining > 0 ? "blue" : "dimmed"}>{creditsRemaining}</Text> lượt chấm
             </Text>
           )}
         </Stack>
 
         <Group justify="flex-end">
           {isAvailable ? (
-            <Button size="xs" variant="light" rightSection={<ArrowRight size={14} />} onClick={onOpen}>
-              Vào giai đoạn
+            <Button
+              size="xs"
+              variant={isDone ? "outline" : "filled"}
+              color={isDone ? "green" : "blue"}
+              rightSection={isDone ? <CheckCircle2 size={14} /> : <ArrowRight size={14} />}
+              onClick={onOpen}
+            >
+              {ctaLabel}
             </Button>
           ) : (
             <Button size="xs" variant="default" disabled>
