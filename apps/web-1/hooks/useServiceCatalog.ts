@@ -21,8 +21,8 @@ export function useServiceCatalog() {
   });
 }
 
-/** Find all active packages for a given service type code (e.g. cp1_audit). */
+/** Purchasable packages for a service type code (e.g. cp1_audit): active, priced, with credits. Free init package (0đ) never appears in buy flows. */
 export function filterPackagesByService(packages: ServicePackageDto[] | undefined, serviceCode: string): ServicePackageDto[] {
   if (!packages) return [];
-  return packages.filter((p) => p.is_active && p.service_type?.code === serviceCode);
+  return packages.filter((p) => p.is_active && p.price > 0 && (p.credits_granted ?? 0) > 0 && p.service_type?.code === serviceCode);
 }

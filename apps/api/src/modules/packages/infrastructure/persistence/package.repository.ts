@@ -7,7 +7,9 @@ export const PACKAGE_DTO_INCLUDE = {
 
 export async function findActivePackages() {
   return await prisma.servicePackage.findMany({
-    where: { is_active: true },
+    // Purchasable only: hide free init package (price 0 / no credits) and
+    // unopened packages (is_active false, e.g. 149k mentor audit stays hidden).
+    where: { is_active: true, price: { gt: 0 }, credits_granted: { gt: 0 } },
     orderBy: { price: "asc" },
     include: PACKAGE_DTO_INCLUDE,
   });

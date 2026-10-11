@@ -12,7 +12,9 @@ const defaultDeps = {
 };
 
 /**
- * Lists active service packages for customer-facing flows.
+ * Lists purchasable service packages for customer-facing flows (active, priced, with credits).
+ * Free init package (0đ) and unopened packages (e.g. 149k mentor audit) stay hidden here;
+ * admin listing uses findAllPackages instead.
  */
 export async function listPackagesUseCase(deps: ListPackagesDeps = {}) {
   const { findActivePackages } = {
@@ -21,5 +23,7 @@ export async function listPackagesUseCase(deps: ListPackagesDeps = {}) {
   };
 
   const packages = await findActivePackages();
-  return packages.map(toPackageDto);
+  // Defense in depth: effective price comes from the current pricing tier
+  // (see toPackageDto), so re-check the DTO — a tier can zero out a priced base.
+  return packages.map(toPackageDto).filter((p) => p.price > 0 && (p.credits_granted ?? 0) > 0);
 }
