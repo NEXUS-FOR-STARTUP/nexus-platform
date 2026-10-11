@@ -62,7 +62,7 @@ export async function createCaseUseCase(
     throw new AppError(400, "VALIDATION_ERROR", documentValidation.error);
   }
 
-  const package_id = asNonEmptyString(normalizedBody.package_id) ? normalizedBody.package_id : "pkg_tf_free";
+  const package_id: string = asNonEmptyString(normalizedBody.package_id) || "pkg_tf_free";
   const { deadline, team_context } = normalizedBody;
 
   const parsedDeadline = deadline ? new Date(deadline) : null;
