@@ -1,4 +1,5 @@
 import { STAGES, type StageCode } from "@app/shared";
+import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-types.js";
 import { QUESTION_REGISTRY, TEMPLATE_REGISTRY } from "@repo/validation";
 import { prisma } from "../../../db.js";
 
@@ -48,7 +49,7 @@ export async function countStageInputs(caseId: string, code: StageCode): Promise
   const answers = rows.filter((r) => own.has(r.question_id) && r.answer_text.trim() !== "").length;
   const files = checkpoint
     ? await prisma.documentRecord.count({
-        where: { case_id: caseId, checkpoint_id: checkpoint.id, superseded_at: null, source_kind: { not: "generated" }, doc_type: { notIn: STAGE_DOC_EXCLUDED_TYPES } },
+        where: { case_id: caseId, checkpoint_id: checkpoint.id, superseded_at: null, source_kind: { notIn: [...SUBMITTED_DOC_EXCLUDED_KINDS] }, doc_type: { notIn: STAGE_DOC_EXCLUDED_TYPES } },
       })
     : 0;
   return { answers, files };

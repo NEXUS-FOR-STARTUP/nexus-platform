@@ -106,7 +106,7 @@ export interface DocumentFile {
   doc_type?: string | null;
   doc_type_label?: string | null;
   category?: string | null;
-  source_kind: "drive" | "cloudinary" | "generated";
+  source_kind: "drive" | "cloudinary" | "generated" | "system_generated";
   canonical_name: string | null;
   original_name: string | null;
   extension: string | null;

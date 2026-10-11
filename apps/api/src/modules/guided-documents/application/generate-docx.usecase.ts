@@ -106,14 +106,17 @@ export async function generateDocxUseCase(input: GenerateDocxInput) {
     filename,
   );
 
-  // Compute seq
+  // Compute seq + supersede previous guided exports of this checkpoint so the
+  // workspace count doesn't grow by one on every export press.
   const lastDoc = await prisma.documentRecord.findFirst({
     where: { case_id: caseId, checkpoint_id: checkpoint.id },
     orderBy: { seq: 'desc' },
   });
   const seq = (lastDoc?.seq ?? 0) + 1;
-
-  // Create DocumentRecord
+  await prisma.documentRecord.updateMany({
+    where: { case_id: caseId, checkpoint_id: checkpoint.id, doc_type: `guided_${templateKey}`, superseded_at: null },
+    data: { superseded_at: new Date() },
+  });
   const docRecord = await prisma.documentRecord.create({
     data: {
       case_id: caseId,

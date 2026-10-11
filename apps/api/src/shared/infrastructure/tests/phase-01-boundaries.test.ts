@@ -151,6 +151,53 @@ test("Phase 01 - Backend boundaries & contracts", async (t) => {
     assert.strictEqual(workspace.checkpoints[1].overview.total_files, 1);
     assert.strictEqual(workspace.checkpoints[1].overview.selected_label, "Đang chọn CP-2");
   });
+  await t.test("document workspace assembly - shows stage_upload files in table", async () => {
+    const { assembleDocumentWorkspace } = await import(
+      "../../../modules/documents/application/assemble-document-workspace.js",
+    );
+
+    const workspace = assembleDocumentWorkspace({
+      id: "case-1",
+      current_checkpoint: "CP1",
+      checkpoints: [
+        { id: "cp-1", checkpoint_code: "CP1", latest_version_no: 1, latest_assessment_no: 0 },
+      ],
+      lifecycle_units: [
+        {
+          id: "u-s1",
+          checkpoint_id: "cp-1",
+          unit_code: "s-abc123",
+          unit_type: "stage_upload",
+          version_no: 0,
+          assessment_no: 0,
+          linked_version_no: null,
+          file_url: null,
+          content: null,
+        },
+      ],
+      document_records: [
+        {
+          id: "doc-s1",
+          checkpoint_id: "cp-1",
+          lifecycle_unit_id: "u-s1",
+          unit_code: "s-abc123",
+          doc_type: "revision_document",
+          seq: 0,
+          is_primary: true,
+          source_kind: "cloudinary",
+          canonical_name: "pitch",
+          original_name: "pitch.pdf",
+          extension: "pdf",
+          mime_type: "application/pdf",
+          file_url: "https://res.cloudinary.com/demo/pitch.pdf",
+          download_url: "https://res.cloudinary.com/demo/pitch.pdf",
+        },
+      ],
+    } as any);
+
+    assert.strictEqual(workspace.checkpoints[0].overview.total_files, 1);
+    assert.strictEqual(workspace.checkpoints[0].support_flow_documents.length, 1);
+  });
 
   await t.test("document write validation - rejects bad url and keeps allowlist fields", async () => {
     const { validateDocumentWriteInputs } = await import(

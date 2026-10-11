@@ -20,10 +20,17 @@
  *   documents that still carry a Google Drive public/share link. New documents
  *   should use Cloudinary instead.
  * - **generated** — system-produced documents (AI outputs, reports, etc.).
+ * - **system_generated** — guided-template docx exports (each export press
+ *   creates a row; system output, not a student submission).
  */
-export const DOCUMENT_SOURCE_KINDS = ["drive", "cloudinary", "generated"] as const;
+export const DOCUMENT_SOURCE_KINDS = ["drive", "cloudinary", "generated", "system_generated"] as const;
 
 export type DocumentSourceKind = (typeof DOCUMENT_SOURCE_KINDS)[number];
+
+/**
+ * Source kinds excluded from "submitted documents" counts.
+ */
+export const SUBMITTED_DOC_EXCLUDED_KINDS = ["generated", "system_generated"] as const;
 
 export const DOCUMENT_TYPES = [
   "intake_document",

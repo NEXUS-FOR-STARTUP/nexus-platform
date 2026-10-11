@@ -5,6 +5,7 @@ import { AppError } from "../../../shared/domain/app-error.js";
 import logger from "../../../shared/infrastructure/logger.js";
 import { findLatestCp2FullReport } from "../../reports/infrastructure/persistence/report.repository.js";
 import type { OmpAuditInputFile } from "../omp-audit.service.js";
+import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-types.js";
 import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
 import { STAGE_DOC_EXCLUDED_TYPES, renderStageAnswers } from "./stage-audit-input.js";
 
@@ -59,7 +60,7 @@ async function loadAttachments(caseId: string): Promise<OmpAuditInputFile[]> {
       case_id: caseId,
       checkpoint_id: checkpoint.id,
       superseded_at: null,
-      source_kind: { not: "generated" },
+      source_kind: { notIn: [...SUBMITTED_DOC_EXCLUDED_KINDS] },
       doc_type: { notIn: STAGE_DOC_EXCLUDED_TYPES },
     },
     orderBy: [{ created_at: "asc" }],
