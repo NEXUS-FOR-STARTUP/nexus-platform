@@ -1,8 +1,9 @@
 "use client";
 
-import { Stack, UnstyledButton, Text, Group, Box } from "@mantine/core";
+import { Stack, UnstyledButton, Text, Box } from "@mantine/core";
 import { LayoutDashboard, Compass, CreditCard, History, Settings } from "lucide-react";
 import type { ReactNode } from "react";
+import classes from "./JourneySidebar.module.css";
 
 export type WorkspaceTabKey = "overview" | "journey" | "billing" | "timeline" | "settings";
 
@@ -27,24 +28,19 @@ interface JourneySidebarProps {
 
 export default function JourneySidebar({ activeTab, onTabChange }: JourneySidebarProps) {
   return (
-    <Box component="nav" aria-label="Menu không gian dự án" className="w-56 shrink-0 border-r border-[var(--mantine-color-gray-2)] pr-3">
-      <Stack gap={4}>
+    <Box component="nav" aria-label="Menu không gian dự án" className={classes.sidebar}>
+      <Stack gap={6}>
         {WORKSPACE_NAV_ITEMS.map((item) => {
           const isActive = activeTab === item.key;
           return (
             <UnstyledButton
               key={item.key}
               onClick={() => onTabChange(item.key)}
-              className={`w-full px-3 py-2 rounded-md text-sm transition-colors ${
-                isActive
-                  ? "bg-blue-50 text-blue-700 font-medium"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
+              className={classes.item}
+              data-active={isActive ? true : undefined}
             >
-              <Group gap="xs">
-                {item.icon}
-                <Text size="sm">{item.label}</Text>
-              </Group>
+              {item.icon}
+              <Text size="sm">{item.label}</Text>
             </UnstyledButton>
           );
         })}
