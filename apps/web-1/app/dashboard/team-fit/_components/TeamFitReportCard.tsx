@@ -92,7 +92,7 @@ function FreeReportBody({
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Text size="sm" fw={600}>
-              Kết luận sơ bộ:
+              Đội ngũ có đủ người không:
             </Text>
             <Badge
               size="sm"
@@ -116,7 +116,7 @@ function FreeReportBody({
                   {area.ten}
                 </Text>
                 <Text size="sm" c="dimmed">
-                  Mức độ: {TEAM_FIT_LEVEL_LABELS[area.mucDo]}
+                  Nhân sự: {TEAM_FIT_LEVEL_LABELS[area.mucDo]}
                 </Text>
               </div>
               <Text size="sm" lh={1.6} mt={2}>

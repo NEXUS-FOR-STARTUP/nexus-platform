@@ -83,9 +83,9 @@ export const TEAM_FIT_LEVELS = ["cao", "vua", "thap"] as const;
 export type TeamFitLevel = (typeof TEAM_FIT_LEVELS)[number];
 
 export const TEAM_FIT_LEVEL_LABELS: Record<TeamFitLevel, string> = {
-  cao: "Cao",
-  vua: "Vừa",
-  thap: "Thấp",
+  cao: "Có người chuyên trách",
+  vua: "Có người kiêm nhiệm",
+  thap: "Thiếu người",
 };
 
 export const TeamFitAiOutputSchema = z.object({
@@ -97,7 +97,7 @@ export const TeamFitAiOutputSchema = z.object({
       z.object({
         ten: z.string().min(2).max(120).describe('Tên mảng, ví dụ "Kỹ thuật sản phẩm"'),
         trangThai: z.enum(TEAM_FIT_AREA_STATES).describe("on = mảng ổn, yeu = mảng yếu"),
-        mucDo: z.enum(TEAM_FIT_LEVELS).describe("Mức độ của mảng này"),
+        mucDo: z.enum(TEAM_FIT_LEVELS).describe("Độ phủ nhân sự của mảng: cao = có người chuyên trách, vua = có người kiêm nhiệm, thap = thiếu người"),
         lyDo: z.string().min(2).max(500).describe("Vì sao mảng này ổn hoặc yếu với chính dự án này"),
         danChung: z
           .string()
