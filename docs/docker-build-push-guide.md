@@ -2,15 +2,22 @@
 
 Guide build và push Docker images cho Nexus Platform lên Docker Hub.
 
-> ⚠️ **WARNING — Web image bắt BUỘC `--build-arg NEXT_PUBLIC_API_URL` và `--build-arg NEXT_PUBLIC_CENTRIFUGO_URL`**
+> ⚠️ **WARNING — Web image bắt BUỘC 3 `--build-arg`: `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_CENTRIFUGO_URL`, `NEXT_PUBLIC_JOURNEY_WORKSPACE`**
 >
-> `NEXT_PUBLIC_API_URL` và `NEXT_PUBLIC_CENTRIFUGO_URL` là **build-time argument**, Next.js inline giá trị này vào JS bundle.
+> Cả 3 là **build-time argument**, Next.js inline giá trị này vào JS bundle.
 > **Không phải runtime env**. Nếu thiếu:
 > - `NEXT_PUBLIC_API_URL`: bundle dùng fallback `http://localhost:8000` → browser fetch tới localhost → **auth loop, loading vô hạn**.
 > - `NEXT_PUBLIC_CENTRIFUGO_URL`: bundle dùng fallback `ws://localhost:8010/connection/websocket` → WebSocket không kết nối được ngoài dev local.
+> - `NEXT_PUBLIC_JOURNEY_WORKSPACE`: `page.tsx` của case workspace rẽ nhánh `process.env.NEXT_PUBLIC_JOURNEY_WORKSPACE === "true"`; inline thành `false` → nhánh workspace mới bị dead-code-eliminate → **prod rơi về giao diện workspace cũ dù image đúng commit**. Set trong `.env.prod`/compose vô tác dụng.
 >
-> **Phải có cả 2 `--build-arg` trong lệnh `docker build` web image.**
-> Kiểm tra bằng `docker exec nexus-web env | grep NEXT_PUBLIC` — nếu không thấy đủ 2 biến là sai.
+> **Phải có cả 3 `--build-arg` trong lệnh `docker build` web image.**
+> Kiểm tra bằng `docker exec nexus-web env | grep NEXT_PUBLIC` — nếu không thấy đủ biến là sai.
+>
+> Verify image có workspace mới (bắt buộc phải ra ít nhất 1 dòng match):
+> ```bash
+> docker run --rm --entrypoint sh lgdlong/nexus-web:latest \
+>   -c 'cat apps/web-1/.next/BUILD_ID; grep -rl "Hành trình" apps/web-1/.next | head -3'
+> ```
 
 ## Prerequisites
 
@@ -79,10 +86,11 @@ docker build --no-cache -f apps/api/Dockerfile -t lgdlong/nexus-api:latest .
 ### 3. Build Web Image
 
 ```bash
-# NEXT_PUBLIC_API_URL và NEXT_PUBLIC_CENTRIFUGO_URL baked at build time (Next.js inlines vào JS bundle)
+# NEXT_PUBLIC_* baked at build time (Next.js inlines vào JS bundle)
 docker build -f apps/web-1/Dockerfile \
   --build-arg NEXT_PUBLIC_API_URL=https://nexusforstartup.site \
   --build-arg NEXT_PUBLIC_CENTRIFUGO_URL="wss://nexusforstartup.site/connection/websocket" \
+  --build-arg NEXT_PUBLIC_JOURNEY_WORKSPACE=true \
   -t lgdlong/nexus-web:latest .
 ```
 
@@ -97,16 +105,9 @@ docker push lgdlong/nexus-web:latest
 
 ## Quick — Makefile
 
-```bash
-make build domain=nexusforstartup.site
-make push
+Repo **không có** target Makefile để build/push image: root `Makefile` chỉ có task dev (`dev`, `build` = turbo build, `db-*`), `Makefile.prod` chỉ có task VPS ops (`deploy`, `deploy-web`, `migrate`, …). Vì vậy image build/push phải chạy trực tiếp bằng `docker build` (xem [Manual One-Liner](#manual-one-liner)).
 
-# Hoặc 1 lệnh
-make build-push domain=nexusforstartup.site
-
-# ⚠️ Sau khi push: ghi deploy log
-echo "| $(date '+%Y-%m-%d %H:%M') | $(git rev-parse --short HEAD) | $(git branch --show-current) | $(git log --oneline -1 --format='%s') | 🔵 api 🟢 web |" >> docs/deploy-log.md
-```
+VPS deploy: `make -f Makefile.prod deploy` (hoặc `deploy-web` / `deploy-api` / `deploy-worker`).
 
 ## Manual One-Liner
 
@@ -118,6 +119,7 @@ docker build --no-cache -f apps/api/Dockerfile -t lgdlong/nexus-api:latest . && 
 docker build -f apps/web-1/Dockerfile \
   --build-arg NEXT_PUBLIC_API_URL=https://nexusforstartup.site \
   --build-arg NEXT_PUBLIC_CENTRIFUGO_URL="wss://nexusforstartup.site/connection/websocket" \
+  --build-arg NEXT_PUBLIC_JOURNEY_WORKSPACE=true \
   -t lgdlong/nexus-web:latest . && docker push lgdlong/nexus-web:latest
 
 # ⚠️ Sau khi push: ghi deploy log
@@ -205,6 +207,25 @@ docker exec nexus-web sh -c 'find apps/web-1/.next -name "*.js" -exec grep -l "n
 # Output kỳ vọng: tìm thấy file JS chứa domain
 ```
 
+### Web image đúng commit nhưng prod vẫn hiện workspace cũ [TRIỆU CHỨNG: UI cũ ở /dashboard/case/...]
+
+**Nguyên nhân:** build thiếu `--build-arg NEXT_PUBLIC_JOURNEY_WORKSPACE=true`. Giá trị này được Next.js inline
+lúc build, nên nhánh `process.env.NEXT_PUBLIC_JOURNEY_WORKSPACE === "true"` trong
+`apps/web-1/app/dashboard/case/[id]/page.tsx` bị fold thành `false` → toàn bộ `JourneyWorkspaceShell`
+bị dead-code-eliminate khỏi bundle. Set `NEXT_PUBLIC_JOURNEY_WORKSPACE` trong `.env.prod` hay compose
+environment **không** sửa được — phải rebuild image.
+
+**Chẩn đoán nhanh (không cần login prod):**
+```bash
+# Image CŨ (thiếu arg): 0 dòng match. Image ĐÚNG: có match.
+docker run --rm --entrypoint sh lgdlong/nexus-web:latest \
+  -c 'grep -rl "Hành trình" apps/web-1/.next | wc -l'
+```
+
+**Fix:** rebuild web image với đủ 3 build arg (xem mục [Build Web Image](#3-build-web-image)) → push → trên VPS
+`make -f Makefile.prod deploy-web` (hoặc `docker compose -f docker-compose.prod.yml pull web && … up -d --no-deps web`).
+Sau khi deploy, hard-reload (Ctrl+Shift+R) vì HTML/JS chunk đã đổi hash.
+
 ### BuildKit
 
 Docker Desktop mặc định bật BuildKit. Nếu dùng Docker engine cũ:
@@ -230,6 +251,7 @@ $env:DOCKER_BUILDKIT=1
     docker build -f apps/web-1/Dockerfile \
       --build-arg NEXT_PUBLIC_API_URL=https://nexusforstartup.site \
       --build-arg NEXT_PUBLIC_CENTRIFUGO_URL="wss://nexusforstartup.site/connection/websocket" \
+      --build-arg NEXT_PUBLIC_JOURNEY_WORKSPACE=true \
       -t lgdlong/nexus-web:latest .
     docker push lgdlong/nexus-web:latest
 
