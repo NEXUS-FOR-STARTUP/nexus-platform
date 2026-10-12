@@ -11,12 +11,11 @@ Guide build và push Docker images cho Nexus Platform lên Docker Hub.
 > - `NEXT_PUBLIC_JOURNEY_WORKSPACE`: `page.tsx` của case workspace rẽ nhánh `process.env.NEXT_PUBLIC_JOURNEY_WORKSPACE === "true"`; inline thành `false` → nhánh workspace mới bị dead-code-eliminate → **prod rơi về giao diện workspace cũ dù image đúng commit**. Set trong `.env.prod`/compose vô tác dụng.
 >
 > **Phải có cả 3 `--build-arg` trong lệnh `docker build` web image.**
-> Kiểm tra bằng `docker exec nexus-web env | grep NEXT_PUBLIC` — nếu không thấy đủ biến là sai.
->
-> Verify image có workspace mới (bắt buộc phải ra ít nhất 1 dòng match):
+> Kiểm tra bằng cách grep bundle trong image (env runtime **không** chứa NEXT_PUBLIC_* — chúng chỉ tồn tại ở build stage):
 > ```bash
-> docker run --rm --entrypoint sh lgdlong/nexus-web:latest \
->   -c 'cat apps/web-1/.next/BUILD_ID; grep -rl "Hành trình" apps/web-1/.next | head -3'
+> docker run --rm --entrypoint sh lgdlong/nexus-web:latest -c \
+>   'cat apps/web-1/.next/BUILD_ID; echo; grep -rl "nexusforstartup.site" apps/web-1/.next | wc -l; grep -rl "Hành trình" apps/web-1/.next | wc -l'
+> # Output đúng: BUILD_ID + 2 dòng số, cả hai > 0 (thiếu arg nào thì dòng tương ứng = 0)
 > ```
 
 ## Prerequisites
@@ -198,13 +197,13 @@ API Dockerfile COPY `prisma/` thủ công vì `turbo prune` không include file 
 
 **Verify:**
 ```bash
-# Sau khi deploy, kiểm tra env trong container
-docker exec nexus-web env | grep NEXT_PUBLIC
-# Output kỳ vọng: NEXT_PUBLIC_API_URL=https://nexusforstartup.site
+# Bundle có chứa domain thật không (NEXT_PUBLIC_* không có trong env runtime của container)
+docker exec nexus-web sh -c 'grep -rl "nexusforstartup.site" apps/web-1/.next | wc -l'
+# Output kỳ vọng: > 0
 
-# Kiểm tra bundle JS (nginx/next.js server)
-docker exec nexus-web sh -c 'find apps/web-1/.next -name "*.js" -exec grep -l "nexusforstartup.site" {} \; 2>/dev/null | head -3'
-# Output kỳ vọng: tìm thấy file JS chứa domain
+# Kết hợp kiểm tra cờ journey workspace (workspace hiện tại của prod)
+docker exec nexus-web sh -c 'grep -rl "Hành trình" apps/web-1/.next | wc -l'
+# Output kỳ vọng: > 0
 ```
 
 ### Web image đúng commit nhưng prod vẫn hiện workspace cũ [TRIỆU CHỨNG: UI cũ ở /dashboard/case/...]
