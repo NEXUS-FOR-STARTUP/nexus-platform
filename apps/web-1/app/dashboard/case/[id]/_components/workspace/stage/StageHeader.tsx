@@ -47,9 +47,9 @@ export default function StageHeader({
             ) : null}
           </Group>
           <Text size="xs" c="dimmed">
-            {summary?.answered_count ?? 0}/
-            {TEMPLATE_REGISTRY[stage.templateKey]?.phases.flatMap((p) => p.questions).length ?? 0}{" "}
-            câu đã trả lời / {summary?.file_count ?? 0} tệp đính kèm / Còn {creditsRemaining} lượt chấm
+            <Text span fw={700} c="blue.7">{summary?.answered_count ?? 0}/{TEMPLATE_REGISTRY[stage.templateKey]?.phases.flatMap((p) => p.questions).length ?? 0}</Text>
+            {" "}câu đã trả lời / <Text span fw={700} c="blue.7">{summary?.file_count ?? 0}</Text> tệp đính kèm / Còn{" "}
+            <Text span fw={700} c={creditsRemaining === 0 ? "red.7" : "blue.7"}>{creditsRemaining}</Text> lượt chấm
           </Text>
         </Stack>
 
