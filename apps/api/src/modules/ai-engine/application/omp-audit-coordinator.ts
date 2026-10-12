@@ -248,8 +248,13 @@ export async function triggerOmpAuditForCase(
     force_supersede: forceSupersede = false,
   } = parsed.data;
   // The team chooses initial vs resubmit in the modal. A resubmit with no previous full
-  // report falls back to initial (same input, no comparison baseline).
+  // report falls back to initial BEFORE plan resolution so coordinator, worker
+  // (prompt files) and finalizer (report type) all see the same value.
   let submissionType = initialSubmissionType;
+  if (checkpointCode === "CP2" && submissionType === "resubmit" && !(await findLatestCp2FullReport(caseId))) {
+    submissionType = "initial";
+    logger.info({ caseId }, "CP2 resubmit without a previous full report; grading as initial");
+  }
   const resolvedModel = model?.trim() || process.env.OMP_MODEL || "opencode-go/deepseek-v4-pro";
   const plan = resolveAuditPlan(checkpointCode, checkpointCode === "CP1" ? promptMode : (scope as string), submissionType);
   // 2. Validate lifecycle_unit belongs to case (if provided)
@@ -351,10 +356,6 @@ export async function triggerOmpAuditForCase(
   // full report to compare with. Checked before charging so a rejected trigger costs nothing.
   if (checkpointCode === "CP2") {
     await ensureCheckpoint(prisma, caseId, CP2_CHECKPOINT_CODE, CP2_OPENED_STATUS);
-    if (submissionType === "resubmit" && !(await findLatestCp2FullReport(caseId))) {
-      submissionType = "initial";
-      logger.info({ caseId }, "CP2 resubmit without a previous full report; grading as initial");
-    }
     // Quality bar BEFORE charging: junk answers get a clean 400, not a
     // failed job + refund cycle. The assembler re-checks post-charge (TOCTOU).
     const gateRows = await prisma.projectAnswer.findMany({ where: { case_id: caseId }, select: { question_id: true, answer_text: true } });

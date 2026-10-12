@@ -1,6 +1,6 @@
 "use client";
 
-import { Modal, Stack, Text, Textarea, Button, Radio, Group, Paper, Alert, ThemeIcon } from "@mantine/core";
+import { Accordion, Modal, Stack, Text, Textarea, Button, Radio, Group, Alert, ThemeIcon } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { AlertCircle, Check, Minus, Sparkles } from "lucide-react";
 import type { StageDefinition } from "@app/shared/stages";
@@ -24,13 +24,16 @@ type Cp2Scope = "full" | "questionnaire";
 
 const SOURCE_PRIORITY: readonly Cp2InputSource[] = ["both", "answers", "files"];
 const SCOPE_PRIORITY: readonly Cp2Scope[] = ["full", "questionnaire"];
+const SOURCE_LABEL: Record<Cp2InputSource, string> = { both: "Cả câu trả lời và tài liệu", answers: "Chỉ câu trả lời", files: "Chỉ tài liệu" };
+const SCOPE_LABEL: Record<Cp2Scope, string> = { full: "Đánh giá toàn diện", questionnaire: "Chỉ soát bảng hỏi" };
 
 /**
  * Single grading entry point. Step 1 = what the team has (answers / files).
- * Step 2 = what to grade on (answers, files, or both) + scope + confirm.
- * Either input alone is enough: a team with detailed files skips the 26 questions,
+ * Step 2 = accordion of 4 compact cards (what to read, how far, which run, note to AI) + confirm.
+ * Either input alone is enough: a team with detailed files skips the questions,
  * a team with no files grades on answers. "Both" needs both to pass.
  * Readiness comes from the server summary so the client never re-implements the bar.
+ * Questionnaire has no resubmit plan, so picking it forces a fresh run.
  */
 export default function AuditConfirmModal({
   stage,
@@ -62,6 +65,11 @@ export default function AuditConfirmModal({
     if (src === "files") return hasFiles;
     if (src === "answers") return answersReadyFor(sc);
     return hasFiles && answersReadyFor(sc);
+  };
+  const handleScopeChange = (value: string) => {
+    const next = value as Cp2Scope;
+    setScope(next);
+    if (next === "questionnaire") setSubmissionType("initial");
   };
 
   // Default to resubmit when a result already exists; the team can still switch back.
@@ -169,95 +177,69 @@ export default function AuditConfirmModal({
           <>
             <Text size="sm" fw={600}>Bước 2/2: chọn cách chấm và xác nhận</Text>
             {isCp2 && (
-              <>
-                <Radio.Group
-                  value={source}
-                  onChange={(value) => setSource(value as Cp2InputSource)}
-                  label="AI đọc gì để chấm"
-                  description="Chọn đúng thứ bạn muốn được đánh giá."
-                >
-                  <Stack gap="xs" mt="xs">
-                    <Radio
-                      value="both"
-                      label="Cả câu trả lời và tài liệu"
-                      description={sourceReady("both", scope) ? "Chấm kỹ nhất: đối chiếu lời trả lời với tệp bạn nộp" : "Cần đủ câu trả lời và có ít nhất 1 tệp"}
-                      disabled={!sourceReady("both", scope)}
-                    />
-                    <Radio
-                      value="answers"
-                      label="Chỉ câu trả lời trong mẫu"
-                      description={sourceReady("answers", scope) ? "Hợp khi chưa có tài liệu riêng" : "Chưa đủ câu trả lời có nội dung"}
-                      disabled={!sourceReady("answers", scope)}
-                    />
-                    <Radio
-                      value="files"
-                      label="Chỉ tài liệu đã tải lên"
-                      description={hasFiles ? "Hợp khi tài liệu của bạn đã chi tiết, không cần trả lời từng câu" : "Chưa có tệp nào ở tab Tài liệu"}
-                      disabled={!hasFiles}
-                    />
-                  </Stack>
-                </Radio.Group>
+              <Accordion variant="separated" radius="md" defaultValue="source">
+                <Accordion.Item value="source">
+                  <Accordion.Control>Chấm gì <Text span size="xs" c="dimmed">— {SOURCE_LABEL[source]}</Text></Accordion.Control>
+                  <Accordion.Panel>
+                    <Radio.Group value={source} onChange={(value) => setSource(value as Cp2InputSource)}>
+                      <Stack gap="xs">
+                        <Radio value="both" label="Cả câu trả lời và tài liệu" description="Đối chiếu lời trả lời với tệp bạn nộp" disabled={!sourceReady("both", scope)} />
+                        <Radio value="answers" label="Chỉ câu trả lời" description="Hợp khi chưa có tài liệu riêng" disabled={!sourceReady("answers", scope)} />
+                        <Radio value="files" label="Chỉ tài liệu" description="Hợp khi tài liệu đã chi tiết" disabled={!hasFiles} />
+                      </Stack>
+                    </Radio.Group>
+                  </Accordion.Panel>
+                </Accordion.Item>
 
-                <Radio.Group
-                  value={scope}
-                  onChange={(value) => setScope(value as Cp2Scope)}
-                  label="Phạm vi chấm"
-                  description="Chọn gói đánh giá bạn muốn AI thực hiện."
-                >
-                  <Stack gap="xs" mt="xs">
-                    <Radio value="full" label="Đánh giá toàn diện (Đề xuất)" description="Kiểm tra bảng hỏi, logic khảo sát và bằng chứng" disabled={!sourceReady(source, "full")} />
-                    <Radio value="questionnaire" label="Chỉ soát bảng hỏi" description="Chỉ kiểm tra cấu trúc câu hỏi khảo sát" disabled={!sourceReady(source, "questionnaire")} />
-                  </Stack>
-                </Radio.Group>
-              </>
+                <Accordion.Item value="scope">
+                  <Accordion.Control>Chấm tới đâu <Text span size="xs" c="dimmed">— {SCOPE_LABEL[scope]}</Text></Accordion.Control>
+                  <Accordion.Panel>
+                    <Radio.Group value={scope} onChange={handleScopeChange}>
+                      <Stack gap="xs">
+                        <Radio value="full" label="Toàn diện (Đề xuất)" description="Bảng hỏi, logic khảo sát và bằng chứng" disabled={!sourceReady(source, "full")} />
+                        <Radio value="questionnaire" label="Chỉ soát bảng hỏi" description="Cấu trúc câu hỏi khảo sát" disabled={!sourceReady(source, "questionnaire")} />
+                      </Stack>
+                    </Radio.Group>
+                  </Accordion.Panel>
+                </Accordion.Item>
+
+                <Accordion.Item value="kind">
+                  <Accordion.Control>Lần chấm này <Text span size="xs" c="dimmed">— {submissionType === "resubmit" ? "Chấm lại" : "Chấm mới"}</Text></Accordion.Control>
+                  <Accordion.Panel>
+                    <Radio.Group value={submissionType} onChange={(value) => setSubmissionType(value as "initial" | "resubmit")}>
+                      <Stack gap="xs">
+                        <Radio value="initial" label="Chấm mới từ đầu" description="Không đối chiếu bản cũ" />
+                        <Radio value="resubmit" label="Chấm lại sau khi sửa" description={scope === "full" ? "Đối chiếu với kết quả lần trước" : "Chỉ có ở chấm toàn diện"} disabled={scope !== "full"} />
+                      </Stack>
+                    </Radio.Group>
+                    {submissionType === "resubmit" && (
+                      <Textarea
+                        mt="sm"
+                        label="Bạn đã sửa gì"
+                        placeholder="Ví dụ: phỏng vấn thêm 3 chuyên gia, tính lại SOM"
+                        value={changeSummary}
+                        onChange={(e) => setChangeSummary(e.currentTarget.value)}
+                        minRows={2}
+                        maxLength={5000}
+                      />
+                    )}
+                  </Accordion.Panel>
+                </Accordion.Item>
+
+                <Accordion.Item value="note">
+                  <Accordion.Control>Nhắn AI <Text span size="xs" c="dimmed">— {userNote.trim() ? "đã viết" : "không bắt buộc"}</Text></Accordion.Control>
+                  <Accordion.Panel>
+                    <Textarea
+                      placeholder="Ví dụ: soi kỹ phần SOM giúp mình"
+                      value={userNote}
+                      onChange={(e) => setUserNote(e.currentTarget.value)}
+                      minRows={2}
+                      maxLength={2000}
+                    />
+                  </Accordion.Panel>
+                </Accordion.Item>
+              </Accordion>
             )}
-
-            {isCp2 && (
-              <>
-                <Radio.Group
-                  value={submissionType}
-                  onChange={(value) => setSubmissionType(value as "initial" | "resubmit")}
-                  label="Loại chấm"
-                  description="Chấm lại so với kết quả lần trước. Chấm mới bỏ qua kết quả cũ, tốn 1 lượt như thường."
-                >
-                  <Stack gap="xs" mt="xs">
-                    <Radio value="initial" label="Chấm mới từ đầu" description="AI chấm toàn bộ bài nộp hiện tại, không đối chiếu bản cũ" />
-                    <Radio value="resubmit" label="Chấm lại sau khi sửa" description="AI đối chiếu với kết quả lần trước, xem đã sửa tới đâu" />
-                  </Stack>
-                </Radio.Group>
-
-                {submissionType === "resubmit" && (
-                  <Textarea
-                    label="Bạn đã sửa gì từ lần trước"
-                    description="AI dùng để đối chiếu, không thay bằng chứng."
-                    placeholder="Ví dụ: đã phỏng vấn thêm 3 chuyên gia, tính lại SOM từ dưới lên"
-                    value={changeSummary}
-                    onChange={(e) => setChangeSummary(e.currentTarget.value)}
-                    minRows={2}
-                    maxLength={5000}
-                  />
-                )}
-
-                <Textarea
-                  label="Ghi chú cho AI (không bắt buộc)"
-                  description="Muốn AI chú tâm vào phần nào hơn."
-                  placeholder="Ví dụ: soi kỹ phần SOM giúp mình, phần khảo sát mình tự tin rồi"
-                  value={userNote}
-                  onChange={(e) => setUserNote(e.currentTarget.value)}
-                  minRows={2}
-                  maxLength={2000}
-                />
-              </>
-            )}
-
-            <Paper p="sm" withBorder bg="var(--mantine-color-gray-0)">
-              <Stack gap={4}>
-                <Text size="xs" fw={600}>Hệ thống AI sẽ phân tích:</Text>
-                {(!isCp2 || source !== "files") && <Text size="xs" c="dimmed">• Các câu trả lời trong mẫu {stage.name}</Text>}
-                {(!isCp2 || source !== "answers") && <Text size="xs" c="dimmed">• Tài liệu tệp đính kèm bạn đã tải lên giai đoạn này</Text>}
-                {stage.code === "CP2" && <Text size="xs" c="dimmed">• Tóm tắt ý tưởng ở giai đoạn trước</Text>}
-              </Stack>
-            </Paper>
 
             {isCp2 && source === "answers" && !hasFiles && (
               <Alert color="yellow" title="Chấm khi thiếu tệp">

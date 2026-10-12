@@ -220,7 +220,10 @@ export async function assembleCp2InputFiles(req: Cp2InputRequest): Promise<{ inp
   if (req.submissionType === "resubmit") {
     const previous = await findLatestCp2FullReport(req.caseId);
     if (!previous) {
-      throw new AppError(409, "CP2_NO_PREVIOUS_REPORT", "Chưa có báo cáo CP2 toàn bộ trước đó để chấm lại.");
+      // Race: report deleted between the pre-charge guard and assembly (credit already
+      // taken). Grade as initial instead of failing + refunding the trigger.
+      logger.warn({ caseId: req.caseId }, "CP2 resubmit lost its previous report before assembly; grading as initial");
+      return { inputFiles, resolvedLifecycleUnitId: null };
     }
     const meta = { ...((previous.metadata_json ?? {}) as Record<string, unknown>) };
     for (const key of PROVENANCE_KEYS) delete meta[key];

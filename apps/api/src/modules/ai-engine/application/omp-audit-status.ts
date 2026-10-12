@@ -146,6 +146,7 @@ export async function getCaseAiAuditStatus(caseId: string, checkpoint?: string) 
     checkpoint: jobCheckpoint,
     scope: typeof aiJobInput?.scope === "string" ? aiJobInput.scope : undefined,
     inputSource: typeof aiJobInput?.input_source === "string" ? aiJobInput.input_source : undefined,
+    userNote: typeof aiJobInput?.user_note === "string" ? aiJobInput.user_note : undefined,
     steps: computeProgressSteps(jobCheckpoint, milestones.presentFiles ?? [], {
       finished: finalStatus === "completed",
       running: finalStatus === "running",

@@ -13,7 +13,7 @@ import { filterCleanLogs } from "../../radar.utils";
 interface StageGradingPanelProps {
   caseId: string;
   checkpoint: "CP1" | "CP2";
-  /** Submission type for "Chạy lại"; same rule the grading modal uses. */
+  /** Submission type for "Chạy lại" (retry after a failed run reuses the previous run's type; the API falls back to initial when there is no previous report). The note is carried from the last run's status. */
   submissionType: SubmissionType;
   onViewResults: () => void;
 }
@@ -116,6 +116,7 @@ export default function StageGradingPanel({ caseId, checkpoint, submissionType, 
             ...(data.inputSource === "answers" || data.inputSource === "files" || data.inputSource === "both"
               ? { input_source: data.inputSource }
               : {}),
+            ...(typeof data.userNote === "string" && data.userNote.trim() ? { user_note: data.userNote } : {}),
           }
         : {}),
     });
