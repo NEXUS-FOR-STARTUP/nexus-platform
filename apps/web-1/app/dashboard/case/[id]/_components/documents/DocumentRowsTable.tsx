@@ -1,120 +1,60 @@
 "use client";
 
-import { Anchor, Badge, Button, Group, Table, Text } from "@mantine/core";
+import { Anchor, Button, Table, Text } from "@mantine/core";
 import { Download } from "lucide-react";
 import {
   DocumentRow,
   WorkspaceTab,
   formatDate,
-  getFormatColor,
 } from "./document-workspace.types";
-import type { DocumentCategoryGroup } from "./document-groups";
 import DocumentTableRow from "./DocumentTableRow";
 
 interface DocumentRowsTableProps {
   activeTab: WorkspaceTab;
   rows: DocumentRow[];
-  groups: DocumentCategoryGroup[];
-}
-
-function GroupedDocumentRows({ group }: { group: DocumentCategoryGroup }) {
-  return (
-    <>
-      <Table.Tr className="bg-surface-soft/40">
-        <Table.Td colSpan={8} className="py-2.5">
-          <Group gap="xs" wrap="nowrap">
-            <Text className="text-base font-semibold text-text-app">
-              {group.label}
-            </Text>
-            <Badge variant="light" color="gray" size="sm" radius="xl">
-              {group.rows.length}
-            </Badge>
-          </Group>
-        </Table.Td>
-      </Table.Tr>
-      {group.rows.map((row) => (
-        <DocumentTableRow key={row.key} row={row} activeTab="documents" />
-      ))}
-    </>
-  );
 }
 
 function DocumentMobileCard({
   row,
-  activeTab,
+  showUploader,
 }: {
   row: DocumentRow;
-  activeTab: WorkspaceTab;
+  showUploader: boolean;
 }) {
-  const isSupporter =
-    row.uploaderRole === "supporter" || row.uploaderRole === "admin";
-  const isReport = activeTab === "assessment-reports";
   const { date, time } = formatDate(row.createdAt);
+  const meta = [
+    row.versionLabel,
+    row.contextLabel,
+    showUploader ? row.uploaderLabel : null,
+    `${date}${time ? ` ${time}` : ""}`,
+    row.formatLabel,
+  ]
+    .filter(Boolean)
+    .join(" • ");
 
   return (
-    <div className="p-3.5 rounded-xl border border-border-app bg-surface-app flex flex-col gap-2.5">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5">
-          <Badge variant="outline" color="gray" size="sm" radius="md">
-            {row.versionLabel}
-          </Badge>
-          <Badge
-            variant="light"
-            color={
-              isReport
-                ? row.contextLabel === "Đã sửa"
-                  ? "blue"
-                  : row.contextLabel === "Lần đầu"
-                    ? "teal"
-                    : "violet"
-                : isSupporter
-                  ? "violet"
-                  : "blue"
-            }
-            size="sm"
-            radius="xl"
-          >
-            {row.contextLabel}
-          </Badge>
-        </div>
-        <Badge
-          variant="light"
-          color={getFormatColor(row.formatLabel)}
-          size="xs"
-          radius="md"
-          className="uppercase font-mono shrink-0"
-        >
-          {row.formatLabel}
-        </Badge>
-      </div>
-
+    <div className="p-3 rounded-xl border border-border-app bg-surface-app flex flex-col gap-1.5">
       <div className="min-w-0">
         {row.hasAction && row.url ? (
           <Anchor
             href={row.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-semibold text-brand hover:underline break-words"
+            className="text-sm font-medium text-brand hover:underline break-words leading-snug"
           >
             {row.displayName}
           </Anchor>
         ) : (
-          <Text className="text-sm font-medium text-text-app break-words">
+          <Text className="text-sm font-medium text-text-app break-words leading-snug">
             {row.displayName}
           </Text>
         )}
       </div>
 
-      <div className="flex items-center justify-between text-xs text-text-muted pt-1 border-t border-border-app/60 gap-2">
-        <div className="flex items-center gap-1.5 min-w-0 text-[11px] sm:text-xs">
-          <span className="shrink-0">{date} {time}</span>
-          {(activeTab === "documents" || isReport) && row.uploaderLabel && (
-            <>
-              <span className="opacity-40">•</span>
-              <span className="truncate font-medium text-text-subtle">{row.uploaderLabel}</span>
-            </>
-          )}
-        </div>
+      <div className="flex items-center justify-between gap-2">
+        <Text className="text-xs text-text-muted leading-snug min-w-0">
+          {meta}
+        </Text>
         {row.hasAction && row.url && (
           <Button
             component="a"
@@ -122,10 +62,10 @@ function DocumentMobileCard({
             target="_blank"
             rel="noopener noreferrer"
             variant="subtle"
-            size="sm"
+            size="xs"
             color="brand"
             leftSection={<Download className="w-3.5 h-3.5" />}
-            className="min-h-[44px] font-medium"
+            className="shrink-0 font-medium"
           >
             Tải về
           </Button>
@@ -138,58 +78,38 @@ function DocumentMobileCard({
 export default function DocumentRowsTable({
   activeTab,
   rows,
-  groups,
 }: DocumentRowsTableProps) {
   const isReport = activeTab === "assessment-reports";
+  const showUploader = activeTab === "documents" || isReport;
 
   return (
     <div className="w-full">
       {/* Mobile Card View (md:hidden) */}
-      <div className="md:hidden flex flex-col gap-3">
-        {activeTab === "documents"
-          ? groups.map((group) => (
-              <div key={group.key} className="flex flex-col gap-2">
-                <div className="flex items-center gap-2 px-1 pt-2">
-                  <Text className="text-sm font-semibold text-text-app">
-                    {group.label}
-                  </Text>
-                  <Badge variant="light" color="gray" size="xs" radius="xl">
-                    {group.rows.length}
-                  </Badge>
-                </div>
-                {group.rows.map((row) => (
-                  <DocumentMobileCard
-                    key={row.key}
-                    row={row}
-                    activeTab="documents"
-                  />
-                ))}
-              </div>
-            ))
-          : rows.map((row) => (
-              <DocumentMobileCard
-                key={row.key}
-                row={row}
-                activeTab={activeTab}
-              />
-            ))}
+      <div className="md:hidden flex flex-col gap-2 p-2">
+        {rows.map((row) => (
+          <DocumentMobileCard
+            key={row.key}
+            row={row}
+            showUploader={showUploader}
+          />
+        ))}
       </div>
 
       {/* Desktop Table View (hidden md:block) */}
-      <div className="hidden md:block overflow-x-auto w-full">
+      <div className="hidden md:block w-full">
         <Table
           highlightOnHover
-          verticalSpacing="sm"
-          horizontalSpacing="md"
-          className="w-full min-w-[920px]"
+          verticalSpacing="xs"
+          horizontalSpacing="sm"
+          className="w-full"
         >
           <Table.Thead className="bg-surface-soft/40 border-b border-border-app">
             <Table.Tr>
-              <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[85px]">
+              <Table.Th className="text-xs font-medium text-text-muted py-2">
                 {activeTab === "external-feedback" ? "Đợt" : "Phiên bản"}
               </Table.Th>
 
-              <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[130px]">
+              <Table.Th className="text-xs font-medium text-text-muted py-2">
                 {activeTab === "documents"
                   ? "Phân loại"
                   : activeTab === "external-feedback"
@@ -197,49 +117,38 @@ export default function DocumentRowsTable({
                     : "Loại nộp"}
               </Table.Th>
 
-              {(activeTab === "documents" || isReport) && (
-                <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[120px]">
+              {showUploader && (
+                <Table.Th className="text-xs font-medium text-text-muted py-2">
                   {isReport ? "Nguồn tạo" : "Người tải"}
                 </Table.Th>
               )}
 
-              {/* Filename column allocated maximum flexible width */}
-              <Table.Th className="text-base font-medium text-text-muted py-3.5 min-w-[320px]">
+              <Table.Th className="text-xs font-medium text-text-muted py-2">
                 {isReport ? "Tên file báo cáo" : "Tên tài liệu"}
               </Table.Th>
 
-              <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[130px] whitespace-nowrap">
+              <Table.Th className="text-xs font-medium text-text-muted py-2 whitespace-nowrap">
                 Thời gian
               </Table.Th>
 
-              {!isReport && (
-                <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[110px]">
-                  Nguồn
-                </Table.Th>
-              )}
-
-              <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[90px]">
+              <Table.Th className="text-xs font-medium text-text-muted py-2">
                 Định dạng
               </Table.Th>
 
-              <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[75px] text-right">
+              <Table.Th className="text-xs font-medium text-text-muted py-2 text-right">
                 Thao tác
               </Table.Th>
             </Table.Tr>
           </Table.Thead>
 
           <Table.Tbody>
-            {activeTab === "documents"
-              ? groups.map((group) => (
-                  <GroupedDocumentRows key={group.key} group={group} />
-                ))
-              : rows.map((row) => (
-                  <DocumentTableRow
-                    key={row.key}
-                    row={row}
-                    activeTab={activeTab}
-                  />
-                ))}
+            {rows.map((row) => (
+              <DocumentTableRow
+                key={row.key}
+                row={row}
+                activeTab={activeTab}
+              />
+            ))}
           </Table.Tbody>
         </Table>
       </div>

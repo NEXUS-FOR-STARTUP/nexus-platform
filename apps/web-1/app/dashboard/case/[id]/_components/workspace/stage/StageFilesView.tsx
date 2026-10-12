@@ -1,20 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Stack, Paper, Text, Button, Group, FileButton, Alert } from "@mantine/core";
+import { Stack, Paper, Text, Button, Group, Alert } from "@mantine/core";
 import { Upload, AlertCircle, FileText } from "lucide-react";
-import { notifications } from "@mantine/notifications";
-import { useStageDocumentUpload } from "../../../hooks/useStageDocumentUpload";
-import { apiClient } from "@/lib/api-client";
 import type { StageCode } from "@app/shared/stages";
 import type { DocumentWorkspace } from "@/types";
+import StageDocumentUploadModal from "./StageDocumentUploadModal";
 import {
   buildSupportFlowRows,
   buildExternalFeedbackRows,
   type WorkspaceTab,
   type FilterRole,
 } from "../../documents/document-workspace.types";
-import { buildCategoryGroups } from "../../documents/document-groups";
 import DocumentRowsTable from "../../documents/DocumentRowsTable";
 import DocumentWorkspaceHeader from "../../documents/DocumentWorkspaceHeader";
 
@@ -33,10 +30,9 @@ export default function StageFilesView({
   fileCount,
   documentWorkspace,
 }: StageFilesViewProps) {
-  const [uploading, setUploading] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("documents");
   const [filterRole, setFilterRole] = useState<FilterRole>("all");
-  const uploadMutation = useStageDocumentUpload(caseId, checkpointCode);
   const isMarketStage = checkpointCode === "CP2";
 
   const selectedCheckpoint = useMemo(() => {
@@ -75,11 +71,6 @@ export default function StageFilesView({
     return documentRows;
   }, [activeTab, documentRows, feedbackRows, filterRole]);
 
-  const displayedGroups = useMemo(
-    () => (activeTab === "documents" ? buildCategoryGroups(displayedRows) : []),
-    [activeTab, displayedRows],
-  );
-
   const studentDocCount = useMemo(
     () => documentRows.filter((r) => r.uploaderRole === "student").length,
     [documentRows],
@@ -89,42 +80,8 @@ export default function StageFilesView({
     [documentRows],
   );
 
-  const handleUploadFile = async (file: File | null) => {
-    if (!file) return;
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await apiClient.post("/cases/uploads/managed-document", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      const uploaded = res.data as {
-        file_url: string;
-        download_url: string;
-        cloudinary_public_id: string;
-        extension: string;
-        mime_type: string;
-      };
-      await uploadMutation.mutateAsync([
-        {
-          original_name: file.name,
-          file_url: uploaded.file_url,
-          download_url: uploaded.download_url,
-          cloudinary_public_id: uploaded.cloudinary_public_id,
-          extension: uploaded.extension || "bin",
-          mime_type: uploaded.mime_type || "application/octet-stream",
-          doc_type: "pitch_deck",
-        },
-      ]);
-      notifications.show({ color: "green", title: "Tải tệp thành công", message: file.name });
-    } catch {
-      notifications.show({ color: "red", title: "Lỗi tải tệp", message: "Không thể tải tài liệu lên." });
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const hasDocuments = documentRows.length > 0 || feedbackRows.length > 0;
+
 
   return (
     <Stack gap="md">
@@ -142,13 +99,9 @@ export default function StageFilesView({
             <Text fw={600} size="sm">Tài liệu đã nộp ({fileCount})</Text>
             <Text size="xs" c="dimmed">Định dạng hỗ trợ: PDF, DOCX, XLSX, PPTX (tối đa 25MB)</Text>
           </Stack>
-          <FileButton onChange={handleUploadFile} accept=".pdf,.docx,.xlsx,.pptx,.txt">
-            {(props) => (
-              <Button {...props} size="sm" leftSection={<Upload size={16} />} loading={uploading}>
-                Tải tài liệu mới
-              </Button>
-            )}
-          </FileButton>
+          <Button size="sm" leftSection={<Upload size={16} />} onClick={() => setUploadOpen(true)}>
+            Tải tài liệu mới
+          </Button>
         </Group>
       </Paper>
 
@@ -191,11 +144,16 @@ export default function StageFilesView({
             <DocumentRowsTable
               activeTab={activeTab}
               rows={displayedRows}
-              groups={displayedGroups}
             />
           )}
         </div>
       )}
+      <StageDocumentUploadModal
+        opened={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        caseId={caseId}
+        checkpointCode={checkpointCode}
+      />
     </Stack>
   );
 }

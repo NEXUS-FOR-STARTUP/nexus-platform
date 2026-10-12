@@ -1,12 +1,12 @@
 "use client";
 
-import { Anchor, Badge, Button, Table, Text, Tooltip } from "@mantine/core";
-import { Download, FileText } from "lucide-react";
+import { Anchor, Button, Table, Text, Tooltip } from "@mantine/core";
+import { Download } from "lucide-react";
+import FileTypeIcon from "@/components/ui/FileTypeIcon";
 import {
   DocumentRow,
   WorkspaceTab,
   formatDate,
-  getFormatColor,
 } from "./document-workspace.types";
 
 interface DocumentTableRowProps {
@@ -15,111 +15,69 @@ interface DocumentTableRowProps {
 }
 
 export default function DocumentTableRow({ row, activeTab }: DocumentTableRowProps) {
-  const isSupporter =
-    row.uploaderRole === "supporter" || row.uploaderRole === "admin";
-  const isStudent = row.uploaderRole === "student";
   const isReport = activeTab === "assessment-reports";
   const { date, time } = formatDate(row.createdAt);
 
   return (
     <Table.Tr className="transition-colors hover:bg-surface-soft/60">
-      <Table.Td className="py-3.5">
-        <Text className="text-base font-medium text-text-app">
+      <Table.Td className="py-2 w-[52px]">
+        <Text className="font-mono text-[13px] text-text-muted whitespace-nowrap">
           {row.versionLabel}
         </Text>
       </Table.Td>
 
-      <Table.Td className="py-3.5">
-        <Badge
-          variant="light"
-          color={
-            isReport
-              ? row.contextLabel === "Đã sửa"
-                ? "blue"
-                : row.contextLabel === "Lần đầu"
-                  ? "teal"
-                  : "violet"
-              : isSupporter
-                ? "violet"
-                : "blue"
-          }
-          size="md"
-          radius="xl"
-          className="font-medium text-base whitespace-nowrap"
-        >
+      <Table.Td className="py-2 w-[148px]">
+        <Text className="text-sm leading-snug text-text-app" title={row.contextLabel}>
           {row.contextLabel}
-        </Badge>
+        </Text>
       </Table.Td>
 
       {(activeTab === "documents" || isReport) && (
-        <Table.Td className="py-3.5">
-          <Badge
-            variant="light"
-            color={isReport ? "violet" : isSupporter ? "violet" : isStudent ? "teal" : "gray"}
-            size="md"
-            radius="xl"
-            className="font-medium text-base whitespace-nowrap"
-          >
+        <Table.Td className="py-2 w-[88px]">
+          <Text className="text-sm text-text-muted whitespace-nowrap">
             {row.uploaderLabel}
-          </Badge>
+          </Text>
         </Table.Td>
       )}
 
-      {/* File name cell: whitespace-nowrap to prevent ugly wrapping */}
-      <Table.Td className="py-3.5 min-w-[320px]">
-        <div className="flex items-center gap-2">
-          {isReport && <FileText className="w-4 h-4 text-red-500 shrink-0" />}
+      <Table.Td className="py-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="shrink-0">
+            <FileTypeIcon name={row.displayName} size={20} />
+          </span>
           {row.hasAction && row.url ? (
             <Anchor
               href={row.url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`text-base text-brand hover:underline font-normal whitespace-nowrap ${
+              className={`min-w-0 text-sm font-medium text-brand hover:underline break-words leading-snug ${
                 isReport ? "font-mono" : ""
               }`}
             >
               {row.displayName}
             </Anchor>
           ) : (
-            <Text className="text-base text-text-muted font-normal whitespace-nowrap">
+            <Text className="min-w-0 text-sm text-text-app break-words leading-snug">
               {row.displayName}
             </Text>
           )}
         </div>
       </Table.Td>
 
-      <Table.Td className="py-3.5 whitespace-nowrap">
-        <Text className="font-normal text-text-app text-base leading-tight">
+      <Table.Td className="py-2 w-[122px]">
+        <Text className="text-[13px] text-text-muted whitespace-nowrap tabular-nums">
           {date}
+          {time ? ` · ${time}` : ""}
         </Text>
-        {time && (
-          <Text c="dimmed" className="text-base mt-0.5 font-normal">
-            {time}
-          </Text>
-        )}
       </Table.Td>
 
-      {!isReport && (
-        <Table.Td className="py-3.5">
-          <Text className="text-base text-text-app font-normal">
-            {row.sourceLabel}
-          </Text>
-        </Table.Td>
-      )}
-
-      <Table.Td className="py-3.5">
-        <Badge
-          variant="light"
-          color={getFormatColor(row.formatLabel)}
-          size="md"
-          radius="xl"
-          className="font-medium text-base uppercase whitespace-nowrap"
-        >
+      <Table.Td className="py-2 w-[62px]">
+        <Text className="font-mono text-xs uppercase text-text-muted whitespace-nowrap">
           {row.formatLabel}
-        </Badge>
+        </Text>
       </Table.Td>
 
-      <Table.Td className="py-3.5 text-right">
+      <Table.Td className="py-2 w-[44px] text-right">
         {row.hasAction && row.url ? (
           <Tooltip label="Tải xuống tài liệu">
             <Button
@@ -127,16 +85,17 @@ export default function DocumentTableRow({ row, activeTab }: DocumentTableRowPro
               href={row.url}
               target="_blank"
               rel="noopener noreferrer"
-              size="sm"
+              size="xs"
               variant="subtle"
               color="gray"
+              aria-label={`Tải xuống ${row.displayName}`}
               className="cursor-pointer shrink-0"
             >
               <Download className="w-4 h-4 text-text-subtle hover:text-brand" />
             </Button>
           </Tooltip>
         ) : (
-          <span className="text-text-subtle text-base">—</span>
+          <span className="text-text-subtle text-sm">—</span>
         )}
       </Table.Td>
     </Table.Tr>
