@@ -48,7 +48,7 @@ COPY prisma.config.ts ./prisma.config.ts
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 
 # Build the API (generates prisma client and compiles via tsconfig.build.json without tests)
-RUN bun run --filter nexus-platform-api build
+RUN bun run --filter @repo/validation build && bun run --filter nexus-platform-api build
 
 # -----------------------------------------------------------------------------
 # Stage 6: Runner

@@ -47,7 +47,7 @@ ARG NEXT_PUBLIC_JOURNEY_WORKSPACE
 ENV NEXT_PUBLIC_JOURNEY_WORKSPACE=$NEXT_PUBLIC_JOURNEY_WORKSPACE
 ENV NODE_ENV=production
 
-RUN bun run --filter nexus-platform-web-1 build
+RUN bun run --filter @repo/validation build && bun run --filter nexus-platform-web-1 build
 
 # -----------------------------------------------------------------------------
 # Stage 5: Runner (Node.js runtime for Next.js standalone stability)
