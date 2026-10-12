@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMediaQuery } from "@mantine/hooks";
-import { Check, Lock, Circle, AlertTriangle, ChevronRight, ChevronDown } from "lucide-react";
+import { Check, Lock, Circle, CircleAlert, ChevronRight, ChevronDown } from "lucide-react";
 import { QUESTION_REGISTRY, type Question, type Template } from "@repo/validation";
 import { isThinAnswer } from "./answer-quality";
 
@@ -97,7 +97,7 @@ export default function GuidedTOC({
                         <Lock className="w-3.5 h-3.5 shrink-0 text-text-muted" />
                       ) : isThin ? (
                         <span title="Câu trả lời còn ngắn — bấm để viết thêm" className="shrink-0">
-                          <AlertTriangle className="w-3.5 h-3.5 text-amber-500" fill="currentColor" />
+                          <CircleAlert className="w-3.5 h-3.5 text-amber-500" />
                         </span>
                       ) : hasAnswer ? (
                         <span
