@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 760" font-family="Be Vietnam Pro, Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#64748B"/></marker>
+    <marker id="aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#EA580C"/></marker>
+  </defs>
+  <rect width="1280" height="760" fill="#F8FAFC"/>
+  <text x="40" y="48" font-size="24" font-weight="700" fill="#0F172A">Luồng người dùng: hiện tại và đề xuất</text>
+
+  <!-- Hiện tại -->
+  <text x="40" y="96" font-size="15" font-weight="700" fill="#DC2626">HIỆN TẠI: phải trả tiền trước khi hiểu sản phẩm</text>
+  <g font-size="13" fill="#0F172A">
+    <rect x="40" y="112" width="120" height="48" rx="8" fill="#fff" stroke="#E2E8F0"/><text x="100" y="141" text-anchor="middle">Landing</text>
+    <rect x="186" y="112" width="120" height="48" rx="8" fill="#fff" stroke="#E2E8F0"/><text x="246" y="141" text-anchor="middle">Đăng nhập</text>
+    <rect x="332" y="112" width="150" height="48" rx="8" fill="#FEF2F2" stroke="#DC2626"/><text x="407" y="133" text-anchor="middle">Chọn gói</text><text x="407" y="151" text-anchor="middle">&amp; trả tiền</text>
+    <rect x="508" y="112" width="120" height="48" rx="8" fill="#fff" stroke="#E2E8F0"/><text x="568" y="141" text-anchor="middle">Intake</text>
+    <rect x="654" y="112" width="120" height="48" rx="8" fill="#fff" stroke="#E2E8F0"/><text x="714" y="141" text-anchor="middle">Tổng quan</text>
+    <rect x="800" y="112" width="140" height="48" rx="8" fill="#fff" stroke="#E2E8F0"/><text x="870" y="133" text-anchor="middle">Soạn thảo</text><text x="870" y="151" text-anchor="middle">tài liệu (gallery)</text>
+    <rect x="966" y="112" width="120" height="48" rx="8" fill="#fff" stroke="#E2E8F0"/><text x="1026" y="141" text-anchor="middle">Template</text>
+    <rect x="1112" y="112" width="130" height="48" rx="8" fill="#FEF2F2" stroke="#DC2626"/><text x="1177" y="133" text-anchor="middle">Khối mua lẫn</text><text x="1177" y="151" text-anchor="middle">trong trang soạn</text>
+  </g>
+  <g stroke="#64748B" stroke-width="1.5" marker-end="url(#a)">
+    <line x1="160" y1="136" x2="184" y2="136"/><line x1="306" y1="136" x2="330" y2="136"/><line x1="482" y1="136" x2="506" y2="136"/>
+    <line x1="628" y1="136" x2="652" y2="136"/><line x1="774" y1="136" x2="798" y2="136"/><line x1="940" y1="136" x2="964" y2="136"/><line x1="1086" y1="136" x2="1110" y2="136"/>
+  </g>
+  <text x="40" y="190" font-size="13" fill="#64748B">8 chỗ mua khác nhau · chấm giai đoạn này chặn giai đoạn kia · kết quả nằm ở 2 tab · số lượt chỉ đếm 1 dịch vụ</text>
+
+  <line x1="40" y1="220" x2="1240" y2="220" stroke="#E2E8F0"/>
+
+  <!-- Đề xuất -->
+  <text x="40" y="258" font-size="15" font-weight="700" fill="#16A34A">ĐỀ XUẤT: làm trước, trả tiền khi cần chấm</text>
+  <g font-size="13" fill="#0F172A">
+    <rect x="40" y="280" width="120" height="52" rx="8" fill="#fff" stroke="#E2E8F0"/><text x="100" y="311" text-anchor="middle">Landing</text>
+    <rect x="190" y="280" width="120" height="52" rx="8" fill="#fff" stroke="#E2E8F0"/><text x="250" y="311" text-anchor="middle">Đăng nhập</text>
+    <rect x="340" y="280" width="170" height="52" rx="8" fill="#F0FDF4" stroke="#16A34A"/><text x="425" y="302" text-anchor="middle">Tạo dự án</text><text x="425" y="320" text-anchor="middle" fill="#64748B" font-size="12">miễn phí · tên + nhóm</text>
+    <rect x="540" y="280" width="170" height="52" rx="8" fill="#fff" stroke="#E2E8F0"/><text x="625" y="302" text-anchor="middle">Tổng quan</text><text x="625" y="320" text-anchor="middle" fill="#64748B" font-size="12">việc tiếp theo</text>
+    <rect x="740" y="280" width="170" height="52" rx="8" fill="#fff" stroke="#E2E8F0"/><text x="825" y="302" text-anchor="middle">Hành trình</text><text x="825" y="320" text-anchor="middle" fill="#64748B" font-size="12">lưới giai đoạn + dịch vụ</text>
+    <rect x="940" y="270" width="300" height="72" rx="8" fill="#EFF6FF" stroke="#2563EB" stroke-width="2"/>
+    <text x="1090" y="296" text-anchor="middle" font-weight="700" fill="#2563EB">Chi tiết 1 giai đoạn (vd. Thị trường)</text>
+    <text x="1090" y="320" text-anchor="middle" fill="#0F172A">Soạn thảo · Tài liệu nộp · Kết quả chấm</text>
+  </g>
+  <g stroke="#64748B" stroke-width="1.5" marker-end="url(#a)">
+    <line x1="160" y1="306" x2="188" y2="306"/><line x1="310" y1="306" x2="338" y2="306"/><line x1="510" y1="306" x2="538" y2="306"/><line x1="710" y1="306" x2="738" y2="306"/><line x1="910" y1="306" x2="938" y2="306"/>
+  </g>
+
+  <!-- nhánh chấm -->
+  <g font-size="13" fill="#0F172A">
+    <rect x="990" y="400" width="200" height="48" rx="24" fill="#2563EB"/><text x="1090" y="429" text-anchor="middle" fill="#fff" font-weight="700">Bấm "Chấm bài"</text>
+    <polygon points="1090,480 1170,520 1090,560 1010,520" fill="#fff" stroke="#64748B"/><text x="1090" y="525" text-anchor="middle">Còn lượt?</text>
+    <rect x="700" y="496" width="230" height="48" rx="8" fill="#fff" stroke="#E2E8F0"/><text x="815" y="517" text-anchor="middle">Hộp xác nhận chấm</text><text x="815" y="535" text-anchor="middle" fill="#64748B" font-size="12">chọn phạm vi · dùng 1 lượt</text>
+    <rect x="440" y="496" width="200" height="48" rx="8" fill="#fff" stroke="#E2E8F0"/><text x="540" y="517" text-anchor="middle">Đang chấm</text><text x="540" y="535" text-anchor="middle" fill="#64748B" font-size="12">trạng thái riêng giai đoạn</text>
+    <rect x="180" y="496" width="200" height="48" rx="8" fill="#F0FDF4" stroke="#16A34A"/><text x="280" y="517" text-anchor="middle">Kết quả chấm</text><text x="280" y="535" text-anchor="middle" fill="#64748B" font-size="12">điểm · việc cần sửa · PDF</text>
+    <rect x="990" y="610" width="200" height="52" rx="8" fill="#FFF7ED" stroke="#EA580C"/><text x="1090" y="632" text-anchor="middle">Hộp mua lượt</text><text x="1090" y="650" text-anchor="middle" fill="#64748B" font-size="12">gói của đúng dịch vụ này</text>
+    <rect x="700" y="610" width="230" height="52" rx="8" fill="#FFF7ED" stroke="#EA580C"/><text x="815" y="632" text-anchor="middle">Nạp ví VietQR</text><text x="815" y="650" text-anchor="middle" fill="#64748B" font-size="12">chỉ khi ví thiếu tiền</text>
+  </g>
+  <g stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#a)">
+    <line x1="1090" y1="342" x2="1090" y2="398"/>
+    <line x1="1090" y1="448" x2="1090" y2="478"/>
+    <line x1="1010" y1="520" x2="932" y2="520"/>
+    <line x1="700" y1="520" x2="642" y2="520"/>
+    <line x1="440" y1="520" x2="382" y2="520"/>
+    <path d="M280,496 L280,460 L940,460 L940,342"/>
+  </g>
+  <g stroke="#EA580C" stroke-width="1.5" fill="none" marker-end="url(#aw)">
+    <line x1="1090" y1="560" x2="1090" y2="608"/>
+    <path d="M990,636 L932,636"/>
+    <path d="M815,662 L815,700 L1210,700 L1210,520 L1172,520"/>
+  </g>
+  <text x="1100" y="590" font-size="12" fill="#EA580C">hết lượt</text>
+  <text x="950" y="512" font-size="12" fill="#16A34A">còn</text>
+  <text x="300" y="454" font-size="12" fill="#64748B">chấm lại bản sửa</text>
+  <text x="900" y="718" font-size="12" fill="#EA580C">mua xong → quay lại hộp xác nhận</text>
+</svg>

@@ -11,7 +11,9 @@ import type { Template } from "./types.js";
 
 export const cp1: Template = {
   template_key: "cp1",
-  title: "Startup Checkpoint 1 — Mô tả ý tưởng",
+  title: "Mô tả ý tưởng khởi nghiệp",
+  description: "Mô tả ý tưởng, khách hàng, vấn đề và giải pháp ban đầu.",
+  cover_image: "/cp1.png",
   phases: [
     {
       id: "thong_tin_nhom",
@@ -29,8 +31,8 @@ export const cp1: Template = {
       unlock_requires: [],
       questions: [
         { question_id: "cp1_primary_customer", classification: "required" },
-        { question_id: "cp1_non_priority_customer", classification: "recommended" },
-        { question_id: "cp1_role_breakdown", classification: "recommended" },
+        { question_id: "cp1_non_priority_customer", classification: "recommended", unlock_requires: ["cp1_primary_customer"] },
+        { question_id: "cp1_role_breakdown", classification: "recommended", unlock_requires: ["cp1_primary_customer"] },
       ],
     },
     {
@@ -38,16 +40,16 @@ export const cp1: Template = {
       title: "Câu chuyện khách hàng",
       unlock_requires: ["cp1_primary_customer"],
       questions: [
-        { question_id: "cp1_customer_story", classification: "recommended" },
+        { question_id: "cp1_customer_story", classification: "recommended", unlock_requires: ["cp1_primary_customer"] },
       ],
     },
     {
       id: "pain_point",
-      title: "Pain Point",
+      title: "Vấn đề của khách hàng (Pain Point)",
       unlock_requires: ["cp1_primary_customer"],
       questions: [
         { question_id: "cp1_main_problem", classification: "required" },
-        { question_id: "cp1_problem_severity", classification: "required" },
+        { question_id: "cp1_problem_severity", classification: "required", unlock_requires: ["cp1_main_problem"] },
       ],
     },
     {
@@ -56,8 +58,8 @@ export const cp1: Template = {
       unlock_requires: ["cp1_main_problem"],
       questions: [
         { question_id: "cp1_current_alternatives", classification: "required" },
-        { question_id: "cp1_alternatives_analysis", classification: "recommended" },
-        { question_id: "cp1_required_improvement", classification: "required" },
+        { question_id: "cp1_alternatives_analysis", classification: "recommended", unlock_requires: ["cp1_current_alternatives"] },
+        { question_id: "cp1_required_improvement", classification: "required", unlock_requires: ["cp1_current_alternatives"] },
       ],
     },
     {
@@ -66,9 +68,9 @@ export const cp1: Template = {
       unlock_requires: ["cp1_main_problem"],
       questions: [
         { question_id: "cp1_solution_description", classification: "required" },
-        { question_id: "cp1_solution_mechanism", classification: "required" },
-        { question_id: "cp1_core_features", classification: "recommended" },
-        { question_id: "cp1_out_of_scope", classification: "recommended" },
+        { question_id: "cp1_solution_mechanism", classification: "required", unlock_requires: ["cp1_solution_description"] },
+        { question_id: "cp1_core_features", classification: "recommended", unlock_requires: ["cp1_solution_description"] },
+        { question_id: "cp1_out_of_scope", classification: "required", unlock_requires: ["cp1_solution_description"] },
       ],
     },
     {
@@ -77,9 +79,9 @@ export const cp1: Template = {
       unlock_requires: ["cp1_solution_description"],
       questions: [
         { question_id: "cp1_riskiest_assumption", classification: "required" },
-        { question_id: "cp1_mvp_definition", classification: "required" },
-        { question_id: "cp1_mvp_test_plan", classification: "required" },
-        { question_id: "cp1_mvp_pass_fail", classification: "required" },
+        { question_id: "cp1_mvp_definition", classification: "required", unlock_requires: ["cp1_riskiest_assumption"] },
+        { question_id: "cp1_mvp_test_plan", classification: "required", unlock_requires: ["cp1_mvp_definition"] },
+        { question_id: "cp1_mvp_pass_fail", classification: "required", unlock_requires: ["cp1_mvp_test_plan"] },
       ],
     },
     {

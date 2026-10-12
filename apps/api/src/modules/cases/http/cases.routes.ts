@@ -27,17 +27,30 @@ import {
 } from "./cases.controller.js";
 import {
   getCaseAiStatusHandler,
-  streamCaseAiEventsHandler,
   cancelCaseAiAuditHandler,
   retryCaseAiAuditHandler,
 } from "./cases-ai.controller.js";
 import { downloadCaseReportPdfHandler } from "../../reports/http/reports.controller.js";
+import { openCheckpointHandler } from "./checkpoints.controller.js";
+import { getStageSummariesHandler, uploadStageDocumentsHandler, deleteStageDocumentHandler } from "./stages.controller.js";
+import {
+  getAnswersHandler,
+  saveAnswersHandler,
+  importProposalHandler,
+  generateDocxHandler,
+  getSyncProposalsHandler,
+} from "../../guided-documents/http/guided-documents.controller.js";
+// DEPRECATED (2026-10-10): finance endpoints not mounted, replaced by the FINANCE TEMPLATE file download.
+// import {
+//   getFinancePlanHandler,
+//   saveFinancePlanHandler,
+// } from "../../finance/http/finance.controller.js";
 
 export const casesRouter = new Hono();
 
 casesRouter.get("/", listCasesHandler);
 casesRouter.post("/", createCaseHandler);
-casesRouter.get("/supporters", listSupportersHandler);
+// @deprecated 2026-10-11: supporter flow frozen
 casesRouter.get("/document-types", listDocumentTypesHandler);
 casesRouter.post("/uploads/managed-document", uploadManagedDocumentHandler);
 casesRouter.get("/:id", getCaseDetailHandler);
@@ -47,7 +60,7 @@ casesRouter.get("/:id/report/:filename", downloadCaseReportPdfHandler);
 casesRouter.get("/:id/documents", getCaseDocumentsHandler);
 casesRouter.post("/:id/revisions", submitRevisionHandler);
 casesRouter.post("/:id/revisions/upload", submitRevisionUploadHandler);
-casesRouter.post("/:id/supporter-outputs/upload", submitSupporterOutputUploadHandler);
+// @deprecated 2026-10-11: supporter flow frozen
 casesRouter.post("/:id/external-feedback/upload", submitExternalFeedbackUploadHandler);
 casesRouter.post("/:id/assign", assignSupporterHandler);
 casesRouter.post("/:id/status", updateCaseStatusHandler);
@@ -62,7 +75,19 @@ casesRouter.post("/:id/veto", vetoHandler);
 casesRouter.post("/:id/complete", completeCaseHandler);
 casesRouter.post("/:id/upgrade-package", upgradePackageHandler);
 casesRouter.post("/:id/resubmit", resubmitCaseHandler);
+casesRouter.post("/:id/checkpoints/:code/open", openCheckpointHandler);
+casesRouter.get("/:id/stages", getStageSummariesHandler);
+casesRouter.post("/:id/stages/:code/documents", uploadStageDocumentsHandler);
+casesRouter.delete("/:id/documents/:documentId", deleteStageDocumentHandler);
 casesRouter.get("/:id/ai-status", getCaseAiStatusHandler);
-casesRouter.get("/:id/ai-events", streamCaseAiEventsHandler);
 casesRouter.post("/:id/ai-cancel", cancelCaseAiAuditHandler);
 casesRouter.post("/:id/ai-retry", retryCaseAiAuditHandler);
+
+// Guided Documents (CP1/CP2)
+casesRouter.get("/:id/guided-documents/answers", getAnswersHandler);
+casesRouter.put("/:id/guided-documents/answers", saveAnswersHandler);
+casesRouter.post("/:id/guided-documents/import", importProposalHandler);
+casesRouter.post("/:id/guided-documents/generate", generateDocxHandler);
+casesRouter.get("/:id/guided-documents/sync", getSyncProposalsHandler);
+// casesRouter.get("/:id/finance", getFinancePlanHandler);
+// casesRouter.put("/:id/finance", saveFinancePlanHandler);

@@ -8,7 +8,7 @@ test("Phase 04 - Packages & attachments", async (t) => {
     const { listPackagesUseCase } = await import(
       "../../../modules/packages/application/list-packages.usecase.js"
     );
-    const existing = [{ id: "pkg-1", name: "Existing", price: 0, is_active: true, features: [] }];
+    const existing = [{ id: "pkg-1", name: "Existing", price: 79000, is_active: true, features: [], credits_granted: 2, pricing_tiers: [] }];
     const packages = await listPackagesUseCase({
       findActivePackages: async () => existing as any,
       findAllPackages: async () => existing as any,
@@ -25,10 +25,10 @@ test("Phase 04 - Packages & attachments", async (t) => {
     );
 
     const packages = await listPackagesUseCase({
-      findActivePackages: async () => [{ id: "pkg-1", name: "Active", price: 0, is_active: true, features: [] }] as any,
+      findActivePackages: async () => [{ id: "pkg-1", name: "Active", price: 79000, is_active: true, features: [], credits_granted: 2, pricing_tiers: [] }] as any,
       findAllPackages: async () => [
-        { id: "pkg-1", name: "Active", price: 0, is_active: true, features: [] },
-        { id: "pkg-2", name: "Inactive", price: 100, is_active: false, features: [] },
+        { id: "pkg-1", name: "Active", price: 79000, is_active: true, features: [], credits_granted: 2, pricing_tiers: [] },
+        { id: "pkg-2", name: "Inactive", price: 100, is_active: false, features: [], pricing_tiers: [] },
       ] as any,
       createPackage: async () => {
         throw new Error("Should not seed");
@@ -37,6 +37,22 @@ test("Phase 04 - Packages & attachments", async (t) => {
 
     assert.strictEqual(packages.length, 1);
     assert.strictEqual(packages[0]?.id, "pkg-1");
+  });
+
+  await t.test("package list excludes free package (price 0 / no credits)", async () => {
+    const { listPackagesUseCase } = await import(
+      "../../../modules/packages/application/list-packages.usecase.js"
+    );
+
+    const packages = await listPackagesUseCase({
+      findActivePackages: async () => [
+        { id: "pkg_tf_free", name: "Free", price: 0, is_active: true, features: [], credits_granted: null, pricing_tiers: [] },
+        { id: "pkg_ai_audit", name: "Basic AI Audit", price: 79000, is_active: true, features: [], credits_granted: 2, pricing_tiers: [] },
+      ] as any,
+    } as any);
+
+    assert.strictEqual(packages.length, 1);
+    assert.strictEqual(packages[0]?.id, "pkg_ai_audit");
   });
 
   await t.test("package status update rejects invalid status", async () => {

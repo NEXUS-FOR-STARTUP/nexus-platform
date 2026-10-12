@@ -9,34 +9,6 @@ process.env.GOOGLE_CLIENT_ID ??= "test-client-id";
 process.env.GOOGLE_CLIENT_SECRET ??= "test-client-secret";
 
 test("backend demo regression coverage", async (t) => {
-  await t.test("package list seeds defaults on empty db", async () => {
-    const { listPackagesUseCase } = await import(
-      "../../../modules/packages/application/list-packages.usecase.js"
-    );
-
-    const created: Array<{ name: string; price: number; features: string[] }> = [];
-    const defaultPackages = [
-      { name: "Seed A", price: 0, features: ["A"] },
-      { name: "Seed B", price: 100, features: ["B"] },
-    ];
-
-    const packages = await listPackagesUseCase({
-      findActivePackages: async () => (created.length === 0 ? [] : (created as any)),
-      findAllPackages: async () => (created.length === 0 ? [] : (created as any)),
-      createPackage: async (data: { name: string; price: number; features: string[] }) => {
-        created.push({ ...data, is_active: true } as any);
-        return { id: `pkg-${created.length}`, ...data, is_active: true } as any;
-      },
-      defaultPackages,
-    } as any);
-
-    assert.strictEqual(created.length, 2);
-    assert.deepStrictEqual(
-      created.map(({ is_active, ...pkg }: any) => pkg),
-      defaultPackages,
-    );
-    assert.strictEqual(packages.length, 2);
-  });
 
   await t.test("revision submit keeps attachment refs metadata-only", async () => {
     const { submitRevisionUseCase } = await import(

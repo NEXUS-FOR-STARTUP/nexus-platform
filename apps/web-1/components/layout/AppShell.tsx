@@ -21,6 +21,7 @@ import { useSession } from "@/lib/auth-client";
 import ThemeToggler from "../ui/ThemeToggler";
 import Logo from "../ui/Logo";
 import UserMenu from "./_components/UserMenu";
+import { ZALO_GROUP_URL } from "@/lib/zalo";
 
 const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -69,7 +70,6 @@ export default function AppShell({ children }: AppShellProps) {
 
   const getDashboardLink = () => {
     if (user?.role === "admin") return "/admin";
-    if (user?.role === "supporter") return "/supporter";
     if (user?.role === "writer") return "/writer";
     return "/dashboard";
   };
@@ -305,7 +305,7 @@ export default function AppShell({ children }: AppShellProps) {
             </ActionIcon>
             <ActionIcon
               component="a"
-              href="https://zalo.me/g/wgadhwpaxd05vykpnxqb"
+              href={ZALO_GROUP_URL}
               target="_blank"
               rel="noopener noreferrer"
               size="lg"

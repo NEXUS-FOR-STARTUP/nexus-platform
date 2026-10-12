@@ -76,3 +76,4 @@ data/postgres/
 **/.bin/
 .pi
 .tmp
+notes/session-logs/

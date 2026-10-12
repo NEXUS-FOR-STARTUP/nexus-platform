@@ -59,9 +59,9 @@ test("P5 assessment routing — saveOmpAuditReport routes to the correct checkpo
             (a, b) => b.latest_version_no - a.latest_version_no,
           )[0] ?? null;
         },
-        create: async (args: { data: Record<string, unknown> }) =>
+        upsert: async (args: { create: Record<string, unknown> }) =>
           overrides.onCreate
-            ? overrides.onCreate(args.data)
+            ? overrides.onCreate(args.create)
             : { id: "cp-created", checkpoint_code: "CP1", latest_version_no: 1 },
       },
       report: {

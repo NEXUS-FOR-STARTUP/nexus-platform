@@ -1,7 +1,8 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import type { AgentExecutionResult, StartupReport } from "@app/shared";
-import { STORAGE_DIR, DEFAULT_MODEL, PROMPT_CONFIG, resolveAgentRuntime } from "./config.js";
+import { getAuditScopeEntry, type AgentExecutionResult, type AuditCheckpointCode, type StartupReport } from "@app/shared";
+import { STORAGE_DIR, DEFAULT_MODEL, resolveAgentRuntime } from "./config.js";
+import { buildRunnerPrompt } from "./runner-instruction.js";
 import { logJob, updateJobInStorage } from "./storage.js";
 import {
   prepareJobDirectories,
@@ -22,6 +23,8 @@ export interface OmpJobPayload {
   promptMode?: "full" | "lite";
   submissionType?: "initial" | "resubmit" | "logic_check";
   lifecycleUnitId?: string;
+  checkpoint?: AuditCheckpointCode;
+  scope?: string;
 }
 
 export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecutionResult> {
@@ -52,43 +55,28 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
   prepareJobDirectories(jobDir, outputDir);
 
   const { runCmd, baseArgs } = resolveAgentRuntime();
-  const mode = data.promptMode === "lite" ? "lite" : "full";
   const submissionType = data.submissionType ?? "initial";
+  // CP1 jobs carry no checkpoint (legacy payloads): scope is the prompt mode.
+  const checkpoint = data.checkpoint ?? "CP1";
+  const scope = data.scope ?? (data.promptMode === "lite" ? "lite" : "full");
 
-  // Select prompt file based on submissionType
-  let submissionPromptFile: string;
-  switch (submissionType) {
-    case "resubmit":
-      submissionPromptFile = "input_clarification_gate_v4_1_resubmit.md";
-      break;
-    case "logic_check":
-      submissionPromptFile = "input_clarification_gate_v4_1_logic.md";
-      break;
-    default:
-      submissionPromptFile = "input_clarification_gate_v4_1.md";
-      break;
+  const entry = getAuditScopeEntry(checkpoint, scope, submissionType);
+  if (!entry) {
+    throw new Error(`Không có cấu hình prompt cho ${checkpoint}/${scope}/${submissionType}`);
   }
 
-  const promptFilesDesc = PROMPT_CONFIG[mode]
-    .map((fileName) => `system_prompt/${fileName}`)
-    .concat(`system_prompt/${submissionPromptFile}`)
-    .join(", ");
-
-  // Read submission-specific prompt instructions if available
-  const promptFilePath = resolve(jobDir, "system_prompt", submissionPromptFile);
+  // CP1 inlines the submission-specific prompt (always last in its list) into the instruction.
   let submissionInstructions = "";
-  if (existsSync(promptFilePath)) {
-    try {
-      submissionInstructions = readFileSync(promptFilePath, "utf-8").trim();
-    } catch { /* ignore */ }
+  if (checkpoint === "CP1") {
+    const promptFilePath = resolve(jobDir, "system_prompt", entry.prompts[entry.prompts.length - 1]);
+    if (existsSync(promptFilePath)) {
+      try {
+        submissionInstructions = readFileSync(promptFilePath, "utf-8").trim();
+      } catch { /* ignore */ }
+    }
   }
 
-  const prompt =
-    `Hãy đọc tệp AGENTS.md để nắm vững quy trình và tiêu chuẩn thẩm định 2 bước (Fixed Two-Step Workflow). Đọc kỹ các tài liệu chuẩn trong: ${promptFilesDesc}. Đọc toàn bộ tài liệu nhóm trong input/ (hỗ trợ đọc tài liệu .docx, .pdf, .md, .txt bao gồm cả các bản bóc tách văn bản .extracted.md), tra cứu đối chiếu kiến thức trong knowledge/ (startup_knowledge.db và startup_knowledge.json).` +
-    (submissionInstructions
-      ? `\n\n--- HƯỚNG DẪN BỔ SUNG (${submissionType}) ---\n${submissionInstructions}\n--- KẾT THÚC HƯỚNG DẪN ---\n\n`
-      : "") +
-    ` Sau đó thực hiện chuẩn xác Step 1 xuất output/triad_handoff_packet.md, rồi Step 2 xuất output/input_clarification_audit.md và output/report.json theo đúng cấu trúc quy định.`;
+  const prompt = buildRunnerPrompt({ checkpoint, promptFiles: entry.prompts, submissionType, submissionInstructions });
   const args = [
     ...baseArgs,
     "--mode",
@@ -111,6 +99,7 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
     outputDir,
     runCmd,
     args,
+    milestoneFiles: [...entry.outputs.required, ...entry.outputs.optional],
   });
 
   if (executionResult.error === "CANCELLED") {
@@ -136,32 +125,36 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
   const finishedAt = new Date().toISOString();
   const durationMs = Date.now() - startTime;
 
-  // Check and sync output files
-  const triadFile = findOutputFile(jobDir, outputDir, "triad_handoff_packet.md");
-  const auditFile =
-    findOutputFile(jobDir, outputDir, "input_clarification_audit.md") ||
-    findOutputFile(jobDir, outputDir, "report.md");
-  const jsonFile = findOutputFile(jobDir, outputDir, "report.json");
+  // Collect output files from the per-checkpoint contract (shared audit-checkpoints.ts).
+  const found: Record<string, string> = {};
+  for (const name of [...entry.outputs.required, ...entry.outputs.optional]) {
+    const p = findOutputFile(jobDir, outputDir, name);
+    if (p) found[name] = p;
+  }
+  syncOutputFiles(outputDir, Object.entries(found).map(([name, src]) => ({ src, name })));
 
-  syncOutputFiles(outputDir, [
-    { src: triadFile, name: "triad_handoff_packet.md" },
-    { src: auditFile, name: "input_clarification_audit.md" },
-    { src: jsonFile, name: "report.json" },
-  ]);
-
-  const triadPacketMarkdown = triadFile ? readFileSync(triadFile, "utf-8") : undefined;
-  let reportMarkdown = auditFile ? readFileSync(auditFile, "utf-8") : undefined;
+  const readFound = (name: string): string | undefined => {
+    const p = found[name];
+    return p ? readFileSync(p, "utf-8") : undefined;
+  };
+  const triadPacketMarkdown = checkpoint === "CP1" ? readFound("triad_handoff_packet.md") : undefined;
+  let reportMarkdown = checkpoint === "CP1" ? readFound("input_clarification_audit.md") : readFound("report.md");
   let reportJson: StartupReport | undefined = undefined;
 
-  if (jsonFile) {
+  const jsonRaw = readFound("report.json");
+  if (jsonRaw) {
     try {
-      reportJson = JSON.parse(readFileSync(jsonFile, "utf-8"));
+      reportJson = JSON.parse(jsonRaw);
     } catch (err) {
       logJob(jobId, `Cảnh báo: Parse report.json thất bại: ${err}`, caseId);
     }
   }
 
-  const isSuccess = executionResult.exitCode === 0 && (Boolean(reportMarkdown) || Boolean(reportJson));
+  const missingRequired = entry.outputs.required.filter((name) => !Object.hasOwn(found, name));
+  const isSuccess = executionResult.exitCode === 0 && missingRequired.length === 0;
+  if (!isSuccess && missingRequired.length > 0) {
+    logJob(jobId, `Thiếu tệp output bắt buộc (${checkpoint}): ${missingRequired.join(", ")}`, caseId);
+  }
   if (!isSuccess && !reportMarkdown) {
     reportMarkdown = `# BÁO CÁO THẨM ĐỊNH (OMP) - LỖI TIẾN TRÌNH\n\nOMP kết thúc với mã lỗi: ${executionResult.exitCode}\n\nChi tiết lỗi: ${executionResult.error || "Không sinh được tệp output/report.md"}\n\n### Log tiến trình:\n\`\`\`\n${executionResult.rawLogs}\n\`\`\``;
   }

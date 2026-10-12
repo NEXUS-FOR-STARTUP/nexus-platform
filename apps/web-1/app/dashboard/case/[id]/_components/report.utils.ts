@@ -13,6 +13,13 @@ export const SUBMISSION_TYPE_LABELS: Record<string, string> = {
   logic_check: "Kiểm tra lập luận",
 };
 
+/** Keyed by report.report_type; CP1 types are absent so they keep the submission-type label. */
+export const CP2_REPORT_TYPE_LABELS: Record<string, string> = {
+  cp2_questionnaire: "Chấm bảng hỏi (vòng Thị trường)",
+  cp2_full: "Chấm toàn bộ (vòng Thị trường)",
+  cp2_full_resubmit: "Chấm lại bản sửa (vòng Thị trường)",
+};
+
 export const SEVERITY_LABELS: Record<string, string> = {
   BLOCKER: "Cần giải quyết ngay",
   CRITICAL: "Quan trọng",

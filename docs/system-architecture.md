@@ -27,7 +27,7 @@ Data model trung tâm nằm ở `prisma/schema.prisma` (33 models, 32 migrations
 │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌───────────────┐ │
 │  │   Student    │ │  Supporter   │ │    Admin     │ │ Server Guard  │ │
 │  │ Workspace    │ │  Workspace   │ │   Triage &   │ │   proxy.ts    │ │
-│  │ 7 tabs (URL) │ │(Desktop-only)│ │ Worker Mon.  │ │  (Maint. Mode)│ │
+│  │ 5 tabs (URL) │ │(Desktop-only)│ │ Worker Mon.  │ │  (Maint. Mode)│ │
 │  │(Responsive)  │ │              │ │(Desktop-only)│ │  useSession   │ │
 │  └──────┬───────┘ └──────┬───────┘ └──────┬───────┘ └───────┬───────┘ │
 │         └────────────────┴────────────────┴─────────────────┘         │
@@ -72,7 +72,7 @@ Tham chiếu:
 
 ### 3.2 Student dashboard + case workspace
 - dashboard liệt kê case của user
-- case workspace có sidebar shell và 7 tabs chính (`overview`, `documents`, `report`, `discussion`, `timeline`, `settings`, `credits`) đồng bộ trạng thái qua query param `?tab=`
+- case workspace có sidebar shell và 5 tabs hành trình (`overview`, `journey`, `billing`, `timeline`, `settings`) đồng bộ trạng thái qua query param `?tab=`
 - điều hướng và hiển thị tab được gate theo gói dịch vụ (ví dụ: gói `pkg_ai_audit` ẩn tab trao đổi trực tiếp)
 - page dùng `useCaseDetails(id)` để lấy dữ liệu workspace (polling 10s)
 - stage-based case flow: `CaseStatusHeader` (hiển thị `user_facing_stage` + next action), `StatusGuidanceCard`, `CaseOverviewPanel`
@@ -192,7 +192,7 @@ Module `apps/api/src/modules/ai-engine/` kết hợp cùng service độc lập 
 - **Phân cấp Sandbox Storage:** Môi trường thực thi của worker được lưu tại `storage/jobs/${caseId}/${jobId}/` (chứa `input/`, `output/`, `models.json`, `system_prompt/`). Hàm `resolveJobSandboxDir` hỗ trợ fallback an toàn 3 cấp: phân cấp `caseId/jobId` $\rightarrow$ phẳng `jobId` $\rightarrow$ legacy `caseId`.
 - **Dual-Publish Redis Logging:** Worker (`logJob`) phát hành log đồng thời:
   - Kênh Job (`job:log:${jobId}`) + Danh sách (`job:logs:${jobId}`, TTL 24h) phục vụ Admin Worker Monitoring drawer.
-  - Kênh Case (`job:log:${caseId}`) + Danh sách (`job:logs:${caseId}`, TTL 24h) phục vụ SSE stream cho sinh viên (`/api/cases/:id/ai-events`).
+  - Kênh Case (`job:log:${caseId}`) + Danh sách (`job:logs:${caseId}`, TTL 24h) phục vụ worker/admin; sinh viên đọc tiến trình qua `GET /api/cases/:id/ai-status?checkpoint=` (poll 5s, log theo `jobId`).
   - Tích hợp bộ lọc bảo mật tự động loại bỏ prompt nhạy cảm trước khi phát tán lên Redis.
 - **Chuẩn hóa Tên File Báo cáo PDF:** Quy ước đặt tên file báo cáo tập trung duy nhất tại `packages/validation/src/report-naming.ts` (`buildStandardReportPdfFilename`):
   $$\text{Tên file} = \texttt{\$\{slug\}\_\$\{submission\_type\}\_\$\{timestamp\}\_v\$\{version\}.pdf}$$

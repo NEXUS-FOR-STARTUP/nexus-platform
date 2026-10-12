@@ -1,10 +1,13 @@
 "use client";
 
 import React from "react";
-import { Badge, Button } from "@mantine/core";
+import { formatCreditBalances, type CreditBalances } from "@/lib/credit-balances";
+import { Badge } from "@mantine/core";
+import RainbowBuyButton from "@/components/ui/RainbowBuyButton";
 
 interface CreditBalanceCardProps {
   creditBalance: number;
+  creditBalances?: CreditBalances;
   packageName?: string;
   pricePerCredit?: number;
   onBuyCredits?: () => void;
@@ -12,6 +15,7 @@ interface CreditBalanceCardProps {
 
 export default function CreditBalanceCard({
   creditBalance,
+  creditBalances,
   packageName,
   pricePerCredit,
   onBuyCredits,
@@ -41,10 +45,10 @@ export default function CreditBalanceCard({
               )}
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold tracking-tight text-text-app tabular-nums">
-                {creditBalance}
+              <span className={`${creditBalances ? "text-xl" : "text-3xl"} font-bold tracking-tight text-text-app tabular-nums`}>
+                {creditBalances ? formatCreditBalances(creditBalances) : creditBalance}
               </span>
-              <span className="text-base font-medium text-text-muted">lượt</span>
+              {!creditBalances && <span className="text-base font-medium text-text-muted">lượt</span>}
             </div>
           </div>
 
@@ -76,14 +80,13 @@ export default function CreditBalanceCard({
 
         {onBuyCredits && (
           <div className="w-full md:w-auto pt-3 md:pt-0 border-t md:border-t-0 border-border-app/50">
-            <Button
+            <RainbowBuyButton
               onClick={onBuyCredits}
-              color="brand"
               size="md"
-              className="font-semibold cursor-pointer h-10 px-5 text-base !w-full md:!w-auto"
+              className="h-10 px-5 text-base !w-full md:!w-auto"
             >
               {hasCredits ? "Mua thêm lượt đánh giá" : "Mua lượt đánh giá"}
-            </Button>
+            </RainbowBuyButton>
           </div>
         )}
       </div>

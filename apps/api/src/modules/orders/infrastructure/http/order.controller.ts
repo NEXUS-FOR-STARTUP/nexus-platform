@@ -4,6 +4,7 @@ import { handleError } from "../../../../shared/infrastructure/http-helpers.js";
 import { createOrderUseCase } from "../../application/create-order.usecase.js";
 import { listOrdersUseCase } from "../../application/list-orders.usecase.js";
 import { getOrderUseCase } from "../../application/get-order.usecase.js";
+import { checkDiscountCodeUseCase } from "../../application/check-discount-code.usecase.js";
 
 export async function createOrderHandler(c: Context) {
   try {
@@ -12,6 +13,15 @@ export async function createOrderHandler(c: Context) {
     const body = await c.req.json();
     const result = await createOrderUseCase(session.user.id, body);
     return c.json(result, 201);
+  } catch (err) { return handleError(c, err); }
+}
+
+export async function checkDiscountCodeHandler(c: Context) {
+  try {
+    const session = await getSession(c);
+    if (!session) return c.json({ code: "UNAUTHORIZED", message: "Vui lòng đăng nhập" }, 401);
+    const result = await checkDiscountCodeUseCase(session.user.id, await c.req.json());
+    return c.json(result);
   } catch (err) { return handleError(c, err); }
 }
 

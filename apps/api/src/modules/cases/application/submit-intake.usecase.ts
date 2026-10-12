@@ -1,7 +1,7 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import type { Prisma } from "@prisma/client";
 import { Cp1IntakeCaps } from "@repo/validation";
-import { findCaseByIdWithMembersAndCheckpoints, findLatestCaseEventByType } from "../infrastructure/persistence/case.repository.js";
+import { ensureCheckpoint, findCaseByIdWithMembersAndCheckpoints, findLatestCaseEventByType } from "../infrastructure/persistence/case.repository.js";
 import { upsertDocumentRecordsForUnit } from "../../documents/infrastructure/persistence/document.repository.js";
 import { prisma } from "../../../db.js";
 import logger from "../../../shared/infrastructure/logger.js";
@@ -10,6 +10,7 @@ import { transitionInTx } from "../../../services/case-transition.service.js";
 import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 import { triggerOmpAuditForCase } from "../../ai-engine/application/omp-audit-coordinator.js";
+import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
 type DbClient = Prisma.TransactionClient | typeof prisma
 
 export function buildSupersedeUpdateArgs(
@@ -55,14 +56,7 @@ async function updateIntakeDataOnly(
   }
 
   if (!checkpointId) {
-    const cp = await client.checkpoint.create({
-      data: {
-        case_id: caseId,
-        checkpoint_code: "CP1",
-        checkpoint_status: "submitted",
-        latest_version_no: 1,
-      },
-    });
+    const cp = await ensureCheckpoint(client, caseId, "CP1");
     checkpointId = cp.id;
     await client.case.update({
       where: { id: caseId },
@@ -174,8 +168,17 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
     );
   }
 
-  if (!["triage_pending", "cancelled"].includes(status)) {
+  if (!["triage_pending", "cancelled"].includes(status) && !AUDIT_STAGE_INPUT_RULES) {
     throw new AppError(400, "INVALID_CASE_STAGE", "Hồ sơ đang được xử lý, không thể chỉnh sửa");
+  }
+
+  // Under journey redesign: updating profile on an active case upserts v00 without re-triggering T2
+  if (AUDIT_STAGE_INPUT_RULES && status !== "triage_pending" && status !== "cancelled") {
+    await prisma.$transaction(async (tx) => {
+      await updateIntakeDataOnly(tx, caseId, caseRecord, body);
+    });
+    logger.info({ caseId, actorId: userId }, "project profile updated in-place");
+    return { success: true, case_id: caseId, stage: caseRecord.user_facing_stage, status: caseRecord.internal_status };
   }
 
   try {
@@ -243,6 +246,11 @@ export async function submitIntakeUseCase(userId: string, caseId: string, body: 
       },
     });
     logger.info({ caseId, transition, actorId: userId, duration_ms: Date.now() - startTime }, 'intake submitted');
+
+    // Journey workspace: grading is a student action, never a side effect of saving the profile.
+    if (AUDIT_STAGE_INPUT_RULES) {
+      return { success: true, case_id: caseId, stage: result.stage, status: result.status };
+    }
 
     // Auto-trigger OMP audit if case is paid and has available credits
     try {

@@ -90,15 +90,14 @@ export async function proxy(request: NextRequest) {
     request.cookies.get("__Secure-better-auth.session_token") ||
     request.cookies.get("better-auth.session_token");
   const isDashboardRoute = pathname.startsWith("/dashboard");
-  const isSupporterRoute = pathname.startsWith("/supporter");
   const isAdminRoute = pathname.startsWith("/admin");
   const isWriterRoute = pathname.startsWith("/writer");
 
-  if (!sessionCookie && (isDashboardRoute || isSupporterRoute || isAdminRoute || isWriterRoute)) {
+  if (!sessionCookie && (isDashboardRoute || isAdminRoute || isWriterRoute)) {
     return redirectTo(request, "/auth", true);
   }
 
-  if (!sessionCookie || (!isSupporterRoute && !isAdminRoute && !isWriterRoute)) {
+  if (!sessionCookie || (!isAdminRoute && !isWriterRoute)) {
     return NextResponse.next();
   }
 
@@ -112,16 +111,13 @@ export async function proxy(request: NextRequest) {
   if (isAdminRoute && role !== "admin") {
     return redirectTo(
       request,
-      role === "supporter" ? "/supporter" : role === "writer" ? "/writer" : "/dashboard"
+      role === "writer" ? "/writer" : "/dashboard"
     );
   }
 
-  if (isSupporterRoute && role !== "supporter" && role !== "admin") {
-    return redirectTo(request, role === "writer" ? "/writer" : "/dashboard");
-  }
 
   if (isWriterRoute && role !== "writer" && role !== "admin") {
-    return redirectTo(request, role === "supporter" ? "/supporter" : "/dashboard");
+    return redirectTo(request, "/dashboard");
   }
 
   return NextResponse.next();
@@ -132,7 +128,6 @@ export const config = {
     "/",
     "/auth/:path*",
     "/dashboard/:path*",
-    "/supporter/:path*",
     "/admin/:path*",
     "/writer/:path*",
     "/news",

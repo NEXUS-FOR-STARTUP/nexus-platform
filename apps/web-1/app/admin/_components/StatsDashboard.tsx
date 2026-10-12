@@ -44,7 +44,7 @@ export default function StatsDashboard({
           Chỉ số hoạt động
         </Text>
         <Select
-          size="xs"
+          size="sm"
           radius="md"
           value={period}
           onChange={(val) => val && onPeriodChange(val)}

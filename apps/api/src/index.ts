@@ -14,7 +14,6 @@ import { sepayRouter } from './modules/payments/http/sepay.routes.js'
 import { packagesRouter } from './modules/packages/http/packages.routes.js'
 import { aiEngineRouter } from './modules/ai-engine/http/ai-engine.routes.js'
 import { adminRouter } from './modules/admin/http/admin.routes.js'
-import { supporterRouter } from './modules/supporter/http/supporter.routes.js'
 import { documentsRouter } from './modules/documents/http/documents.routes.js'
 import { notificationsRouter } from './modules/notifications/http/notifications.routes.js'
 import { realtimeRouter } from './modules/realtime/http/realtime.routes.js'
@@ -22,7 +21,6 @@ import { walletRoutes } from './modules/wallet/infrastructure/http/wallet.routes
 import { orderRouter } from './modules/orders/infrastructure/http/order.routes.js'
 import { depositRouter } from './modules/deposits/infrastructure/http/deposit.routes.js'
 import { profileRouter } from './modules/profile/http/profile.routes.js'
-import { authoringRouter } from './modules/authoring/http/authoring.routes.js'
 import { newsPublicRouter } from './modules/news/http/news-public.routes.js'
 import { newsAdminRouter } from './modules/news/http/news-admin.routes.js'
 import { registerNotificationListener } from './modules/notifications/application/notification-listener.js'
@@ -162,7 +160,6 @@ app.route('/api/packages', packagesRouter)
 app.route('/api/ai-engine', aiEngineRouter)
 app.route('/api/admin', adminRouter)
 app.route('/api/writer/news', newsAdminRouter)
-app.route('/api/supporter', supporterRouter)
 app.route('/api/documents', documentsRouter)
 app.route('/api/notifications', notificationsRouter)
 app.route('/api/realtime', realtimeRouter)
@@ -170,7 +167,6 @@ app.route('/api/wallet', walletRoutes)
 app.route('/api/orders', orderRouter)
 app.route('/api/deposits', depositRouter)
 app.route('/api/profile', profileRouter)
-app.route('/api/authoring', authoringRouter)
 app.route('/api/news', newsPublicRouter)
 
 // Global error handler — catches unhandled errors, no stack trace leak

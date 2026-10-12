@@ -20,7 +20,9 @@ import CaseOverviewPanel from "./_components/CaseOverviewPanel";
 import CreditQuantityModal from "./_components/CreditQuantityModal";
 import { PackageSelectionModal } from "@/app/dashboard/_components/PackageSelectionModal";
 import TabReportFindings from "./_components/TabReportFindings";
-import ActiveRadarScanning from "./_components/ActiveRadarScanning";
+import GuidedDocumentsWorkspace from "./_components/guided-documents/GuidedDocumentsWorkspace";
+// DEPRECATED (2026-10-10): Finance tab hidden, replaced by the FINANCE TEMPLATE in the guided-documents gallery.
+// import TabFinance from "./_components/finance/TabFinance";
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
 import StudentDocumentUploadModal from "./_components/StudentDocumentUploadModal";
 import StatusGuidanceCard from "./_components/StatusGuidanceCard";
@@ -28,6 +30,7 @@ import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { Button } from "@mantine/core";
 import type { Report, RoundHistoryEntry } from "@/types/case";
 import { useTriggerAudit } from "./hooks/useTriggerAudit";
+import JourneyWorkspaceShell from "./_components/workspace/JourneyWorkspaceShell";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -60,7 +63,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     await triggerAuditRaw({ submission_type: submissionType as "initial" | "resubmit" | "logic_check", lifecycle_unit_id: lifecycleUnitId });
   };
   const isAiPackage = caseData?.package_id === "pkg_ai_audit";
-  const VALID_WORKSPACE_TABS: WorkspaceTab[] = ["overview", "documents", "report", "discussion", "timeline", "settings", "credits"];
+  const VALID_WORKSPACE_TABS: WorkspaceTab[] = ["overview", "guided", "documents", "report", "discussion", "timeline", "settings", "credits"];
   const rawTabParam = searchParams.get("tab") as WorkspaceTab | null;
   const initialTab: WorkspaceTab = rawTabParam && VALID_WORKSPACE_TABS.includes(rawTabParam) ? rawTabParam : "overview";
   const [activeTab, setActiveTabState] = useState<WorkspaceTab>(initialTab);
@@ -79,7 +82,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const [selectedPackageId, setSelectedPackageId] = useState<string>(PACKAGE_KEYS.AI_AUDIT);
 
   const stage = caseData?.user_facing_stage;
-  const creditBalance = caseData?.credit_balance ?? null;
+  const creditBalances = caseData?.credit_balances;
+  const creditBalance = caseData ? (creditBalances?.cp1_audit ?? 0) : null;
   const creditLedger = caseData?.credit_ledger ?? undefined;
   const packageName = caseData?.package?.name ?? undefined;
   const pricePerCredit = caseData?.package?.price ?? undefined;
@@ -110,6 +114,19 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     );
   }
 
+  if (process.env.NEXT_PUBLIC_JOURNEY_WORKSPACE === "true") {
+    return (
+      <JourneyWorkspaceShell
+        caseId={id}
+        caseData={caseData}
+        intakeSnapshot={intakeSnapshot}
+        teamFitReport={teamFitReport}
+        documentWorkspace={documentWorkspace}
+        roundHistory={roundHistory}
+      />
+    );
+  }
+
 
   const isPreSubmission = stage === "intake_pending" || stage === "intake_ready";
   const isIntakePending = stage === "intake_pending";
@@ -132,8 +149,8 @@ export default function CaseWorkspacePage({ params }: PageProps) {
   const isTabAvailable = (tab: WorkspaceTab): boolean => {
     if (isAiPackage && tab === "discussion") return false;
     if (!isPreSubmission) return true;
-    if (stage === "intake_pending") return tab === "overview" || tab === "timeline" || tab === "settings" || tab === "credits";
-    if (stage === "intake_ready") return tab === "overview" || tab === "documents" || tab === "timeline" || tab === "settings" || tab === "credits";
+    if (stage === "intake_pending") return tab === "overview" || tab === "guided" || tab === "timeline" || tab === "settings" || tab === "credits";
+    if (stage === "intake_ready") return tab === "overview" || tab === "guided" || tab === "documents" || tab === "timeline" || tab === "settings" || tab === "credits";
     return true;
   };
 
@@ -167,43 +184,39 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               onVersionChange={() => {}}
               onSelectTab={(tab) => setActiveTab(tab)}
             />
-            <StatusGuidanceCard
-              caseData={caseData}
-              creditBalance={creditBalance}
-              openRequestsForMoreInfo={openRequestsForMoreInfo}
-              allowedTransitions={filteredTransitions}
-              onSelectTab={(tab) => setActiveTab(tab)}
-              onOpenPayment={
-                canBuyCredits &&
-                (isIntakePending || stage === "report_ready" || (stage === "submitted" && caseRequiresPayment(caseData)))
-                  ? () => {
-                      if (isCaseFree(caseData)) {
-                        setPackageSelectOpened(true);
-                      } else {
-                        setCreditBuyOpened(true);
+            {activeTab === "overview" && (
+              <StatusGuidanceCard
+                caseData={caseData}
+                creditBalance={creditBalance}
+                openRequestsForMoreInfo={openRequestsForMoreInfo}
+                allowedTransitions={filteredTransitions}
+                onSelectTab={(tab) => setActiveTab(tab)}
+                onOpenPayment={
+                  canBuyCredits &&
+                  (isIntakePending || stage === "report_ready" || (stage === "submitted" && caseRequiresPayment(caseData)))
+                    ? () => {
+                        if (isCaseFree(caseData)) {
+                          setPackageSelectOpened(true);
+                        } else {
+                          setCreditBuyOpened(true);
+                        }
                       }
-                    }
-                  : undefined
-              }
-              onOpenIntake={canOpenIntake ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
-              onSubmitRevision={() => setIsStudentUploadOpen(true)}
-              onConfirmComplete={confirmComplete}
-              isConfirmingComplete={isConfirmingComplete}
-              onTriggerAudit={triggerAudit}
-              isTriggeringAudit={isTriggering}
-            />
+                    : undefined
+                }
+                onOpenIntake={canOpenIntake ? () => router.push(`/dashboard/intake?caseId=${id}`) : undefined}
+                onSubmitRevision={() => setIsStudentUploadOpen(true)}
+                onConfirmComplete={confirmComplete}
+                isConfirmingComplete={isConfirmingComplete}
+                onTriggerAudit={triggerAudit}
+                isTriggeringAudit={isTriggering}
+              />
+            )}
           </>
         )}
 
         <div className={`w-full flex flex-col ${activeTab === "discussion" ? "flex-1 min-h-0 h-full" : "pb-16 sm:pb-8"}`}>
           {activeTab === "overview" && (
             <div className="space-y-6">
-              {stage === "under_review" && caseData?.package_id === "pkg_ai_audit" && (
-                <ActiveRadarScanning
-                  caseId={id}
-                  projectName={caseData.team_name || undefined}
-                />
-              )}
               <CaseOverviewPanel
                 caseData={caseData}
                 intakeSnapshot={intakeSnapshot}
@@ -213,6 +226,12 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               />
             </div>
           )}
+
+          {activeTab === "guided" && (
+            <GuidedDocumentsWorkspace caseId={id} />
+          )}
+
+          {/* DEPRECATED (2026-10-10): Finance tab hidden. {activeTab === "finance" && <TabFinance caseId={id} />} */}
 
           {activeTab === "documents" && (
             <>
@@ -275,6 +294,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
           {activeTab === "credits" && (
             <CreditPanel
               creditBalance={creditBalance}
+              creditBalances={creditBalances}
               creditLedger={creditLedger}
               orders={caseData.orders}
               packageName={packageName}

@@ -3,8 +3,8 @@ import { AppError } from "../../../shared/domain/app-error.js";
 import { prisma } from "../../../db.js";
 import type { Prisma } from "@prisma/client";
 import type { CreateOrderItem } from "../domain/order.types.js";
+
 export const FREE_PACKAGE_KEY = "pkg_tf_free";
-export const AUDIT_PACKAGE_KEY = "pkg_ai_audit";
 
 export interface CaseCreditRecord {
   owner_auth_user_id: string;
@@ -13,90 +13,72 @@ export interface CaseCreditRecord {
   locked_price: number | null;
 }
 
+export interface OrderPackage {
+  id: string;
+  /** Current ServicePricing price, falling back to ServicePackage.price. */
+  unitPrice: number;
+  creditsGranted: number;
+  serviceTypeId: string;
+  serviceTypeCode: string;
+}
+
 export function generateOrderIdempotencyKey(userId: string, items: CreateOrderItem[]): string {
   const parts = items
     .map((i) => {
       const meta = i.metadata_json as Record<string, unknown> | undefined;
-      return `${i.service_type}:${i.quantity}:${String(meta?.["case_id"] ?? "")}`;
+      return `${i.package_id}:${i.quantity}:${String(meta?.["case_id"] ?? "")}`;
     })
     .sort()
     .join(",");
   return `order-${userId}-${crypto.createHash("sha256").update(parts).digest("hex").slice(0, 12)}`;
 }
 
-export async function resolveCreditAuditPrice(caseId: string): Promise<number> {
-  const caseRecord = await prisma.case.findUnique({
-    where: { id: caseId },
-    select: { package_id: true, locked_price: true },
-  });
-  if (!caseRecord?.package_id) {
-    throw new AppError(400, "INVALID_PACKAGE", "Dự án chưa có gói dịch vụ hợp lệ");
-  }
-
-  const isFree =
-    caseRecord.package_id === FREE_PACKAGE_KEY || caseRecord.locked_price === 0;
-
-  if (!isFree) {
-    const pkg = await prisma.servicePackage.findUnique({
-      where: { id: caseRecord.package_id },
-      include: {
-        pricing_tiers: {
-          where: { is_current: true },
-          take: 1,
-        },
-      },
-    });
-    if (!pkg) {
-      throw new AppError(404, "PACKAGE_NOT_FOUND", "Không tìm thấy gói dịch vụ");
-    }
-
-    const price = pkg.pricing_tiers[0]?.price ?? pkg.price;
-    if (price && price > 0) {
-      return price;
-    }
-  }
-  const auditPkg = await prisma.servicePackage.findUnique({
-    where: { id: AUDIT_PACKAGE_KEY },
+/** Server-side price + grant for a purchasable package; the client never sends a price. */
+export async function resolveOrderPackage(packageId: string): Promise<OrderPackage> {
+  const pkg = await prisma.servicePackage.findUnique({
+    where: { id: packageId },
     include: {
-      pricing_tiers: {
-        where: { is_current: true },
-        take: 1,
-      },
+      service_type: true,
+      pricing_tiers: { where: { is_current: true }, take: 1 },
     },
   });
-  if (!auditPkg) {
-    throw new AppError(404, "PACKAGE_NOT_FOUND", "Không tìm thấy gói dịch vụ nâng cấp");
+  if (!pkg) {
+    throw new AppError(404, "PACKAGE_NOT_FOUND", "Không tìm thấy gói dịch vụ");
   }
-
-  const auditPrice = auditPkg.pricing_tiers[0]?.price ?? auditPkg.price;
-  if (!auditPrice || auditPrice <= 0) {
-    throw new AppError(400, "INVALID_PRICE", "Gói dịch vụ nâng cấp chưa có giá");
+  if (!pkg.is_active) {
+    throw new AppError(400, "PACKAGE_INACTIVE", "Gói dịch vụ này hiện không được bán");
   }
-
-  return auditPrice;
+  if (!pkg.service_type || !pkg.credits_granted || pkg.credits_granted <= 0) {
+    throw new AppError(400, "INVALID_PACKAGE", "Gói dịch vụ chưa được cấu hình lượt sử dụng");
+  }
+  const unitPrice = pkg.pricing_tiers[0]?.price ?? pkg.price;
+  if (!unitPrice || unitPrice <= 0) {
+    throw new AppError(400, "INVALID_PRICE", "Gói dịch vụ chưa có giá");
+  }
+  return {
+    id: pkg.id,
+    unitPrice,
+    creditsGranted: pkg.credits_granted,
+    serviceTypeId: pkg.service_type.id,
+    serviceTypeCode: pkg.service_type.code,
+  };
 }
 
-export async function getCreditBalanceInTx(
-  tx: Prisma.TransactionClient,
-  caseId: string,
-): Promise<number> {
-  const result = await tx.creditLedger.aggregate({
-    where: { case_id: caseId },
-    _sum: { amount: true },
-  });
-  return result._sum.amount ?? 0;
-}
-
+/**
+ * Marks a CP1 case as paid; a free case is upgraded to the purchased package.
+ * Only called for CP1 purchases — other service types never change the CP1 case.
+ */
 export async function applyPaidCreditCaseUpdate(
   tx: Prisma.TransactionClient,
   params: {
     caseId: string;
     userId: string;
     unitPrice: number;
+    packageId: string;
     caseRecord: CaseCreditRecord;
   },
 ): Promise<void> {
-  const { caseId, userId, unitPrice, caseRecord } = params;
+  const { caseId, userId, unitPrice, packageId, caseRecord } = params;
   const isFree =
     caseRecord.package_id === FREE_PACKAGE_KEY || caseRecord.locked_price === 0;
 
@@ -106,7 +88,7 @@ export async function applyPaidCreditCaseUpdate(
       payment_status: "paid",
       ...(isFree
         ? {
-            package_id: AUDIT_PACKAGE_KEY,
+            package_id: packageId,
             locked_price: unitPrice,
           }
         : {}),
@@ -121,10 +103,11 @@ export async function applyPaidCreditCaseUpdate(
         event_type: "package_upgraded",
         metadata_json: {
           from: caseRecord.package_id,
-          to: AUDIT_PACKAGE_KEY,
+          to: packageId,
           locked_price: unitPrice,
         },
       },
     });
   }
 }
+

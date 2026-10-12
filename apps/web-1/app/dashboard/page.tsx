@@ -6,7 +6,7 @@ import { Pagination } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useDisclosure } from "@mantine/hooks";
 import { useCasesList } from "./hooks/useCasesList";
-import { PackageSelectionModal } from "./_components/PackageSelectionModal";
+import { CreateProjectModal } from "./_components/CreateProjectModal";
 import CaseCard from "./_components/CaseCard";
 import CaseListFilters from "./_components/CaseListFilters";
 import DashboardEmptyState from "./_components/DashboardEmptyState";
@@ -62,7 +62,7 @@ export default function StudentDashboard() {
               onClick={open}
               className="inline-flex items-center justify-center gap-2 font-body text-xs sm:text-sm font-semibold bg-surface-app border border-border-app hover:border-brand/40 text-text-app px-3 sm:px-4 py-2 h-9 sm:h-10 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
             >
-              <span>Mua gói kiểm tra</span>
+              <span>Tạo dự án</span>
             </button>
           </div>
         )}
@@ -112,7 +112,7 @@ export default function StudentDashboard() {
           )}
         </>
       )}
-      <PackageSelectionModal opened={opened} onClose={close} />
+      <CreateProjectModal opened={opened} onClose={close} />
     </div>
   );
 }

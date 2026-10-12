@@ -16,13 +16,13 @@ export type FilterRole = "all" | "student" | "supporter";
 
 export type DocumentRow = {
   key: string;
+  /** documentRecord id for student-owned uploads; null for generated/report rows. */
+  documentId: string | null;
   versionLabel: string;
   contextLabel: string;
-  categoryKey: string | null;
   displayName: string;
   url: string | null;
   hasAction: boolean;
-  sourceLabel: string;
   formatLabel: string;
   uploaderLabel: string;
   uploaderRole: "student" | "supporter" | "admin" | "other";
@@ -60,7 +60,6 @@ export function buildSupportFlowRows(units: DocumentUnit[]): DocumentRow[] {
         contextLabel: categoryKey
           ? docCategoryLabel(categoryKey)
           : (file.doc_type_label ?? "Tài liệu"),
-        categoryKey,
       };
     }),
   );
@@ -78,7 +77,6 @@ export function buildExternalFeedbackRows(units: ExternalFeedbackUnit[]): Docume
           : unit.linked_version_no
             ? `v${String(unit.linked_version_no).padStart(2, "0")}`
             : "—",
-        categoryKey: null,
       };
     }),
   );
@@ -130,14 +128,13 @@ function buildCommonRow(
 
   return {
     key: uniqueKey,
+    documentId: file.source_kind === "generated" ? null : (file.id ?? null),
     displayName: getFileDisplayName(file, url),
     url,
     hasAction: !!(file.open_action && url),
-    sourceLabel: getSourceLabel(file),
     formatLabel: getFormatLabel(file, url),
     versionLabel: "",
     contextLabel: "",
-    categoryKey: null,
     uploaderLabel,
     uploaderRole,
     createdAt: file.created_at ?? "",
@@ -174,22 +171,5 @@ function getFormatLabel(file: DocumentFile, url: string | null) {
   if (parts.length < 2) return "FILE";
   const subtype = parts[1].toUpperCase();
   return subtype === "OCTET-STREAM" ? "FILE" : subtype;
-}
-
-function getSourceLabel(file: DocumentFile) {
-  if (file.source_kind === "drive") return "Google Drive";
-  if (file.source_kind === "generated") return "Hệ thống";
-  return "Tải lên";
-}
-
-export function getFormatColor(format?: string | null): string {
-  const f = format?.toUpperCase() || "";
-  if (f === "PDF") return "red";
-  if (f === "PPTX" || f === "PPT") return "orange";
-  if (f === "DOCX" || f === "DOC") return "blue";
-  if (f === "XLSX" || f === "XLS" || f === "CSV") return "teal";
-  if (f === "LINK" || f === "DRIVE") return "cyan";
-  if (f === "MD" || f === "TXT") return "gray";
-  return "gray";
 }
 

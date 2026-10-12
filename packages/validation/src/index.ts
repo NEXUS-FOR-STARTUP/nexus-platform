@@ -83,9 +83,9 @@ export const TEAM_FIT_LEVELS = ["cao", "vua", "thap"] as const;
 export type TeamFitLevel = (typeof TEAM_FIT_LEVELS)[number];
 
 export const TEAM_FIT_LEVEL_LABELS: Record<TeamFitLevel, string> = {
-  cao: "Cao",
-  vua: "Vừa",
-  thap: "Thấp",
+  cao: "Có người chuyên trách",
+  vua: "Có người kiêm nhiệm",
+  thap: "Thiếu người",
 };
 
 export const TeamFitAiOutputSchema = z.object({
@@ -97,7 +97,7 @@ export const TeamFitAiOutputSchema = z.object({
       z.object({
         ten: z.string().min(2).max(120).describe('Tên mảng, ví dụ "Kỹ thuật sản phẩm"'),
         trangThai: z.enum(TEAM_FIT_AREA_STATES).describe("on = mảng ổn, yeu = mảng yếu"),
-        mucDo: z.enum(TEAM_FIT_LEVELS).describe("Mức độ của mảng này"),
+        mucDo: z.enum(TEAM_FIT_LEVELS).describe("Độ phủ nhân sự của mảng: cao = có người chuyên trách, vua = có người kiêm nhiệm, thap = thiếu người"),
         lyDo: z.string().min(2).max(500).describe("Vì sao mảng này ổn hoặc yếu với chính dự án này"),
         danChung: z
           .string()
@@ -496,9 +496,13 @@ export const Cp1IntakeSchema = z.object({
   }
 
   // 5. Boundary confirmations
+  // 5. Boundary confirmations: either array of >=3 strings (legacy) or boolean true / non-empty array
   const boundaryConfirmations = data.boundary_confirmations;
-  if (!Array.isArray(boundaryConfirmations) || boundaryConfirmations.length < 3) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Phải xác nhận đầy đủ ít nhất 3 cam kết ranh giới", path: ["boundary_confirmations"] });
+  const isConfirmed =
+    boundaryConfirmations === true ||
+    (Array.isArray(boundaryConfirmations) && boundaryConfirmations.length >= 1);
+  if (!isConfirmed) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Vui lòng xác nhận đồng ý với điều khoản dịch vụ", path: ["boundary_confirmations"] });
   }
 });
 
@@ -1474,3 +1478,48 @@ export const NewsCommentListResponseSchema = z.object({
 });
 export type NewsCommentListResponse = z.infer<typeof NewsCommentListResponseSchema>;
 
+
+// ---------------------------------------------------------------------------
+// Guided Documents CP1/CP2 Catalogs & Schemas
+// ---------------------------------------------------------------------------
+
+export * from "./catalogs/index.js";
+export * from "./finance/finance-plan.js";
+
+export const saveGuidedAnswersSchema = z.object({
+  answers: z.array(
+    z.object({
+      question_id: z.string().min(1),
+      answer_text: z.string(),
+    }),
+  ),
+});
+
+export type SaveGuidedAnswersInput = z.infer<typeof saveGuidedAnswersSchema>;
+
+export const UpsertProjectAnswerInputSchema = z.object({
+  question_id: z.string().min(1, 'Question ID không được để trống'),
+  answer_text: z.string(),
+});
+export type UpsertProjectAnswerInput = z.infer<typeof UpsertProjectAnswerInputSchema>;
+
+export const BatchUpsertProjectAnswersInputSchema = z.object({
+  answers: z.array(UpsertProjectAnswerInputSchema),
+});
+export type BatchUpsertProjectAnswersInput = z.infer<typeof BatchUpsertProjectAnswersInputSchema>;
+
+export const ProjectAnswerSchema = z.object({
+  id: z.string(),
+  case_id: z.string(),
+  question_id: z.string(),
+  answer_text: z.string(),
+  updated_at: z.union([z.date(), z.string()]),
+});
+export type ProjectAnswerEntity = z.infer<typeof ProjectAnswerSchema>;
+
+// Only CP2 can be opened on demand; CP1 is created with the case.
+export const OpenCheckpointParamsSchema = z.object({
+  code: z.literal('CP2'),
+});
+export type OpenCheckpointParams = z.infer<typeof OpenCheckpointParamsSchema>;
+export * from "./discount.js";

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Case } from "@/types";
+import { formatCreditBalances, totalCredits } from "@/lib/credit-balances";
 import { studentStatusThemeMap, paymentStatusThemeMap } from "@/types";
 import { Card, Badge } from "@mantine/core";
 
@@ -31,7 +32,7 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
 
   const paymentBadge = getPaymentBadgeProps(item.payment_status);
   const userFacingStatusBadge = getStageBadgeProps(item.user_facing_stage);
-  const hasCredits = (item.credit_balance ?? 0) > 0;
+  const hasCredits = totalCredits(item.credit_balances) > 0;
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("vi-VN", {
@@ -65,7 +66,7 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
             )}
             {hasCredits && (
               <Badge size="md" variant="light" color="teal" className="font-body text-sm whitespace-nowrap">
-                Có {item.credit_balance} lượt
+                {formatCreditBalances(item.credit_balances)}
               </Badge>
             )}
           </div>

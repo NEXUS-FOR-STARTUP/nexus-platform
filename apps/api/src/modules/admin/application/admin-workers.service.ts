@@ -522,8 +522,19 @@ export async function retryAdminWorkerJob(
     },
   });
 
-  // 3. Trigger lại tiến trình thẩm định
+  // 3. Trigger lại tiến trình thẩm định. A CP2 job is re-run as the same CP2 scope, never as CP1.
+  const lastJob = await prisma.aiJob.findFirst({
+    where: { case_id: caseId, job_type: "omp_audit" },
+    orderBy: { created_at: "desc" },
+    select: { input_json: true },
+  });
+  const lastInput = (lastJob?.input_json ?? {}) as { checkpoint?: string; scope?: string; input_source?: "answers" | "files" | "both"; submission_type?: string };
+  const cp2Rerun =
+    lastInput.checkpoint === "CP2"
+      ? { checkpoint: "CP2" as const, scope: lastInput.scope as "questionnaire" | "full", input_source: lastInput.input_source, submission_type: lastInput.submission_type as "initial" | "resubmit" }
+      : {};
   await triggerOmpAuditForCase(caseId, {
+    ...cp2Rerun,
     model: body.model,
     prompt_mode: body.promptMode,
     skip_credit_check: true,

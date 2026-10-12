@@ -11,11 +11,10 @@ import { IntakeStep, IntakeData } from "./_types/intake.types";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import Link from "next/link";
 import { Modal, Button, Alert } from "@mantine/core";
-import { Trash2, AlertTriangle, Clock, AlertCircle } from "lucide-react";
+import { Trash2, AlertTriangle, AlertCircle } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import DemoDataFAB from "@/components/ui/DemoDataFAB";
 import { DEMO_PRESETS } from "./_data/demo-presets";
-import { PACKAGE_KEYS } from "@/lib/pricing";
 
 
 function IntakePageContent() {
@@ -220,48 +219,6 @@ function IntakePageContent() {
       </div>
     );
   }
-  // Guard against in-development 149k package (pkg_supporter_audit)
-  if (!isUpdateMode && packageId === PACKAGE_KEYS.SUPPORTER_AUDIT) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px] p-6">
-        <Alert
-          icon={<AlertCircle className="w-5 h-5" />}
-          title="Tính năng đang được phát triển"
-          color="blue"
-          radius="md"
-          variant="light"
-          className="max-w-md"
-        >
-          <div className="space-y-4">
-            <p className="text-sm font-body">
-              Gói Premium Mentor Audit hiện đang được hoàn thiện. Vui lòng chọn gói Basic AI Audit (79.000đ) để được phản biện tức thì!
-            </p>
-            <div className="flex flex-col gap-2">
-              <Button
-                component={Link}
-                href={`/dashboard/intake?packageId=${PACKAGE_KEYS.AI_AUDIT}`}
-                color="blue"
-                fullWidth
-                className="font-body font-semibold cursor-pointer"
-              >
-                Chuyển sang gói Basic AI (79k)
-              </Button>
-              <Button
-                component={Link}
-                href="/dashboard"
-                variant="default"
-                fullWidth
-                className="font-body cursor-pointer"
-              >
-                Quay lại Dashboard
-              </Button>
-            </div>
-          </div>
-        </Alert>
-      </div>
-    );
-  }
-
 
   // Validate packageId for CREATE mode
   if (!isUpdateMode && packagesData) {

@@ -3,6 +3,31 @@ import type { Prisma } from "@prisma/client";
 import { createDocumentRecordsForUnit } from "../../../documents/infrastructure/persistence/document.repository.js";
 import { AppError } from "../../../../shared/domain/app-error.js";
 import { MESSAGE_PAGE_DEFAULT, encodeMessageCursor } from "../../application/message-cursor.js";
+import type { PostIntakeDocumentInput } from "../../../documents/application/validate-document-write.js";
+
+/**
+ * Single place that creates a checkpoint row. Idempotent via the
+ * (case_id, checkpoint_code) unique key, so concurrent callers share one row.
+ */
+export async function ensureCheckpoint(
+  db: Pick<Prisma.TransactionClient, "checkpoint">,
+  caseId: string,
+  code: string,
+  status = "submitted",
+) {
+  return await db.checkpoint.upsert({
+    where: { case_id_checkpoint_code: { case_id: caseId, checkpoint_code: code } },
+    update: {},
+    create: {
+      case_id: caseId,
+      checkpoint_code: code,
+      checkpoint_status: status,
+      latest_version_no: 1,
+    },
+  });
+}
+
+export const STAGE_UPLOAD_UNIT_TYPE = "stage_upload";
 
 
 
@@ -181,14 +206,7 @@ export async function createCaseWithCheckpointAndIntake(data: {
       },
     });
 
-    const checkpoint = await tx.checkpoint.create({
-      data: {
-        case_id: newCase.id,
-        checkpoint_code: "CP1",
-        checkpoint_status: "submitted",
-        latest_version_no: 1,
-      },
-    });
+    const checkpoint = await ensureCheckpoint(tx, newCase.id, "CP1");
 
     const intakeUnit = await tx.lifecycleUnit.create({
       data: {
@@ -513,6 +531,36 @@ export async function submitCaseRevisionInTx(
   });
 
   return revisionUnit;
+}
+
+/**
+ * Student file upload into a stage (checkpoint) with no case transition.
+ * Own unit_type so CP1 resubmit / finalizer lookups on `unit_type: "version"`
+ * never treat it as a submitted revision, and the checkpoint's version counter
+ * (vNN / aNN-vMM codes) is left alone. The random unit code needs no counter,
+ * so concurrent uploads cannot collide.
+ */
+export async function createStageUploadInTx(
+  tx: Prisma.TransactionClient,
+  data: { caseId: string; checkpointId: string; userId: string; documents: PostIntakeDocumentInput[] },
+) {
+  const { caseId, checkpointId, userId, documents } = data;
+  const unit = await tx.lifecycleUnit.create({
+    data: {
+      case_id: caseId,
+      checkpoint_id: checkpointId,
+      unit_code: `s-${crypto.randomUUID().slice(0, 8)}`,
+      unit_type: STAGE_UPLOAD_UNIT_TYPE,
+      version_no: 0,
+      content: JSON.stringify({ documents }),
+      file_url: documents[0]?.file_url || null,
+    },
+  });
+
+  await createDocumentRecordsForUnit(
+    caseId, checkpointId, unit.id, unit.unit_code, documents, userId, "revision_document", "outbound", tx,
+  );
+  return unit;
 }
 
 export async function createSupporterOutputDocs(

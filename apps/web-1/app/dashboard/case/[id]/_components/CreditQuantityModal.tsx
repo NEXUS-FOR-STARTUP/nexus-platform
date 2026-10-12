@@ -11,6 +11,8 @@ import { formatPrice, PACKAGE_KEYS } from "@/lib/pricing";
 import { usePackagePrice } from "@/lib/usePackagePrice";
 import { useWalletBalance } from "@/app/dashboard/wallet/hooks/useWallet";
 import { useShortageDepositRedirect } from "./use-shortage-deposit-redirect";
+import type { DiscountCodeCheckResult } from "@repo/validation";
+import DiscountCodeInput from "./DiscountCodeInput";
 
 interface CreditQuantityModalProps {
   caseId: string;
@@ -35,17 +37,18 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
   const router = useRouter();
   const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState<number>(1);
-
-  const serviceType = isManual ? "credit_audit_manual" : "credit_audit";
+  const [appliedDiscount, setAppliedDiscount] = useState<DiscountCodeCheckResult | null>(null);
 
   const { startShortageDeposit, isPending: isShortagePending } = useShortageDepositRedirect(caseId);
   const { data: pkg } = usePackagePrice(packageId, opened);
   const { data: walletData } = useWalletBalance();
 
   const walletBalance = walletData?.balance ?? 0;
-  const isAiAudit = packageId === PACKAGE_KEYS.AI_AUDIT || pkg?.id === PACKAGE_KEYS.AI_AUDIT || pkg?.price === 79000;
+  const isCp2Pack = packageId === PACKAGE_KEYS.CP2_AUDIT;
+  const isAiAudit = isCp2Pack || packageId === PACKAGE_KEYS.AI_AUDIT || pkg?.id === PACKAGE_KEYS.AI_AUDIT || pkg?.price === 79000;
   const effectiveQuantity = isAiAudit ? 1 : quantity;
-  const unitPrice = pkg?.price ?? (isAiAudit ? 79000 : 0);
+  const listUnitPrice = pkg?.price ?? (isAiAudit ? 79000 : 0);
+  const unitPrice = appliedDiscount?.discounted_price ?? listUnitPrice;
   const totalAmount = effectiveQuantity * unitPrice;
   const shortage = Math.max(totalAmount - walletBalance, 0);
   const hasSufficientBalance = shortage === 0;
@@ -54,7 +57,8 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
     mutationFn: async () => {
       const res = await apiClient.post<CreateOrderResponse>("/orders", {
         idempotency_key: crypto.randomUUID(),
-        items: [{ service_type: serviceType, quantity: effectiveQuantity, metadata_json: { case_id: caseId } }],
+        items: [{ package_id: packageId, quantity: effectiveQuantity, manual_trigger: isManual, metadata_json: { case_id: caseId } }],
+        ...(appliedDiscount ? { discount_code: appliedDiscount.code } : {}),
       });
       return res.data;
     },
@@ -85,7 +89,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
       if (errData?.code === "INSUFFICIENT_BALANCE") {
         const needed = errData.details ? Math.max(Number(errData.details.required) - Number(errData.details.current), 0) : totalAmount;
         const suggestedTopup = Math.max(needed, MIN_TOPUP_AMOUNT);
-        void startShortageDeposit({ quantity: effectiveQuantity, suggestedTopup, serviceType }).finally(handleClose);
+        void startShortageDeposit({ quantity: effectiveQuantity, suggestedTopup, packageId, manualTrigger: isManual, discountCode: appliedDiscount?.code }).finally(handleClose);
         return;
       }
       notifications.show({
@@ -98,6 +102,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
 
   const handleClose = () => {
     mutation.reset();
+    setAppliedDiscount(null);
     onClose();
   };
 
@@ -106,7 +111,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
       mutation.mutate();
     } else {
       const suggestedTopup = Math.max(shortage, MIN_TOPUP_AMOUNT);
-      void startShortageDeposit({ quantity: effectiveQuantity, suggestedTopup, serviceType }).finally(handleClose);
+      void startShortageDeposit({ quantity: effectiveQuantity, suggestedTopup, packageId, manualTrigger: isManual, discountCode: appliedDiscount?.code }).finally(handleClose);
     }
   };
 
@@ -114,15 +119,15 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={<Text fw={700} size="sm">Mua gói đánh giá dự án</Text>}
+      title={<Text fw={700} size="sm">Thanh toán</Text>}
       size="md"
       radius="md"
       centered
     >
       <Stack gap="md" className="pt-3">
-        {!isAiAudit ? (
+        {!isAiAudit && (
           <NumberInput
-            label="Số lượng gói (79.000đ / gói 2 lượt)"
+            label="Số lượng gói"
             description="Từ 1 đến 50 gói"
             value={quantity}
             onChange={(val) => setQuantity(Number(val) || 1)}
@@ -131,17 +136,17 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
             allowDecimal={false}
             allowNegative={false}
           />
-        ) : (
-          <div className="flex justify-between items-center text-sm py-1">
-            <span className="text-text-muted">Gói dịch vụ</span>
-            <span className="font-semibold text-text-app">Đánh giá Dự án Tự động (2 lượt)</span>
-          </div>
         )}
 
         <div className="bg-surface-soft rounded-lg p-4 space-y-2 border border-border-app text-sm">
           <div className="flex justify-between">
             <span className="text-text-muted">Đơn giá</span>
-            <span className="font-semibold">{formatPrice(unitPrice)}</span>
+            <span className="font-semibold">
+              {appliedDiscount && (
+                <span className="text-text-muted line-through mr-2">{formatPrice(listUnitPrice)}</span>
+              )}
+              {formatPrice(unitPrice)}
+            </span>
           </div>
           {!isAiAudit && (
             <div className="flex justify-between">
@@ -168,13 +173,21 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
             <div className="pt-1 border-t border-border-app flex justify-between items-center">
               <span className="text-text-muted">Tình trạng ví</span>
               <span className={hasSufficientBalance ? "text-teal-600 font-semibold" : "text-red-600 font-semibold"}>
-                {hasSufficientBalance ? "Đủ số dư ví" : `Số dư chưa đủ — cần nạp thêm ${formatPrice(shortage)} để mua gói đánh giá`}
+                {hasSufficientBalance ? "Đủ số dư ví" : `Số dư chưa đủ — cần nạp thêm ${formatPrice(shortage)} để thanh toán`}
               </span>
             </div>
           </Stack>
         </Paper>
 
+        <DiscountCodeInput
+          key={packageId}
+          packageId={packageId}
+          applied={appliedDiscount}
+          onChange={setAppliedDiscount}
+          disabled={mutation.isPending}
+        />
         <Group justify="flex-end" mt="sm">
+
           <Button variant="default" onClick={handleClose} disabled={mutation.isPending || isShortagePending}>
             Hủy
           </Button>
@@ -184,7 +197,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
             loading={mutation.isPending || isShortagePending}
             disabled={mutation.isPending || isShortagePending}
           >
-            {hasSufficientBalance ? `Thanh toán ${formatPrice(totalAmount)}` : "Nạp tiền & Mua gói qua VietQR"}
+            {hasSufficientBalance ? `Thanh toán ${formatPrice(totalAmount)}` : "Nạp tiền & Thanh toán qua VietQR"}
           </Button>
         </Group>
 

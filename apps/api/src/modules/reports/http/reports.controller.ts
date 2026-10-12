@@ -1,3 +1,4 @@
+import { isCp2ReportType } from "@repo/validation";
 import type { Context } from "hono";
 import {
   requireCaseAccess,
@@ -133,7 +134,8 @@ export async function downloadCaseReportPdfHandler(c: Context) {
     let reportMarkdown = report.content_md;
     let overallScore = 65;
     let verdict = "PARTIALLY READY FOR REALITY CHECK";
-    let categoryScores = {
+    const cp2ReportType = isCp2ReportType(report.report_type) ? report.report_type : undefined;
+    let categoryScores: Record<string, number> = {
       problemClarity: 65,
       marketViability: 60,
       businessModel: 65,
@@ -182,7 +184,7 @@ export async function downloadCaseReportPdfHandler(c: Context) {
 
     // 1. Prioritize reading pure Markdown directly from disk output if available
     const diskMdPath = resolve(storageDir, "jobs", caseId, "output", "input_clarification_audit.md");
-    if (existsSync(diskMdPath)) {
+    if (!cp2ReportType && existsSync(diskMdPath)) {
       try {
         const diskContent = readFileSync(diskMdPath, "utf-8");
         if (diskContent && diskContent.trim().length > 0) {
@@ -217,7 +219,7 @@ export async function downloadCaseReportPdfHandler(c: Context) {
       "Dự án khởi nghiệp";
 
     const reportType = resolveReportType({
-      reportType: (parsed && typeof parsed["reportType"] === "string" && parsed["reportType"]) || undefined,
+      reportType: cp2ReportType || (parsed && typeof parsed["reportType"] === "string" && parsed["reportType"]) || undefined,
       markdown: reportMarkdown,
     });
 
@@ -377,7 +379,8 @@ export async function downloadReportPdfByIdHandler(c: Context) {
     let reportMarkdown = report.content_md;
     let overallScore = 65;
     let verdict = "PARTIALLY READY FOR REALITY CHECK";
-    let categoryScores = {
+    const cp2ReportType = isCp2ReportType(report.report_type) ? report.report_type : undefined;
+    let categoryScores: Record<string, number> = {
       problemClarity: 65,
       marketViability: 60,
       businessModel: 65,
@@ -416,7 +419,7 @@ export async function downloadReportPdfByIdHandler(c: Context) {
 
     // Try reading from disk first
     const diskMdPath = resolve(storageDir, "jobs", caseId, "output", "input_clarification_audit.md");
-    if (existsSync(diskMdPath)) {
+    if (!cp2ReportType && existsSync(diskMdPath)) {
       try {
         const diskContent = readFileSync(diskMdPath, "utf-8");
         if (diskContent && diskContent.trim().length > 0) reportMarkdown = diskContent;
@@ -443,7 +446,7 @@ export async function downloadReportPdfByIdHandler(c: Context) {
       "Dự án khởi nghiệp";
 
     const reportType = resolveReportType({
-      reportType: (parsed && typeof parsed["reportType"] === "string" && parsed["reportType"]) || undefined,
+      reportType: cp2ReportType || (parsed && typeof parsed["reportType"] === "string" && parsed["reportType"]) || undefined,
       markdown: reportMarkdown,
     });
 

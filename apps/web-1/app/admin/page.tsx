@@ -11,6 +11,7 @@ import AdminDepositVerificationTable from "./_components/AdminDepositVerificatio
 import AdminCaseAssignmentTable from "./_components/AdminCaseAssignmentTable";
 import AdminDocumentsTable from "./_components/AdminDocumentsTable";
 import AdminPackagesSettings from "./_components/AdminPackagesSettings";
+import AdminDiscountCodes from "./_components/AdminDiscountCodes";
 import AdminUsersTable from "./_components/AdminUsersTable";
 import AdminWorkerMonitoring, { type WorkerFilter } from "./_components/AdminWorkerMonitoring";
 import StatsDashboard from "./_components/StatsDashboard";
@@ -776,7 +777,7 @@ function AdminHubPageInner() {
                 <AdminNewsManager />
               </div>
             ) : (
-              <div>
+              <div className="space-y-6">
                 <AdminPackagesSettings
                   packages={packages}
                   onUpdatePrice={updatePackagePrice}
@@ -784,6 +785,7 @@ function AdminHubPageInner() {
                   isUpdatingPrice={isUpdatingPrice}
                   isUpdatingStatus={isUpdatingStatus}
                 />
+                <AdminDiscountCodes />
               </div>
             )}
           </div>

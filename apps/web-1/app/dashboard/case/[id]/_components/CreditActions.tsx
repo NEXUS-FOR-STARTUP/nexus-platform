@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { CreditCard, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
 import { Button } from "@mantine/core";
+import RainbowBuyButton from "@/components/ui/RainbowBuyButton";
 
 interface CreditActionsProps {
   onBuyCredits: () => void;
@@ -14,21 +15,17 @@ export default function CreditActions({ onBuyCredits, onViewHistory, hasCredits 
   return (
     <div className="bg-surface-app border border-border-app rounded-xl p-4">
       <div className="flex flex-wrap items-center gap-3">
-        <Button
-          onClick={onBuyCredits}
-          color="brand"
-          leftSection={<CreditCard className="w-4 h-4" />}
-          className="font-semibold text-xs h-9 cursor-pointer"
-        >
+        <RainbowBuyButton onClick={onBuyCredits} size="sm">
           {hasCredits ? "Mua thêm lượt đánh giá" : "Mua lượt đánh giá"}
-        </Button>
+        </RainbowBuyButton>
 
         {onViewHistory && (
           <Button
             onClick={onViewHistory}
             variant="default"
+            size="sm"
             leftSection={<Clock className="w-4 h-4" />}
-            className="font-semibold text-xs h-9 cursor-pointer"
+            className="font-semibold cursor-pointer"
           >
             Lịch sử giao dịch
           </Button>

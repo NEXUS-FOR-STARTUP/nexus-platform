@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import { Modal, Button, Textarea } from "@mantine/core";
 import { Dropzone, type FileRejection } from "@mantine/dropzone";
 import { notifications } from "@mantine/notifications";
-import { Send, AlertCircle, UploadCloud, FileText, X, CheckCircle2 } from "lucide-react";
+import { Send, AlertCircle, UploadCloud, X, CheckCircle2 } from "lucide-react";
+import FileTypeIcon from "@/components/ui/FileTypeIcon";
 import { useStudentDocumentUpload } from "../hooks/useCaseDocumentUploads";
 
 interface StudentDocumentUploadModalProps {
@@ -168,9 +169,7 @@ export default function StudentDocumentUploadModal({ isOpen, onClose, caseId }: 
                   className="border border-border-app rounded-xl p-3 bg-surface-app flex items-center justify-between gap-3 shadow-xs hover:border-border-strong transition-all"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-lg bg-brand-soft/40 text-brand flex items-center justify-center shrink-0">
-                      <FileText className="w-4 h-4" />
-                    </div>
+                    <FileTypeIcon name={file.name} size={32} />
                     <div className="min-w-0 font-body text-xs">
                       <p className="font-semibold text-text-app truncate">{file.name}</p>
                       <p className="text-text-subtle">{(file.size / 1024).toFixed(1)} KB</p>

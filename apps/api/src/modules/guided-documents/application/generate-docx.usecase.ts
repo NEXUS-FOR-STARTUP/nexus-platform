@@ -1,0 +1,150 @@
+import { prisma } from '../../../db.js';
+import { uploadFile, generateSignedUrl } from '../../../services/cloudinary.js';
+import { generateGuidedDocumentDocx } from '../infrastructure/docx-generator.js';
+import { AppError } from '../../../shared/domain/app-error.js';
+import { TEMPLATE_REGISTRY, type TemplateKey } from '@repo/validation';
+import { ensureCheckpoint } from '../../cases/infrastructure/persistence/case.repository.js';
+
+const FILENAME_TEAM_MAX_LENGTH = 40;
+const FILENAME_DOC_TYPE_MAX_LENGTH = 40;
+
+export interface GenerateDocxInput {
+  caseId: string;
+  userId: string;
+  templateKey?: TemplateKey;
+}
+
+export async function generateDocxUseCase(input: GenerateDocxInput) {
+  const { caseId, userId, templateKey = 'cp1' } = input;
+
+  const caseRecord = await prisma.case.findUnique({
+    where: { id: caseId },
+    include: {
+      checkpoints: {
+        orderBy: { created_at: 'asc' },
+      },
+    },
+  });
+
+  if (!caseRecord) {
+    throw new AppError(404, 'CASE_NOT_FOUND', 'Không tìm thấy hồ sơ');
+  }
+
+  // Never fall back to another checkpoint: a CP2 docx must land on CP2. Cases created
+  // without intake have no checkpoint yet, so ensure the target and (only when the
+  // case has no active checkpoint) point current_checkpoint at it so submit-intake
+  // reuses the row.
+  const targetCode = templateKey.toUpperCase();
+  const checkpoint =
+    caseRecord.checkpoints.find((cp) => cp.checkpoint_code === targetCode) ||
+    (await prisma.$transaction(async (tx) => {
+      const ensured = await ensureCheckpoint(tx, caseId, targetCode);
+      if (!caseRecord.current_checkpoint) {
+        await tx.case.update({
+          where: { id: caseId },
+          data: { current_checkpoint: targetCode },
+        });
+      }
+      return ensured;
+    }));
+
+  // Fetch answers
+  const answers = await prisma.projectAnswer.findMany({
+    where: { case_id: caseId },
+  });
+
+  const answersMap: Record<string, string> = {};
+  for (const ans of answers) {
+    answersMap[ans.question_id] = ans.answer_text;
+  }
+
+  const caseTitle = caseRecord.team_name || caseRecord.case_code;
+
+  // Generate buffer synchronously
+  const docxBuffer = await generateGuidedDocumentDocx({
+    templateKey,
+    answersMap,
+    caseTitle,
+  });
+
+  // Filename: case code + team name + document type + timestamp. The template key
+  // (CP1/CP2…) is internal and deliberately not exposed to users.
+  const timestamp = Date.now();
+  const toSlug = (value: string, maxLength: number) =>
+    value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D')
+      .replace(/[^a-zA-Z0-9-]+/g, '_')
+      .slice(0, maxLength)
+      .replace(/^_+|_+$/g, '');
+  const filenameParts = [
+    caseRecord.case_code,
+    caseRecord.team_name ? toSlug(caseRecord.team_name, FILENAME_TEAM_MAX_LENGTH) : '',
+    toSlug(TEMPLATE_REGISTRY[templateKey].title, FILENAME_DOC_TYPE_MAX_LENGTH),
+    String(timestamp),
+  ].filter(Boolean);
+  const filename = `${filenameParts.join('_')}.docx`;
+  const publicId = filename;
+
+  // Upload to Cloudinary
+  const uploadResult = await uploadFile(
+    docxBuffer,
+    'nexus-platform/guided-documents',
+    publicId,
+    'raw',
+  );
+
+  const fullPublicId = uploadResult.publicId.startsWith('nexus-platform/guided-documents/')
+    ? uploadResult.publicId
+    : `nexus-platform/guided-documents/${uploadResult.publicId}`;
+
+  const downloadUrl = generateSignedUrl(
+    fullPublicId,
+    3600 * 24 * 7, // 7 days
+    filename,
+  );
+
+  // Compute seq + supersede previous guided exports of this checkpoint so the
+  // workspace count doesn't grow by one on every export press.
+  const lastDoc = await prisma.documentRecord.findFirst({
+    where: { case_id: caseId, checkpoint_id: checkpoint.id },
+    orderBy: { seq: 'desc' },
+  });
+  const seq = (lastDoc?.seq ?? 0) + 1;
+  await prisma.documentRecord.updateMany({
+    where: { case_id: caseId, checkpoint_id: checkpoint.id, doc_type: `guided_${templateKey}`, superseded_at: null },
+    data: { superseded_at: new Date() },
+  });
+  const docRecord = await prisma.documentRecord.create({
+    data: {
+      case_id: caseId,
+      checkpoint_id: checkpoint.id,
+      doc_type: `guided_${templateKey}`,
+      source_kind: 'system_generated',
+      canonical_name: filename,
+      original_name: filename,
+      extension: '.docx',
+      mime_type:
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      file_url: uploadResult.fileUrl,
+      download_url: downloadUrl,
+      cloudinary_public_id: fullPublicId,
+      seq,
+      uploaded_by_auth_user_id: userId,
+    },
+  });
+
+  return {
+    ok: true,
+    document: {
+      id: docRecord.id,
+      file_url: docRecord.file_url,
+      download_url: downloadUrl,
+      original_name: docRecord.original_name,
+      canonical_name: docRecord.canonical_name,
+      created_at: docRecord.created_at,
+    },
+  };
+}
