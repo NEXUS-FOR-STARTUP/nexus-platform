@@ -113,7 +113,7 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
     },
     is_active: true,
     service_type_code: "cp2_audit",
-    credits_granted: 4,
+    credits_granted: 2,
   },
   {
     id: "pkg_supporter_audit",
