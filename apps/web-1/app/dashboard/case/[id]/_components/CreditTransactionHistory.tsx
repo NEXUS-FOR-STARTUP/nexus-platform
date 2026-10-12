@@ -176,6 +176,64 @@ export default function CreditTransactionHistory({
     );
   }
 
+  if (filteredAndSortedItems.length === 0) {
+    return (
+      <BillingTableShell
+        header={
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+              {QUICK_FILTER_TABS.map((tab) => {
+                const isActive = typeFilter === tab.id;
+                const count = tabCounts[tab.id];
+                if (tab.id !== "all" && count === 0) return null;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setTypeFilter(tab.id)}
+                    className={`px-3 py-1.5 text-xs sm:text-base font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                      isActive ? "bg-brand text-white font-semibold" : "text-text-muted hover:text-text-app hover:bg-surface-soft"
+                    }`}
+                  >
+                    <span>{tab.label}</span>
+                    <span className={`text-[11px] font-semibold px-1.5 py-0.2 rounded-full leading-tight ${isActive ? "bg-white/20 text-white" : "bg-surface-soft text-text-muted"}`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="w-full sm:w-auto shrink-0">
+              <Select
+                value={dateFilter}
+                onChange={(val) => setDateFilter((val as DateFilter) || "all")}
+                size="sm"
+                radius="md"
+                className="w-full sm:w-[180px]"
+                data={[
+                  { label: "Tất cả thời gian", value: "all" },
+                  { label: "Hôm nay", value: "today" },
+                  { label: "7 ngày gần nhất", value: "7days" },
+                  { label: "30 ngày gần nhất", value: "30days" },
+                ]}
+              />
+            </div>
+          </div>
+        }
+        mobile={
+          <div className="p-8 text-center">
+            <p className="text-base font-medium text-text-muted">Không có giao dịch nào phù hợp với bộ lọc đã chọn</p>
+          </div>
+        }
+        desktop={
+          <div className="p-8 text-center">
+            <p className="text-base font-medium text-text-muted">Không có giao dịch nào phù hợp với bộ lọc đã chọn</p>
+          </div>
+        }
+      />
+    );
+  }
+
   return (
     <BillingTableShell
       header={
@@ -240,13 +298,6 @@ export default function CreditTransactionHistory({
         </>
       }
       desktop={
-        filteredAndSortedItems.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-base font-medium text-text-muted">
-              Không có giao dịch nào phù hợp với bộ lọc đã chọn
-            </p>
-          </div>
-        ) : (
           <Table.ScrollContainer minWidth={740}>
           <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md" className="w-full">
             <Table.Thead className={BILLING_THEAD_CLASS}>
@@ -361,7 +412,6 @@ export default function CreditTransactionHistory({
             </Table.Tbody>
           </Table>
           </Table.ScrollContainer>
-        )
       }
     />
   );

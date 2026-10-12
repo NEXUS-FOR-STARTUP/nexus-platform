@@ -38,6 +38,9 @@ export default function StageHeader({
 
       <Group justify="space-between" align="center" wrap="wrap" gap="md">
         <Stack gap={2}>
+          <Text size="xs" fw={700} c="dimmed" tt="uppercase" lts="0.08em">
+            Giai đoạn {stage.code.replace("CP", "")}
+          </Text>
           <Group gap="xs">
             <Text fw={700} size="xl">{stage.name}</Text>
             {isGrading ? (
