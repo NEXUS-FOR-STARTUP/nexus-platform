@@ -154,10 +154,10 @@ export async function getCaseAiAuditStatus(caseId: string, checkpoint?: string) 
   // Checkpoint-scoped: the DB row is authoritative for terminal states. The queue/files say "completed"
   // before the finalizer has saved the report (and the finalize can still fail + refund), so an unsaved
   // run stays "running" (finalizing) instead of flashing completed then flipping to failed.
-  if (checkpoint && latestJob) {
+  if (latestJob) {
     if (["completed", "failed", "cancelled"].includes(latestJob.status)) {
       finalStatus = latestJob.status as typeof finalStatus;
-    } else if (finalStatus === "completed") {
+    } else if (checkpoint && finalStatus === "completed") {
       finalStatus = "running";
     }
   }

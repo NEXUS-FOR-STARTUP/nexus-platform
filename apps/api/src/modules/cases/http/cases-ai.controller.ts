@@ -19,8 +19,10 @@ export async function getCaseAiStatusHandler(c: Context) {
     return access.response;
   }
 
+  const checkpoint = c.req.query("checkpoint") || undefined;
+
   try {
-    const status = await getCaseAiAuditStatus(caseId);
+    const status = await getCaseAiAuditStatus(caseId, checkpoint);
     return c.json(status);
   } catch (err) {
     return handleError(c, err);
@@ -38,8 +40,8 @@ export async function streamCaseAiEventsHandler(c: Context) {
   }
 
   return streamSSE(c, async (stream) => {
-    // 1. Initial status handshake
-    const initialStatus = await getCaseAiAuditStatus(caseId);
+    const checkpoint = c.req.query("checkpoint") || undefined;
+    const initialStatus = await getCaseAiAuditStatus(caseId, checkpoint);
     await stream.writeSSE({
       event: "job_state",
       data: JSON.stringify(initialStatus),
