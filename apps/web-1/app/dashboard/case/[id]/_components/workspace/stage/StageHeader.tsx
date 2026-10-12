@@ -41,7 +41,7 @@ export default function StageHeader({
       <Group justify="space-between" align="center" wrap="wrap" gap="md">
         <Stack gap={2}>
           <Group gap={6} align="center">
-            <Text fw={800} fz={36} lh={1} c={meta.color}>
+            <Text fw={800} size="lg" c={meta.color}>
               {stageNumberOf(stage.code)}
             </Text>
             <Text fw={700} size="xl">{stage.name}</Text>
