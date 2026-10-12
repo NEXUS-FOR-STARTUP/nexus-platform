@@ -1,7 +1,7 @@
 "use client";
 
 import { Accordion, Modal, Stack, Text, Textarea, Button, Radio, Group, Alert, ThemeIcon } from "@mantine/core";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AlertCircle, Check, Minus, Sparkles } from "lucide-react";
 import type { StageDefinition } from "@app/shared/stages";
 import type { Cp2InputSource } from "@app/shared";
@@ -47,9 +47,11 @@ export default function AuditConfirmModal({
   onGoFiles,
 }: AuditConfirmModalProps) {
   const isCp2 = stage.code === "CP2";
-  const [scope, setScope] = useState<Cp2Scope>("full");
-  const [source, setSource] = useState<Cp2InputSource>("answers");
-  const [submissionType, setSubmissionType] = useState<"initial" | "resubmit">("initial");
+  // No effect syncs these: the defaults are derived below and a manual pick is
+  // remembered as an override, so readiness changing under it can't reset it.
+  const [scopeOverride, setScopeOverride] = useState<Cp2Scope | null>(null);
+  const [sourceOverride, setSourceOverride] = useState<Cp2InputSource | null>(null);
+  const [submissionTypeOverride, setSubmissionTypeOverride] = useState<"initial" | "resubmit" | null>(null);
   const [changeSummary, setChangeSummary] = useState("");
   const [userNote, setUserNote] = useState("");
   const [step, setStep] = useState(1);
@@ -68,27 +70,23 @@ export default function AuditConfirmModal({
   };
   const handleScopeChange = (value: string) => {
     const next = value as Cp2Scope;
-    setScope(next);
-    if (next === "questionnaire") setSubmissionType("initial");
+    setScopeOverride(next);
+    if (next === "questionnaire") setSubmissionTypeOverride("initial");
   };
 
-  // Default to resubmit when a result already exists; the team can still switch back.
-  useEffect(() => {
-    if (summary?.status === "has_result") setSubmissionType("resubmit");
-  }, [summary?.status]);
-  // Pick the richest option the current input supports; re-run only when readiness changes.
-  useEffect(() => {
-    if (!isCp2) return;
+  // Derived defaults (no effect): the richest option the current input supports,
+  // and "resubmit" once a result exists. A manual pick always wins.
+  const recommended = (() => {
+    if (!isCp2) return null;
     for (const src of SOURCE_PRIORITY) {
       const sc = SCOPE_PRIORITY.find((candidate) => sourceReady(src, candidate));
-      if (sc) {
-        setSource(src);
-        setScope(sc);
-        return;
-      }
+      if (sc) return { source: src, scope: sc };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isCp2, readyFull, readyQuestionnaire, hasFiles]);
+    return null;
+  })();
+  const scope = scopeOverride ?? recommended?.scope ?? "full";
+  const source = sourceOverride ?? recommended?.source ?? "answers";
+  const submissionType = submissionTypeOverride ?? (summary?.status === "has_result" ? "resubmit" : "initial");
 
   // CP1 has no CP2-style readiness bar, but no stage is ever graded on nothing:
   // zero answers AND zero files is a dead end in both checkpoints.
@@ -186,7 +184,7 @@ export default function AuditConfirmModal({
                 <Accordion.Item value="source">
                   <Accordion.Control>Chấm gì <Text span size="xs" c="dimmed">- {SOURCE_LABEL[source]}</Text></Accordion.Control>
                   <Accordion.Panel>
-                    <Radio.Group value={source} onChange={(value) => setSource(value as Cp2InputSource)}>
+                    <Radio.Group value={source} onChange={(value) => setSourceOverride(value as Cp2InputSource)}>
                       <Stack gap="xs">
                         <Radio value="both" label="Cả câu trả lời và tài liệu" description="Đối chiếu lời trả lời với tệp bạn nộp" disabled={!sourceReady("both", scope)} />
                         <Radio value="answers" label="Chỉ câu trả lời" description="Hợp khi chưa có tài liệu riêng" disabled={!sourceReady("answers", scope)} />
@@ -211,7 +209,7 @@ export default function AuditConfirmModal({
                 <Accordion.Item value="kind">
                   <Accordion.Control>Lần chấm này <Text span size="xs" c="dimmed">- {submissionType === "resubmit" ? "Chấm lại" : "Chấm mới"}</Text></Accordion.Control>
                   <Accordion.Panel>
-                    <Radio.Group value={submissionType} onChange={(value) => setSubmissionType(value as "initial" | "resubmit")}>
+                    <Radio.Group value={submissionType} onChange={(value) => setSubmissionTypeOverride(value as "initial" | "resubmit")}>
                       <Stack gap="xs">
                         <Radio value="initial" label="Chấm mới từ đầu" description="Không đối chiếu bản cũ" />
                         <Radio value="resubmit" label="Chấm lại sau khi sửa" description={scope === "full" ? "Đối chiếu với kết quả lần trước" : "Chỉ có ở chấm toàn diện"} disabled={scope !== "full"} />
