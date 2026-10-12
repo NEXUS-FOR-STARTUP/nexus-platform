@@ -67,9 +67,9 @@ export default function ProjectProfileForm({
         current_blocker: currentBlocker.trim() || undefined,
         notes: notes.trim() || undefined,
         boundary_confirmations: agreed,
-        documents: (snapshot.documents as unknown[]) || [
-          { file_url: "https://drive.google.com", document_type: "pitch_deck" },
-        ],
+        // Documents sent only when the case already has some: the profile form
+        // manages contact/notes, files are managed by the stage upload endpoints.
+        documents: Array.isArray(snapshot.documents) ? (snapshot.documents as unknown[]) : [],
       };
       const res = await apiClient.post(`/cases/${caseId}/intake`, payload);
       return res.data;

@@ -76,12 +76,17 @@ async function updateIntakeDataOnly(
   });
 
   const unitContent = JSON.stringify(body);
-  const unitFileUrl = body.documents?.[0]?.file_url || body.documents?.[0]?.drive_url || null;
+  const providedDocuments = Array.isArray(body.documents) ? body.documents : [];
+  const unitFileUrl = providedDocuments[0]?.file_url || providedDocuments[0]?.drive_url || null;
 
   const intakeUnit = existingUnit
     ? await client.lifecycleUnit.update({
       where: { id: existingUnit.id },
-      data: { content: unitContent, file_url: unitFileUrl },
+      // file_url mirrors the first document: without documents there is nothing
+      // to mirror, so leave the stored value untouched.
+      data: providedDocuments.length > 0
+        ? { content: unitContent, file_url: unitFileUrl }
+        : { content: unitContent },
     })
     : await client.lifecycleUnit.create({
       data: {
@@ -95,27 +100,31 @@ async function updateIntakeDataOnly(
       },
     });
 
-  // D13 + immutability: upsert theo ID deterministic (file cùng identity → replace, khác → thêm)
-  const createdRecords = await upsertDocumentRecordsForUnit(
-    caseId,
-    checkpointId,
-    intakeUnit.id,
-    "v00",
-    body.documents || [],
-    caseRecord.owner_auth_user_id,
-    "intake_document",
-    "inbound",
-    client as any,
-    (doc) =>
-      typeof doc.document_type === "string" && doc.document_type.trim()
-        ? doc.document_type
-        : undefined,
-  );
+  // D13 + immutability: upsert theo ID deterministic (file cùng identity → replace, khác → thêm).
+  // Documents are optional since the profile form saves text fields only — an empty
+  // payload means "leave the uploaded files alone", never "supersede them all".
+  if (providedDocuments.length > 0) {
+    const createdRecords = await upsertDocumentRecordsForUnit(
+      caseId,
+      checkpointId,
+      intakeUnit.id,
+      "v00",
+      providedDocuments,
+      caseRecord.owner_auth_user_id,
+      "intake_document",
+      "inbound",
+      client,
+      (doc) =>
+        typeof doc.document_type === "string" && doc.document_type.trim()
+          ? doc.document_type
+          : undefined,
+    );
 
-  const newRecordIds = createdRecords.map((record) => record.id);
-  await client.documentRecord.updateMany(
-    buildSupersedeUpdateArgs(caseId, newRecordIds),
-  );
+    const newRecordIds = createdRecords.map((record) => record.id);
+    await client.documentRecord.updateMany(
+      buildSupersedeUpdateArgs(caseId, newRecordIds),
+    );
+  }
 
   await client.case.update({
     where: { id: caseId },
