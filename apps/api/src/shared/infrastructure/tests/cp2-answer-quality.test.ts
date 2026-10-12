@@ -4,6 +4,7 @@ import {
   evaluateCp2FullAnswers,
   evaluateCp2QuestionnaireAnswers,
   assertCp2AnswerQuality,
+  assertCp2InputSource,
 } from '../../../modules/ai-engine/application/cp2-audit-input.js'
 import { AppError } from '../../../shared/domain/app-error.js'
 import { CP2_INTERVIEW_AUDIT_REQUIRED, CP2_QUESTION_BANK_ID, TEMPLATE_REGISTRY } from '@repo/validation'
@@ -66,5 +67,42 @@ describe('assertCp2AnswerQuality scope branching', () => {
       () => assertCp2AnswerQuality('case-1', answers, 'full', true),
       (err: unknown) => err instanceof AppError && err.code === 'CP2_ANSWERS_TOO_THIN',
     )
+  })
+})
+
+describe('assertCp2InputSource', () => {
+  const junk: Record<string, string> = {}
+  for (const id of CP2_IDS.slice(0, 26)) junk[id] = 'adawd'
+  const good: Record<string, string> = {}
+  for (const id of CP2_IDS.slice(0, 5)) good[id] = pad('nghien cuu', 10)
+  const code = (fn: () => void): string | undefined => {
+    try {
+      fn()
+      return undefined
+    } catch (err: unknown) {
+      return err instanceof AppError ? err.code : 'OTHER'
+    }
+  }
+
+  it('files only: passes with files even when every answer is junk', () => {
+    assert.equal(code(() => assertCp2InputSource('c', junk, 'full', 'files', 2)), undefined)
+  })
+
+  it('files only: rejects when there are no files', () => {
+    assert.equal(code(() => assertCp2InputSource('c', good, 'full', 'files', 0)), 'CP2_FILES_REQUIRED')
+  })
+
+  it('answers only: passes with good answers and no files', () => {
+    assert.equal(code(() => assertCp2InputSource('c', good, 'full', 'answers', 0)), undefined)
+  })
+
+  it('answers only: still rejects junk answers even when files exist', () => {
+    assert.equal(code(() => assertCp2InputSource('c', junk, 'full', 'answers', 3)), 'CP2_ANSWERS_TOO_THIN')
+  })
+
+  it('both: needs files AND good answers', () => {
+    assert.equal(code(() => assertCp2InputSource('c', good, 'full', 'both', 1)), undefined)
+    assert.equal(code(() => assertCp2InputSource('c', good, 'full', 'both', 0)), 'CP2_FILES_REQUIRED')
+    assert.equal(code(() => assertCp2InputSource('c', junk, 'full', 'both', 1)), 'CP2_ANSWERS_TOO_THIN')
   })
 })

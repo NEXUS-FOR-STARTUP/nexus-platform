@@ -77,3 +77,7 @@ export const AUDIT_CHECKPOINTS = {
 export type AuditCheckpointCode = keyof typeof AUDIT_CHECKPOINTS;
 export const AUDIT_CHECKPOINT_CODES = Object.keys(AUDIT_CHECKPOINTS) as [AuditCheckpointCode, ...AuditCheckpointCode[]];
 export type AuditSubmissionType = "initial" | "resubmit" | "logic_check";
+
+/** CP2 only: which student inputs the grader reads. `both` requires answers AND files to pass their gates. */
+export const CP2_INPUT_SOURCES = ["answers", "files", "both"] as const;
+export type Cp2InputSource = (typeof CP2_INPUT_SOURCES)[number];

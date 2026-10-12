@@ -31,7 +31,7 @@ import { finalizeOmpAuditResult } from "./omp-audit-finalizer.js";
 import { getCaseAiAuditStatus } from "./omp-audit-status.js";
 import { findLatestCp2FullReport } from "../../reports/infrastructure/persistence/report.repository.js";
 import { INPUT_ASSEMBLERS, resolveAuditPlan } from "./audit-registry.js";
-import { CP2_CHECKPOINT_CODE, assertCp2AnswerQuality } from "./cp2-audit-input.js";
+import { CP2_CHECKPOINT_CODE, assertCp2InputSource } from "./cp2-audit-input.js";
 import { consumeAuditCredit, grantAuditRefund } from "./audit-credit.js";
 import { TriggerOptsSchema } from "./trigger-opts.js";
 import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-types.js";
@@ -242,6 +242,7 @@ export async function triggerOmpAuditForCase(
     submission_type: submissionType,
     checkpoint: checkpointCode,
     scope,
+    input_source: inputSource = "answers",
     change_summary: changeSummary,
     lifecycle_unit_id: lifecycleUnitId,
     model,
@@ -367,7 +368,7 @@ export async function triggerOmpAuditForCase(
           where: { case_id: caseId, checkpoint_id: gateCheckpoint.id, superseded_at: null, source_kind: { notIn: [...SUBMITTED_DOC_EXCLUDED_KINDS] }, doc_type: { notIn: STAGE_DOC_EXCLUDED_TYPES } },
         })
       : 0;
-    assertCp2AnswerQuality(caseId, gateAnswers, plan.scope, gateFiles > 0);
+    assertCp2InputSource(caseId, gateAnswers, plan.scope, inputSource, gateFiles);
   }
 
   // 4d. Stage input rule: a stage is graded on template answers or files, never on nothing.
@@ -399,6 +400,7 @@ export async function triggerOmpAuditForCase(
     admin_triggered: adminTriggered,
     checkpoint: checkpointCode,
     scope: plan.scope,
+    ...(checkpointCode === "CP2" ? { input_source: inputSource } : {}),
     service_type: plan.serviceType,
   };
   const sandboxOpts: SandboxOptions =
@@ -489,6 +491,7 @@ export async function triggerOmpAuditForCase(
       lifecycleUnitId: lifecycleUnitId ?? null,
       changeSummary,
       scope: plan.scope,
+      inputSource,
     });
 
     // 9b. Persist resolved unit into aiJob.input_json so the guard (phase-01)

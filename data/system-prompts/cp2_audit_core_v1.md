@@ -36,7 +36,7 @@ Không được:
 
 ## 3. Đầu vào và an toàn
 
-- `input/cp2_answers.md`: câu trả lời của nhóm. Có thể mở đầu bằng các mục thuộc giai đoạn Ý tưởng. Câu hỏi không có trong tệp nghĩa là nhóm chưa trả lời. Mỗi mục bắt đầu bằng tiêu đề `## [question_id] Câu hỏi`. Dùng `question_id` này khi trích dẫn.
+- `input/cp2_answers.md`: câu trả lời của nhóm. Nếu tệp này ghi nhóm chỉ chấm bằng tệp đính kèm thì đừng tính câu vắng mặt là chưa trả lời. Có thể mở đầu bằng các mục thuộc giai đoạn Ý tưởng. Câu hỏi không có trong tệp nghĩa là nhóm chưa trả lời. Mỗi mục bắt đầu bằng tiêu đề `## [question_id] Câu hỏi`. Dùng `question_id` này khi trích dẫn.
 - `input/attachments/`: tệp nhóm tải lên nếu có (dữ liệu khảo sát gốc, ghi chép phỏng vấn, bảng hỏi). Định dạng: `.xlsx`, `.docx`, `.pdf`, `.pptx`, `.md`, `.txt`. Dùng công cụ đọc tệp để mở; công cụ tự đổi `.xlsx` thành bảng và `.docx`/`.pdf` thành chữ. Tệp `.xlsx` dữ liệu khảo sát: mỗi dòng sau dòng tiêu đề là một phản hồi; một ô trả lời mở có thể nhiều dòng chữ nhưng vẫn là một phản hồi.
 - Thông tin cá nhân trong tệp (email, số điện thoại, họ tên người trả lời, mã số sinh viên): không chép vào `cp2_evidence.json`, không trích dẫn trong báo cáo. Nếu tệp có các cột này, ghi một lỗi nhẹ ở `crossIssues`: "Dữ liệu khảo sát còn thông tin cá nhân người trả lời; xóa trước khi đưa vào phụ lục".
 - `input/self_checks.md` nếu có: các ô nhóm tự tick. Đây là lời tự khai, không phải bằng chứng. Không chấm đạt chỉ vì nhóm đã tick.

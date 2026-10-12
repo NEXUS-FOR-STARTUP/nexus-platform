@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { notifications } from "@mantine/notifications";
+import type { Cp2InputSource } from "@app/shared";
 import { apiClient } from "@/lib/api-client";
 
 export type SubmissionType = "initial" | "resubmit" | "logic_check";
@@ -11,6 +12,8 @@ interface TriggerAuditPayload {
   /** Omitted = CP1 (API default). CP2 requires `scope`. */
   checkpoint?: "CP1" | "CP2";
   scope?: "questionnaire" | "full";
+  /** CP2 only: what the grader reads. API default = answers. */
+  input_source?: Cp2InputSource;
 }
 
 interface TriggerAuditErrorResponse {
@@ -26,7 +29,7 @@ export function useTriggerAudit(caseId: string) {
       const response = await apiClient.post(`/cases/${caseId}/ai-retry`, {
         submission_type: payload.submission_type,
         ...(payload.lifecycle_unit_id ? { lifecycle_unit_id: payload.lifecycle_unit_id } : {}),
-        ...(payload.checkpoint ? { checkpoint: payload.checkpoint, scope: payload.scope } : {}),
+        ...(payload.checkpoint ? { checkpoint: payload.checkpoint, scope: payload.scope, ...(payload.input_source ? { input_source: payload.input_source } : {}) } : {}),
       });
       return response.data;
     },

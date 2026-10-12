@@ -1,4 +1,5 @@
 import { basename } from "node:path";
+import type { Cp2InputSource } from "@app/shared";
 import { CP2_INTERVIEW_AUDIT_REQUIRED, CP2_QUESTION_BANK_ID, CP2_SELF_CHECKS, QUESTION_REGISTRY, TEMPLATE_REGISTRY } from "@repo/validation";
 import { prisma } from "../../../db.js";
 import { AppError } from "../../../shared/domain/app-error.js";
@@ -85,6 +86,26 @@ export function assertCp2AnswerQuality(
 }
 
 /**
+ * Gate by the chosen input source, so each of the three student situations passes on its own terms:
+ * - answers: the questionnaire bar only (no files needed).
+ * - files: at least one eligible file, no answer bar (the files carry the evidence).
+ * - both: files AND the answer bar; sending both is an explicit "grade everything" choice.
+ */
+export function assertCp2InputSource(
+  caseId: string,
+  answers: AnswerMap,
+  scope: string,
+  source: Cp2InputSource,
+  fileCount: number,
+): void {
+  if (source !== "answers" && fileCount === 0) {
+    logger.warn({ caseId, source }, "CP2 trigger rejected: files source without eligible files");
+    throw new AppError(400, "CP2_FILES_REQUIRED", "Bạn chọn chấm bằng tài liệu nhưng giai đoạn này chưa có tệp nào. Tải tệp lên ở tab Tài liệu hoặc chọn chấm bằng câu trả lời.");
+  }
+  if (source !== "files") assertCp2AnswerQuality(caseId, answers, scope, source === "both" && fileCount > 0);
+}
+
+/**
  * Same bar the questionnaire-scope trigger enforces. Pure over the passed answers +
  * attachment flag so the stage summary can report it at read time without a migration.
  */
@@ -163,20 +184,30 @@ export interface Cp2InputRequest {
   changeSummary?: string;
   /** CP2 scope (questionnaire | full); gates the quality bar. Defaults to full. */
   scope?: string;
+  /** Which student inputs the grader reads. Defaults to answers. */
+  inputSource?: Cp2InputSource;
 }
 
-/** CP2 sandbox input: answers, self-checks, attachments, and the previous report on resubmit. */
+/** Stand-in for cp2_answers.md when grading on files only; keeps the "missing question = unanswered" rule from firing. */
+const FILES_ONLY_ANSWERS_TEXT =
+  "# Tài liệu CP2 của nhóm\n\nNhóm chọn chấm chỉ bằng tệp đính kèm trong `input/attachments/`. Nhóm không dùng mẫu câu hỏi ở lần chấm này: không coi câu hỏi vắng mặt là chưa trả lời, hãy lấy bằng chứng từ các tệp.\n";
+
+/** CP2 sandbox input by chosen source (answers, files, or both), plus the previous report on resubmit. */
 export async function assembleCp2InputFiles(req: Cp2InputRequest): Promise<{ inputFiles: OmpAuditInputFile[]; resolvedLifecycleUnitId: null }> {
+  const source = req.inputSource ?? "answers";
   const rows = await prisma.projectAnswer.findMany({ where: { case_id: req.caseId }, select: { question_id: true, answer_text: true } });
   const answers = Object.fromEntries(rows.map((r) => [r.question_id, r.answer_text]));
-  const attachments = await loadAttachments(req.caseId);
-  assertCp2AnswerQuality(req.caseId, answers, req.scope ?? "full", attachments.length > 0);
+  const attachments = source === "answers" ? [] : await loadAttachments(req.caseId);
+  assertCp2InputSource(req.caseId, answers, req.scope ?? "full", source, attachments.length);
 
-  const inputFiles: OmpAuditInputFile[] = [
-    { name: CP2_ANSWERS_FILE, content: AUDIT_STAGE_INPUT_RULES ? renderStageAnswers(CP2_CHECKPOINT_CODE, answers).markdown : renderCp2Answers(answers) },
-    { name: CP2_SELF_CHECKS_FILE, content: renderSelfChecks(answers) },
-    ...attachments,
-  ];
+  const inputFiles: OmpAuditInputFile[] =
+    source === "files"
+      ? [{ name: CP2_ANSWERS_FILE, content: FILES_ONLY_ANSWERS_TEXT }, ...attachments]
+      : [
+          { name: CP2_ANSWERS_FILE, content: AUDIT_STAGE_INPUT_RULES ? renderStageAnswers(CP2_CHECKPOINT_CODE, answers).markdown : renderCp2Answers(answers) },
+          { name: CP2_SELF_CHECKS_FILE, content: renderSelfChecks(answers) },
+          ...attachments,
+        ];
 
   if (req.submissionType === "resubmit") {
     const previous = await findLatestCp2FullReport(req.caseId);

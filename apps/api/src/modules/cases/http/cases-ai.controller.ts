@@ -118,6 +118,7 @@ export async function cancelCaseAiAuditHandler(c: Context) {
  * POST /api/cases/:id/ai-retry — Retry OMP Audit for case
  * Body: { submission_type?: 'initial' | 'resubmit' | 'logic_check', lifecycle_unit_id?: string,
  *         checkpoint?: 'CP1' | 'CP2', scope?: 'questionnaire' | 'full' (CP2 only, required there),
+ *         input_source?: 'answers' | 'files' | 'both' (CP2 only, default 'answers'),
  *         change_summary?: string (CP2 resubmit) }
  */
 export async function retryCaseAiAuditHandler(c: Context) {
@@ -138,6 +139,7 @@ export async function retryCaseAiAuditHandler(c: Context) {
       lifecycle_unit_id: lifecycleUnitId,
       checkpoint: body?.checkpoint,
       scope: body?.scope,
+      input_source: body?.input_source,
       change_summary: body?.change_summary,
     });
 

@@ -9,6 +9,7 @@ import StageDraftView from "./StageDraftView";
 import StageFilesView from "./StageFilesView";
 import StageResultsView from "./StageResultsView";
 import AuditConfirmModal from "./AuditConfirmModal";
+import type { Cp2InputSource } from "@app/shared";
 import ServiceCheckoutModal from "../../billing/ServiceCheckoutModal";
 import { useTriggerAudit } from "../../../hooks/useTriggerAudit";
 import { useGuidedDocuments } from "../../../hooks/useGuidedDocuments";
@@ -71,10 +72,11 @@ export default function StageDetail({
     }
   };
 
-  const handleConfirmAudit = async (scope: string) => {
+  const handleConfirmAudit = async (scope: string, inputSource: Cp2InputSource) => {
     await triggerAudit({
       checkpoint: stage.code as "CP1" | "CP2",
       scope: scope === "questionnaire" ? "questionnaire" : "full",
+      ...(stage.code === "CP2" ? { input_source: inputSource } : {}),
       submission_type: summary?.status === "has_result" ? "resubmit" : "initial",
     });
   };
