@@ -55,6 +55,27 @@ export async function getCaseAiAuditStatus(caseId: string, checkpoint?: string) 
   ]);
   const storedJob = (targetJobId ? jobStore.get(targetJobId) : null) || (checkpoint ? null : jobStore.get(caseId));
 
+  // Nothing has ever graded this case: no job row, no in-memory job, no queued job and no
+  // report on disk. Falling through would report a phantom "running" job with the case id
+  // as the job id, so the UI claims grading started by itself right after creation.
+  if (
+    !latestJob &&
+    !storedJob &&
+    queueStatus.state === "unknown" &&
+    !milestones.reportJson
+  ) {
+    return {
+      ...(checkpoint ? { checkpoint } : {}),
+      caseId,
+      caseCode: caseRecord.case_code,
+      projectName: caseRecord.team_name,
+      status: "unknown" as const,
+      steps: [],
+      logs: [],
+      error: null,
+    };
+  }
+
   const aiJobInput =
     latestJob?.input_json && typeof latestJob.input_json === "object"
       ? (latestJob.input_json as Record<string, unknown>)
