@@ -2,7 +2,8 @@
 
 import React from "react";
 import { formatCreditBalances, type CreditBalances } from "@/lib/credit-balances";
-import { Badge, Button } from "@mantine/core";
+import { Badge } from "@mantine/core";
+import RainbowBuyButton from "@/components/ui/RainbowBuyButton";
 
 interface CreditBalanceCardProps {
   creditBalance: number;
@@ -79,14 +80,13 @@ export default function CreditBalanceCard({
 
         {onBuyCredits && (
           <div className="w-full md:w-auto pt-3 md:pt-0 border-t md:border-t-0 border-border-app/50">
-            <Button
+            <RainbowBuyButton
               onClick={onBuyCredits}
-              color="brand"
               size="md"
-              className="font-semibold cursor-pointer h-10 px-5 text-base !w-full md:!w-auto"
+              className="h-10 px-5 text-base !w-full md:!w-auto"
             >
               {hasCredits ? "Mua thêm lượt đánh giá" : "Mua lượt đánh giá"}
-            </Button>
+            </RainbowBuyButton>
           </div>
         )}
       </div>

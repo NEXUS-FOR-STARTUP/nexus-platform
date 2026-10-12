@@ -10,10 +10,13 @@ import {
 } from "../infrastructure/persistence/ai-job.repository.js";
 import { saveOmpAuditReport } from "../../reports/infrastructure/persistence/report.repository.js";
 import type { AuditCheckpointCode } from "@app/shared";
+import { AUDIT_CHECKPOINTS } from "@app/shared";
 import { resolveRepoRoot } from "../omp-audit.service.js";
 import { generateAndUploadReportPdf, syncReportArtifact } from "./omp-audit-pdf.js";
 import { POST_PROCESSORS, resolveAuditPlan } from "./audit-registry.js";
 import { prisma } from "../../../db.js";
+import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
+import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 import { ompQueue } from "../infrastructure/queue/omp-queue.js";
 
 /**
@@ -61,6 +64,16 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
   const outputDir = resolve(jobDir, "output");
   mkdirSync(outputDir, { recursive: true });
 
+  // Checkpoint decides which files are required; read it before touching disk.
+  // Jobs without a checkpoint are CP1 (legacy rows).
+  const earlyJob = aiJobId ? await prisma.aiJob.findUnique({ where: { id: aiJobId } }) : null;
+  const earlyInput = (earlyJob?.input_json ?? null) as Record<string, unknown> | null;
+  const earlyCheckpoint = ((earlyInput?.checkpoint as string | undefined) ?? "CP1") as AuditCheckpointCode;
+  const requiredFiles: readonly string[] = Object.hasOwn(AUDIT_CHECKPOINTS, earlyCheckpoint)
+    ? AUDIT_CHECKPOINTS[earlyCheckpoint].outputs.required
+    : AUDIT_CHECKPOINTS.CP1.outputs.required;
+  const mdFileName = earlyCheckpoint === "CP2" ? "report.md" : "input_clarification_audit.md";
+
   const candidateDirs = aiJobId
     ? [
         jobDir,
@@ -75,30 +88,27 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
         resolve(projectRoot, "apps", "api", "storage", "jobs", caseId),
       ];
 
+  const copyRequiredFrom = (dir: string): boolean => {
+    const present = requiredFiles.filter((f) => existsSync(resolve(dir, "output", f)));
+    if (present.length !== requiredFiles.length) return false;
+    for (const f of [...requiredFiles, ...(Object.hasOwn(AUDIT_CHECKPOINTS, earlyCheckpoint) ? AUDIT_CHECKPOINTS[earlyCheckpoint].outputs.optional : [])]) {
+      const src = resolve(dir, "output", f);
+      const dst = resolve(outputDir, f);
+      if (existsSync(src) && !existsSync(dst)) copyFileSync(src, dst);
+    }
+    return true;
+  };
   for (const dir of candidateDirs) {
     if (dir === jobDir) continue;
-    const candidateReportJson = resolve(dir, "output", "report.json");
-    const candidateReportMd = resolve(dir, "output", "input_clarification_audit.md");
-    if (existsSync(candidateReportJson) && existsSync(candidateReportMd)) {
-      if (!existsSync(resolve(outputDir, "report.json"))) {
-        copyFileSync(candidateReportJson, resolve(outputDir, "report.json"));
-      }
-      if (!existsSync(resolve(outputDir, "input_clarification_audit.md"))) {
-        copyFileSync(candidateReportMd, resolve(outputDir, "input_clarification_audit.md"));
-      }
-      const candidateTriad = resolve(dir, "output", "triad_handoff_packet.md");
-      if (existsSync(candidateTriad) && !existsSync(resolve(outputDir, "triad_handoff_packet.md"))) {
-        copyFileSync(candidateTriad, resolve(outputDir, "triad_handoff_packet.md"));
-      }
-      break;
-    }
+    if (copyRequiredFrom(dir)) break;
   }
 
+  const missingOutputs = requiredFiles.filter((f) => !existsSync(resolve(outputDir, f)));
   const reportJsonPath = resolve(outputDir, "report.json");
-  const reportMdPath = resolve(outputDir, "input_clarification_audit.md");
+  const reportMdPath = resolve(outputDir, mdFileName);
 
-  if (!existsSync(reportJsonPath) || !existsSync(reportMdPath)) {
-    logger.error({ caseId, aiJobId, jobDir }, "OMP output files missing, cannot finalize report");
+  if (missingOutputs.length > 0) {
+    logger.error({ caseId, aiJobId, jobDir, missingOutputs }, "OMP output files missing, cannot finalize report");
     return false;
   }
   const reportJsonRaw = readFileSync(reportJsonPath, "utf-8");
@@ -305,5 +315,16 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
   await updateCaseAuditStage(caseId, "report_ready", "report_ready_to_publish");
 
   logger.info({ caseId }, "OMP audit finalized successfully and report saved to database!");
+
+  // The student may have left the page mid-run: notify once, on the fresh-finalize path only
+  // (the early "already finalized" return above is re-entered by status polling and must not re-notify).
+  const caseRow = await prisma.case.findUnique({ where: { id: caseId }, select: { case_code: true } });
+  emitEvent({
+    eventId: crypto.randomUUID(),
+    type: DOMAIN_EVENTS.REPORT_PUBLISHED,
+    actorId: null,
+    occurredAt: new Date(),
+    payload: { caseId, caseCode: caseRow?.case_code ?? null, reportId: savedReport.id },
+  });
   return true;
 }

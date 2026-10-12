@@ -101,7 +101,7 @@ Worker daemon độc lập xử lý tác vụ thẩm định AI chuyên sâu:
   - **Run-based AI Job:** Mỗi lần chạy thẩm định tạo bản ghi `AiJob` mới với UUID riêng và `attempt_count`, trạng thái cập nhật theo primary key (`updateAiJobStatusById`), bảo toàn toàn bộ lịch sử chạy và model AI thực tế.
   - **BullMQ Dual-Key Queue:** Job ID trong hàng đợi định dạng kép `omp-${caseId}--${aiJobId}`, bóc tách qua `parseOmpQueueJobId`, hỗ trợ fallback cho job cũ `omp-${caseId}`.
   - **Phân cấp Sandbox Storage:** Thư mục sandbox `storage/jobs/${caseId}/${jobId}/` chứa `input/`, `output/`, `models.json`, `system_prompt/`. Helper `resolveJobSandboxDir` hỗ trợ fallback 3 cấp (`caseId/jobId` -> `jobId` -> legacy `caseId`).
-  - **Dual-Publish Redis Logging:** Worker phát log đồng thời lên `job:log:${jobId}` / `job:logs:${jobId}` (Admin Worker Monitoring Drawer) và `job:log:${caseId}` / `job:logs:${caseId}` (Student Realtime SSE `/api/cases/:id/ai-events`), TTL 24h, bảo vệ chống rò rỉ prompt.
+  - **Dual-Publish Redis Logging:** Worker phát log đồng thời lên `job:log:${jobId}` / `job:logs:${jobId}` (Admin Worker Monitoring Drawer) và `job:log:${caseId}` / `job:logs:${caseId}` (Student: panel tiến trình poll `GET /api/cases/:id/ai-status?checkpoint=` mỗi 5s khi job đang chạy; log theo `jobId`), TTL 24h, bảo vệ chống rò rỉ prompt.
   - **Chuẩn hóa Tên Báo cáo PDF:** Pattern duy nhất `${slug}_${submission_type}_${timestamp}_v${version}.pdf` từ `@repo/validation` (`buildStandardReportPdfFilename`), đồng bộ giữa Backend Typst PDF, API download, Tab Tài liệu và Tab Phản biện.
 
 ## Ràng buộc vận hành

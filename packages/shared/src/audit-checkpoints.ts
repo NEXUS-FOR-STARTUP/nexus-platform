@@ -7,6 +7,24 @@
  * CP1 `scope` is the prompt mode (`full` | `lite`). Each prompt list is complete:
  * the last file is the submission-specific prompt the worker inlines for CP1.
  */
+export interface AuditCheckpointOutputs {
+  /** Files the agent MUST write; missing any = job failure. */
+  required: readonly string[];
+  /** Nice-to-have; synced when present, ignored when absent. */
+  optional: readonly string[];
+}
+
+/**
+ * User-facing progress step. `doneWhenFile` = output file whose presence marks the step done;
+ * null = done as soon as the job is running. A step also counts done when any later step is,
+ * so an optional file the agent skips never leaves a gap.
+ */
+export interface AuditProgressStep {
+  id: string;
+  label: string;
+  doneWhenFile: string | null;
+}
+
 export const AUDIT_CHECKPOINTS = {
   CP1: {
     serviceType: "cp1_audit",
@@ -38,6 +56,16 @@ export const AUDIT_CHECKPOINTS = {
         },
       },
     },
+    progressSteps: [
+      { id: "intake", label: "Tiếp nhận dự án", doneWhenFile: null },
+      { id: "triad", label: "Xây ma trận Vấn đề - Giải pháp - Khách hàng", doneWhenFile: "triad_handoff_packet.md" },
+      { id: "clarify", label: "Phản biện các giả định", doneWhenFile: "input_clarification_audit.md" },
+      { id: "report", label: "Hoàn tất báo cáo", doneWhenFile: "report.json" },
+    ],
+    outputs: {
+      required: ["report.json", "input_clarification_audit.md"],
+      optional: ["triad_handoff_packet.md"],
+    },
   },
   CP2: {
     serviceType: "cp2_audit",
@@ -56,9 +84,23 @@ export const AUDIT_CHECKPOINTS = {
         reportType: { initial: "cp2_full", resubmit: "cp2_full_resubmit" },
       },
     },
+    progressSteps: [
+      { id: "read", label: "Đọc tài liệu của nhóm", doneWhenFile: null },
+      { id: "evidence", label: "Trích bằng chứng", doneWhenFile: "cp2_evidence.json" },
+      { id: "write", label: "Viết báo cáo thẩm định", doneWhenFile: "report.md" },
+      { id: "score", label: "Tổng hợp điểm", doneWhenFile: "report.json" },
+    ],
+    outputs: {
+      required: ["report.json", "report.md", "cp2_evidence.json"],
+      optional: [],
+    },
   },
 } as const;
 
 export type AuditCheckpointCode = keyof typeof AUDIT_CHECKPOINTS;
 export const AUDIT_CHECKPOINT_CODES = Object.keys(AUDIT_CHECKPOINTS) as [AuditCheckpointCode, ...AuditCheckpointCode[]];
 export type AuditSubmissionType = "initial" | "resubmit" | "logic_check";
+
+/** CP2 only: which student inputs the grader reads. `both` requires answers AND files to pass their gates. */
+export const CP2_INPUT_SOURCES = ["answers", "files", "both"] as const;
+export type Cp2InputSource = (typeof CP2_INPUT_SOURCES)[number];

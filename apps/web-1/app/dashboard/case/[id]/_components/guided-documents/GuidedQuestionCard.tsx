@@ -1,7 +1,7 @@
 "use client";
 
 import React, { type ReactNode } from "react";
-import { Anchor, Button, Textarea } from "@mantine/core";
+import { Anchor, Button, Text, Textarea } from "@mantine/core";
 import { ExternalLink } from "lucide-react";
 import { QUESTION_REGISTRY, type Question } from "@repo/validation";
 
@@ -18,6 +18,7 @@ interface GuidedQuestionCardProps {
   children?: ReactNode;
 }
 
+import { countWords, isThinAnswer, THIN_ANSWER_WORDS } from "./answer-quality";
 export default function GuidedQuestionCard({
   questionId,
   value,
@@ -36,6 +37,8 @@ export default function GuidedQuestionCard({
     await onSave(questionId, value);
   };
 
+  const wordCount = countWords(value);
+  const isThin = isThinAnswer(questionId, value);
   return (
     <div className="flex-1 min-w-0 w-full bg-surface-app border border-border-app rounded-xl p-4 sm:p-5 flex flex-col gap-4">
       {/* Header & Question */}
@@ -100,6 +103,11 @@ export default function GuidedQuestionCard({
         }}
       />
 
+      {isThin && (
+        <Text size="xs" c="yellow.8">
+          Câu trả lời còn ngắn ({wordCount}/{THIN_ANSWER_WORDS} từ). Viết thêm để AI có đủ căn cứ chấm.
+        </Text>
+      )}
       {children}
 
       {/* Actions */}

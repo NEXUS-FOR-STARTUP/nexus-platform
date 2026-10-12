@@ -1,20 +1,20 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Stack, Paper, Text, Button, Group, FileButton, Alert } from "@mantine/core";
+import { Stack, Paper, Text, Button, Group, Alert, Modal } from "@mantine/core";
 import { Upload, AlertCircle, FileText } from "lucide-react";
-import { notifications } from "@mantine/notifications";
-import { useStageDocumentUpload } from "../../../hooks/useStageDocumentUpload";
-import { apiClient } from "@/lib/api-client";
 import type { StageCode } from "@app/shared/stages";
 import type { DocumentWorkspace } from "@/types";
+import StageDocumentUploadModal from "./StageDocumentUploadModal";
+import { useStageDocumentDelete } from "../../../hooks/useStageDocumentDelete";
+import { notifications } from "@mantine/notifications";
+import { isAxiosError } from "axios";
 import {
   buildSupportFlowRows,
   buildExternalFeedbackRows,
   type WorkspaceTab,
   type FilterRole,
 } from "../../documents/document-workspace.types";
-import { buildCategoryGroups } from "../../documents/document-groups";
 import DocumentRowsTable from "../../documents/DocumentRowsTable";
 import DocumentWorkspaceHeader from "../../documents/DocumentWorkspaceHeader";
 
@@ -33,10 +33,28 @@ export default function StageFilesView({
   fileCount,
   documentWorkspace,
 }: StageFilesViewProps) {
-  const [uploading, setUploading] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("documents");
   const [filterRole, setFilterRole] = useState<FilterRole>("all");
-  const uploadMutation = useStageDocumentUpload(caseId, checkpointCode);
+  const [deleteTarget, setDeleteTarget] = useState<{ documentId: string; displayName: string } | null>(null);
+  const deleteMutation = useStageDocumentDelete(caseId);
+
+  const handleDelete = (documentId: string, displayName: string) => {
+    setDeleteTarget({ documentId, displayName });
+  };
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
+    setDeleteTarget(null);
+    deleteMutation.mutate(target.documentId, {
+      onError: (error: unknown) => {
+        const message = isAxiosError(error)
+          ? (error.response?.data as { message?: string } | undefined)?.message ?? "Xóa tài liệu thất bại."
+          : "Xóa tài liệu thất bại.";
+        notifications.show({ title: "Xóa thất bại", message, color: "red" });
+      },
+    });
+  };
   const isMarketStage = checkpointCode === "CP2";
 
   const selectedCheckpoint = useMemo(() => {
@@ -75,11 +93,6 @@ export default function StageFilesView({
     return documentRows;
   }, [activeTab, documentRows, feedbackRows, filterRole]);
 
-  const displayedGroups = useMemo(
-    () => (activeTab === "documents" ? buildCategoryGroups(displayedRows) : []),
-    [activeTab, displayedRows],
-  );
-
   const studentDocCount = useMemo(
     () => documentRows.filter((r) => r.uploaderRole === "student").length,
     [documentRows],
@@ -89,50 +102,14 @@ export default function StageFilesView({
     [documentRows],
   );
 
-  const handleUploadFile = async (file: File | null) => {
-    if (!file) return;
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await apiClient.post("/cases/uploads/managed-document", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      const uploaded = res.data as {
-        file_url: string;
-        download_url: string;
-        cloudinary_public_id: string;
-        extension: string;
-        mime_type: string;
-      };
-      await uploadMutation.mutateAsync([
-        {
-          original_name: file.name,
-          file_url: uploaded.file_url,
-          download_url: uploaded.download_url,
-          cloudinary_public_id: uploaded.cloudinary_public_id,
-          extension: uploaded.extension || "bin",
-          mime_type: uploaded.mime_type || "application/octet-stream",
-          doc_type: "pitch_deck",
-        },
-      ]);
-      notifications.show({ color: "green", title: "Tải tệp thành công", message: file.name });
-    } catch {
-      notifications.show({ color: "red", title: "Lỗi tải tệp", message: "Không thể tải tài liệu lên." });
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const hasDocuments = documentRows.length > 0 || feedbackRows.length > 0;
+
 
   return (
     <Stack gap="md">
       {isMarketStage && (
         <Alert icon={<AlertCircle size={16} />} color="blue" title="Lưu ý quyền riêng tư">
-          Nếu tải lên tệp khảo sát hoặc ghi chép phỏng vấn, vui lòng xóa hoặc ẩn các thông tin cá nhân (email, số điện thoại, tên ngườ
-          i trả lờ
-          i).
+          Nếu tải lên tệp khảo sát hoặc ghi chép phỏng vấn, vui lòng xóa hoặc ẩn các thông tin cá nhân (email, số điện thoại, tên người trả lời).
         </Alert>
       )}
 
@@ -142,13 +119,9 @@ export default function StageFilesView({
             <Text fw={600} size="sm">Tài liệu đã nộp ({fileCount})</Text>
             <Text size="xs" c="dimmed">Định dạng hỗ trợ: PDF, DOCX, XLSX, PPTX (tối đa 25MB)</Text>
           </Stack>
-          <FileButton onChange={handleUploadFile} accept=".pdf,.docx,.xlsx,.pptx,.txt">
-            {(props) => (
-              <Button {...props} size="sm" leftSection={<Upload size={16} />} loading={uploading}>
-                Tải tài liệu mới
-              </Button>
-            )}
-          </FileButton>
+          <Button size="sm" leftSection={<Upload size={16} />} onClick={() => setUploadOpen(true)}>
+            Tải tài liệu mới
+          </Button>
         </Group>
       </Paper>
 
@@ -157,8 +130,7 @@ export default function StageFilesView({
           <Stack align="center" gap="xs">
             <FileText size={32} className="text-gray-400" />
             <Text size="sm" c="dimmed">Chưa có tài liệu nào được nộp cho giai đoạn này.</Text>
-            <Text size="xs" c="dimmed">Bạn có thể trả lờ
-              i câu hỏi ở tab Soạn thảo hoặc tải tài liệu trực tiếp tại đây.</Text>
+            <Text size="xs" c="dimmed">Bạn có thể trả lời câu hỏi ở tab Soạn thảo hoặc tải tài liệu trực tiếp tại đây.</Text>
           </Stack>
         </Paper>
       ) : (
@@ -191,11 +163,33 @@ export default function StageFilesView({
             <DocumentRowsTable
               activeTab={activeTab}
               rows={displayedRows}
-              groups={displayedGroups}
+              onDelete={handleDelete}
+              isDeleting={deleteMutation.isPending}
             />
           )}
         </div>
       )}
+      <StageDocumentUploadModal
+        opened={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        caseId={caseId}
+        checkpointCode={checkpointCode}
+      />
+      <Modal opened={deleteTarget !== null} onClose={() => setDeleteTarget(null)} title="Xóa tài liệu" centered size="sm">
+        <Stack gap="md">
+          <Text size="sm">
+            Xóa tài liệu &ldquo;{deleteTarget?.displayName}&rdquo;? Tài liệu sai sẽ được gỡ khỏi danh sách chấm.
+          </Text>
+          <Group justify="flex-end" gap="xs">
+            <Button variant="default" onClick={() => setDeleteTarget(null)} disabled={deleteMutation.isPending}>
+              Hủy
+            </Button>
+            <Button color="red" loading={deleteMutation.isPending} onClick={handleConfirmDelete}>
+              Xóa tài liệu
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Stack>
   );
 }

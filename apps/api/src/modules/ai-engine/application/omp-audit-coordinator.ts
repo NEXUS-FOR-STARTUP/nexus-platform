@@ -24,6 +24,7 @@ import {
   updateAiJobStatusById,
   countAiJobsByCase,
   findLatestAiJobByCase,
+  runningCheckpointCode,
 } from "../infrastructure/persistence/ai-job.repository.js";
 import { jobStore } from "../infrastructure/persistence/job-store.repository.js";
 import { prepareSandbox, resolveRepoRoot, type SandboxOptions } from "../omp-audit.service.js";
@@ -31,9 +32,11 @@ import { finalizeOmpAuditResult } from "./omp-audit-finalizer.js";
 import { getCaseAiAuditStatus } from "./omp-audit-status.js";
 import { findLatestCp2FullReport } from "../../reports/infrastructure/persistence/report.repository.js";
 import { INPUT_ASSEMBLERS, resolveAuditPlan } from "./audit-registry.js";
-import { CP2_CHECKPOINT_CODE } from "./cp2-audit-input.js";
+import { CP2_CHECKPOINT_CODE, assertCp2InputSource } from "./cp2-audit-input.js";
 import { consumeAuditCredit, grantAuditRefund } from "./audit-credit.js";
 import { TriggerOptsSchema } from "./trigger-opts.js";
+import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-types.js";
+import { STAGE_DOC_EXCLUDED_TYPES } from "./stage-audit-input.js";
 import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
 import { countStageInputs } from "./stage-audit-input.js";
 
@@ -196,12 +199,6 @@ export function initOmpQueueListener(): void {
   logger.info("BullMQ OMP QueueEvents listener initialized");
 }
 
-/** Jobs created before CP2 carry no checkpoint in input_json; they are CP1 jobs. */
-function runningCheckpointCode(inputJson: unknown): string {
-  const checkpoint = (inputJson as { checkpoint?: unknown } | null)?.checkpoint;
-  return typeof checkpoint === "string" ? checkpoint : "CP1";
-}
-
 /**
  * Helper: delete all files inside a directory (non-recursive, best-effort).
  */
@@ -237,10 +234,12 @@ export async function triggerOmpAuditForCase(
     throw new AppError(400, "INVALID_INPUT", "Tham số không hợp lệ", parsed.error.flatten());
   }
   const {
-    submission_type: submissionType,
+    submission_type: initialSubmissionType,
     checkpoint: checkpointCode,
     scope,
+    input_source: inputSource,
     change_summary: changeSummary,
+    user_note: userNote,
     lifecycle_unit_id: lifecycleUnitId,
     model,
     prompt_mode: promptMode = "full",
@@ -248,6 +247,14 @@ export async function triggerOmpAuditForCase(
     admin_triggered: adminTriggered = false,
     force_supersede: forceSupersede = false,
   } = parsed.data;
+  // The team chooses initial vs resubmit in the modal. A resubmit with no previous full
+  // report falls back to initial BEFORE plan resolution so coordinator, worker
+  // (prompt files) and finalizer (report type) all see the same value.
+  let submissionType = initialSubmissionType;
+  if (checkpointCode === "CP2" && submissionType === "resubmit" && !(await findLatestCp2FullReport(caseId))) {
+    submissionType = "initial";
+    logger.info({ caseId }, "CP2 resubmit without a previous full report; grading as initial");
+  }
   const resolvedModel = model?.trim() || process.env.OMP_MODEL || "opencode-go/deepseek-v4-pro";
   const plan = resolveAuditPlan(checkpointCode, checkpointCode === "CP1" ? promptMode : (scope as string), submissionType);
   // 2. Validate lifecycle_unit belongs to case (if provided)
@@ -349,9 +356,20 @@ export async function triggerOmpAuditForCase(
   // full report to compare with. Checked before charging so a rejected trigger costs nothing.
   if (checkpointCode === "CP2") {
     await ensureCheckpoint(prisma, caseId, CP2_CHECKPOINT_CODE, CP2_OPENED_STATUS);
-    if (submissionType === "resubmit" && !(await findLatestCp2FullReport(caseId))) {
-      throw new AppError(409, "CP2_NO_PREVIOUS_REPORT", "Chưa có báo cáo CP2 toàn bộ trước đó để chấm lại.");
-    }
+    // Quality bar BEFORE charging: junk answers get a clean 400, not a
+    // failed job + refund cycle. The assembler re-checks post-charge (TOCTOU).
+    const gateRows = await prisma.projectAnswer.findMany({ where: { case_id: caseId }, select: { question_id: true, answer_text: true } });
+    const gateAnswers = Object.fromEntries(gateRows.map((r) => [r.question_id, r.answer_text]));
+    const gateCheckpoint = await prisma.checkpoint.findUnique({
+      where: { case_id_checkpoint_code: { case_id: caseId, checkpoint_code: CP2_CHECKPOINT_CODE } },
+      select: { id: true },
+    });
+    const gateFiles = gateCheckpoint
+      ? await prisma.documentRecord.count({
+          where: { case_id: caseId, checkpoint_id: gateCheckpoint.id, superseded_at: null, source_kind: { notIn: [...SUBMITTED_DOC_EXCLUDED_KINDS] }, doc_type: { notIn: STAGE_DOC_EXCLUDED_TYPES } },
+        })
+      : 0;
+    assertCp2InputSource(caseId, gateAnswers, plan.scope, inputSource, gateFiles);
   }
 
   // 4d. Stage input rule: a stage is graded on template answers or files, never on nothing.
@@ -383,6 +401,9 @@ export async function triggerOmpAuditForCase(
     admin_triggered: adminTriggered,
     checkpoint: checkpointCode,
     scope: plan.scope,
+    ...(checkpointCode === "CP2" ? { input_source: inputSource } : {}),
+    ...(checkpointCode === "CP2" && changeSummary?.trim() ? { change_summary: changeSummary.trim() } : {}),
+    ...(checkpointCode === "CP2" && userNote?.trim() ? { user_note: userNote.trim() } : {}),
     service_type: plan.serviceType,
   };
   const sandboxOpts: SandboxOptions =
@@ -472,6 +493,9 @@ export async function triggerOmpAuditForCase(
       submissionType,
       lifecycleUnitId: lifecycleUnitId ?? null,
       changeSummary,
+      userNote,
+      scope: plan.scope,
+      inputSource,
     });
 
     // 9b. Persist resolved unit into aiJob.input_json so the guard (phase-01)

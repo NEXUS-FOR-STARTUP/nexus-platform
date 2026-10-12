@@ -8,11 +8,10 @@ import { Download, ChevronLeft, RefreshCw } from "lucide-react";
 import type { TemplateKey } from "@repo/validation";
 import { useGuidedDocuments } from "../../hooks/useGuidedDocuments";
 import { useGuidedDrafts } from "../../hooks/useGuidedDrafts";
-import GuidedTOC from "./GuidedTOC";
-import GuidedQuestionCard from "./GuidedQuestionCard";
-import Cp2AuditMenu from "./Cp2AuditMenu";
 import Cp2SelfCheck, { CP2_SELF_CHECK_BY_QUESTION } from "./Cp2SelfCheck";
 import GuidedImportModal from "./GuidedImportModal";
+import GuidedTOC from "./GuidedTOC";
+import GuidedQuestionCard from "./GuidedQuestionCard";
 
 interface GuidedDocumentsEditorProps {
   caseId: string;
@@ -168,11 +167,6 @@ export default function GuidedDocumentsEditor({
               Nhập file
             </Button>
             */}
-
-            {templateKey === "cp2" && (
-              <Cp2AuditMenu caseId={caseId} template={template} answersMap={answersMap} />
-            )}
-
             <Button
               variant="default"
               size="sm"

@@ -152,6 +152,30 @@ export async function findLatestAiJobForStatus(caseId: string, jobType = "omp_au
   });
 }
 
+/** Jobs created before CP2 carry no checkpoint in input_json; they are CP1 jobs. */
+export function runningCheckpointCode(inputJson: unknown): string {
+  const checkpoint = (inputJson as { checkpoint?: unknown } | null)?.checkpoint;
+  return typeof checkpoint === "string" ? checkpoint : "CP1";
+}
+
+/** How many recent jobs to scan for a checkpoint; a case rarely has more than a handful of runs per round. */
+const CHECKPOINT_JOB_SCAN_LIMIT = 20;
+
+/**
+ * Latest audit job of one checkpoint. `AiJob` has no checkpoint column (it lives in `input_json`),
+ * so scan the most recent jobs in memory instead of a JSON WHERE. No checkpoint = latest of any.
+ */
+export async function findLatestAiJobForCheckpoint(caseId: string, checkpoint?: string, jobType = "omp_audit") {
+  if (!checkpoint) return findLatestAiJobForStatus(caseId, jobType);
+  const jobs = await prisma.aiJob.findMany({
+    where: { case_id: caseId, job_type: jobType },
+    orderBy: { created_at: "desc" },
+    take: CHECKPOINT_JOB_SCAN_LIMIT,
+    select: { id: true, case_id: true, job_type: true, status: true, input_json: true, created_at: true, updated_at: true },
+  });
+  return jobs.find((job) => runningCheckpointCode(job.input_json) === checkpoint) ?? null;
+}
+
 /**
  * Fetch minimal case record needed for audit flow.
  */

@@ -5,7 +5,7 @@
 - Prompt ID: cp2_full_resubmit_v1
 - Dùng kèm: cp2_audit_core_v1, cp2_full_review_v1
 - `schema` trong report.json: `cp2_full_resubmit_v1`
-- Giới hạn `report.md`: tối đa 600 từ
+- Độ dài `report.md`: không giới hạn số từ. Giới hạn số việc (tối đa 5 ở mục 3) đã đủ chống lan man.
 
 ## 1. Mục đích
 
@@ -20,6 +20,8 @@ Dùng nguyên danh sách 30 tiêu chí, quy tắc trạng thái và mục kiểm
 - `input/change_summary.md`: nhóm tự mô tả đã sửa gì. Đây là lời tự khai; chỉ dùng để biết cần xem chỗ nào, không dùng làm bằng chứng.
 
 Nếu thiếu `previous_report.json`: chấm như lần đầu theo `cp2_full_review_v1`, đặt `schema` là `cp2_full_v1`, ghi ở đầu báo cáo "Chưa có báo cáo lần trước để đối chiếu".
+
+Nếu có `input/user_note.md`: đó là ghi chú của nhóm cho lần chấm này (ví dụ muốn chú tâm vào phần nào). Ưu tiên soi kỹ phần họ nêu trong mục 3, nhưng vẫn đối chiếu đủ các lỗi cũ, không bỏ lỗi nào vì ghi chú.
 
 ## 3. Đối chiếu lỗi cũ
 

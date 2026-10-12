@@ -1,7 +1,9 @@
 import { getJobMilestones, getOmpJobStatus } from "../infrastructure/queue/omp-queue.js";
+import { computeProgressSteps } from "@app/shared";
 import {
   findCaseForAudit,
-  findLatestAiJobForStatus,
+  findLatestAiJobForCheckpoint,
+  runningCheckpointCode,
 } from "../infrastructure/persistence/ai-job.repository.js";
 import { jobStore } from "../infrastructure/persistence/job-store.repository.js";
 import { finalizeOmpAuditResult } from "./omp-audit-finalizer.js";
@@ -23,16 +25,19 @@ function isFinalizing(caseId: string): boolean {
 /**
  * Retrieve verified status and live logs for frontend.
  */
-export async function getCaseAiAuditStatus(caseId: string) {
+export async function getCaseAiAuditStatus(caseId: string, checkpoint?: string) {
   const caseRecord = await findCaseForAudit(caseId);
 
   if (!caseRecord) {
-    return { isAiPackage: false, status: "unknown" };
+    return { status: "unknown", steps: [] };
   }
 
-  const isAiPackage = caseRecord.package_id === "pkg_ai_audit";
-  const latestJob = await findLatestAiJobForStatus(caseId);
+  const latestJob = await findLatestAiJobForCheckpoint(caseId, checkpoint);
   const targetJobId = latestJob?.id;
+  // A checkpoint-scoped request never falls back to the case-wide job/log, which may belong to another checkpoint.
+  if (checkpoint && !latestJob) {
+    return { status: "unknown", checkpoint, steps: [] };
+  }
 
   let milestones = await getJobMilestones(caseId, targetJobId);
   // Fallback to targetJobId directly if checked by jobId alone, or fallback to caseId
@@ -48,7 +53,7 @@ export async function getCaseAiAuditStatus(caseId: string) {
     targetJobId ? jobStore.getLogs(targetJobId) : Promise.resolve([]),
     jobStore.getLogs(caseId),
   ]);
-  const storedJob = (targetJobId ? jobStore.get(targetJobId) : null) || jobStore.get(caseId);
+  const storedJob = (targetJobId ? jobStore.get(targetJobId) : null) || (checkpoint ? null : jobStore.get(caseId));
 
   const aiJobInput =
     latestJob?.input_json && typeof latestJob.input_json === "object"
@@ -67,7 +72,7 @@ export async function getCaseAiAuditStatus(caseId: string) {
     const logMs = new Date(l.timestamp).getTime();
     return isNaN(logMs) || logMs >= startMs - 3000;
   });
-  const logs = targetLogs.length > 0 ? targetLogs : filteredCaseLogs;
+  const logs = targetLogs.length > 0 || checkpoint ? targetLogs : filteredCaseLogs;
   // Check if job is actively queued or processing before considering self-heal finalize
   const isActivelyQueuedOrProcessing =
     latestJob?.status === "queued" ||
@@ -125,8 +130,28 @@ export async function getCaseAiAuditStatus(caseId: string) {
     finalStatus = "running";
   }
 
+  // Checkpoint-scoped: the DB row is authoritative for terminal states. The queue/files say "completed"
+  // before the finalizer has saved the report (and the finalize can still fail + refund), so an unsaved
+  // run stays "running" (finalizing) instead of flashing completed then flipping to failed.
+  if (checkpoint && latestJob) {
+    if (["completed", "failed", "cancelled"].includes(latestJob.status)) {
+      finalStatus = latestJob.status as typeof finalStatus;
+    } else if (finalStatus === "completed") {
+      finalStatus = "running";
+    }
+  }
+
+  const jobCheckpoint = runningCheckpointCode(aiJobInput);
   return {
-    isAiPackage,
+    checkpoint: jobCheckpoint,
+    scope: typeof aiJobInput?.scope === "string" ? aiJobInput.scope : undefined,
+    inputSource: typeof aiJobInput?.input_source === "string" ? aiJobInput.input_source : undefined,
+    userNote: typeof aiJobInput?.user_note === "string" ? aiJobInput.user_note : undefined,
+    changeSummary: typeof aiJobInput?.change_summary === "string" ? aiJobInput.change_summary : undefined,
+    steps: computeProgressSteps(jobCheckpoint, milestones.presentFiles ?? [], {
+      finished: finalStatus === "completed",
+      running: finalStatus === "running",
+    }),
     jobId: targetJobId || caseId,
     caseId,
     caseCode: caseRecord.case_code,

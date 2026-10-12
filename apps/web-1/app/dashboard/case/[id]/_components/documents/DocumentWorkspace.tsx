@@ -8,7 +8,6 @@ import {
   buildSupportFlowRows,
   buildExternalFeedbackRows,
 } from "./document-workspace.types";
-import { buildCategoryGroups } from "./document-groups";
 import { buildAssessmentReportRows } from "./report-rows";
 import DocumentWorkspaceHeader from "./DocumentWorkspaceHeader";
 import DocumentRowsTable from "./DocumentRowsTable";
@@ -100,11 +99,6 @@ export default function DocumentWorkspace({
     return documentRows;
   }, [activeTab, documentRows, feedbackRows, filterRole, reportRows]);
 
-  const displayedGroups = useMemo(
-    () => (activeTab === "documents" ? buildCategoryGroups(displayedRows) : []),
-    [activeTab, displayedRows],
-  );
-
   if (!workspace || workspace.checkpoints.length === 0 || !selectedCheckpoint) {
     return (
       <div className="bg-surface-app border border-border-app rounded-xl p-8 text-center">
@@ -140,14 +134,13 @@ export default function DocumentWorkspace({
               ? "Không có tài liệu nào thuộc bộ lọc này."
               : activeTab === "assessment-reports"
                 ? "Chưa có báo cáo phản biện nào được lưu."
-                : "Chưa có tài liệu đánh giá bên ngoài trong checkpoint này."}
+                : "Chưa có tài liệu đánh giá bên ngoài trong vòng này."}
           </p>
         </div>
       ) : (
         <DocumentRowsTable
           activeTab={activeTab}
           rows={displayedRows}
-          groups={displayedGroups}
         />
       )}
     </div>

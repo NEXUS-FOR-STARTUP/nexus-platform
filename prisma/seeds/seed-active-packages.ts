@@ -105,7 +105,7 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
       items: [
         "Chấm bảng hỏi phỏng vấn trước khi đi phỏng vấn thật",
         "Chấm toàn bộ Checkpoint 2 theo rubric, kèm trích dẫn từ bài nộp",
-        "4 lượt dùng chung cho bảng hỏi và Checkpoint 2",
+        "2 lượt dùng chung cho bảng hỏi và Checkpoint 2",
       ],
       sla_hours: 0,
       mode: "ai_automated",
@@ -113,7 +113,7 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
     },
     is_active: true,
     service_type_code: "cp2_audit",
-    credits_granted: 4,
+    credits_granted: 2,
   },
   {
     id: "pkg_supporter_audit",

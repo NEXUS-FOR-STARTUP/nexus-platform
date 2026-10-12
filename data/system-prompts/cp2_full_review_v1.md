@@ -5,15 +5,25 @@
 - Prompt ID: cp2_full_review_v1
 - Dùng kèm: cp2_audit_core_v1
 - `schema` trong report.json: `cp2_full_v1`
-- Giới hạn `report.md`: tối đa 900 từ
+- Độ dài `report.md`: không giới hạn số từ. Mỗi lỗi phải có Vị trí, trích nguyên văn câu lỗi và Mức theo bảng dưới. Giới hạn số lỗi (tối đa 7 ở mục 3) đã đủ chống lan man.
 
 ## 1. Mục đích
 
 Nhóm đã phỏng vấn, khảo sát và viết tài liệu CP2. Đánh giá tài liệu theo rubric CP2 với trọng tâm: bằng chứng sơ cấp thật, giả thuyết ban đầu đã được kiểm chứng tới đâu, quy mô thị trường tính đúng phương pháp và đúng phép tính. Mục tiêu là để nhóm biết hội đồng sẽ chất vấn chỗ nào và cần làm gì trước khi bảo vệ.
 
+Nếu có `input/user_note.md`: đó là ghi chú của nhóm cho lần chấm này (ví dụ muốn chú tâm vào phần nào). Ưu tiên soi kỹ phần họ nêu, nhưng vẫn chấm đủ 30 tiêu chí, không bỏ tiêu chí nào vì ghi chú.
+
 ## 2. Danh sách tiêu chí
 
-Phải trả đúng 30 id sau trong `checks`. Cột "Nguồn" là `question_id` chính cần đọc; vẫn đọc các phần khác khi cần đối chiếu. `not_applicable` không dùng trong loại chấm này.
+Phải trả đúng 30 id sau trong `checks`. Cột "Nguồn" là `question_id` chính cần đọc; vẫn đọc các phần khác khi cần đối chiếu. `not_applicable` không dùng trong loại chấm này. Cột "Mức" cố định theo bảng, không tự đặt:
+
+| Mức | id |
+| --- | --- |
+| Bắt buộc (gate fail/missing → điểm tổng trần 49) | `fr_expert_gate`, `fr_survey_gate`, `fr_ai_disclosure` |
+| Cốt lõi (core fail/missing → điểm tổng trần 74) | `fr_segment_narrow`, `fr_interview_scale_method`, `fr_interview_quality`, `fr_hypothesis_validation`, `fr_som_bottom_up`, `fr_som_rates`, `fr_calc_consistency` |
+| Hoàn thiện (còn lại) | 20 id còn lại |
+
+`crossIssues` mức BLOCKER xếp vào Bắt buộc, mức MAJOR xếp vào Cốt lõi.
 
 ### Nhóm A — Khách hàng và vấn đề
 
@@ -107,10 +117,11 @@ Nếu SOM thiếu số người tiếp cận hoặc tỷ lệ, ghi một phần 
 | Công bố dùng AI | | |
 
 ## 3. Lỗi cần sửa
-### [Tên lỗi]
-- **Ở đâu:** [trích ngắn]
+### [Tên lỗi] — Mức: Bắt buộc / Cốt lõi / Hoàn thiện (lấy từ bảng mục 2, không tự đặt)
+- **Ở đâu:** [mục/trang trong bài nhóm + trích nguyên văn câu lỗi, tối đa 200 ký tự, không tóm tắt]
+- **Vì sao nặng:** [1 câu: Bắt buộc = điểm tổng không quá 49 chừng nào chưa đạt; Cốt lõi = điểm tổng không quá 74; Hoàn thiện = không trần điểm nhưng kéo điểm nhóm]
 - **Vì sao hội đồng sẽ hỏi:** [1–2 câu]
-- **Việc cần làm:** [hành động cụ thể]
+- **Việc cần làm:** [hành động cụ thể. Được đưa khung có chỗ trống để nhóm tự điền; không viết đoạn văn mẫu, không viết câu trả lời thay nhóm]
 
 ## 4. Kiểm tra TAM, SAM, SOM
 | Phép tính | Nhóm ghi | Tính lại | Nhận xét |
@@ -126,7 +137,14 @@ Nếu SOM thiếu số người tiếp cận hoặc tỷ lệ, ghi một phần 
 Quy tắc mục 3:
 
 - Chỉ đưa tiêu chí `fail` hoặc `missing`, tiêu chí `partial` ở nhóm B và C, và `crossIssues` mức BLOCKER hoặc MAJOR.
-- Tối đa 7 lỗi, xếp theo thứ tự: ba yêu cầu bắt buộc, nhóm B, nhóm C, mâu thuẫn giữa các phần, nhóm A, E, D, F.
+- Tối đa 7 lỗi, xếp theo Mức: Bắt buộc trước, rồi Cốt lõi, rồi Hoàn thiện. Trong cùng Mức xếp theo thứ tự: ba yêu cầu bắt buộc, nhóm B, nhóm C, mâu thuẫn giữa các phần, nhóm A, E, D, F.
 - Lỗi còn lại đưa vào mục 6.
 
 Cột "Tình trạng" ở mục 2 ghi một trong: Đạt, Thiếu, Chưa rõ. Không ghi điểm, không ghi kết luận chung.
+
+## 6. Kiểm tra hình thức (làm trước khi chấm nội dung)
+
+- Paper vượt giới hạn trang của giảng viên? Nếu vượt, ghi rõ số trang hiện tại và giới hạn.
+- Phụ lục còn ghi chú dở dang hoặc thiếu dữ liệu thô dùng để chứng minh phân tích? Liệt kê mục thiếu.
+- Persona hoặc chân dung khách hàng có thuộc tính không thu thập trong khảo sát/phỏng vấn? Nêu thuộc tính và nguồn thiếu.
+- Số liệu tác động dạng phần trăm (tăng chuyển đổi, tăng tin tưởng...) có nguồn chứng minh không? Không có thì yêu cầu xóa hoặc ghi là mục tiêu giả định.

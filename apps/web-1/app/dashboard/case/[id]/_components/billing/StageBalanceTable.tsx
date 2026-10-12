@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Table, Button, Badge, Text, Paper, Stack } from "@mantine/core";
+import { Table, Button, Badge, Text } from "@mantine/core";
 import { Plus } from "lucide-react";
 import { STAGES, type StageDefinition } from "@app/shared/stages";
 import type { CreditBalances } from "@/lib/credit-balances";
 import { useServiceCatalog, filterPackagesByService } from "@/hooks/useServiceCatalog";
 import ServiceCheckoutModal from "./ServiceCheckoutModal";
+import BillingTableShell, { BILLING_THEAD_CLASS, BILLING_TH_CLASS } from "./BillingTableShell";
 
 interface StageBalanceTableProps {
   caseId: string;
@@ -29,13 +30,13 @@ function StageBalanceMobileCard({
       <div className="flex items-center justify-between gap-2">
         <Text size="sm" fw={600}>{stage.name}</Text>
         {stage.available ? (
-          <Badge color="green" variant="light" size="sm">Đang mở</Badge>
+          <Badge color="green" variant="light" size="sm" radius="xl">Đang mở</Badge>
         ) : (
-          <Badge color="gray" variant="light" size="sm">Sắp ra mắt</Badge>
+          <Badge color="gray" variant="light" size="sm" radius="xl">Sắp ra mắt</Badge>
         )}
       </div>
       <div className="flex items-center justify-between gap-2 pt-2 border-t border-border-app/40">
-        <Text size="sm" fw={600} c={count > 0 ? "blue" : "dimmed"}>
+        <Text size="sm" fw={600} c={count > 0 ? "blue" : "dimmed"} className="tabular-nums">
           {count} lượt
         </Text>
         {canBuy ? (
@@ -57,72 +58,63 @@ function StageBalanceMobileCard({
   );
 }
 
- export default function StageBalanceTable({ caseId, balances }: StageBalanceTableProps) {
-   const { data: allPackages } = useServiceCatalog();
-   const [selectedStage, setSelectedStage] = useState<StageDefinition | null>(null);
+export default function StageBalanceTable({ caseId, balances }: StageBalanceTableProps) {
+  const { data: allPackages } = useServiceCatalog();
+  const [selectedStage, setSelectedStage] = useState<StageDefinition | null>(null);
 
-   return (
-     <>
-      <Paper withBorder radius="md" p="md">
-        <div className="md:hidden -mx-4 -mb-4 divide-y divide-border-app/60 border-t border-border-app/60">
-          {STAGES.map((stage) => {
-            const count = stage.serviceType ? balances?.[stage.serviceType] ?? 0 : 0;
-            const hasPackage = stage.serviceType ? filterPackagesByService(allPackages, stage.serviceType).length > 0 : false;
-            return (
+  const rows = STAGES.map((stage) => ({
+    stage,
+    count: stage.serviceType ? balances?.[stage.serviceType] ?? 0 : 0,
+    canBuy: stage.available && (stage.serviceType ? filterPackagesByService(allPackages, stage.serviceType).length > 0 : false),
+  }));
+
+  return (
+    <>
+      <BillingTableShell
+        mobile={
+          <>
+            {rows.map(({ stage, count, canBuy }) => (
               <StageBalanceMobileCard
                 key={stage.code}
                 stage={stage}
                 count={count}
-                canBuy={stage.available && hasPackage}
+                canBuy={canBuy}
                 onBuy={() => setSelectedStage(stage)}
               />
-            );
-          })}
-        </div>
-        <div className="hidden md:block">
-        <Table verticalSpacing="sm" striped highlightOnHover>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Giai đoạn</Table.Th>
-              <Table.Th>Số lượt còn lại</Table.Th>
-              <Table.Th>Trạng thái dịch vụ</Table.Th>
-              <Table.Th style={{ textAlign: "right" }}>Thao tác</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {STAGES.map((stage) => {
-              const count = stage.serviceType ? balances?.[stage.serviceType] ?? 0 : 0;
-              const hasPackage = stage.serviceType ? filterPackagesByService(allPackages, stage.serviceType).length > 0 : false;
-              const canBuy = stage.available && hasPackage;
-
-              return (
-                <Table.Tr key={stage.code}>
-                  <Table.Td>
-                    <Stack gap={2}>
-                      <Text size="sm" fw={500}>{stage.name}</Text>
-                      <Text size="xs" c="dimmed">Mã nội bộ: {stage.code}</Text>
-                    </Stack>
+            ))}
+          </>
+        }
+        desktop={
+          <Table verticalSpacing="sm" highlightOnHover className="w-full">
+            <Table.Thead className={BILLING_THEAD_CLASS}>
+              <Table.Tr>
+                <Table.Th className={BILLING_TH_CLASS}>Giai đoạn</Table.Th>
+                <Table.Th className={BILLING_TH_CLASS}>Số lượt còn lại</Table.Th>
+                <Table.Th className={BILLING_TH_CLASS}>Trạng thái dịch vụ</Table.Th>
+                <Table.Th className={BILLING_TH_CLASS} style={{ textAlign: "right" }}>Thao tác</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {rows.map(({ stage, count, canBuy }) => (
+                <Table.Tr key={stage.code} className="transition-colors hover:bg-surface-soft/60">
+                  <Table.Td className="py-3.5">
+                    <Text className="text-text-app text-base font-medium leading-tight">{stage.name}</Text>
                   </Table.Td>
-                  <Table.Td>
-                    <Text size="sm" fw={600} c={count > 0 ? "blue" : "dimmed"}>
+                  <Table.Td className="py-3.5">
+                    <Text size="sm" fw={600} c={count > 0 ? "blue" : "dimmed"} className="tabular-nums">
                       {count} lượt
                     </Text>
                   </Table.Td>
-                  <Table.Td>
+                  <Table.Td className="py-3.5">
                     {stage.available ? (
-                      <Badge color="green" variant="light" size="sm">Đang mở</Badge>
+                      <Badge color="green" variant="light" size="md" radius="xl">Đang mở</Badge>
                     ) : (
-                      <Badge color="gray" variant="light" size="sm">Sắp ra mắt</Badge>
+                      <Badge color="gray" variant="light" size="md" radius="xl">Sắp ra mắt</Badge>
                     )}
                   </Table.Td>
-                  <Table.Td style={{ textAlign: "right" }}>
+                  <Table.Td className="py-3.5" style={{ textAlign: "right" }}>
                     {canBuy ? (
-                      <Button
-                        size="sm"
-                        variant="light"
-                        leftSection={<Plus size={16} />}
-                        onClick={() => setSelectedStage(stage)}
-                      >
+                      <Button size="sm" variant="light" leftSection={<Plus size={16} />} onClick={() => setSelectedStage(stage)}>
                         Mua thêm
                       </Button>
                     ) : (
@@ -132,19 +124,18 @@ function StageBalanceMobileCard({
                     )}
                   </Table.Td>
                 </Table.Tr>
-              );
-            })}
-          </Table.Tbody>
-        </Table>
-        </div>
-      </Paper>
+              ))}
+            </Table.Tbody>
+          </Table>
+        }
+      />
 
       {selectedStage && selectedStage.serviceType && (
         <ServiceCheckoutModal
           caseId={caseId}
           serviceCode={selectedStage.serviceType}
           stageName={selectedStage.name}
-          opened={Boolean(selectedStage)}
+          opened={selectedStage !== null}
           onClose={() => setSelectedStage(null)}
         />
       )}

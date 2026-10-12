@@ -8,7 +8,9 @@ import StageHeader from "./StageHeader";
 import StageDraftView from "./StageDraftView";
 import StageFilesView from "./StageFilesView";
 import StageResultsView from "./StageResultsView";
+import StageGradingPanel from "./StageGradingPanel";
 import AuditConfirmModal from "./AuditConfirmModal";
+import type { Cp2InputSource } from "@app/shared";
 import ServiceCheckoutModal from "../../billing/ServiceCheckoutModal";
 import { useTriggerAudit } from "../../../hooks/useTriggerAudit";
 import { useGuidedDocuments } from "../../../hooks/useGuidedDocuments";
@@ -70,12 +72,12 @@ export default function StageDetail({
       setCheckoutOpen(true);
     }
   };
-
-  const handleConfirmAudit = async (scope: string) => {
+  const handleConfirmAudit = async (args: { scope: string; inputSource: Cp2InputSource; submissionType: "initial" | "resubmit"; changeSummary?: string; userNote?: string }) => {
     await triggerAudit({
-      checkpoint: stage.code as "CP1" | "CP2",
-      scope: scope === "questionnaire" ? "questionnaire" : "full",
-      submission_type: summary?.status === "has_result" ? "resubmit" : "initial",
+      ...(stage.code === "CP2"
+        ? { checkpoint: "CP2" as const, scope: args.scope === "questionnaire" ? ("questionnaire" as const) : ("full" as const), input_source: args.inputSource, ...(args.changeSummary ? { change_summary: args.changeSummary } : {}), ...(args.userNote ? { user_note: args.userNote } : {}) }
+        : {}),
+      submission_type: args.submissionType,
     });
   };
 
@@ -88,6 +90,13 @@ export default function StageDetail({
         onBack={onBack}
         onAudit={handleAuditClick}
         onBuyCredits={() => setCheckoutOpen(true)}
+      />
+
+      <StageGradingPanel
+        caseId={caseId}
+        checkpoint={stage.code}
+        submissionType={summary?.status === "has_result" ? "resubmit" : "initial"}
+        onViewResults={() => onViewChange("results")}
       />
 
       <Tabs value={view} onChange={(val) => onViewChange(val as "draft" | "files" | "results")} variant="pills" radius="md">
@@ -129,6 +138,9 @@ export default function StageDetail({
             checkpointId={checkpointId}
             projectName={caseData?.team_name || undefined}
             caseCode={caseData?.case_code || undefined}
+            onGoDraft={() => onViewChange("draft")}
+            onGoFiles={() => onViewChange("files")}
+            onAudit={handleAuditClick}
           />
         </Tabs.Panel>
       </Tabs>
@@ -139,6 +151,8 @@ export default function StageDetail({
         onClose={() => setAuditConfirmOpen(false)}
         onConfirm={handleConfirmAudit}
         creditsRemaining={creditsRemaining}
+        summary={summary}
+        onGoFiles={() => onViewChange("files")}
         isLoading={isAuditPending}
       />
 

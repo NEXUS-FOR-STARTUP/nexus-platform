@@ -1,8 +1,10 @@
 "use client";
 
 import { Group, Stack, Text, Badge, Button } from "@mantine/core";
-import { ChevronLeft, Sparkles, Plus } from "lucide-react";
+import { ChevronLeft, Sparkles } from "lucide-react";
+import RainbowBuyButton from "@/components/ui/RainbowBuyButton";
 import type { StageDefinition } from "@app/shared/stages";
+import { STAGE_DISPLAY_META, stageNumberOf } from "../stageDisplayMeta";
 import { TEMPLATE_REGISTRY } from "@repo/validation";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
 
@@ -26,6 +28,7 @@ export default function StageHeader({
   const isGrading = summary?.status === "grading";
   const hasResult = summary?.status === "has_result";
   const auditLabel = hasResult ? "Chấm lại" : "Chấm bài";
+  const meta = STAGE_DISPLAY_META[stage.slug] ?? STAGE_DISPLAY_META["y-tuong"];
 
   return (
     <Stack gap="xs">
@@ -37,7 +40,10 @@ export default function StageHeader({
 
       <Group justify="space-between" align="center" wrap="wrap" gap="md">
         <Stack gap={2}>
-          <Group gap="xs">
+          <Group gap={6} align="center">
+            <Text fw={800} size="lg" c={meta.color}>
+              {stageNumberOf(stage.code)}
+            </Text>
             <Text fw={700} size="xl">{stage.name}</Text>
             {isGrading ? (
               <Badge color="orange" variant="filled">Đang chấm</Badge>
@@ -46,9 +52,9 @@ export default function StageHeader({
             ) : null}
           </Group>
           <Text size="xs" c="dimmed">
-            {summary?.answered_count ?? 0}/
-            {TEMPLATE_REGISTRY[stage.templateKey]?.phases.flatMap((p) => p.questions).length ?? 0}{" "}
-            câu đã trả lời · {summary?.file_count ?? 0} tệp đính kèm · Còn {creditsRemaining} lượt chấm
+            <Text span fw={700} c="blue.7">{summary?.answered_count ?? 0}/{TEMPLATE_REGISTRY[stage.templateKey]?.phases.flatMap((p) => p.questions).length ?? 0}</Text>
+            {" "}câu đã trả lời / <Text span fw={700} c="blue.7">{summary?.file_count ?? 0}</Text> tệp đính kèm / Còn{" "}
+            <Text span fw={700} c={creditsRemaining === 0 ? "red.7" : "blue.7"}>{creditsRemaining}</Text> lượt chấm
           </Text>
         </Stack>
 
@@ -64,14 +70,9 @@ export default function StageHeader({
               {auditLabel}
             </Button>
           ) : (
-            <Button
-              size="sm"
-              color="orange"
-              leftSection={<Plus size={16} />}
-              onClick={onBuyCredits}
-            >
+            <RainbowBuyButton size="md" onClick={onBuyCredits}>
               Mua lượt chấm
-            </Button>
+            </RainbowBuyButton>
           )}
         </Group>
       </Group>

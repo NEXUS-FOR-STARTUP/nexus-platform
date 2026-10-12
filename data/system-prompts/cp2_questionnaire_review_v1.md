@@ -9,7 +9,7 @@
 
 ## 1. Mục đích
 
-Nhóm chưa đi phỏng vấn và khảo sát. Mục tiêu là chặn lỗi trước khi nhóm tốn công hỏi sai người, hỏi sai câu. Đánh giá bộ câu hỏi phỏng vấn khách hàng, câu hỏi chuyên gia và bảng hỏi khảo sát, đối chiếu với câu hỏi nghiên cứu và giả thuyết của nhóm.
+Nhóm chưa đi phỏng vấn và khảo sát. Mục tiêu là chặn lỗi trước khi nhóm tốn công hỏi sai người, hỏi sai câu. Nếu có `input/user_note.md`: đó là ghi chú của nhóm (ví dụ muốn chú tâm vào phần nào); ưu tiên soi kỹ phần họ nêu nhưng vẫn xét đủ tiêu chí, không bỏ tiêu chí nào vì ghi chú. Đánh giá bộ câu hỏi phỏng vấn khách hàng, câu hỏi chuyên gia và bảng hỏi khảo sát, đối chiếu với câu hỏi nghiên cứu và giả thuyết của nhóm.
 
 Đầu vào chính trong `input/cp2_answers.md`:
 

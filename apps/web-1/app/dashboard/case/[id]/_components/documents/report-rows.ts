@@ -31,13 +31,12 @@ export function buildAssessmentReportRows(
 
     return {
       key: `report-${round.report_id}`,
+      documentId: null,
       versionLabel: vLabel,
       contextLabel: typeLabel,
-      categoryKey: "report",
       displayName: fileName,
       url,
       hasAction: true,
-      sourceLabel: "Hệ thống AI",
       formatLabel: "PDF",
       uploaderLabel: "Nexus AI",
       uploaderRole: "supporter",

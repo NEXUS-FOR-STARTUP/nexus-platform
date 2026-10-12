@@ -528,10 +528,10 @@ export async function retryAdminWorkerJob(
     orderBy: { created_at: "desc" },
     select: { input_json: true },
   });
-  const lastInput = (lastJob?.input_json ?? {}) as { checkpoint?: string; scope?: string; submission_type?: string };
+  const lastInput = (lastJob?.input_json ?? {}) as { checkpoint?: string; scope?: string; input_source?: "answers" | "files" | "both"; submission_type?: string };
   const cp2Rerun =
     lastInput.checkpoint === "CP2"
-      ? { checkpoint: "CP2" as const, scope: lastInput.scope as "questionnaire" | "full", submission_type: lastInput.submission_type as "initial" | "resubmit" }
+      ? { checkpoint: "CP2" as const, scope: lastInput.scope as "questionnaire" | "full", input_source: lastInput.input_source, submission_type: lastInput.submission_type as "initial" | "resubmit" }
       : {};
   await triggerOmpAuditForCase(caseId, {
     ...cp2Rerun,

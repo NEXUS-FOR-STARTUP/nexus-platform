@@ -1,18 +1,11 @@
 "use client";
 
 import { Paper, Stack, Group, Text, Badge, Button, ThemeIcon } from "@mantine/core";
-import {
-  ArrowRight,
-  Lock,
-  Lightbulb,
-  Users,
-  Package,
-  Banknote,
-  CheckCircle2,
-} from "lucide-react";
+import { ArrowRight, Lock, CheckCircle2 } from "lucide-react";
 import type { StageDefinition } from "@app/shared/stages";
 import { TEMPLATE_REGISTRY, type TemplateKey } from "@repo/validation";
 import type { StageSummary } from "../../hooks/useStageSummaries";
+import { STAGE_DISPLAY_META, stageNumberOf } from "./stageDisplayMeta";
 
 interface StageCardProps {
   stage: StageDefinition;
@@ -21,39 +14,11 @@ interface StageCardProps {
   onOpen: () => void;
 }
 
-const STAGE_META: Record<
-  string,
-  {
-    icon: React.ElementType;
-    color: string;
-    lightBg: string;
-    description: string;
-  }
-> = {
-  "y-tuong": {
-    icon: Lightbulb,
-    color: "var(--mantine-color-blue-6)",
-    lightBg: "var(--mantine-color-blue-0)",
-    description: "Làm rõ ý tưởng, đối tượng khách hàng và giá trị cốt lõi.",
-  },
-  "thi-truong": {
-    icon: Users,
-    color: "var(--mantine-color-violet-6)",
-    lightBg: "var(--mantine-color-violet-0)",
-    description: "Phân tích thị trường, đối thủ và xác thực nhu cầu.",
-  },
-  "san-pham-mo-hinh": {
-    icon: Package,
-    color: "var(--mantine-color-orange-6)",
-    lightBg: "var(--mantine-color-orange-0)",
-    description: "Định hình sản phẩm, mô hình vận hành và lộ trình phát triển.",
-  },
-  "goi-von-tai-chinh": {
-    icon: Banknote,
-    color: "var(--mantine-color-teal-6)",
-    lightBg: "var(--mantine-color-teal-0)",
-    description: "Chuẩn bị tài chính, kế hoạch gọi vốn và định giá.",
-  },
+const STAGE_DESCRIPTIONS: Record<string, string> = {
+  "y-tuong": "Làm rõ ý tưởng, đối tượng khách hàng và giá trị cốt lõi.",
+  "thi-truong": "Phân tích thị trường, đối thủ và xác thực nhu cầu.",
+  "san-pham-mo-hinh": "Định hình sản phẩm, mô hình vận hành và lộ trình phát triển.",
+  "goi-von-tai-chinh": "Chuẩn bị tài chính, kế hoạch gọi vốn và định giá.",
 };
 
 const STATUS_META: Record<
@@ -77,11 +42,11 @@ export default function StageCard({
   onOpen,
 }: StageCardProps) {
   const isAvailable = stage.available;
-  const meta = STAGE_META[stage.slug] ?? STAGE_META["y-tuong"];
+  const meta = STAGE_DISPLAY_META[stage.slug] ?? STAGE_DISPLAY_META["y-tuong"];
   const StageIcon = meta.icon;
   const status = summary?.status ?? "not_started";
   const statusInfo = STATUS_META[status] ?? STATUS_META.not_started;
-  const stageNumber = stage.code.replace("CP", "").padStart(2, "0");
+  const stageNumber = stageNumberOf(stage.code);
   const isDone = status === "has_result";
 
   const ctaLabel = isDone
@@ -133,19 +98,27 @@ export default function StageCard({
                 </Text>
               </Group>
               <Text size="xs" c="dimmed" lineClamp={1}>
-                {isAvailable ? meta.description : "Sẵn sàng khi bạn hoàn thành các giai đoạn trước."}
+                {isAvailable ? (STAGE_DESCRIPTIONS[stage.slug] ?? "") : "Sẵn sàng khi bạn hoàn thành các giai đoạn trước."}
               </Text>
             </div>
           </Group>
 
           {isAvailable && (
-            <Text size="xs" c="dimmed">
-              <Text span fw={600} c="dark">
-                {summary?.answered_count ?? 0}/
-                {TEMPLATE_REGISTRY[stage.templateKey as TemplateKey]?.phases.flatMap((p) => p.questions).length ?? 0}
-              </Text>{" "}
-              câu đã trả lời · <Text span fw={600} c="dark">{summary?.file_count ?? 0}</Text> tài liệu
-            </Text>
+            <Stack gap={0}>
+              <Text size="xs" c="dimmed">
+                <Text span fw={600} c="dark">
+                  {summary?.answered_count ?? 0}/
+                  {TEMPLATE_REGISTRY[stage.templateKey as TemplateKey]?.phases.flatMap((p) => p.questions).length ?? 0}
+                </Text>{" "}
+                câu đã trả lời
+              </Text>
+              <Text size="xs" c="dimmed">
+                <Text span fw={600} c="dark">{summary?.file_count ?? 0}</Text> tài liệu
+              </Text>
+              <Text size="xs" c="dimmed">
+                Còn <Text span fw={700} c={creditsRemaining === 0 ? "red.7" : "blue.7"}>{creditsRemaining}</Text> lượt chấm
+              </Text>
+            </Stack>
           )}
         </Stack>
 

@@ -121,6 +121,12 @@ export interface OmpJobMilestones {
   triadPacket: boolean;
   auditReport: boolean;
   reportJson: boolean;
+  /** CP2: evidence extraction file written. False for CP1 jobs. */
+  evidence?: boolean;
+  /** CP2: human-readable report.md written (auditReport covers CP1's differently-named MD). */
+  cp2Report?: boolean;
+  /** Every file currently in the job's `output/` dir; drives per-checkpoint progress steps. */
+  presentFiles?: string[];
 }
 async function pathExists(p: string): Promise<boolean> {
   try {
@@ -167,7 +173,7 @@ export async function getJobMilestones(jobId: string, aiJobId?: string): Promise
     candidateDirs.push(...baseDirs);
   }
 
-  const [sandboxReady, triadPacket, auditReport, reportJson] = await Promise.all([
+  const [sandboxReady, triadPacket, auditReport, reportJson, evidence, cp2Report] = await Promise.all([
     (async () => {
       for (const dir of candidateDirs) {
         const inputDir = resolve(dir, "input");
@@ -198,9 +204,31 @@ export async function getJobMilestones(jobId: string, aiJobId?: string): Promise
       }
       return false;
     })(),
+    (async () => {
+      for (const dir of candidateDirs) {
+        if (await pathExists(resolve(dir, "output/cp2_evidence.json"))) return true;
+      }
+      return false;
+    })(),
+    (async () => {
+      for (const dir of candidateDirs) {
+        if (await pathExists(resolve(dir, "output/report.md"))) return true;
+      }
+      return false;
+    })(),
   ]);
 
-  return { sandboxReady, triadPacket, auditReport, reportJson };
+  // Generic list of the job's output files; progress steps map their `doneWhenFile` onto this.
+  const present = new Set<string>();
+  for (const dir of candidateDirs) {
+    try {
+      for (const file of await readdir(resolve(dir, "output"))) present.add(file);
+    } catch {
+      // no output dir yet
+    }
+  }
+
+  return { sandboxReady, triadPacket, auditReport, reportJson, evidence, cp2Report, presentFiles: [...present] };
 }
 
 /**

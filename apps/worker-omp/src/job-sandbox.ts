@@ -73,32 +73,32 @@ export function readJobInputDocuments(jobDir: string): string {
   return inputDocContent;
 }
 
+const MILESTONE_MESSAGE_BY_FILE: Record<string, string> = {
+  "triad_handoff_packet.md": "📦 Cột mốc 1 - Hoàn thành xây dựng ma trận Vấn đề - Giải pháp - Khách hàng",
+  "input_clarification_audit.md": "📦 Cột mốc 2 - Hoàn thành phản biện chuyên sâu các giả định và tiêu chí khởi nghiệp",
+  "cp2_evidence.json": "📦 Cột mốc 1 - Hoàn thành trích xuất bằng chứng từ tài liệu nhóm",
+  "report.md": "📦 Cột mốc 2 - Hoàn thành viết báo cáo thẩm định",
+  "report.json": "📦 Cột mốc 3 - Hoàn thành tổng hợp điểm số và hoàn tất báo cáo thẩm định",
+};
+
 export function checkJobMilestones(
   jobId: string,
   jobDir: string,
   outputDir: string,
-  milestoneSeen: Set<string>
+  milestoneSeen: Set<string>,
+  outputFiles?: readonly string[],
 ): void {
-  const targets = [
-    {
-      file: "triad_handoff_packet.md",
-      message: "📦 Cột mốc 1 - Hoàn thành xây dựng ma trận Vấn đề - Giải pháp - Khách hàng",
-    },
-    {
-      file: "input_clarification_audit.md",
-      message: "📦 Cột mốc 2 - Hoàn thành phản biện chuyên sâu các giả định và tiêu chí khởi nghiệp",
-    },
-    {
-      file: "report.json",
-      message: "📦 Cột mốc 3 - Hoàn thành tổng hợp điểm số và hoàn tất báo cáo thẩm định",
-    },
+  const targets = outputFiles ?? [
+    "triad_handoff_packet.md",
+    "input_clarification_audit.md",
+    "report.json",
   ];
-  for (const t of targets) {
-    if (!milestoneSeen.has(t.file)) {
-      const p = findOutputFile(jobDir, outputDir, t.file);
-      if (p && existsSync(p)) {
-        milestoneSeen.add(t.file);
-        logJob(jobId, t.message);
+  for (const file of targets) {
+    if (!milestoneSeen.has(file)) {
+      const p = findOutputFile(jobDir, outputDir, file);
+      if (p) {
+        milestoneSeen.add(file);
+        logJob(jobId, MILESTONE_MESSAGE_BY_FILE[file] ?? `📦 Hoàn thành ${file}`);
       }
     }
   }

@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@mantine/core";
 import type { OverviewArea } from "./caseOverviewModel";
 
 interface OverviewGapsSectionProps {
@@ -9,6 +10,11 @@ interface OverviewGapsSectionProps {
   commercialGaps: string[];
 }
 
+/**
+ * Preliminary team-fit judgement. Layout: verdict answers "can this team run this
+ * idea" first, then one card per area reading as: area name, state pill (Ổn/Yếu),
+ * coverage line (who covers it), reason, and the quoted evidence.
+ */
 export default function OverviewGapsSection({
   verdictLabel,
   areas,
@@ -23,15 +29,18 @@ export default function OverviewGapsSection({
     <div className="bg-surface-app border border-border-app rounded-xl p-5 space-y-4">
       <div className="pb-2.5 border-b border-border-app/60">
         <h3 className="font-heading text-base font-semibold text-text-app tracking-tight">
-          Đánh giá sơ bộ hồ sơ
+          Đội ngũ có đủ người làm ý tưởng này không
         </h3>
+        <p className="text-xs text-text-muted mt-1">
+          Nhận xét tự động từ hồ sơ đội ngũ - tham khảo trước khi nộp bài, không phải điểm chấm.
+        </p>
       </div>
 
       {verdictLabel && (
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="text-xs font-medium text-text-muted">Kết luận sơ bộ:</span>
+        <p className="text-sm">
+          <span className="text-text-muted">Kết luận: </span>
           <span className="font-semibold text-text-app">{verdictLabel}</span>
-        </div>
+        </p>
       )}
 
       {areas.length > 0 && (
@@ -39,18 +48,12 @@ export default function OverviewGapsSection({
           {areas.map((area) => (
             <div key={area.ten} className="bg-surface-soft/40 border border-border-app/60 rounded-lg p-4 space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={`text-xs font-medium rounded-full px-2 py-0.5 border ${
-                    area.isWeak
-                      ? "bg-danger-soft text-danger border-danger/20"
-                      : "bg-success-soft text-success border-success/20"
-                  }`}
-                >
+                <Badge size="sm" variant="light" color={area.isWeak ? "red" : "green"}>
                   {area.trangThaiLabel}
-                </span>
+                </Badge>
                 <span className="text-sm font-semibold text-text-app">{area.ten}</span>
-                <span className="text-xs text-text-muted">Mức độ: {area.mucDoLabel}</span>
               </div>
+              <p className="text-xs text-text-muted">Nhân sự: {area.mucDoLabel}</p>
               <p className="text-sm font-normal text-text-app leading-relaxed">{area.lyDo}</p>
               <p className="text-xs text-text-muted italic leading-relaxed">Dẫn chứng: {area.danChung}</p>
             </div>

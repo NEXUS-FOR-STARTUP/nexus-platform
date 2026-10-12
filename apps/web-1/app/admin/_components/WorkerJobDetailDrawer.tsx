@@ -16,8 +16,16 @@ function formatBytes(bytes: number) {
   return bytes < 1048576 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / 1048576).toFixed(1)} MB`;
 }
 
-function getStep(m?: { sandboxReady: boolean; triadPacket: boolean; auditReport: boolean; reportJson: boolean }) {
+type JobMilestones = { sandboxReady: boolean; triadPacket: boolean; auditReport: boolean; reportJson: boolean; evidence?: boolean; cp2Report?: boolean };
+
+function getStep(m?: JobMilestones) {
   if (!m || !m.sandboxReady) return 0;
+  // CP2 jobs never produce CP1 files: step through evidence → report.md → report.json.
+  if (m.evidence !== undefined || m.cp2Report !== undefined) {
+    if (!m.evidence) return 1;
+    if (!m.cp2Report) return 2;
+    return !m.reportJson ? 3 : 4;
+  }
   if (!m.triadPacket) return 1;
   if (!m.auditReport) return 2;
   return !m.reportJson ? 3 : 4;

@@ -138,7 +138,7 @@ Khi API cần đọc lại output hoặc Admin tải file kết quả, hệ th�
 
 ### 4.1 Yêu cầu Nghiệp vụ
 Hệ thống cần phục vụ đồng thời hai luồng quan sát với phạm vi khác nhau:
-1. **Góc nhìn Sinh viên (Case-centric):** Luồng SSE `/api/cases/:id/ai-events` cần lắng nghe toàn bộ log của case theo `caseId` để render tiến trình trực quan trên trang chi tiết hồ sơ.
+1. **Góc nhìn Sinh viên (Case-centric):** Panel tiến trình (`StageGradingPanel`) poll `GET /api/cases/:id/ai-status?checkpoint=` (job mới nhất của vòng đó, các bước tính từ file trong `output/` theo `progressSteps` ở `packages/shared/src/audit-checkpoints.ts`); không còn SSE theo `caseId`.
 2. **Góc nhìn Quản trị viên (Job-centric):** Màn hình Admin Worker Monitoring (`/admin/workers`) cần xem terminal log của riêng từng lần chạy độc lập theo `jobId`.
 
 ### 4.2 Cấu trúc Kênh Pub/Sub và Danh sách Lịch sử
