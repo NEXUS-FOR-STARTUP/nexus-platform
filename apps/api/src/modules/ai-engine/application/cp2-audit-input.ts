@@ -90,14 +90,20 @@ export function assertCp2AnswerQuality(
  * - answers: the questionnaire bar only (no files needed).
  * - files: at least one eligible file, no answer bar (the files carry the evidence).
  * - both: files AND the answer bar; sending both is an explicit "grade everything" choice.
+ * - undefined (legacy/admin-retry of pre-source jobs): attachments included opportunistically,
+ *   gated by the old answer bar with the attachment flag, exactly as before.
  */
 export function assertCp2InputSource(
   caseId: string,
   answers: AnswerMap,
   scope: string,
-  source: Cp2InputSource,
+  source: Cp2InputSource | undefined,
   fileCount: number,
 ): void {
+  if (source === undefined) {
+    assertCp2AnswerQuality(caseId, answers, scope, fileCount > 0);
+    return;
+  }
   if (source !== "answers" && fileCount === 0) {
     logger.warn({ caseId, source }, "CP2 trigger rejected: files source without eligible files");
     throw new AppError(400, "CP2_FILES_REQUIRED", "Bạn chọn chấm bằng tài liệu nhưng giai đoạn này chưa có tệp nào. Tải tệp lên ở tab Tài liệu hoặc chọn chấm bằng câu trả lời.");
@@ -184,7 +190,7 @@ export interface Cp2InputRequest {
   changeSummary?: string;
   /** CP2 scope (questionnaire | full); gates the quality bar. Defaults to full. */
   scope?: string;
-  /** Which student inputs the grader reads. Defaults to answers. */
+  /** Which student inputs the grader reads. Undefined = legacy (answers + opportunistic attachments). */
   inputSource?: Cp2InputSource;
 }
 
@@ -194,7 +200,7 @@ const FILES_ONLY_ANSWERS_TEXT =
 
 /** CP2 sandbox input by chosen source (answers, files, or both), plus the previous report on resubmit. */
 export async function assembleCp2InputFiles(req: Cp2InputRequest): Promise<{ inputFiles: OmpAuditInputFile[]; resolvedLifecycleUnitId: null }> {
-  const source = req.inputSource ?? "answers";
+  const source = req.inputSource;
   const rows = await prisma.projectAnswer.findMany({ where: { case_id: req.caseId }, select: { question_id: true, answer_text: true } });
   const answers = Object.fromEntries(rows.map((r) => [r.question_id, r.answer_text]));
   const attachments = source === "answers" ? [] : await loadAttachments(req.caseId);

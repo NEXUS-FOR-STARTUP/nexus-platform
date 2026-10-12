@@ -11,7 +11,7 @@ export const TriggerOptsSchema = z
     checkpoint: z.enum(AUDIT_CHECKPOINT_CODES).default("CP1"),
     /** CP2 only. CP1 scope is `prompt_mode`, chosen by admin. */
     scope: z.enum(["questionnaire", "full"]).optional(),
-    /** CP2 only: which student inputs the grader reads. Omitted = "answers". */
+    /** CP2 only: which student inputs the grader reads. Omitted = legacy (answers + opportunistic attachments). */
     input_source: z.enum(CP2_INPUT_SOURCES).optional(),
     /** CP2 resubmit only: what the team changed since the previous full report. */
     change_summary: z.string().max(CHANGE_SUMMARY_MAX_CHARS).optional(),

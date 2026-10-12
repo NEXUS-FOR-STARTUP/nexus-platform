@@ -242,7 +242,7 @@ export async function triggerOmpAuditForCase(
     submission_type: submissionType,
     checkpoint: checkpointCode,
     scope,
-    input_source: inputSource = "answers",
+    input_source: inputSource,
     change_summary: changeSummary,
     lifecycle_unit_id: lifecycleUnitId,
     model,

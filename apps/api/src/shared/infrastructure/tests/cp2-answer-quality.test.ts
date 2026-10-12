@@ -106,3 +106,21 @@ describe('assertCp2InputSource', () => {
     assert.equal(code(() => assertCp2InputSource('c', junk, 'full', 'both', 1)), 'CP2_ANSWERS_TOO_THIN')
   })
 })
+
+describe('assertCp2InputSource legacy', () => {
+  const good: Record<string, string> = {}
+  for (const id of CP2_IDS.slice(0, 5)) good[id] = pad('nghien cuu', 10)
+  const junk: Record<string, string> = {}
+  for (const id of CP2_IDS.slice(0, 26)) junk[id] = 'adawd'
+
+  it('legacy undefined: good answers with files pass (old behavior)', () => {
+    assert.doesNotThrow(() => assertCp2InputSource('c', good, 'full', undefined, 2))
+  })
+
+  it('legacy undefined: junk answers fail even with files (old behavior)', () => {
+    assert.throws(
+      () => assertCp2InputSource('c', junk, 'full', undefined, 3),
+      (err: unknown) => err instanceof AppError && err.code === 'CP2_ANSWERS_TOO_THIN',
+    )
+  })
+})
