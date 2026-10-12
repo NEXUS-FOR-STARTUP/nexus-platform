@@ -69,9 +69,17 @@ export interface OmpJobPayload {
   title: string;
   model?: string;
   ompModel?: string;
+  lifecycleUnitId?: string;
+  /** Self-contained execution contract; the worker runs it without domain knowledge. */
+  specVersion?: 1;
+  instruction?: string;
+  requiredOutputs?: string[];
+  optionalOutputs?: string[];
+  milestones?: Record<string, string>;
+  // Legacy fields (pre-JobSpec payloads still waiting in the queue; also read by
+  // the old worker image during cutover). Removed in the cleanup phase after queue drain.
   promptMode?: "full" | "lite";
   submissionType?: "initial" | "resubmit" | "logic_check";
-  lifecycleUnitId?: string;
   /** Defaults to CP1 when absent (jobs queued before CP2 existed). */
   checkpoint?: "CP1" | "CP2";
   /** Prompt scope inside the checkpoint: CP1 = prompt mode, CP2 = questionnaire | full. */

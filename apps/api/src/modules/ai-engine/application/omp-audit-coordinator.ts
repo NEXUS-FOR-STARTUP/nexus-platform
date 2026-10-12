@@ -32,6 +32,7 @@ import { finalizeOmpAuditResult } from "./omp-audit-finalizer.js";
 import { getCaseAiAuditStatus } from "./omp-audit-status.js";
 import { findLatestCp2FullReport } from "../../reports/infrastructure/persistence/report.repository.js";
 import { INPUT_ASSEMBLERS, resolveAuditPlan } from "./audit-registry.js";
+import { buildOmpJobSpec } from "./job-spec-builder.js";
 import { CP2_CHECKPOINT_CODE, assertCp2InputSource } from "./cp2-audit-input.js";
 import { consumeAuditCredit, grantAuditRefund } from "./audit-credit.js";
 import { TriggerOptsSchema } from "./trigger-opts.js";
@@ -543,7 +544,9 @@ export async function triggerOmpAuditForCase(
     const projectName = caseRecord.team_name || caseRecord.case_code || "Dự án khởi nghiệp";
     const primaryFileName = inputFiles.find((f) => f.name.endsWith(".md") || f.name.endsWith(".pdf"))?.name || "document.md";
 
-    // 11. Dispatch job into BullMQ (with submissionType in payload)
+    // 11. Dispatch job into BullMQ. The payload carries the full JobSpec so the
+    // worker needs no domain knowledge; legacy fields stay for the old worker
+    // image still running during cutover.
     await dispatchOmpJob({
       jobId: newAiJob.id,
       caseId,
@@ -551,9 +554,10 @@ export async function triggerOmpAuditForCase(
       documentOriginalName: primaryFileName,
       title: projectName,
       ompModel: resolvedModel,
+      lifecycleUnitId: resolvedLifecycleUnitId ?? undefined,
+      ...buildOmpJobSpec(plan, submissionType),
       promptMode: promptMode,
       submissionType,
-      lifecycleUnitId: resolvedLifecycleUnitId ?? undefined,
       checkpoint: checkpointCode,
       scope: plan.scope,
     });
