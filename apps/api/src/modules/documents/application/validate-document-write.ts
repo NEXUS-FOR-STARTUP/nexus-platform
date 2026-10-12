@@ -1,4 +1,5 @@
 import { AppError } from "../../../shared/domain/app-error.js";
+import { DOCUMENT_CATEGORY_CODES, canonicalizeDocCategory } from "@repo/validation";
 import { validateDocumentUrl } from "../application/document-dto.js";
 import type { DocumentWriteInput } from "../application/document-dto.js";
 import {
@@ -37,6 +38,12 @@ export type PostIntakeDocumentInput = {
   extension: string;
   mime_type: string;
   doc_type: string;
+  /**
+   * Student-facing category (shared `DOCUMENT_CATEGORY_CODES` catalog, the same
+   * list the intake step offers). Stored in `metadata_json.category`, kept apart
+   * from `doc_type` which stays the stored kind.
+   */
+  category?: string;
 };
 
 export type ExternalFeedbackMetadata = {
@@ -134,6 +141,12 @@ export function validatePostIntakeDocumentInputs(documents: unknown[]): PostInta
     const extension = typeof input.extension === "string" ? input.extension.trim() : "";
     const mimeType = typeof input.mime_type === "string" ? input.mime_type.trim() : "";
     const docType = typeof input.doc_type === "string" ? input.doc_type.trim() : "";
+    const rawCategory = typeof input.category === "string" ? input.category.trim() : "";
+    const category = rawCategory ? canonicalizeDocCategory(rawCategory) : "";
+
+    if (rawCategory && !(DOCUMENT_CATEGORY_CODES as readonly string[]).includes(category)) {
+      throw new AppError(400, "VALIDATION_ERROR", `Loại tài liệu không hợp lệ: ${rawCategory}`);
+    }
 
     if (!originalName || !fileUrl || !downloadUrl || !publicId || !extension || !mimeType || !docType) {
       throw new AppError(400, "VALIDATION_ERROR", `Thiếu metadata tệp tải lên #${index + 1}`);
@@ -161,6 +174,7 @@ export function validatePostIntakeDocumentInputs(documents: unknown[]): PostInta
       extension,
       mime_type: mimeType,
       doc_type: docType,
+      category: category || undefined,
     };
   });
 }

@@ -10,6 +10,8 @@ export interface StageDocumentInput {
   extension: string;
   mime_type: string;
   doc_type: string;
+  /** Student-facing type from the shared intake catalog. */
+  category?: string;
 }
 
 export function useStageDocumentUpload(caseId: string, checkpointCode: StageCode) {

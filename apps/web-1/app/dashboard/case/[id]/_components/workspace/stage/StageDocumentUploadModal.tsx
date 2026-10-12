@@ -5,10 +5,10 @@ import { Modal, Button, Select, Group, Stack, Text, Paper } from "@mantine/core"
 import { Dropzone, type FileRejection } from "@mantine/dropzone";
 import { notifications } from "@mantine/notifications";
 import { UploadCloud, AlertCircle, X } from "lucide-react";
+import { DOCUMENT_CATEGORY_CODES, docCategoryLabel } from "@repo/validation";
 import FileTypeIcon from "@/components/ui/FileTypeIcon";
 import { isAxiosError } from "axios";
 import { apiClient } from "@/lib/api-client";
-import { useDocumentTypeOptions } from "../../../hooks/useCaseDocumentUploads";
 import { useStageDocumentUpload } from "../../../hooks/useStageDocumentUpload";
 import type { StageCode } from "@app/shared/stages";
 
@@ -40,30 +40,24 @@ function readApiMessage(err: unknown): string | undefined {
 
 /**
  * Stage document upload: pick files, assign a type to each, save once.
- * Types come from the server (flow=revision, scope=version) so the picker
- * can never offer a code the stage-upload endpoint rejects. Labels are
- * overridden per stage: the revision-flow codes ("Bản sửa đổi", ...) mean
- * nothing to a market-stage user, so CP2 shows what the file actually is.
+ * Types are the same catalog the intake step offers, so a student who picked
+ * "Slide thuyết trình" in intake picks the same label here. The server keeps the
+ * stored kind (`revision_document`) and saves the pick as the file's category.
  */
-const LABEL_BY_CODE_CP2: Record<string, string> = {
-  revision_document: "Báo cáo hoặc tài liệu chính",
-  revision_attachment: "Dữ liệu khảo sát, ghi chép phỏng vấn",
-};
+const TYPE_OPTIONS = DOCUMENT_CATEGORY_CODES.map((code) => ({
+  value: code,
+  label: docCategoryLabel(code),
+}));
+
+/** Stored kind for every file uploaded through this modal. */
+const STAGE_DOC_TYPE = "revision_document";
 
 export default function StageDocumentUploadModal({ opened, onClose, caseId, checkpointCode }: StageDocumentUploadModalProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [typeByIndex, setTypeByIndex] = useState<Record<number, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const { data: typeData } = useDocumentTypeOptions("revision", "version");
   const uploadMutation = useStageDocumentUpload(caseId, checkpointCode);
-
-  const isMarketStage = checkpointCode === "CP2";
-  const typeOptions = (typeData?.items ?? []).map((t) => ({
-    value: t.code,
-    label: isMarketStage ? (LABEL_BY_CODE_CP2[t.code] ?? t.label) : t.label,
-  }));
-  const defaultType = typeOptions[0]?.value ?? "";
 
   const appendFiles = (selected: File[]) => {
     const combined = [...files, ...selected];
@@ -129,7 +123,8 @@ export default function StageDocumentUploadModal({ opened, onClose, caseId, chec
             cloudinary_public_id: uploaded.cloudinary_public_id,
             extension: uploaded.extension || "bin",
             mime_type: uploaded.mime_type || "application/octet-stream",
-            doc_type: typeByIndex[i] || defaultType,
+            doc_type: STAGE_DOC_TYPE,
+            category: typeByIndex[i],
           };
         }),
       );
@@ -143,7 +138,7 @@ export default function StageDocumentUploadModal({ opened, onClose, caseId, chec
     }
   };
 
-  const isFormValid = files.length > 0 && files.every((_, i) => (typeByIndex[i] || defaultType) !== "");
+  const isFormValid = files.length > 0 && files.every((_, i) => Boolean(typeByIndex[i]));
 
   return (
     <Modal
@@ -207,8 +202,8 @@ export default function StageDocumentUploadModal({ opened, onClose, caseId, chec
                 label="Loại tài liệu"
                 placeholder="Chọn loại tài liệu"
                 description="AI dùng loại này để phân loại tài liệu của bạn"
-                data={typeOptions}
-                value={typeByIndex[i] || defaultType}
+                data={TYPE_OPTIONS}
+                value={typeByIndex[i] || null}
                 onChange={(val) => val && setTypeByIndex((prev) => ({ ...prev, [i]: val }))}
               />
             </Stack>

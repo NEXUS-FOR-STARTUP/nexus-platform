@@ -559,6 +559,10 @@ export async function createStageUploadInTx(
 
   await createDocumentRecordsForUnit(
     caseId, checkpointId, unit.id, unit.unit_code, documents, userId, "revision_document", "outbound", tx,
+    // The kind stays `revision_document`; the student's pick (intake catalog:
+    // "Slide thuyết trình", "Nghiên cứu thị trường", ...) lands as the category.
+    undefined,
+    (doc) => doc.category,
   );
   return unit;
 }

@@ -21,6 +21,8 @@ type DocumentInputLike = {
   original_name?: string;
   doc_type?: string;
   document_type?: string;
+  /** Student-facing category from the shared intake catalog. */
+  category?: string;
   extension?: string;
   mime_type?: string;
   download_url?: string;
