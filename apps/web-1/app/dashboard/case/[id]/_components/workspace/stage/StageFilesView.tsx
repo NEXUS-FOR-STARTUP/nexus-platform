@@ -108,8 +108,7 @@ export default function StageFilesView({
           <Stack align="center" gap="xs">
             <FileText size={32} className="text-gray-400" />
             <Text size="sm" c="dimmed">Chưa có tài liệu nào được nộp cho giai đoạn này.</Text>
-            <Text size="xs" c="dimmed">Bạn có thể trả lờ
-              i câu hỏi ở tab Soạn thảo hoặc tải tài liệu trực tiếp tại đây.</Text>
+            <Text size="xs" c="dimmed">Bạn có thể trả lời câu hỏi ở tab Soạn thảo hoặc tải tài liệu trực tiếp tại đây.</Text>
           </Stack>
         </Paper>
       ) : (

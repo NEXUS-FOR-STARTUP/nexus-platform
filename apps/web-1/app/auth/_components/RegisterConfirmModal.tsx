@@ -41,8 +41,7 @@ export function RegisterConfirmModal({
     >
       <Stack gap="md">
         <Text size="sm" c="dimmed">
-          Email {email} của bạn chưa đăng ký thành viên Nexus. Bạn có muốn đăng
-          ký ngay không?
+          Email {email} của bạn chưa đăng ký thành viên Nexus. Bạn có muốn đăng ký ngay không?
         </Text>
         <Group justify="flex-end" gap="sm" mt="sm">
           <Button variant="default" onClick={handleClose} disabled={loading}>
