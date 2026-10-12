@@ -69,3 +69,4 @@ Sau khi xác minh, ghi 1 dòng theo format trên (ví dụ: `2026-08-03 HH:MM | 
 | 2026-10-12 20:59 | dbcdb76 | staging | fix(docker): build @repo/validation before app (turbo prune ships src without dist) | 🔵 api 🟢 web |
 | 2026-10-12 21:12 | 54ad9bd | staging | worker-omp d2ae23ff (sha256:d2ae23ffdbdf5998d97d0fe67b4e426537f51f10b4bee98c01526c9af0a38d18) | 🟠 worker |
 | 2026-10-12 23:15 | 9a01b8d | staging | chore(deploy): web rebuild với NEXT_PUBLIC_JOURNEY_WORKSPACE=true — web sha256:15446354582bf966e7c06124e4adb9101b5b9b052689b5820ebf041e3fc1aff5 (api sha256:9911b18da731 không đổi) | 🟢 web |
+| 2026-10-12 23:29 | 69e037c | staging | docs(plans): thêm plan worker OMP thành engine thuần (api sha256:6da470574a0a | worker sha256:e7f3e12329ed) | 🔵 api 🟠 worker |
