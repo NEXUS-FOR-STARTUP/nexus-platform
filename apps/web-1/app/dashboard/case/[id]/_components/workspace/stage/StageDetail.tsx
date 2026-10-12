@@ -8,6 +8,7 @@ import StageHeader from "./StageHeader";
 import StageDraftView from "./StageDraftView";
 import StageFilesView from "./StageFilesView";
 import StageResultsView from "./StageResultsView";
+import StageGradingPanel from "./StageGradingPanel";
 import AuditConfirmModal from "./AuditConfirmModal";
 import type { Cp2InputSource } from "@app/shared";
 import ServiceCheckoutModal from "../../billing/ServiceCheckoutModal";
@@ -89,6 +90,13 @@ export default function StageDetail({
         onBack={onBack}
         onAudit={handleAuditClick}
         onBuyCredits={() => setCheckoutOpen(true)}
+      />
+
+      <StageGradingPanel
+        caseId={caseId}
+        checkpoint={stage.code}
+        submissionType={summary?.status === "has_result" ? "resubmit" : "initial"}
+        onViewResults={() => onViewChange("results")}
       />
 
       <Tabs value={view} onChange={(val) => onViewChange(val as "draft" | "files" | "results")} variant="pills" radius="md">

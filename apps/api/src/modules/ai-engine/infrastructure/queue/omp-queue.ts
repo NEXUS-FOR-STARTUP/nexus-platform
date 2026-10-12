@@ -125,6 +125,8 @@ export interface OmpJobMilestones {
   evidence?: boolean;
   /** CP2: human-readable report.md written (auditReport covers CP1's differently-named MD). */
   cp2Report?: boolean;
+  /** Every file currently in the job's `output/` dir; drives per-checkpoint progress steps. */
+  presentFiles?: string[];
 }
 async function pathExists(p: string): Promise<boolean> {
   try {
@@ -216,7 +218,17 @@ export async function getJobMilestones(jobId: string, aiJobId?: string): Promise
     })(),
   ]);
 
-  return { sandboxReady, triadPacket, auditReport, reportJson, evidence, cp2Report };
+  // Generic list of the job's output files; progress steps map their `doneWhenFile` onto this.
+  const present = new Set<string>();
+  for (const dir of candidateDirs) {
+    try {
+      for (const file of await readdir(resolve(dir, "output"))) present.add(file);
+    } catch {
+      // no output dir yet
+    }
+  }
+
+  return { sandboxReady, triadPacket, auditReport, reportJson, evidence, cp2Report, presentFiles: [...present] };
 }
 
 /**

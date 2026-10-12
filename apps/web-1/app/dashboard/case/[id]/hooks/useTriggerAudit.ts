@@ -41,16 +41,6 @@ export function useTriggerAudit(caseId: string) {
           user_facing_stage: "under_review",
         };
       });
-      queryClient.setQueryData(["case-ai-status", caseId], (prev: any) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          status: "queued",
-          startedAt: new Date().toISOString(),
-          elapsedSeconds: 0,
-          logs: [],
-        };
-      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["case", caseId] });

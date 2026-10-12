@@ -33,3 +33,36 @@ export function getAuditScopeEntry(
   const outputs: AuditCheckpointOutputs = cp.outputs;
   return { serviceType: cp.serviceType, input: cp.input, postProcess: cp.postProcess, prompts, reportType, outputs };
 }
+
+export type AuditStepState = "done" | "active" | "pending";
+export interface AuditProgressStepState {
+  id: string;
+  label: string;
+  state: AuditStepState;
+}
+
+/**
+ * Step states from the files present in the job's output dir.
+ * A step is done when its file exists or any later step is done; the first not-done step is
+ * `active` while the job runs. Only `finished` (report saved) completes the last step.
+ */
+export function computeProgressSteps(
+  checkpoint: string,
+  presentFiles: readonly string[],
+  opts: { finished: boolean; running: boolean },
+): AuditProgressStepState[] {
+  if (!Object.hasOwn(AUDIT_CHECKPOINTS, checkpoint)) return [];
+  const steps = AUDIT_CHECKPOINTS[checkpoint as AuditCheckpointCode].progressSteps;
+  const present = new Set(presentFiles);
+  // The last step is "report saved", which only the finalizer completes: its file existing on disk is not
+  // enough (and report.json is shared by every checkpoint, so a stray one must not mark a failed run done).
+  const lastIndex = steps.length - 1;
+  const isDone = (step: { doneWhenFile: string | null }, i: number) =>
+    opts.finished || (step.doneWhenFile === null ? opts.running : i < lastIndex && present.has(step.doneWhenFile));
+  const lastDone = steps.reduce((last, step, i) => (isDone(step, i) ? i : last), -1);
+  return steps.map((step, i) => ({
+    id: step.id,
+    label: step.label,
+    state: i <= lastDone ? "done" : opts.running && i === lastDone + 1 ? "active" : "pending",
+  }));
+}

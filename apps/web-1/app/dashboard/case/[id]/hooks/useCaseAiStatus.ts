@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
 import { notifications } from "@mantine/notifications";
+import type { AuditProgressStepState } from "@app/shared";
 import { apiClient } from "@/lib/api-client";
 
 export interface LogEntry {
@@ -10,42 +10,40 @@ export interface LogEntry {
 }
 
 export interface CaseAiStatusResponse {
-  isAiPackage: boolean;
-  jobId?: string;
-  caseId?: string;
-  caseCode?: string;
-  projectName?: string;
+  /** "unknown" = this checkpoint has no audit job yet. */
   status: "queued" | "running" | "completed" | "cancelled" | "failed" | "unknown";
+  checkpoint?: string;
+  scope?: string;
+  inputSource?: string;
+  steps: AuditProgressStepState[];
+  jobId?: string;
   startedAt?: string;
-  elapsedSeconds?: number;
   logs?: LogEntry[];
   error?: string | null;
 }
 
-export function useCaseAiStatus(caseId: string, enabled = true) {
+/** Poll cadence while a job is active; status + steps + logs all come from one endpoint, so no SSE. */
+const ACTIVE_POLL_MS = 5000;
+
+/** Status of the latest audit job of ONE checkpoint (never the case-wide latest). */
+export function useCaseAiStatus(caseId: string, checkpoint: string) {
   const queryClient = useQueryClient();
 
   const query = useQuery<CaseAiStatusResponse>({
-    queryKey: ["case-ai-status", caseId],
+    queryKey: ["case-ai-status", caseId, checkpoint],
     queryFn: async () => {
-      const response = await apiClient.get(`/cases/${caseId}/ai-status`);
+      const response = await apiClient.get(`/cases/${caseId}/ai-status`, { params: { checkpoint } });
       return response.data;
     },
-    enabled: !!caseId && enabled,
+    enabled: Boolean(caseId),
     refetchInterval: (q) => {
       const status = q.state.data?.status;
-      if (status === "queued" || status === "running") {
-        return 8000;
-      }
-      return false;
+      return status === "queued" || status === "running" ? ACTIVE_POLL_MS : false;
     },
   });
 
   const cancelMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiClient.post(`/cases/${caseId}/ai-cancel`);
-      return response.data;
-    },
+    mutationFn: async () => (await apiClient.post(`/cases/${caseId}/ai-cancel`)).data,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["case-ai-status", caseId] });
       queryClient.invalidateQueries({ queryKey: ["case", caseId] });
@@ -59,64 +57,5 @@ export function useCaseAiStatus(caseId: string, enabled = true) {
     },
   });
 
-  const retryMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiClient.post(`/cases/${caseId}/ai-retry`);
-      return response.data;
-    },
-    onMutate: async () => {
-      queryClient.setQueryData<CaseAiStatusResponse>(["case-ai-status", caseId], (prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          status: "queued",
-          startedAt: new Date().toISOString(),
-          elapsedSeconds: 0,
-          logs: [],
-        };
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["case-ai-status", caseId] });
-      queryClient.invalidateQueries({ queryKey: ["case", caseId] });
-    },
-    onError: (error: unknown) => {
-      queryClient.invalidateQueries({ queryKey: ["case-ai-status", caseId] });
-      queryClient.invalidateQueries({ queryKey: ["case", caseId] });
-      const errData = isAxiosError<{ code?: string; message?: string }>(error)
-        ? error.response?.data
-        : undefined;
-      const status = isAxiosError(error) ? error.response?.status : undefined;
-      if (status === 402 || errData?.code === "NO_CREDITS") {
-        notifications.show({
-          title: "Hết lượt đánh giá",
-          message: "Bạn đã hết lượt đánh giá. Vui lòng mua thêm gói đánh giá để tiếp tục.",
-          color: "orange",
-        });
-        return;
-      }
-      if (status === 409) {
-        notifications.show({
-          title: "Đánh giá đang diễn ra",
-          message: errData?.message || "Hệ thống đang tiến hành đánh giá. Vui lòng chờ kết quả trước khi gửi lại.",
-          color: "blue",
-        });
-        return;
-      }
-      notifications.show({
-        title: "Chạy lại thất bại",
-        message: errData?.message || "Đã xảy ra lỗi. Vui lòng thử lại sau.",
-        color: "red",
-      });
-    },
-  });
-
-  return {
-    ...query,
-    aiStatusData: query.data,
-    cancel: cancelMutation.mutate,
-    isCancelling: cancelMutation.isPending,
-    retry: retryMutation.mutate,
-    isRetrying: retryMutation.isPending,
-  };
+  return { ...query, cancel: cancelMutation.mutate, isCancelling: cancelMutation.isPending };
 }

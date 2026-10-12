@@ -1,26 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import { ChevronDown, Terminal } from "lucide-react";
 import type { LogEntry } from "../hooks/useCaseAiStatus";
 
 interface RadarLogsViewerProps {
   logs: LogEntry[];
-  showLogs: boolean;
-  onToggle: () => void;
 }
 
-export default function RadarLogsViewer({
-  logs,
-  showLogs,
-  onToggle,
-}: RadarLogsViewerProps) {
+export default function RadarLogsViewer({ logs }: RadarLogsViewerProps) {
+  const [showLogs, setShowLogs] = useState(false);
   if (logs.length === 0) return null;
 
   return (
     <div className="pt-3 border-t border-border-app">
       <button
         type="button"
-        onClick={onToggle}
+        onClick={() => setShowLogs((prev) => !prev)}
         className="flex items-center justify-between w-full p-2.5 rounded-lg border border-border-app bg-surface-soft/40 hover:bg-surface-soft transition-colors cursor-pointer text-xs font-medium text-text-muted group"
       >
         <div className="flex items-center gap-2">

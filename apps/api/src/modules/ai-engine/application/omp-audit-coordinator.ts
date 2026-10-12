@@ -24,6 +24,7 @@ import {
   updateAiJobStatusById,
   countAiJobsByCase,
   findLatestAiJobByCase,
+  runningCheckpointCode,
 } from "../infrastructure/persistence/ai-job.repository.js";
 import { jobStore } from "../infrastructure/persistence/job-store.repository.js";
 import { prepareSandbox, resolveRepoRoot, type SandboxOptions } from "../omp-audit.service.js";
@@ -196,12 +197,6 @@ export function initOmpQueueListener(): void {
   });
 
   logger.info("BullMQ OMP QueueEvents listener initialized");
-}
-
-/** Jobs created before CP2 carry no checkpoint in input_json; they are CP1 jobs. */
-function runningCheckpointCode(inputJson: unknown): string {
-  const checkpoint = (inputJson as { checkpoint?: unknown } | null)?.checkpoint;
-  return typeof checkpoint === "string" ? checkpoint : "CP1";
 }
 
 /**

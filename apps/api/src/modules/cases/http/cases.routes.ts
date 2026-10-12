@@ -27,7 +27,6 @@ import {
 } from "./cases.controller.js";
 import {
   getCaseAiStatusHandler,
-  streamCaseAiEventsHandler,
   cancelCaseAiAuditHandler,
   retryCaseAiAuditHandler,
 } from "./cases-ai.controller.js";
@@ -81,7 +80,6 @@ casesRouter.get("/:id/stages", getStageSummariesHandler);
 casesRouter.post("/:id/stages/:code/documents", uploadStageDocumentsHandler);
 casesRouter.delete("/:id/documents/:documentId", deleteStageDocumentHandler);
 casesRouter.get("/:id/ai-status", getCaseAiStatusHandler);
-casesRouter.get("/:id/ai-events", streamCaseAiEventsHandler);
 casesRouter.post("/:id/ai-cancel", cancelCaseAiAuditHandler);
 casesRouter.post("/:id/ai-retry", retryCaseAiAuditHandler);
 

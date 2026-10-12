@@ -23,7 +23,6 @@ import TabReportFindings from "./_components/TabReportFindings";
 import GuidedDocumentsWorkspace from "./_components/guided-documents/GuidedDocumentsWorkspace";
 // DEPRECATED (2026-10-10): Finance tab hidden, replaced by the FINANCE TEMPLATE in the guided-documents gallery.
 // import TabFinance from "./_components/finance/TabFinance";
-import ActiveRadarScanning from "./_components/ActiveRadarScanning";
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
 import StudentDocumentUploadModal from "./_components/StudentDocumentUploadModal";
 import StatusGuidanceCard from "./_components/StatusGuidanceCard";
@@ -218,12 +217,6 @@ export default function CaseWorkspacePage({ params }: PageProps) {
         <div className={`w-full flex flex-col ${activeTab === "discussion" ? "flex-1 min-h-0 h-full" : "pb-16 sm:pb-8"}`}>
           {activeTab === "overview" && (
             <div className="space-y-6">
-              {stage === "under_review" && caseData?.package_id === "pkg_ai_audit" && (
-                <ActiveRadarScanning
-                  caseId={id}
-                  projectName={caseData.team_name || undefined}
-                />
-              )}
               <CaseOverviewPanel
                 caseData={caseData}
                 intakeSnapshot={intakeSnapshot}

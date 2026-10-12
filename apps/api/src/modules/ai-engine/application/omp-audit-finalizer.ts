@@ -15,6 +15,8 @@ import { resolveRepoRoot } from "../omp-audit.service.js";
 import { generateAndUploadReportPdf, syncReportArtifact } from "./omp-audit-pdf.js";
 import { POST_PROCESSORS, resolveAuditPlan } from "./audit-registry.js";
 import { prisma } from "../../../db.js";
+import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
+import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 import { ompQueue } from "../infrastructure/queue/omp-queue.js";
 
 /**
@@ -313,5 +315,16 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
   await updateCaseAuditStage(caseId, "report_ready", "report_ready_to_publish");
 
   logger.info({ caseId }, "OMP audit finalized successfully and report saved to database!");
+
+  // The student may have left the page mid-run: notify once, on the fresh-finalize path only
+  // (the early "already finalized" return above is re-entered by status polling and must not re-notify).
+  const caseRow = await prisma.case.findUnique({ where: { id: caseId }, select: { case_code: true } });
+  emitEvent({
+    eventId: crypto.randomUUID(),
+    type: DOMAIN_EVENTS.REPORT_PUBLISHED,
+    actorId: null,
+    occurredAt: new Date(),
+    payload: { caseId, caseCode: caseRow?.case_code ?? null, reportId: savedReport.id },
+  });
   return true;
 }
