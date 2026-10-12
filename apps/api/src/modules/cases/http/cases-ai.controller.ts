@@ -1,8 +1,8 @@
 import type { Context } from "hono";
-import { AUDIT_CHECKPOINT_CODES, type AuditCheckpointCode } from "@app/shared";
-import { AppError } from "../../../shared/domain/app-error.js";
+import { streamSSE } from "hono/streaming";
 import { requireCaseAccess } from "../../../shared/infrastructure/authorization.js";
 import { handleError, readJsonBody } from "../../../shared/infrastructure/http-helpers.js";
+import { jobStore } from "../../ai-engine/infrastructure/persistence/job-store.repository.js";
 import { getCaseAiAuditStatus } from "../../ai-engine/application/omp-audit-status.js";
 import {
   triggerOmpAuditForCase,
@@ -10,8 +10,7 @@ import {
 } from "../../ai-engine/application/omp-audit-coordinator.js";
 
 /**
- * GET /api/cases/:id/ai-status[?checkpoint=CP1|CP2] — status, progress steps and logs of the latest
- * audit job (of that checkpoint when given; the stage panel always passes it).
+ * GET /api/cases/:id/ai-status — Current audit status, Job ID, and latest logs
  */
 export async function getCaseAiStatusHandler(c: Context) {
   const caseId = c.req.param("id") || "";
@@ -21,11 +20,7 @@ export async function getCaseAiStatusHandler(c: Context) {
   }
 
   try {
-    const checkpoint = c.req.query("checkpoint");
-    if (checkpoint !== undefined && !AUDIT_CHECKPOINT_CODES.includes(checkpoint as AuditCheckpointCode)) {
-      throw new AppError(400, "INVALID_CHECKPOINT", "Vòng thẩm định không hợp lệ.");
-    }
-    const status = await getCaseAiAuditStatus(caseId, checkpoint);
+    const status = await getCaseAiAuditStatus(caseId);
     return c.json(status);
   } catch (err) {
     return handleError(c, err);
@@ -33,12 +28,80 @@ export async function getCaseAiStatusHandler(c: Context) {
 }
 
 /**
+ * GET /api/cases/:id/ai-events — Live SSE log stream & state updates
+ */
+export async function streamCaseAiEventsHandler(c: Context) {
+  const caseId = c.req.param("id") || "";
+  const access = await requireCaseAccess(c, caseId);
+  if (!access.ok) {
+    return access.response;
+  }
+
+  return streamSSE(c, async (stream) => {
+    // 1. Initial status handshake
+    const initialStatus = await getCaseAiAuditStatus(caseId);
+    await stream.writeSSE({
+      event: "job_state",
+      data: JSON.stringify(initialStatus),
+    });
+
+    // 2. Initial existing logs replay from Redis
+    const existingLogs = await jobStore.getLogs(caseId);
+    for (const log of existingLogs) {
+      await stream.writeSSE({
+        event: "log",
+        data: JSON.stringify(log),
+      });
+    }
+
+    // 3. EventEmitter / Redis PubSub listeners
+    const onJobUpdate = (updatedJob: any) => {
+      stream
+        .writeSSE({
+          event: "job_state",
+          data: JSON.stringify(updatedJob),
+        })
+        .catch(() => {});
+    };
+
+    const onLog = (logEntry: any) => {
+      stream
+        .writeSSE({
+          event: "log",
+          data: JSON.stringify(logEntry),
+        })
+        .catch(() => {});
+    };
+
+    jobStore.on(`job:${caseId}`, onJobUpdate);
+    jobStore.on(`log:${caseId}`, onLog);
+
+    stream.onAbort(() => {
+      jobStore.off(`job:${caseId}`, onJobUpdate);
+      jobStore.off(`log:${caseId}`, onLog);
+    });
+
+    // 4. SSE heartbeat loop to keep connection alive without disk polling
+    while (!stream.aborted) {
+      await stream.sleep(15000);
+      try {
+        await stream.writeSSE({
+          event: "ping",
+          data: "",
+        });
+      } catch {
+        break;
+      }
+    }
+  });
+}
+
+/**
  * POST /api/cases/:id/ai-cancel — Cancel running OMP audit job
  */
 export async function cancelCaseAiAuditHandler(c: Context) {
   const caseId = c.req.param("id") || "";
-  // Students never stop a running job; only the assigned supporter/admin can (admin job drawer).
-  const access = await requireCaseAccess(c, caseId, { allowStudent: false });
+  const access = await requireCaseAccess(c, caseId);
   if (!access.ok) {
     return access.response;
   }
@@ -54,9 +117,8 @@ export async function cancelCaseAiAuditHandler(c: Context) {
 /**
  * POST /api/cases/:id/ai-retry — Retry OMP Audit for case
  * Body: { submission_type?: 'initial' | 'resubmit' | 'logic_check', lifecycle_unit_id?: string,
- *         checkpoint?: 'CP1' | 'CP2', scope?: 'questionnaire' | 'full' (CP2 only, required there),
- *         input_source?: 'answers' | 'files' | 'both' (CP2 only, default 'answers'),
- *         change_summary?: string (CP2 resubmit), user_note?: string (CP2) }
+*         checkpoint?: 'CP1' | 'CP2', scope?: 'questionnaire' | 'full' (CP2 only, required there),
+*         input_source?: 'answers' | 'files' | 'both' (CP2 only), change_summary?: string (CP2 resubmit), user_note?: string (CP2) }
  */
 export async function retryCaseAiAuditHandler(c: Context) {
   const caseId = c.req.param("id") || "";
@@ -76,8 +138,8 @@ export async function retryCaseAiAuditHandler(c: Context) {
       lifecycle_unit_id: lifecycleUnitId,
       checkpoint: body?.checkpoint,
       scope: body?.scope,
-      input_source: body?.input_source,
       change_summary: body?.change_summary,
+      input_source: body?.input_source,
       user_note: body?.user_note,
     });
 

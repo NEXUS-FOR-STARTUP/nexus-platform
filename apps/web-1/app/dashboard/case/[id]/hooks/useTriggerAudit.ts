@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { notifications } from "@mantine/notifications";
-import type { Cp2InputSource } from "@app/shared";
 import { apiClient } from "@/lib/api-client";
+import type { Cp2InputSource } from "@app/shared";
 
 export type SubmissionType = "initial" | "resubmit" | "logic_check";
 
@@ -43,6 +43,16 @@ export function useTriggerAudit(caseId: string) {
         return {
           ...prev,
           user_facing_stage: "under_review",
+        };
+      });
+      queryClient.setQueryData(["case-ai-status", caseId], (prev: any) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          status: "queued",
+          startedAt: new Date().toISOString(),
+          elapsedSeconds: 0,
+          logs: [],
         };
       });
     },
