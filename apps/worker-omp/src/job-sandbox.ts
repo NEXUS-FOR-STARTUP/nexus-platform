@@ -73,7 +73,9 @@ export function readJobInputDocuments(jobDir: string): string {
   return inputDocContent;
 }
 
-const MILESTONE_MESSAGE_BY_FILE: Record<string, string> = {
+/** Legacy milestone wording (pre-JobSpec payloads). Kept until the queue drains;
+ *  the API-side job-spec-builder carries the same map for spec payloads. */
+export const MILESTONE_MESSAGE_BY_FILE: Record<string, string> = {
   "triad_handoff_packet.md": "📦 Cột mốc 1 - Hoàn thành xây dựng ma trận Vấn đề - Giải pháp - Khách hàng",
   "input_clarification_audit.md": "📦 Cột mốc 2 - Hoàn thành phản biện chuyên sâu các giả định và tiêu chí khởi nghiệp",
   "cp2_evidence.json": "📦 Cột mốc 1 - Hoàn thành trích xuất bằng chứng từ tài liệu nhóm",
@@ -81,24 +83,20 @@ const MILESTONE_MESSAGE_BY_FILE: Record<string, string> = {
   "report.json": "📦 Cột mốc 3 - Hoàn thành tổng hợp điểm số và hoàn tất báo cáo thẩm định",
 };
 
+/** Log one milestone message per output file the first time it appears on disk. */
 export function checkJobMilestones(
   jobId: string,
   jobDir: string,
   outputDir: string,
   milestoneSeen: Set<string>,
-  outputFiles?: readonly string[],
+  milestones: Readonly<Record<string, string>>,
 ): void {
-  const targets = outputFiles ?? [
-    "triad_handoff_packet.md",
-    "input_clarification_audit.md",
-    "report.json",
-  ];
-  for (const file of targets) {
+  for (const [file, message] of Object.entries(milestones)) {
     if (!milestoneSeen.has(file)) {
       const p = findOutputFile(jobDir, outputDir, file);
       if (p) {
         milestoneSeen.add(file);
-        logJob(jobId, MILESTONE_MESSAGE_BY_FILE[file] ?? `📦 Hoàn thành ${file}`);
+        logJob(jobId, message);
       }
     }
   }

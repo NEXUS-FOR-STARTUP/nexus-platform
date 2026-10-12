@@ -34,6 +34,23 @@ src/
 - **Lock Duration**: 600,000ms (10 minutes, with 10-minute stalled interval)
 - **Max Stalled Count**: 1 (prevents runaway re-executions)
 
+## JOB SPEC CONTRACT (worker = dumb engine)
+
+Since 2026-10-12 the API sends a self-contained JobSpec (`specVersion: 1`):
+`instruction`, `requiredOutputs`, `optionalOutputs`, `milestones` (file → log
+message). The worker resolves NOTHING domain-specific on this path: no prompt
+selection, no checkpoint table, no output parsing (the API finalizer reads
+report files from disk).
+
+- Adding or editing a service (new checkpoint, new output file, new wording) =
+  **deploy API only**. Do NOT rebuild the worker image.
+- Rebuild the worker ONLY when the engine itself changes: OMP CLI flags, sandbox
+  isolation, resource tracker, cancellation protocol, Redis/log transport.
+- Legacy fields (`checkpoint`, `scope`, `promptMode`, `submissionType`) remain in
+  `omp-runner.ts` ONLY as a fallback for payloads queued before the cutover;
+  they are deleted once the prod queue drains (plan
+  `plans/261012-worker-jobspec/phase-03-cutover.md`).
+
 ## SANDBOX ENVIRONMENT
 
 Every evaluation job runs in an isolated directory structure:

@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { getAuditScopeEntry, type AgentExecutionResult, type AuditCheckpointCode, type StartupReport } from "@app/shared";
+import { getAuditScopeEntry, type AgentExecutionResult, type AuditCheckpointCode } from "@app/shared";
 import { STORAGE_DIR, DEFAULT_MODEL, resolveAgentRuntime } from "./config.js";
 import { buildRunnerPrompt } from "./runner-instruction.js";
 import { logJob, updateJobInStorage } from "./storage.js";
@@ -9,6 +9,7 @@ import {
   findOutputFile,
   syncOutputFiles,
   readJobInputDocuments,
+  MILESTONE_MESSAGE_BY_FILE,
 } from "./job-sandbox.js";
 import { spawnOmpProcess } from "./process-spawner.js";
 
@@ -20,11 +21,26 @@ export interface OmpJobPayload {
   title: string;
   model?: string;
   ompModel?: string;
+  lifecycleUnitId?: string;
+  /** Self-contained execution contract built by the API; the worker runs it blindly. */
+  specVersion?: 1;
+  instruction?: string;
+  requiredOutputs?: string[];
+  optionalOutputs?: string[];
+  milestones?: Record<string, string>;
+  // Legacy fields for payloads queued before the JobSpec cutover; removed after queue drain.
   promptMode?: "full" | "lite";
   submissionType?: "initial" | "resubmit" | "logic_check";
-  lifecycleUnitId?: string;
   checkpoint?: AuditCheckpointCode;
   scope?: string;
+}
+
+/** Resolved execution contract: identical shape whether the payload is spec or legacy. */
+interface ExecutionContract {
+  instruction: string;
+  requiredOutputs: readonly string[];
+  optionalOutputs: readonly string[];
+  milestones: Record<string, string>;
 }
 
 export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecutionResult> {
@@ -55,34 +71,52 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
   prepareJobDirectories(jobDir, outputDir);
 
   const { runCmd, baseArgs } = resolveAgentRuntime();
-  const submissionType = data.submissionType ?? "initial";
-  // CP1 jobs carry no checkpoint (legacy payloads): scope is the prompt mode.
-  const checkpoint = data.checkpoint ?? "CP1";
-  const scope = data.scope ?? (data.promptMode === "lite" ? "lite" : "full");
 
-  const entry = getAuditScopeEntry(checkpoint, scope, submissionType);
-  if (!entry) {
-    throw new Error(`Không có cấu hình prompt cho ${checkpoint}/${scope}/${submissionType}`);
-  }
-
-  // CP1 inlines the submission-specific prompt (always last in its list) into the instruction.
-  let submissionInstructions = "";
-  if (checkpoint === "CP1") {
-    const promptFilePath = resolve(jobDir, "system_prompt", entry.prompts[entry.prompts.length - 1]);
-    if (existsSync(promptFilePath)) {
-      try {
-        submissionInstructions = readFileSync(promptFilePath, "utf-8").trim();
-      } catch { /* ignore */ }
+  // Spec payloads carry the whole contract; legacy ones (queued before the
+  // cutover) are resolved from the checkpoint table until the queue drains.
+  let contract: ExecutionContract;
+  if (data.specVersion === 1 && data.instruction && data.requiredOutputs && data.milestones) {
+    contract = {
+      instruction: data.instruction,
+      requiredOutputs: data.requiredOutputs,
+      optionalOutputs: data.optionalOutputs ?? [],
+      milestones: data.milestones,
+    };
+  } else {
+    const submissionType = data.submissionType ?? "initial";
+    const checkpoint = data.checkpoint ?? "CP1";
+    const scope = data.scope ?? (data.promptMode === "lite" ? "lite" : "full");
+    const entry = getAuditScopeEntry(checkpoint, scope, submissionType);
+    if (!entry) {
+      throw new Error(`Không có cấu hình prompt cho ${checkpoint}/${scope}/${submissionType}`);
     }
+    let submissionInstructions = "";
+    if (checkpoint === "CP1") {
+      const promptFilePath = resolve(jobDir, "system_prompt", entry.prompts[entry.prompts.length - 1]);
+      if (existsSync(promptFilePath)) {
+        try {
+          submissionInstructions = readFileSync(promptFilePath, "utf-8").trim();
+        } catch { /* ignore */ }
+      }
+    }
+    const milestones: Record<string, string> = {};
+    for (const name of [...entry.outputs.required, ...entry.outputs.optional]) {
+      milestones[name] = MILESTONE_MESSAGE_BY_FILE[name] ?? `📦 Hoàn thành ${name}`;
+    }
+    contract = {
+      instruction: buildRunnerPrompt({ checkpoint, promptFiles: entry.prompts, submissionType, submissionInstructions }),
+      requiredOutputs: entry.outputs.required,
+      optionalOutputs: entry.outputs.optional,
+      milestones,
+    };
   }
 
-  const prompt = buildRunnerPrompt({ checkpoint, promptFiles: entry.prompts, submissionType, submissionInstructions });
   const args = [
     ...baseArgs,
     "--mode",
     "json",
     "-p",
-    prompt,
+    contract.instruction,
     "--cwd",
     jobDir,
     "--model",
@@ -99,7 +133,7 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
     outputDir,
     runCmd,
     args,
-    milestoneFiles: [...entry.outputs.required, ...entry.outputs.optional],
+    milestones: contract.milestones,
   });
 
   if (executionResult.error === "CANCELLED") {
@@ -125,44 +159,25 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
   const finishedAt = new Date().toISOString();
   const durationMs = Date.now() - startTime;
 
-  // Collect output files from the per-checkpoint contract (shared audit-checkpoints.ts).
+  // Collect output files by the contract's name list; report contents are read
+  // from disk by the API finalizer, so the worker never parses them.
   const found: Record<string, string> = {};
-  for (const name of [...entry.outputs.required, ...entry.outputs.optional]) {
+  for (const name of [...contract.requiredOutputs, ...contract.optionalOutputs]) {
     const p = findOutputFile(jobDir, outputDir, name);
     if (p) found[name] = p;
   }
   syncOutputFiles(outputDir, Object.entries(found).map(([name, src]) => ({ src, name })));
 
-  const readFound = (name: string): string | undefined => {
-    const p = found[name];
-    return p ? readFileSync(p, "utf-8") : undefined;
-  };
-  const triadPacketMarkdown = checkpoint === "CP1" ? readFound("triad_handoff_packet.md") : undefined;
-  let reportMarkdown = checkpoint === "CP1" ? readFound("input_clarification_audit.md") : readFound("report.md");
-  let reportJson: StartupReport | undefined = undefined;
-
-  const jsonRaw = readFound("report.json");
-  if (jsonRaw) {
-    try {
-      reportJson = JSON.parse(jsonRaw);
-    } catch (err) {
-      logJob(jobId, `Cảnh báo: Parse report.json thất bại: ${err}`, caseId);
-    }
-  }
-
-  const missingRequired = entry.outputs.required.filter((name) => !Object.hasOwn(found, name));
+  const missingRequired = contract.requiredOutputs.filter((name) => !Object.hasOwn(found, name));
   const isSuccess = executionResult.exitCode === 0 && missingRequired.length === 0;
   if (!isSuccess && missingRequired.length > 0) {
-    logJob(jobId, `Thiếu tệp output bắt buộc (${checkpoint}): ${missingRequired.join(", ")}`, caseId);
-  }
-  if (!isSuccess && !reportMarkdown) {
-    reportMarkdown = `# BÁO CÁO THẨM ĐỊNH (OMP) - LỖI TIẾN TRÌNH\n\nOMP kết thúc với mã lỗi: ${executionResult.exitCode}\n\nChi tiết lỗi: ${executionResult.error || "Không sinh được tệp output/report.md"}\n\n### Log tiến trình:\n\`\`\`\n${executionResult.rawLogs}\n\`\`\``;
+    logJob(jobId, `Thiếu tệp output bắt buộc: ${missingRequired.join(", ")}`, caseId);
   }
 
   // Compute benchmark metrics
   const inputDocContent = readJobInputDocuments(jobDir);
   const metrics = executionResult.tracker
-    ? await executionResult.tracker.stop(reportMarkdown, reportJson, inputDocContent)
+    ? await executionResult.tracker.stop(undefined, undefined, inputDocContent)
     : undefined;
 
   if (metrics) {
@@ -179,9 +194,6 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
     finishedAt,
     durationMs,
     metrics,
-    reportMarkdown,
-    triadPacketMarkdown,
-    reportJson,
     rawLogs: executionResult.rawLogs,
     error: isSuccess ? undefined : executionResult.error || "Process failed to produce complete output",
   };

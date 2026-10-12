@@ -12,8 +12,8 @@ export interface SpawnOmpProcessOptions {
   outputDir: string;
   runCmd: string;
   args: string[];
-  /** Files to watch for milestones; defaults to the CP1 set. */
-  milestoneFiles?: readonly string[];
+  /** Output file → milestone log message, from the job spec (or legacy default). */
+  milestones: Readonly<Record<string, string>>;
 }
 
 export interface ProcessRunResult {
@@ -23,7 +23,7 @@ export interface ProcessRunResult {
   tracker: ProcessResourceTracker | null;
 }
 export async function spawnOmpProcess(options: SpawnOmpProcessOptions): Promise<ProcessRunResult> {
-  const { jobId, jobDir, outputDir, runCmd, args, milestoneFiles } = options;
+  const { jobId, jobDir, outputDir, runCmd, args, milestones } = options;
 
   logJob(jobId, "Khởi chạy tiến trình sandbox AI (OMP Runner)...");
   let rawLogs = "";
@@ -64,7 +64,7 @@ export async function spawnOmpProcess(options: SpawnOmpProcessOptions): Promise<
     let stdoutBuffer = "";
     const milestoneSeen = new Set<string>();
     const milestoneTimer = setInterval(() => {
-      checkJobMilestones(jobId, jobDir, outputDir, milestoneSeen, milestoneFiles);
+      checkJobMilestones(jobId, jobDir, outputDir, milestoneSeen, milestones);
     }, 3000);
 
     proc.stdout.on("data", (chunk: Buffer) => {
