@@ -20,8 +20,8 @@ export default function Cp2PackageCard({ caseId }: Cp2PackageCardProps) {
         <span className="font-semibold text-sm text-text-app">{pkg?.name ?? "Gói chấm vòng Thị trường"}</span>
         {pkg && <span className="font-semibold text-sm text-brand tabular-nums">{formatPrice(pkg.price)}</span>}
       </div>
-      <p className="text-xs text-text-muted">4 lượt chấm: bảng hỏi phỏng vấn hoặc chấm toàn bộ vòng Thị trường</p>
-      <p className="text-xs text-text-muted">Chưa tới 20,000 VND/lượt</p>
+      <p className="text-xs text-text-muted">2 lượt chấm: bảng hỏi phỏng vấn hoặc chấm toàn bộ vòng Thị trường</p>
+      <p className="text-xs text-text-muted">Chưa tới 40,000 VND/lượt</p>
       <RainbowBuyButton fullWidth size="lg" disabled={!pkg} onClick={() => setOpened(true)}>
         Mua gói chấm vòng Thị trường
       </RainbowBuyButton>

@@ -5,7 +5,7 @@
 - Prompt ID: cp2_full_resubmit_v1
 - Dùng kèm: cp2_audit_core_v1, cp2_full_review_v1
 - `schema` trong report.json: `cp2_full_resubmit_v1`
-- Giới hạn `report.md`: tối đa 600 từ
+- Độ dài `report.md`: không giới hạn số từ. Giới hạn số việc (tối đa 5 ở mục 3) đã đủ chống lan man.
 
 ## 1. Mục đích
 
