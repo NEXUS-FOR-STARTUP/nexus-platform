@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useMediaQuery } from "@mantine/hooks";
-import { Check, Lock, Circle, ChevronRight, ChevronDown } from "lucide-react";
+import { Check, Lock, Circle, AlertTriangle, ChevronRight, ChevronDown } from "lucide-react";
 import { QUESTION_REGISTRY, type Question, type Template } from "@repo/validation";
+import { isThinAnswer } from "./answer-quality";
 
 const MOBILE_QUERY = "(max-width: 767px)";
 
@@ -69,7 +70,8 @@ export default function GuidedTOC({
             <div className="flex flex-col gap-1">
               {phase.questions.map((tq, qIndex) => {
                 const isUnlocked = isQuestionUnlocked(pIndex, qIndex);
-                const hasAnswer = (answersMap[tq.question_id]?.trim().length ?? 0) > 0;
+                const isThin = isThinAnswer(tq.question_id, answersMap[tq.question_id]);
+                const hasAnswer = !isThin && (answersMap[tq.question_id]?.trim().length ?? 0) > 0;
                 const isActive = activeQuestionId === tq.question_id;
                 const questionMeta = (
                   QUESTION_REGISTRY as Record<string, Question | undefined>
@@ -93,6 +95,10 @@ export default function GuidedTOC({
                     <div className="flex items-center gap-2 truncate pr-2">
                       {!isUnlocked ? (
                         <Lock className="w-3.5 h-3.5 shrink-0 text-text-muted" />
+                      ) : isThin ? (
+                        <span title="Câu trả lời còn ngắn — bấm để viết thêm" className="shrink-0">
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-500" fill="currentColor" />
+                        </span>
                       ) : hasAnswer ? (
                         <span
                           className={`w-3.5 h-3.5 shrink-0 rounded-full flex items-center justify-center ${
@@ -117,7 +123,6 @@ export default function GuidedTOC({
                         {pIndex + 1}.{qIndex + 1} {questionTitle}
                       </span>
                     </div>
-
                     {criticalQuestionIds?.includes(tq.question_id) ? (
                       <span
                         title="Mục quan trọng khi chấm điểm"

@@ -71,12 +71,11 @@ export default function StageDetail({
       setCheckoutOpen(true);
     }
   };
-
   const handleConfirmAudit = async (scope: string, inputSource: Cp2InputSource) => {
     await triggerAudit({
-      checkpoint: stage.code as "CP1" | "CP2",
-      scope: scope === "questionnaire" ? "questionnaire" : "full",
-      ...(stage.code === "CP2" ? { input_source: inputSource } : {}),
+      ...(stage.code === "CP2"
+        ? { checkpoint: "CP2" as const, scope: scope === "questionnaire" ? ("questionnaire" as const) : ("full" as const), input_source: inputSource }
+        : {}),
       submission_type: summary?.status === "has_result" ? "resubmit" : "initial",
     });
   };
