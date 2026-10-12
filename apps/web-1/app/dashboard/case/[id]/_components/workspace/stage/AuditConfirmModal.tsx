@@ -90,9 +90,11 @@ export default function AuditConfirmModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isCp2, readyFull, readyQuestionnaire, hasFiles]);
 
-  const canConfirm = !isCp2 || sourceReady(source, scope);
-  const blocked = isCp2 && !hasFiles && !readyFull && !readyQuestionnaire;
-  const hasAnswers = !isCp2 || readyFull || readyQuestionnaire;
+  // CP1 has no CP2-style readiness bar, but no stage is ever graded on nothing:
+  // zero answers AND zero files is a dead end in both checkpoints.
+  const hasAnswers = isCp2 ? readyFull || readyQuestionnaire : answeredCount > 0;
+  const blocked = !hasFiles && !hasAnswers;
+  const canConfirm = !blocked && (!isCp2 || sourceReady(source, scope));
 
   const handleClose = () => {
     setStep(1);
@@ -141,12 +143,12 @@ export default function AuditConfirmModal({
                 </ThemeIcon>
                 <Stack gap={0}>
                   <Text size="sm">Tài liệu đính kèm: {fileCount} tệp</Text>
-                  {isCp2 ? <Text size="xs" c="dimmed">Không bắt buộc nếu bạn chấm bằng câu trả lời. Khảo sát .xlsx, ghi chép phỏng vấn .docx/.pdf</Text> : <Text size="xs" c="dimmed">Không bắt buộc ở vòng này</Text>}
+                  {isCp2 ? <Text size="xs" c="dimmed">Không bắt buộc nếu bạn chấm bằng câu trả lời. Khảo sát .xlsx, ghi chép phỏng vấn .docx/.pdf</Text> : <Text size="xs" c="dimmed">Không bắt buộc nếu bạn đã trả lời câu hỏi ở tab Soạn thảo</Text>}
                 </Stack>
               </Group>
             </Stack>
 
-            {isCp2 && !hasFiles && onGoFiles && (
+            {!hasFiles && onGoFiles && (
               <Button size="sm" variant="default" onClick={handleGoFiles}>
                 Sang tab Tài liệu để tải lên
               </Button>
@@ -154,8 +156,9 @@ export default function AuditConfirmModal({
 
             {blocked && (
               <Alert icon={<AlertCircle size={16} />} color="red" title="Chưa có gì để chấm">
-                Bạn cần một trong hai: tải tài liệu lên ở tab Tài liệu, hoặc trả lời đủ câu ở tab Soạn thảo
-                ({answeredCount} câu hiện có nội dung nhưng quá ngắn hoặc chưa đủ số câu).
+                {isCp2
+                  ? `Bạn cần một trong hai: tải tài liệu lên ở tab Tài liệu, hoặc trả lời đủ câu ở tab Soạn thảo (${answeredCount} câu hiện có nội dung nhưng quá ngắn hoặc chưa đủ số câu).`
+                  : "Chưa có câu trả lời nào và chưa có tệp nào. Trả lời ít nhất một câu ở tab Soạn thảo hoặc tải một tệp lên ở tab Tài liệu trước khi chấm."}
               </Alert>
             )}
             {!blocked && missingMandatoryCount > 0 && (
