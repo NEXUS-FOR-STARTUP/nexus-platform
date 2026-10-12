@@ -4,6 +4,7 @@ import { Group, Stack, Text, Badge, Button } from "@mantine/core";
 import { ChevronLeft, Sparkles } from "lucide-react";
 import RainbowBuyButton from "@/components/ui/RainbowBuyButton";
 import type { StageDefinition } from "@app/shared/stages";
+import { STAGE_DISPLAY_META, stageNumberOf } from "../stageDisplayMeta";
 import { TEMPLATE_REGISTRY } from "@repo/validation";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
 
@@ -27,6 +28,7 @@ export default function StageHeader({
   const isGrading = summary?.status === "grading";
   const hasResult = summary?.status === "has_result";
   const auditLabel = hasResult ? "Chấm lại" : "Chấm bài";
+  const meta = STAGE_DISPLAY_META[stage.slug] ?? STAGE_DISPLAY_META["y-tuong"];
 
   return (
     <Stack gap="xs">
@@ -38,10 +40,10 @@ export default function StageHeader({
 
       <Group justify="space-between" align="center" wrap="wrap" gap="md">
         <Stack gap={2}>
-          <Text size="xs" fw={700} c="dimmed" tt="uppercase" lts="0.08em">
-            Giai đoạn {stage.code.replace("CP", "")}
-          </Text>
-          <Group gap="xs">
+          <Group gap={6} align="center">
+            <Text fw={800} size="lg" c={meta.color}>
+              {stageNumberOf(stage.code)}
+            </Text>
             <Text fw={700} size="xl">{stage.name}</Text>
             {isGrading ? (
               <Badge color="orange" variant="filled">Đang chấm</Badge>
