@@ -229,7 +229,7 @@ export default function AuditConfirmModal({
                 </Accordion.Item>
 
                 <Accordion.Item value="note">
-                  <Accordion.Control>Nhắn AI <Text span size="xs" c="dimmed">- {userNote.trim() ? "đã viết" : "không bắt buộc"}</Text></Accordion.Control>
+                  <Accordion.Control>Ghi chú thêm <Text span size="xs" c="dimmed">- {userNote.trim() ? "đã viết" : "không bắt buộc"}</Text></Accordion.Control>
                   <Accordion.Panel>
                     <Textarea
                       placeholder="Ví dụ: soi kỹ phần SOM giúp mình"
