@@ -87,9 +87,7 @@ export default function StageFilesView({
     <Stack gap="md">
       {isMarketStage && (
         <Alert icon={<AlertCircle size={16} />} color="blue" title="Lưu ý quyền riêng tư">
-          Nếu tải lên tệp khảo sát hoặc ghi chép phỏng vấn, vui lòng xóa hoặc ẩn các thông tin cá nhân (email, số điện thoại, tên ngườ
-          i trả lờ
-          i).
+          Nếu tải lên tệp khảo sát hoặc ghi chép phỏng vấn, vui lòng xóa hoặc ẩn các thông tin cá nhân (email, số điện thoại, tên người trả lời).
         </Alert>
       )}
 
