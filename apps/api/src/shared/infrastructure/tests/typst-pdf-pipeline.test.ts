@@ -84,6 +84,17 @@ TUYỆT ĐỐI KHÔNG dùng khối codeblock  \`\`\` để tránh làm hỏng đ
   assert.ok(!typst.includes("```"), "Typst markup must not contain unescaped raw block delimiter");
 });
 
+test("typst-pdf-pipeline: [___] blanks across lines never become emphasis markup", () => {
+  const md = [
+    "1. Phân tách: User [___]; customer [___]; payer [___]",
+    "2. Bằng chứng: dữ liệu [___]; sample [___]",
+  ].join("\n");
+
+  const typst = markdownToTypst(md);
+  assert.ok(!typst.includes("#emph"), "Underscore blanks must not be parsed as emphasis");
+  assert.ok(!typst.includes("#strong"), "Underscore blanks must not be parsed as strong");
+});
+
 test("typst-pdf-pipeline: generateReportPdfBuffer successfully compiles markdown containing unescaped raw backticks", async () => {
   const mdProblematic = `
 ## 7. Mẫu văn bản viết lại chuẩn cho nhóm

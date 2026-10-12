@@ -175,6 +175,11 @@ function renderTokens(tokens: Token[]): string {
  * Uses `marked.lexer()` for deterministic, regex-free parsing.
  */
 export function markdownToTypst(md: string): string {
-  const tokens = marked.lexer(md);
+  // Normalize placeholder blanks like [___] or isolated ___ so marked does not treat them
+  // as markdown emphasis tags (which pair across lines and break Typst delimiter nesting).
+  const sanitized = md
+    .replace(/\[\s*_{2,}\s*\]/g, "[...]")
+    .replace(/(?<=\s|^)_{3,}(?=\s|[.,;:!?]|$)/gm, "---");
+  const tokens = marked.lexer(sanitized);
   return renderTokens(tokens);
 }
