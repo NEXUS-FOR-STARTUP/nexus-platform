@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ActionIcon, Badge, Button, Collapse, Group, Modal, Paper, Progress, Stack, Stepper, Text } from "@mantine/core";
+import { ActionIcon, Badge, Button, Collapse, CopyButton, Group, Paper, Progress, Stack, Stepper, Text, Tooltip } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronUp, X } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Copy, X } from "lucide-react";
 import { useCaseAiStatus, type CaseAiStatusResponse } from "../../../hooks/useCaseAiStatus";
 import { useTriggerAudit, type SubmissionType } from "../../../hooks/useTriggerAudit";
 import RadarLogsViewer from "../../RadarLogsViewer";
@@ -28,6 +28,17 @@ const BADGE: Partial<Record<Status, { label: string; color: string }>> = {
   cancelled: { label: "Đã dừng", color: "gray" },
 };
 
+/** Short labels mirroring the grading modal's source + scope choice, so the run confirms what it reads. */
+const SOURCE_LABEL: Record<string, string> = {
+  answers: "câu trả lời",
+  files: "tài liệu",
+  both: "câu trả lời và tài liệu",
+};
+const SCOPE_LABEL: Record<string, string> = {
+  questionnaire: "soát bảng hỏi",
+  full: "đánh giá toàn diện",
+};
+
 function formatElapsed(totalSeconds: number): string {
   const mm = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
   const ss = (totalSeconds % 60).toString().padStart(2, "0");
@@ -38,14 +49,14 @@ function formatElapsed(totalSeconds: number): string {
  * Live grading progress for one stage, rendered above the stage tabs so it is visible from every tab.
  * Shown while a job is queued/running, after a failure/cancel, and once right after a run finishes
  * (until dismissed). Collapsible to a single line. Polls one endpoint; no SSE.
+ * Students cannot stop a running job; only support/admin can, from the admin job drawer.
  */
 export default function StageGradingPanel({ caseId, checkpoint, submissionType, onViewResults }: StageGradingPanelProps) {
   const queryClient = useQueryClient();
-  const { data, cancel, isCancelling } = useCaseAiStatus(caseId, checkpoint);
+  const { data } = useCaseAiStatus(caseId, checkpoint);
   const { triggerAudit, isTriggering } = useTriggerAudit(caseId);
   const isNarrow = useMediaQuery("(max-width: 48em)");
   const [opened, setOpened] = useState(true);
-  const [cancelOpen, setCancelOpen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [seenActive, setSeenActive] = useState(false);
   const [now, setNow] = useState(() => Date.now());
@@ -77,13 +88,18 @@ export default function StageGradingPanel({ caseId, checkpoint, submissionType, 
   const badge = BADGE[status];
   const startMs = data.startedAt ? Date.parse(data.startedAt) : NaN;
   const elapsed = isActive && !Number.isNaN(startMs) ? Math.max(0, Math.floor((now - startMs) / 1000)) : null;
+  const shortJobId = data.jobId ? data.jobId.slice(0, 8) : null;
+  const readsWhat =
+    data.inputSource !== undefined || data.scope !== undefined
+      ? `Đang đọc: ${data.inputSource !== undefined ? SOURCE_LABEL[data.inputSource] ?? data.inputSource : "câu trả lời"}${data.scope !== undefined ? ` · ${SCOPE_LABEL[data.scope] ?? data.scope}` : ""}`
+      : null;
 
   const headline: Record<string, string> = {
     queued: "Đang xếp hàng, sắp bắt đầu chấm",
     running: activeStep ? `Bước ${doneCount + 1}/${steps.length}: ${activeStep.label}` : "Đang chấm bài",
     completed: "Chấm xong. Báo cáo đã sẵn sàng",
     failed: "Lần chấm bị gián đoạn. Lượt chấm đã được hoàn lại, bạn có thể chạy lại",
-    cancelled: "Đã dừng theo yêu cầu. Lượt chấm đã được hoàn lại",
+    cancelled: "Lần chấm đã dừng. Lượt chấm đã được hoàn lại",
   };
 
   const handleRetry = () =>
@@ -112,13 +128,20 @@ export default function StageGradingPanel({ caseId, checkpoint, submissionType, 
           {badge && <Badge color={badge.color} variant={isActive ? "filled" : "light"}>{badge.label}</Badge>}
           <Text fw={600} size="sm" truncate>{headline[status]}</Text>
           {elapsed !== null && <Text size="xs" c="dimmed" ff="monospace">{formatElapsed(elapsed)}</Text>}
+          {shortJobId && data.jobId && (
+            <CopyButton value={data.jobId}>
+              {({ copied, copy }) => (
+                <Tooltip label={copied ? "Đã sao chép" : `Mã lần chấm: ${data.jobId}`} withArrow>
+                  <ActionIcon variant="subtle" color="gray" size="sm" onClick={copy} aria-label="Sao chép mã lần chấm">
+                    {copied ? <Check size={14} /> : <Copy size={14} />}
+                  </ActionIcon>
+                </Tooltip>
+              )}
+            </CopyButton>
+          )}
+          {shortJobId && <Text size="xs" c="dimmed" ff="monospace">#{shortJobId}</Text>}
         </Group>
         <Group gap="xs" wrap="nowrap">
-          {isActive && (
-            <Button size="xs" variant="light" color="red" onClick={() => setCancelOpen(true)}>
-              Dừng
-            </Button>
-          )}
           {(status === "failed" || status === "cancelled") && (
             <Button size="xs" loading={isTriggering} onClick={handleRetry}>
               Chạy lại
@@ -143,6 +166,10 @@ export default function StageGradingPanel({ caseId, checkpoint, submissionType, 
 
       <Collapse expanded={opened && status !== "completed"}>
         <Stack gap="md" mt="md">
+          {readsWhat && <Text size="xs" c="dimmed">{readsWhat}</Text>}
+          {status === "failed" && data.error && (
+            <Text size="xs" c="red">Lý do: {data.error}</Text>
+          )}
           <Progress value={(doneCount / Math.max(steps.length, 1)) * 100} animated={status === "running"} color={status === "failed" ? "red" : "blue"} size="sm" radius="xl" />
           <Stepper
             active={doneCount}
@@ -158,27 +185,6 @@ export default function StageGradingPanel({ caseId, checkpoint, submissionType, 
           <RadarLogsViewer logs={filterCleanLogs(data.logs ?? [])} />
         </Stack>
       </Collapse>
-
-      <Modal opened={cancelOpen} onClose={() => setCancelOpen(false)} title="Dừng chấm bài" centered size="sm">
-        <Stack gap="md">
-          <Text size="sm">Dừng lần chấm đang chạy? Lượt chấm sẽ được hoàn lại và bạn có thể chấm lại bất cứ lúc nào.</Text>
-          <Group justify="flex-end" gap="xs">
-            <Button variant="default" onClick={() => setCancelOpen(false)} disabled={isCancelling}>
-              Tiếp tục chạy
-            </Button>
-            <Button
-              color="red"
-              loading={isCancelling}
-              onClick={() => {
-                cancel();
-                setCancelOpen(false);
-              }}
-            >
-              Dừng
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
     </Paper>
   );
 }
