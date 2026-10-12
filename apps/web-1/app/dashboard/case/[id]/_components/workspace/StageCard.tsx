@@ -150,6 +150,9 @@ export default function StageCard({
               <Text size="xs" c="dimmed">
                 <Text span fw={600} c="dark">{summary?.file_count ?? 0}</Text> tài liệu
               </Text>
+              <Text size="xs" c="dimmed">
+                Còn <Text span fw={700} c={creditsRemaining === 0 ? "red.7" : "blue.7"}>{creditsRemaining}</Text> lượt chấm
+              </Text>
             </Stack>
           )}
         </Stack>
