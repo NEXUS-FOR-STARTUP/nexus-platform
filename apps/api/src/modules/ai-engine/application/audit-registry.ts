@@ -10,6 +10,7 @@ export interface InputRequest {
   submissionType: AuditSubmissionType;
   lifecycleUnitId: string | null;
   changeSummary?: string;
+  userNote?: string;
   scope?: string;
   inputSource?: Cp2InputSource;
 }
@@ -19,7 +20,7 @@ export type InputAssembler = (req: InputRequest) => Promise<{ inputFiles: OmpAud
 /** Keys are the `input` / `postProcess` values of `AUDIT_CHECKPOINTS`; a test keeps them in lockstep. */
 export const INPUT_ASSEMBLERS: Record<string, InputAssembler> = {
   cp1_intake: (req) => assembleCp1InputFiles(req.caseId, req.submissionType, req.lifecycleUnitId),
-  cp2_answers: (req) => assembleCp2InputFiles({ caseId: req.caseId, submissionType: req.submissionType, changeSummary: req.changeSummary, scope: req.scope, inputSource: req.inputSource }),
+  cp2_answers: (req) => assembleCp2InputFiles({ caseId: req.caseId, submissionType: req.submissionType, changeSummary: req.changeSummary, userNote: req.userNote, scope: req.scope, inputSource: req.inputSource }),
 };
 
 export const POST_PROCESSORS: Record<string, PostProcessor> = {

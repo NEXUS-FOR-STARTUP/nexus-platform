@@ -188,6 +188,8 @@ export interface Cp2InputRequest {
   caseId: string;
   submissionType: string;
   changeSummary?: string;
+  /** Free note from the team (e.g. which part to focus on). Written as input/user_note.md. */
+  userNote?: string;
   /** CP2 scope (questionnaire | full); gates the quality bar. Defaults to full. */
   scope?: string;
   /** Which student inputs the grader reads. Undefined = legacy (answers + opportunistic attachments). */
@@ -228,5 +230,7 @@ export async function assembleCp2InputFiles(req: Cp2InputRequest): Promise<{ inp
       { name: "change_summary.md", content: req.changeSummary?.trim() || NO_CHANGE_SUMMARY_TEXT },
     );
   }
+  const note = req.userNote?.trim();
+  if (note) inputFiles.push({ name: "user_note.md", content: `# Ghi chú của nhóm cho lần chấm này\n\n${note}` });
   return { inputFiles, resolvedLifecycleUnitId: null };
 }

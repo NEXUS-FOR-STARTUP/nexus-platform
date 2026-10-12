@@ -1,6 +1,6 @@
 "use client";
 
-import { Modal, Stack, Text, Button, Radio, Group, Paper, Alert, ThemeIcon } from "@mantine/core";
+import { Modal, Stack, Text, Textarea, Button, Radio, Group, Paper, Alert, ThemeIcon } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { AlertCircle, Check, Minus, Sparkles } from "lucide-react";
 import type { StageDefinition } from "@app/shared/stages";
@@ -11,7 +11,7 @@ interface AuditConfirmModalProps {
   stage: StageDefinition;
   opened: boolean;
   onClose: () => void;
-  onConfirm: (scope: string, inputSource: Cp2InputSource) => void;
+  onConfirm: (args: { scope: string; inputSource: Cp2InputSource; submissionType: "initial" | "resubmit"; changeSummary?: string; userNote?: string }) => void;
   creditsRemaining: number;
   summary?: StageSummary;
   missingMandatoryCount?: number;
@@ -46,6 +46,9 @@ export default function AuditConfirmModal({
   const isCp2 = stage.code === "CP2";
   const [scope, setScope] = useState<Cp2Scope>("full");
   const [source, setSource] = useState<Cp2InputSource>("answers");
+  const [submissionType, setSubmissionType] = useState<"initial" | "resubmit">("initial");
+  const [changeSummary, setChangeSummary] = useState("");
+  const [userNote, setUserNote] = useState("");
   const [step, setStep] = useState(1);
 
   const answeredCount = summary?.answered_count ?? 0;
@@ -61,6 +64,10 @@ export default function AuditConfirmModal({
     return hasFiles && answersReadyFor(sc);
   };
 
+  // Default to resubmit when a result already exists; the team can still switch back.
+  useEffect(() => {
+    if (summary?.status === "has_result") setSubmissionType("resubmit");
+  }, [summary?.status]);
   // Pick the richest option the current input supports; re-run only when readiness changes.
   useEffect(() => {
     if (!isCp2) return;
@@ -81,11 +88,19 @@ export default function AuditConfirmModal({
 
   const handleClose = () => {
     setStep(1);
+    setChangeSummary("");
+    setUserNote("");
     onClose();
   };
 
   const handleConfirm = () => {
-    onConfirm(scope, source);
+    onConfirm({
+      scope,
+      inputSource: source,
+      submissionType: isCp2 ? submissionType : "initial",
+      ...(isCp2 && submissionType === "resubmit" && changeSummary.trim() ? { changeSummary: changeSummary.trim() } : {}),
+      ...(isCp2 && userNote.trim() ? { userNote: userNote.trim() } : {}),
+    });
     handleClose();
   };
 
@@ -194,6 +209,44 @@ export default function AuditConfirmModal({
                     <Radio value="questionnaire" label="Chỉ soát bảng hỏi" description="Chỉ kiểm tra cấu trúc câu hỏi khảo sát" disabled={!sourceReady(source, "questionnaire")} />
                   </Stack>
                 </Radio.Group>
+              </>
+            )}
+
+            {isCp2 && (
+              <>
+                <Radio.Group
+                  value={submissionType}
+                  onChange={(value) => setSubmissionType(value as "initial" | "resubmit")}
+                  label="Loại chấm"
+                  description="Chấm lại so với kết quả lần trước. Chấm mới bỏ qua kết quả cũ, tốn 1 lượt như thường."
+                >
+                  <Stack gap="xs" mt="xs">
+                    <Radio value="initial" label="Chấm mới từ đầu" description="AI chấm toàn bộ bài nộp hiện tại, không đối chiếu bản cũ" />
+                    <Radio value="resubmit" label="Chấm lại sau khi sửa" description="AI đối chiếu với kết quả lần trước, xem đã sửa tới đâu" />
+                  </Stack>
+                </Radio.Group>
+
+                {submissionType === "resubmit" && (
+                  <Textarea
+                    label="Bạn đã sửa gì từ lần trước"
+                    description="AI dùng để đối chiếu, không thay bằng chứng."
+                    placeholder="Ví dụ: đã phỏng vấn thêm 3 chuyên gia, tính lại SOM từ dưới lên"
+                    value={changeSummary}
+                    onChange={(e) => setChangeSummary(e.currentTarget.value)}
+                    minRows={2}
+                    maxLength={5000}
+                  />
+                )}
+
+                <Textarea
+                  label="Ghi chú cho AI (không bắt buộc)"
+                  description="Muốn AI chú tâm vào phần nào hơn."
+                  placeholder="Ví dụ: soi kỹ phần SOM giúp mình, phần khảo sát mình tự tin rồi"
+                  value={userNote}
+                  onChange={(e) => setUserNote(e.currentTarget.value)}
+                  minRows={2}
+                  maxLength={2000}
+                />
               </>
             )}
 

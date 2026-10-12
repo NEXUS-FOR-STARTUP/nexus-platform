@@ -234,11 +234,12 @@ export async function triggerOmpAuditForCase(
     throw new AppError(400, "INVALID_INPUT", "Tham số không hợp lệ", parsed.error.flatten());
   }
   const {
-    submission_type: submissionType,
+    submission_type: initialSubmissionType,
     checkpoint: checkpointCode,
     scope,
     input_source: inputSource,
     change_summary: changeSummary,
+    user_note: userNote,
     lifecycle_unit_id: lifecycleUnitId,
     model,
     prompt_mode: promptMode = "full",
@@ -246,6 +247,9 @@ export async function triggerOmpAuditForCase(
     admin_triggered: adminTriggered = false,
     force_supersede: forceSupersede = false,
   } = parsed.data;
+  // The team chooses initial vs resubmit in the modal. A resubmit with no previous full
+  // report falls back to initial (same input, no comparison baseline).
+  let submissionType = initialSubmissionType;
   const resolvedModel = model?.trim() || process.env.OMP_MODEL || "opencode-go/deepseek-v4-pro";
   const plan = resolveAuditPlan(checkpointCode, checkpointCode === "CP1" ? promptMode : (scope as string), submissionType);
   // 2. Validate lifecycle_unit belongs to case (if provided)
@@ -348,7 +352,8 @@ export async function triggerOmpAuditForCase(
   if (checkpointCode === "CP2") {
     await ensureCheckpoint(prisma, caseId, CP2_CHECKPOINT_CODE, CP2_OPENED_STATUS);
     if (submissionType === "resubmit" && !(await findLatestCp2FullReport(caseId))) {
-      throw new AppError(409, "CP2_NO_PREVIOUS_REPORT", "Chưa có báo cáo CP2 toàn bộ trước đó để chấm lại.");
+      submissionType = "initial";
+      logger.info({ caseId }, "CP2 resubmit without a previous full report; grading as initial");
     }
     // Quality bar BEFORE charging: junk answers get a clean 400, not a
     // failed job + refund cycle. The assembler re-checks post-charge (TOCTOU).
@@ -485,6 +490,7 @@ export async function triggerOmpAuditForCase(
       submissionType,
       lifecycleUnitId: lifecycleUnitId ?? null,
       changeSummary,
+      userNote,
       scope: plan.scope,
       inputSource,
     });

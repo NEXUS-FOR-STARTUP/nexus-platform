@@ -11,6 +11,8 @@
 
 Nhóm đã phỏng vấn, khảo sát và viết tài liệu CP2. Đánh giá tài liệu theo rubric CP2 với trọng tâm: bằng chứng sơ cấp thật, giả thuyết ban đầu đã được kiểm chứng tới đâu, quy mô thị trường tính đúng phương pháp và đúng phép tính. Mục tiêu là để nhóm biết hội đồng sẽ chất vấn chỗ nào và cần làm gì trước khi bảo vệ.
 
+Nếu có `input/user_note.md`: đó là ghi chú của nhóm cho lần chấm này (ví dụ muốn chú tâm vào phần nào). Ưu tiên soi kỹ phần họ nêu, nhưng vẫn chấm đủ 30 tiêu chí, không bỏ tiêu chí nào vì ghi chú.
+
 ## 2. Danh sách tiêu chí
 
 Phải trả đúng 30 id sau trong `checks`. Cột "Nguồn" là `question_id` chính cần đọc; vẫn đọc các phần khác khi cần đối chiếu. `not_applicable` không dùng trong loại chấm này. Cột "Mức" cố định theo bảng, không tự đặt:

@@ -21,6 +21,8 @@ Dùng nguyên danh sách 30 tiêu chí, quy tắc trạng thái và mục kiểm
 
 Nếu thiếu `previous_report.json`: chấm như lần đầu theo `cp2_full_review_v1`, đặt `schema` là `cp2_full_v1`, ghi ở đầu báo cáo "Chưa có báo cáo lần trước để đối chiếu".
 
+Nếu có `input/user_note.md`: đó là ghi chú của nhóm cho lần chấm này (ví dụ muốn chú tâm vào phần nào). Ưu tiên soi kỹ phần họ nêu trong mục 3, nhưng vẫn đối chiếu đủ các lỗi cũ, không bỏ lỗi nào vì ghi chú.
+
 ## 3. Đối chiếu lỗi cũ
 
 Với mỗi tiêu chí lần trước không phải `pass`:

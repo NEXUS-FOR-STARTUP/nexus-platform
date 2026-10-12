@@ -56,7 +56,7 @@ export async function cancelCaseAiAuditHandler(c: Context) {
  * Body: { submission_type?: 'initial' | 'resubmit' | 'logic_check', lifecycle_unit_id?: string,
  *         checkpoint?: 'CP1' | 'CP2', scope?: 'questionnaire' | 'full' (CP2 only, required there),
  *         input_source?: 'answers' | 'files' | 'both' (CP2 only, default 'answers'),
- *         change_summary?: string (CP2 resubmit) }
+ *         change_summary?: string (CP2 resubmit), user_note?: string (CP2) }
  */
 export async function retryCaseAiAuditHandler(c: Context) {
   const caseId = c.req.param("id") || "";
@@ -78,6 +78,7 @@ export async function retryCaseAiAuditHandler(c: Context) {
       scope: body?.scope,
       input_source: body?.input_source,
       change_summary: body?.change_summary,
+      user_note: body?.user_note,
     });
 
     return c.json({ success: true, message: "Đã kích hoạt thẩm định Nexus AI Engine" });
