@@ -67,3 +67,4 @@ Sau khi xác minh, ghi 1 dòng theo format trên (ví dụ: `2026-08-03 HH:MM | 
 | 2026-10-08 00:30 | 142fd9b | staging | fix(web-1): responsive thanh tim kiem news tren mobile | 🟢 web |
 | 2026-10-09 22:31 | 00ec89e | staging | feat(news): upload ảnh từ máy trong editor bài viết | 🔵 api 🟢 web |
 | 2026-10-12 20:59 | dbcdb76 | staging | fix(docker): build @repo/validation before app (turbo prune ships src without dist) | 🔵 api 🟢 web |
+| 2026-10-12 21:12 | 54ad9bd | staging | worker-omp d2ae23ff (sha256:d2ae23ffdbdf5998d97d0fe67b4e426537f51f10b4bee98c01526c9af0a38d18) | 🟠 worker |
