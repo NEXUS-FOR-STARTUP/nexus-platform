@@ -135,7 +135,7 @@ function FreeReportBody({
               <List spacing={4} size="sm">
                 {missingRoles.map((role: TeamFitIndustryRole) => (
                   <List.Item key={role.vaiTro}>
-                    {role.vaiTro} — {role.lyDo}
+                    {role.vaiTro} - {role.lyDo}
                   </List.Item>
                 ))}
               </List>
@@ -159,7 +159,7 @@ function FreeReportBody({
       ) : (
         <Text size="sm" c="dimmed" lh={1.6}>
           Lượt này AI chưa đưa ra nhận định. Phần &quot;Đã kiểm tra&quot; và các
-          câu bên dưới vẫn đúng — nhóm bấm &quot;Kiểm tra lại&quot; để thử lại
+          câu bên dưới vẫn đúng - nhóm bấm &quot;Kiểm tra lại&quot; để thử lại
           phần nhận định.
         </Text>
       )}

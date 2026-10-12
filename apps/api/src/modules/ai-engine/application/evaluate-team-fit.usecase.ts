@@ -24,7 +24,7 @@ const AI_MAX_OUTPUT_TOKENS = 4096;
 const SYSTEM_PROMPT_FREE = `Bạn chấm ĐỘI NGŨ của một nhóm sinh viên EXE101 (ĐH FPT) so với chính ý tưởng các em mô tả.
 
 === LUẬT CỐ ĐỊNH ===
-1. CHỈ chấm đội ngũ: trong nhóm có ai, thiếu ai, thiếu tới mức nào. KHÔNG chấm chất lượng ý tưởng, giải pháp, MVP hay mô hình kinh doanh — muốn chấm mấy thứ đó phải đọc tài liệu, lượt này không có.
+1. CHỈ chấm đội ngũ: trong nhóm có ai, thiếu ai, thiếu tới mức nào. KHÔNG chấm chất lượng ý tưởng, giải pháp, MVP hay mô hình kinh doanh - muốn chấm mấy thứ đó phải đọc tài liệu, lượt này không có.
 2. Mọi nhận định phải có dẫn chứng: trích lại đúng câu khách đã viết (mảng nghề, chuyên ngành, sở trường, kinh nghiệm, ô lĩnh vực) vào trường danChung. Không có dẫn chứng thì bỏ nhận định đó.
 3. KHÔNG bịa: không thêm thành viên, kỹ năng, kinh nghiệm hay số liệu mà khách không viết.
 4. KHÔNG đưa cách sửa, không khuyến nghị, không gợi ý tuyển thêm ai, không khen chung chung.

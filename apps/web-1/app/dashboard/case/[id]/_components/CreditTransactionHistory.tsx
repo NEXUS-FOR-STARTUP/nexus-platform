@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
  import { Table, Badge, Text, Select, Loader } from "@mantine/core";
+import BillingTableShell, { BILLING_THEAD_CLASS, BILLING_TH_CLASS } from "./billing/BillingTableShell";
 import {
   CreditTransactionHistoryProps,
   DateFilter,
@@ -176,8 +177,9 @@ export default function CreditTransactionHistory({
   }
 
   return (
-    <div className="bg-surface-app border border-border-app rounded-xl overflow-hidden">
-      <div className="px-3.5 sm:px-4 py-3 border-b border-border-app flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3 bg-surface-app">
+    <BillingTableShell
+      header={
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3">
         {/* Quick Filter Pill Tabs */}
         <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
           {QUICK_FILTER_TABS.map((tab) => {
@@ -228,81 +230,51 @@ export default function CreditTransactionHistory({
             ]}
           />
         </div>
-      </div>
-
-      {/* Table Body */}
-      {filteredAndSortedItems.length === 0 ? (
-        <div className="p-8 text-center">
-          <p className="text-base font-medium text-text-muted">
-            Không có giao dịch nào phù hợp với bộ lọc đã chọn
-          </p>
         </div>
-      ) : (
+      }
+      mobile={
         <>
-          {/* Mobile Card View */}
-          <div className="md:hidden divide-y divide-border-app/60">
-            {filteredAndSortedItems.map((item) => (
-              <CreditMobileCard key={item.id} item={item} />
-            ))}
+          {filteredAndSortedItems.map((item) => (
+            <CreditMobileCard key={item.id} item={item} />
+          ))}
+        </>
+      }
+      desktop={
+        filteredAndSortedItems.length === 0 ? (
+          <div className="p-8 text-center">
+            <p className="text-base font-medium text-text-muted">
+              Không có giao dịch nào phù hợp với bộ lọc đã chọn
+            </p>
           </div>
-
-          {/* Desktop Table View */}
-          <div className="hidden md:block">
-            <Table.ScrollContainer minWidth={740}>
-          <Table
-            highlightOnHover
-            verticalSpacing="sm"
-            horizontalSpacing="md"
-            className="w-full"
-          >
-            <Table.Thead className="bg-surface-soft/40 border-b border-border-app">
+        ) : (
+          <Table.ScrollContainer minWidth={740}>
+          <Table highlightOnHover verticalSpacing="sm" horizontalSpacing="md" className="w-full">
+            <Table.Thead className={BILLING_THEAD_CLASS}>
               <Table.Tr>
-                <Table.Th
-                  onClick={() => handleSort("created_at")}
-                  className="text-base font-medium text-text-muted py-3.5 w-[160px] cursor-pointer select-none"
-                >
+                <Table.Th onClick={() => handleSort("created_at")} className={`${BILLING_TH_CLASS} w-[160px] cursor-pointer select-none`}>
                   <span className="inline-flex items-center gap-1">
                     Thời gian {renderSortIndicator("created_at")}
                   </span>
                 </Table.Th>
-
-                <Table.Th className="text-base font-medium text-text-muted py-3.5 w-[130px]">
+                <Table.Th className={`${BILLING_TH_CLASS} w-[130px]`}>
                   Loại giao dịch
                 </Table.Th>
-
-                <Table.Th className="text-base font-medium text-text-muted py-3.5">
+                <Table.Th className={BILLING_TH_CLASS}>
                   Nội dung giao dịch
                 </Table.Th>
-
-                <Table.Th
-                  ta="right"
-                  style={{ textAlign: "right" }}
-                  onClick={() => handleSort("amount")}
-                  className="text-base font-medium text-text-muted py-3.5 w-[150px] cursor-pointer select-none"
-                >
+                <Table.Th ta="right" style={{ textAlign: "right" }} onClick={() => handleSort("amount")} className={`${BILLING_TH_CLASS} w-[150px] cursor-pointer select-none`}>
                   <span className="inline-flex items-center justify-end gap-1">
                     Biến động {renderSortIndicator("amount")}
                   </span>
                 </Table.Th>
-
-                <Table.Th
-                  ta="right"
-                  style={{ textAlign: "right" }}
-                  className="text-base font-medium text-text-muted py-3.5 w-[150px]"
-                >
+                <Table.Th ta="right" style={{ textAlign: "right" }} className={`${BILLING_TH_CLASS} w-[150px]`}>
                   Số dư sau giao dịch
                 </Table.Th>
-
-                <Table.Th
-                  ta="center"
-                  style={{ textAlign: "center" }}
-                  className="text-base font-medium text-text-muted py-3.5 w-[150px]"
-                >
+                <Table.Th ta="center" style={{ textAlign: "center" }} className={`${BILLING_TH_CLASS} w-[150px]`}>
                   Trạng thái
                 </Table.Th>
               </Table.Tr>
             </Table.Thead>
-
             <Table.Tbody>
               {filteredAndSortedItems.map((item) => (
                 <Table.Tr
@@ -388,10 +360,9 @@ export default function CreditTransactionHistory({
               ))}
             </Table.Tbody>
           </Table>
-            </Table.ScrollContainer>
-          </div>
-        </>
-      )}
-    </div>
+          </Table.ScrollContainer>
+        )
+      }
+    />
   );
 }
