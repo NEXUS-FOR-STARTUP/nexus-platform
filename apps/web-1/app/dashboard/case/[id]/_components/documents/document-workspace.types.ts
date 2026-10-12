@@ -16,6 +16,8 @@ export type FilterRole = "all" | "student" | "supporter";
 
 export type DocumentRow = {
   key: string;
+  /** documentRecord id for student-owned uploads; null for generated/report rows. */
+  documentId: string | null;
   versionLabel: string;
   contextLabel: string;
   displayName: string;
@@ -126,6 +128,7 @@ function buildCommonRow(
 
   return {
     key: uniqueKey,
+    documentId: file.source_kind === "generated" ? null : (file.id ?? null),
     displayName: getFileDisplayName(file, url),
     url,
     hasAction: !!(file.open_action && url),

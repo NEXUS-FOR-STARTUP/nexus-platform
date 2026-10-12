@@ -1,7 +1,7 @@
 "use client";
 
-import { Anchor, Button, Table, Text } from "@mantine/core";
-import { Download } from "lucide-react";
+import { Anchor, Button, Table, Text, Group } from "@mantine/core";
+import { Download, Trash2 } from "lucide-react";
 import {
   DocumentRow,
   WorkspaceTab,
@@ -12,14 +12,20 @@ import DocumentTableRow from "./DocumentTableRow";
 interface DocumentRowsTableProps {
   activeTab: WorkspaceTab;
   rows: DocumentRow[];
+  onDelete?: (documentId: string, displayName: string) => void;
+  isDeleting?: boolean;
 }
 
 function DocumentMobileCard({
   row,
   showUploader,
+  onDelete,
+  isDeleting,
 }: {
   row: DocumentRow;
   showUploader: boolean;
+  onDelete?: (documentId: string, displayName: string) => void;
+  isDeleting?: boolean;
 }) {
   const { date, time } = formatDate(row.createdAt);
   const meta = [
@@ -55,21 +61,36 @@ function DocumentMobileCard({
         <Text className="text-xs text-text-muted leading-snug min-w-0">
           {meta}
         </Text>
-        {row.hasAction && row.url && (
-          <Button
-            component="a"
-            href={row.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="subtle"
-            size="xs"
-            color="brand"
-            leftSection={<Download className="w-3.5 h-3.5" />}
-            className="shrink-0 font-medium"
-          >
-            Tải về
-          </Button>
-        )}
+        <Group gap={4} className="shrink-0">
+          {row.hasAction && row.url && (
+            <Button
+              component="a"
+              href={row.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="subtle"
+              size="xs"
+              color="brand"
+              leftSection={<Download className="w-3.5 h-3.5" />}
+              className="shrink-0 font-medium"
+            >
+              Tải về
+            </Button>
+          )}
+          {onDelete && row.documentId && (
+            <Button
+              variant="subtle"
+              size="xs"
+              color="red"
+              loading={isDeleting}
+              aria-label={`Xóa ${row.displayName}`}
+              className="shrink-0"
+              onClick={() => { const id = row.documentId; if (id) onDelete(id, row.displayName); }}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </Group>
       </div>
     </div>
   );
@@ -78,6 +99,8 @@ function DocumentMobileCard({
 export default function DocumentRowsTable({
   activeTab,
   rows,
+  onDelete,
+  isDeleting,
 }: DocumentRowsTableProps) {
   const isReport = activeTab === "assessment-reports";
   const showUploader = activeTab === "documents" || isReport;
@@ -91,6 +114,8 @@ export default function DocumentRowsTable({
             key={row.key}
             row={row}
             showUploader={showUploader}
+            onDelete={onDelete}
+            isDeleting={isDeleting}
           />
         ))}
       </div>
@@ -147,6 +172,8 @@ export default function DocumentRowsTable({
                 key={row.key}
                 row={row}
                 activeTab={activeTab}
+                onDelete={onDelete}
+                isDeleting={isDeleting}
               />
             ))}
           </Table.Tbody>

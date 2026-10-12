@@ -6,6 +6,9 @@ import { Upload, AlertCircle, FileText } from "lucide-react";
 import type { StageCode } from "@app/shared/stages";
 import type { DocumentWorkspace } from "@/types";
 import StageDocumentUploadModal from "./StageDocumentUploadModal";
+import { useStageDocumentDelete } from "../../../hooks/useStageDocumentDelete";
+import { notifications } from "@mantine/notifications";
+import { isAxiosError } from "axios";
 import {
   buildSupportFlowRows,
   buildExternalFeedbackRows,
@@ -33,6 +36,19 @@ export default function StageFilesView({
   const [uploadOpen, setUploadOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("documents");
   const [filterRole, setFilterRole] = useState<FilterRole>("all");
+  const deleteMutation = useStageDocumentDelete(caseId);
+
+  const handleDelete = (documentId: string, displayName: string) => {
+    if (!window.confirm(`Xóa tài liệu "${displayName}"? Tài liệu sai sẽ được gỡ khỏi danh sách chấm.`)) return;
+    deleteMutation.mutate(documentId, {
+      onError: (error: unknown) => {
+        const message = isAxiosError(error)
+          ? (error.response?.data as { message?: string } | undefined)?.message ?? "Xóa tài liệu thất bại."
+          : "Xóa tài liệu thất bại.";
+        notifications.show({ title: "Xóa thất bại", message, color: "red" });
+      },
+    });
+  };
   const isMarketStage = checkpointCode === "CP2";
 
   const selectedCheckpoint = useMemo(() => {
@@ -141,6 +157,8 @@ export default function StageFilesView({
             <DocumentRowsTable
               activeTab={activeTab}
               rows={displayedRows}
+              onDelete={handleDelete}
+              isDeleting={deleteMutation.isPending}
             />
           )}
         </div>

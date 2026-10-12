@@ -4,6 +4,7 @@ import { requireCaseAccess } from "../../../shared/infrastructure/authorization.
 import { deleteManagedDocumentFile } from "../../documents/application/upload-managed-document-file.js";
 import { deriveStageSummaries } from "../application/derive-stage-summaries.js";
 import { uploadStageDocumentsUseCase } from "../application/upload-stage-documents.usecase.js";
+import { deleteStageDocumentUseCase } from "../application/delete-stage-document.usecase.js";
 
 // GET /api/cases/:id/stages
 export async function getStageSummariesHandler(c: Context) {
@@ -36,6 +37,19 @@ export async function uploadStageDocumentsHandler(c: Context) {
   } catch (error: unknown) {
     // Cloudinary ids come from the client: only the owner may trigger cleanup of them.
     if (isOwner) await Promise.all(publicIds.map((id) => deleteManagedDocumentFile(id)));
+    return handleError(c, error);
+  }
+}
+
+// DELETE /api/cases/:id/documents/:documentId — owner soft-deletes a wrong upload
+export async function deleteStageDocumentHandler(c: Context) {
+  const access = await requireCaseAccess(c, c.req.param("id") || "");
+  if (!access.ok) return access.response;
+  try {
+    return c.json(
+      await deleteStageDocumentUseCase(access.session.user.id, access.caseRecord.id, c.req.param("documentId") || ""),
+    );
+  } catch (error: unknown) {
     return handleError(c, error);
   }
 }

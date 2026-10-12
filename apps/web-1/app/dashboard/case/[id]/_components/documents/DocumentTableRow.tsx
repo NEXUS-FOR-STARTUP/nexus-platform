@@ -1,7 +1,7 @@
 "use client";
 
-import { Anchor, Button, Table, Text, Tooltip } from "@mantine/core";
-import { Download } from "lucide-react";
+import { Anchor, Button, Table, Text, Tooltip, Group } from "@mantine/core";
+import { Download, Trash2 } from "lucide-react";
 import FileTypeIcon from "@/components/ui/FileTypeIcon";
 import {
   DocumentRow,
@@ -12,11 +12,14 @@ import {
 interface DocumentTableRowProps {
   row: DocumentRow;
   activeTab: WorkspaceTab;
+  onDelete?: (documentId: string, displayName: string) => void;
+  isDeleting?: boolean;
 }
 
-export default function DocumentTableRow({ row, activeTab }: DocumentTableRowProps) {
+export default function DocumentTableRow({ row, activeTab, onDelete, isDeleting }: DocumentTableRowProps) {
   const isReport = activeTab === "assessment-reports";
   const { date, time } = formatDate(row.createdAt);
+  const deletableId = onDelete && row.documentId ? row.documentId : null;
 
   return (
     <Table.Tr className="transition-colors hover:bg-surface-soft/60">
@@ -77,26 +80,43 @@ export default function DocumentTableRow({ row, activeTab }: DocumentTableRowPro
         </Text>
       </Table.Td>
 
-      <Table.Td className="py-2 w-[44px] text-right">
-        {row.hasAction && row.url ? (
-          <Tooltip label="Tải xuống tài liệu">
-            <Button
-              component="a"
-              href={row.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              size="xs"
-              variant="subtle"
-              color="gray"
-              aria-label={`Tải xuống ${row.displayName}`}
-              className="cursor-pointer shrink-0"
-            >
-              <Download className="w-4 h-4 text-text-subtle hover:text-brand" />
-            </Button>
-          </Tooltip>
-        ) : (
-          <span className="text-text-subtle text-sm">—</span>
-        )}
+      <Table.Td className="py-2 w-[88px] text-right">
+        <Group gap={0} justify="flex-end" wrap="nowrap">
+          {row.hasAction && row.url ? (
+            <Tooltip label="Tải xuống tài liệu">
+              <Button
+                component="a"
+                href={row.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                size="xs"
+                variant="subtle"
+                color="gray"
+                aria-label={`Tải xuống ${row.displayName}`}
+                className="cursor-pointer shrink-0"
+              >
+                <Download className="w-4 h-4 text-text-subtle hover:text-brand" />
+              </Button>
+            </Tooltip>
+          ) : (
+            <span className="text-text-subtle text-sm">—</span>
+          )}
+          {deletableId && (
+            <Tooltip label="Xóa tài liệu này">
+              <Button
+                size="xs"
+                variant="subtle"
+                color="red"
+                loading={isDeleting}
+                aria-label={`Xóa ${row.displayName}`}
+                className="cursor-pointer shrink-0"
+                onClick={() => onDelete?.(deletableId, row.displayName)}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </Tooltip>
+          )}
+        </Group>
       </Table.Td>
     </Table.Tr>
   );

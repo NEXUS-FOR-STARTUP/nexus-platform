@@ -31,6 +31,7 @@ export function buildAssessmentReportRows(
 
     return {
       key: `report-${round.report_id}`,
+      documentId: null,
       versionLabel: vLabel,
       contextLabel: typeLabel,
       displayName: fileName,
