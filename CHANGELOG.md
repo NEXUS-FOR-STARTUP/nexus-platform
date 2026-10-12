@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (2026-10-12)
+- "Tạo dự án mới" luôn trả `400 VALIDATION_ERROR`: `POST /api/cases` giờ kiểm tra theo hợp đồng tạo dự án mới — mọi trường intake cũ (liên hệ, điểm kẹt, tài liệu, cam kết ranh giới) là tùy chọn và chỉ được kiểm tra khi có gửi, bắt buộc duy nhất tên dự án. Hợp đồng intake đầy đủ vẫn áp dụng khi lưu hồ sơ ở `POST /api/cases/:id/intake`.
+- Lưu hồ sơ dự án không còn xóa tài liệu đã nộp ở unit `v00`: `submit-intake` chỉ đồng bộ tài liệu khi request thực sự gửi danh sách tài liệu.
+- Không chấm được khi chưa có gì để chấm: modal xác nhận chặn khi 0 câu trả lời và 0 tệp ở cả CP1 lẫn CP2 (trước đây CP1 luôn bấm "Tiếp tục" được), và API trả `409 STAGE_INPUT_REQUIRED` trước khi trừ lượt.
+- Loại tài liệu ở "Tải tài liệu mới" dùng lại đúng danh mục của form intake (Thuyết minh ý tưởng, Slide thuyết trình, Nghiên cứu thị trường, Kế hoạch tài chính, Tài liệu bổ sung) thay vì hai mã nội bộ "Bản sửa đổi"/"Tài liệu bổ sung bản sửa": chọn loại lưu vào `metadata_json.category` (kind lưu trữ vẫn là `revision_document`), danh sách tệp hiện đúng nhãn đã chọn.
+
 ### Hành trình Workspace Redesign (2026-10-11)
 **Breaking Changes / Deprecations**
 - Case Workspace đổi từ 7 tab theo loại dữ liệu sang 5 tab hành trình (`overview`, `journey`, `billing`, `timeline`, `settings`). Các URL tab cũ tự động chuyển hướng sang tab mới tương ứng.
