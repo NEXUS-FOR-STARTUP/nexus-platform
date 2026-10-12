@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@mantine/core";
 import type { OverviewArea } from "./caseOverviewModel";
 
 interface OverviewGapsSectionProps {
@@ -47,15 +48,9 @@ export default function OverviewGapsSection({
           {areas.map((area) => (
             <div key={area.ten} className="bg-surface-soft/40 border border-border-app/60 rounded-lg p-4 space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={`text-xs font-medium rounded-full px-2 py-0.5 border ${
-                    area.isWeak
-                      ? "bg-danger-soft text-danger border-danger/20"
-                      : "bg-success-soft text-success border-success/20"
-                  }`}
-                >
+                <Badge size="sm" variant="light" color={area.isWeak ? "red" : "green"}>
                   {area.trangThaiLabel}
-                </span>
+                </Badge>
                 <span className="text-sm font-semibold text-text-app">{area.ten}</span>
               </div>
               <p className="text-xs text-text-muted">Nhân sự: {area.mucDoLabel}</p>
