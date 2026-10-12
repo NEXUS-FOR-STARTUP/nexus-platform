@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Stack, Paper, Text, Button, Group, Alert } from "@mantine/core";
+import { Stack, Paper, Text, Button, Group, Alert, Modal } from "@mantine/core";
 import { Upload, AlertCircle, FileText } from "lucide-react";
 import type { StageCode } from "@app/shared/stages";
 import type { DocumentWorkspace } from "@/types";
@@ -36,11 +36,17 @@ export default function StageFilesView({
   const [uploadOpen, setUploadOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("documents");
   const [filterRole, setFilterRole] = useState<FilterRole>("all");
+  const [deleteTarget, setDeleteTarget] = useState<{ documentId: string; displayName: string } | null>(null);
   const deleteMutation = useStageDocumentDelete(caseId);
 
   const handleDelete = (documentId: string, displayName: string) => {
-    if (!window.confirm(`Xóa tài liệu "${displayName}"? Tài liệu sai sẽ được gỡ khỏi danh sách chấm.`)) return;
-    deleteMutation.mutate(documentId, {
+    setDeleteTarget({ documentId, displayName });
+  };
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
+    setDeleteTarget(null);
+    deleteMutation.mutate(target.documentId, {
       onError: (error: unknown) => {
         const message = isAxiosError(error)
           ? (error.response?.data as { message?: string } | undefined)?.message ?? "Xóa tài liệu thất bại."
@@ -169,6 +175,21 @@ export default function StageFilesView({
         caseId={caseId}
         checkpointCode={checkpointCode}
       />
+      <Modal opened={deleteTarget !== null} onClose={() => setDeleteTarget(null)} title="Xóa tài liệu" centered size="sm">
+        <Stack gap="md">
+          <Text size="sm">
+            Xóa tài liệu &ldquo;{deleteTarget?.displayName}&rdquo;? Tài liệu sai sẽ được gỡ khỏi danh sách chấm.
+          </Text>
+          <Group justify="flex-end" gap="xs">
+            <Button variant="default" onClick={() => setDeleteTarget(null)} disabled={deleteMutation.isPending}>
+              Hủy
+            </Button>
+            <Button color="red" loading={deleteMutation.isPending} onClick={handleConfirmDelete}>
+              Xóa tài liệu
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Stack>
   );
 }
