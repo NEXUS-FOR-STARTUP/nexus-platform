@@ -130,9 +130,15 @@ export async function getCaseAiAuditStatus(caseId: string, checkpoint?: string) 
     finalStatus = "running";
   }
 
-  // A checkpoint-scoped job that already ended in the DB is final; the case-wide queue may be busy with another checkpoint.
-  if (checkpoint && latestJob && ["completed", "failed", "cancelled"].includes(latestJob.status)) {
-    finalStatus = latestJob.status as typeof finalStatus;
+  // Checkpoint-scoped: the DB row is authoritative for terminal states. The queue/files say "completed"
+  // before the finalizer has saved the report (and the finalize can still fail + refund), so an unsaved
+  // run stays "running" (finalizing) instead of flashing completed then flipping to failed.
+  if (checkpoint && latestJob) {
+    if (["completed", "failed", "cancelled"].includes(latestJob.status)) {
+      finalStatus = latestJob.status as typeof finalStatus;
+    } else if (finalStatus === "completed") {
+      finalStatus = "running";
+    }
   }
 
   const jobCheckpoint = runningCheckpointCode(aiJobInput);

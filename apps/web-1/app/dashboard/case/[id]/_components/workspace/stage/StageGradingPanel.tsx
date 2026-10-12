@@ -34,10 +34,15 @@ const SOURCE_LABEL: Record<string, string> = {
   files: "tài liệu",
   both: "câu trả lời và tài liệu",
 };
+/** Legacy jobs carry no input_source: they read the answers plus any attachments that existed. */
+const LEGACY_SOURCE_LABEL = "câu trả lời và tài liệu (nếu có)";
 const SCOPE_LABEL: Record<string, string> = {
   questionnaire: "soát bảng hỏi",
   full: "đánh giá toàn diện",
 };
+
+/** Cap on the raw error shown in the support tooltip. */
+const RAW_ERROR_MAX_CHARS = 300;
 
 function formatElapsed(totalSeconds: number): string {
   const mm = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
@@ -89,10 +94,9 @@ export default function StageGradingPanel({ caseId, checkpoint, submissionType, 
   const startMs = data.startedAt ? Date.parse(data.startedAt) : NaN;
   const elapsed = isActive && !Number.isNaN(startMs) ? Math.max(0, Math.floor((now - startMs) / 1000)) : null;
   const shortJobId = data.jobId ? data.jobId.slice(0, 8) : null;
-  const readsWhat =
-    data.inputSource !== undefined || data.scope !== undefined
-      ? `Đang đọc: ${data.inputSource !== undefined ? SOURCE_LABEL[data.inputSource] ?? data.inputSource : "câu trả lời"}${data.scope !== undefined ? ` · ${SCOPE_LABEL[data.scope] ?? data.scope}` : ""}`
-      : null;
+  const sourceLabel = data.inputSource !== undefined ? SOURCE_LABEL[data.inputSource] ?? data.inputSource : LEGACY_SOURCE_LABEL;
+  const scopeLabel = data.scope !== undefined ? SCOPE_LABEL[data.scope] ?? data.scope : null;
+  const readsWhat = checkpoint === "CP2" ? `Đang đọc: ${sourceLabel}${scopeLabel ? ` / ${scopeLabel}` : ""}` : null;
 
   const headline: Record<string, string> = {
     queued: "Đang xếp hàng, sắp bắt đầu chấm",
@@ -168,7 +172,10 @@ export default function StageGradingPanel({ caseId, checkpoint, submissionType, 
         <Stack gap="md" mt="md">
           {readsWhat && <Text size="xs" c="dimmed">{readsWhat}</Text>}
           {status === "failed" && data.error && (
-            <Text size="xs" c="red">Lý do: {data.error}</Text>
+            // Raw worker/queue text is English and internal: keep it in a tooltip for support, never in the layout.
+            <Tooltip label={data.error.slice(0, RAW_ERROR_MAX_CHARS)} multiline maw={360} withArrow>
+              <Text size="xs" c="red" w="fit-content">Hệ thống chưa tạo được báo cáo hoàn chỉnh. Di chuột để xem chi tiết kỹ thuật cho hỗ trợ.</Text>
+            </Tooltip>
           )}
           <Progress value={(doneCount / Math.max(steps.length, 1)) * 100} animated={status === "running"} color={status === "failed" ? "red" : "blue"} size="sm" radius="xl" />
           <Stepper
