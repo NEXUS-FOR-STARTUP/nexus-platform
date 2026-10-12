@@ -102,11 +102,13 @@ export default function AuditConfirmModal({
   };
 
   const handleConfirm = () => {
+    // Questionnaire has no resubmit plan; a stale resubmit selection still grades as a fresh run.
+    const effectiveType = isCp2 && scope === "questionnaire" ? "initial" : submissionType;
     onConfirm({
       scope,
       inputSource: source,
-      submissionType: isCp2 ? submissionType : "initial",
-      ...(isCp2 && submissionType === "resubmit" && changeSummary.trim() ? { changeSummary: changeSummary.trim() } : {}),
+      submissionType: isCp2 ? effectiveType : "initial",
+      ...(isCp2 && effectiveType === "resubmit" && changeSummary.trim() ? { changeSummary: changeSummary.trim() } : {}),
       ...(isCp2 && userNote.trim() ? { userNote: userNote.trim() } : {}),
     });
     handleClose();
@@ -118,7 +120,7 @@ export default function AuditConfirmModal({
   };
 
   return (
-    <Modal opened={opened} onClose={handleClose} title={`Xác nhận chấm bài — ${stage.name}`} centered size="md">
+    <Modal opened={opened} onClose={handleClose} title={`Xác nhận chấm bài - ${stage.name}`} centered size="md">
       <Stack gap="md">
         {step === 1 && (
           <>
@@ -179,7 +181,7 @@ export default function AuditConfirmModal({
             {isCp2 && (
               <Accordion variant="separated" radius="md" defaultValue="source">
                 <Accordion.Item value="source">
-                  <Accordion.Control>Chấm gì <Text span size="xs" c="dimmed">— {SOURCE_LABEL[source]}</Text></Accordion.Control>
+                  <Accordion.Control>Chấm gì <Text span size="xs" c="dimmed">- {SOURCE_LABEL[source]}</Text></Accordion.Control>
                   <Accordion.Panel>
                     <Radio.Group value={source} onChange={(value) => setSource(value as Cp2InputSource)}>
                       <Stack gap="xs">
@@ -192,7 +194,7 @@ export default function AuditConfirmModal({
                 </Accordion.Item>
 
                 <Accordion.Item value="scope">
-                  <Accordion.Control>Chấm tới đâu <Text span size="xs" c="dimmed">— {SCOPE_LABEL[scope]}</Text></Accordion.Control>
+                  <Accordion.Control>Chấm tới đâu <Text span size="xs" c="dimmed">- {SCOPE_LABEL[scope]}</Text></Accordion.Control>
                   <Accordion.Panel>
                     <Radio.Group value={scope} onChange={handleScopeChange}>
                       <Stack gap="xs">
@@ -204,7 +206,7 @@ export default function AuditConfirmModal({
                 </Accordion.Item>
 
                 <Accordion.Item value="kind">
-                  <Accordion.Control>Lần chấm này <Text span size="xs" c="dimmed">— {submissionType === "resubmit" ? "Chấm lại" : "Chấm mới"}</Text></Accordion.Control>
+                  <Accordion.Control>Lần chấm này <Text span size="xs" c="dimmed">- {submissionType === "resubmit" ? "Chấm lại" : "Chấm mới"}</Text></Accordion.Control>
                   <Accordion.Panel>
                     <Radio.Group value={submissionType} onChange={(value) => setSubmissionType(value as "initial" | "resubmit")}>
                       <Stack gap="xs">
@@ -227,7 +229,7 @@ export default function AuditConfirmModal({
                 </Accordion.Item>
 
                 <Accordion.Item value="note">
-                  <Accordion.Control>Nhắn AI <Text span size="xs" c="dimmed">— {userNote.trim() ? "đã viết" : "không bắt buộc"}</Text></Accordion.Control>
+                  <Accordion.Control>Nhắn AI <Text span size="xs" c="dimmed">- {userNote.trim() ? "đã viết" : "không bắt buộc"}</Text></Accordion.Control>
                   <Accordion.Panel>
                     <Textarea
                       placeholder="Ví dụ: soi kỹ phần SOM giúp mình"

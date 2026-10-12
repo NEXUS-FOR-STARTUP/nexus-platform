@@ -15,6 +15,7 @@ export interface CaseAiStatusResponse {
   scope?: string;
   inputSource?: string;
   userNote?: string;
+  changeSummary?: string;
   steps: AuditProgressStepState[];
   jobId?: string;
   startedAt?: string;

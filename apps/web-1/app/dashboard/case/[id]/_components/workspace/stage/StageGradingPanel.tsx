@@ -106,17 +106,19 @@ export default function StageGradingPanel({ caseId, checkpoint, submissionType, 
     cancelled: "Lần chấm đã dừng. Lượt chấm đã được hoàn lại",
   };
 
+  const retryScope = data.scope === "questionnaire" ? ("questionnaire" as const) : ("full" as const);
   const handleRetry = () =>
     triggerAudit({
-      submission_type: submissionType,
+      submission_type: retryScope === "questionnaire" ? "initial" : submissionType,
       ...(checkpoint === "CP2"
         ? {
             checkpoint: "CP2" as const,
-            scope: data.scope === "questionnaire" ? ("questionnaire" as const) : ("full" as const),
+            scope: retryScope,
             ...(data.inputSource === "answers" || data.inputSource === "files" || data.inputSource === "both"
               ? { input_source: data.inputSource }
               : {}),
             ...(typeof data.userNote === "string" && data.userNote.trim() ? { user_note: data.userNote } : {}),
+            ...(typeof data.changeSummary === "string" && data.changeSummary.trim() ? { change_summary: data.changeSummary } : {}),
           }
         : {}),
     });

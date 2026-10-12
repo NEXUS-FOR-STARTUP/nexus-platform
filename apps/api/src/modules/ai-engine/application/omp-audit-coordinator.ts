@@ -402,6 +402,8 @@ export async function triggerOmpAuditForCase(
     checkpoint: checkpointCode,
     scope: plan.scope,
     ...(checkpointCode === "CP2" ? { input_source: inputSource } : {}),
+    ...(checkpointCode === "CP2" && changeSummary?.trim() ? { change_summary: changeSummary.trim() } : {}),
+    ...(checkpointCode === "CP2" && userNote?.trim() ? { user_note: userNote.trim() } : {}),
     service_type: plan.serviceType,
   };
   const sandboxOpts: SandboxOptions =
