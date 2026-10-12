@@ -37,7 +37,8 @@ export async function getCaseAiStatusHandler(c: Context) {
  */
 export async function cancelCaseAiAuditHandler(c: Context) {
   const caseId = c.req.param("id") || "";
-  const access = await requireCaseAccess(c, caseId);
+  // Students never stop a running job; only the assigned supporter/admin can (admin job drawer).
+  const access = await requireCaseAccess(c, caseId, { allowStudent: false });
   if (!access.ok) {
     return access.response;
   }
