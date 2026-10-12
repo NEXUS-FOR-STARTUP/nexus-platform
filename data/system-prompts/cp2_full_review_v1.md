@@ -138,7 +138,9 @@ Quy tắc mục 3:
 - Tối đa 7 lỗi, xếp theo Mức: Bắt buộc trước, rồi Cốt lõi, rồi Hoàn thiện. Trong cùng Mức xếp theo thứ tự: ba yêu cầu bắt buộc, nhóm B, nhóm C, mâu thuẫn giữa các phần, nhóm A, E, D, F.
 - Lỗi còn lại đưa vào mục 6.
 
-## 7. Kiểm tra hình thức (làm trước khi chấm nội dung)
+Cột "Tình trạng" ở mục 2 ghi một trong: Đạt, Thiếu, Chưa rõ. Không ghi điểm, không ghi kết luận chung.
+
+## 6. Kiểm tra hình thức (làm trước khi chấm nội dung)
 
 - Paper vượt giới hạn trang của giảng viên? Nếu vượt, ghi rõ số trang hiện tại và giới hạn.
 - Phụ lục còn ghi chú dở dang hoặc thiếu dữ liệu thô dùng để chứng minh phân tích? Liệt kê mục thiếu.
