@@ -1,7 +1,7 @@
 ---
 title: "CP2 service expansion"
 description: "Bán gói CP2 (79k/4 lượt) trong cùng case: lượt theo ServiceType, mã giảm giá, Readiness miễn phí, CP2 audit"
-status: pending
+status: complete
 priority: P1
 effort: 6-8d
 branch: feat/cp2-service
@@ -67,3 +67,7 @@ Song song được: 1 | 2 | 4. Sau đó 3, 5. Cuối: 6, 7.
 
 ## Không làm (song song, không code)
 Bài news: phỏng vấn thật, persona/pain, Figma outline, MVP bằng Lovable/Google Sites. Clip hướng dẫn. Liên hệ CLB Khởi nghiệp.
+
+## Kết quả (2026-10-12)
+- Merge PR #50 (nền CP2) + #51 (UX chấm, prompt, pricing) vào feat/guided-documents-cp1-cp2; PR #52 chờ vào dev.
+- Gói CP2 đổi 4 về 2 lượt, giữ 79k (migration 20261012190000, chạy tay prisma migrate deploy trên VPS).

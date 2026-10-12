@@ -1,7 +1,7 @@
 ---
 title: "UX redesign: Hành trình theo giai đoạn"
 description: "Tổ chức workspace sinh viên theo giai đoạn (A + D), một hộp mua theo dịch vụ, trạng thái suy ra theo giai đoạn, đóng băng supporter"
-status: pending
+status: complete
 priority: P1
 effort: 8-10d
 branch: feat/ux-hanh-trinh
@@ -68,3 +68,7 @@ Tắt flag là quay về hành vi cũ, không cần deploy lại API; web cần 
 
 ## Safety
 Không `prisma migrate dev` (trừ `--create-only`), không `db push`, không lệnh xóa dữ liệu. Phase này không cần migration.
+
+## Kết quả (2026-10-12)
+- Merge PR #51: modal chấm accordion (tự chọn loại chấm, ghi chú AI), prompt CP2 (bỏ trần từ, xếp lỗi theo mức), billing 1 khung bảng, team-fit wording + badge, số stage ở header detail.
+- Còn nợ: test chạy thử các luồng (chấm, mua, billing) trên local; StageFilesView mất nút xóa sau resolve (bản mẹ refactor groups).
