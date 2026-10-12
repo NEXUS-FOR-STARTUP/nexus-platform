@@ -252,7 +252,7 @@ export default function AuditConfirmModal({
             <Group justify="space-between">
               <Text size="sm">Chi phí:</Text>
               <Text size="sm" fw={600} c="blue">
-                Dùng 1 lượt (còn {creditsRemaining} → {Math.max(creditsRemaining - 1, 0)})
+                Tốn 1 lượt - còn lại {Math.max(creditsRemaining - 1, 0)} sau lần chấm này
               </Text>
             </Group>
 
