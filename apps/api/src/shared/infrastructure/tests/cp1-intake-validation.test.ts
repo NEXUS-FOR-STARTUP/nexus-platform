@@ -595,7 +595,7 @@ test("Document category canonicalization and labels", async (t) => {
   });
 
   await t.test("docCategoryLabel with new codes", () => {
-    assert.strictEqual(docCategoryLabel("idea_report"), "Thuyết minh ý tưởng");
+    assert.strictEqual(docCategoryLabel("idea_report"), "Bản mô tả ý tưởng");
     assert.strictEqual(docCategoryLabel("pitch_deck"), "Slide thuyết trình");
     assert.strictEqual(docCategoryLabel("market_research"), "Nghiên cứu thị trường");
     assert.strictEqual(docCategoryLabel("financial_plan"), "Kế hoạch tài chính");

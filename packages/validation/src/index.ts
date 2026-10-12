@@ -563,7 +563,7 @@ export const DOCUMENT_CATEGORY_CODES = [
 export type DocumentCategoryCode = (typeof DOCUMENT_CATEGORY_CODES)[number];
 
 export const DOCUMENT_CATEGORY_LABELS: Record<DocumentCategoryCode, string> = {
-  idea_report: "Thuyết minh ý tưởng",
+  idea_report: "Bản mô tả ý tưởng",
   pitch_deck: "Slide thuyết trình",
   market_research: "Nghiên cứu thị trường",
   financial_plan: "Kế hoạch tài chính",

@@ -307,7 +307,7 @@ Access: `Authenticated (Sinh viên / Student)` (nguồn: `apps/web-1/app/dashboa
 | `intake.doc.item_ext_badge` | `Paper` > `Badge` | Badge | `{doc.extension?.toUpperCase() ?? "FILE"}` | — | default |
 | `intake.doc.item_storage_tag` | `Paper` > `Text[size="xs"]` | Item | `Cloudinary` | — | default |
 | `intake.doc.select_type_placeholder` | `Select[placeholder]` | Placeholder | `Chọn loại tài liệu` | Mở dropdown phân loại tài liệu | default |
-| `intake.doc.type_opt_idea_report` | `Select` (Option 1) | Item | `Thuyết minh ý tưởng` | Gán `document_type = "idea_report"` | default |
+| `intake.doc.type_opt_idea_report` | `Select` (Option 1) | Item | `Bản mô tả ý tưởng` | Gán `document_type = "idea_report"` | default |
 | `intake.doc.type_opt_pitch_deck` | `Select` (Option 2) | Item | `Slide thuyết trình` | Gán `document_type = "pitch_deck"` | default |
 | `intake.doc.type_opt_market_research` | `Select` (Option 3) | Item | `Nghiên cứu thị trường` | Gán `document_type = "market_research"` | default |
 | `intake.doc.type_opt_financial_plan` | `Select` (Option 4) | Item | `Kế hoạch tài chính` | Gán `document_type = "financial_plan"` | default |
