@@ -1,9 +1,10 @@
  "use client";
 
- import { Button, Group, Paper, Stack, Text } from "@mantine/core";
- import { findStageByCode } from "@app/shared/stages";
- import type { DocumentWorkspace, RoundHistoryEntry } from "@/types";
- import { CP2_REPORT_TYPE_LABELS, SUBMISSION_TYPE_LABELS, formatDateShort } from "../report.utils";
+import { Button, Group, Paper, Stack, Text } from "@mantine/core";
+import { findStageByCode } from "@app/shared/stages";
+import FileTypeIcon from "@/components/ui/FileTypeIcon";
+import type { DocumentWorkspace, RoundHistoryEntry } from "@/types";
+import { CP2_REPORT_TYPE_LABELS, SUBMISSION_TYPE_LABELS, formatDateShort } from "../report.utils";
 
 interface OverviewRecentReportsProps {
   roundHistory?: RoundHistoryEntry[] | null;
@@ -56,11 +57,11 @@ export default function OverviewRecentReports({
             return (
               <Group key={entry.report_id} justify="space-between" wrap="nowrap" gap="sm">
                 <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
-                  <img src="/pdf.png" alt="PDF" width={28} height={28} style={{ flexShrink: 0 }} />
+                  <FileTypeIcon extension="pdf" size={28} />
                   <Stack gap={0} style={{ minWidth: 0 }}>
                     <Text fw={600} size="sm" truncate>
                       {reportLabel(entry)}
-                      {typeof entry.version_no === "number" ? ` · v${String(entry.version_no + 1).padStart(2, "0")}` : ""}
+                      {typeof entry.version_no === "number" ? ` (bản ${String(entry.version_no + 1).padStart(2, "0")})` : ""}
                     </Text>
                     <Text size="xs" c="dimmed">{formatDateShort(entry.submitted_at)}</Text>
                   </Stack>

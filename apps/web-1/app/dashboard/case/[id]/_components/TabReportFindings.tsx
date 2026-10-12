@@ -94,8 +94,8 @@ export default function TabReportFindings({ report, caseId, roundHistory, hideCh
               value={activeCheckpoint}
               onChange={(value) => setCheckpointFilter(value as "CP1" | "CP2")}
               data={[
-                { label: "Checkpoint 1", value: "CP1" },
-                { label: "Checkpoint 2", value: "CP2" },
+                { label: "Vòng Ý tưởng", value: "CP1" },
+                { label: "Vòng Thị trường", value: "CP2" },
               ]}
             />
           )}

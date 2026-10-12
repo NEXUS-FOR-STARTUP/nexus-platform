@@ -75,7 +75,7 @@ export default function GuidedTemplateGallery({ caseId, onOpen }: GuidedTemplate
               answered={answered}
               total={total}
               onOpen={needsStart ? startCp2 : () => onOpen(key)}
-              startLabel={needsStart ? "Bắt đầu Checkpoint 2" : undefined}
+              startLabel={needsStart ? "Bắt đầu vòng Thị trường" : undefined}
               starting={needsStart && isOpening}
               comingSoon={COMING_SOON_TEMPLATES.includes(key)}
             />

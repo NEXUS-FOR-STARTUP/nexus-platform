@@ -129,6 +129,9 @@ export default function StageDetail({
             checkpointId={checkpointId}
             projectName={caseData?.team_name || undefined}
             caseCode={caseData?.case_code || undefined}
+            onGoDraft={() => onViewChange("draft")}
+            onGoFiles={() => onViewChange("files")}
+            onAudit={handleAuditClick}
           />
         </Tabs.Panel>
       </Tabs>
@@ -139,6 +142,8 @@ export default function StageDetail({
         onClose={() => setAuditConfirmOpen(false)}
         onConfirm={handleConfirmAudit}
         creditsRemaining={creditsRemaining}
+        summary={summary}
+        onGoFiles={() => onViewChange("files")}
         isLoading={isAuditPending}
       />
 

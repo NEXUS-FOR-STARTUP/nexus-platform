@@ -1,5 +1,5 @@
 import { basename } from "node:path";
-import { CP2_SELF_CHECKS, QUESTION_REGISTRY, TEMPLATE_REGISTRY } from "@repo/validation";
+import { CP2_INTERVIEW_AUDIT_REQUIRED, CP2_QUESTION_BANK_ID, CP2_SELF_CHECKS, QUESTION_REGISTRY, TEMPLATE_REGISTRY } from "@repo/validation";
 import { prisma } from "../../../db.js";
 import { AppError } from "../../../shared/domain/app-error.js";
 import logger from "../../../shared/infrastructure/logger.js";
@@ -16,6 +16,11 @@ export const CP2_ATTACHMENTS_DIR = "attachments";
 const UNANSWERED_TEXT = "(Nhóm chưa trả lời)";
 const NO_CHANGE_SUMMARY_TEXT = "(Nhóm không ghi tóm tắt thay đổi)";
 const ATTACHMENT_FETCH_TIMEOUT_MS = Number(process.env.OMP_INPUT_FETCH_TIMEOUT_MS ?? 30_000);
+/** Minimum bar before a CP2 trigger may burn a credit. Env-overridable, documented in README. */
+const CP2_MIN_ANSWERED = Number(process.env.CP2_MIN_ANSWERED ?? 5);
+const CP2_MIN_AVG_WORDS = Number(process.env.CP2_MIN_AVG_WORDS ?? 10);
+/** Questionnaire scope needs its 3 base answers + the bank (or an attachment) with real content. */
+const CP2_QUESTIONNAIRE_MIN_WORDS = Number(process.env.CP2_QUESTIONNAIRE_MIN_WORDS ?? 10);
 /** Fields the worker/API add around the model's own report.json; not part of the earlier decisions. */
 const PROVENANCE_KEYS = ["pdfUrl", "pdfPublicId", "submission_type", "prompt_version", "prompt_mode", "triggerStartedAt", "model", "checkpoint", "scope", "evidenceUnverified", "evidenceUnchecked"];
 
@@ -40,6 +45,76 @@ export function renderCp2Answers(answers: AnswerMap): string {
   return `# Tài liệu CP2 của nhóm\n\n${sections.join("\n\n")}\n`;
 }
 
+/**
+ * Reject junk CP2 triggers before they burn a credit. Branched by scope:
+ * - questionnaire: the 3 base answers + question bank (or a CP2 attachment) must exist
+ *   (mirrors CP2_INTERVIEW_AUDIT_REQUIRED + bank rule in the readiness catalog).
+ * - full/resubmit: at least CP2_MIN_ANSWERED questions averaging CP2_MIN_AVG_WORDS.
+ * Pure over the passed answers + attachment flag; the coordinator calls it pre-charge,
+ * the assembler re-checks it post-charge as a safety net (TOCTOU between trigger and assemble).
+ */
+export function assertCp2AnswerQuality(
+  caseId: string,
+  answers: AnswerMap,
+  scope: string,
+  hasCp2Attachment: boolean,
+): void {
+  if (scope === "questionnaire") {
+    const questionnaire = evaluateCp2QuestionnaireAnswers(answers, hasCp2Attachment);
+    if (!questionnaire.ok) {
+      logger.warn({ caseId, missing: questionnaire.missing, thinIds: questionnaire.thinIds }, "CP2 questionnaire trigger rejected: bank answers below bar");
+      throw new AppError(
+        400,
+        "CP2_ANSWERS_TOO_THIN",
+        `Chấm bảng hỏi cần trả lời: ${questionnaire.missing.map(questionText).join("; ")}. Mỗi câu trả lời ít nhất ${CP2_QUESTIONNAIRE_MIN_WORDS} từ.`,
+        { missing: questionnaire.missing },
+      );
+    }
+    return;
+  }
+  const quality = evaluateCp2FullAnswers(answers);
+  if (!quality.ok) {
+    logger.warn({ caseId, answered: quality.answered, avgWords: Math.round(quality.avgWords * 10) / 10 }, "CP2 trigger rejected: answers below quality bar");
+    throw new AppError(
+      400,
+      "CP2_ANSWERS_TOO_THIN",
+      `Nhóm mới trả lời ${quality.answered}/${quality.total} câu (cần ít nhất ${CP2_MIN_ANSWERED} câu, trung bình mỗi câu ít nhất ${CP2_MIN_AVG_WORDS} từ). Bổ sung câu trả lời và tài liệu đính kèm trước khi chấm.`,
+      { answered: quality.answered, total: quality.total },
+    );
+  }
+}
+
+/**
+ * Same bar the questionnaire-scope trigger enforces. Pure over the passed answers +
+ * attachment flag so the stage summary can report it at read time without a migration.
+ */
+export function evaluateCp2QuestionnaireAnswers(answers: AnswerMap, hasCp2Attachment: boolean): { missing: string[]; thinIds: string[]; ok: boolean } {
+  const nonEmpty = (id: string): string | null => {
+    const t = (answers[id] ?? "").trim();
+    return t === "" ? null : t;
+  };
+  const missing = CP2_INTERVIEW_AUDIT_REQUIRED.filter((id) => !nonEmpty(id));
+  const bank = nonEmpty(CP2_QUESTION_BANK_ID);
+  if (!bank && !hasCp2Attachment) missing.push(CP2_QUESTION_BANK_ID);
+  const thinIds = [...CP2_INTERVIEW_AUDIT_REQUIRED, ...(bank ? [CP2_QUESTION_BANK_ID] : [] as string[])]
+    .filter((id) => {
+      const t = nonEmpty(id);
+      return t !== null && t.split(/\s+/).filter(Boolean).length < CP2_QUESTIONNAIRE_MIN_WORDS;
+    });
+  return { missing, thinIds, ok: missing.length === 0 && thinIds.length === 0 };
+}
+
+/**
+ * Same bar the full-scope trigger enforces. Exported so the stage summary can report
+ * readiness at read time: thresholds are env-driven, so a stored flag would go stale.
+ */
+export function evaluateCp2FullAnswers(answers: AnswerMap): { answered: number; total: number; avgWords: number; ok: boolean } {
+  const ids = cp2QuestionIds();
+  const texts = ids.map((id) => (answers[id] ?? "").trim()).filter((t) => t !== "");
+  const totalWords = texts.reduce((sum, t) => sum + t.split(/\s+/).filter(Boolean).length, 0);
+  const avgWords = texts.length === 0 ? 0 : totalWords / texts.length;
+  return { answered: texts.length, total: ids.length, avgWords, ok: texts.length >= CP2_MIN_ANSWERED && avgWords >= CP2_MIN_AVG_WORDS };
+}
 export function renderSelfChecks(answers: AnswerMap): string {
   const lines = CP2_SELF_CHECKS.map((check) => `- ${check.label}: ${answers[check.id] === "true" ? "Đã xác nhận" : "Chưa xác nhận"}`);
   return `# Nhóm tự xác nhận (nhóm tự khai, chưa được kiểm chứng)\n\n${lines.join("\n")}\n`;
@@ -86,17 +161,21 @@ export interface Cp2InputRequest {
   caseId: string;
   submissionType: string;
   changeSummary?: string;
+  /** CP2 scope (questionnaire | full); gates the quality bar. Defaults to full. */
+  scope?: string;
 }
 
 /** CP2 sandbox input: answers, self-checks, attachments, and the previous report on resubmit. */
 export async function assembleCp2InputFiles(req: Cp2InputRequest): Promise<{ inputFiles: OmpAuditInputFile[]; resolvedLifecycleUnitId: null }> {
   const rows = await prisma.projectAnswer.findMany({ where: { case_id: req.caseId }, select: { question_id: true, answer_text: true } });
   const answers = Object.fromEntries(rows.map((r) => [r.question_id, r.answer_text]));
+  const attachments = await loadAttachments(req.caseId);
+  assertCp2AnswerQuality(req.caseId, answers, req.scope ?? "full", attachments.length > 0);
 
   const inputFiles: OmpAuditInputFile[] = [
     { name: CP2_ANSWERS_FILE, content: AUDIT_STAGE_INPUT_RULES ? renderStageAnswers(CP2_CHECKPOINT_CODE, answers).markdown : renderCp2Answers(answers) },
     { name: CP2_SELF_CHECKS_FILE, content: renderSelfChecks(answers) },
-    ...(await loadAttachments(req.caseId)),
+    ...attachments,
   ];
 
   if (req.submissionType === "resubmit") {

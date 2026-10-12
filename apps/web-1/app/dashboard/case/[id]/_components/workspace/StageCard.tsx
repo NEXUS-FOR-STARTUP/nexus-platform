@@ -139,13 +139,18 @@ export default function StageCard({
           </Group>
 
           {isAvailable && (
-            <Text size="xs" c="dimmed">
-              <Text span fw={600} c="dark">
-                {summary?.answered_count ?? 0}/
-                {TEMPLATE_REGISTRY[stage.templateKey as TemplateKey]?.phases.flatMap((p) => p.questions).length ?? 0}
-              </Text>{" "}
-              câu đã trả lời · <Text span fw={600} c="dark">{summary?.file_count ?? 0}</Text> tài liệu
-            </Text>
+            <Stack gap={0}>
+              <Text size="xs" c="dimmed">
+                <Text span fw={600} c="dark">
+                  {summary?.answered_count ?? 0}/
+                  {TEMPLATE_REGISTRY[stage.templateKey as TemplateKey]?.phases.flatMap((p) => p.questions).length ?? 0}
+                </Text>{" "}
+                câu đã trả lời
+              </Text>
+              <Text size="xs" c="dimmed">
+                <Text span fw={600} c="dark">{summary?.file_count ?? 0}</Text> tài liệu
+              </Text>
+            </Stack>
           )}
         </Stack>
 

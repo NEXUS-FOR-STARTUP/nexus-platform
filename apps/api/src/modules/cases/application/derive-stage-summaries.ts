@@ -2,6 +2,7 @@ import { STAGES, type StageCode } from "@app/shared";
 import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-types.js";
 import { prisma } from "../../../db.js";
 import { STAGE_DOC_EXCLUDED_TYPES } from "../../ai-engine/application/stage-audit-input.js";
+import { evaluateCp2FullAnswers, evaluateCp2QuestionnaireAnswers } from "../../ai-engine/application/cp2-audit-input.js";
 
 const ACTIVE_JOB_STATUSES = ["queued", "processing"];
 const AUDIT_JOB_TYPE = "omp_audit";
@@ -13,6 +14,9 @@ export interface StageSummary {
   checkpoint_code: StageCode;
   status: StageStatus;
   answered_count: number;
+  answers_ready_full: boolean;
+  /** Questionnaire-scope bar (3 base + bank or attachment). Only meaningful for CP2. */
+  answers_ready_questionnaire: boolean;
   file_count: number;
   latest_report: { id: string; report_type: string; created_at: Date } | null;
 }
@@ -71,6 +75,11 @@ export async function deriveStageSummaries(caseId: string): Promise<StageSummari
   const idByCode = new Map(checkpoints.map((c) => [c.checkpoint_code, c.id]));
   const fileCountById = new Map(docCounts.map((d) => [d.checkpoint_id, d._count._all]));
   const answerCounts = countAnswersByStage(answers);
+  const answerMap = Object.fromEntries(answers.map((a) => [a.question_id, a.answer_text]));
+  const cp2FullReady = evaluateCp2FullAnswers(answerMap).ok;
+  const cp2QuestionnaireReady = (checkpointId: string | undefined): boolean =>
+    checkpointId !== undefined &&
+    evaluateCp2QuestionnaireAnswers(answerMap, (fileCountById.get(checkpointId) ?? 0) > 0).ok;
   const grading = activeJob ? jobCheckpoint(activeJob.input_json) : null;
 
   const stages = STAGES.map((stage): StageSummary => {
@@ -82,6 +91,8 @@ export async function deriveStageSummaries(caseId: string): Promise<StageSummari
       checkpoint_code: stage.code,
       status: pickStageStatus({ grading: grading === stage.code, hasReport: Boolean(latest), fileCount, answeredCount }),
       answered_count: answeredCount,
+      answers_ready_full: stage.code === "CP2" ? cp2FullReady : true,
+      answers_ready_questionnaire: stage.code === "CP2" ? cp2QuestionnaireReady(checkpointId) : true,
       file_count: fileCount,
       latest_report: latest ? { id: latest.id, report_type: latest.report_type, created_at: latest.created_at } : null,
     };

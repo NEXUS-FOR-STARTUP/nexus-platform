@@ -1,6 +1,7 @@
 "use client";
 
 import { Select } from "@mantine/core";
+import { findStageByCode } from "@app/shared/stages";
 import type { WorkspaceTab, FilterRole } from "./document-workspace.types";
 import type { DocumentCheckpoint } from "@/types/case";
 
@@ -139,7 +140,7 @@ export default function DocumentWorkspaceHeader({
             radius="md"
             className="w-[110px] sm:w-[150px]"
             data={checkpoints.map((cp) => ({
-              label: cp.checkpoint_code,
+              label: findStageByCode(cp.checkpoint_code)?.name ?? cp.checkpoint_code,
               value: cp.checkpoint_id,
             }))}
           />

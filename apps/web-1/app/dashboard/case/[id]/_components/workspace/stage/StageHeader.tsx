@@ -1,7 +1,8 @@
 "use client";
 
 import { Group, Stack, Text, Badge, Button } from "@mantine/core";
-import { ChevronLeft, Sparkles, Plus } from "lucide-react";
+import { ChevronLeft, Sparkles } from "lucide-react";
+import RainbowBuyButton from "@/components/ui/RainbowBuyButton";
 import type { StageDefinition } from "@app/shared/stages";
 import { TEMPLATE_REGISTRY } from "@repo/validation";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
@@ -48,7 +49,7 @@ export default function StageHeader({
           <Text size="xs" c="dimmed">
             {summary?.answered_count ?? 0}/
             {TEMPLATE_REGISTRY[stage.templateKey]?.phases.flatMap((p) => p.questions).length ?? 0}{" "}
-            câu đã trả lời · {summary?.file_count ?? 0} tệp đính kèm · Còn {creditsRemaining} lượt chấm
+            câu đã trả lời / {summary?.file_count ?? 0} tệp đính kèm / Còn {creditsRemaining} lượt chấm
           </Text>
         </Stack>
 
@@ -64,14 +65,9 @@ export default function StageHeader({
               {auditLabel}
             </Button>
           ) : (
-            <Button
-              size="sm"
-              color="orange"
-              leftSection={<Plus size={16} />}
-              onClick={onBuyCredits}
-            >
+            <RainbowBuyButton size="md" onClick={onBuyCredits}>
               Mua lượt chấm
-            </Button>
+            </RainbowBuyButton>
           )}
         </Group>
       </Group>

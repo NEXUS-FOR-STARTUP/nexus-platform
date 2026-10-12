@@ -31,9 +31,11 @@ import { finalizeOmpAuditResult } from "./omp-audit-finalizer.js";
 import { getCaseAiAuditStatus } from "./omp-audit-status.js";
 import { findLatestCp2FullReport } from "../../reports/infrastructure/persistence/report.repository.js";
 import { INPUT_ASSEMBLERS, resolveAuditPlan } from "./audit-registry.js";
-import { CP2_CHECKPOINT_CODE } from "./cp2-audit-input.js";
+import { CP2_CHECKPOINT_CODE, assertCp2AnswerQuality } from "./cp2-audit-input.js";
 import { consumeAuditCredit, grantAuditRefund } from "./audit-credit.js";
 import { TriggerOptsSchema } from "./trigger-opts.js";
+import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-types.js";
+import { STAGE_DOC_EXCLUDED_TYPES } from "./stage-audit-input.js";
 import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
 import { countStageInputs } from "./stage-audit-input.js";
 
@@ -352,6 +354,20 @@ export async function triggerOmpAuditForCase(
     if (submissionType === "resubmit" && !(await findLatestCp2FullReport(caseId))) {
       throw new AppError(409, "CP2_NO_PREVIOUS_REPORT", "Chưa có báo cáo CP2 toàn bộ trước đó để chấm lại.");
     }
+    // Quality bar BEFORE charging: junk answers get a clean 400, not a
+    // failed job + refund cycle. The assembler re-checks post-charge (TOCTOU).
+    const gateRows = await prisma.projectAnswer.findMany({ where: { case_id: caseId }, select: { question_id: true, answer_text: true } });
+    const gateAnswers = Object.fromEntries(gateRows.map((r) => [r.question_id, r.answer_text]));
+    const gateCheckpoint = await prisma.checkpoint.findUnique({
+      where: { case_id_checkpoint_code: { case_id: caseId, checkpoint_code: CP2_CHECKPOINT_CODE } },
+      select: { id: true },
+    });
+    const gateFiles = gateCheckpoint
+      ? await prisma.documentRecord.count({
+          where: { case_id: caseId, checkpoint_id: gateCheckpoint.id, superseded_at: null, source_kind: { notIn: [...SUBMITTED_DOC_EXCLUDED_KINDS] }, doc_type: { notIn: STAGE_DOC_EXCLUDED_TYPES } },
+        })
+      : 0;
+    assertCp2AnswerQuality(caseId, gateAnswers, plan.scope, gateFiles > 0);
   }
 
   // 4d. Stage input rule: a stage is graded on template answers or files, never on nothing.
@@ -472,6 +488,7 @@ export async function triggerOmpAuditForCase(
       submissionType,
       lifecycleUnitId: lifecycleUnitId ?? null,
       changeSummary,
+      scope: plan.scope,
     });
 
     // 9b. Persist resolved unit into aiJob.input_json so the guard (phase-01)

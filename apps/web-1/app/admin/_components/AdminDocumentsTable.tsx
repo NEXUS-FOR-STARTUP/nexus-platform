@@ -16,6 +16,7 @@ import {
   Group,
   Menu,
 } from "@mantine/core";
+import FileTypeIcon from "@/components/ui/FileTypeIcon";
 
 interface DocumentRecordDto {
   id: string;
@@ -67,15 +68,7 @@ export default function AdminDocumentsTable({
     });
   };
 
-  const getFileIcon = (ext?: string | null) => {
-    const e = ext?.toLowerCase() || "";
-    if (e === "pdf") return <FileText className="w-4 h-4 text-red-500 shrink-0" />;
-    if (["docx", "doc"].includes(e)) return <FileText className="w-4 h-4 text-blue-500 shrink-0" />;
-    if (["xlsx", "xls", "csv"].includes(e)) return <FileText className="w-4 h-4 text-green-500 shrink-0" />;
-    if (["pptx", "ppt"].includes(e)) return <FileText className="w-4 h-4 text-orange-500 shrink-0" />;
-    if (["md", "txt"].includes(e)) return <FileText className="w-4 h-4 text-gray-500 shrink-0" />;
-    return <FileText className="w-4 h-4 text-brand shrink-0" />;
-  };
+  const getFileIcon = (ext?: string | null) => <FileTypeIcon extension={ext} size={20} />;
 
   // Get unique file extensions for the filter
   const availableExtensions = useMemo(() => {

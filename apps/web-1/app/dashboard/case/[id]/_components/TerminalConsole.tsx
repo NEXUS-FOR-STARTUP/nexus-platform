@@ -71,7 +71,7 @@ export default function TerminalConsole({ logs, isStreaming = false }: TerminalC
             Nhật ký Hoạt động Đánh giá
           </span>
           <span className="text-[11px] font-mono text-zinc-500">
-            · {logs.length} bản ghi
+            ({logs.length} bản ghi)
           </span>
         </div>
         <div className="flex items-center gap-2">

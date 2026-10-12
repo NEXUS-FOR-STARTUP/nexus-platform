@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button } from "@mantine/core";
+import RainbowBuyButton from "@/components/ui/RainbowBuyButton";
 import CreditBalanceCard from "./CreditBalanceCard";
 import CreditTransactionHistory from "./CreditTransactionHistory";
 import type { CreditBalances } from "@/lib/credit-balances";
@@ -48,14 +48,13 @@ export default function CreditPanel({
             </p>
           </div>
           {onBuyCredits && (
-            <Button
+            <RainbowBuyButton
               onClick={onBuyCredits}
-              color="brand"
               size="sm"
-              className="font-semibold shrink-0 cursor-pointer"
+              className="shrink-0"
             >
               Mua lượt đánh giá
-            </Button>
+            </RainbowBuyButton>
           )}
         </div>
       </div>

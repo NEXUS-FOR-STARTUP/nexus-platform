@@ -95,7 +95,11 @@ Quy tắc:
 
 ### Bước 4 — Viết báo cáo
 
-Ghi `output/report.md` theo định dạng của tệp hướng dẫn riêng và `output/report.json` theo mục 7.
+#### Quy tắc không về tay không
+
+- Dù đầu vào rỗng, sơ sài hay toàn câu trả lời vô nghĩa, vẫn phải ghi đủ cả 3 tệp: `output/cp2_evidence.json`, `output/report.md`, `output/report.json`. Không được kết thúc khi chưa ghi file.
+- Tiêu chí nào không có bằng chứng thì đánh `missing`, kèm note "Nhóm chưa cung cấp thông tin cho tiêu chí này" và đưa việc bổ sung vào `actionPlan`.
+- `report.md` khi thiếu bằng chứng vẫn viết đủ cấu trúc, mỗi phần nêu rõ đang thiếu gì và nhóm cần bổ sung gì, thay vì bỏ trống.
 
 ## 5. Nguyên tắc chuyên môn dùng khi đánh giá
 

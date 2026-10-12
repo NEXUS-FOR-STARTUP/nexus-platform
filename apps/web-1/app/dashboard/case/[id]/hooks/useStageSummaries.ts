@@ -8,6 +8,8 @@ export interface StageSummary {
   checkpoint_code: StageCode;
   status: StageStatus;
   answered_count: number;
+  answers_ready_full: boolean;
+  answers_ready_questionnaire: boolean;
   file_count: number;
   latest_report: { id: string; report_type: string; created_at: string } | null;
 }

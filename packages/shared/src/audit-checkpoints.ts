@@ -7,6 +7,13 @@
  * CP1 `scope` is the prompt mode (`full` | `lite`). Each prompt list is complete:
  * the last file is the submission-specific prompt the worker inlines for CP1.
  */
+export interface AuditCheckpointOutputs {
+  /** Files the agent MUST write; missing any = job failure. */
+  required: readonly string[];
+  /** Nice-to-have; synced when present, ignored when absent. */
+  optional: readonly string[];
+}
+
 export const AUDIT_CHECKPOINTS = {
   CP1: {
     serviceType: "cp1_audit",
@@ -38,6 +45,10 @@ export const AUDIT_CHECKPOINTS = {
         },
       },
     },
+    outputs: {
+      required: ["report.json", "input_clarification_audit.md"],
+      optional: ["triad_handoff_packet.md"],
+    },
   },
   CP2: {
     serviceType: "cp2_audit",
@@ -55,6 +66,10 @@ export const AUDIT_CHECKPOINTS = {
         },
         reportType: { initial: "cp2_full", resubmit: "cp2_full_resubmit" },
       },
+    },
+    outputs: {
+      required: ["report.json", "report.md", "cp2_evidence.json"],
+      optional: [],
     },
   },
 } as const;

@@ -99,6 +99,7 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
     outputDir,
     runCmd,
     args,
+    milestoneFiles: [...entry.outputs.required, ...entry.outputs.optional],
   });
 
   if (executionResult.error === "CANCELLED") {
@@ -124,32 +125,36 @@ export async function executeOmpJob(data: OmpJobPayload): Promise<AgentExecution
   const finishedAt = new Date().toISOString();
   const durationMs = Date.now() - startTime;
 
-  // Check and sync output files
-  const triadFile = findOutputFile(jobDir, outputDir, "triad_handoff_packet.md");
-  const auditFile =
-    findOutputFile(jobDir, outputDir, "input_clarification_audit.md") ||
-    findOutputFile(jobDir, outputDir, "report.md");
-  const jsonFile = findOutputFile(jobDir, outputDir, "report.json");
+  // Collect output files from the per-checkpoint contract (shared audit-checkpoints.ts).
+  const found: Record<string, string> = {};
+  for (const name of [...entry.outputs.required, ...entry.outputs.optional]) {
+    const p = findOutputFile(jobDir, outputDir, name);
+    if (p) found[name] = p;
+  }
+  syncOutputFiles(outputDir, Object.entries(found).map(([name, src]) => ({ src, name })));
 
-  syncOutputFiles(outputDir, [
-    { src: triadFile, name: "triad_handoff_packet.md" },
-    { src: auditFile, name: "input_clarification_audit.md" },
-    { src: jsonFile, name: "report.json" },
-  ]);
-
-  const triadPacketMarkdown = triadFile ? readFileSync(triadFile, "utf-8") : undefined;
-  let reportMarkdown = auditFile ? readFileSync(auditFile, "utf-8") : undefined;
+  const readFound = (name: string): string | undefined => {
+    const p = found[name];
+    return p ? readFileSync(p, "utf-8") : undefined;
+  };
+  const triadPacketMarkdown = checkpoint === "CP1" ? readFound("triad_handoff_packet.md") : undefined;
+  let reportMarkdown = checkpoint === "CP1" ? readFound("input_clarification_audit.md") : readFound("report.md");
   let reportJson: StartupReport | undefined = undefined;
 
-  if (jsonFile) {
+  const jsonRaw = readFound("report.json");
+  if (jsonRaw) {
     try {
-      reportJson = JSON.parse(readFileSync(jsonFile, "utf-8"));
+      reportJson = JSON.parse(jsonRaw);
     } catch (err) {
       logJob(jobId, `Cảnh báo: Parse report.json thất bại: ${err}`, caseId);
     }
   }
 
-  const isSuccess = executionResult.exitCode === 0 && (Boolean(reportMarkdown) || Boolean(reportJson));
+  const missingRequired = entry.outputs.required.filter((name) => !Object.hasOwn(found, name));
+  const isSuccess = executionResult.exitCode === 0 && missingRequired.length === 0;
+  if (!isSuccess && missingRequired.length > 0) {
+    logJob(jobId, `Thiếu tệp output bắt buộc (${checkpoint}): ${missingRequired.join(", ")}`, caseId);
+  }
   if (!isSuccess && !reportMarkdown) {
     reportMarkdown = `# BÁO CÁO THẨM ĐỊNH (OMP) - LỖI TIẾN TRÌNH\n\nOMP kết thúc với mã lỗi: ${executionResult.exitCode}\n\nChi tiết lỗi: ${executionResult.error || "Không sinh được tệp output/report.md"}\n\n### Log tiến trình:\n\`\`\`\n${executionResult.rawLogs}\n\`\`\``;
   }
