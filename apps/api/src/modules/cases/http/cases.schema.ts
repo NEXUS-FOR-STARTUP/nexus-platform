@@ -1,14 +1,30 @@
-import { Cp1IntakeSchema } from "@repo/validation";
+import { Cp1IntakeSchema, CreateProjectSchema } from "@repo/validation";
 
-export function validateCp1Intake(body: unknown): string[] {
+type ErrorCollectingSchema = {
+  safeParse: (body: unknown) =>
+    | { success: true; data: unknown }
+    | { success: false; error: { issues: { message: string }[] } };
+};
+
+function collectIssues(schema: ErrorCollectingSchema, body: unknown): string[] {
   if (!body) {
     return ["Dữ liệu trống"];
   }
 
-  const result = Cp1IntakeSchema.safeParse(body);
+  const result = schema.safeParse(body);
   if (result.success) {
     return [];
   }
 
   return result.error.issues.map((issue) => issue.message);
+}
+
+/** Full intake payload: `POST /cases/:id/intake`. */
+export function validateCp1Intake(body: unknown): string[] {
+  return collectIssues(Cp1IntakeSchema, body);
+}
+
+/** Project shell payload: `POST /cases`. */
+export function validateCreateProject(body: unknown): string[] {
+  return collectIssues(CreateProjectSchema, body);
 }

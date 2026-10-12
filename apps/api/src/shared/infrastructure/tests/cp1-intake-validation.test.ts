@@ -10,7 +10,7 @@ import {
   canonicalizeDocCategory,
   docCategoryLabel,
 } from "@repo/validation";
-import { validateCp1Intake } from "../../../modules/cases/http/cases.schema.js";
+import { validateCp1Intake, validateCreateProject } from "../../../modules/cases/http/cases.schema.js";
 import { completenessFromIntake } from "../../../modules/admin/application/list-admin-cases.usecase.js";
 
 const EMPTY = {};
@@ -60,14 +60,23 @@ const CASES: TestCase[] = [
     expectedErrors: ["Dữ liệu trống"],
   },
   {
-    name: "empty object",
+    name: "empty object — shell creation sends no intake fields",
     body: {},
-    expectedErrors: [
-      "Thiếu thông tin liên hệ",
-      "Cần mô tả ngắn điểm kẹt hiện tại của nhóm",
-      "Thư mục tài liệu là bắt buộc",
-      "Phải xác nhận đầy đủ ít nhất 3 cam kết ranh giới",
-    ],
+    expectedErrors: [],
+  },
+  {
+    name: "shell project form payload (team_context/school/course_context only)",
+    body: {
+      team_context: { project_name: "TEDI", group_no: "94" },
+      school: "Đại học FPT",
+      course_context: "EXE101",
+    },
+    expectedErrors: [],
+  },
+  {
+    name: "contact sent as a non-object",
+    body: { ...VALID_BODY, contact: "Nguyen Van A" },
+    expectedErrors: ["Thông tin liên hệ không hợp lệ"],
   },
 
   // --- 1. CONTACT ERRORS ---
@@ -122,11 +131,24 @@ const CASES: TestCase[] = [
     expectedErrors: ["Email liên hệ không hợp lệ"],
   },
 
-  // --- 2. CURRENT BLOCKER / LEGACY CONTEXT ---
+  // --- 2. CURRENT BLOCKER / LEGACY CONTEXT (optional since journey redesign) ---
   {
-    name: "current_blocker too short (5 chars), no legacy",
+    name: "current_blocker too short (5 chars) — accepted as free text",
     body: { ...VALID_BODY, current_blocker: "Short", case_summary: "", current_situations: [] },
-    expectedErrors: ["Cần mô tả ngắn điểm kẹt hiện tại của nhóm"],
+    expectedErrors: [],
+  },
+  {
+    name: "current_blocker empty — accepted when omitted",
+    body: { ...VALID_BODY, current_blocker: "" },
+    expectedErrors: [],
+  },
+  {
+    name: "current_blocker omitted, no legacy context",
+    body: (() => {
+      const { current_blocker: _cb, ...rest } = VALID_BODY;
+      return rest;
+    })(),
+    expectedErrors: [],
   },
   {
     name: "current_blocker empty, but legacy case_summary >= 20",
@@ -151,7 +173,7 @@ const CASES: TestCase[] = [
       case_summary: "",
       current_situations: ["", "", ""],
     },
-    expectedErrors: ["Cần mô tả ngắn điểm kẹt hiện tại của nhóm"],
+    expectedErrors: [],
   },
   {
     name: "current_blocker empty, current_situations falsy items only (no legacy)",
@@ -161,7 +183,7 @@ const CASES: TestCase[] = [
       case_summary: "",
       current_situations: [null, undefined, 123],
     },
-    expectedErrors: ["Cần mô tả ngắn điểm kẹt hiện tại của nhóm"],
+    expectedErrors: [],
   },
 
   // --- 3. SUPPORT NEEDS ---
@@ -201,16 +223,19 @@ const CASES: TestCase[] = [
     expectedErrors: [],
   },
 
-  // --- 4. DOCUMENTS ---
+  // --- 4. DOCUMENTS (optional) ---
   {
-    name: "documents: empty array",
+    name: "documents: empty array — accepted, nothing to check",
     body: { ...VALID_BODY, documents: [] },
-    expectedErrors: ["Thư mục tài liệu là bắt buộc"],
+    expectedErrors: [],
   },
   {
-    name: "documents: not an array",
-    body: { ...VALID_BODY, documents: "not_array" },
-    expectedErrors: ["Thư mục tài liệu là bắt buộc"],
+    name: "documents: omitted entirely",
+    body: (() => {
+      const { documents: _d, ...rest } = VALID_BODY;
+      return rest;
+    })(),
+    expectedErrors: [],
   },
   {
     name: "documents: missing file_url AND drive_url",
@@ -237,21 +262,39 @@ const CASES: TestCase[] = [
     expectedErrors: ["Vui lòng chọn ít nhất một loại tài liệu có trong thư mục"],
   },
 
-  // --- 5. BOUNDARY CONFIRMATIONS ---
+  // --- 5. BOUNDARY CONFIRMATIONS (optional, validated when sent) ---
   {
-    name: "boundary_confirmations: only 1 item",
+    name: "boundary_confirmations: only 1 item (accepted)",
     body: { ...VALID_BODY, boundary_confirmations: ["cam_ket_1"] },
-    expectedErrors: ["Phải xác nhận đầy đủ ít nhất 3 cam kết ranh giới"],
+    expectedErrors: [],
   },
   {
-    name: "boundary_confirmations: exactly 2",
-    body: { ...VALID_BODY, boundary_confirmations: ["ck1", "ck2"] },
-    expectedErrors: ["Phải xác nhận đầy đủ ít nhất 3 cam kết ranh giới"],
+    name: "boundary_confirmations: single checkbox true (accepted)",
+    body: { ...VALID_BODY, boundary_confirmations: true },
+    expectedErrors: [],
+  },
+  {
+    name: "boundary_confirmations: omitted",
+    body: (() => {
+      const { boundary_confirmations: _bc, ...rest } = VALID_BODY;
+      return rest;
+    })(),
+    expectedErrors: [],
+  },
+  {
+    name: "boundary_confirmations: explicitly false",
+    body: { ...VALID_BODY, boundary_confirmations: false },
+    expectedErrors: ["Vui lòng xác nhận đồng ý với điều khoản dịch vụ"],
+  },
+  {
+    name: "boundary_confirmations: empty array",
+    body: { ...VALID_BODY, boundary_confirmations: [] },
+    expectedErrors: ["Vui lòng xác nhận đồng ý với điều khoản dịch vụ"],
   },
   {
     name: "boundary_confirmations: not an array",
     body: { ...VALID_BODY, boundary_confirmations: "not_array" },
-    expectedErrors: ["Phải xác nhận đầy đủ ít nhất 3 cam kết ranh giới"],
+    expectedErrors: ["Vui lòng xác nhận đồng ý với điều khoản dịch vụ"],
   },
 
   // --- 6. VALID BODY ---
@@ -285,18 +328,87 @@ const CASES: TestCase[] = [
       "Vai trò trong nhóm không hợp lệ",
       "Số điện thoại Zalo không hợp lệ (phải bao gồm chính xác 10 chữ số)",
       "Email liên hệ không hợp lệ",
-      "Cần mô tả ngắn điểm kẹt hiện tại của nhóm",
       "Nhu cầu hỗ trợ chính nếu có phải từ 5 ký tự trở lên",
-      "Thư mục tài liệu là bắt buộc",
-      "Phải xác nhận đầy đủ ít nhất 3 cam kết ranh giới",
+      "Vui lòng xác nhận đồng ý với điều khoản dịch vụ",
     ],
   },
 ];
 
-test("Cp1Intake validation snapshot — old imperative validator", async (t) => {
+test("Cp1IntakeSchema — optional intake fields, validated only when sent", async (t) => {
   for (const c of CASES) {
     await t.test(c.name, () => {
       const actual = validateCp1Intake(c.body);
+      assert.deepStrictEqual(actual, c.expectedErrors);
+    });
+  }
+});
+
+const SHELL_BODY = {
+  team_context: { project_name: "TEDI", group_no: "94" },
+  school: "Đại học FPT",
+  course_context: "EXE101",
+};
+
+const CREATE_PROJECT_CASES: TestCase[] = [
+  {
+    name: "short form payload (name + school + course + group)",
+    body: SHELL_BODY,
+    expectedErrors: [],
+  },
+  {
+    name: "non-FPT school stores 'Khác' for course and group",
+    body: {
+      team_context: { project_name: "TEDI", group_no: "Khác" },
+      school: "Khác",
+      course_context: "Khác",
+    },
+    expectedErrors: [],
+  },
+  {
+    name: "full intake payload still accepted",
+    body: { ...VALID_BODY, team_context: { project_name: "Demo project" } },
+    expectedErrors: [],
+  },
+  {
+    name: "missing project name",
+    body: { school: "Đại học FPT" },
+    expectedErrors: ["Vui lòng nhập tên dự án"],
+  },
+  {
+    name: "blank project name",
+    body: { team_context: { project_name: "   " } },
+    expectedErrors: ["Vui lòng nhập tên dự án"],
+  },
+  {
+    name: "empty object has no project name",
+    body: {},
+    expectedErrors: ["Vui lòng nhập tên dự án"],
+  },
+  {
+    name: "present-but-malformed contact is still rejected",
+    body: {
+      ...SHELL_BODY,
+      contact: { full_name: "Nguyen Van A", student_code: "SE12345", team_role: "Leader", zalo: "0912345678", email: "invalid" },
+    },
+    expectedErrors: ["Email liên hệ không hợp lệ"],
+  },
+  {
+    name: "caps still enforced on creation",
+    body: {
+      ...SHELL_BODY,
+      documents: Array.from({ length: CP1_MAX_DOCUMENTS + 1 }, (_, i) => ({
+        file_url: `https://example.com/doc-${i}.pdf`,
+        document_type: "business_plan",
+      })),
+    },
+    expectedErrors: [`Thư mục tài liệu không được vượt quá ${CP1_MAX_DOCUMENTS} tài liệu`],
+  },
+];
+
+test("CreateProjectSchema — shell creation needs only the project name", async (t) => {
+  for (const c of CREATE_PROJECT_CASES) {
+    await t.test(c.name, () => {
+      const actual = validateCreateProject(c.body);
       assert.deepStrictEqual(actual, c.expectedErrors);
     });
   }

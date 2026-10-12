@@ -1,6 +1,6 @@
 import { AppError } from "../../../shared/domain/app-error.js";
 import { asNonEmptyString } from "../../../shared/infrastructure/http-helpers.js";
-import { validateCp1Intake } from "../http/cases.schema.js";
+import { validateCreateProject } from "../http/cases.schema.js";
 import { validateDocumentWriteInputs } from "../../documents/application/validate-document-write.js";
 import { isValidPrice } from "../domain/case.types.js";
 import {
@@ -52,7 +52,7 @@ export async function createCaseUseCase(
   };
 
   const normalizedBody = normalizeCreateCaseBody(body);
-  const validationErrors = validateCp1Intake(normalizedBody);
+  const validationErrors = validateCreateProject(normalizedBody);
   if (validationErrors.length > 0) {
     throw new AppError(400, "VALIDATION_ERROR", "Dữ liệu không hợp lệ", validationErrors);
   }

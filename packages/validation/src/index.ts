@@ -425,45 +425,74 @@ export const Cp1IntakeSchema = z.object({
   documents: z.unknown().optional(),
   boundary_confirmations: z.unknown().optional(),
 }).passthrough().superRefine((data, ctx) => {
+  addCp1IntakeShapeIssues(data, ctx);
+});
+
+/**
+ * POST /cases — project shell creation from the short "Tạo dự án" form.
+ *
+ * Same optional intake fields as `Cp1IntakeSchema` (the profile form fills them
+ * later, so a missing contact/document is normal) plus the one field the short
+ * form always has: the project name.
+ */
+export const CreateProjectSchema = z.object({
+  contact: z.unknown().optional(),
+  current_blocker: z.unknown().optional(),
+  case_summary: z.unknown().optional(),
+  current_situations: z.unknown().optional(),
+  support_needs: z.unknown().optional(),
+  documents: z.unknown().optional(),
+  boundary_confirmations: z.unknown().optional(),
+  team_context: z.unknown().optional(),
+}).passthrough().superRefine((data, ctx) => {
+  addCp1IntakeShapeIssues(data, ctx);
+
+  const teamContext = data.team_context;
+  const projectName = teamContext && typeof teamContext === 'object'
+    ? (teamContext as Record<string, unknown>).project_name
+    : undefined;
+  if (typeof projectName !== 'string' || projectName.trim().length === 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Vui lòng nhập tên dự án", path: ["team_context", "project_name"] });
+  }
+});
+
+export type CreateProject = z.infer<typeof CreateProjectSchema>;
+
+/**
+ * Field checks shared by the intake payloads: length caps, plus shape checks for
+ * whatever the caller actually sent. Every field is optional — a case is created
+ * from the short project form and the profile form fills the rest later, so an
+ * absent field is normal and only present values are validated.
+ */
+function addCp1IntakeShapeIssues(data: Record<string, unknown>, ctx: z.RefinementCtx) {
   addCp1CapIssues(data, ctx);
 
   // 1. Contact validation
   const contact = data.contact;
-  if (!contact || typeof contact !== 'object') {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Thiếu thông tin liên hệ", path: ["contact"] });
-  } else {
-    const c = contact as Record<string, unknown>;
-    if (typeof c.full_name !== 'string' || c.full_name.trim().length < 2) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Họ tên người liên hệ không hợp lệ (tối thiểu 2 ký tự)", path: ["contact", "full_name"] });
-    }
-    if (typeof c.student_code !== 'string' || c.student_code.trim().length < 5) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Mã số sinh viên không hợp lệ (tối thiểu 5 ký tự)", path: ["contact", "student_code"] });
-    }
-    if (typeof c.team_role !== 'string' || c.team_role.trim().length < 2) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Vai trò trong nhóm không hợp lệ", path: ["contact", "team_role"] });
-    }
-    if (typeof c.zalo !== 'string' || !/^\d{10}$/.test(c.zalo.trim())) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Số điện thoại Zalo không hợp lệ (phải bao gồm chính xác 10 chữ số)", path: ["contact", "zalo"] });
-    }
-    if (typeof c.email !== 'string' || !c.email.includes("@")) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Email liên hệ không hợp lệ", path: ["contact", "email"] });
+  if (contact !== undefined && contact !== null) {
+    if (typeof contact !== 'object') {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Thông tin liên hệ không hợp lệ", path: ["contact"] });
+    } else {
+      const c = contact as Record<string, unknown>;
+      if (typeof c.full_name !== 'string' || c.full_name.trim().length < 2) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Họ tên người liên hệ không hợp lệ (tối thiểu 2 ký tự)", path: ["contact", "full_name"] });
+      }
+      if (typeof c.student_code !== 'string' || c.student_code.trim().length < 5) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Mã số sinh viên không hợp lệ (tối thiểu 5 ký tự)", path: ["contact", "student_code"] });
+      }
+      if (typeof c.team_role !== 'string' || c.team_role.trim().length < 2) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Vai trò trong nhóm không hợp lệ", path: ["contact", "team_role"] });
+      }
+      if (typeof c.zalo !== 'string' || !/^\d{10}$/.test(c.zalo.trim())) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Số điện thoại Zalo không hợp lệ (phải bao gồm chính xác 10 chữ số)", path: ["contact", "zalo"] });
+      }
+      if (typeof c.email !== 'string' || !c.email.includes("@")) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Email liên hệ không hợp lệ", path: ["contact", "email"] });
+      }
     }
   }
 
-  // 2. Current blocker / legacy context
-  const blocker = typeof data.current_blocker === 'string' ? data.current_blocker.trim() : '';
-  const summary = typeof data.case_summary === 'string' ? data.case_summary.trim() : '';
-  const situations = Array.isArray(data.current_situations) ? data.current_situations : [];
-
-  const hasBlocker = blocker.length >= 10;
-  const hasLegacy = summary.length >= 20
-    || situations.some((item: unknown) => typeof item === 'string' && item.trim().length >= 1);
-
-  if (!hasBlocker && !hasLegacy) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Cần mô tả ngắn điểm kẹt hiện tại của nhóm", path: ["current_blocker"] });
-  }
-
-  // 3. Support needs validation (tùy chọn, không bắt buộc)
+  // 2. Support needs validation (tùy chọn, không bắt buộc)
   const supportNeeds = data.support_needs;
   if (supportNeeds && typeof supportNeeds === 'object') {
     const primaryNeed = (supportNeeds as Record<string, unknown>).primary_need;
@@ -476,11 +505,9 @@ export const Cp1IntakeSchema = z.object({
     }
   }
 
-  // 4. Documents validation
+  // 3. Documents validation — only when documents are actually provided.
   const documents = data.documents;
-  if (!Array.isArray(documents) || documents.length === 0) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Thư mục tài liệu là bắt buộc", path: ["documents"] });
-  } else {
+  if (Array.isArray(documents) && documents.length > 0) {
     const doc = documents[0];
     if (doc && typeof doc === 'object') {
       const d = doc as Record<string, unknown>;
@@ -495,16 +522,18 @@ export const Cp1IntakeSchema = z.object({
     }
   }
 
-  // 5. Boundary confirmations
-  // 5. Boundary confirmations: either array of >=3 strings (legacy) or boolean true / non-empty array
+  // 4. Boundary confirmations — only when the caller sends the agreement at all.
+  // An explicit disagreement (`false`, empty array, bogus value) is still rejected.
   const boundaryConfirmations = data.boundary_confirmations;
-  const isConfirmed =
-    boundaryConfirmations === true ||
-    (Array.isArray(boundaryConfirmations) && boundaryConfirmations.length >= 1);
-  if (!isConfirmed) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Vui lòng xác nhận đồng ý với điều khoản dịch vụ", path: ["boundary_confirmations"] });
+  if (boundaryConfirmations !== undefined && boundaryConfirmations !== null) {
+    const isConfirmed =
+      boundaryConfirmations === true ||
+      (Array.isArray(boundaryConfirmations) && boundaryConfirmations.length >= 1);
+    if (!isConfirmed) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Vui lòng xác nhận đồng ý với điều khoản dịch vụ", path: ["boundary_confirmations"] });
+    }
   }
-});
+}
 
 export type Cp1Intake = z.infer<typeof Cp1IntakeSchema>;
 
