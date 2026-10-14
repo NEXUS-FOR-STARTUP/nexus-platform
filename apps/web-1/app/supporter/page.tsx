@@ -97,7 +97,7 @@ export default function SupporterDashboard() {
                 Không có hồ sơ nào được phân công
               </h4>
               <p className="font-body text-xs text-text-muted leading-relaxed">
-                Không có hồ sơ cần phản biện — tất cả đã được xử lý hoặc chưa có phân công mới.
+                Không có hồ sơ cần phản biện - tất cả đã được xử lý hoặc chưa có phân công mới.
               </p>
             </div>
           </div>

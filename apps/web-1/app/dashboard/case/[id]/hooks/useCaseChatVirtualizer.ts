@@ -76,7 +76,7 @@ export function useCaseChatVirtualizer(
 
   // Scroll xuống cuối khi tin cuối thay đổi hoặc khi khởi tạo
   const lastMessageIdRef = useRef<string | undefined>(undefined);
-  // Chặn preload trang cũ cho tới khi scroll-to-bottom khởi tạo xong — nếu không,
+  // Chặn preload trang cũ cho tới khi scroll-to-bottom khởi tạo xong - nếu không,
   // anchor restore sau prepend sẽ ghim scroll giữa danh sách khi vào tab chat.
   const initialScrollDoneRef = useRef(false);
   useEffect(() => {
@@ -109,7 +109,7 @@ export function useCaseChatVirtualizer(
 
   // Khi viewport chạm gần đầu danh sách → fetch trang cũ hơn + ghi lại anchor scroll.
   // restorePending chặn re-fetch khi virtualizer.range còn stale (startIndex ≤ 5) trong
-  // commit vừa prepend — nếu không sẽ cascade load hết mọi trang.
+  // commit vừa prepend - nếu không sẽ cascade load hết mọi trang.
   const anchorRef = useRef<{ messageId: string; offset: number } | null>(null);
   const restorePendingRef = useRef(false);
   useEffect(() => {

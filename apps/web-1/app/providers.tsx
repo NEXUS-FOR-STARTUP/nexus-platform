@@ -3,7 +3,7 @@
 import * as React from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-// Devtools — disabled on prod
+// Devtools - disabled on prod
 // import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 // import { TanStackDevtools } from "@tanstack/react-devtools";
 // import { formDevtoolsPlugin } from "@tanstack/react-form-devtools";
@@ -61,7 +61,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           {children}
         </MantineProvider>
       </NextThemesProvider>
-      {/* Devtools — chỉ bật khi dev
+      {/* Devtools - chỉ bật khi dev
       <ReactQueryDevtools initialIsOpen={false} />
       <TanStackDevtools plugins={[formDevtoolsPlugin()]} />
       */}

@@ -96,7 +96,7 @@ export default function GuidedTOC({
                       {!isUnlocked ? (
                         <Lock className="w-3.5 h-3.5 shrink-0 text-text-muted" />
                       ) : isThin ? (
-                        <span title="Câu trả lời còn ngắn — bấm để viết thêm" className="shrink-0">
+                        <span title="Câu trả lời còn ngắn - bấm để viết thêm" className="shrink-0">
                           <CircleAlert className="w-3.5 h-3.5 text-amber-500" />
                         </span>
                       ) : hasAnswer ? (

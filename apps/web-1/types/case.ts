@@ -20,8 +20,8 @@ export interface Case {
   payment_status: "unpaid" | "pending_verification" | "paid" | "rejected" | string;
   credit_balances?: CreditBalances;     // theo dịch vụ, derived from CreditLedger
   credit_ledger?: CreditLedger[];
-  sla_deadline_at?: string | null;      // NEW — from case.sla_deadline_at
-  allowed_transitions?: string[];       // NEW — valid XState transitions
+  sla_deadline_at?: string | null;      // NEW - from case.sla_deadline_at
+  allowed_transitions?: string[];       // NEW - valid XState transitions
   deadline?: string | null;
   created_at: string;
   updated_at: string;
@@ -234,10 +234,10 @@ export interface StatusThemeDetails {
 }
 
 export const statusThemeMap: Record<string, StatusThemeDetails> = {
-  intake_pending: { label: "Chờ kích hoạt — Mua credit đánh giá chuyên sâu", color: "primary" },
-  intake_ready: { label: "Sẵn sàng — Cập nhật thông tin hồ sơ", color: "primary" },
+  intake_pending: { label: "Chờ kích hoạt - Mua credit đánh giá chuyên sâu", color: "primary" },
+  intake_ready: { label: "Sẵn sàng - Cập nhật thông tin hồ sơ", color: "primary" },
   submitted: {
-    label: "Hồ sơ đã gửi — chờ xét duyệt",
+    label: "Hồ sơ đã gửi - chờ xét duyệt",
     color: "primary",
   },
   need_more_information: {
@@ -352,14 +352,14 @@ export const paymentStatusThemeMap: Record<string, StatusThemeDetails> = {
 };
 
 export const studentStatusThemeMap: Record<string, StatusThemeDetails> = {
-  intake_pending: { label: "Chưa kích hoạt — Cần mua lượt đánh giá", color: "primary" },
+  intake_pending: { label: "Chưa kích hoạt - Cần mua lượt đánh giá", color: "primary" },
   intake_ready: { label: "Sẵn sàng đánh giá", color: "primary" },
   submitted: { label: "Đang chuẩn bị đánh giá", color: "primary" },
   need_more_information: { label: "Cần bổ sung tài liệu", color: "warning" },
   under_review: { label: "Đang đánh giá", color: "primary" },
   report_ready: { label: "Báo cáo đã sẵn sàng", color: "success" },
   waiting_for_revision: { label: "Đang chờ tài liệu chỉnh sửa", color: "warning" },
-  revision_submitted: { label: "Đã tải lên phiên bản mới — Sẵn sàng đánh giá lại", color: "primary" },
+  revision_submitted: { label: "Đã tải lên phiên bản mới - Sẵn sàng đánh giá lại", color: "primary" },
   completed: { label: "Đã hoàn tất đánh giá", color: "success" },
   rejected: { label: "Yêu cầu chưa được duyệt", color: "danger" },
   closed: { label: "Đã đóng", color: "default" },

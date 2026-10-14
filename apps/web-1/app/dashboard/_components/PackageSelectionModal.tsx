@@ -48,7 +48,7 @@ export function PackageSelectionModal({ opened, onClose, onSelectPackage }: Pack
                 Đánh giá Dự án Tự động
               </h4>
               <div className="flex items-baseline gap-1.5 mb-3">
-                <span className="text-2xl font-heading font-bold text-text-app">79.000đ</span>
+                <span className="text-2xl font-heading font-bold text-text-app">79,000 VND</span>
                 <span className="font-body text-text-muted text-sm">/ Gói 2 lượt đánh giá</span>
               </div>
               <Text size="sm" c="dimmed" className="font-body mb-4 min-h-[40px]">

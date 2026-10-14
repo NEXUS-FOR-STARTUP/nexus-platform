@@ -92,7 +92,7 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // UPDATE: wait for API snapshot then reset — defaultValues only apply on first mount
+    // UPDATE: wait for API snapshot then reset - defaultValues only apply on first mount
     if (caseId) {
       if (!initialData || didHydrateRef.current) return;
       didHydrateRef.current = true;

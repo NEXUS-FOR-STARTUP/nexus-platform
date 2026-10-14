@@ -14,7 +14,7 @@ const faqItems: Array<{ question: string; answer: ReactNode }> = [
     answer: "Không. Nexus là hệ thống phản biện hỗ trợ hoàn thiện tài liệu dự án trước khi trình bày. Kết quả bảo vệ thực tế phụ thuộc vào việc triển khai và năng lực thuyết trình của nhóm.",
   },
   {
-    question: "Gói 79.000đ bao gồm những gì và được sử dụng như thế nào?",
+    question: "Gói 79,000 VND bao gồm những gì và được sử dụng như thế nào?",
     answer: "Mỗi gói cung cấp 2 lượt đánh giá cho dự án. Lượt 1 giúp nhóm phát hiện các điểm thiếu logic và lỗ hổng ban đầu. Sau khi chỉnh sửa tài liệu, nhóm sử dụng lượt 2 để đánh giá lại phiên bản mới xem đã khắc phục triệt để chưa.",
   },
   {

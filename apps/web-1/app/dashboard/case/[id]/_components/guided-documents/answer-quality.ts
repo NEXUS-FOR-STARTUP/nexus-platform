@@ -6,7 +6,7 @@ export function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
-/** Has content but too thin to grade on — the same bar GuidedQuestionCard warns about. */
+/** Has content but too thin to grade on - the same bar GuidedQuestionCard warns about. */
 export function isThinAnswer(questionId: string, raw: string | undefined): boolean {
   if (!questionId.startsWith(THIN_WARNING_PREFIX)) return false;
   const words = countWords(raw ?? "");

@@ -18,7 +18,7 @@ export default function Cp2AuditActions({ caseId, readiness }: Cp2AuditActionsPr
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-xs font-medium text-text-app">Chấm điểm CP2 · còn {creditsLeft} lượt</p>
+      <p className="text-xs font-medium text-text-app">Chấm điểm vòng Thị trường · còn {creditsLeft} lượt</p>
 
       <p className="text-xs text-text-muted">Xóa cột email, số điện thoại, họ tên người trả lời trước khi tải lên</p>
 

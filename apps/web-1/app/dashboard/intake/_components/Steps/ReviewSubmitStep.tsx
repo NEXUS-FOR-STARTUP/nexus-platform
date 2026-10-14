@@ -175,7 +175,7 @@ export default function ReviewSubmitStep({
               {selectedPackage
                 ? `${selectedPackage.name} (${formatPrice(selectedPackage.price)})`
                 : (isAiOnly
-                  ? "Gói Đánh giá Dự án Tự động (79.000đ / 2 lượt)"
+                  ? "Gói Đánh giá Dự án Tự động (79,000 VND / 2 lượt)"
                   : "Gói phản biện tiêu chuẩn")}
             </div>
 

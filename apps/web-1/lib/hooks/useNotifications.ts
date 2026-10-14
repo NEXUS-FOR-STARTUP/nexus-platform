@@ -25,23 +25,23 @@ export function useNotifications() {
       const res = await apiClient.get("/notifications/unread-count");
       return res.data.count as number;
     },
-    refetchInterval: 60_000, // polling phụ — SSE mất vẫn cập nhật
+    refetchInterval: 60_000, // polling phụ - SSE mất vẫn cập nhật
     refetchOnWindowFocus: false,
   });
 
-  // SSE — ping → refetch cả 2
+  // SSE - ping → refetch cả 2
   useEffect(() => {
     const es = new EventSource(SSE_URL, { withCredentials: true });
     const refresh = () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      // M1 fix (review): v5 exact matching — invalidate cả unread-count, không chỉ list
+      // M1 fix (review): v5 exact matching - invalidate cả unread-count, không chỉ list
       queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
     };
-    // SSE — named event `ping` = notification mới → refetch cả 2
+    // SSE - named event `ping` = notification mới → refetch cả 2
     // (onmessage chỉ nhận unnamed events = heartbeat "hb")
     es.addEventListener("ping", refresh);
     es.onmessage = (e) => {
-      if (e.data === "hb") return; // heartbeat — ignore
+      if (e.data === "hb") return; // heartbeat - ignore
       refresh();
     };
     es.onerror = () => {

@@ -76,13 +76,13 @@
   --app-text-xs: 0.8125rem;
   --app-text-sm: 0.875rem;
 
-  /* Brand — Sapphire Blue */
+  /* Brand - Sapphire Blue */
   --color-brand: #2563EB;
   --color-brand-hover: #1D4ED8;
   --color-brand-soft: #DBEAFE;
   --color-brand-subtle: #EFF6FF;
 
-  /* Warm Accent — Orange */
+  /* Warm Accent - Orange */
   --color-accent-warm: #F97316;
   --color-accent-warm-hover: #EA580C;
   --color-accent-warm-soft: #FFEDD5;
@@ -148,7 +148,7 @@
   --color-brand-soft: rgba(59, 130, 246, 0.16);
   --color-brand-subtle: rgba(59, 130, 246, 0.08);
 
-  /* Paid Audit CTA card — dark variant */
+  /* Paid Audit CTA card - dark variant */
   --audit-cta-bg: rgba(13, 148, 136, 0.15);
   --audit-cta-border: #0f766e;
   --audit-cta-title: #5eead4;

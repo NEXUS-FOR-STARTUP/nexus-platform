@@ -13,10 +13,10 @@ export const NEXUS_PRESET: TeamFitPreset = {
     targetCustomer:
       "nhóm sinh viên khởi nghiệp cần hoàn thiện tài liệu đề án để chuẩn bị thuyết trình",
     problem:
-      "không biết lỗi logic của ý tưởng nằm ở đâu và không biết sửa phần nào trước — các công cụ chung chung, bạn bè thiếu góc nhìn phản biện, giảng viên quá bận",
+      "không biết lỗi logic của ý tưởng nằm ở đâu và không biết sửa phần nào trước - các công cụ chung chung, bạn bè thiếu góc nhìn phản biện, giảng viên quá bận",
     solution:
       "dịch vụ đánh giá dự án có cấu trúc: nhận tài liệu, chỉ ra lỗi logic và thứ tự ưu tiên sửa, đánh giá lại sau mỗi lần nhóm chỉnh sửa",
-    mvp: "Quy trình thử nghiệm đánh giá ý tưởng — đã thử nghiệm với các nhóm dự án sinh viên",
+    mvp: "Quy trình thử nghiệm đánh giá ý tưởng - đã thử nghiệm với các nhóm dự án sinh viên",
   },
   members: [
     {
@@ -116,7 +116,7 @@ export const FARM2DORM_PRESET: TeamFitPreset = {
       "rau củ mua ở chợ xa campus, siêu thị đắt đỏ, không rõ nguồn gốc, phí giao hàng lẻ đắt hơn tiền rau",
     solution:
       "mô hình gom đơn nông sản sạch trực tiếp từ nông dân Đà Lạt theo từng tòa nhà KTX để tối ưu hóa phí vận chuyển",
-    mvp: "Xe gom đơn theo tòa KTX (chốt đơn qua Zalo Group + Google Form) — đã bán thử 200kg rau củ cho sinh viên KTX",
+    mvp: "Xe gom đơn theo tòa KTX (chốt đơn qua Zalo Group + Google Form) - đã bán thử 200kg rau củ cho sinh viên KTX",
   },
   members: [
     {
@@ -194,7 +194,7 @@ export const REWEAR_PRESET: TeamFitPreset = {
       "quần áo cũ còn mới bị bỏ phí trong tủ, mua đồ hiệu mới đắt đỏ, chưa có nền tảng ký gửi thời trang uy tín cho sinh viên",
     solution:
       "dịch vụ nhận ký gửi, kiểm định chất lượng 5 bước và phân phối đồ secondhand chất lượng cao dành riêng cho sinh viên",
-    mvp: "Fanpage ký gửi online + điểm nhận đồ tại phòng trọ — đã kiểm định và bán thành công 90/150 sản phẩm ký gửi",
+    mvp: "Fanpage ký gửi online + điểm nhận đồ tại phòng trọ - đã kiểm định và bán thành công 90/150 sản phẩm ký gửi",
   },
   members: [
     {
@@ -262,7 +262,7 @@ export const PAWPAL_PRESET: TeamFitPreset = {
       "KTX cấm nuôi thú cưng, sinh viên bận học/về quê không ai trông, khách sạn thú cưng truyền thống quá đắt đỏ",
     solution:
       "nền tảng kết nối người nuôi thú cưng với cộng tác viên sinh viên yêu động vật để trông giữ theo giờ với chi phí hợp lý",
-    mvp: "Dịch vụ trông pet tại nhà CTV — đã phục vụ 12 khách hàng thường xuyên, doanh thu 4 triệu/tháng",
+    mvp: "Dịch vụ trông pet tại nhà CTV - đã phục vụ 12 khách hàng thường xuyên, doanh thu 4 triệu/tháng",
   },
   members: [
     {
@@ -331,7 +331,7 @@ export const SMASHBOOK_PRESET: TeamFitPreset = {
       "sân cầu lông giờ cao điểm luôn kín lịch, sinh viên đi chơi lẻ khó tìm đủ người ghép sân, chủ sân trống giờ trưa",
     solution:
       "nền tảng đặt sân cầu lông theo thời gian thực tích hợp tính năng ghép đội lẻ và ưu đãi khung giờ vắng",
-    mvp: "Web app đặt sân thời gian thực — đã kết nối 4 chủ sân cầu lông, 300 user đăng ký và 80 booking/tháng",
+    mvp: "Web app đặt sân thời gian thực - đã kết nối 4 chủ sân cầu lông, 300 user đăng ký và 80 booking/tháng",
   },
   members: [
     {
@@ -412,7 +412,7 @@ export const LEANTEA_PRESET: TeamFitPreset = {
       "trà sữa truyền thống chứa quá nhiều đường và calo rỗng, trong khi đồ uống healthy cao cấp lại quá đắt đỏ",
     solution:
       "dòng trà sữa healthy sử dụng đường ăn kiêng, sữa hạt và topping yến mạch với mức giá hợp lý cho sinh viên",
-    mvp: "Xe đẩy trà sữa healthy trước cổng trường — vận hành 3 tháng, bán trung bình 80 ly/ngày với 200 khách quen",
+    mvp: "Xe đẩy trà sữa healthy trước cổng trường - vận hành 3 tháng, bán trung bình 80 ly/ngày với 200 khách quen",
   },
   members: [
     {
@@ -475,7 +475,7 @@ export const MENTORMAP_PRESET: TeamFitPreset = {
       "sinh viên năm nhất dễ rớt môn đại cương, trung tâm gia sư ngoài quá đắt, học cùng bạn bè thiếu định hướng",
     solution:
       "nền tảng kết nối 1-1 giữa sinh viên năm nhất và anh chị khóa trên điểm A/A+ để kèm học theo buổi",
-    mvp: "Hệ thống kết nối mentor 1-1 online — đã thu hút 40 mentor khóa trên và tổ chức các buổi kèm thử nghiệm",
+    mvp: "Hệ thống kết nối mentor 1-1 online - đã thu hút 40 mentor khóa trên và tổ chức các buổi kèm thử nghiệm",
   },
   members: [
     {
@@ -550,7 +550,7 @@ export const SHARENEST_PRESET: TeamFitPreset = {
       "ở ghép với người lạ dễ phát sinh mâu thuẫn thói quen (giờ giấc, vệ sinh, tài chính), rủi ro quỵt tiền nhà",
     solution:
       "nền tảng ghép phòng trọ thông qua thuật toán đánh giá mức độ tương thích thói quen và hợp đồng mẫu",
-    mvp: "Hệ thống ghép phòng qua test thói quen (Google Form + Matching sheet) — đã ghép thành công 15 phòng trọ",
+    mvp: "Hệ thống ghép phòng qua test thói quen (Google Form + Matching sheet) - đã ghép thành công 15 phòng trọ",
   },
   members: [
     {
@@ -613,7 +613,7 @@ export const CHARGECAMPUS_PRESET: TeamFitPreset = {
       "số lượng xe máy điện tăng nhanh nhưng campus thiếu trạm sạc an toàn, nguy cơ cháy nổ từ ổ cắm tự phát",
     solution:
       "mạng lưới trạm sạc xe máy điện thông minh đặt tại bãi xe trường, quản lý và thanh toán qua QR code",
-    mvp: "2 trụ sạc thử nghiệm tại bãi xe campus — phục vụ trung bình 30 lượt sạc/ngày với sự cho phép của nhà trường",
+    mvp: "2 trụ sạc thử nghiệm tại bãi xe campus - phục vụ trung bình 30 lượt sạc/ngày với sự cho phép của nhà trường",
   },
   members: [
     {
@@ -698,7 +698,7 @@ export const MINDNOTE_PRESET: TeamFitPreset = {
       "sinh viên ngại đi khám tâm lý vì chi phí đắt và rào cản tâm lý, thiếu công cụ theo dõi cảm xúc hàng ngày",
     solution:
       "ứng dụng nhật ký tâm trạng thông minh kết hợp trợ lý AI lắng nghe và các bài tập giải tỏa căng thẳng",
-    mvp: "App nhật ký di động trên App Store / Google Play — đạt 500 lượt tải và 60 người dùng hoạt động hàng tuần",
+    mvp: "App nhật ký di động trên App Store / Google Play - đạt 500 lượt tải và 60 người dùng hoạt động hàng tuần",
   },
   members: [
     {
@@ -775,7 +775,7 @@ export const CRAFTUNI_PRESET: TeamFitPreset = {
       "sinh viên tự làm đồ handmade khó tiếp cận khách hàng lớn, hình ảnh tự chụp kém thu hút, phí ship lẻ cao",
     solution:
       "sàn thương mại điện tử tập trung cho sản phẩm handmade sinh viên hỗ trợ chụp ảnh studio và gom đơn giao hàng",
-    mvp: "Chợ handmade online + 2 đợt hội chợ offline — quy tụ 25 gian hàng sinh viên với GMV 15 triệu/tháng",
+    mvp: "Chợ handmade online + 2 đợt hội chợ offline - quy tụ 25 gian hàng sinh viên với GMV 15 triệu/tháng",
   },
   members: [
     {
@@ -880,7 +880,7 @@ export const EXCELGUIDE_PRESET: TeamFitPreset = {
       ],
       experience: [
         "Phụ trách tài chính ExcelGuide",
-        "dựng mô hình Free 0đ - Pro 99K - Team 299K/5 người",
+        "dựng mô hình Free 0 VND - Pro 99K - Team 299K/5 người",
       ],
     },
     {

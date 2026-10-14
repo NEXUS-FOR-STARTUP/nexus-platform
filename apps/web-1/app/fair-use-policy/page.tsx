@@ -6,7 +6,7 @@ import FairUseSections2 from "./_components/FairUseSections2";
 export const metadata: Metadata = {
   title: "Chính sách Vận hành & Sử dụng Công bằng | Nexus Platform",
   description:
-    "Chính sách vận hành và sử dụng công bằng của Nexus Platform — nguyên tắc sử dụng, phòng chống lạm dụng, tiến độ xử lý Case và xử lý hành vi vi phạm.",
+    "Chính sách vận hành và sử dụng công bằng của Nexus Platform - nguyên tắc sử dụng, phòng chống lạm dụng, tiến độ xử lý Case và xử lý hành vi vi phạm.",
 };
 
 const fairUseTOC: TOCItem[] = [

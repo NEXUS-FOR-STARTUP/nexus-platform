@@ -6,7 +6,7 @@ import PrivacySections2 from "./_components/PrivacySections2";
 export const metadata: Metadata = {
   title: "Chính sách Bảo vệ Dữ liệu Cá nhân | Nexus Platform",
   description:
-    "Chính sách bảo vệ dữ liệu cá nhân của Nexus Platform — cách thu thập, lưu trữ, sử dụng, chia sẻ và bảo vệ dữ liệu người dùng.",
+    "Chính sách bảo vệ dữ liệu cá nhân của Nexus Platform - cách thu thập, lưu trữ, sử dụng, chia sẻ và bảo vệ dữ liệu người dùng.",
 };
 
 const privacyTOC: TOCItem[] = [

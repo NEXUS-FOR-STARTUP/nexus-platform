@@ -31,10 +31,10 @@ export default function CreditActions({ onBuyCredits, onViewHistory, hasCredits 
           </Button>
         )}
 
-        {/* Future actions slot — add more buttons here without layout break */}
+        {/* Future actions slot - add more buttons here without layout break */}
         <div className="flex-1" />
         <p className="text-base text-text-muted hidden sm:block">
-          Gói 79.000đ bao gồm 2 lượt đánh giá dự án
+          Gói 79,000 VND bao gồm 2 lượt đánh giá dự án
         </p>
       </div>
     </div>

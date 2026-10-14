@@ -188,7 +188,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
             </div>
           </div>
         ) : (
-          /* Virtual container — fixed height = total virtual size */
+          /* Virtual container - fixed height = total virtual size */
           <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
             {virtualizer.getVirtualItems().map((vItem) => {
               const row = rows[vItem.index];

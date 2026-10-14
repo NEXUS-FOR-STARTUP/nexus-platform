@@ -1,5 +1,5 @@
 # =============================================================================
-# Dockerfile — Nexus Web-1 (Next.js 16 standalone)
+# Dockerfile - Nexus Web-1 (Next.js 16 standalone)
 # Multi-stage: turbo prune → deps (bun) → build (bun) → runner (node)
 # Build: docker build -f apps/web-1/Dockerfile -t nexus-web:latest .
 # =============================================================================

@@ -38,7 +38,7 @@ const NEXUS_INTAKE_PRESET: IntakeData = {
   },
   documents: [],
   lecturer_feedback:
-    'CP2: "Làm web app hẳn hoi, không chỉ Google Form + Sheet". CP3: "Đừng phụ thuộc rubric — xây tiêu chí đánh giá riêng". CP4: "Không oversell — Nexus hỗ trợ, không cam kết điểm".',
+    'Vòng Thị trường: "Làm web app hẳn hoi, không chỉ Google Form + Sheet". Vòng 3: "Đừng phụ thuộc rubric - xây tiêu chí đánh giá riêng". Vòng 4: "Không oversell - Nexus hỗ trợ, không cam kết điểm".',
   expected_outputs:
     "Báo cáo team-fit: điểm mạnh/yếu, gaps, rủi ro, vai trò cần bổ sung.",
   boundary_confirmations: ["originality", "advisory_only", "accurate_contact"],
@@ -70,7 +70,7 @@ const FARM2DORM_PRESET: IntakeData = {
     group_no: "07",
     project_name: "Farm2Dorm",
     team_status_summary:
-      "Nhóm 5 người (2 CNPM + 2 QTKD + 1 Thiết kế). Đang học EXE101 kỳ Fall 2026, đã qua CP1 với điểm 7.5. Có 1 thành viên nhà ở Đà Lạt, quen trực tiếp hộ nông dân.",
+      "Nhóm 5 người (2 CNPM + 2 QTKD + 1 Thiết kế). Đang học EXE101 kỳ Fall 2026, đã qua vòng Ý tưởng với điểm 7.5. Có 1 thành viên nhà ở Đà Lạt, quen trực tiếp hộ nông dân.",
   },
   support_needs: {
     primary_need: "critique_feasibility",
@@ -79,7 +79,7 @@ const FARM2DORM_PRESET: IntakeData = {
   },
   documents: [],
   lecturer_feedback:
-    'CP1: "Ý tưởng tốt nhưng số liệu chi phí còn ước đoán. Cần bảng tính chi tiết phí vận chuyển Đà Lạt - TP.HCM theo từng mức sản lượng".',
+    'Vòng Ý tưởng: "Ý tưởng tốt nhưng số liệu chi phí còn ước đoán. Cần bảng tính chi tiết phí vận chuyển Đà Lạt - TP.HCM theo từng mức sản lượng".',
   expected_outputs:
     "Báo cáo phản biện: mô hình gom đơn có khả thi không, điểm hòa vốn ở sản lượng nào, 3 việc cần làm ngay.",
   boundary_confirmations: ["originality", "advisory_only", "accurate_contact"],
@@ -120,7 +120,7 @@ const REWEAR_PRESET: IntakeData = {
   },
   documents: [],
   lecturer_feedback:
-    'CP2: "Hoa hồng 30% lấy từ đâu ra? So sánh với các shop 2hand hiện tại. Tồn kho 40% quá 30 ngày là tín hiệu xấu, phải xử lý".',
+    'Vòng Thị trường: "Hoa hồng 30% lấy từ đâu ra? So sánh với các shop 2hand hiện tại. Tồn kho 40% quá 30 ngày là tín hiệu xấu, phải xử lý".',
   expected_outputs:
     "Báo cáo phản biện: chân dung người mua thực, chính sách giá và xử lý tồn kho, có nên mở kho riêng không.",
   boundary_confirmations: ["originality", "advisory_only", "accurate_contact"],
@@ -161,7 +161,7 @@ const PAWPAL_PRESET: IntakeData = {
   },
   documents: [],
   lecturer_feedback:
-    'CP1: "Rủi ro khi pet ốm hoặc mất thì ai chịu? Chưa thấy điều khoản trách nhiệm. Doanh thu 4 triệu có đủ trả công 5 cộng tác viên không?".',
+    'Vòng Ý tưởng: "Rủi ro khi pet ốm hoặc mất thì ai chịu? Chưa thấy điều khoản trách nhiệm. Doanh thu 4 triệu có đủ trả công 5 cộng tác viên không?".',
   expected_outputs:
     "Báo cáo phản biện: hướng đi ưu tiên, khung trách nhiệm/rủi ro cần có, có nên làm app ngay hay dùng form đặt lịch trước.",
   boundary_confirmations: ["originality", "advisory_only", "accurate_contact"],
@@ -202,7 +202,7 @@ const SMASHBOOK_PRESET: IntakeData = {
   },
   documents: [],
   lecturer_feedback:
-    'CP3: "80 booking/tháng với 300 user là tỷ lệ dùng lại thấp. Vì sao người ta đặt 1 lần rồi thôi? Tính năng ghép đội có ai dùng thật không?".',
+    'Vòng 3: "80 booking/tháng với 300 user là tỷ lệ dùng lại thấp. Vì sao người ta đặt 1 lần rồi thôi? Tính năng ghép đội có ai dùng thật không?".',
   expected_outputs:
     "Báo cáo phản biện: nguyên nhân retention thấp, cơ chế giá động theo khung giờ, đề xuất giữ chân chủ sân.",
   boundary_confirmations: ["originality", "advisory_only", "accurate_contact"],
@@ -243,7 +243,7 @@ const LEANTEA_PRESET: IntakeData = {
   },
   documents: [],
   lecturer_feedback:
-    'CP2: "Giá 40K/ly cho sinh viên là rào cản lớn. Chưa thấy giấy VSATTP mà đã bán 3 tháng là rủi ro pháp lý. Tính lại điểm hòa vốn với giá nguyên liệu hiện tại".',
+    'Vòng Thị trường: "Giá 40K/ly cho sinh viên là rào cản lớn. Chưa thấy giấy VSATTP mà đã bán 3 tháng là rủi ro pháp lý. Tính lại điểm hòa vốn với giá nguyên liệu hiện tại".',
   expected_outputs:
     "Báo cáo phản biện: phân khúc khách hàng chịu chi thực sự, menu tối ưu, lộ trình pháp lý và điểm hòa vốn xe đẩy vs mặt bằng.",
   boundary_confirmations: ["originality", "advisory_only", "accurate_contact"],
@@ -275,7 +275,7 @@ const MENTORMAP_PRESET: IntakeData = {
     group_no: "09",
     project_name: "MentorMap",
     team_status_summary:
-      "Nhóm 5 người (2 CNPM + 1 QTKD + 2 Sư phạm tiếng Anh). Có mạng lưới mentor từ CLB học thuật. Đang học EXE101 Summer 2026, đã qua CP2 điểm 8.",
+      "Nhóm 5 người (2 CNPM + 1 QTKD + 2 Sư phạm tiếng Anh). Có mạng lưới mentor từ CLB học thuật. Đang học EXE101 Summer 2026, đã qua vòng Thị trường điểm 8.",
   },
   support_needs: {
     primary_need: "clarify_customer_pain",
@@ -284,7 +284,7 @@ const MENTORMAP_PRESET: IntakeData = {
   },
   documents: [],
   lecturer_feedback:
-    'CP2: "Chênh lệch giữa 40 mentor và 8 buổi học là red flag. Vấn đề ở cầu hay ở cung? Cơ chế đảm bảo mentor dạy tốt là gì?".',
+    'Vòng Thị trường: "Chênh lệch giữa 40 mentor và 8 buổi học là red flag. Vấn đề ở cầu hay ở cung? Cơ chế đảm bảo mentor dạy tốt là gì?".',
   expected_outputs:
     "Báo cáo phản biện: nguyên nhân no-show, cơ chế cọc và đánh giá mentor, có nên chuyển sang gói theo tháng thay vì lẻ từng buổi.",
   boundary_confirmations: ["originality", "advisory_only", "accurate_contact"],
@@ -321,13 +321,13 @@ const SHARENEST_PRESET: IntakeData = {
   support_needs: {
     primary_need: "audit_cp1_draft",
     extra_notes:
-      "Rà soát giúp báo cáo CP1, đặc biệt phần phân tích rủi ro tranh chấp và mô hình thu phí 300K có bền vững khi quy mô tăng.",
+      "Rà soát giúp báo cáo vòng Ý tưởng, đặc biệt phần phân tích rủi ro tranh chấp và mô hình thu phí 300K có bền vững khi quy mô tăng.",
   },
   documents: [],
   lecturer_feedback:
-    'CP1: "Bài test tính cách tự chế chưa có cơ sở khoa học. 3/15 vụ mâu thuẫn là tỷ lệ cao. Ai chịu trách nhiệm khi bạn cùng phòng quỵt tiền nhà?".',
+    'Vòng Ý tưởng: "Bài test tính cách tự chế chưa có cơ sở khoa học. 3/15 vụ mâu thuẫn là tỷ lệ cao. Ai chịu trách nhiệm khi bạn cùng phòng quỵt tiền nhà?".',
   expected_outputs:
-    "Báo cáo rà CP1: lỗ hổng phân tích rủi ro, khung hợp đồng tối thiểu, mô hình phí bền vững khi scale.",
+    "Báo cáo rà Vòng Ý tưởng: lỗ hổng phân tích rủi ro, khung hợp đồng tối thiểu, mô hình phí bền vững khi scale.",
   boundary_confirmations: ["originality", "advisory_only", "accurate_contact"],
   school: "Đại học FPT",
   course_context: "EXE101",
@@ -366,7 +366,7 @@ const CHARGECAMPUS_PRESET: IntakeData = {
   },
   documents: [],
   lecturer_feedback:
-    'CP3: "Bài toán tài chính chưa thuyết phục: vốn 1 trụ bao nhiêu, bao lâu hoàn vốn với 30 lượt/ngày? Rào cản khi trường tự làm hoặc đối tác lớn nhảy vào?".',
+    'Vòng 3: "Bài toán tài chính chưa thuyết phục: vốn 1 trụ bao nhiêu, bao lâu hoàn vốn với 30 lượt/ngày? Rào cản khi trường tự làm hoặc đối tác lớn nhảy vào?".',
   expected_outputs:
     "Báo cáo phản biện: mô hình hoàn vốn chi tiết, rào cản cạnh tranh, team còn thiếu vai trò gì để scale.",
   boundary_confirmations: ["originality", "advisory_only", "accurate_contact"],
@@ -407,7 +407,7 @@ const MINDNOTE_PRESET: IntakeData = {
   },
   documents: [],
   lecturer_feedback:
-    'CP2: "AI an ủi người có ý định tự làm hại thì sao? Phải có cơ chế phát hiện và chuyển tuyến chuyên gia. WAU 60/500 là sản phẩm chưa giữ được người dùng".',
+    'Vòng Thị trường: "AI an ủi người có ý định tự làm hại thì sao? Phải có cơ chế phát hiện và chuyển tuyến chuyên gia. WAU 60/500 là sản phẩm chưa giữ được người dùng".',
   expected_outputs:
     "Báo cáo phản biện: ranh giới an toàn cho AI, cơ chế chuyển tuyến, nguyên nhân retention thấp và có nên thu phí premium.",
   boundary_confirmations: ["originality", "advisory_only", "accurate_contact"],
@@ -448,7 +448,7 @@ const CRAFTUNI_PRESET: IntakeData = {
   },
   documents: [],
   lecturer_feedback:
-    'CP3: "GMV 15 triệu với hoa hồng 12% là 1.8 triệu/tháng cho 4 người — có đáng công không? Khiếu nại ảnh xấu và ship chậm, cái nào làm mất khách hơn?".',
+    'Vòng 3: "GMV 15 triệu với hoa hồng 12% là 1.8 triệu/tháng cho 4 người - có đáng công không? Khiếu nại ảnh xấu và ship chậm, cái nào làm mất khách hơn?".',
   expected_outputs:
     "Báo cáo phản biện: nút thắt thực sự (ảnh hay ship), ưu tiên đầu tư với vốn ít, hoa hồng 12% có nuôi được team không.",
   boundary_confirmations: ["originality", "advisory_only", "accurate_contact"],
@@ -459,9 +459,9 @@ const CRAFTUNI_PRESET: IntakeData = {
 const EXCELGUIDE_INTAKE_PRESET: IntakeData = {
   package_id: "",
   current_blocker:
-    "Brief CP1 đã chốt MVP chỉ làm Excel (form bắt bệnh + super prompt + workflow 3 bước + trạm cứu viện), nhưng nhóm chưa biết người không biết IT có đi hết 3 bước copy prompt - bật Developer - dán code bấm Run hay sẽ bỏ ở bước báo lỗi chữ đỏ. Chưa kiểm chứng ai trả 99K/tháng khi ChatGPT miễn phí và YouTube đầy tutorial, cũng chưa biết bán Team 299K cho SME qua kênh nào ngoài seeding group Excel.",
+    "Brief vòng Ý tưởng đã chốt MVP chỉ làm Excel (form bắt bệnh + super prompt + workflow 3 bước + trạm cứu viện), nhưng nhóm chưa biết người không biết IT có đi hết 3 bước copy prompt - bật Developer - dán code bấm Run hay sẽ bỏ ở bước báo lỗi chữ đỏ. Chưa kiểm chứng ai trả 99K/tháng khi ChatGPT miễn phí và YouTube đầy tutorial, cũng chưa biết bán Team 299K cho SME qua kênh nào ngoài seeding group Excel.",
   current_situations: [
-    "Đã chốt brief CP1: khách hàng chị Lan kế toán SME, pain 2-3 giờ/tuần copy 3 file Excel",
+    "Đã chốt brief Vòng Ý tưởng: khách hàng chị Lan kế toán SME, pain 2-3 giờ/tuần copy 3 file Excel",
     "Đã thử thủ công: mô tả tiếng Việt thành prompt rồi lấy VBA chạy được trên 2 mẫu lọc báo cáo và gộp sheet",
     "Đã quan sát 3 group Excel Việt Nam, thấy nhiều người hỏi lỗi VBA nhưng chưa seeding",
     "Chưa có web app, mới chỉ có brief và prompt thử nghiệm rời rạc",
@@ -482,7 +482,7 @@ const EXCELGUIDE_INTAKE_PRESET: IntakeData = {
     group_no: "155",
     project_name: "ExcelGuide",
     team_status_summary:
-      "Nhóm 5 người (2 CNPM + 1 QTKD + 1 Truyền thông + 1 Thiết kế). Đang học EXE101, vừa xong brief CP1, chưa có web app, đang test prompt và macro mẫu thủ công.",
+      "Nhóm 5 người (2 CNPM + 1 QTKD + 1 Truyền thông + 1 Thiết kế). Đang học EXE101, vừa xong brief vòng Ý tưởng, chưa có web app, đang test prompt và macro mẫu thủ công.",
   },
   support_needs: {
     primary_need: "critique_feasibility",
@@ -491,7 +491,7 @@ const EXCELGUIDE_INTAKE_PRESET: IntakeData = {
   },
   documents: [],
   lecturer_feedback:
-    'CP1: "Ý tưởng rõ khách hàng và pain, nhưng phải chứng minh người không biết IT đi hết được workflow 3 bước. Giá 99K lấy từ đâu ra, Team 299K bán cho ai ký? Đối thủ ChatGPT và tutorial miễn phí thì moat nằm ở đâu?".',
+    'Vòng Ý tưởng: "Ý tưởng rõ khách hàng và pain, nhưng phải chứng minh người không biết IT đi hết được workflow 3 bước. Giá 99K lấy từ đâu ra, Team 299K bán cho ai ký? Đối thủ ChatGPT và tutorial miễn phí thì moat nằm ở đâu?".',
   expected_outputs:
     "Báo cáo phản biện: workflow 3 bước có khả thi với dân văn phòng sợ code không, pricing 99K/299K có cơ sở không, 3 việc cần làm ngay để đạt 100 user hoàn thành đầu tiên.",
   boundary_confirmations: ["originality", "advisory_only", "accurate_contact"],

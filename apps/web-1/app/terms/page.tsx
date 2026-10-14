@@ -6,7 +6,7 @@ import TermsSections2 from "./_components/TermsSections2";
 export const metadata: Metadata = {
   title: "Điều khoản Sử dụng Dịch vụ | Nexus Platform",
   description:
-    "Điều khoản sử dụng dịch vụ Nexus Platform — quyền, nghĩa vụ và trách nhiệm của người dùng khi truy cập và sử dụng Nexus.",
+    "Điều khoản sử dụng dịch vụ Nexus Platform - quyền, nghĩa vụ và trách nhiệm của người dùng khi truy cập và sử dụng Nexus.",
 };
 
 const termsTOC: TOCItem[] = [

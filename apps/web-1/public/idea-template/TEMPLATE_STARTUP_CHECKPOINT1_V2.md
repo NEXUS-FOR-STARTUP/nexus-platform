@@ -1,10 +1,10 @@
-# TEMPLATE TÀI LIỆU MÔ TẢ Ý TƯỞNG STARTUP — CHECKPOINT 1 (V1)
+# TEMPLATE TÀI LIỆU MÔ TẢ Ý TƯỞNG STARTUP - CHECKPOINT 1 (V1)
 
-*Lưu ý trước khi điền: Tài liệu này phải tự đứng được — người đọc không cần nghe nhóm trình bày mới hiểu. Không nộp slide, canvas, sơ đồ thay thế cho tài liệu này. Nếu một ý chưa viết ra được rõ ràng bằng văn bản, nghĩa là nhóm chưa thực sự hiểu rõ ý đó.*
+*Lưu ý trước khi điền: Tài liệu này phải tự đứng được - người đọc không cần nghe nhóm trình bày mới hiểu. Không nộp slide, canvas, sơ đồ thay thế cho tài liệu này. Nếu một ý chưa viết ra được rõ ràng bằng văn bản, nghĩa là nhóm chưa thực sự hiểu rõ ý đó.*
 
 ---
 
-## PHẦN 0 — THÔNG TIN NHÓM
+## PHẦN 0 - THÔNG TIN NHÓM
 
 ### Tên nhóm
 
@@ -12,7 +12,7 @@
 
 ### Thành viên
 
-*Hướng dẫn viết: Liệt kê từng thành viên theo dạng: họ tên — vai trò — công việc phụ trách cụ thể. Ví dụ: "Nguyễn Văn A — Trưởng nhóm — phụ trách nghiên cứu khách hàng và phỏng vấn người dùng."*
+*Hướng dẫn viết: Liệt kê từng thành viên theo dạng: họ tên - vai trò - công việc phụ trách cụ thể. Ví dụ: "Nguyễn Văn A - Trưởng nhóm - phụ trách nghiên cứu khách hàng và phỏng vấn người dùng."*
 
 [Viết tại đây]
 
@@ -24,7 +24,7 @@
 
 ---
 
-## PHẦN 1 — KHÁCH HÀNG MỤC TIÊU
+## PHẦN 1 - KHÁCH HÀNG MỤC TIÊU
 
 ### 1.1. Khách hàng chính là ai?
 
@@ -34,31 +34,31 @@
 
 ### 1.2. Ai không phải khách hàng ưu tiên giai đoạn đầu?
 
-*Hướng dẫn viết: Ghi rõ nhóm nào nhóm chưa phục vụ và lý do cụ thể. Đây không phải phần để liệt kê ai nhóm không thích — mà là để nhóm tự biết mình đang cố tình bỏ ai ra ngoài và vì sao quyết định đó hợp lý trong giai đoạn đầu.*
+*Hướng dẫn viết: Ghi rõ nhóm nào nhóm chưa phục vụ và lý do cụ thể. Đây không phải phần để liệt kê ai nhóm không thích - mà là để nhóm tự biết mình đang cố tình bỏ ai ra ngoài và vì sao quyết định đó hợp lý trong giai đoạn đầu.*
 
 [Viết tại đây]
 
 ### 1.3. Phân vai (bắt buộc nếu có nhiều bên tham gia)
 
-*Hướng dẫn viết: Nếu ý tưởng chỉ có một bên duy nhất, ghi rõ: "Chỉ có một bên duy nhất." Nếu có nhiều bên, mô tả từng vai theo cấu trúc sau — mỗi vai viết thành một đoạn riêng: "[Tên vai] là [mô tả cụ thể họ là ai]. Pain riêng của họ là [vấn đề họ gặp]. Lợi ích khi tham gia là [điều họ được]. Lý do họ sẽ tham gia là [động lực cụ thể]." Bốn vai cần xác định: User (người dùng sản phẩm), Customer (người ra quyết định), Payer (người trả tiền), Partner (đối tác cung cấp nguồn lực). Nếu một bên vừa là User vừa là Payer, ghi rõ điều đó. Không được gộp lợi ích của nhiều bên thành một mô tả chung.*
+*Hướng dẫn viết: Nếu ý tưởng chỉ có một bên duy nhất, ghi rõ: "Chỉ có một bên duy nhất." Nếu có nhiều bên, mô tả từng vai theo cấu trúc sau - mỗi vai viết thành một đoạn riêng: "[Tên vai] là [mô tả cụ thể họ là ai]. Pain riêng của họ là [vấn đề họ gặp]. Lợi ích khi tham gia là [điều họ được]. Lý do họ sẽ tham gia là [động lực cụ thể]." Bốn vai cần xác định: User (người dùng sản phẩm), Customer (người ra quyết định), Payer (người trả tiền), Partner (đối tác cung cấp nguồn lực). Nếu một bên vừa là User vừa là Payer, ghi rõ điều đó. Không được gộp lợi ích của nhiều bên thành một mô tả chung.*
 
 [Viết tại đây]
 
 ---
 
-## PHẦN 2 — CÂU CHUYỆN KHÁCH HÀNG
+## PHẦN 2 - CÂU CHUYỆN KHÁCH HÀNG
 
-*Hướng dẫn viết: Kể về một người dùng tiêu biểu cụ thể — có tên, tuổi, bối cảnh, mục tiêu, rào cản. Câu chuyện phải đủ cụ thể để hình dung được người thật. Ví dụ không đạt: "Người dùng là sinh viên gặp khó khăn khi học nhóm." Ví dụ đạt: "Minh, 20 tuổi, sinh viên năm 2 tại TP.HCM. Minh thường học nhóm 4 người vào tối thứ Ba và thứ Năm. Mỗi lần tìm chỗ, Minh phải nhắn tin hỏi mấy bạn, đi thử 2 đến 3 quán rồi mới biết còn bàn lớn và có ổ điện không. Hôm deadline môn Marketing, cả nhóm mất gần một tiếng tìm chỗ trước khi ngồi được."*
+*Hướng dẫn viết: Kể về một người dùng tiêu biểu cụ thể - có tên, tuổi, bối cảnh, mục tiêu, rào cản. Câu chuyện phải đủ cụ thể để hình dung được người thật. Ví dụ không đạt: "Người dùng là sinh viên gặp khó khăn khi học nhóm." Ví dụ đạt: "Minh, 20 tuổi, sinh viên năm 2 tại TP.HCM. Minh thường học nhóm 4 người vào tối thứ Ba và thứ Năm. Mỗi lần tìm chỗ, Minh phải nhắn tin hỏi mấy bạn, đi thử 2 đến 3 quán rồi mới biết còn bàn lớn và có ổ điện không. Hôm deadline môn Marketing, cả nhóm mất gần một tiếng tìm chỗ trước khi ngồi được."*
 
 [Viết tại đây]
 
 ---
 
-## PHẦN 3 — PAIN POINT
+## PHẦN 3 - PAIN POINT
 
 ### 3.1. Vấn đề chính là gì?
 
-*Hướng dẫn viết: Viết rõ vấn đề xảy ra trong tình huống nào, tần suất bao nhiêu, hậu quả cụ thể là gì — tính bằng thời gian, tiền bạc, rủi ro, hoặc cơ hội bị mất. Đây là vấn đề của khách hàng, không phải quan sát của nhóm. Ví dụ không đạt: "Sinh viên mất thời gian tìm chỗ học nhóm." Ví dụ đạt: "Sinh viên năm 2 đến năm 3 phải mất 30 đến 60 phút để tìm chỗ học nhóm mỗi khi gần deadline. Nếu không tìm được chỗ phù hợp, cả nhóm phải ngồi tạm hoặc đổi địa điểm nhiều lần, khiến buổi học bị trễ và mọi người mất tập trung."*
+*Hướng dẫn viết: Viết rõ vấn đề xảy ra trong tình huống nào, tần suất bao nhiêu, hậu quả cụ thể là gì - tính bằng thời gian, tiền bạc, rủi ro, hoặc cơ hội bị mất. Đây là vấn đề của khách hàng, không phải quan sát của nhóm. Ví dụ không đạt: "Sinh viên mất thời gian tìm chỗ học nhóm." Ví dụ đạt: "Sinh viên năm 2 đến năm 3 phải mất 30 đến 60 phút để tìm chỗ học nhóm mỗi khi gần deadline. Nếu không tìm được chỗ phù hợp, cả nhóm phải ngồi tạm hoặc đổi địa điểm nhiều lần, khiến buổi học bị trễ và mọi người mất tập trung."*
 
 [Viết tại đây]
 
@@ -70,37 +70,37 @@
 
 ### 3.3. Đâu là dữ liệu thực tế, đâu là giả định?
 
-*Hướng dẫn viết: Viết thành hai đoạn rõ ràng. Đoạn một: "Những điều nhóm biết từ dữ liệu thực tế" — liệt kê từng điều kèm nguồn gốc (phỏng vấn bao nhiêu người, khảo sát từ đâu, quan sát ở đâu). Đoạn hai: "Những điều nhóm đang giả định và chưa kiểm chứng" — liệt kê từng giả định và nêu kế hoạch nhỏ nhất để kiểm chứng từng điều đó. Nếu chưa có bằng chứng nào, ghi thẳng: "Chưa có. Toàn bộ phần dưới là giả định cần kiểm chứng."*
+*Hướng dẫn viết: Viết thành hai đoạn rõ ràng. Đoạn một: "Những điều nhóm biết từ dữ liệu thực tế" - liệt kê từng điều kèm nguồn gốc (phỏng vấn bao nhiêu người, khảo sát từ đâu, quan sát ở đâu). Đoạn hai: "Những điều nhóm đang giả định và chưa kiểm chứng" - liệt kê từng giả định và nêu kế hoạch nhỏ nhất để kiểm chứng từng điều đó. Nếu chưa có bằng chứng nào, ghi thẳng: "Chưa có. Toàn bộ phần dưới là giả định cần kiểm chứng."*
 
 [Viết tại đây]
 
 ---
 
-## PHẦN 4 — CÁCH KHÁCH HÀNG ĐANG GIẢI QUYẾT HIỆN TẠI
+## PHẦN 4 - CÁCH KHÁCH HÀNG ĐANG GIẢI QUYẾT HIỆN TẠI
 
 *Lưu ý: Phần này là điều kiện bắt buộc. Thiếu phần này thì không thể đánh giá giải pháp của nhóm. Không có cách hiện tại thì không thể xác định sản phẩm của nhóm có tốt hơn hay không.*
 
 ### 4.1. Hiện tại họ đang dùng cách nào?
 
-*Hướng dẫn viết: Liệt kê tất cả cách khách hàng đang tự xử lý vấn đề — kể cả "không làm gì" hoặc "chấp nhận sống chung với vấn đề." Mỗi cách viết thành một câu rõ ràng mô tả họ đang làm gì cụ thể.*
+*Hướng dẫn viết: Liệt kê tất cả cách khách hàng đang tự xử lý vấn đề - kể cả "không làm gì" hoặc "chấp nhận sống chung với vấn đề." Mỗi cách viết thành một câu rõ ràng mô tả họ đang làm gì cụ thể.*
 
 [Viết tại đây]
 
 ### 4.2. Phân tích từng cách hiện tại
 
-*Hướng dẫn viết: Với mỗi cách khách hàng đang dùng, viết một đoạn phân tích theo bốn chiều: cách đó có tốn tiền không và bao nhiêu, có tốn thời gian không và ở bước nào, bất tiện cụ thể ở đâu trong quy trình, và quan trọng nhất — vì sao họ vẫn tiếp tục dùng dù biết nó bất tiện?*
+*Hướng dẫn viết: Với mỗi cách khách hàng đang dùng, viết một đoạn phân tích theo bốn chiều: cách đó có tốn tiền không và bao nhiêu, có tốn thời gian không và ở bước nào, bất tiện cụ thể ở đâu trong quy trình, và quan trọng nhất - vì sao họ vẫn tiếp tục dùng dù biết nó bất tiện?*
 
 [Viết tại đây]
 
 ### 4.3. Sản phẩm của nhóm phải tốt hơn ở điểm nào cụ thể để khách hàng chịu đổi hành vi?
 
-*Hướng dẫn viết: Trả lời thẳng: khách hàng phải thấy khác biệt gì rõ ràng so với cách họ đang làm thì mới chịu chuyển sang dùng sản phẩm của nhóm? Không được viết chung chung kiểu "tiện hơn" hay "nhanh hơn" — phải nói nhanh hơn bao nhiêu, tiện ở bước cụ thể nào.*
+*Hướng dẫn viết: Trả lời thẳng: khách hàng phải thấy khác biệt gì rõ ràng so với cách họ đang làm thì mới chịu chuyển sang dùng sản phẩm của nhóm? Không được viết chung chung kiểu "tiện hơn" hay "nhanh hơn" - phải nói nhanh hơn bao nhiêu, tiện ở bước cụ thể nào.*
 
 [Viết tại đây]
 
 ---
 
-## PHẦN 5 — GIẢI PHÁP
+## PHẦN 5 - GIẢI PHÁP
 
 ### 5.1. Sản phẩm làm gì, cho ai, trong tình huống nào?
 
@@ -108,7 +108,7 @@
 
 [Viết tại đây]
 
-### 5.2. Cơ chế tác động — sản phẩm giảm pain bằng cách nào?
+### 5.2. Cơ chế tác động - sản phẩm giảm pain bằng cách nào?
 
 *Hướng dẫn viết: Mô tả theo luồng bốn bước. "Input": người dùng cung cấp gì cho sản phẩm? "Xử lý": sản phẩm làm gì với input đó, theo cơ chế nào? "Output": người dùng nhận được gì cụ thể? "Hành động": output đó giúp người dùng làm gì tốt hơn so với trước?*
 
@@ -116,7 +116,7 @@
 
 ### 5.3. Tính năng lõi giai đoạn đầu
 
-*Hướng dẫn viết: Liệt kê từng tính năng nhóm sẽ làm trong bản đầu tiên. Với mỗi tính năng, ghi rõ: tính năng đó giải quyết pain nào cụ thể, và có trong bản đầu tiên không. Định dạng gợi ý cho mỗi dòng: "[Tên tính năng] — giải quyết [pain cụ thể] — Có / Không có trong bản đầu."*
+*Hướng dẫn viết: Liệt kê từng tính năng nhóm sẽ làm trong bản đầu tiên. Với mỗi tính năng, ghi rõ: tính năng đó giải quyết pain nào cụ thể, và có trong bản đầu tiên không. Định dạng gợi ý cho mỗi dòng: "[Tên tính năng] - giải quyết [pain cụ thể] - Có / Không có trong bản đầu."*
 
 [Viết tại đây]
 
@@ -128,7 +128,7 @@
 
 ---
 
-## PHẦN 6 — MVP / BẢN THỬ NGHIỆM ĐẦU TIÊN
+## PHẦN 6 - MVP / BẢN THỬ NGHIỆM ĐẦU TIÊN
 
 *Lưu ý: MVP không phải phiên bản app nhỏ hơn. MVP là cách test nhỏ nhất để kiểm chứng giả định nguy hiểm nhất.*
 
@@ -140,7 +140,7 @@
 
 ### 6.2. MVP là gì?
 
-*Hướng dẫn viết: Mô tả bản test nhỏ nhất — có thể là Google Form, landing page, Zalo, Notion, hoặc concierge MVP (làm thủ công). Không phải app đầy đủ. Giải thích tại sao cách này đủ để kiểm chứng giả định ở mục 6.1.*
+*Hướng dẫn viết: Mô tả bản test nhỏ nhất - có thể là Google Form, landing page, Zalo, Notion, hoặc concierge MVP (làm thủ công). Không phải app đầy đủ. Giải thích tại sao cách này đủ để kiểm chứng giả định ở mục 6.1.*
 
 [Viết tại đây]
 
@@ -158,7 +158,7 @@
 
 ---
 
-## PHẦN 7 — BẰNG CHỨNG VÀ GIẢ ĐỊNH
+## PHẦN 7 - BẰNG CHỨNG VÀ GIẢ ĐỊNH
 
 ### 7.1. Bằng chứng hiện có
 
@@ -174,7 +174,7 @@
 
 ---
 
-## PHẦN 8 — MÔ HÌNH DOANH THU DỰ KIẾN
+## PHẦN 8 - MÔ HÌNH DOANH THU DỰ KIẾN
 
 *Lưu ý: Ở Checkpoint 1, chưa cần chứng minh doanh thu thật. Nhưng phải xác định được ai có thể trả tiền và vì lý do gì. Nếu người trả tiền không phải người dùng, phải giải thích vì sao họ có động lực trả.*
 
@@ -184,7 +184,7 @@
 
 ---
 
-## PHẦN 9 — TÓM TẮT
+## PHẦN 9 - TÓM TẮT
 
 *Hướng dẫn viết: Điền đúng cấu trúc đoạn dưới đây, không thêm bớt cấu trúc. Thay thế từng phần trong ngoặc vuông bằng nội dung thật của nhóm. Nếu không thể điền đầy đủ một phần, đó là tín hiệu nhóm cần quay lại làm rõ phần đó trước.*
 
@@ -194,7 +194,7 @@ Nhóm đang giải quyết [vấn đề] cho [khách hàng mục tiêu cụ th�
 
 ## CHECKLIST TRƯỚC KHI NỘP
 
-*Nhóm tự kiểm tra trước khi nộp. Mỗi dòng phải trả lời được "Có" — nếu không, cần viết lại phần đó.*
+*Nhóm tự kiểm tra trước khi nộp. Mỗi dòng phải trả lời được "Có" - nếu không, cần viết lại phần đó.*
 
 **Về khách hàng**
 

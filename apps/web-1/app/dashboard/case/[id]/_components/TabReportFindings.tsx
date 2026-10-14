@@ -75,7 +75,7 @@ export default function TabReportFindings({ report, caseId, roundHistory, hideCh
     );
   }
 
-  // Has round history — render round list with first round expanded and others collapsed
+  // Has round history - render round list with first round expanded and others collapsed
   if (roundHistory && roundHistory.length > 0) {
     const cp2Rounds = roundHistory.filter((round) => isCp2ReportType(round.report?.report_type));
     const cp1Rounds = roundHistory.filter((round) => !isCp2ReportType(round.report?.report_type));

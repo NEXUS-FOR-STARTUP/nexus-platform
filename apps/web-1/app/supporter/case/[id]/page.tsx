@@ -163,7 +163,7 @@ export default function SupporterCaseWorkspacePage({ params }: PageProps) {
         {isReportReady && (
           <div className="p-4 rounded-xl bg-info-soft border border-info/15 text-info font-body text-xs flex items-center gap-2 shrink-0">
             <Clock className="w-4 h-4 shrink-0" />
-            <span>Đã giao báo cáo — chờ sinh viên xác nhận hoàn thành.</span>
+            <span>Đã giao báo cáo - chờ sinh viên xác nhận hoàn thành.</span>
           </div>
         )}
 

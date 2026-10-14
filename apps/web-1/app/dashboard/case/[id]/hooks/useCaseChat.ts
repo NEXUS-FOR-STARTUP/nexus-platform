@@ -29,10 +29,10 @@ export function useCaseChat(caseId: string) {
       return response.data;
     },
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: () => undefined, // forward pagination không dùng — bắt buộc khai báo trong v5
+    getNextPageParam: () => undefined, // forward pagination không dùng - bắt buộc khai báo trong v5
     getPreviousPageParam: (firstPage) => firstPage.next_cursor ?? undefined,
     enabled: !!caseId,
-    refetchInterval: 60_000, // giữ nguyên fallback 60s — refetch chỉ các page đã load (thường 1 page)
+    refetchInterval: 60_000, // giữ nguyên fallback 60s - refetch chỉ các page đã load (thường 1 page)
   });
 
   // TanStack v5 prepend page cũ vào ĐẦU mảng pages khi fetchPreviousPage

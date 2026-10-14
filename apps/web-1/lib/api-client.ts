@@ -7,7 +7,7 @@ export const apiClient = axios.create({
   withCredentials: true,
 });
 
-// Idempotency-Key interceptor — adds random UUID for POST/PATCH requests
+// Idempotency-Key interceptor - adds random UUID for POST/PATCH requests
 apiClient.interceptors.request.use(
   (config) => {
     if (config.method === 'post' || config.method === 'patch') {

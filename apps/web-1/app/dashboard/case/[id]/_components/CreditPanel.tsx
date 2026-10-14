@@ -44,7 +44,7 @@ export default function CreditPanel({
               Quản lý lượt đánh giá
             </h2>
             <p className="text-xs text-text-muted mt-1 max-w-lg">
-              Mua gói đánh giá để phân tích tài liệu và nhận báo cáo chi tiết. Gói 79.000đ bao gồm 2 lượt đánh giá dự án.
+              Mua gói đánh giá để phân tích tài liệu và nhận báo cáo chi tiết. Gói 79,000 VND bao gồm 2 lượt đánh giá dự án.
             </p>
           </div>
           {onBuyCredits && (

@@ -23,7 +23,7 @@ export default function LandingHero() {
             </Title>
             
             <Text c="dimmed" mt="md" className="font-body leading-relaxed">
-              Nexus đưa dự án của nhóm bạn qua quy trình đánh giá có cấu trúc — phát hiện điểm thiếu logic, nhận diện các giả định chưa kiểm chứng và gợi ý hướng hoàn thiện trước khi trình bày.
+              Nexus đưa dự án của nhóm bạn qua quy trình đánh giá có cấu trúc - phát hiện điểm thiếu logic, nhận diện các giả định chưa kiểm chứng và gợi ý hướng hoàn thiện trước khi trình bày.
             </Text>
 
             <List

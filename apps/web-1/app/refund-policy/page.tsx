@@ -6,7 +6,7 @@ import RefundSections2 from "./_components/RefundSections2";
 export const metadata: Metadata = {
   title: "Chính sách Thanh toán & Hoàn tiền | Nexus Platform",
   description:
-    "Chính sách thanh toán và hoàn tiền của Nexus Platform — nạp tiền, Số dư Nexus, Credit, hủy Case, hoàn tiền và giải quyết khiếu nại giao dịch.",
+    "Chính sách thanh toán và hoàn tiền của Nexus Platform - nạp tiền, Số dư Nexus, Credit, hủy Case, hoàn tiền và giải quyết khiếu nại giao dịch.",
 };
 
 const refundTOC: TOCItem[] = [

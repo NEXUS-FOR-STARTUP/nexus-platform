@@ -26,7 +26,7 @@ export function WalletRowDetailAction({ href }: { href: string | null }) {
   }
 
   return (
-    <Tooltip label="Thanh toán dịch vụ — không có ảnh chứng minh" withArrow>
+    <Tooltip label="Thanh toán dịch vụ - không có ảnh chứng minh" withArrow>
       <span className="inline-flex">
         <ActionIcon
           variant="subtle"

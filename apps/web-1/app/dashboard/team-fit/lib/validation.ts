@@ -37,19 +37,19 @@ function translateIssue(key: string, message: string): string {
     const n = parseInt(minMatch[1]!, 10);
 
     if (key === "problem")
-      return `Mô tả vấn đề cần ít nhất ${n} ký tự — hãy viết cụ thể hơn`;
+      return `Mô tả vấn đề cần ít nhất ${n} ký tự - hãy viết cụ thể hơn`;
     if (key === "solution")
-      return `Mô tả giải pháp cần ít nhất ${n} ký tự — hãy viết cụ thể hơn`;
+      return `Mô tả giải pháp cần ít nhất ${n} ký tự - hãy viết cụ thể hơn`;
     if (key === "targetCustomer")
-      return `Khách hàng mục tiêu cần ít nhất ${n} ký tự — ai là người bạn muốn giúp?`;
+      return `Khách hàng mục tiêu cần ít nhất ${n} ký tự - ai là người bạn muốn giúp?`;
     if (key === "mvp")
-      return `Mô tả MVP cần ít nhất ${n} ký tự — sản phẩm đầu tiên trông như thế nào?`;
+      return `Mô tả MVP cần ít nhất ${n} ký tự - sản phẩm đầu tiên trông như thế nào?`;
     return `${label} cần ít nhất ${n} ký tự`;
   }
 
   const maxMatch = message.match(/have <=(\d+)/);
   if (maxMatch) {
-    return `${label} tối đa ${maxMatch[1]} ký tự — hãy rút gọn`;
+    return `${label} tối đa ${maxMatch[1]} ký tự - hãy rút gọn`;
   }
 
   if (message === "Required") return `${label} không được để trống`;
@@ -104,30 +104,30 @@ export function formatIssue(
       const sub = typeof subIdx === "number" ? ` mục thứ ${subIdx + 1}` : "";
 
       // Ô chọn (vd. mảng nghề): zod v4 báo "Invalid option" khi bỏ trống hoặc
-      // chọn giá trị lạ — dịch sang tiếng Việt, không lộ mã code cho người dùng.
+      // chọn giá trị lạ - dịch sang tiếng Việt, không lộ mã code cho người dùng.
       if (
         message.includes("Invalid option") ||
         message.includes("Invalid enum value")
       ) {
-        return `Thành viên ${memberNum} — ${label}: vui lòng chọn một giá trị hợp lệ`;
+        return `Thành viên ${memberNum} - ${label}: vui lòng chọn một giá trị hợp lệ`;
       }
 
       const minMatch = message.match(/have >=(\d+)/);
       if (minMatch) {
         const n = parseInt(minMatch[1]!, 10);
-        return `Thành viên ${memberNum} — ${label}${sub}: cần ít nhất ${n} ký tự`;
+        return `Thành viên ${memberNum} - ${label}${sub}: cần ít nhất ${n} ký tự`;
       }
       const maxMatch = message.match(/have <=(\d+)/);
       if (maxMatch) {
-        return `Thành viên ${memberNum} — ${label}${sub}: tối đa ${maxMatch[1]} ký tự`;
+        return `Thành viên ${memberNum} - ${label}${sub}: tối đa ${maxMatch[1]} ký tự`;
       }
       if (message === "Required" || message.includes("Required")) {
-        return `Thành viên ${memberNum} — ${label}: không được để trống`;
+        return `Thành viên ${memberNum} - ${label}: không được để trống`;
       }
       if (message.includes("Too small") && message.includes("array")) {
-        return `Thành viên ${memberNum} — ${label}: cần ít nhất 1 mục`;
+        return `Thành viên ${memberNum} - ${label}: cần ít nhất 1 mục`;
       }
-      return `Thành viên ${memberNum} — ${label}${sub}: ${message}`;
+      return `Thành viên ${memberNum} - ${label}${sub}: ${message}`;
     }
 
     // Array-level (team member object itself)

@@ -30,8 +30,8 @@ export function getCaseEffectivePrice(caseData?: {
 /**
  * Determines whether a case's payment is complete, authorizing admin approval.
  * Fail-closed: only the explicit statuses `paid` (paid/free legacy cases) and
- * `not_required` (AI-engine free path) qualify. Every other value — including
- * missing/unknown data — blocks approval.
+ * `not_required` (AI-engine free path) qualify. Every other value - including
+ * missing/unknown data - blocks approval.
  */
 export function isCasePaymentComplete(
   caseData: { payment_status?: string } | null | undefined,

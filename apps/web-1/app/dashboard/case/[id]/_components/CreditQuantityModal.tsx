@@ -173,7 +173,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
             <div className="pt-1 border-t border-border-app flex justify-between items-center">
               <span className="text-text-muted">Tình trạng ví</span>
               <span className={hasSufficientBalance ? "text-teal-600 font-semibold" : "text-red-600 font-semibold"}>
-                {hasSufficientBalance ? "Đủ số dư ví" : `Số dư chưa đủ — cần nạp thêm ${formatPrice(shortage)} để thanh toán`}
+                {hasSufficientBalance ? "Đủ số dư ví" : `Số dư chưa đủ - cần nạp thêm ${formatPrice(shortage)} để thanh toán`}
               </span>
             </div>
           </Stack>

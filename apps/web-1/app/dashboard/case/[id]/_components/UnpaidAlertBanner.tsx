@@ -20,7 +20,7 @@ export default function UnpaidAlertBanner({ creditBalance, onBuyCredits }: Unpai
         <div className="space-y-0.5">
           <h4 className="font-heading font-semibold text-sm text-text-app">Chưa có lượt đánh giá</h4>
           <p className="font-body text-xs text-text-muted leading-relaxed">
-            Dự án chưa có lượt đánh giá. Nhóm cần mua gói đánh giá (79.000đ / 2 lượt) để bắt đầu phân tích tài liệu.
+            Dự án chưa có lượt đánh giá. Nhóm cần mua gói đánh giá (79,000 VND / 2 lượt) để bắt đầu phân tích tài liệu.
           </p>
         </div>
       </div>

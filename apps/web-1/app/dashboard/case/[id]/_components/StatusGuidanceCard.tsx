@@ -27,9 +27,9 @@ import type { SubmissionType } from "../hooks/useTriggerAudit";
 import { useStudentDocumentUpload, type RevisionUploadResponse } from "../hooks/useCaseDocumentUploads";
 
 const SUBMISSION_TYPE_OPTIONS = [
-  { value: "initial", label: "Lần đầu — Đánh giá tổng quát" },
-  { value: "resubmit", label: "Đã sửa — Đối chiếu với kết quả trước" },
-  { value: "logic_check", label: "Soi logic — Khả thi + khách hàng" },
+  { value: "initial", label: "Lần đầu - Đánh giá tổng quát" },
+  { value: "resubmit", label: "Đã sửa - Đối chiếu với kết quả trước" },
+  { value: "logic_check", label: "Soi logic - Khả thi + khách hàng" },
 ] as const;
 
 const MAX_FILES = 5;
@@ -168,7 +168,7 @@ export default function StatusGuidanceCard({
       return;
     }
 
-    // initial or logic_check — direct trigger
+    // initial or logic_check - direct trigger
     await onTriggerAudit(submissionType);
   };
 
@@ -277,7 +277,7 @@ export default function StatusGuidanceCard({
           variant="light"
           color="teal"
           radius="md"
-          title={`Đã có ${creditBalance} lượt — Sẵn sàng đánh giá dự án`}
+          title={`Đã có ${creditBalance} lượt - Sẵn sàng đánh giá dự án`}
           icon={<CheckCircle2 className="w-4.5 h-4.5 shrink-0" />}
           className={ALERT_CLASS}
         >
@@ -309,7 +309,7 @@ export default function StatusGuidanceCard({
           <p className="text-text-muted text-xs leading-relaxed">
             {isFree
               ? "Dự án hiện tại thuộc gói xem trước miễn phí. Hãy chọn gói Đánh giá Dự án Tự động để tải lên slide hoặc đề cương hoàn chỉnh và nhận báo cáo phân tích chi tiết."
-              : "Dự án chưa có lượt đánh giá. Hãy nạp tiền vào ví và mua gói đánh giá (79.000đ / 2 lượt) để bắt đầu phân tích tài liệu."}
+              : "Dự án chưa có lượt đánh giá. Hãy nạp tiền vào ví và mua gói đánh giá (79,000 VND / 2 lượt) để bắt đầu phân tích tài liệu."}
           </p>
 
           <div className="flex flex-wrap items-center gap-3 pt-1">
@@ -358,7 +358,7 @@ export default function StatusGuidanceCard({
         variant="light"
         color="blue"
         radius="md"
-        title="Đã tải lên phiên bản mới — Sẵn sàng đánh giá lại"
+        title="Đã tải lên phiên bản mới - Sẵn sàng đánh giá lại"
         icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
       >
@@ -494,7 +494,7 @@ export default function StatusGuidanceCard({
           </Alert>
         )}
 
-        {/* Audit trigger — shown when credits available and trigger handler provided */}
+        {/* Audit trigger - shown when credits available and trigger handler provided */}
         {canTriggerAudit && (
           <Alert
             variant="light"
@@ -615,7 +615,7 @@ export default function StatusGuidanceCard({
         variant="light"
         color="yellow"
         radius="md"
-        title="Hồ sơ đã nộp — chờ thanh toán"
+        title="Hồ sơ đã nộp - chờ thanh toán"
         icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
       >
@@ -640,7 +640,7 @@ export default function StatusGuidanceCard({
   const isAiPackage = caseData.package_id === PACKAGE_KEYS.AI_AUDIT;
 
   // AI package, submitted + paid: show AI processing banner + retry button if credits available.
-  // Handles the case where audit failed and rolled back to "submitted" — user can trigger again.
+  // Handles the case where audit failed and rolled back to "submitted" - user can trigger again.
   if (stage === "submitted" && isAiPackage && !caseRequiresPayment(caseData)) {
     const lastJobFailed = caseData.latest_ai_job_status === "failed";
     return (
@@ -663,7 +663,7 @@ export default function StatusGuidanceCard({
             variant="light"
             color="blue"
             radius="md"
-            title="Dự án đã nộp — Sẵn sàng đánh giá"
+            title="Dự án đã nộp - Sẵn sàng đánh giá"
             icon={<Activity className="w-4.5 h-4.5 shrink-0" />}
             className={ALERT_CLASS}
           >
@@ -673,7 +673,7 @@ export default function StatusGuidanceCard({
           </Alert>
         )}
 
-        {/* Audit trigger — y chang report_ready: Select loại đánh giá + resubmit form */}
+        {/* Audit trigger - y chang report_ready: Select loại đánh giá + resubmit form */}
         {canTriggerAudit && (
           <Alert
             variant="light"

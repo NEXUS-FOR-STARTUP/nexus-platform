@@ -20,7 +20,7 @@ export function useOpenCheckpoint(caseId: string) {
     },
     onError: () => {
       notifications.show({
-        title: "Không thể bắt đầu Checkpoint 2",
+        title: "Không thể bắt đầu vòng Thị trường",
         message: "Đã xảy ra lỗi. Vui lòng thử lại sau.",
         color: "red",
       });

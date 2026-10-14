@@ -28,7 +28,7 @@ export interface Payment {
   case?: Case;
 }
 
-/** Narrow history item returned by `GET /payments/my` — payer-visible only, no admin/internal fields. */
+/** Narrow history item returned by `GET /payments/my` - payer-visible only, no admin/internal fields. */
 export type PaymentHistoryStatus = "unpaid" | "pending_verification" | "paid" | "rejected";
 
 export interface PaymentHistoryItem {

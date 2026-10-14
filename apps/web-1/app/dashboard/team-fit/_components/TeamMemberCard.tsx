@@ -73,7 +73,7 @@ export default function TeamMemberCard({
           data={ROLE_TRACK_OPTIONS}
           value={member.roleTrack ?? EMPTY_ROLE_TRACK}
           onChange={(value) => {
-            if (!value) return; // bắt buộc chọn — không cho bỏ trống
+            if (!value) return; // bắt buộc chọn - không cho bỏ trống
             onUpdate(index, { roleTrack: value });
           }}
           allowDeselect={false}

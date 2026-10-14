@@ -14,7 +14,7 @@ interface RainbowBuyButtonProps {
 /**
  * The one flashy button in the product: every "buy credits" CTA.
  * Deep rainbow gradient + soft shimmer + drifting clouds. Text stays punchy
- * with a dark outline so it never washes out. No icons — the gradient speaks.
+ * with a dark outline so it never washes out. No icons - the gradient speaks.
  * Everything else stays restrained; this button is the exception.
  */
 export default function RainbowBuyButton({ children, ...props }: RainbowBuyButtonProps) {

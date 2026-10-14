@@ -16,7 +16,7 @@ export function saveToLS(key: string, value: unknown) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
-    /* quota exceeded — silently ignore */
+    /* quota exceeded - silently ignore */
   }
 }
 

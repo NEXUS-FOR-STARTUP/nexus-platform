@@ -1,7 +1,7 @@
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+This version has breaking changes - APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
 ## OVERVIEW
@@ -65,7 +65,7 @@ Case detail (`dashboard/case/[id]`) contains 7 distinct tabs synchronized with t
 - TanStack Query + Axios `apiClient`
 - Query keys: `["cases"]`, `["case", id]`, `["case-messages", caseId]`, `["admin-workers"]`
 - Realtime chat: Centrifugo WebSocket via `useRealtimeChat` (sub `chat:{caseId}`, token from `/api/realtime/cases/:caseId/subscribe-token`) → updates query cache directly.
-- Polling: case details (10s), chat messages (60s fallback — WebSocket is primary), worker KPI (10s).
+- Polling: case details (10s), chat messages (60s fallback - WebSocket is primary), worker KPI (10s).
 - Mutations invalidate related queries on success. No Redux/Zustand.
 
 ## CUSTOM HOOKS (37 total)
@@ -85,8 +85,9 @@ Core hooks across routes:
 ## UI CONVENTIONS & WORDING
 
 - Vietnamese-first (all labels, messages, notifications).
-- Currency: **VND only**, phân cách phần ngàn dùng dấu phẩy `,` (e.g. `100,000 VND`, tuyệt đối không dùng `₫`, `đ`, hoặc dấu chấm `.`).
+- Currency: **BẮT BUỘC chỉ dùng đơn vị `VND`**, đặt sau số, cách 1 dấu cách, phân cách phần ngàn bằng dấu phẩy `,` (đúng: `79,000 VND`, `13,167 VND`). **TUYỆT ĐỐI KHÔNG** dùng `đ`, `₫`, `VNĐ`, `đồng` hay dấu chấm `.` làm phân cách (sai: `79.000đ`, `79.000 VND`). Áp dụng cho mọi chuỗi hiển thị (kể cả landing, FAQ, banner, modal, thông báo). Dùng `formatPrice` (`lib/pricing.ts`) khi số tiền khác 0; số 0 cần hiện `0 VND` thì không dùng `formatPrice` (nó trả "Miễn phí").
 - **Canonical Wording**: Khi chỉnh sửa copy giao diện, bắt buộc tra cứu tài liệu tại `design-system/wording/` (1288 lines report + 28 page audits) để tuân thủ mental model người dùng (tránh dùng thuật ngữ kỹ thuật nội bộ như mã transition hay tên enum).
+- **Cấm CP1/CP2/CP3/CP4 và "Checkpoint N" trên UI** (mọi persona: student, admin, supporter): label, tiêu đề, thông báo, tooltip, tên gói/dịch vụ hiển thị. Dùng tên vòng: CP1 = "Ý tưởng", CP2 = "Thị trường" (vd. "Gói chấm Thị trường", "Vòng Thị trường"). Mã nội bộ (`cp1_audit`, `"CP2"`, tên biến/enum/query param) được giữ nguyên trong code. Tên gói/dịch vụ lấy từ API (`ServicePackageDto.name`, `service_type.name`) có thể còn chứa "Checkpoint" trong DB, nên KHÔNG render trực tiếp: dựng nhãn từ tên vòng (`stageName`) hoặc `credits_granted`.
 
 ## DOCUMENTATION REFERENCE
 

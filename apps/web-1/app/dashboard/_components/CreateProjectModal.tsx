@@ -37,7 +37,7 @@ export function CreateProjectModal({ opened, onClose }: CreateProjectModalProps)
 
   // Class and group number only apply to FPT students; other schools store "Khác"
   // so the project card still has a course label. Group number is only asked for
-  // EXE101 — other FPT courses have no numbered groups (mirrors the intake step).
+  // EXE101 - other FPT courses have no numbered groups (mirrors the intake step).
   const isFpt = school === FPT_SCHOOL;
   const asksGroupNo = isFpt && courseContext === EXE101_COURSE;
 

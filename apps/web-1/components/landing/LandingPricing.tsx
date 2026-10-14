@@ -38,7 +38,7 @@ export default function LandingPricing() {
                 </h3>
                 <div className="flex items-baseline gap-2">
                   <span className="text-4xl font-heading font-bold text-text-app">
-                    79.000đ
+                    79,000 VND
                   </span>
                   <span className="font-body text-sm text-text-muted">
                     / Bao gồm 2 lượt đánh giá
@@ -64,7 +64,7 @@ export default function LandingPricing() {
                 <List.Item>Đánh giá theo 5 nhóm tiêu chí cốt lõi</List.Item>
                 <List.Item>Phân loại vấn đề theo mức độ ưu tiên xử lý</List.Item>
                 <List.Item>Kết quả thường có sau khoảng 10 phút</List.Item>
-                <List.Item>Chỉ ~16.000đ/thành viên (nhóm 5 người)</List.Item>
+                <List.Item>Chỉ ~16,000 VND/thành viên (nhóm 5 người)</List.Item>
               </List>
             </div>
 

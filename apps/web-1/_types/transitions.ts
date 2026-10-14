@@ -65,7 +65,7 @@ export function filterTransitions(
 
     switch (rule.actor) {
       case "owner":
-      case "ownerOrMember": // D18: owner-only — member === owner semantics
+      case "ownerOrMember": // D18: owner-only - member === owner semantics
         return isOwner;
       case "assignedSupporter":
         return isAssignedSupporter;
