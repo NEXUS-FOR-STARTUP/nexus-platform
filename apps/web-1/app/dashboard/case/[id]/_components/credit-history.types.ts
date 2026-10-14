@@ -67,10 +67,17 @@ export function formatDateTime(dateStr: string): { date: string; time: string } 
   return { date, time };
 }
 
+const SERVICE_TYPE_LABELS: Readonly<Record<string, string>> = {
+  credit_audit: "Lượt chấm",
+  cp1_audit: "Lượt chấm vòng Ý tưởng",
+  cp2_audit: "Lượt chấm vòng Thị trường",
+};
+const FALLBACK_SERVICE_LABEL = "Lượt chấm";
+
 function getOrderItemSummary(order: Order): string {
-  if (!order.items || order.items.length === 0) return "Mua credit";
+  if (!order.items || order.items.length === 0) return "Mua lượt chấm";
   return order.items
-    .map((item) => `${item.service_type === "credit_audit" || item.service_type === "cp1_audit" ? "Credit" : item.service_type} x${item.quantity}`)
+    .map((item) => `${SERVICE_TYPE_LABELS[item.service_type] ?? FALLBACK_SERVICE_LABEL} x${item.quantity}`)
     .join(", ");
 }
 

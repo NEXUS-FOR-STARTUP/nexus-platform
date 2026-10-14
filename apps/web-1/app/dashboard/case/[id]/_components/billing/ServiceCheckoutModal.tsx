@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Modal, Button, NumberInput, Stack, Text, Group, Paper, Select } from "@mantine/core";
+import { Modal, Button, NumberInput, Stack, Text, Group, Paper, Select, Divider } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useWalletBalance } from "@/app/dashboard/wallet/hooks/useWallet";
 import { useServiceCatalog, filterPackagesByService } from "@/hooks/useServiceCatalog";
 import { useShortageDepositRedirect } from "../use-shortage-deposit-redirect";
 import { usePlaceServiceOrder } from "./usePlaceServiceOrder";
 import DiscountCodeInput from "../DiscountCodeInput";
-import type { DiscountCodeCheckResult } from "@repo/validation";
+import { MAX_TEAM_MEMBERS, type DiscountCodeCheckResult } from "@repo/validation";
 
 interface ServiceCheckoutModalProps {
   caseId: string;
@@ -20,6 +20,9 @@ interface ServiceCheckoutModalProps {
 }
 
 const MIN_TOPUP_AMOUNT = 2000;
+const formatVnd = (amount: number): string => `${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })} VND`;
+/** Giá/thành viên luôn tính theo nhóm đủ người, độc lập với số thành viên đã khai. */
+const PRICING_TEAM_SIZE = MAX_TEAM_MEMBERS;
 
 export default function ServiceCheckoutModal({
   caseId,
@@ -57,6 +60,9 @@ export default function ServiceCheckoutModal({
   const listPrice = selectedPkg?.price ?? 0;
   const unitPrice = discount?.discounted_price ?? listPrice;
   const totalAmount = quantity * unitPrice;
+  const creditsPerPackage = selectedPkg?.credits_granted ?? 0;
+  const totalCredits = quantity * creditsPerPackage;
+  const perMemberPrice = totalAmount > 0 ? Math.round(totalAmount / PRICING_TEAM_SIZE) : null;
   const shortage = Math.max(totalAmount - walletBalance, 0);
   const hasSufficientBalance = shortage === 0;
 
@@ -93,7 +99,7 @@ export default function ServiceCheckoutModal({
   };
 
   return (
-    <Modal opened={opened} onClose={handleClose} title={`Mua lượt chấm — ${stageName}`} centered size="md">
+    <Modal opened={opened} onClose={handleClose} title={`Mua lượt chấm - ${stageName}`} centered size="md">
       {isCatalogLoading ? (
         <Text c="dimmed" size="sm">Đang tải gói dịch vụ...</Text>
       ) : availablePackages.length === 0 ? (
@@ -108,53 +114,80 @@ export default function ServiceCheckoutModal({
               label="Chọn gói"
               value={selectedPackageId}
               onChange={handleSelectPackage}
-              data={availablePackages.map((p) => ({ value: p.id, label: `${p.name} (${p.price.toLocaleString("vi-VN")} VND)` }))}
+              data={availablePackages.map((p) => ({ value: p.id, label: `${p.credits_granted ?? 0} lượt chấm (${formatVnd(p.price)})` }))}
             />
           )}
 
-          <NumberInput
-            label="Số lượng gói"
-            description={selectedPkg?.credits_granted ? `Mỗi gói gồm ${selectedPkg.credits_granted} lượt chấm.` : undefined}
-            value={quantity}
-            onChange={(val) => setQuantity(typeof val === "number" && val >= 1 ? Math.min(val, 50) : 1)}
-            min={1}
-            max={50}
-          />
+          <Paper p="md" radius="md" bg="var(--mantine-color-teal-0)">
+            <Stack gap={4}>
+              <Group justify="space-between" align="center">
+                <Text size="sm" fw={600}>{`Gói chấm ${stageName}`}</Text>
+                {creditsPerPackage > 0 && (
+                  <Text size="xs" c="dimmed">{`${creditsPerPackage} lượt chấm / gói`}</Text>
+                )}
+              </Group>
+              {perMemberPrice !== null && (
+                <Group gap={6} align="baseline">
+                  <Text fw={800} fz={30} c="teal.8" lh={1.1}>{formatVnd(perMemberPrice)}</Text>
+                  <Text size="sm" c="dimmed">/ thành viên</Text>
+                </Group>
+              )}
+              <Text size="xs" c="dimmed">
+                {`Tổng ${formatVnd(totalAmount)} chia đều cho nhóm ${PRICING_TEAM_SIZE} người`}
+              </Text>
+            </Stack>
+          </Paper>
+
+          <Group justify="space-between" align="center" wrap="nowrap">
+            <Text size="sm" fw={600}>Số gói muốn mua</Text>
+            <NumberInput
+              aria-label="Số gói muốn mua"
+              w={120}
+              value={quantity}
+              onChange={(val) => setQuantity(typeof val === "number" && val >= 1 ? Math.min(val, 50) : 1)}
+              min={1}
+              max={50}
+              allowDecimal={false}
+            />
+          </Group>
 
           <DiscountCodeInput
             packageId={selectedPackageId}
             applied={discount}
             onChange={setDiscount}
           />
-          <Paper p="sm" withBorder bg="var(--mantine-color-gray-0)">
-            <Stack gap="xs">
+
+          <Stack gap="xs">
+            {creditsPerPackage > 0 && (
               <Group justify="space-between">
-                <Text size="sm">Đơn giá:</Text>
-                <Text size="sm" fw={500}>{unitPrice.toLocaleString("vi-VN")} VND</Text>
+                <Text size="sm" c="dimmed">Bạn nhận được</Text>
+                <Text size="sm" fw={500}>{`${totalCredits} lượt chấm`}</Text>
               </Group>
-              <Group justify="space-between">
-                <Text size="sm" fw={600}>Tổng thanh toán:</Text>
-                <Text size="sm" fw={700} c="blue">{totalAmount.toLocaleString("vi-VN")} VND</Text>
-              </Group>
-              <Group justify="space-between">
-                <Text size="xs" c="dimmed">Số dư ví:</Text>
-                <Text size="xs" c="dimmed">{walletBalance.toLocaleString("vi-VN")} VND</Text>
-              </Group>
-              {!hasSufficientBalance && (
-                <Text size="xs" c="red" fw={500}>Ví thiếu {shortage.toLocaleString("vi-VN")} VND</Text>
-              )}
-            </Stack>
-          </Paper>
+            )}
+            <Group justify="space-between">
+              <Text size="sm" c="dimmed">Số dư ví</Text>
+              <Text size="sm">{formatVnd(walletBalance)}</Text>
+            </Group>
+            <Divider />
+            <Group justify="space-between" align="baseline">
+              <Text fw={600}>Tổng thanh toán</Text>
+              <Text fw={700} fz="xl">{formatVnd(totalAmount)}</Text>
+            </Group>
+            {!hasSufficientBalance && (
+              <Text size="xs" c="red" fw={500} ta="right">Ví thiếu {formatVnd(shortage)}</Text>
+            )}
+          </Stack>
 
           <Button
             fullWidth
-            color={hasSufficientBalance ? "blue" : "orange"}
+            size="md"
+            color="orange"
             loading={isOrderPending || isShortagePending}
             onClick={handlePay}
           >
             {hasSufficientBalance
-              ? `Thanh toán ${totalAmount.toLocaleString("vi-VN")} VND bằng ví`
-              : `Nạp ${Math.max(shortage, MIN_TOPUP_AMOUNT).toLocaleString("vi-VN")} VND & mua`}
+              ? `Thanh toán ${formatVnd(totalAmount)} bằng ví`
+              : `Nạp ${formatVnd(Math.max(shortage, MIN_TOPUP_AMOUNT))} & mua`}
           </Button>
         </Stack>
       )}

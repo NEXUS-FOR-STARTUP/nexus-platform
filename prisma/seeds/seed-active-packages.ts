@@ -99,7 +99,7 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
   },
   {
     id: "pkg_cp2_audit",
-    name: "Gói chấm Checkpoint 2",
+    name: "Gói chấm Thị trường",
     price: 79000,
     features: {
       items: [

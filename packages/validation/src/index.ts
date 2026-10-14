@@ -47,9 +47,11 @@ export const TeamMemberInputSchema = z.object({
 
 export type TeamMemberInput = z.infer<typeof TeamMemberInputSchema>;
 
+export const MAX_TEAM_MEMBERS = 6;
+
 export const TeamFitInputSchema = z.object({
   idea: IdeaInputSchema,
-  team: z.array(TeamMemberInputSchema).min(1).max(6),
+  team: z.array(TeamMemberInputSchema).min(1).max(MAX_TEAM_MEMBERS),
 });
 
 export type TeamFitInput = z.infer<typeof TeamFitInputSchema>;
