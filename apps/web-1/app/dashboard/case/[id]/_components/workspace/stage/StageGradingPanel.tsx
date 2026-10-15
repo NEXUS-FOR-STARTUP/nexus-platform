@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { ActionIcon, Badge, Button, Collapse, CopyButton, Group, Paper, Progress, Stack, Stepper, Text, Tooltip } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
+import { useClipboard, useMediaQuery } from "@mantine/hooks";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, ChevronDown, ChevronUp, Copy, X } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Copy, MessageCircle, X } from "lucide-react";
 import { useCaseAiStatus, type CaseAiStatusResponse } from "../../../hooks/useCaseAiStatus";
 import { useTriggerAudit, type SubmissionType } from "../../../hooks/useTriggerAudit";
 import RadarLogsViewer from "../../RadarLogsViewer";
 import { filterCleanLogs } from "../../radar.utils";
+import { ZALO_GROUP_URL } from "@/lib/zalo";
 
 interface StageGradingPanelProps {
   caseId: string;
@@ -60,6 +61,7 @@ export default function StageGradingPanel({ caseId, checkpoint, submissionType, 
   const queryClient = useQueryClient();
   const { data } = useCaseAiStatus(caseId, checkpoint);
   const { triggerAudit, isTriggering } = useTriggerAudit(caseId);
+  const clipboard = useClipboard({ timeout: 4000 });
   const isNarrow = useMediaQuery("(max-width: 48em)");
   const [opened, setOpened] = useState(true);
   const [dismissed, setDismissed] = useState(false);
@@ -107,6 +109,18 @@ export default function StageGradingPanel({ caseId, checkpoint, submissionType, 
   };
 
   const retryScope = data.scope === "questionnaire" ? ("questionnaire" as const) : ("full" as const);
+
+  // Zalo group links cannot carry prefilled text, so the report is copied to the clipboard and the user pastes it into the group.
+  const copyReport = () => {
+    const lines = [
+      "Mình gặp lỗi khi chấm bài, nhờ admin hỗ trợ:",
+      `- Trang: ${window.location.href}`,
+      `- Mã lần chấm: ${data.jobId ?? "không có"}`,
+      `- Mã hồ sơ: ${caseId}`,
+      `- Thời điểm: ${new Date().toLocaleString("vi-VN")}`,
+    ];
+    clipboard.copy(lines.join("\n"));
+  };
   const handleRetry = () =>
     triggerAudit({
       submission_type: retryScope === "questionnaire" ? "initial" : submissionType,
@@ -130,7 +144,7 @@ export default function StageGradingPanel({ caseId, checkpoint, submissionType, 
 
   return (
     <Paper withBorder radius="md" p="md">
-      <Group justify="space-between" wrap="nowrap" gap="sm">
+      <Group justify="space-between" wrap="wrap" gap="sm">
         <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
           {badge && <Badge color={badge.color} variant={isActive ? "filled" : "light"}>{badge.label}</Badge>}
           <Text fw={600} size="sm" truncate>{headline[status]}</Text>
@@ -148,14 +162,31 @@ export default function StageGradingPanel({ caseId, checkpoint, submissionType, 
           )}
           {shortJobId && <Text size="xs" c="dimmed" ff="monospace">#{shortJobId}</Text>}
         </Group>
-        <Group gap="xs" wrap="nowrap">
+        <Group gap="xs" wrap="wrap">
           {(status === "failed" || status === "cancelled") && (
-            <Button size="xs" loading={isTriggering} onClick={handleRetry}>
+            <Button size="sm" loading={isTriggering} onClick={handleRetry}>
               Chạy lại
             </Button>
           )}
+          {status === "failed" && (
+            <Tooltip label="Sao chép nội dung báo lỗi và mở nhóm Zalo hỗ trợ. Dán vào nhóm để gửi admin." multiline maw={280} withArrow>
+              <Button
+                size="sm"
+                variant="light"
+                color={clipboard.copied ? "green" : "red"}
+                component="a"
+                href={ZALO_GROUP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                leftSection={clipboard.copied ? <Check size={14} /> : <MessageCircle size={14} />}
+                onClick={copyReport}
+              >
+                {clipboard.copied ? "Đã sao chép, hãy dán vào Zalo" : "Báo lỗi qua Zalo"}
+              </Button>
+            </Tooltip>
+          )}
           {status === "completed" && (
-            <Button size="xs" color="green" onClick={handleViewResults}>
+            <Button size="sm" color="green" onClick={handleViewResults}>
               Xem kết quả
             </Button>
           )}
