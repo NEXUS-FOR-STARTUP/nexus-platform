@@ -72,3 +72,4 @@ Sau khi xác minh, ghi 1 dòng theo format trên (ví dụ: `2026-08-03 HH:MM | 
 | 2026-10-12 23:29 | 69e037c | staging | docs(plans): thêm plan worker OMP thành engine thuần (api sha256:6da470574a0a | worker sha256:e7f3e12329ed) | 🔵 api 🟠 worker |
 | 2026-10-13 00:23 | 2c5f5ec | staging | fix(web): bỏ setState trong effect ở modal chấm bài (api sha256:b1df11a401c4 | web sha256:294a02afde12) | 🔵 api 🟢 web |
 | 2026-10-13 00:46 | 017f8d1 | staging | fix(api): chặn [___] bị parse thành in nghiêng làm hỏng PDF báo cáo (api sha256:4276d8575db3) | 🔵 api |
+| 2026-10-15 16:55 | e753502 | staging | feat(web): nút báo lỗi qua Zalo khi lần chấm bị gián đoạn (web sha256:b05f779ba5fe) | 🟢 web |
