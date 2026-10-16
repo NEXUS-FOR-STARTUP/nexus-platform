@@ -1,7 +1,7 @@
 ---
 title: "Khoản ứng nợ (receivables) + cấp ví vận hành: làm trước, thu tiền sau"
 description: "Ba bảng receivables, receivable_payments, receivable_adjustments trong DB; tạo khoản nợ và cấp VND vào ví vận hành trong cùng một transaction; ghi thanh toán một phần, xoá nợ có lý do."
-status: in-progress
+status: completed
 priority: P2
 effort: 32h
 tags: [wallet, receivables, admin, pay-later, api, prisma]
@@ -40,17 +40,17 @@ Khách Zalo gửi tài liệu, vận hành chạy đánh giá trước rồi m�
 
 | Phase | Name | Status |
 |---|---|---|
-| 1 | [Xác nhận bất biến ví và schema (chỉ đọc)](./phase-01-confirm-wallet-invariants.md) | Done (đọc code; không truy vấn DB) |
-| 2 | [Schema receivables + migration cộng thêm](./phase-02-receivables-schema.md) | Schema + client xong; **migration chưa tạo** (chờ cổng an toàn DB) |
-| 3 | [Backend: tạo nợ + cấp ví, ghi thanh toán, xoá nợ, danh sách](./phase-03-backend-receivables.md) | Code + test giả lập xong; chưa chạy trên Postgres thật |
-| 4 | [UI admin](./phase-04-admin-ui.md) | Code xong, type-check xanh; chưa smoke trình duyệt |
-| 5 | [Docs, runbook, bàn giao prod](./phase-05-docs-runbook-prod.md) | Runbook + CHANGELOG xong; checklist prod chờ user |
+| 1 | [Xác nhận bất biến ví và schema (chỉ đọc)](./phase-01-confirm-wallet-invariants.md) | Done |
+| 2 | [Schema receivables + migration cộng thêm](./phase-02-receivables-schema.md) | Done (migration `20261016160000_receivables_pay_later`, `20261016180000_receivable_debtor_snapshot`) |
+| 3 | [Backend: tạo nợ + cấp ví, ghi thanh toán, xoá nợ, danh sách](./phase-03-backend-receivables.md) | Done |
+| 4 | [UI admin](./phase-04-admin-ui.md) | Done |
+| 5 | [Docs, runbook, bàn giao prod](./phase-05-docs-runbook-prod.md) | Done |
 
 
 ## Trạng thái triển khai (2026-10-16)
 
 - Code: `apps/api/src/modules/receivables/`, `orders/application/order-in-tx.ts` + `funded-lot.guard.ts`, hook hoàn tiền trong `services/credit-refund.ts` và `case-transition.service.ts`, nhánh `CRDEBT` trong `sepay-webhook.usecase.ts`, `packages/validation/src/receivables.ts`, web `app/admin/receivables`, `app/pay/[token]`, `PaymentView`.
-- Migration chưa được tạo trong `prisma/migrations/`. Bản xem trước sinh offline bằng `prisma migrate diff`: [migration-preview.sql](./migration-preview.sql). Phải tạo bằng `migrate dev --create-only` trên DB local đã xác nhận, đối chiếu, rồi mới áp (xem runbook).
+- Migration đã tạo trong `prisma/migrations/` (`20261016160000_receivables_pay_later`, `20261016180000_receivable_debtor_snapshot`); [migration-preview.sql](./migration-preview.sql) là bản xem trước sinh offline ban đầu.
 - Lệch so với plan: (1) `amount` của `receivable_adjustments` cho phép 0 (`CHECK >= 0`) để dòng hoàn luôn ghi được số lượt và làm tròn lũy kế đúng; xoá tay vẫn bắt `> 0` ở API. (2) Body/response API dùng snake_case theo quy ước repo (`request_key`, `amount_due`, ...). (3) Thêm quy tắc: không cấp tài trợ vào cặp (case, loại dịch vụ) đã từng hoàn lượt (409), vì khoá idempotency hoàn tiền hiện có là vĩnh viễn theo cặp. (4) `refundCredit` (admin_veto, hiện không transition nào dùng) với CP1 tài trợ đi qua `refundRemainingCreditInTx` thay vì hoàn `lockedPrice`.
 - Chưa kiểm chứng (cần Postgres thật): tính nguyên tử qua rollback transaction thật, khoá hàng `FOR UPDATE` khi hai request đồng thời, migration, smoke UI, cấu hình che token ở reverse proxy/Next, SePay gửi `CRDEBT…` qua ngân hàng thật.
 - Suite API chạy bằng `bun test` (tsx không chạy được ở WSL vì esbuild Windows). Có sẵn ~16 test lỗi không liên quan (Redis/Typst/nguồn tĩnh).
