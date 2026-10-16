@@ -51,3 +51,17 @@ export function validateCaseContact(values: CaseContactValues, requireCore: bool
   }
   return errors;
 }
+
+const CORE_LABELS: Partial<Record<keyof CaseContactValues, string>> = {
+  full_name: "họ tên",
+  zalo: "số điện thoại",
+  email: "email",
+};
+
+/** Labels of the core fields (name, phone, email) still missing or invalid; empty when complete. */
+export function missingContactLabels(contact: unknown): string[] {
+  const errors = validateCaseContact(contactFromSnapshot(contact), true);
+  return (Object.keys(CORE_LABELS) as (keyof CaseContactValues)[])
+    .filter((k) => errors[k])
+    .map((k) => CORE_LABELS[k]!);
+}

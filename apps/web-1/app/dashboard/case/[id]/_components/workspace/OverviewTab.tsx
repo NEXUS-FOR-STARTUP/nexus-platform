@@ -2,12 +2,16 @@
 
  import { Badge, CopyButton, Group, Stack, Text, Tooltip } from "@mantine/core";
  import { Check, Copy } from "lucide-react";
+import { useRouter } from "next/navigation";
 import OverviewHero from "./OverviewHero";
 import OverviewProgressStrip from "./OverviewProgressStrip";
 import OverviewRecentReports from "./OverviewRecentReports";
 import ZaloSupportCard from "./ZaloSupportCard";
 import CaseOverviewPanel from "../CaseOverviewPanel";
 import { buildNextActions } from "../../hooks/useNextActions";
+import { useCaseDetails } from "../../hooks/useCaseDetails";
+import ContactNextStepCard from "./ContactNextStepCard";
+import { isCaseContactComplete } from "@repo/validation";
 import type { StageSummary } from "../../hooks/useStageSummaries";
 import type { Case, DocumentWorkspace, RoundHistoryEntry, TeamFitReport } from "@/types";
 
@@ -32,6 +36,8 @@ import type { Case, DocumentWorkspace, RoundHistoryEntry, TeamFitReport } from "
    teamFitReport,
    onOpenStage,
  }: OverviewTabProps) {
+  const router = useRouter();
+  const { contact } = useCaseDetails(caseId);
   const actions = buildNextActions(stages);
 
   return (
@@ -66,7 +72,9 @@ import type { Case, DocumentWorkspace, RoundHistoryEntry, TeamFitReport } from "
         </Text>
       </div>
 
-      <OverviewHero action={actions[0] ?? null} onOpenStage={onOpenStage} />
+      <ContactNextStepCard contact={contact} onOpenSettings={() => router.push(`/dashboard/case/${caseId}?tab=settings`)} />
+
+      {isCaseContactComplete(contact) && <OverviewHero action={actions[0] ?? null} onOpenStage={onOpenStage} />}
 
       <OverviewProgressStrip caseId={caseId} stages={stages} />
 
@@ -79,7 +87,7 @@ import type { Case, DocumentWorkspace, RoundHistoryEntry, TeamFitReport } from "
       {caseData && (
         <CaseOverviewPanel
           caseData={caseData}
-          intakeSnapshot={intakeSnapshot}
+          intakeSnapshot={{ ...(intakeSnapshot as Record<string, unknown> | null), contact }}
           teamFitReport={teamFitReport}
         />
       )}

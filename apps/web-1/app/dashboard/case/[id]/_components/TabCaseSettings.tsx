@@ -57,7 +57,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
     if (!school.trim()) newErrors.school = "Trường học / Viện đào tạo là bắt buộc.";
     if (!courseContext.trim()) newErrors.courseContext = "Lớp học / Môn học là bắt buộc.";
 
-    const contactErrors = validateCaseContact(contact, false);
+    const contactErrors = validateCaseContact(contact, true);
     Object.entries(contactErrors).forEach(([k, v]) => {
       if (v) newErrors[`contact_${k}`] = v;
     });
