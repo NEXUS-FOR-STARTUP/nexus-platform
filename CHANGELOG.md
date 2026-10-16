@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (2026-10-16) — Làm trước, thu tiền sau (khoản ứng nợ)
+- Bảng mới `receivables`, `receivable_payments`, `receivable_adjustments` (chỉ cộng thêm; 3 migration cộng thêm `20261016160000`, `20261016180000`, `20261016190000`; xem `docs/pay-later-runbook.md`). Còn nợ/trạng thái tính từ dữ liệu, không lưu cột.
+- `POST/GET /api/admin/receivables`, `/:id/payments`, `/:id/write-off`, `/:id/payment-link`; `GET /api/public/receivables/:token` (không đăng nhập, giới hạn tần suất, token chỉ lưu dạng hash SHA-256).
+- "Mua lượt hộ": một transaction cấp VND vào ví (`WalletService.grant`, `adjustment`/`platform_bonus`), mua lượt qua luồng đơn hàng có sẵn (`createOrderInTx`, tách từ `createOrderUseCase`) rồi trừ ví; lượt ghi `price_per_credit: 0`. Số cấp do giá đơn quyết định.
+- SePay webhook: mã `CRDEBT…` ghi `receivable_payments` (gross = tiền thật, applied = phần trừ nợ), không tạo `Deposit`, không cộng ví.
+- Hoàn/huỷ lượt đã tài trợ tự xoá nợ theo từng lô, lũy kế theo `amount_due`; một cặp (case, loại dịch vụ) không trộn lượt tài trợ và lượt mua thật.
+- Doanh thu admin loại trừ đơn tài trợ. Khoản nợ chỉ tài khoản trong env `RECEIVABLE_SYSTEM_USER_EMAIL` dùng được; liên hệ khách lưu theo từng case (`cases.contact_profile`).
+- Web: trang admin Khoản nợ; trang công khai `/pay/receivable/[token]` dùng chung `PaymentView` với trang nạp tiền. Biến môi trường mới `PUBLIC_WEB_URL`.
+
 ### Fixed (2026-10-12)
 - "Tạo dự án mới" luôn trả `400 VALIDATION_ERROR`: `POST /api/cases` giờ kiểm tra theo hợp đồng tạo dự án mới — mọi trường intake cũ (liên hệ, điểm kẹt, tài liệu, cam kết ranh giới) là tùy chọn và chỉ được kiểm tra khi có gửi, bắt buộc duy nhất tên dự án. Hợp đồng intake đầy đủ vẫn áp dụng khi lưu hồ sơ ở `POST /api/cases/:id/intake`.
 - Lưu hồ sơ dự án không còn xóa tài liệu đã nộp ở unit `v00`: `submit-intake` chỉ đồng bộ tài liệu khi request thực sự gửi danh sách tài liệu.

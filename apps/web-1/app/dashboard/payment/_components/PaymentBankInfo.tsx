@@ -7,9 +7,10 @@ interface PaymentBankInfoProps {
     accountName: string;
     qrUrl?: string;
   };
+  qrAlt?: string;
 }
 
-export function PaymentBankInfo({ bankInfo }: PaymentBankInfoProps) {
+export function PaymentBankInfo({ bankInfo, qrAlt = "QR chuyển khoản nạp tiền" }: PaymentBankInfoProps) {
   return (
     <div className="rounded-xl bg-brand-subtle/20 p-4">
       <div className="flex flex-col items-center gap-6 md:flex-row md:items-start">
@@ -17,7 +18,7 @@ export function PaymentBankInfo({ bankInfo }: PaymentBankInfoProps) {
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={bankInfo.qrUrl}
-            alt="QR chuyển khoản nạp tiền"
+            alt={qrAlt}
             className="h-56 w-56 rounded-xl bg-white"
           />
         ) : null}

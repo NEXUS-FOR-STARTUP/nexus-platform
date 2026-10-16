@@ -7,6 +7,10 @@ interface PaymentDepositMetaProps {
   amount: number;
   currency: string;
   transferContent: string;
+  /** Overrides the default deposit activity text. */
+  activityText?: string;
+  /** Pre-formatted amount; overrides amount + currency formatting. */
+  amountText?: string;
 }
 
 export function PaymentDepositMeta({
@@ -15,6 +19,8 @@ export function PaymentDepositMeta({
   amount,
   currency,
   transferContent,
+  activityText = WALLET_COPY.depositActivityText,
+  amountText,
 }: PaymentDepositMetaProps) {
   return (
     <div className="space-y-2 text-base">
@@ -31,12 +37,12 @@ export function PaymentDepositMeta({
       <div className="flex justify-between gap-3 border-b border-border-app/40 py-1.5">
         <span className="text-text-muted">Số tiền</span>
         <span className="text-right font-semibold">
-          {amount.toLocaleString("vi-VN")} {currency}
+          {amountText ?? `${amount.toLocaleString("vi-VN")} ${currency}`}
         </span>
       </div>
       <div className="flex justify-between gap-3 border-b border-border-app/40 py-1.5">
         <span className="text-text-muted">{WALLET_COPY.activityDescription}</span>
-        <span className="text-right font-medium">{WALLET_COPY.depositActivityText}</span>
+        <span className="text-right font-medium">{activityText}</span>
       </div>
       <div className="flex justify-between gap-3 py-1.5">
         <span className="text-text-muted">{WALLET_COPY.transferContent}</span>

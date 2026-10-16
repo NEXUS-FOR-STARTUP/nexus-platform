@@ -71,6 +71,8 @@ function makeCode(overrides: Partial<FakeCode> = {}): FakeCode {
 
 function makeFakeTx(undo: (() => void)[]) {
   return {
+    // createOrderInTx locks the case row before checking sponsored lots.
+    $queryRaw: async () => [],
     order: {
       create: async ({ data }: { data: { total_amount: number; metadata_json: unknown; items: { create: unknown[] } } }) => {
         const order = {
@@ -133,6 +135,7 @@ function makeFakeTx(undo: (() => void)[]) {
       }),
     },
     creditLedger: {
+      findMany: async () => state.ledger.map((l) => ({ ...l, type: "purchase" })),
       aggregate: async () => ({ _sum: { amount: state.ledger.reduce((s, l) => s + l.amount, 0) } }),
       create: async ({ data }: { data: { amount: number; metadata_json: Record<string, unknown> } }) => {
         state.ledger.push(data);

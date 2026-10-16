@@ -125,6 +125,8 @@ test("listCasesUseCase returns envelope", async () => {
   const { prisma } = await import("../../../db.js");
   const originalFind = prisma.case.findMany;
   const originalCount = prisma.case.count;
+  const originalUnits = prisma.lifecycleUnit.findMany;
+  prisma.lifecycleUnit.findMany = (async () => []) as typeof prisma.lifecycleUnit.findMany;
   prisma.case.findMany = (async () => [{ id: "c1" }]) as typeof prisma.case.findMany;
   prisma.case.count = (async () => 1) as typeof prisma.case.count;
 
@@ -141,6 +143,7 @@ test("listCasesUseCase returns envelope", async () => {
   } finally {
     prisma.case.findMany = originalFind;
     prisma.case.count = originalCount;
+    prisma.lifecycleUnit.findMany = originalUnits;
   }
 });
 

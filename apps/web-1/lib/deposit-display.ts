@@ -107,3 +107,33 @@ export function getDepositDisplay(status: string, hasProof?: boolean): DepositDi
 export function depositDetailHref(depositId: string): string {
   return `/dashboard/payment?pid=${depositId}`;
 }
+
+/** Customer-facing display of a pay-later receivable, same badge palette as deposits. */
+export function getReceivableDisplay(status: string): DepositDisplay {
+  if (status === "settled") {
+    return {
+      label: "Đã thanh toán",
+      color: "green",
+      explanation: "Cảm ơn bạn. Khoản này đã được thanh toán đủ, không cần chuyển thêm.",
+      actionLabel: "",
+      attention: false,
+    };
+  }
+  if (status === "written_off") {
+    return {
+      label: "Đã đóng",
+      color: "gray",
+      explanation: "Khoản này đã được đóng, bạn không cần chuyển khoản thêm.",
+      actionLabel: "",
+      attention: false,
+    };
+  }
+  return {
+    label: "Chờ thanh toán",
+    color: "orange",
+    explanation:
+      "Chuyển khoản đúng số tiền và nội dung bên dưới. Hệ thống tự cập nhật trạng thái khi nhận được tiền.",
+    actionLabel: "",
+    attention: true,
+  };
+}

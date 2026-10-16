@@ -617,9 +617,11 @@ test("Phase 06 - Core usecases", async (t) => {
           ],
           total: 1,
         }),
+        getEffectiveContactsByCaseIds: async () => new Map(),
       },
     );
     assert.ok(Array.isArray(result.items));
+    assert.equal((result.items[0] as any).contact_complete, false);
     assert.equal(result.total, 1);
     assert.equal(result.page, 1);
     assert.equal(result.limit, 20);

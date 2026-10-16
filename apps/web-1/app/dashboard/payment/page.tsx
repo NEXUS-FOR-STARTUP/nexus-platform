@@ -14,22 +14,13 @@ import {
   clearBuyCreditAfterDepositIntent,
 } from "./credit-after-deposit-intent";
 import { useFulfillCreditAfterDeposit } from "./hooks/use-fulfill-credit-after-deposit";
-import { PaymentBankInfo } from "./_components/PaymentBankInfo";
-import { PaymentDepositMeta } from "./_components/PaymentDepositMeta";
+import { PaymentView } from "./_components/PaymentView";
 
 const STATUS_ICONS: Record<string, LucideIcon> = {
   pending: Clock,
   verified: CheckCircle2,
   rejected: XCircle,
   amount_mismatch: AlertCircle,
-};
-
-const BADGE_CLASS: Record<string, string> = {
-  green: "bg-success-soft text-success border-success/20",
-  red: "bg-danger-soft text-danger border-danger/20",
-  orange: "bg-warning-soft text-warning border-warning/20",
-  yellow: "bg-warning-soft text-warning border-warning/20",
-  gray: "bg-info-soft text-info border-info/20",
 };
 
 export default function PaymentPage() {
@@ -99,76 +90,62 @@ export default function PaymentPage() {
     }
   };
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-4 motion-reduce:animate-none sm:p-6">
-      <button
-        type="button"
-        onClick={handleBack}
-        className="flex min-h-11 cursor-pointer items-center gap-2 text-base text-text-muted hover:text-text-app"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        {intent?.caseId ? WALLET_COPY.backToCase : WALLET_COPY.backToWallet}
-      </button>
-
-      <div className="space-y-6 rounded-2xl border border-border-app bg-surface-app p-5 sm:p-8">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-heading text-xl font-semibold text-text-app">
-            {WALLET_COPY.detailTitle}
-          </h2>
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1 text-sm font-semibold ${
-              BADGE_CLASS[display.color] ?? BADGE_CLASS.gray
-            }`}
-          >
-            <StatusIcon className="h-4 w-4" />
-            {display.label}
-          </span>
+    <PaymentView
+      header={
+        <button
+          type="button"
+          onClick={handleBack}
+          className="flex min-h-11 cursor-pointer items-center gap-2 text-base text-text-muted hover:text-text-app"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {intent?.caseId ? WALLET_COPY.backToCase : WALLET_COPY.backToWallet}
+        </button>
+      }
+      title={WALLET_COPY.detailTitle}
+      statusLabel={display.label}
+      statusColor={display.color}
+      StatusIcon={StatusIcon}
+      explanation={display.explanation}
+      meta={{
+        createdAt,
+        bankCreditedAt,
+        amount: payment.amount,
+        currency: payment.currency,
+        transferContent: payment.transfer_content,
+      }}
+      bankInfo={payment.status === "pending" ? payment.bankInfo : undefined}
+    >
+      {hasProof && payment.proof_file_url ? (
+        <div className="space-y-3 rounded-xl border border-border-app p-4">
+          <h3 className="font-semibold text-text-app">{WALLET_COPY.hasProof}</h3>
+          <ProofPreview proofFileUrl={payment.proof_file_url} />
         </div>
-        <p className="text-base text-text-app">{display.explanation}</p>
+      ) : payment.status === "pending" ? (
+        <p className="text-base text-text-muted">{WALLET_COPY.noProof}</p>
+      ) : null}
 
-        <PaymentDepositMeta
-          createdAt={createdAt}
-          bankCreditedAt={bankCreditedAt}
-          amount={payment.amount}
-          currency={payment.currency}
-          transferContent={payment.transfer_content}
-        />
+      {payment.status === "pending" && !hasProof ? <ProofUpload depositId={payment.id} /> : null}
 
-        {payment.status === "pending" && payment.bankInfo?.accountNumber ? (
-          <PaymentBankInfo bankInfo={payment.bankInfo} />
-        ) : null}
+      {payment.status === "amount_mismatch" ? (
+        <Alert color="yellow" title={display.label}>
+          {display.explanation} Không thể gửi lại ảnh chứng minh cho yêu cầu này.
+        </Alert>
+      ) : null}
 
-        {hasProof && payment.proof_file_url ? (
-          <div className="space-y-3 rounded-xl border border-border-app p-4">
-            <h3 className="font-semibold text-text-app">{WALLET_COPY.hasProof}</h3>
-            <ProofPreview proofFileUrl={payment.proof_file_url} />
-          </div>
-        ) : payment.status === "pending" ? (
-          <p className="text-base text-text-muted">{WALLET_COPY.noProof}</p>
-        ) : null}
-
-        {payment.status === "pending" && !hasProof ? <ProofUpload depositId={payment.id} /> : null}
-
-        {payment.status === "amount_mismatch" ? (
-          <Alert color="yellow" title={display.label}>
-            {display.explanation} Không thể gửi lại ảnh chứng minh cho yêu cầu này.
+      {payment.status === "rejected" ? (
+        <div className="space-y-3">
+          <Alert color="red" title={display.label}>
+            {payment.rejection_reason || "Minh chứng không hợp lệ."}
           </Alert>
-        ) : null}
-
-        {payment.status === "rejected" ? (
-          <div className="space-y-3">
-            <Alert color="red" title={display.label}>
-              {payment.rejection_reason || "Minh chứng không hợp lệ."}
-            </Alert>
-            <Button
-              className="min-h-11"
-              color="brand"
-              onClick={() => router.push(`/dashboard/wallet?amount=${payment.amount}`)}
-            >
-              {WALLET_COPY.newDeposit}
-            </Button>
-          </div>
-        ) : null}
-      </div>
-    </div>
+          <Button
+            className="min-h-11"
+            color="brand"
+            onClick={() => router.push(`/dashboard/wallet?amount=${payment.amount}`)}
+          >
+            {WALLET_COPY.newDeposit}
+          </Button>
+        </div>
+      ) : null}
+    </PaymentView>
   );
 }

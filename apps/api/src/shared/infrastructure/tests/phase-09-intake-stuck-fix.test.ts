@@ -124,11 +124,13 @@ test('GA-02 createOrder — mua credit KHÔNG ghi user_facing_stage', async () =
 
   const caseUpdateCalls: CaseUpdateCall[] = [];
   const fakeTx = {
+    $queryRaw: async (): Promise<unknown[]> => [],
     order: {
       create: async (): Promise<{ id: string; items: unknown[] }> => ({ id: 'order-1', items: [] }),
       update: async (): Promise<Record<string, never>> => ({}),
     },
     creditLedger: {
+      findMany: async (): Promise<unknown[]> => [],
       aggregate: async (): Promise<{ _sum: { amount: number } }> => ({ _sum: { amount: 0 } }),
       create: async (): Promise<Record<string, never>> => ({}),
     },

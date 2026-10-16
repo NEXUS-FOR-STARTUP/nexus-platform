@@ -17,7 +17,7 @@ Nexus hiện là monorepo Turborepo với các vùng chính:
 - Redis: Message broker cho BullMQ (`omp-queue`), Pub/Sub real-time logs (`job:logs:*`), và kênh hủy job (`job-cancellation`)
 - Centrifugo v6: Realtime WebSocket message broker cho case chat (`chat:{caseId}`)
 
-Data model trung tâm nằm ở `prisma/schema.prisma` (33 models, 32 migrations), với auth, news (NewsItem), case, checkpoint, lifecycle unit, document record, report, payment, event, AI job, team-fit report, credit ledger, notification (Notification + NotificationPreference + NotificationOutbox), chat read state (CaseChatReadState), service catalog (ServiceType + ServicePricing), wallet (UserWallet + WalletTransaction + WalletTopup [deprecated]), deposit/order (Deposit + Order + OrderItem), và domain event outbox (DomainEventOutbox).
+Data model trung tâm nằm ở `prisma/schema.prisma` (không ghi cứng số model/migration vì đã đổi), với auth, news (NewsItem), case, checkpoint, lifecycle unit, document record, report, payment, event, AI job, team-fit report, credit ledger, notification (Notification + NotificationPreference + NotificationOutbox), chat read state (CaseChatReadState), service catalog (ServiceType + ServicePricing), wallet (UserWallet + WalletTransaction + WalletTopup [deprecated]), deposit/order (Deposit + Order + OrderItem), khoản ứng nợ (Receivable + ReceivablePayment + ReceivableAdjustment, xem 4.7b), và domain event outbox (DomainEventOutbox).
 
 ## 2.1 Sơ đồ kiến trúc (text-based)
 
@@ -166,6 +166,14 @@ Tham chiếu:
 - **DB = source of truth cho ví**: `UserWallet` (cached `balance`, `currency` = "VND") + `WalletTransaction` (append-only ledger, `balance_before`/`balance_after`); `WalletTopup` `@deprecated` (replaced by deposits). Khác `credit_ledgers` cũ (case-level) — ví là account-level VND
 - Frontend: trang `apps/web-1/app/dashboard/wallet/page.tsx` (header "Ví của tôi", `WalletBalanceCard`, `WalletTransactionList`, `WalletTopupModal` — nay tạo deposit); hooks trong `app/dashboard/wallet/hooks/useWallet.ts` (`useWalletBalance`, `useWalletHistory`, `useCreateDeposit` — polling 30s, mutation invalidates `["wallet"]`)
 - Nav: `DashboardShell` thêm menu item "Ví của tôi" (icon `Wallet` từ lucide-react) cho student → `router.push("/dashboard/wallet")`
+
+### 4.7b Khoản ứng nợ "làm trước, thu tiền sau" (receivables) — 2026-10-16
+- Module `apps/api/src/modules/receivables/` (domain/application/infrastructure/http). Admin: `/api/admin/receivables` (list, create, `/:id/payments`, `/:id/write-off`, `/:id/payment-link`). Công khai: `GET /api/public/receivables/:token` (không đăng nhập, giới hạn 60 req/phút/IP, token chỉ lưu hash SHA-256). Chi tiết vận hành: [`pay-later-runbook.md`](./pay-later-runbook.md).
+- **Ba bảng mới:** `receivables` (mã `CRDEBT`+6 hex, `request_key` unique, `order_id`/`grant_tx_id`/`case_id` FK tuỳ chọn), `receivable_payments` (1 dòng/lần ngân hàng báo; `gross_amount` tiền thật, `applied_amount` phần trừ nợ; `bank_ref` unique; `source` sepay|manual), `receivable_adjustments` (xoá nợ; `kind` manual|refund; `idempotency_key` unique). Còn nợ/trạng thái luôn tính từ payments + adjustments (`computeReceivableState`), không lưu cột.
+- **Mua lượt hộ (một transaction):** `WalletService.grant` (`adjustment`/`platform_bonus`, không phát outbox) cộng đúng giá đơn → `createOrderInTx` (tách từ `createOrderUseCase`, khoá case theo thứ tự rồi kiểm tra trước mọi ghi) trừ ví bằng `withdrawal` → `creditLedger` purchase ghi `price_per_credit: 0` + `funded_by_receivable_id`. Số dư ví không đổi. Đơn tài trợ bỏ qua `DUAL_WRITE_PAYMENT` và bị loại khỏi doanh thu admin.
+- **Bất biến:** một cặp (case, loại dịch vụ) không trộn lượt tài trợ với lượt mua thật (409 hai chiều) và không cấp tài trợ vào cặp đã từng hoàn.
+- **Hoàn/huỷ:** `refundServiceRemaining` và `refundCaseAllInTx` gọi `settleReceivablesForRefundedCreditsInTx` ngay sau khi ghi `creditLedger` refund, trong cùng transaction: phân bổ lượt hoàn cho từng lô tài trợ (mới nhất trước), xoá nợ lũy kế theo `amount_due` (`refund:<eventKey>:<receivableId>`).
+- **Thanh toán:** SePay webhook mã `CRDEBT…` → `recordSepayDebtPayment` (không tạo `Deposit`, không cộng ví; chuyển dư giữ `gross`, đặt `review_reason`). Trang khách `/pay/receivable/[token]` dùng chung `PaymentView` với trang nạp tiền.
 
 ### 4.8 Profile, account & session management workflow — ship 2026-08-27 / 2026-08-28
 - Module `apps/api/src/modules/profile/` (domain `avatar-upload-rules`, application `upload-avatar.usecase`, `delete-account.usecase`, `list-sessions.usecase`, `revoke-session.usecase`, `revoke-other-sessions.usecase`, http `profile.routes`, `avatar.controller`, `profile.controller`, `session.controller`) mount tại `/api/profile`, toàn bộ qua `requireAuth`.

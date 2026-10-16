@@ -184,6 +184,8 @@ async function runCreateOrder(
 ): Promise<CapturedOrder> {
   const captured: CapturedOrder = { ledgerCreates: [], caseUpdates: [], outbox: [], orderItems: [] };
   const fakeTx = {
+    // createOrderInTx locks the case row, then checks for sponsored lots (none in these cases).
+    $queryRaw: async () => [],
     order: {
       create: async ({ data }: { data: { items: { create: Array<Record<string, unknown>> } } }) => {
         captured.orderItems = data.items.create;
@@ -192,6 +194,7 @@ async function runCreateOrder(
       update: async () => ({}),
     },
     creditLedger: {
+      findMany: async () => [],
       aggregate: async () => ({ _sum: { amount: 0 } }),
       create: async (args: { data: Record<string, unknown> }) => {
         captured.ledgerCreates.push(args);
