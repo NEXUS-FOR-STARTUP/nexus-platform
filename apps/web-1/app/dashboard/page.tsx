@@ -10,6 +10,7 @@ import { CreateProjectModal } from "./_components/CreateProjectModal";
 import CaseCard from "./_components/CaseCard";
 import CaseListFilters from "./_components/CaseListFilters";
 import DashboardEmptyState from "./_components/DashboardEmptyState";
+import ContactIncompleteBanner from "./_components/ContactIncompleteBanner";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 
 const PAGE_SIZE = 20;
@@ -67,6 +68,8 @@ export default function StudentDashboard() {
           </div>
         )}
       </div>
+
+      <ContactIncompleteBanner cases={cases} />
 
       <CaseListFilters
         search={search}

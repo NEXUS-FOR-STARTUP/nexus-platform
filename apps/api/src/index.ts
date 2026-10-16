@@ -22,6 +22,7 @@ import { orderRouter } from './modules/orders/infrastructure/http/order.routes.j
 import { depositRouter } from './modules/deposits/infrastructure/http/deposit.routes.js'
 import { profileRouter } from './modules/profile/http/profile.routes.js'
 import { newsPublicRouter } from './modules/news/http/news-public.routes.js'
+import { receivablesPublicRouter } from './modules/receivables/http/receivables.routes.js'
 import { newsAdminRouter } from './modules/news/http/news-admin.routes.js'
 import { registerNotificationListener } from './modules/notifications/application/notification-listener.js'
 import { startRelay } from './modules/notifications/application/notification-relay.js'
@@ -65,7 +66,8 @@ app.use('/api/*', async (c, next) => {
   const duration = Date.now() - start
 
   // Log completed requests (skip healthcheck noise in production)
-  const path = c.req.path
+  // The pay-link token is a bearer secret: never write it to the access log.
+  const path = c.req.path.replace(/^(\/api\/public\/receivables\/).+/, '$1[redacted]')
   if (path === '/health' || path === '/ready') return
 
   logger.info({
@@ -168,6 +170,7 @@ app.route('/api/orders', orderRouter)
 app.route('/api/deposits', depositRouter)
 app.route('/api/profile', profileRouter)
 app.route('/api/news', newsPublicRouter)
+app.route('/api/public/receivables', receivablesPublicRouter)
 
 // Global error handler — catches unhandled errors, no stack trace leak
 app.onError((err, c) => {

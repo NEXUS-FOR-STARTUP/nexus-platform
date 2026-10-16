@@ -96,6 +96,37 @@ export class WalletService {
     return tx ? run(tx) : prisma.$transaction(run)
   }
 
+  /**
+   * Operating-wallet grant for a pay-later receivable. Always runs inside the caller's
+   * transaction so the grant, the purchase that spends it and the receivable commit together.
+   * Not a deposit: no outbox event (it is not money the user topped up).
+   */
+  async grant(
+    userId: string,
+    amountVnd: number,
+    receivableId: string,
+    idempotencyKey: string,
+    tx: Prisma.TransactionClient,
+    metadata?: Record<string, unknown>,
+  ) {
+    const wallet = await getOrCreateWalletInTx(tx, userId)
+    const balanceBefore = wallet.balance
+    const balanceAfter = balanceBefore + amountVnd
+    const txn = await createTransaction(tx, {
+      walletId: wallet.id,
+      type: 'adjustment',
+      amount: amountVnd,
+      balanceBefore,
+      balanceAfter,
+      referenceType: 'platform_bonus',
+      referenceId: receivableId,
+      idempotencyKey,
+      metadataJson: { receivableId, ...metadata },
+    })
+    await updateWalletBalance(tx, wallet.id, balanceAfter)
+    return txn
+  }
+
   async refund(
     userId: string,
     amountVnd: number,

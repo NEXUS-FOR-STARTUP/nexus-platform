@@ -3,16 +3,15 @@
 import React, { useState } from "react";
 import { Case } from "@/types";
 import { useCaseDetails } from "../hooks/useCaseDetails";
-import {
-  Settings,
-  Save,
-  Loader2,
-  Trash2,
-} from "lucide-react";
-import { Button, TextInput, Modal } from "@mantine/core";
+import { Settings, Save, Loader2 } from "lucide-react";
+import { Button, TextInput } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { isCaseContactComplete } from "@repo/validation";
+import CaseContactFields from "./CaseContactFields";
+import CaseDeleteSection from "./CaseDeleteSection";
+import { contactFromSnapshot, validateCaseContact, type CaseContactValues } from "../../../_components/case-contact";
 
 interface TabCaseSettingsProps {
   caseData: Case;
@@ -20,9 +19,9 @@ interface TabCaseSettingsProps {
 }
 
 export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSettingsProps) {
-  const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const { updateSettings, isUpdatingSettings, deleteCase, isDeletingCase } = useCaseDetails(caseData.id);
+  const { updateSettings, isUpdatingSettings, contact: caseContact } = useCaseDetails(caseData.id);
 
   const intake = (intakeSnapshot as any) || {};
   const teamCtx = intake.team_context || {};
@@ -33,11 +32,12 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
   const [school, setSchool] = useState(caseData.school || teamCtx.school || intake.school || "");
   const [courseContext, setCourseContext] = useState(caseData.course_context || teamCtx.course_context || intake.course_context || "");
 
+  // Contact is case-scoped: prefilled only from this case's contact (profile + intake).
+  const [contact, setContact] = useState<CaseContactValues>(() => contactFromSnapshot(caseContact));
+  const showContactHint = searchParams.get("tab") === "settings" && !isCaseContactComplete(caseContact);
+
   // Validation Error State
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   const clearError = (fieldName: string) => {
     if (errors[fieldName]) {
@@ -57,6 +57,11 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
     if (!school.trim()) newErrors.school = "Trường học / Viện đào tạo là bắt buộc.";
     if (!courseContext.trim()) newErrors.courseContext = "Lớp học / Môn học là bắt buộc.";
 
+    const contactErrors = validateCaseContact(contact, false);
+    Object.entries(contactErrors).forEach(([k, v]) => {
+      if (v) newErrors[`contact_${k}`] = v;
+    });
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       notifications.show({
@@ -75,11 +80,14 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
         school,
         course_context: courseContext,
         group_no: groupNo,
+        contact: Object.fromEntries(
+          Object.entries(contact).map(([k, v]) => [k, v.trim()]),
+        ),
       });
       queryClient.invalidateQueries({ queryKey: ["case", caseData.id] });
       notifications.show({
         title: "Thành công",
-        message: "Đã cập nhật thông tin hồ sơ thành công!",
+        message: "Đã lưu thông tin dự án và liên hệ. Bạn sẽ nhận thông báo qua số điện thoại và email này.",
         color: "green",
       });
     } catch (err: any) {
@@ -88,28 +96,6 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
         message: err?.response?.data?.message || err?.response?.data?.error || "Gặp lỗi khi lưu thông tin cài đặt.",
         color: "red",
       });
-    }
-  };
-
-  const handleDeleteCase = async () => {
-    if (deleteConfirmText !== "DELETE") return;
-
-    try {
-      await deleteCase();
-      setIsDeleteModalOpen(false);
-      notifications.show({
-        title: "Thành công",
-        message: "Đã xóa hồ sơ dự án.",
-        color: "green",
-      });
-      router.push("/dashboard");
-    } catch (err: any) {
-      notifications.show({
-        title: "Lỗi",
-        message: err?.response?.data?.error || "Gặp lỗi khi xóa hồ sơ dự án.",
-        color: "red",
-      });
-      setIsDeleteModalOpen(false);
     }
   };
 
@@ -180,6 +166,18 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
             />
           </div>
 
+          <CaseContactFields
+            values={contact}
+            errors={Object.fromEntries(
+              Object.keys(contact).map((k) => [k, errors[`contact_${k}`]]),
+            )}
+            onChange={(field, value) => {
+              setContact((prev) => ({ ...prev, [field]: value }));
+              clearError(`contact_${field}`);
+            }}
+            showHint={showContactHint}
+          />
+
           <div className="pt-2 flex justify-end">
             <Button
               type="submit"
@@ -193,85 +191,8 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
           </div>
         </form>
 
-        {caseData.user_facing_stage === "submitted" && (
-          <div className="pt-6 border-t border-red-500/10 mt-6 space-y-4">
-            <div>
-              <h4 className="font-heading font-semibold text-sm text-red-500 flex items-center gap-2">
-                <Trash2 className="w-4.5 h-4.5" />
-                Vùng nguy hiểm
-              </h4>
-              <p className="text-text-muted text-xs mt-1">
-                Hồ sơ này chưa được admin duyệt. Bạn có thể xóa vĩnh viễn hồ sơ này. Hành động này không thể hoàn tác.
-              </p>
-            </div>
-            <div>
-              <Button
-                color="red"
-                variant="outline"
-                onClick={() => setIsDeleteModalOpen(true)}
-                className="font-semibold text-xs h-9 px-4 cursor-pointer hover:bg-red-50 hover:text-red-600 border-red-200 text-red-500 rounded-lg"
-              >
-                Xóa hồ sơ dự án
-              </Button>
-            </div>
-          </div>
-        )}
+        <CaseDeleteSection caseId={caseData.id} stage={caseData.user_facing_stage} />
       </div>
-
-      <Modal
-        opened={isDeleteModalOpen}
-        onClose={() => {
-          setIsDeleteModalOpen(false);
-          setDeleteConfirmText("");
-        }}
-        title={
-          <span className="font-heading font-semibold text-sm text-red-600 flex items-center gap-1.5">
-            <Trash2 className="w-4.5 h-4.5" />
-            Xác nhận xóa hồ sơ dự án
-          </span>
-        }
-        centered
-        radius="md"
-        size="sm"
-      >
-        <div className="space-y-4 font-body text-xs">
-          <p className="text-text-app leading-relaxed">
-            Hành động này sẽ <strong className="text-red-600">xóa vĩnh viễn</strong> hồ sơ dự án này, bao gồm toàn bộ tài liệu đính kèm, các phiên bản và lịch sử trao đổi. <strong className="text-red-600">Dữ liệu đã xóa không thể khôi phục.</strong>
-          </p>
-
-          <TextInput
-            label="Để xác nhận, vui lòng nhập chính xác chữ 'DELETE' vào ô bên dưới:"
-            placeholder="DELETE"
-            value={deleteConfirmText}
-            onChange={(e) => setDeleteConfirmText(e.target.value)}
-            radius="md"
-            className="mt-2"
-          />
-
-          <div className="flex justify-end gap-2.5 pt-4 border-t border-border-app/40">
-            <Button
-              variant="default"
-              size="xs"
-              onClick={() => {
-                setIsDeleteModalOpen(false);
-                setDeleteConfirmText("");
-              }}
-              className="font-semibold text-xs h-9 px-4 cursor-pointer"
-            >
-              Hủy
-            </Button>
-            <Button
-              color="red"
-              size="xs"
-              disabled={deleteConfirmText !== "DELETE" || isDeletingCase}
-              onClick={handleDeleteCase}
-              className="font-semibold text-xs h-9 px-4 cursor-pointer disabled:opacity-50"
-            >
-              {isDeletingCase ? "Đang xóa..." : "Tôi hiểu và muốn xóa"}
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 }

@@ -37,6 +37,7 @@ import {
 } from "./admin-workers.controller.js";
 
 import { newsAdminRouter } from "../../news/http/news-admin.routes.js";
+import { receivablesAdminRouter } from "../../receivables/http/receivables.routes.js";
 
 export const adminRouter = new Hono();
 
@@ -85,3 +86,6 @@ adminRouter.post("/workers/jobs/:id/cancel", cancelAdminWorkerJobHandler);
 
 // News Management
 adminRouter.route("/news", newsAdminRouter);
+
+// Pay-later receivables
+adminRouter.route("/receivables", receivablesAdminRouter);

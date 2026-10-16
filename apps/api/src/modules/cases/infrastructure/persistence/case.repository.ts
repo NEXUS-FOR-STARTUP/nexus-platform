@@ -411,6 +411,66 @@ export async function findFirstIntakeUnit(caseId: string) {
   });
 }
 
+export async function saveIntakeUnitContent(unitId: string, content: string) {
+  await prisma.lifecycleUnit.update({ where: { id: unitId }, data: { content } });
+}
+
+/** Case-scoped contact for cases that have no intake unit yet (e.g. team-fit). */
+export async function saveCaseContactProfile(caseId: string, profile: Record<string, string>) {
+  await prisma.case.update({ where: { id: caseId }, data: { contact_profile: profile } });
+}
+
+function asStringRecord(value: unknown): Record<string, string> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).filter(
+      (entry): entry is [string, string] => typeof entry[1] === "string",
+    ),
+  );
+}
+
+/** `{...profile, ...unitContact}`; blank unit values never erase a profile value. */
+export function mergeCaseContact(profile: unknown, unitContact: unknown): Record<string, string> {
+  const unit = Object.fromEntries(
+    Object.entries(asStringRecord(unitContact)).filter(([, v]) => v.trim() !== ""),
+  );
+  return { ...asStringRecord(profile), ...unit };
+}
+
+function parseUnitContact(content: string | null | undefined): unknown {
+  try {
+    return content ? JSON.parse(content)?.contact : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export async function getEffectiveCaseContact(caseId: string): Promise<Record<string, string>> {
+  const [row, unit] = await Promise.all([
+    prisma.case.findUnique({ where: { id: caseId }, select: { contact_profile: true } }),
+    findFirstIntakeUnit(caseId),
+  ]);
+  return mergeCaseContact(row?.contact_profile, parseUnitContact(unit?.content));
+}
+
+/** Batched variant for list views: caseId -> effective contact. */
+export async function getEffectiveContactsByCaseIds(caseIds: string[]) {
+  const map = new Map<string, Record<string, string>>();
+  if (caseIds.length === 0) return map;
+  const [rows, units] = await Promise.all([
+    prisma.case.findMany({ where: { id: { in: caseIds } }, select: { id: true, contact_profile: true } }),
+    prisma.lifecycleUnit.findMany({
+      where: { case_id: { in: caseIds }, unit_type: "version", unit_code: "v00" },
+      select: { case_id: true, content: true },
+    }),
+  ]);
+  const unitContacts = new Map(units.map((u) => [u.case_id, parseUnitContact(u.content)]));
+  for (const row of rows) {
+    map.set(row.id, mergeCaseContact(row.contact_profile, unitContacts.get(row.id)));
+  }
+  return map;
+}
+
 export async function findLatestIntakeUnit(caseId: string) {
   return await prisma.lifecycleUnit.findFirst({
     where: {

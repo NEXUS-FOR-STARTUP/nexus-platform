@@ -14,6 +14,7 @@ import { DOMAIN_EVENTS } from '../shared/domain/domain-events.js'
 import logger from '../shared/infrastructure/logger.js'
 import { walletService } from '../modules/wallet/application/wallet.service.js'
 import { refundRemainingCreditInTx, refundCaseAllInTx } from './credit-refund.js'
+import { pairHasFundedLots } from '../modules/orders/application/funded-lot.guard.js'
 import {
   CP1_AUDIT_SERVICE_CODE,
   getCreditBalance,
@@ -99,6 +100,14 @@ async function executeAction(
       const ownerId = context.data?.caseOwnerId as string
       const lockedPrice = context.data?.lockedPrice as number
       if (!ownerId || !lockedPrice || lockedPrice === 0) break
+      // locked_price is the CP1 package price. If the CP1 credits were sponsored the customer paid
+      // nothing, so refunding it would hand out real money. Zero the credits through the normal
+      // refund path instead: it refunds 0đ for sponsored lots and writes the debt off.
+      const cp1Id = await getServiceTypeId(tx, CP1_AUDIT_SERVICE_CODE)
+      if (await pairHasFundedLots(tx, caseId, cp1Id)) {
+        await refundRemainingCreditInTx(tx, caseId, ownerId)
+        break
+      }
       const key = `refund-${caseId}`
       await walletService.refund(ownerId, lockedPrice, 'admin_veto', caseId, key, tx)
       break

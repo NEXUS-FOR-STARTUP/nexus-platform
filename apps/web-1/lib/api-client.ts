@@ -29,3 +29,10 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+/** Client for public (unauthenticated) endpoints: no 401 redirect, no cookies. */
+export const publicApiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL
+    ? `${process.env.NEXT_PUBLIC_API_URL}/api`
+    : "http://localhost:8000/api",
+});

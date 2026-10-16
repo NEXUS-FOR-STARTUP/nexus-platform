@@ -132,6 +132,7 @@ export const config = {
     "/writer/:path*",
     "/news",
     "/news/:path*",
+    "/pay/:path*",
     "/maintenance",
   ],
 };

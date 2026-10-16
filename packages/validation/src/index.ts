@@ -430,6 +430,37 @@ export const Cp1IntakeSchema = z.object({
   addCp1IntakeShapeIssues(data, ctx);
 });
 
+// ---------------------------------------------------------------------------
+// Case-scoped contact profile (intake_snapshot.contact) — FE + BE
+// ---------------------------------------------------------------------------
+
+const CASE_CONTACT_ZALO_RE = /^\d{10}$/;
+const optionalText = (label: string) =>
+  z.string().max(CP1_SHORT_MAX, `${label} không được vượt quá ${CP1_SHORT_MAX} ký tự`).optional();
+
+export const CaseContactInputSchema = z.object({
+  full_name: optionalText("Họ tên người liên hệ"),
+  student_code: optionalText("Mã số sinh viên"),
+  team_role: optionalText("Vai trò trong nhóm"),
+  zalo: z.string().trim().refine((v) => v === "" || CASE_CONTACT_ZALO_RE.test(v), "Số điện thoại Zalo không hợp lệ (phải bao gồm chính xác 10 chữ số)").optional(),
+  email: z.string().trim().max(CP1_EMAIL_MAX, `Email liên hệ không được vượt quá ${CP1_EMAIL_MAX} ký tự`).refine((v) => v === "" || z.string().email().safeParse(v).success, "Email liên hệ không hợp lệ").optional(),
+  telegram: optionalText("Telegram"),
+});
+
+export type CaseContactInput = z.infer<typeof CaseContactInputSchema>;
+
+/** Complete = non-empty full_name + 10-digit zalo + email containing "@". */
+export function isCaseContactComplete(contact: unknown): boolean {
+  if (!contact || typeof contact !== "object") return false;
+  const c = contact as Record<string, unknown>;
+  return (
+    typeof c.full_name === "string" && c.full_name.trim().length > 0 &&
+    typeof c.zalo === "string" && CASE_CONTACT_ZALO_RE.test(c.zalo.trim()) &&
+    typeof c.email === "string" && c.email.includes("@")
+  );
+}
+
+
 /**
  * POST /cases — project shell creation from the short "Tạo dự án" form.
  *
@@ -447,7 +478,15 @@ export const CreateProjectSchema = z.object({
   boundary_confirmations: z.unknown().optional(),
   team_context: z.unknown().optional(),
 }).passthrough().superRefine((data, ctx) => {
-  addCp1IntakeShapeIssues(data, ctx);
+  addCp1CapIssues(data, ctx);
+  if (data.contact !== undefined && data.contact !== null) {
+    const parsed = CaseContactInputSchema.safeParse(data.contact);
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: issue.message, path: ["contact", ...issue.path] });
+      }
+    }
+  }
 
   const teamContext = data.team_context;
   const projectName = teamContext && typeof teamContext === 'object'
@@ -1554,3 +1593,4 @@ export const OpenCheckpointParamsSchema = z.object({
 });
 export type OpenCheckpointParams = z.infer<typeof OpenCheckpointParamsSchema>;
 export * from "./discount.js";
+export * from "./receivables.js";

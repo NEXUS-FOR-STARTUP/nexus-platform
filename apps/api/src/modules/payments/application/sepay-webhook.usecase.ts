@@ -3,6 +3,8 @@ import logger from "../../../shared/infrastructure/logger.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 import { walletService } from "../../wallet/application/wallet.service.js";
 import { insertOutboxEvent } from "../../../shared/infrastructure/persistence/outbox.repository.js";
+import { RECEIVABLE_CODE_LENGTH, RECEIVABLE_CODE_PREFIX } from "../../receivables/domain/receivable.domain.js";
+import { recordSepayDebtPayment } from "../../receivables/application/record-receivable-payment.usecase.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -41,6 +43,17 @@ export async function sepayWebhookUseCase(
 
   const paymentCode = code || extractCodeFromContent(content);
   if (!paymentCode) return { matched: false, action: "no_match" };
+
+  // Pay-later debt: its own table, never a Deposit and never a wallet credit.
+  if (paymentCode.startsWith(RECEIVABLE_CODE_PREFIX)) {
+    const debtCode = paymentCode.slice(0, RECEIVABLE_CODE_LENGTH);
+    const result = await recordSepayDebtPayment(debtCode, txnId, transferAmount, new Date(payload.transactionDate));
+    if (result === "no_match") {
+      logger.warn({ txnId, debtCode }, "sepay: no matching receivable found");
+      return { matched: false, action: "no_match" };
+    }
+    return { matched: true, action: result === "duplicate" ? "duplicate" : "verified" };
+  }
 
   const deposit = await prisma.deposit.findFirst({
     where: { transfer_content: paymentCode, status: { in: ["pending", "amount_mismatch"] } },

@@ -2,6 +2,7 @@ import type { Prisma } from '@prisma/client'
 import { walletService } from '../modules/wallet/application/wallet.service.js'
 import { AppError } from '../shared/domain/app-error.js'
 import logger from '../shared/infrastructure/logger.js'
+import { settleReceivablesForRefundedCreditsInTx } from '../modules/receivables/application/settle-refund.js'
 import {
   CP1_AUDIT_SERVICE_CODE,
   getCreditBalanceRows,
@@ -202,6 +203,14 @@ async function refundServiceRemaining(
     },
   })
 
+  await settleReceivablesForRefundedCreditsInTx(tx, {
+    caseId,
+    serviceTypeId: row.service_type_id,
+    balanceBefore: row.balance,
+    refundedCredits: row.balance,
+    eventKey: key,
+  })
+
   logger.info(
     { caseId, ownerId: owner, service: row.code, refundVnd, creditsRefunded: row.balance },
     'remaining credits refunded',
@@ -289,6 +298,13 @@ export async function refundCaseAllInTx(
         idempotency_key: refundIdempotencyKey(caseId, plan.row.code),
         metadata_json: { refund_vnd: plan.fifoVnd },
       },
+    })
+    await settleReceivablesForRefundedCreditsInTx(tx, {
+      caseId,
+      serviceTypeId: plan.row.service_type_id,
+      balanceBefore: plan.row.balance,
+      refundedCredits: plan.row.balance,
+      eventKey: refundIdempotencyKey(caseId, plan.row.code),
     })
   }
 

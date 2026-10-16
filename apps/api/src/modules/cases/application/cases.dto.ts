@@ -16,11 +16,12 @@ export interface CreateCaseRequest {
     group_no?: string;
   };
   contact?: {
-    full_name: string;
-    student_code: string;
-    team_role: string;
-    zalo: string;
-    email: string;
+    full_name?: string;
+    student_code?: string;
+    team_role?: string;
+    zalo?: string;
+    email?: string;
+    telegram?: string;
   };
   current_blocker?: string;
   current_situations?: string[];
@@ -114,7 +115,7 @@ export interface UpdateCaseSettingsRequest {
     team_role?: string;
     email?: string;
     zalo?: string;
-    phone?: string;
+    telegram?: string;
   };
   idea?: {
     field?: string;

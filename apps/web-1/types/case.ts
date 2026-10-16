@@ -23,6 +23,8 @@ export interface Case {
   sla_deadline_at?: string | null;      // NEW - from case.sla_deadline_at
   allowed_transitions?: string[];       // NEW - valid XState transitions
   deadline?: string | null;
+  /** List responses only: case-scoped intake contact has name + 10-digit phone + email. */
+  contact_complete?: boolean;
   created_at: string;
   updated_at: string;
 

@@ -140,10 +140,10 @@ export default function CaseOverviewPanel({
   const currentBlocker =
     intake.current_blocker || teamCtx.team_status_summary || "";
 
-  const contactName = contact.full_name || caseData.owner?.name || "Chưa cập nhật";
+  const contactName = contact.full_name || "Chưa cập nhật";
   const studentCode = contact.student_code || "Chưa cập nhật";
   const teamRole = contact.team_role || contact.role || "Trưởng nhóm";
-  const contactEmail = contact.email || caseData.owner?.email || "Chưa cập nhật";
+  const contactEmail = contact.email || "Chưa cập nhật";
   const contactPhone = contact.zalo || contact.phone || "Chưa cập nhật";
   const contactTelegram = contact.telegram || "";
 

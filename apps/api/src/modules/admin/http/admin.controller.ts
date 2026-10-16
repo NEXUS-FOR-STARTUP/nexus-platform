@@ -31,7 +31,10 @@ import { exportAdminDataUseCase, parseExportResource } from "../application/expo
 // Auth helper — admin-specific
 // ---------------------------------------------------------------------------
 
-async function getAdminSession(c: Context) {
+/** Better Auth session shape, as returned for an authenticated admin. */
+export type AdminSession = typeof auth.$Infer.Session;
+
+export async function getAdminSession(c: Context) {
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
   if (!session) {
     return { ok: false as const, error: "Chưa đăng nhập", status: 401 as const };

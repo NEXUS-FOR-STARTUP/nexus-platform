@@ -4,18 +4,31 @@ import { isFinalCaseStage } from "../domain/case.types.js";
 import {
   findCaseByIdWithMembers,
   findFirstIntakeUnit,
+  mergeCaseContact,
+  saveCaseContactProfile,
+  saveIntakeUnitContent,
   updateCaseSettings,
 } from "../infrastructure/persistence/case.repository.js";
-import { prisma } from "../../../db.js";
+import { CaseContactInputSchema } from "@repo/validation";
 import type { UpdateCaseSettingsRequest } from "./cases.dto.js";
+
+const defaultDeps = {
+  findCaseByIdWithMembers,
+  findFirstIntakeUnit,
+  updateCaseSettings,
+  saveIntakeUnitContent,
+  saveCaseContactProfile,
+};
 
 export async function updateCaseSettingsUseCase(
   userId: string,
   userRole: string,
   caseId: string,
   body: UpdateCaseSettingsRequest,
+  deps: Partial<typeof defaultDeps> = {},
 ) {
-  const existingCase = await findCaseByIdWithMembers(caseId);
+  const d = { ...defaultDeps, ...deps };
+  const existingCase = await d.findCaseByIdWithMembers(caseId);
 
   if (!existingCase) {
     throw new AppError(404, "NOT_FOUND", "Không tìm thấy case");
@@ -82,6 +95,24 @@ export async function updateCaseSettingsUseCase(
     }
   }
 
+  let contactPatch: Record<string, string> | undefined;
+  if (body.contact !== undefined) {
+    const parsed = CaseContactInputSchema.safeParse(body.contact);
+    if (!parsed.success) {
+      throw new AppError(
+        400,
+        "VALIDATION_ERROR",
+        "Thông tin liên hệ không hợp lệ",
+        parsed.error.issues.map((issue) => issue.message),
+      );
+    }
+    contactPatch = Object.fromEntries(
+      Object.entries(parsed.data)
+        .filter((entry): entry is [string, string] => typeof entry[1] === "string")
+        .map(([k, v]) => [k, v.trim()]),
+    );
+  }
+
   const team_name =
     body.team_name === undefined
       ? existingCase.team_name
@@ -99,7 +130,7 @@ export async function updateCaseSettingsUseCase(
       ? existingCase.group_no
       : asNonEmptyString(body.group_no, 1) || null;
 
-  const updatedCase = await updateCaseSettings(caseId, {
+  const updatedCase = await d.updateCaseSettings(caseId, {
     team_name,
     school,
     course_context,
@@ -107,8 +138,15 @@ export async function updateCaseSettingsUseCase(
   });
 
   // Also update intake snapshot JSON if contact/idea/intake fields are provided
-  if (body.contact || body.idea || body.current_blocker || body.support_needs) {
-    const intakeUnit = await findFirstIntakeUnit(caseId);
+  const intakeUnit = await d.findFirstIntakeUnit(caseId);
+  if (!intakeUnit && contactPatch) {
+    // No intake unit (e.g. team-fit): never fabricate one; keep contact on the case itself.
+    await d.saveCaseContactProfile(caseId, {
+      ...mergeCaseContact((existingCase as { contact_profile?: unknown }).contact_profile, null),
+      ...contactPatch,
+    });
+  }
+  if (intakeUnit && (contactPatch || body.idea || body.current_blocker || body.support_needs)) {
     let parsedContent: Record<string, any> = {};
     if (intakeUnit?.content) {
       try {
@@ -129,7 +167,11 @@ export async function updateCaseSettingsUseCase(
       },
       contact: {
         ...(parsedContent.contact || {}),
-        ...(body.contact || {}),
+        ...mergeCaseContact(
+          (existingCase as { contact_profile?: unknown }).contact_profile,
+          parsedContent.contact,
+        ),
+        ...(contactPatch || {}),
       },
       idea_context: {
         ...(parsedContent.idea_context || parsedContent.idea || {}),
@@ -149,12 +191,7 @@ export async function updateCaseSettingsUseCase(
       course_context: course_context || parsedContent.course_context,
     };
 
-    if (intakeUnit) {
-      await prisma.lifecycleUnit.update({
-        where: { id: intakeUnit.id },
-        data: { content: JSON.stringify(mergedContent) },
-      });
-    }
+    await d.saveIntakeUnitContent(intakeUnit.id, JSON.stringify(mergedContent));
   }
 
   return updatedCase;

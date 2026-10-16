@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifications } from "@mantine/notifications";
 import { apiClient } from "@/lib/api-client";
+import { EMPTY_CASE_CONTACT, validateCaseContact, type CaseContactValues } from "./case-contact";
 
 interface CreateProjectModalProps {
   opened: boolean;
@@ -33,6 +34,7 @@ export function CreateProjectModal({ opened, onClose }: CreateProjectModalProps)
   const [school, setSchool] = useState("");
   const [courseContext, setCourseContext] = useState("");
   const [groupNo, setGroupNo] = useState("");
+  const [contact, setContact] = useState<CaseContactValues>(EMPTY_CASE_CONTACT);
   const [submitted, setSubmitted] = useState(false);
 
   // Class and group number only apply to FPT students; other schools store "Khác"
@@ -53,7 +55,17 @@ export function CreateProjectModal({ opened, onClose }: CreateProjectModalProps)
           ? ""
           : "Số thứ tự nhóm chỉ được chứa chữ số (ví dụ: 5).",
   };
-  const isValid = !errors.projectName && !errors.school && !errors.courseContext && !errors.groupNo;
+  const contactErrors = validateCaseContact(contact, true);
+  const setContactField = (field: "full_name" | "zalo" | "email", value: string) =>
+    setContact((prev) => ({ ...prev, [field]: value }));
+  const isValid =
+    !errors.projectName &&
+    !errors.school &&
+    !errors.courseContext &&
+    !errors.groupNo &&
+    !contactErrors.full_name &&
+    !contactErrors.zalo &&
+    !contactErrors.email;
 
   const handleClose = () => {
     setSubmitted(false);
@@ -69,6 +81,11 @@ export function CreateProjectModal({ opened, onClose }: CreateProjectModalProps)
         },
         school,
         course_context: courseContext || undefined,
+        contact: {
+          full_name: contact.full_name.trim(),
+          zalo: contact.zalo.trim(),
+          email: contact.email.trim(),
+        },
       });
       return res.data as { id: string };
     },
@@ -149,6 +166,33 @@ export function CreateProjectModal({ opened, onClose }: CreateProjectModalProps)
               withAsterisk
             />
           )}
+
+          <TextInput
+            label="Họ tên người liên hệ"
+            placeholder="Nguyễn Văn A"
+            description="Thông tin liên hệ chỉ dùng cho dự án này, không lấy từ hay thay đổi tài khoản của bạn."
+            value={contact.full_name}
+            onChange={(e) => setContactField("full_name", e.currentTarget.value)}
+            error={submitted ? contactErrors.full_name : undefined}
+            withAsterisk
+          />
+          <TextInput
+            label="Số điện thoại / Zalo"
+            placeholder="10 chữ số"
+            inputMode="numeric"
+            value={contact.zalo}
+            onChange={(e) => setContactField("zalo", e.currentTarget.value)}
+            error={submitted ? contactErrors.zalo : undefined}
+            withAsterisk
+          />
+          <TextInput
+            label="Email liên hệ"
+            placeholder="ten@example.com"
+            value={contact.email}
+            onChange={(e) => setContactField("email", e.currentTarget.value)}
+            error={submitted ? contactErrors.email : undefined}
+            withAsterisk
+          />
 
           <Group justify="flex-end" mt="md">
             <Button variant="default" onClick={handleClose} disabled={createMutation.isPending}>

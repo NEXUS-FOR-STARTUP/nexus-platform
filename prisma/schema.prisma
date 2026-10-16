@@ -223,6 +223,7 @@ model WalletTransaction {
   reference_id    String?
   idempotency_key String       @unique
   metadata_json   Json?
+  receivable      Receivable?
   created_at      DateTime     @default(now())
 
   @@index([wallet_id, created_at])
@@ -287,6 +288,7 @@ model Order {
 
   items OrderItem[]
   discount_redemption DiscountRedemption?
+  receivable          Receivable?
 
   @@index([user_id, created_at])
   @@index([status, created_at])
@@ -346,6 +348,7 @@ model Case {
   payment_status                  String    @default("unpaid")
   deadline                        DateTime?
   sla_deadline_at                 DateTime?
+  contact_profile                 Json?
   version_no                      Int       @default(0)
   created_at                      DateTime  @default(now())
   updated_at                      DateTime  @updatedAt
@@ -365,6 +368,7 @@ model Case {
   document_records DocumentRecord[]
   team_fit_report  TeamFitReport?
   credit_ledgers   CreditLedger[]
+  receivables      Receivable[]
   notifications    Notification[]
   chat_read_states CaseChatReadState[]
   project_answers  ProjectAnswer[]
@@ -910,4 +914,74 @@ model DiscountRedemption {
   @@unique([code_id, user_id])
   @@index([user_id])
   @@map("discount_redemptions")
+}
+
+// ==========================================
+// RECEIVABLES (pay-later) MODELS
+// ==========================================
+
+/// Khoản ứng nợ: làm trước, thu tiền sau. Còn nợ/trạng thái tính từ payments + adjustments, không lưu cột.
+model Receivable {
+  id                      String    @id @default(uuid())
+  code                    String    @unique
+  request_key             String    @unique
+  customer_name           String
+  customer_contact        String
+  customer_phone          String?
+  customer_email          String?
+  case_id                 String?
+  case                    Case?     @relation(fields: [case_id], references: [id])
+  order_id                String?   @unique
+  order                   Order?    @relation(fields: [order_id], references: [id])
+  grant_tx_id             String?   @unique
+  grant_tx                WalletTransaction? @relation(fields: [grant_tx_id], references: [id])
+  amount_due              Int
+  due_at                  DateTime
+  review_reason           String?
+  public_token_hash       String?   @unique
+  public_token_rotated_at DateTime?
+  created_by              String
+  created_at              DateTime  @default(now())
+  updated_at              DateTime  @updatedAt
+
+  payments    ReceivablePayment[]
+  adjustments ReceivableAdjustment[]
+
+  @@index([case_id])
+  @@index([due_at])
+  @@map("receivables")
+}
+
+/// Một dòng cho mỗi lần ngân hàng báo tiền về. gross = tiền thật, applied = phần trừ nợ.
+model ReceivablePayment {
+  id             String     @id @default(uuid())
+  receivable_id  String
+  receivable     Receivable @relation(fields: [receivable_id], references: [id])
+  gross_amount   Int
+  applied_amount Int
+  bank_ref       String     @unique
+  paid_at        DateTime
+  source         String
+  recorded_by    String?
+  created_at     DateTime   @default(now())
+
+  @@index([receivable_id])
+  @@map("receivable_payments")
+}
+
+/// Xoá nợ: một dòng cho mỗi sự kiện (manual hoặc refund).
+model ReceivableAdjustment {
+  id              String     @id @default(uuid())
+  receivable_id   String
+  receivable      Receivable @relation(fields: [receivable_id], references: [id])
+  kind            String
+  amount          Int
+  credits         Int?
+  idempotency_key String     @unique
+  reason          String
+  created_by      String?
+  created_at      DateTime   @default(now())
+
+  @@index([receivable_id])
+  @@map("receivable_adjustments")
 }

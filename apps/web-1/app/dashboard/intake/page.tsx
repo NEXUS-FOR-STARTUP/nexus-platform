@@ -44,8 +44,9 @@ function IntakePageContent() {
   const initialData: IntakeData | null = useMemo(() => {
     if (!existingCaseData) return null;
     const caseRow = existingCaseData.case ?? existingCaseData;
-    const owner = caseRow.owner ?? existingCaseData.owner;
     const rawSnapshot = existingCaseData.intake_snapshot || {};
+    // Case-scoped fallback (cases.contact_profile merged server-side); never the account profile.
+    const caseContact = existingCaseData.contact || {};
     const pkgId = caseRow.package_id || rawSnapshot.package_id || "";
     const isAi = pkgId === "pkg_ai_audit";
     return {
@@ -57,12 +58,12 @@ function IntakePageContent() {
       current_situations: rawSnapshot.current_situations || [],
       case_summary: rawSnapshot.case_summary || "",
       contact: {
-        full_name: rawSnapshot.contact?.full_name || owner?.name || "",
-        student_code: rawSnapshot.contact?.student_code || "",
-        team_role: rawSnapshot.contact?.team_role || rawSnapshot.contact?.role || "Trưởng nhóm",
-        zalo: rawSnapshot.contact?.zalo || rawSnapshot.contact?.phone || "",
-        email: rawSnapshot.contact?.email || owner?.email || "",
-        telegram: rawSnapshot.contact?.telegram || "",
+        full_name: rawSnapshot.contact?.full_name || caseContact.full_name || "",
+        student_code: rawSnapshot.contact?.student_code || caseContact.student_code || "",
+        team_role: rawSnapshot.contact?.team_role || rawSnapshot.contact?.role || caseContact.team_role || "Trưởng nhóm",
+        zalo: rawSnapshot.contact?.zalo || rawSnapshot.contact?.phone || caseContact.zalo || "",
+        email: rawSnapshot.contact?.email || caseContact.email || "",
+        telegram: rawSnapshot.contact?.telegram || caseContact.telegram || "",
       },
       team_context: {
         group_no: caseRow.group_no || rawSnapshot.team_context?.group_no || "",

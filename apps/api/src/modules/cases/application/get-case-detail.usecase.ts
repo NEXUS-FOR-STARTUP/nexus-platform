@@ -7,6 +7,7 @@ import {
   findFirstUserEvent,
   findLifecycleUnits,
   findOpenRequestsForMoreInfo,
+  mergeCaseContact,
 } from "../infrastructure/persistence/case.repository.js";
 import { getCreditBalances, getCreditLedgerByCaseId } from "../infrastructure/persistence/credit-ledger.repository.js";
 import { getAvailableTransitions } from "../domain/case-machine.js";
@@ -206,6 +207,11 @@ export async function getCaseDetailUseCase(userId: string, userRole: string, cas
   return {
     case: caseResponse,
     intake_snapshot,
+    // Effective case-scoped contact: cases.contact_profile overlaid by the intake unit's contact.
+    contact: mergeCaseContact(
+      (caseDetails as { contact_profile?: unknown }).contact_profile,
+      (intake_snapshot as { contact?: unknown } | null)?.contact,
+    ),
     latest_report,
     latest_user_action,
     document_board_sections: {

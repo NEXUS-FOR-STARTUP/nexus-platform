@@ -243,7 +243,8 @@ async function computeAdminStats(period: string): Promise<AdminStatsResponse> {
 
     // 4. Total revenue from paid orders
     prisma.order.aggregate({
-      where: { status: "paid" },
+      // Sponsored (pay-later) orders move no real money; cash arrives via receivable_payments.
+      where: { status: "paid", receivable: { is: null } },
       _sum: { total_amount: true },
     }),
 
@@ -278,6 +279,7 @@ async function computeAdminStats(period: string): Promise<AdminStatsResponse> {
         ON o.status = 'paid'
        AND o.created_at >= b.start_date
        AND o.created_at <= b.end_date
+       AND NOT EXISTS (SELECT 1 FROM receivables r WHERE r.order_id = o.id)
       GROUP BY b.label, b.ord
       ORDER BY b.ord
     `,

@@ -14,6 +14,7 @@ export interface OpenInfoRequest {
 interface CaseDetailsResponse {
   case: Case;
   intake_snapshot?: unknown;
+  contact?: Record<string, unknown> | null;
   latest_report?: unknown;
   latest_user_action?: unknown;
   document_board_sections?: unknown;
@@ -115,6 +116,8 @@ export function useCaseDetails(id: string) {
     slaDeadlineAt: caseQuery.data?.case?.sla_deadline_at || null,
     allowedTransitions: caseQuery.data?.case?.allowed_transitions || [],
     intakeSnapshot: caseQuery.data?.intake_snapshot || null,
+    /** Effective case-scoped contact (cases.contact_profile overlaid by intake contact). */
+    contact: (caseQuery.data?.contact ?? null) as Record<string, unknown> | null,
     latestReport: caseQuery.data?.latest_report || null,
     teamFitReport: caseQuery.data?.case?.team_fit_report || null,
     latestUserAction: caseQuery.data?.latest_user_action || null,

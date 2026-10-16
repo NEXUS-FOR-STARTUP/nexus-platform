@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Avatar, Popover } from "@mantine/core";
 import {
   CreditCard,
+  HandCoins,
   Home,
   LogOut,
   Newspaper,
@@ -14,6 +15,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useWalletBalance } from "@/app/dashboard/wallet/hooks/useWallet";
+import { useReceivableSystemAccount } from "@/app/admin/hooks/useReceivableCaseOptions";
 
 type UserMenuOption = {
   href: string;
@@ -26,6 +28,7 @@ export default function UserMenu() {
   const queryClient = useQueryClient();
   const { data: sessionData, isPending } = useSession();
   const { data: walletData } = useWalletBalance();
+  const { data: systemAccount } = useReceivableSystemAccount();
   const [opened, setOpened] = useState(false);
 
   const user = sessionData?.user
@@ -72,6 +75,7 @@ export default function UserMenu() {
     ...(isStudent
       ? [{ href: "/dashboard/wallet", label: "Ví của tôi", icon: CreditCard }]
       : []),
+    ...(systemAccount ? [{ href: "/dashboard/receivables", label: "Khoản phải thu từ khách", icon: HandCoins }] : []),
     ...(settingsHref
       ? [{ href: settingsHref, label: "Cài đặt", icon: Settings }]
       : []),
