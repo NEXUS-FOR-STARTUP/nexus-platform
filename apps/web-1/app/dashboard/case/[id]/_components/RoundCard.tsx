@@ -6,7 +6,6 @@ import { Button, Badge, LoadingOverlay } from "@mantine/core";
 import { useDownloadReportPdfById } from "../hooks/useDownloadReportPdf";
 import type { RoundHistoryEntry } from "@/types/case";
 import {
-  type RichReportData,
   SUBMISSION_TYPE_LABELS,
   CP2_REPORT_TYPE_LABELS,
   SUBMISSION_TYPE_COLORS,
@@ -17,44 +16,29 @@ import {
 interface RoundCardProps {
   round: RoundHistoryEntry;
   caseId: string;
+  projectName?: string;
   defaultExpanded?: boolean;
 }
 
-export default function RoundCard({ round, caseId, defaultExpanded = false }: RoundCardProps) {
+export default function RoundCard({ round, caseId, projectName: caseProjectName, defaultExpanded = false }: RoundCardProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [pdfLoading, setPdfLoading] = useState(true);
 
-  const parsedReport = useMemo<RichReportData | null>(() => {
-    if (!round.report) return null;
-    const r = round.report;
-    if (r.metadata_json && typeof r.metadata_json === "object") {
-      return r.metadata_json as unknown as RichReportData;
-    }
-    if (!r.content_md) return null;
-    try {
-      const data = JSON.parse(r.content_md) as unknown;
-      if (data && typeof data === "object") return data as RichReportData;
-    } catch {
-      // plain markdown
-    }
-    return null;
-  }, [round.report]);
-
-  const projectName = parsedReport?.projectName || "Dự án khởi nghiệp";
+  const projectName = caseProjectName || "Dự án khởi nghiệp";
   const reportFilename = useMemo(
     () =>
       getReportPdfFilename(
         projectName,
+        round.report?.report_type,
         round.report?.created_at || round.submitted_at,
         round.submission_type,
-        round.version_no,
       ),
     [
       projectName,
+      round.report?.report_type,
       round.report?.created_at,
       round.submitted_at,
       round.submission_type,
-      round.version_no,
     ],
   );
 

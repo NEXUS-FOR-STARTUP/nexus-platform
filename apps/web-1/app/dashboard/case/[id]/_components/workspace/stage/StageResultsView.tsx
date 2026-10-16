@@ -24,6 +24,7 @@ export default function StageResultsView({
   summary,
   roundHistory,
   checkpointId,
+  projectName,
   onGoDraft,
   onGoFiles,
   onAudit,
@@ -72,6 +73,7 @@ export default function StageResultsView({
     <TabReportFindings
       report={report}
       caseId={caseId}
+      projectName={projectName}
       roundHistory={stageRoundHistory}
       hideCheckpointFilter
     />

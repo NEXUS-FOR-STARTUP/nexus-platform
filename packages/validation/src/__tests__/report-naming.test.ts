@@ -5,6 +5,8 @@ import {
   formatReportTimestamp,
   getSubmissionTypeFileSlug,
   buildStandardReportPdfFilename,
+  getReportStageFileSlug,
+  CP2_REPORT_TYPES,
   SUBMISSION_TYPE_FILE_SLUGS,
   SUBMISSION_TYPE_DISPLAY_LABELS,
 } from "../index.js";
@@ -126,94 +128,28 @@ describe("Report Naming Utilities (@repo/validation)", () => {
   });
 
   describe("buildStandardReportPdfFilename", () => {
-    it("builds standard PDF report filename with submission type and version suffix", () => {
+    it("includes project, stage, submission type and timestamp without version suffix", () => {
       const filename = buildStandardReportPdfFilename({
         projectName: "Farm2Dorm — Nông Sản Sạch",
+        stageSlug: "thi_truong",
         submissionType: "initial",
         createdAt: new Date(2026, 8, 20, 14, 30, 12),
-        versionNo: 1,
-      });
-
-      assert.strictEqual(
-        filename,
-        "farm2dorm_nong_san_sach_lan_dau_20260920143012_v01.pdf"
-      );
-    });
-
-    it("formats version suffix with zero-padding (e.g. v02, v10)", () => {
-      const fn1 = buildStandardReportPdfFilename({
-        projectName: "EduPlatform",
-        submissionType: "resubmit",
-        createdAt: new Date(2026, 8, 21, 9, 15, 20),
-        versionNo: 2,
-      });
-      assert.strictEqual(fn1, "eduplatform_da_sua_20260921091520_v02.pdf");
-
-      const fn2 = buildStandardReportPdfFilename({
-        projectName: "EduPlatform",
-        submissionType: "logic_check",
-        createdAt: new Date(2026, 8, 21, 10, 0, 0),
-        versionNo: 12,
-      });
-      assert.strictEqual(fn2, "eduplatform_soi_logic_20260921100000_v12.pdf");
-    });
-
-    it("omits version suffix when versionNo is null, undefined, or NaN", () => {
-      const fnNoVersion = buildStandardReportPdfFilename({
-        projectName: "Farm2Dorm",
-        submissionType: "initial",
-        createdAt: new Date(2026, 8, 20, 14, 30, 12),
-        versionNo: null,
-      });
-      assert.strictEqual(fnNoVersion, "farm2dorm_lan_dau_20260920143012.pdf");
-
-      const fnUndefVersion = buildStandardReportPdfFilename({
-        projectName: "Farm2Dorm",
-        submissionType: "initial",
-        createdAt: new Date(2026, 8, 20, 14, 30, 12),
-        versionNo: undefined,
-      });
-      assert.strictEqual(fnUndefVersion, "farm2dorm_lan_dau_20260920143012.pdf");
-
-      const fnNanVersion = buildStandardReportPdfFilename({
-        projectName: "Farm2Dorm",
-        submissionType: "initial",
-        createdAt: new Date(2026, 8, 20, 14, 30, 12),
-        versionNo: NaN,
-      });
-      assert.strictEqual(fnNanVersion, "farm2dorm_lan_dau_20260920143012.pdf");
-    });
-
-    it("allows customTypeSlug override instead of submissionType", () => {
-      const filename = buildStandardReportPdfFilename({
-        projectName: "FinTech App",
-        customTypeSlug: "reality_check",
-        createdAt: new Date(2026, 8, 20, 16, 45, 0),
-        versionNo: 1,
       });
       assert.strictEqual(
         filename,
-        "fintech_app_reality_check_20260920164500_v01.pdf"
+        "farm2dorm_nong_san_sach_thi_truong_lan_dau_20260920143012.pdf"
       );
     });
 
-    it("handles Vietnamese diacritics and symbols in customTypeSlug", () => {
-      const filename = buildStandardReportPdfFilename({
-        projectName: "Health Care",
-        customTypeSlug: "Thẩm định chuyên sâu",
-        createdAt: new Date(2026, 8, 20, 16, 45, 0),
-      });
-      assert.strictEqual(
-        filename,
-        "health_care_tham_dinh_chuyen_sau_20260920164500.pdf"
-      );
+    it("maps report type to stage slug", () => {
+      assert.strictEqual(getReportStageFileSlug("input_clarification"), "y_tuong");
+      assert.strictEqual(getReportStageFileSlug(undefined), "y_tuong");
+      assert.strictEqual(getReportStageFileSlug(CP2_REPORT_TYPES[0]), "thi_truong");
     });
 
-    it("uses default fallbacks when all optional parameters are missing", () => {
-      const filename = buildStandardReportPdfFilename({
-        projectName: "",
-      });
-      assert.match(filename, /^de_an_phan_bien_[0-9]{14}\.pdf$/);
+    it("uses default fallbacks when optional parameters are missing", () => {
+      const filename = buildStandardReportPdfFilename({ projectName: "", stageSlug: "y_tuong" });
+      assert.match(filename, /^de_an_y_tuong_phan_bien_[0-9]{14}\.pdf$/);
     });
   });
 });

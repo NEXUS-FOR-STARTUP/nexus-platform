@@ -1,4 +1,4 @@
-import { buildStandardReportPdfFilename } from "@repo/validation";
+import { buildStandardReportPdfFilename, getReportStageFileSlug } from "@repo/validation";
 import type { RoundHistoryEntry } from "@/types/case";
 import type { DocumentRow } from "./document-workspace.types";
 
@@ -23,9 +23,9 @@ export function buildAssessmentReportRows(
     const rawName = projectName || caseCode || "de_an";
     const fileName = buildStandardReportPdfFilename({
       projectName: rawName,
+      stageSlug: getReportStageFileSlug(round.report?.report_type),
       submissionType: round.submission_type,
       createdAt: round.report?.created_at || round.submitted_at,
-      versionNo: round.version_no,
     });
     const url = round.pdfUrl || `/api/reports/${round.report_id}/download`;
 

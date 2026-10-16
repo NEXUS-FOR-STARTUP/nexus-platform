@@ -89,7 +89,6 @@ export async function syncReportArtifact(p: {
       submissionType: p.submissionType,
       reportType: p.reportType,
       createdAt: savedReport.created_at,
-      versionNo: p.versionNo,
     });
     await upsertReportArtifactDocumentRecord(
       caseId,

@@ -117,7 +117,7 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
 
   // Compile Typst PDF
   const caseRecord = await findCaseDetailForPdf(caseId);
-  const projectName = reportJson.projectName || caseRecord?.team_name || caseRecord?.case_code || "Dự án khởi nghiệp";
+  const projectName = caseRecord?.team_name || caseRecord?.case_code || "Dự án khởi nghiệp";
 
   // Read submission metadata from AiJob.input_json
   const aiJob = aiJobId

@@ -285,6 +285,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
             <TabReportFindings
               report={(latestReport as Report) || null}
               caseId={caseData.id}
+              projectName={caseData.team_name || undefined}
               roundHistory={(roundHistory as RoundHistoryEntry[]) || null}
             />
           )}
