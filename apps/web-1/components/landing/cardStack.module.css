@@ -28,7 +28,8 @@
 .stack[data-js="true"] .card {
   transform: translate(calc(var(--i, 0) * var(--lp-stack-offset, 14px)), calc(var(--i, 0) * var(--lp-stack-offset, 14px) * -1));
   transition: transform 0.45s var(--lp-ease, cubic-bezier(0.4, 0, 0.2, 1)), background-color 0.45s var(--lp-ease, cubic-bezier(0.4, 0, 0.2, 1)),
-    box-shadow 0.45s var(--lp-ease, cubic-bezier(0.4, 0, 0.2, 1));
+    box-shadow 0.45s var(--lp-ease, cubic-bezier(0.4, 0, 0.2, 1)), border-color 0.3s var(--lp-ease, cubic-bezier(0.4, 0, 0.2, 1)),
+    translate 0.3s var(--lp-ease, cubic-bezier(0.4, 0, 0.2, 1));
   cursor: grab;
   touch-action: pan-y;
   user-select: none;
@@ -176,7 +177,13 @@
 }
 
 .more:hover {
-  gap: 14px;
+  text-decoration: underline;
+}
+
+/* Lift via `translate` so it composes with the inline `transform` used for drag/fly. */
+.stack[data-js="true"] .card[data-top="true"]:hover:not([data-dragging="true"]) {
+  border-color: var(--lp-blue, #2563eb);
+  translate: 0 -6px;
 }
 
 .more:focus-visible {
