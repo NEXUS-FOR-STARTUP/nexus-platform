@@ -26,13 +26,13 @@ const theme = createTheme({
       "#1e3a8a", // 900
     ],
   },
-  fontFamily: "var(--font-google-sans-flex), sans-serif",
+  fontFamily: "var(--font-inter-tight), sans-serif",
   fontSizes: {
     xs: "var(--app-text-xs)",
     sm: "var(--app-text-sm)",
   },
   headings: {
-    fontFamily: "var(--font-google-sans-flex), sans-serif",
+    fontFamily: "var(--font-inter-tight), sans-serif",
     sizes: {
       h6: { fontSize: "1rem" },
     },

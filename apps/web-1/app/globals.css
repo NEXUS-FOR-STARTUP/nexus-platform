@@ -43,9 +43,9 @@
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
 
-  --font-sans: var(--font-google-sans-flex), sans-serif;
-  --font-heading: var(--font-google-sans-flex), sans-serif;
-  --font-body: var(--font-google-sans-flex), sans-serif;
+  --font-sans: var(--font-inter-tight), sans-serif;
+  --font-heading: var(--font-inter-tight), sans-serif;
+  --font-body: var(--font-inter-tight), sans-serif;
   --font-serif: var(--font-merriweather), Georgia, Cambria, "Times New Roman", Times, serif;
   --text-xs: var(--app-text-xs);
   --text-sm: var(--app-text-sm);
@@ -180,12 +180,12 @@
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
-  font-family: var(--font-google-sans-flex), sans-serif;
+  font-family: var(--font-inter-tight), sans-serif;
   min-height: 100vh;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-google-sans-flex), sans-serif;
+  font-family: var(--font-inter-tight), sans-serif;
   font-weight: 600;
 }
 

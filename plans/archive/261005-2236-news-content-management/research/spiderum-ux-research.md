@@ -9,7 +9,7 @@ tags: [feature, frontend, ui, ux]
 
 ## Conclusion
 
-Use Spiderum as reference for reading rhythm and information hierarchy, not brand/UI copying. Nexus direction: content-first editorial layout, existing Sapphire Blue tokens, Google Sans Flex, generous whitespace, 720px article measure, wide cover image, clear metadata.
+Use Spiderum as reference for reading rhythm and information hierarchy, not brand/UI copying. Nexus direction: content-first editorial layout, existing Sapphire Blue tokens, Inter Tight, generous whitespace, 720px article measure, wide cover image, clear metadata.
 
 Do not import Spiderum social mechanics: comments, reactions, follows, fixed action rail, categories/tags, popularity sorting. No reading-progress bar; none was observed in recent snapshots.
 
@@ -46,7 +46,7 @@ Name: **Nexus Editorial**.
 
 Keep current global style:
 
-- Font: Google Sans Flex. Do not add Spiderum/Noto Serif/Montserrat or change global font.
+- Font: Inter Tight. Do not add Spiderum/Noto Serif/Montserrat or change global font.
 - Colors: existing semantic tokens only. Brand `#2563EB`; light background/surface/text `#F8FAFC/#FFFFFF/#0F172A`; existing dark tokens.
 - No gradients, decorative glow, or heavy card shadow.
 - Motion only 150–200ms color/opacity/subtle image transform; honor reduced motion.

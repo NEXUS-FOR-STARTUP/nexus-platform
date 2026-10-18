@@ -6,7 +6,7 @@ Ngày: 2026-10-18. Nhánh: `feat/landing-redesign` (từ `dev` @ `931dbc5`). Ch�
 
 - Nguồn: `apps/web-1/app/page.tsx` + `components/landing/` (`LandingHero`, `FeaturesGrid`, `LandingPricing`, `FAQSection`, `ContactUs`, `HeroBullets.module.css`) + `components/layout/AppShell.tsx` + `app/globals.css`.
 - Năm khối xếp chồng: hero, lưới 4 tính năng, một thẻ giá, FAQ accordion, danh sách liên hệ.
-- Font hiện tại: Google Sans Flex (`app/layout.tsx`, biến `--font-google-sans-flex` dùng ở `globals.css` dòng 46-48/183/188 và `providers.tsx` dòng 29/35). Merriweather có nhưng landing không dùng.
+- Font toàn app: Inter Tight (`--font-inter-tight`, `app/layout.tsx`, `globals.css`, `providers.tsx`). Merriweather có nhưng landing không dùng.
 - Dev server chạy được, API `:8000` tắt nên `get-session` lỗi và header hiện "Đăng nhập" (môi trường, không phải lỗi landing).
 
 ### Vấn đề thị giác

@@ -58,7 +58,7 @@ colors:
   dark-audit-cta-title: "#5EEAD4"
 
 typography:
-  fontFamily: "Google Sans Flex, Inter, -apple-system, BlinkMacSystemFont, sans-serif"
+  fontFamily: "Inter Tight, Inter, -apple-system, BlinkMacSystemFont, sans-serif"
   h1:
     fontSize: "2.25rem" # 36px
     lineHeight: "2.75rem"
