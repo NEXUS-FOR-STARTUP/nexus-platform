@@ -10,12 +10,12 @@
   backdrop-filter: blur(25px);
   border: 1px solid rgba(223, 228, 235, 0.7);
   border-radius: var(--lp-r-pill);
-  padding: 8px 10px 8px 22px;
+  padding: 12px 14px 12px 28px;
 }
-.logo { height: 40px; width: auto; }
+.logo { height: 46px; width: auto; }
 .navMain { display: contents; }
 
-.hero { position: relative; isolation: isolate; overflow: hidden; margin-top: -74px; padding: 170px 0 120px; }
+.hero { position: relative; isolation: isolate; overflow: hidden; margin-top: -84px; padding: 180px 0 120px; }
 .heroBg { position: absolute; inset: 0; z-index: -1; }
 .heroBg video { width: 100%; height: 100%; object-fit: cover; }
 .heroBg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(255, 255, 255, 0.8) 44%, #fff 100%); }
