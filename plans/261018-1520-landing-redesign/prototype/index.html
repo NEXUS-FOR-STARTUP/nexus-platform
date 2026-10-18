@@ -183,6 +183,10 @@
 
   /* contact */
   .contact { text-align: center; }
+  .channels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; max-width: 880px; margin: 0 auto; }
+  .btn-channel { width: 100%; background: #fff; color: var(--ink); border-color: var(--line-strong); font-weight: 500; }
+  .btn-channel .ic { color: var(--blue); }
+  .btn-channel:hover { border-color: var(--blue); background: var(--blue-chip); transform: translateY(-2px); }
   .contact .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px 28px; margin-top: 28px; font-size: 15px; color: var(--muted); }
   .contact .links a { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; transition: color .3s var(--ease); }
   .contact .links .ic { width: 18px; height: 18px; }
@@ -221,6 +225,7 @@
   @media (max-width: 620px) {
     .stages, .arts { grid-template-columns: 1fr; }
     .cta-row .btn { width: 100%; }
+    .channels { grid-template-columns: 1fr; }
     .price { padding: 28px; }
     .amount { font-size: 38px; }
     .sticky { display: block; position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 60; padding: 8px; border-radius: var(--r-pill); background: rgba(255, 255, 255, .6); -webkit-backdrop-filter: blur(25px); backdrop-filter: blur(25px); border: 1px solid rgba(223, 228, 235, .8); transform: translateY(140%); transition: transform .5s var(--ease); }
@@ -433,12 +438,14 @@
         <h2 class="title">Cần hỗ trợ hoặc đóng góp ý kiến?</h2>
         <p>Liên hệ trực tiếp với đội ngũ phát triển Nexus qua các kênh chính thức dưới đây.</p>
       </div>
-      <a class="btn btn-primary rv" href="https://zalo.me/g/wgadhwpaxd05vykpnxqb" target="_blank" rel="noopener noreferrer"><svg class="ic" aria-hidden="true"><use href="#i-message-circle"/></svg>Tham gia nhóm Zalo hỗ trợ</a>
+      <div class="channels rv">
+        <a class="btn btn-channel" href="https://zalo.me/g/wgadhwpaxd05vykpnxqb" target="_blank" rel="noopener noreferrer"><svg class="ic" aria-hidden="true"><use href="#i-message-circle"/></svg>Tham gia nhóm Zalo hỗ trợ</a>
+        <a class="btn btn-channel" href="https://www.facebook.com/profile.php?id=61591506814865" target="_blank" rel="noopener noreferrer"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg>Facebook Fanpage</a>
+        <a class="btn btn-channel" href="https://www.tiktok.com/@nexus.for.startup" target="_blank" rel="noopener noreferrer"><svg class="ic" aria-hidden="true"><use href="#i-video"/></svg>TikTok @nexus.for.startup</a>
+      </div>
       <div class="links rv">
         <a href="mailto:phungluuhoanglong@gmail.com"><svg class="ic" aria-hidden="true"><use href="#i-mail"/></svg>phungluuhoanglong@gmail.com</a>
         <a href="tel:0776506822"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg>0776 506 822</a>
-        <a href="https://www.facebook.com/profile.php?id=61591506814865" target="_blank" rel="noopener noreferrer"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg>Facebook Fanpage</a>
-        <a href="https://www.tiktok.com/@nexus.for.startup" target="_blank" rel="noopener noreferrer"><svg class="ic" aria-hidden="true"><use href="#i-video"/></svg>TikTok @nexus.for.startup</a>
       </div>
     </div>
   </section>
