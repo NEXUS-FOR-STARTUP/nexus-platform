@@ -24,7 +24,7 @@ Thông tin nền (chẩn đoán, đo trang tham khảo, hiện trạng code): [r
 - Hướng **B**: "Đưa việc làm được ngay lên đầu". Nút chính **"Kiểm tra nhanh ý tưởng" → `/dashboard`** (không còn `/dashboard/team-fit`), nút phụ "Xem bảng giá".
 - Không modal. Hướng dẫn sau khi tạo case = `Alert` ở Tổng quan, 3 dòng: điền template → chấm bài → sửa theo báo cáo, kèm nút mở template ý tưởng. Không localStorage.
 - Gộp sửa landing và 2 file dashboard trong một đợt.
-- **Giữ email và số điện thoại cá nhân** ở khối liên hệ. Zalo là kênh chính, qua `NEXT_PUBLIC_ZALO_GROUP_URL`; Facebook, TikTok là link phụ.
+- **Liên hệ:** Zalo (`NEXT_PUBLIC_ZALO_GROUP_URL`), Facebook và TikTok là **ba nút kênh ngang hàng** (cùng kích thước, lưới 3 cột, 1 cột trên mobile), kiểu trắng viền `--lp-line-strong`, icon xanh, hover viền xanh. **Không nút nào màu cam**: cam chỉ dành cho hành động bắt buộc (Kiểm tra nhanh ý tưởng, Đăng nhập). Email và số điện thoại cá nhân giữ ở dòng chữ phụ bên dưới.
 - Giá 79,000 VND một thẻ qua `formatPrice`, bỏ nhãn "Khuyên dùng". Giai đoạn 4 hiển thị "Sắp ra mắt". Không hiển thị CP1/CP2/Checkpoint trên UI.
 - Landing chỉ giao diện sáng (dark mode landing không hỗ trợ, không phải blocker). Admin chỉ desktop.
 
