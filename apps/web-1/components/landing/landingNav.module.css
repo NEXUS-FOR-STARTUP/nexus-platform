@@ -56,7 +56,7 @@
 .caret { width: 8px; height: 8px; margin-right: 4px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform 0.3s var(--lp-ease); }
 .caret[data-open="true"] { transform: rotate(225deg) translateY(-2px); }
 .drawerTitle { margin: 12px 0 4px; font-size: 18px; font-weight: 600; }
-.drawer .panel { flex-direction: column; gap: 12px; padding: 0; border: 0; }
+.drawer .panel { flex-direction: column; gap: 12px; padding: 0 0 0 16px; border: 0; }
 .drawer .col { min-width: 0; }
 .drawer .promo { width: auto; margin: 4px 0 0; }
 .drawerLink { display: block; padding: 14px 0 4px; font-size: 18px; color: var(--lp-ink); font-weight: 600; text-decoration: none; }
