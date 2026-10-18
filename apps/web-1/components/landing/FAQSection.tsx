@@ -1,8 +1,7 @@
-"use client";
-
-import { Accordion } from "@mantine/core";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import base from "./landing.module.css";
+import s from "./landingSections.module.css";
 
 const faqItems: Array<{ question: string; answer: ReactNode }> = [
   {
@@ -24,41 +23,40 @@ const faqItems: Array<{ question: string; answer: ReactNode }> = [
   {
     question: "Tài liệu dự án của tôi được xử lý như thế nào?",
     answer: (
-      <span>
+      <>
         Nexus sử dụng tài liệu nhóm cung cấp để thực hiện đánh giá. Trong quá trình xử lý, nội dung có thể được truyền tới các nhà cung cấp công nghệ hỗ trợ việc phân tích. Xem chi tiết tại{" "}
-        <Link href="/privacy" className="text-brand hover:underline font-medium">
-          Chính sách bảo mật
-        </Link>
-        .
-      </span>
+        <Link href="/privacy">Chính sách bảo mật</Link>.
+      </>
     ),
   },
 ];
 
+const COLUMN_SPLIT = 3;
+
+function Column({ items }: { items: typeof faqItems }) {
+  return (
+    <div className={s.faqCol}>
+      {items.map((item) => (
+        <details key={item.question}>
+          <summary>{item.question}</summary>
+          <p>{item.answer}</p>
+        </details>
+      ))}
+    </div>
+  );
+}
+
 export default function FAQSection() {
   return (
-    <section id="faq" className="py-20 px-4 sm:px-6 lg:px-8 bg-bg-app transition-colors duration-200">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12 space-y-4">
-          <h2 className="font-heading text-3xl font-semibold text-text-app">Câu hỏi thường gặp (FAQ)</h2>
-          <p className="font-body text-text-muted">
-            Giải đáp các thắc mắc phổ biến về quy trình đánh giá và phản biện dự án trên Nexus.
-          </p>
+    <section className={`${base.section} ${base.soft}`} id="faq">
+      <div className={base.wrap}>
+        <div className={base.head}>
+          <h2 className={base.title}>Câu hỏi thường gặp</h2>
+          <p>Giải đáp các thắc mắc phổ biến về quy trình đánh giá và phản biện dự án trên Nexus.</p>
         </div>
-
-        <div className="bg-surface-app border border-border-app rounded-2xl p-6 md:p-8">
-          <Accordion multiple variant="separated" radius="md">
-            {faqItems.map((item, index) => (
-              <Accordion.Item key={index} value={`faq-${index}`}>
-                <Accordion.Control className="font-heading font-medium text-text-app">
-                  {item.question}
-                </Accordion.Control>
-                <Accordion.Panel className="font-body text-sm text-text-muted leading-relaxed">
-                  {item.answer}
-                </Accordion.Panel>
-              </Accordion.Item>
-            ))}
-          </Accordion>
+        <div className={s.faq}>
+          <Column items={faqItems.slice(0, COLUMN_SPLIT)} />
+          <Column items={faqItems.slice(COLUMN_SPLIT)} />
         </div>
       </div>
     </section>

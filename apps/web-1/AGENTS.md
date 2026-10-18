@@ -13,7 +13,7 @@ Next.js 16 App Router product app. Mantine UI v9, TanStack Query v5 / Form v1, L
 ```
 app/
 ├── layout.tsx + providers.tsx → Root layout (QueryClient, Mantine, Theme)
-├── page.tsx → Landing (AppShell)
+├── page.tsx → Landing (own glass nav + footer, components/landing/; no AppShell)
 ├── auth/ → Login/register (Google OAuth, Email OTP & Password; legacy verify-email @deprecated)
 ├── dashboard/ → Student (role=user, mobile-responsive)
 │   └── case/[id]/ → Workspace (7 tabs: overview/documents/report/discussion/timeline/settings/credits with ?tab= URL sync)
@@ -29,7 +29,7 @@ types/ → Case, Payment, ServicePackage, User, Worker interfaces
 
 ```
 RootLayout → Providers
-├── AppShell → Landing (/)
+├── Landing (/) → self-contained (LandingNav/LandingFooter); AppShell now only /news + policy pages
 ├── AuthShell → Auth (/auth/*)
 └── DashboardShell → Protected (Server guard via proxy.ts + role routing)
     ├── /dashboard/* (student, role=user, responsive)
