@@ -37,6 +37,19 @@ function Panel({ group, onNavigate }: { group: NavGroup; onNavigate: () => void 
 }
 
 /** `cta` is the session-aware action; the mobile bar hides it, so the drawer carries it. */
+function DrawerGroup({ group, onNavigate }: { group: NavGroup; onNavigate: () => void }) {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <section>
+      <button type="button" className={s.drawerToggle} aria-expanded={expanded} onClick={() => setExpanded((v) => !v)}>
+        {group.label}
+        <ChevronDown size={18} aria-hidden="true" data-open={expanded} />
+      </button>
+      {expanded && <Panel group={group} onNavigate={onNavigate} />}
+    </section>
+  );
+}
+
 export default function NavMenu({ cta }: { cta: ReactNode }) {
   const [open, setOpen] = useState<number | null>(null);
   const [mobile, setMobile] = useState(false);
@@ -137,10 +150,7 @@ export default function NavMenu({ cta }: { cta: ReactNode }) {
               </button>
               {NAV_ITEMS.map((item) =>
                 isGroup(item) ? (
-                  <section key={item.label}>
-                    <h2 className={s.drawerTitle}>{item.label}</h2>
-                    <Panel group={item} onNavigate={close} />
-                  </section>
+                  <DrawerGroup key={item.label} group={item} onNavigate={close} />
                 ) : (
                   <Link key={item.href} href={item.href} onClick={close} className={s.drawerLink}>
                     {item.label}
