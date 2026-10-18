@@ -41,10 +41,38 @@ export default function NavMenu({ cta }: { cta: ReactNode }) {
   const [open, setOpen] = useState<number | null>(null);
   const [mobile, setMobile] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const burgerRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLElement>(null);
   const close = () => {
     setOpen(null);
     setMobile(false);
   };
+
+  useEffect(() => {
+    if (!mobile) return;
+    const burger = burgerRef.current;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+    const trap = (e: KeyboardEvent) => {
+      if (e.key !== "Tab" || !drawerRef.current) return;
+      const f = drawerRef.current.querySelectorAll<HTMLElement>("a[href], button");
+      const first = f[0];
+      const last = f[f.length - 1];
+      const wrapTo = e.shiftKey && document.activeElement === first ? last : !e.shiftKey && document.activeElement === last ? first : null;
+      if (wrapTo) {
+        e.preventDefault();
+        wrapTo.focus();
+      }
+    };
+    document.addEventListener("keydown", trap);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", trap);
+      burger?.focus();
+    };
+  }, [mobile]);
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
@@ -96,15 +124,15 @@ export default function NavMenu({ cta }: { cta: ReactNode }) {
           ),
         )}
       </ul>
-      <button type="button" className={s.burger} aria-label="Mở menu" aria-expanded={mobile} onClick={() => setMobile((v) => !v)}>
+      <button type="button" ref={burgerRef} className={s.burger} aria-label="Mở menu" aria-expanded={mobile} onClick={() => setMobile((v) => !v)}>
         <Menu size={22} />
       </button>
       {mobile &&
         createPortal(
           <>
             <button type="button" className={s.backdrop} aria-label="Đóng menu" onClick={close} />
-            <aside className={`${base.landing} ${s.drawer}`} aria-label="Menu">
-              <button type="button" className={s.drawerClose} aria-label="Đóng menu" onClick={close}>
+            <aside ref={drawerRef} role="dialog" aria-modal="true" className={`${base.landing} ${s.drawer}`} aria-label="Menu">
+              <button type="button" ref={closeRef} className={s.drawerClose} aria-label="Đóng menu" onClick={close}>
                 <X size={22} />
               </button>
               {NAV_ITEMS.map((item) =>
