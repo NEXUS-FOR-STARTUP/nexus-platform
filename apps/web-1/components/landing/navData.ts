@@ -20,8 +20,17 @@ export interface NavGroup {
   promo?: NavPromo;
 }
 
-/** Group pages by purpose; add new pages to an existing column before creating a group. */
-export const NAV_GROUPS: NavGroup[] = [
+export interface NavDirect {
+  href: string;
+  label: string;
+}
+
+export type NavItem = NavGroup | NavDirect;
+
+export const isGroup = (item: NavItem): item is NavGroup => "columns" in item;
+
+/** Price and articles are top-level on purpose: they must be one click away. Group the rest by purpose. */
+export const NAV_ITEMS: NavItem[] = [
   {
     label: "Sản phẩm",
     columns: [
@@ -29,7 +38,7 @@ export const NAV_GROUPS: NavGroup[] = [
         title: "Tìm hiểu Nexus",
         links: [
           { href: "/#quy-trinh", label: "Quy trình đánh giá" },
-          { href: "/#pricing", label: "Bảng giá" },
+          { href: "/#faq", label: "Câu hỏi thường gặp" },
         ],
       },
     ],
@@ -39,18 +48,8 @@ export const NAV_GROUPS: NavGroup[] = [
       href: "/dashboard",
     },
   },
-  {
-    label: "Tài nguyên",
-    columns: [
-      {
-        title: "Học và hỏi",
-        links: [
-          { href: "/news", label: "Bài viết hướng dẫn" },
-          { href: "/#faq", label: "Câu hỏi thường gặp" },
-        ],
-      },
-    ],
-  },
+  { href: "/#pricing", label: "Bảng giá" },
+  { href: "/news", label: "Bài viết" },
   {
     label: "Chính sách",
     columns: [
@@ -70,6 +69,5 @@ export const NAV_GROUPS: NavGroup[] = [
       },
     ],
   },
+  { href: "/#lien-he", label: "Liên hệ" },
 ];
-
-export const NAV_DIRECT_LINKS = [{ href: "/#lien-he", label: "Liên hệ" }] as const;

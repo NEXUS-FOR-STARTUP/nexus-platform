@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { NAV_DIRECT_LINKS, NAV_GROUPS, type NavGroup } from "./navData";
+import { NAV_ITEMS, isGroup, type NavGroup } from "./navData";
 import s from "./landingNav.module.css";
 
 function Panel({ group, onNavigate }: { group: NavGroup; onNavigate: () => void }) {
@@ -64,50 +64,52 @@ export default function NavMenu() {
   return (
     <div ref={rootRef} className={s.root}>
       <ul className={s.list}>
-        {NAV_GROUPS.map((g, i) => (
-          <li key={g.label} onMouseEnter={() => setOpen(i)}>
-            <button
-              type="button"
-              className={s.trigger}
-              aria-expanded={open === i}
-              aria-controls={`nav-panel-${i}`}
-              data-open={open === i}
-              onClick={() => setOpen(open === i ? null : i)}
-            >
-              {g.label}
-              <ChevronDown size={14} aria-hidden="true" />
-            </button>
-            {open === i && (
-              <div id={`nav-panel-${i}`} className={s.panelWrap}>
-                <Panel group={g} onNavigate={close} />
-              </div>
-            )}
-          </li>
-        ))}
-        {NAV_DIRECT_LINKS.map((l) => (
-          <li key={l.href} onMouseEnter={() => setOpen(null)}>
-            <Link href={l.href} className={s.trigger}>
-              {l.label}
-            </Link>
-          </li>
-        ))}
+        {NAV_ITEMS.map((item, i) =>
+          isGroup(item) ? (
+            <li key={item.label} onMouseEnter={() => setOpen(i)}>
+              <button
+                type="button"
+                className={s.trigger}
+                aria-expanded={open === i}
+                aria-controls={`nav-panel-${i}`}
+                data-open={open === i}
+                onClick={() => setOpen(open === i ? null : i)}
+              >
+                {item.label}
+                <ChevronDown size={14} aria-hidden="true" />
+              </button>
+              {open === i && (
+                <div id={`nav-panel-${i}`} className={s.panelWrap}>
+                  <Panel group={item} onNavigate={close} />
+                </div>
+              )}
+            </li>
+          ) : (
+            <li key={item.href} onMouseEnter={() => setOpen(null)}>
+              <Link href={item.href} className={s.trigger}>
+                {item.label}
+              </Link>
+            </li>
+          ),
+        )}
       </ul>
       <button type="button" className={s.burger} aria-label={mobile ? "Đóng menu" : "Mở menu"} aria-expanded={mobile} onClick={() => setMobile((v) => !v)}>
         {mobile ? <X size={22} /> : <Menu size={22} />}
       </button>
       {mobile && (
         <div className={s.drawer}>
-          {NAV_GROUPS.map((g) => (
-            <section key={g.label}>
-              <h2 className={s.drawerTitle}>{g.label}</h2>
-              <Panel group={g} onNavigate={close} />
-            </section>
-          ))}
-          {NAV_DIRECT_LINKS.map((l) => (
-            <Link key={l.href} href={l.href} onClick={close} className={s.drawerLink}>
-              {l.label}
-            </Link>
-          ))}
+          {NAV_ITEMS.map((item) =>
+            isGroup(item) ? (
+              <section key={item.label}>
+                <h2 className={s.drawerTitle}>{item.label}</h2>
+                <Panel group={item} onNavigate={close} />
+              </section>
+            ) : (
+              <Link key={item.href} href={item.href} onClick={close} className={s.drawerLink}>
+                {item.label}
+              </Link>
+            ),
+          )}
         </div>
       )}
     </div>
