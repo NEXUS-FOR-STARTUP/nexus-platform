@@ -65,7 +65,7 @@ Keyframes/hook dùng tiền tố `lp-*`, không đưa vào `globals.css`.
 
 **Nút (thống nhất màu):** nút chính và **Đăng nhập** đều cam (`--lp-orange`), Đăng nhập nhỏ hơn (cao 44px); nút phụ "Xem bảng giá" trắng viền; "Đọc thêm" ở thẻ bài viết xanh nhạt (hover xanh đậm), căn phải, **không mũi tên, không gạch chân khi hover**.
 
-**Kính mờ (do user yêu cầu):** thanh nav `blur(25px)` nền trắng 60%, chip nền kính `blur(17px)`, thanh CTA dính mobile `blur(25px)`. Một thanh nav + một thanh CTA là đủ, không thêm kính nơi khác.
+**Kính mờ (do user yêu cầu):** chỉ thanh nav (`blur(25px)`, nền trắng 60%) và thanh CTA dính mobile (`blur(25px)`). **Badge/chip dùng nền đặc `--lp-chip-bg` + viền `--lp-chip-line`, không kính mờ** (kính làm badge nhạt, khó thấy trên nền trắng). Không thêm kính nơi khác.
 
 **Hero:** video nền `hero-bg.mp4` (1280×720, không tiếng, ~0,53 MB) + `hero-poster.jpg`, lớp phủ trắng 80% mờ dần xuống 100% ở đáy; dừng ở khung poster khi giảm chuyển động. Bốn bong bóng icon Lucide nổi, ẩn dưới 1360px, `animation: none` khi giảm chuyển động. Copy hai file vào `apps/web-1/public/landing/` khi dựng thật.
 
