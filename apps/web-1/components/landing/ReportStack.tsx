@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { ExternalLink } from "lucide-react";
 import { CardStack, type StackCard } from "./CardStack";
 import styles from "./cardStack.module.css";
 
@@ -52,7 +51,6 @@ export function ReportStack({ pages, note }: ReportStackProps) {
               rel="noopener noreferrer"
             >
               Mở cả trang
-              <ExternalLink size={16} aria-hidden="true" />
             </a>
           </div>
         )}

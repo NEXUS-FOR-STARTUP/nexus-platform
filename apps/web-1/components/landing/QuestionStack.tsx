@@ -42,7 +42,7 @@ export function QuestionStack({ questions, moreHref }: QuestionStackProps) {
         </div>
         <div className={styles.fade}>
           <Link className={styles.more} href={moreHref}>
-            Xem thêm <span aria-hidden="true">→</span>
+            Xem thêm
           </Link>
         </div>
       </>

@@ -48,7 +48,7 @@ export function CardStack({ variant, label, cards, hasLinks = false, hint, rende
       </div>
       <div className={styles.footer}>
         <p className={styles.hint} hidden={!ready}>
-          {hint} · {topIndex + 1} / {total}
+          <em>{hint} {topIndex + 1} / {total}</em>
         </p>
         {renderFooter?.(topIndex)}
       </div>

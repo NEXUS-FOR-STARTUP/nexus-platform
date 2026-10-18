@@ -166,7 +166,7 @@
 }
 
 .more {
-  color: var(--lp-blue, #2563eb);
+  color: var(--lp-blue, #2563eb) !important;
   text-decoration: none;
   font-weight: 500;
   display: inline-flex;
@@ -239,7 +239,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--lp-blue, #2563eb);
+  color: var(--lp-blue, #2563eb) !important;
   text-decoration: none;
   white-space: nowrap;
   font-weight: 500;
