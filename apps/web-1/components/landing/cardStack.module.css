@@ -16,7 +16,7 @@
   border: 1px solid var(--lp-line-strong, #d3dae6);
   border-radius: var(--lp-r-md, 16px);
   overflow: hidden;
-  box-shadow: var(--lp-shadow-float, -12px 16px 32px -8px rgba(26, 26, 28, 0.5)));
+  box-shadow: var(--lp-shadow-float, -12px 16px 32px -8px rgba(26, 26, 28, 0.5));
   color: var(--lp-ink, #1a1a1c);
 }
 
