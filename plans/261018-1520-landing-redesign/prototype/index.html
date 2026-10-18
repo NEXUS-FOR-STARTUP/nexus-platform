@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nexus | Đánh giá và phản biện dự án khởi nghiệp (bản mẫu hướng B)</title>
+<meta name="description" content="Nexus đưa dự án của nhóm bạn qua quy trình đánh giá có cấu trúc.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap&subset=vietnamese" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a1c;
+    --muted: #5b6270;
+    --line: #dfe4eb;
+    --bg: #ffffff;
+    --bg-soft: #f4f5f8;
+    --blue: #2563eb;
+    --blue-dark: #1d4ed8;
+    --blue-chip: #eaf1ff;
+    --orange: #f97316;
+    --orange-dark: #ea580c;
+    --ok-bg: #e7f7ee;  --ok-ink: #14633a;
+    --bad-bg: #fdecec; --bad-ink: #9b1c1c;
+    --r-card: 20px;
+    --r-block: 32px;
+    --ease: cubic-bezier(.4, 0, .2, 1);
+    --wrap: 1200px;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 96px; }
+  body { margin: 0; font-family: "Inter Tight", system-ui, sans-serif; color: var(--ink); background: var(--bg); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  img { max-width: 100%; height: auto; display: block; }
+  .wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 24px; }
+  .skip { position: absolute; left: -999px; top: 8px; background: var(--ink); color: #fff; padding: 8px 14px; border-radius: 999px; z-index: 100; }
+  .skip:focus { left: 8px; }
+  :focus-visible { outline: 3px solid rgba(37, 99, 235, .45); outline-offset: 3px; border-radius: 12px; }
+
+  /* nav */
+  .nav { position: sticky; top: 12px; z-index: 50; margin: 12px auto 0; max-width: var(--wrap); padding: 0 24px; }
+  .nav-in { display: flex; align-items: center; justify-content: space-between; gap: 16px; background: rgba(255, 255, 255, .6); -webkit-backdrop-filter: blur(25px); backdrop-filter: blur(25px); border: 1px solid rgba(223, 228, 235, .7); border-radius: 999px; padding: 8px 10px 8px 22px; }
+  .nav img { height: 40px; width: auto; }
+  .nav ul { display: flex; gap: 28px; list-style: none; margin: 0; padding: 0; font-size: 15px; color: var(--muted); }
+  .nav ul a { text-decoration: none; transition: color .3s var(--ease); }
+  .nav ul a:hover { color: var(--ink); }
+
+  /* buttons */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 54px; padding: 0 32px; border-radius: 999px; border: 1px solid transparent; font: 400 16px/1 "Inter Tight", sans-serif; text-decoration: none; cursor: pointer; transition: background .5s var(--ease), transform .5s var(--ease), border-color .5s var(--ease), box-shadow .5s var(--ease); box-shadow: 0 1px 2px rgba(16, 24, 40, .05); white-space: nowrap; }
+  .btn:active { transform: scale(.98); }
+  .btn-primary { background: var(--orange); color: #fff; }
+  .btn-primary:hover { background: var(--orange-dark); transform: translateY(-2px); box-shadow: 0 10px 24px -10px rgba(249, 115, 22, .6); }
+  .btn-ghost { background: #fcfcfd; color: var(--ink); border-color: #d7dde5; }
+  .btn-ghost:hover { background: #fff; border-color: var(--blue); color: var(--blue); }
+  .btn-dark { background: var(--ink); color: #fff; height: 44px; padding: 0 22px; font-size: 14px; }
+  .btn-dark:hover { background: #000; }
+  .btn-block { width: 100%; }
+  .btn .ic { width: 18px; height: 18px; transition: transform .5s var(--ease); }
+  .btn:hover .ic { transform: translateX(3px); }
+
+  .chip { display: inline-block; background: rgba(234, 241, 255, .7); -webkit-backdrop-filter: blur(17px); backdrop-filter: blur(17px); color: var(--ink); font-size: 14px; padding: 6px 20px; border-radius: 999px; }
+
+  /* hero */
+  .ic { display: inline-block; flex: none; width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .hero { position: relative; isolation: isolate; overflow: hidden; margin-top: -74px; padding: 170px 0 120px; }
+  .hero-bg { position: absolute; inset: 0; z-index: -1; }
+  .hero-bg video { width: 100%; height: 100%; object-fit: cover; }
+  .hero-bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(255, 255, 255, .8) 44%, #fff 100%); }
+  .bubble { position: absolute; z-index: -1; width: 56px; height: 56px; display: grid; place-items: center; border-radius: 999px; background: rgba(255, 255, 255, .55); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); border: 1px solid rgba(255, 255, 255, .9); color: var(--blue); animation: bob 7s var(--ease) infinite alternate; animation-delay: var(--d, 0s); }
+  .bubble .ic { width: 24px; height: 24px; }
+  @keyframes bob { from { transform: translateY(-8px); } to { transform: translateY(10px); } }
+  @media (max-width: 1359px) { .bubble { display: none; } }
+  .hero-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 64px; align-items: center; }
+  h1 { font-weight: 500; font-size: clamp(40px, 5.2vw, 68px); line-height: 1.1; letter-spacing: -.02em; margin: 24px 0 0; text-wrap: balance; }
+  h1 em { font-style: normal; color: var(--blue); white-space: nowrap; }
+  .lead { color: var(--muted); font-size: 18px; max-width: 54ch; margin: 24px 0 0; text-wrap: pretty; }
+  .points { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 12px; max-width: 54ch; }
+  .points li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; color: var(--muted); font-size: 15px; }
+  .points b { color: var(--ink); font-weight: 600; }
+  .points svg { margin-top: 3px; color: var(--blue); width: 22px; height: 22px; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 36px; }
+
+  /* question card */
+  .qcard { position: relative; background: rgba(255, 255, 255, .6); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); border: 1px solid rgba(223, 228, 235, .85); border-radius: var(--r-block); padding: 28px; overflow: hidden; max-height: 600px; box-shadow: 0 30px 60px -36px rgba(37, 99, 235, .3); }
+  .qmeta { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+  .qcard h2 { font-size: 22px; font-weight: 600; margin: 14px 0 16px; letter-spacing: -.01em; }
+  .verdict { border-radius: 16px; padding: 14px 16px; font-size: 14.5px; line-height: 1.5; margin-top: 10px; }
+  .verdict b { display: block; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; }
+  .verdict.bad { background: var(--bad-bg); color: var(--bad-ink); }
+  .verdict.ok { background: var(--ok-bg); color: var(--ok-ink); }
+  .qnext { margin-top: 22px; border-top: 1px dashed var(--line); padding-top: 18px; }
+  .qnext + .qnext { margin-top: 14px; padding-top: 14px; border-top: 0; }
+  .qnext small { color: var(--muted); font-size: 12px; }
+  .qnext p { margin: 2px 0 0; font-weight: 500; }
+  .fade { position: absolute; left: 0; right: 0; bottom: 0; height: 170px; background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, .92) 72%); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 22px; }
+  .more { color: var(--blue); text-decoration: none; font-weight: 500; display: inline-flex; gap: 8px; align-items: center; transition: gap .3s var(--ease); }
+  .more:hover { gap: 14px; }
+
+  /* sections */
+  section { padding: 120px 0; }
+  .soft { background: var(--bg-soft); }
+  .head { text-align: center; max-width: 760px; margin: 0 auto 64px; }
+  h2.title { font-weight: 400; font-size: clamp(32px, 4vw, 52px); line-height: 1.2; letter-spacing: -.02em; margin: 20px 0 0; text-wrap: balance; }
+  .head p { color: var(--muted); margin: 16px auto 0; max-width: 60ch; }
+
+  .report { background: var(--bg-soft); border-radius: var(--r-block); padding: 48px; }
+  .reader { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 32px; align-items: start; }
+  .reader:not(.js) .rtabs { display: none; }
+  .rtabs { display: grid; gap: 10px; }
+  .rtab { text-align: left; font: inherit; cursor: pointer; background: transparent; border: 1px solid transparent; border-radius: 20px; padding: 18px 20px; color: var(--muted); transition: background .5s var(--ease), border-color .5s var(--ease), color .5s var(--ease); }
+  .rtab b { display: flex; align-items: center; gap: 10px; color: var(--ink); font-weight: 600; font-size: 17px; }
+  .rtab .ic { width: 20px; height: 20px; color: var(--blue); }
+  .rtab span { display: block; margin-top: 4px; font-size: 14px; line-height: 1.45; }
+  .rtab:hover { background: rgba(255, 255, 255, .6); }
+  .rtab[aria-selected="true"] { background: #fff; border-color: var(--line); color: var(--muted); }
+  .rpanels { display: grid; }
+  .rpanel { margin: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--r-card); overflow: hidden; }
+  .reader.js .rpanel[hidden] { display: none; }
+  .rpanel + .rpanel { margin-top: 24px; }
+  .reader.js .rpanel + .rpanel { margin-top: 0; }
+  .shot { display: block; overflow: hidden; }
+  .reader.js .shot { height: 460px; }
+  .reader.js .shot img { width: 118%; max-width: none; margin-left: -9%; margin-top: var(--y, 0); }
+  .rpanel figcaption { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 20px; font-size: 14px; color: var(--muted); border-top: 1px solid var(--line); }
+  .rpanel figcaption a { display: inline-flex; align-items: center; gap: 6px; color: var(--blue); text-decoration: none; white-space: nowrap; font-weight: 500; }
+  .rpanel figcaption .ic { width: 16px; height: 16px; }
+  .rpanel figcaption a:hover { text-decoration: underline; }
+
+  /* stages */
+  .stages { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .stage { position: relative; background: #fff; border: 1px solid var(--line); border-radius: var(--r-card); padding: 28px; transition: transform .5s var(--ease), border-color .5s var(--ease); }
+  .stage:hover { transform: translateY(-4px); border-color: #b9c7e6; }
+  .num { display: inline-grid; place-items: center; height: 36px; padding: 0 18px; border-radius: 999px; font-size: 15px; font-weight: 500; }
+  .n1 { background: #dfeaff; } .n2 { background: #ffe9d6; } .n3 { background: #def5e8; } .n4 { background: #ececf2; color: #6a7080; }
+  .stage h3 { font-size: 20px; font-weight: 600; margin: 20px 0 8px; letter-spacing: -.01em; }
+  .stage p { color: var(--muted); font-size: 15px; margin: 0; }
+  .stage-ic { position: absolute; top: 28px; right: 28px; width: 24px; height: 24px; color: #6f86b8; }
+  .stage.soon .stage-ic { color: #a0a5b3; }
+  .stage.soon { background: transparent; border-style: dashed; }
+  .stage.soon h3 { color: #7b8190; }
+  .tag { display: inline-block; margin-top: 12px; font-size: 13px; color: #7b8190; background: #ececf2; border-radius: 999px; padding: 4px 14px; }
+
+  /* price */
+  .price { max-width: 520px; margin: 0 auto; background: #fff; border: 1px solid var(--line); border-radius: var(--r-block); padding: 40px; }
+  .price h3 { margin: 0 0 12px; font-size: 22px; font-weight: 600; }
+  .amount { font-size: 48px; font-weight: 500; letter-spacing: -.02em; line-height: 1; }
+  .amount small { font-size: 15px; color: var(--muted); letter-spacing: 0; margin-left: 8px; }
+  .price > p { color: var(--muted); margin: 16px 0 0; }
+  .price ul { list-style: none; padding: 0; margin: 28px 0 32px; display: grid; gap: 14px; }
+  .price li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; }
+  .price li svg { color: #16a34a; margin-top: 2px; width: 22px; height: 22px; }
+
+  /* articles */
+  .arts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .art { display: flex; flex-direction: column; background: #fff; border: 1px solid var(--line); border-radius: var(--r-card); overflow: hidden; text-decoration: none; transition: transform .5s var(--ease), border-color .5s var(--ease); }
+  .art:hover { transform: translateY(-4px); border-color: #b9c7e6; }
+  .art .cover { aspect-ratio: 16 / 9; background: var(--bg-soft); }
+  .art div.b { padding: 22px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .art strong { font-weight: 500; font-size: 18px; line-height: 1.35; }
+  .art span { margin-top: auto; color: var(--blue); font-size: 14px; }
+
+  /* faq */
+  .faq { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  details { background: #fff; border: 1px solid var(--line); border-radius: var(--r-card); padding: 4px 22px; }
+  summary { cursor: pointer; list-style: none; padding: 18px 0; font-weight: 500; display: flex; justify-content: space-between; gap: 16px; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; color: var(--blue); font-size: 22px; line-height: 1; transition: transform .3s var(--ease); }
+  details[open] summary::after { transform: rotate(45deg); }
+  details p { margin: 0 0 20px; color: var(--muted); font-size: 15px; }
+
+  /* contact */
+  .contact { text-align: center; }
+  .contact .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px 28px; margin-top: 28px; font-size: 15px; color: var(--muted); }
+  .contact .links a { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; transition: color .3s var(--ease); }
+  .contact .links .ic { width: 18px; height: 18px; }
+  .contact .links a:hover { color: var(--blue); }
+
+  footer { border-top: 1px solid var(--line); padding: 40px 0 96px; text-align: center; color: var(--muted); font-size: 14px; }
+  footer nav { display: flex; flex-wrap: wrap; gap: 8px 28px; justify-content: center; margin-bottom: 16px; }
+  footer a { text-decoration: none; } footer a:hover { color: var(--blue); }
+
+  .sticky { display: none; }
+
+  /* motion: fade-in-up on scroll, scale-in for the report */
+  .rv { opacity: 0; transform: translateY(20px); transition: opacity .8s var(--ease), transform .8s var(--ease); transition-delay: var(--d, 0s); }
+  .rv.in { opacity: 1; transform: none; }
+  .rv.scale { transform: scale(.94); }
+  .rv.scale.in { transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .rv { opacity: 1; transform: none; transition: none; }
+    .btn, .stage, .art { transition: none; }
+    .bubble { animation: none; }
+  }
+
+  @media (max-width: 980px) {
+    .hero { margin-top: -74px; padding: 120px 0 80px; }
+    .hero-grid { grid-template-columns: 1fr; gap: 48px; }
+    .nav ul { display: none; }
+    .rtab b { flex-direction: column; align-items: flex-start; gap: 6px; }
+    section { padding: 80px 0; }
+    .stages, .arts { grid-template-columns: 1fr 1fr; }
+    .faq { grid-template-columns: 1fr; }
+    .report { padding: 20px; }
+    .reader { grid-template-columns: 1fr; gap: 20px; }
+    .rtabs { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .rtab { padding: 14px; }
+    .rtab span { display: none; }
+    .reader.js .shot { height: 380px; }
+    .rpanel figcaption { flex-wrap: wrap; }
+  }
+  @media (max-width: 620px) {
+    .stages, .arts { grid-template-columns: 1fr; }
+    .cta-row .btn { width: 100%; }
+    .price { padding: 28px; }
+    .amount { font-size: 38px; }
+    .sticky { display: block; position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 60; padding: 8px; border-radius: 999px; background: rgba(255, 255, 255, .6); -webkit-backdrop-filter: blur(25px); backdrop-filter: blur(25px); border: 1px solid rgba(223, 228, 235, .8); transform: translateY(140%); transition: transform .5s var(--ease); }
+    .sticky.show { transform: none; }
+    .sticky .btn { width: 100%; box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+  <symbol id="i-external-link" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
+  <symbol id="i-lightbulb" viewBox="0 0 24 24"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M12 16v5"/><path d="M16 14.639V21"/><path d="M20 10.656V21"/><path d="m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15"/><path d="M4 18.463V21"/><path d="M8 14.656V21"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></symbol>
+  <symbol id="i-landmark" viewBox="0 0 24 24"><path d="M10 18v-7"/><path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></symbol>
+  <symbol id="i-octagon-alert" viewBox="0 0 24 24"><path d="M12 16h.01"/><path d="M12 8v4"/><path d="M15.312 2a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586l-4.688-4.688A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2z"/></symbol>
+  <symbol id="i-triangle-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-message-circle" viewBox="0 0 24 24"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></symbol>
+  <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"/></symbol>
+  <symbol id="i-video" viewBox="0 0 24 24"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></symbol>
+</defs></svg>
+<a class="skip" href="#main">Bỏ qua điều hướng</a>
+
+<header class="nav">
+  <div class="nav-in">
+    <a href="#top" aria-label="Nexus, về đầu trang"><img src="logo.svg" alt="Nexus"></a>
+    <ul>
+      <li><a href="#quy-trinh">Quy trình</a></li>
+      <li><a href="#pricing">Bảng giá</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#lien-he">Liên hệ</a></li>
+      <li><a href="https://nexusforstartup.site/news">Bài viết</a></li>
+    </ul>
+    <a class="btn btn-dark" href="/auth">Đăng nhập</a>
+  </div>
+</header>
+
+<main id="main">
+  <!-- HERO -->
+  <section class="hero" id="top">
+    <div class="hero-bg" aria-hidden="true">
+      <video autoplay muted loop playsinline preload="metadata" poster="hero-poster.jpg"><source src="hero-bg.mp4" type="video/mp4"></video>
+    </div>
+    <span class="bubble" style="left:1.5%;top:22%;--d:-1s" aria-hidden="true"><svg class="ic"><use href="#i-lightbulb"/></svg></span>
+    <span class="bubble" style="left:1.5%;top:74%;--d:-3.5s" aria-hidden="true"><svg class="ic"><use href="#i-file-text"/></svg></span>
+    <span class="bubble" style="right:1.5%;top:12%;--d:-2s" aria-hidden="true"><svg class="ic"><use href="#i-gauge"/></svg></span>
+    <span class="bubble" style="right:1.5%;top:82%;--d:-5s" aria-hidden="true"><svg class="ic"><use href="#i-message-circle"/></svg></span>
+    <div class="wrap hero-grid">
+      <div>
+        <span class="chip rv">Phản biện dự án khởi nghiệp</span>
+        <h1 class="rv" style="--d:.08s">Đánh giá và phản biện <em>dự án khởi nghiệp</em></h1>
+        <p class="lead rv" style="--d:.16s">Nexus đưa dự án của nhóm bạn qua quy trình đánh giá có cấu trúc - phát hiện điểm thiếu logic, nhận diện các giả định chưa kiểm chứng và gợi ý hướng hoàn thiện trước khi trình bày.</p>
+        <ul class="points rv" style="--d:.24s">
+          <li><svg class="ic" aria-hidden="true"><use href="#i-circle-check"/></svg><span><b>Đánh giá có cấu trúc</b> – Báo cáo chi tiết chỉ ra các lỗ hổng lập luận và khoảng trống dữ liệu.</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-circle-check"/></svg><span><b>Định vị minh chứng</b> – Đối chiếu trực tiếp nhận xét với các phần nội dung liên quan trong tài liệu.</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-circle-check"/></svg><span><b>Ưu tiên hành động</b> – Phân loại rõ vấn đề cần xử lý trước và các gợi ý hoàn thiện thêm.</span></li>
+        </ul>
+        <div class="cta-row rv" style="--d:.32s">
+          <a class="btn btn-primary" href="/dashboard">Kiểm tra nhanh ý tưởng<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+          <a class="btn btn-ghost" href="#pricing">Xem bảng giá</a>
+        </div>
+      </div>
+
+      <aside class="qcard rv scale" style="--d:.2s" aria-label="Câu hỏi mẫu trong giai đoạn Ý tưởng">
+        <div class="qmeta"><span>Giai đoạn Ý tưởng · Câu 1</span></div>
+        <h2>Khách hàng chính của nhóm là ai?</h2>
+        <p style="margin:0 0 6px;color:var(--muted);font-size:15px">Chọn MỘT nhóm khách hàng đủ hẹp để nhóm tìm được người thật trong vòng một tuần.</p>
+        <div class="verdict bad"><b>Không đạt</b>“Sinh viên”, “Người đi làm”, “Doanh nghiệp vừa và nhỏ”.</div>
+        <div class="verdict ok"><b>Đạt</b>“Sinh viên đại học năm 2 đến năm 3 tại TP.HCM, thường học nhóm 3 đến 6 người sau giờ học ít nhất hai lần mỗi tuần để làm bài tập nhóm, có thể chi khoảng 30 đến 50 nghìn mỗi buổi.”</div>
+        <div class="qnext"><small>Giai đoạn Ý tưởng · Câu 2</small><p>Vấn đề chính của khách hàng là gì?</p></div>
+        <div class="qnext"><small>Giai đoạn Ý tưởng · Câu 3</small><p>Tên ý tưởng / sản phẩm của nhóm là gì?</p></div>
+        <div class="fade"><a class="more" href="/dashboard">Xem thêm <span aria-hidden="true">→</span></a></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- REPORT -->
+  <section class="soft" id="quy-trinh">
+    <div class="wrap">
+      <div class="head rv">
+        <span class="chip">Sau khi điền xong</span>
+        <h2 class="title">Nexus phản biện lại</h2>
+      </div>
+      <div class="report rv scale">
+        <div class="reader" data-reader>
+          <div class="rtabs" role="tablist" aria-label="Các phần của báo cáo" aria-orientation="vertical">
+            <button class="rtab" role="tab" id="t1" aria-controls="p1" aria-selected="true"><b><svg class="ic" aria-hidden="true"><use href="#i-gauge"/></svg>Điểm tổng quát</b><span>Một con số và năm điểm thành phần cho biết ý tưởng đang yếu ở đâu.</span></button>
+            <button class="rtab" role="tab" id="t2" aria-controls="p2" aria-selected="false" tabindex="-1"><b><svg class="ic" aria-hidden="true"><use href="#i-octagon-alert"/></svg>Lỗi chí mạng</b><span>Mỗi lỗi nói rõ vấn đề, vì sao nghiêm trọng và nhóm cần viết lại gì.</span></button>
+            <button class="rtab" role="tab" id="t3" aria-controls="p3" aria-selected="false" tabindex="-1"><b><svg class="ic" aria-hidden="true"><use href="#i-triangle-alert"/></svg>Lỗi quan trọng</b><span>Những chỗ nên sửa ngay, kèm việc nhóm cần làm rõ.</span></button>
+          </div>
+          <div class="rpanels">
+            <figure class="rpanel" role="tabpanel" id="p1" aria-labelledby="t1">
+              <a class="shot" href="report-sample.png" target="_blank" rel="noopener" style="--y:0%"><img src="report-sample.png" width="1323" height="1290" alt="Trang đầu báo cáo phản biện mẫu: điểm tổng quát 49/100, nhãn ‘Ý tưởng chưa đủ độ rõ ràng’, năm điểm thành phần Rõ ràng 40, Thị trường 65, Kinh doanh 40, Cạnh tranh 60, Thực thi 40." loading="lazy"></a>
+              <figcaption><span>Trang đầu một báo cáo thực tế. Tên dự án đã được ẩn.</span><a href="report-sample.png" target="_blank" rel="noopener">Mở cả trang<svg class="ic" aria-hidden="true"><use href="#i-external-link"/></svg></a></figcaption>
+            </figure>
+            <figure class="rpanel" role="tabpanel" id="p2" aria-labelledby="t2">
+              <a class="shot" href="report-sample-2.png" target="_blank" rel="noopener" style="--y:-72%"><img src="report-sample-2.png" width="1323" height="2026" alt="Danh sách lỗi chí mạng (BLOCKER) của báo cáo mẫu: ba lỗi, mỗi lỗi có vấn đề cốt lõi, vì sao nghiêm trọng, nếu không sửa hệ thống sẽ hiểu sai gì và khuyến nghị nhóm viết lại." loading="lazy"></a>
+              <figcaption><span>Lỗi chí mạng #2: trộn phí dịch vụ với tiền cọc, kèm cách viết lại.</span><a href="report-sample-2.png" target="_blank" rel="noopener">Mở cả trang<svg class="ic" aria-hidden="true"><use href="#i-external-link"/></svg></a></figcaption>
+            </figure>
+            <figure class="rpanel" role="tabpanel" id="p3" aria-labelledby="t3">
+              <a class="shot" href="report-sample-3.png" target="_blank" rel="noopener" style="--y:-45%"><img src="report-sample-3.png" width="1323" height="1871" alt="Danh sách lỗi quan trọng (MAJOR) của báo cáo mẫu: ba lỗi, mỗi lỗi nêu hạng mục liên quan, vấn đề cốt lõi, vì sao quan trọng và việc nhóm cần làm rõ." loading="lazy"></a>
+              <figcaption><span>Lỗi quan trọng: những chỗ nên sửa ngay.</span><a href="report-sample-3.png" target="_blank" rel="noopener">Mở cả trang<svg class="ic" aria-hidden="true"><use href="#i-external-link"/></svg></a></figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STAGES -->
+  <section>
+    <div class="wrap">
+      <div class="head rv">
+        <span class="chip">Hành trình</span>
+        <h2 class="title">Bốn giai đoạn, từng bước một</h2>
+      </div>
+      <div class="stages">
+        <article class="stage rv" style="--d:0s"><svg class="ic stage-ic" aria-hidden="true"><use href="#i-lightbulb"/></svg><span class="num n1">1</span><h3>Ý tưởng</h3><p>Làm rõ ý tưởng, đối tượng khách hàng và giá trị cốt lõi.</p></article>
+        <article class="stage rv" style="--d:.08s"><svg class="ic stage-ic" aria-hidden="true"><use href="#i-chart"/></svg><span class="num n2">2</span><h3>Thị trường</h3><p>Phân tích thị trường, đối thủ và xác thực nhu cầu.</p></article>
+        <article class="stage rv" style="--d:.16s"><svg class="ic stage-ic" aria-hidden="true"><use href="#i-layers"/></svg><span class="num n3">3</span><h3>Sản phẩm &amp; mô hình</h3><p>Định hình sản phẩm, mô hình vận hành và lộ trình phát triển.</p></article>
+        <article class="stage soon rv" style="--d:.24s"><svg class="ic stage-ic" aria-hidden="true"><use href="#i-landmark"/></svg><span class="num n4">4</span><h3>Gọi vốn &amp; tài chính</h3><span class="tag">Sắp ra mắt</span></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="soft" id="pricing">
+    <div class="wrap">
+      <div class="head rv">
+        <h2 class="title">Bảng giá dịch vụ</h2>
+        <p>Chi phí minh bạch, tính theo gói đánh giá tài liệu cho cả nhóm.</p>
+      </div>
+      <div class="price rv scale">
+        <h3>Đánh giá Dự án Tự động</h3>
+        <div class="amount">79,000 VND<small>/ Bao gồm 2 lượt đánh giá</small></div>
+        <p>Phù hợp cho nhóm cần rà soát tài liệu, nhận diện điểm yếu và đánh giá lại sau khi chỉnh sửa.</p>
+        <ul>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>2 lượt đánh giá tài liệu độc lập</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Đánh giá theo 5 nhóm tiêu chí cốt lõi</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Phân loại vấn đề theo mức độ ưu tiên xử lý</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Kết quả thường có sau khoảng 10 phút</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Chỉ ~16,000 VND/thành viên (nhóm 5 người)</li>
+        </ul>
+        <a class="btn btn-primary btn-block" href="/dashboard/intake?packageId=pkg_ai_audit">Bắt đầu đánh giá<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARTICLES -->
+  <section>
+    <div class="wrap">
+      <div class="head rv">
+        <span class="chip">Đọc trước khi bắt đầu</span>
+        <h2 class="title">Bài viết hướng dẫn</h2>
+      </div>
+      <div class="arts">
+        <a class="art rv" style="--d:0s" href="https://nexusforstartup.site/news/cach-tinh-tam-sam-som-cuc-don-gian-cho-du-an-khoi-nghiep"><div class="cover" role="img" aria-label="Ảnh bìa bài viết"></div><div class="b"><strong>Cách tính TAM, SAM, SOM cực đơn giản cho dự án khởi nghiệp</strong><span>Đọc bài →</span></div></a>
+        <a class="art rv" style="--d:.08s" href="https://nexusforstartup.site/news/khach-noi-co-nhu-cau-da-thu-san-pham-nhung-ho-co-mua-khong"><div class="cover" role="img" aria-label="Ảnh bìa bài viết"></div><div class="b"><strong>Khách nói có nhu cầu, đã thử sản phẩm, nhưng họ có mua không?</strong><span>Đọc bài →</span></div></a>
+        <a class="art rv" style="--d:.16s" href="https://nexusforstartup.site/news/lam-sao-de-viet-tot-hon-trong-thoi-dai-ai-slop-bk5t"><div class="cover" role="img" aria-label="Ảnh bìa bài viết"></div><div class="b"><strong>Làm sao để viết tốt hơn trong thời đại AI slop</strong><span>Đọc bài →</span></div></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="soft" id="faq">
+    <div class="wrap">
+      <div class="head rv">
+        <h2 class="title">Câu hỏi thường gặp</h2>
+        <p>Giải đáp các thắc mắc phổ biến về quy trình đánh giá và phản biện dự án trên Nexus.</p>
+      </div>
+      <div class="faq rv">
+        <div>
+          <details><summary>Nexus đánh giá và phản biện dự án như thế nào?</summary><p>Nexus phân tích tài liệu slide hoặc đề cương do bạn tải lên trực tiếp, đối chiếu qua 5 nhóm tiêu chí đánh giá trọng yếu. Kết quả là bản báo cáo chi tiết chỉ ra các lỗ hổng lập luận, giả định thiếu căn cứ và gợi ý hướng hoàn thiện cụ thể.</p></details>
+          <details style="margin-top:16px"><summary>Báo cáo của Nexus có đảm bảo dự án sẽ đạt kết quả tốt khi bảo vệ không?</summary><p>Không. Nexus là hệ thống phản biện hỗ trợ hoàn thiện tài liệu dự án trước khi trình bày. Kết quả bảo vệ thực tế phụ thuộc vào việc triển khai và năng lực thuyết trình của nhóm.</p></details>
+          <details style="margin-top:16px"><summary>Gói 79,000 VND bao gồm những gì và được sử dụng như thế nào?</summary><p>Mỗi gói cung cấp 2 lượt đánh giá cho dự án. Lượt 1 giúp nhóm phát hiện các điểm thiếu logic và lỗ hổng ban đầu. Sau khi chỉnh sửa tài liệu, nhóm sử dụng lượt 2 để đánh giá lại phiên bản mới xem đã khắc phục triệt để chưa.</p></details>
+        </div>
+        <div>
+          <details><summary>Tôi có thể chỉnh sửa dự án sau khi nhận báo cáo phản biện không?</summary><p>Có. Hệ thống hỗ trợ lưu trữ theo từng phiên bản (Phiên bản 1, Phiên bản 2, Phiên bản 3...). Bạn có thể tải lên tài liệu mới để thực hiện lần đánh giá tiếp theo.</p></details>
+          <details style="margin-top:16px"><summary>Tài liệu dự án của tôi được xử lý như thế nào?</summary><p>Nexus sử dụng tài liệu nhóm cung cấp để thực hiện đánh giá. Trong quá trình xử lý, nội dung có thể được truyền tới các nhà cung cấp công nghệ hỗ trợ việc phân tích. Xem chi tiết tại <a href="/privacy" style="color:var(--blue)">Chính sách bảo mật</a>.</p></details>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact" id="lien-he">
+    <div class="wrap">
+      <div class="head rv" style="margin-bottom:32px">
+        <h2 class="title">Cần hỗ trợ hoặc đóng góp ý kiến?</h2>
+        <p>Liên hệ trực tiếp với đội ngũ phát triển Nexus qua các kênh chính thức dưới đây.</p>
+      </div>
+      <a class="btn btn-primary rv" href="https://zalo.me/g/wgadhwpaxd05vykpnxqb" target="_blank" rel="noopener noreferrer"><svg class="ic" aria-hidden="true"><use href="#i-message-circle"/></svg>Tham gia nhóm Zalo hỗ trợ</a>
+      <div class="links rv">
+        <a href="mailto:phungluuhoanglong@gmail.com"><svg class="ic" aria-hidden="true"><use href="#i-mail"/></svg>phungluuhoanglong@gmail.com</a>
+        <a href="tel:0776506822"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg>0776 506 822</a>
+        <a href="https://www.facebook.com/profile.php?id=61591506814865" target="_blank" rel="noopener noreferrer"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg>Facebook Fanpage</a>
+        <a href="https://www.tiktok.com/@nexus.for.startup" target="_blank" rel="noopener noreferrer"><svg class="ic" aria-hidden="true"><use href="#i-video"/></svg>TikTok @nexus.for.startup</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <nav aria-label="Liên kết pháp lý">
+      <a href="/privacy">Chính sách bảo mật</a>
+      <a href="/terms">Điều khoản sử dụng</a>
+      <a href="/refund-policy">Thanh toán &amp; Hoàn tiền</a>
+      <a href="/fair-use-policy">Quy chế &amp; Fair-Use</a>
+    </nav>
+    © 2026 Nexus Platform. Tất cả quyền được bảo lưu.
+  </div>
+</footer>
+
+<div class="sticky"><a class="btn btn-primary" href="/dashboard">Kiểm tra nhanh ý tưởng<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></a></div>
+
+<script>
+  // Reveal on scroll; elements already in view on load animate once, others when entering.
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.rv').forEach((el) => io.observe(el));
+  // Reduced motion: keep the poster frame instead of looping the video.
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { const v = document.querySelector('.hero-bg video'); v.removeAttribute('autoplay'); v.pause(); }
+  // Mobile sticky CTA appears only after the hero CTA has scrolled out of view.
+  const heroCta = document.querySelector('.cta-row');
+  new IntersectionObserver(([e]) => document.querySelector('.sticky').classList.toggle('show', !e.isIntersecting)).observe(heroCta);
+  // Report tabs: without JS all three pages stack and stay readable; with JS one shows at a time.
+  document.querySelectorAll('[data-reader]').forEach((root) => {
+    const tabs = [...root.querySelectorAll('[role="tab"]')];
+    const panels = tabs.map((t) => root.querySelector('#' + t.getAttribute('aria-controls')));
+    const select = (i, focus) => {
+      tabs.forEach((t, k) => { t.setAttribute('aria-selected', k === i); t.tabIndex = k === i ? 0 : -1; panels[k].hidden = k !== i; });
+      if (focus) tabs[i].focus();
+    };
+    root.classList.add('js');
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => select(i));
+      t.addEventListener('keydown', (e) => {
+        const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+        if (step) { e.preventDefault(); select((i + step + tabs.length) % tabs.length, true); }
+      });
+    });
+    select(0);
+  });
+</script>
+</body>
+</html>
