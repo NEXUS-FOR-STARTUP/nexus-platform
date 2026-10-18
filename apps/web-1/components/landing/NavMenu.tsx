@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { NAV_DIRECT_LINKS, NAV_GROUPS, type NavGroup } from "./navData";
 import s from "./landingNav.module.css";
@@ -27,7 +27,7 @@ function Panel({ group, onNavigate }: { group: NavGroup; onNavigate: () => void 
         <Link href={group.promo.href} onClick={onNavigate} className={s.promo}>
           <b>{group.promo.title}</b>
           <span>{group.promo.text}</span>
-          <ArrowRight size={18} aria-hidden="true" className={s.promoArrow} />
+          <em className={s.promoCta}>Thử ngay</em>
         </Link>
       )}
     </div>

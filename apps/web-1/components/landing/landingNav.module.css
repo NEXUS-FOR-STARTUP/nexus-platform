@@ -33,12 +33,8 @@
   color: var(--lp-ink); text-decoration: none; font-size: 17px;
 }
 .promo span { color: var(--lp-muted); font-size: 15px; }
-.promoArrow {
-  position: absolute; left: 20px; bottom: 16px; box-sizing: content-box; padding: 8px 18px;
-  border-radius: var(--lp-r-pill); background: var(--lp-ink); color: #fff;
-  transition: background 0.4s var(--lp-ease);
-}
-.promo:hover .promoArrow { background: var(--lp-blue); }
+.promoCta { position: absolute; left: 20px; bottom: 16px; font-style: normal; font-weight: 500; color: var(--lp-blue-dark); }
+.promo:hover .promoCta { text-decoration: underline; }
 
 .burger { display: none; border: 0; background: none; padding: 8px; border-radius: var(--lp-r-pill); color: var(--lp-ink); cursor: pointer; }
 .drawer {
@@ -57,5 +53,5 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .panelWrap { animation: none; }
-  .trigger, .trigger svg, .item, .promoArrow { transition: none; }
+  .trigger, .trigger svg, .item { transition: none; }
 }
