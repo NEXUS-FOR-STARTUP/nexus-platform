@@ -6,14 +6,6 @@ import { HERO_CTA_ID } from "./landingConstants";
 import base from "./landing.module.css";
 import s from "./landingHero.module.css";
 
-// Vocabulary lifted from the hero copy below: what a Nexus report actually names.
-const BUBBLES = [
-  { label: "Lỗ hổng lập luận", pos: { left: "1%", top: "22%" }, delay: "-1s" },
-  { label: "Khoảng trống dữ liệu", pos: { left: "1%", top: "74%" }, delay: "-3.5s" },
-  { label: "Giả định chưa kiểm chứng", pos: { right: "1%", top: "10%" }, delay: "-2s" },
-  { label: "Ưu tiên hành động", pos: { right: "1%", top: "84%" }, delay: "-5s" },
-];
-
 const POINTS = [
   ["Đánh giá có cấu trúc", "Báo cáo chi tiết chỉ ra các lỗ hổng lập luận và khoảng trống dữ liệu."],
   ["Định vị minh chứng", "Đối chiếu trực tiếp nhận xét với các phần nội dung liên quan trong tài liệu."],
@@ -24,11 +16,6 @@ export default function LandingHero() {
   return (
     <section className={s.hero} id="top">
       <HeroVideo className={s.heroBg} />
-      {BUBBLES.map(({ label, pos, delay }) => (
-        <span key={delay} className={s.bubble} style={{ ...pos, "--d": delay } as unknown as React.CSSProperties} aria-hidden="true">
-          {label}
-        </span>
-      ))}
       <div className={`${base.wrap} ${s.heroGrid}`}>
         <div>
           <span className={base.chip}>Phản biện dự án khởi nghiệp</span>
