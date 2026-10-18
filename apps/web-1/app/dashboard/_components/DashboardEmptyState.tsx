@@ -15,22 +15,22 @@ export default function DashboardEmptyState() {
       
       <h3 className="font-heading text-xl font-semibold text-text-app mb-2">Chưa có hồ sơ phản biện nào</h3>
       <p className="font-body text-text-muted text-sm max-w-md mb-8 leading-relaxed">
-        Đánh giá đội ngũ khởi nghiệp của bạn trước, sau đó tạo hồ sơ phản biện theo từng vòng chuẩn.
+        Tạo hồ sơ phản biện đầu tiên để bắt đầu kiểm tra ý tưởng của bạn theo từng vòng chuẩn.
       </p>
 
       <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-        <Link
-          href="/dashboard/team-fit"
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-brand hover:bg-brand-hover text-white px-6 py-3 rounded-lg shadow-sm shadow-brand/10 transition-colors cursor-pointer whitespace-nowrap"
-        >
-          <span>Đánh giá đội ngũ miễn phí</span>
-        </Link>
         <button
           onClick={open}
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-brand hover:bg-brand-hover text-white px-6 py-3 rounded-lg shadow-sm shadow-brand/10 transition-colors cursor-pointer whitespace-nowrap"
+        >
+          <span>Tạo hồ sơ phản biện</span>
+        </button>
+        <Link
+          href="/dashboard/team-fit"
           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-body text-sm font-semibold bg-surface-app border border-border-app hover:border-brand/40 text-text-app px-6 py-3 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
         >
-          <span>Bắt đầu kiểm tra dự án</span>
-        </button>
+          <span>Đánh giá đội ngũ</span>
+        </Link>
       </div>
       <CreateProjectModal opened={opened} onClose={close} />
     </div>

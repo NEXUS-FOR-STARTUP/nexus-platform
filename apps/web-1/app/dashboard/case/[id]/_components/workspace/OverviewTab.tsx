@@ -11,6 +11,7 @@ import CaseOverviewPanel from "../CaseOverviewPanel";
 import { buildNextActions } from "../../hooks/useNextActions";
 import { useCaseDetails } from "../../hooks/useCaseDetails";
 import ContactNextStepCard from "./ContactNextStepCard";
+import OverviewIdeaGuideAlert from "../overview/OverviewIdeaGuideAlert";
 import { isCaseContactComplete } from "@repo/validation";
 import type { StageSummary } from "../../hooks/useStageSummaries";
 import type { Case, DocumentWorkspace, RoundHistoryEntry, TeamFitReport } from "@/types";
@@ -75,6 +76,10 @@ import type { Case, DocumentWorkspace, RoundHistoryEntry, TeamFitReport } from "
       <ContactNextStepCard contact={contact} onOpenSettings={() => router.push(`/dashboard/case/${caseId}?tab=settings`)} />
 
       {isCaseContactComplete(contact) && <OverviewHero action={actions[0] ?? null} onOpenStage={onOpenStage} />}
+
+      {isCaseContactComplete(contact) && !(actions[0]?.stageSlug === "y-tuong" && actions[0].view === "draft") && (
+        <OverviewIdeaGuideAlert onOpenStage={onOpenStage} />
+      )}
 
       <OverviewProgressStrip caseId={caseId} stages={stages} />
 
