@@ -1,9 +1,6 @@
-import { BookOpen, CircleHelp, FileText, Receipt, Scale, ShieldCheck, Workflow, type LucideIcon } from "lucide-react";
-
 export interface NavLink {
   href: string;
   label: string;
-  Icon: LucideIcon;
 }
 
 export interface NavColumn {
@@ -31,8 +28,8 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         title: "Tìm hiểu Nexus",
         links: [
-          { href: "/#quy-trinh", label: "Quy trình đánh giá", Icon: Workflow },
-          { href: "/#pricing", label: "Bảng giá", Icon: Receipt },
+          { href: "/#quy-trinh", label: "Quy trình đánh giá" },
+          { href: "/#pricing", label: "Bảng giá" },
         ],
       },
     ],
@@ -48,8 +45,8 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         title: "Học và hỏi",
         links: [
-          { href: "/news", label: "Bài viết hướng dẫn", Icon: BookOpen },
-          { href: "/#faq", label: "Câu hỏi thường gặp", Icon: CircleHelp },
+          { href: "/news", label: "Bài viết hướng dẫn" },
+          { href: "/#faq", label: "Câu hỏi thường gặp" },
         ],
       },
     ],
@@ -60,15 +57,15 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         title: "Pháp lý",
         links: [
-          { href: "/privacy", label: "Chính sách bảo mật", Icon: ShieldCheck },
-          { href: "/terms", label: "Điều khoản sử dụng", Icon: FileText },
+          { href: "/privacy", label: "Chính sách bảo mật" },
+          { href: "/terms", label: "Điều khoản sử dụng" },
         ],
       },
       {
         title: "Thanh toán và sử dụng",
         links: [
-          { href: "/refund-policy", label: "Thanh toán & Hoàn tiền", Icon: Receipt },
-          { href: "/fair-use-policy", label: "Quy chế & Fair-Use", Icon: Scale },
+          { href: "/refund-policy", label: "Thanh toán & Hoàn tiền" },
+          { href: "/fair-use-policy", label: "Quy chế & Fair-Use" },
         ],
       },
     ],

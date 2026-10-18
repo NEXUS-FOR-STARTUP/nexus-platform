@@ -13,10 +13,9 @@ function Panel({ group, onNavigate }: { group: NavGroup; onNavigate: () => void 
         <div key={col.title} className={s.col}>
           <p className={s.colTitle}>{col.title}</p>
           <ul>
-            {col.links.map(({ href, label, Icon }) => (
+            {col.links.map(({ href, label }) => (
               <li key={href}>
                 <Link href={href} onClick={onNavigate} className={s.item}>
-                  <Icon size={16} aria-hidden="true" />
                   {label}
                 </Link>
               </li>
@@ -49,16 +48,21 @@ export default function NavMenu() {
       if (rootRef.current && !rootRef.current.contains(e.target as Node)) close();
     };
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
+    // Listen on the whole bar: the pill's padding sits between trigger and panel and must not count as leaving.
+    const bar = rootRef.current?.closest("header");
+    const onLeave = () => setOpen(null);
+    bar?.addEventListener("mouseleave", onLeave);
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
     return () => {
+      bar?.removeEventListener("mouseleave", onLeave);
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
     };
   }, []);
 
   return (
-    <div ref={rootRef} className={s.root} onMouseLeave={() => setOpen(null)}>
+    <div ref={rootRef} className={s.root}>
       <ul className={s.list}>
         {NAV_GROUPS.map((g, i) => (
           <li key={g.label} onMouseEnter={() => setOpen(i)}>
