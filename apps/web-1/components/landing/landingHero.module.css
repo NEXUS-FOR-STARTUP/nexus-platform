@@ -13,9 +13,7 @@
   padding: 8px 10px 8px 22px;
 }
 .logo { height: 40px; width: auto; }
-.navList { display: flex; gap: 28px; list-style: none; margin: 0; padding: 0; font-size: 15px; color: var(--lp-muted); }
-.navList a { text-decoration: none; transition: color 0.3s var(--lp-ease); }
-.navList a:hover { color: var(--lp-ink); }
+.navMain { display: contents; }
 
 .hero { position: relative; isolation: isolate; overflow: hidden; margin-top: -74px; padding: 170px 0 120px; }
 .heroBg { position: absolute; inset: 0; z-index: -1; }
@@ -44,7 +42,6 @@
 @media (max-width: 980px) {
   .hero { padding: 120px 0 80px; }
   .heroGrid { grid-template-columns: 1fr; gap: 48px; }
-  .navList { display: none; }
 }
 @media (max-width: 620px) {
   .ctaRow a { width: 100%; }

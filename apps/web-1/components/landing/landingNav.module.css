@@ -1,0 +1,63 @@
+/* Mega-menu under the glass nav bar. Panels are plain white with a line border (no shadow). */
+.root { display: contents; }
+.list { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; font-size: 15px; }
+.list > li { position: static; }
+.trigger {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 8px 14px; border: 0; background: none; border-radius: var(--lp-r-pill);
+  font: inherit; color: var(--lp-muted); text-decoration: none; cursor: pointer;
+  transition: color 0.3s var(--lp-ease), background 0.3s var(--lp-ease);
+}
+.trigger:hover, .trigger[data-open="true"] { color: var(--lp-ink); background: rgba(255, 255, 255, 0.8); }
+.trigger svg { transition: transform 0.3s var(--lp-ease); }
+.trigger[data-open="true"] svg { transform: rotate(180deg); }
+
+.panelWrap { position: absolute; left: 24px; right: 24px; top: 100%; padding-top: 8px; animation: lp-nav-in 0.25s var(--lp-ease); }
+@keyframes lp-nav-in { from { opacity: 0; transform: translateY(-6px); } }
+.panel {
+  display: flex; gap: 40px; padding: 24px 28px;
+  background: #fff; border: 1px solid var(--lp-line); border-radius: var(--lp-r-md);
+}
+.col { min-width: 220px; }
+.colTitle { margin: 0 0 12px; font-size: 14px; color: var(--lp-muted); }
+.col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.item {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px; margin: 0 -10px;
+  border-radius: var(--lp-r-sm); color: var(--lp-ink); font-size: 15px; text-decoration: none;
+  transition: background 0.3s var(--lp-ease), color 0.3s var(--lp-ease);
+}
+.item svg { color: var(--lp-muted); }
+.item:hover { background: var(--lp-blue-chip); color: var(--lp-blue-dark); }
+.item:hover svg { color: var(--lp-blue); }
+.promo {
+  position: relative; margin-left: auto; width: 300px; display: grid; gap: 6px; align-content: start;
+  padding: 20px 20px 56px; border-radius: var(--lp-r-md); background: var(--lp-blue-chip);
+  color: var(--lp-ink); text-decoration: none; font-size: 15px;
+}
+.promo span { color: var(--lp-muted); font-size: 14px; }
+.promoArrow {
+  position: absolute; left: 20px; bottom: 16px; box-sizing: content-box; padding: 8px 18px;
+  border-radius: var(--lp-r-pill); background: var(--lp-ink); color: #fff;
+  transition: background 0.4s var(--lp-ease);
+}
+.promo:hover .promoArrow { background: var(--lp-blue); }
+
+.burger { display: none; border: 0; background: none; padding: 8px; border-radius: var(--lp-r-pill); color: var(--lp-ink); cursor: pointer; }
+.drawer {
+  position: absolute; left: 24px; right: 24px; top: 100%; margin-top: 8px; max-height: calc(100vh - 100px); overflow-y: auto;
+  padding: 16px 20px; background: #fff; border: 1px solid var(--lp-line); border-radius: var(--lp-r-md);
+}
+.drawerTitle { margin: 12px 0 4px; font-size: 16px; font-weight: 600; }
+.drawer .panel { flex-direction: column; gap: 12px; padding: 0; border: 0; }
+.drawer .col { min-width: 0; }
+.drawer .promo { width: auto; margin: 4px 0 0; }
+.drawerLink { display: block; padding: 14px 0 4px; color: var(--lp-ink); font-weight: 600; text-decoration: none; }
+
+@media (max-width: 980px) {
+  .list { display: none; }
+  .burger { display: inline-flex; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panelWrap { animation: none; }
+  .trigger, .trigger svg, .item, .promoArrow { transition: none; }
+}
