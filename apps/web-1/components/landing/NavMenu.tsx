@@ -43,7 +43,7 @@ function DrawerGroup({ group, onNavigate }: { group: NavGroup; onNavigate: () =>
     <section>
       <button type="button" className={s.drawerToggle} aria-expanded={expanded} onClick={() => setExpanded((v) => !v)}>
         {group.label}
-        <ChevronDown size={18} aria-hidden="true" data-open={expanded} />
+        <i className={s.caret} aria-hidden="true" data-open={expanded} />
       </button>
       {expanded && <Panel group={group} onNavigate={onNavigate} />}
     </section>

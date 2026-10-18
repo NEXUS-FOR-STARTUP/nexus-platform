@@ -53,8 +53,8 @@
   display: flex; width: 100%; align-items: center; justify-content: space-between; padding: 14px 0 4px;
   border: 0; background: none; font: inherit; font-size: 18px; font-weight: 600; color: var(--lp-ink); cursor: pointer;
 }
-.drawerToggle svg { transition: transform 0.3s var(--lp-ease); }
-.drawerToggle svg[data-open="true"] { transform: rotate(180deg); }
+.caret { width: 8px; height: 8px; margin-right: 4px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform 0.3s var(--lp-ease); }
+.caret[data-open="true"] { transform: rotate(225deg) translateY(-2px); }
 .drawerTitle { margin: 12px 0 4px; font-size: 18px; font-weight: 600; }
 .drawer .panel { flex-direction: column; gap: 12px; padding: 0; border: 0; }
 .drawer .col { min-width: 0; }
@@ -67,5 +67,5 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .panelWrap, .backdrop, .drawer { animation: none; }
-  .trigger, .trigger svg, .item, .drawerToggle svg { transition: none; }
+  .trigger, .trigger svg, .item, .caret { transition: none; }
 }
