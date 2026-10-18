@@ -280,4 +280,8 @@
   .stack[data-js="true"] .card > * {
     transition: none;
   }
+
+  .stack[data-js="true"] .card[data-top="true"]:hover:not([data-dragging="true"]) {
+    translate: none;
+  }
 }
