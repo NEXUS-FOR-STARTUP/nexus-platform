@@ -1,16 +1,17 @@
 import Link from "next/link";
-import { ArrowRight, CircleCheck, FileText, Gauge, Lightbulb, MessageCircle } from "lucide-react";
+import { ArrowRight, CircleCheck } from "lucide-react";
 import HeroVideo from "./HeroVideo";
 import { LandingQuestionCards } from "./LandingQuestionCards";
 import { HERO_CTA_ID } from "./landingConstants";
 import base from "./landing.module.css";
 import s from "./landingHero.module.css";
 
+// Vocabulary lifted from the hero copy below: what a Nexus report actually names.
 const BUBBLES = [
-  { Icon: Lightbulb, pos: { left: "1.5%", top: "22%" }, delay: "-1s" },
-  { Icon: FileText, pos: { left: "1.5%", top: "74%" }, delay: "-3.5s" },
-  { Icon: Gauge, pos: { right: "1.5%", top: "12%" }, delay: "-2s" },
-  { Icon: MessageCircle, pos: { right: "1.5%", top: "82%" }, delay: "-5s" },
+  { label: "Lỗ hổng lập luận", pos: { left: "1%", top: "22%" }, delay: "-1s" },
+  { label: "Khoảng trống dữ liệu", pos: { left: "1%", top: "74%" }, delay: "-3.5s" },
+  { label: "Giả định chưa kiểm chứng", pos: { right: "1%", top: "10%" }, delay: "-2s" },
+  { label: "Ưu tiên hành động", pos: { right: "1%", top: "84%" }, delay: "-5s" },
 ];
 
 const POINTS = [
@@ -23,9 +24,9 @@ export default function LandingHero() {
   return (
     <section className={s.hero} id="top">
       <HeroVideo className={s.heroBg} />
-      {BUBBLES.map(({ Icon, pos, delay }) => (
+      {BUBBLES.map(({ label, pos, delay }) => (
         <span key={delay} className={s.bubble} style={{ ...pos, "--d": delay } as unknown as React.CSSProperties} aria-hidden="true">
-          <Icon size={24} />
+          {label}
         </span>
       ))}
       <div className={`${base.wrap} ${s.heroGrid}`}>
