@@ -15,7 +15,7 @@
   --lp-r-md: 16px;
   --lp-r-sm: 12px;
   --lp-r-pill: 999px;
-  --lp-shadow-float: 0 22px 40px -26px rgba(26, 26, 28, 0.4);
+  --lp-shadow-float: -12px 16px 32px -8px rgba(26, 26, 28, 0.5);
   --lp-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --lp-wrap: 1200px;
 
