@@ -10,10 +10,11 @@
   backdrop-filter: blur(25px);
   border: 1px solid rgba(223, 228, 235, 0.7);
   border-radius: var(--lp-r-pill);
-  padding: 12px 14px 12px 28px;
+  padding: 6px 14px 6px 24px;
 }
-.logo { height: 46px; width: auto; }
+.logo { height: 60px; width: auto; }
 .navMain { display: contents; }
+.navCta { display: contents; }
 
 .hero { position: relative; isolation: isolate; overflow: hidden; margin-top: -84px; padding: 180px 0 120px; }
 .heroBg { position: absolute; inset: 0; z-index: -1; }
@@ -42,6 +43,7 @@
 @media (max-width: 980px) {
   .hero { padding: 120px 0 80px; }
   .heroGrid { grid-template-columns: 1fr; gap: 48px; }
+  .navCta { display: none; }
 }
 @media (max-width: 620px) {
   .ctaRow a { width: 100%; }

@@ -37,10 +37,17 @@
 .promo:hover .promoCta { text-decoration: underline; }
 
 .burger { display: none; border: 0; background: none; padding: 8px; border-radius: var(--lp-r-pill); color: var(--lp-ink); cursor: pointer; }
+.backdrop { position: fixed; inset: 0; z-index: 90; border: 0; background: rgba(26, 26, 28, 0.4); animation: lp-fade 0.25s var(--lp-ease); }
 .drawer {
-  position: absolute; left: 24px; right: 24px; top: 100%; margin-top: 8px; max-height: calc(100vh - 100px); overflow-y: auto;
-  padding: 16px 20px; background: #fff; border: 1px solid var(--lp-line); border-radius: var(--lp-r-md);
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 100; width: min(380px, 100vw); overflow-y: auto;
+  padding: 64px 24px 32px; background: #fff; border-left: 1px solid var(--lp-line);
+  font-family: var(--font-inter-tight), system-ui, sans-serif; animation: lp-drawer-in 0.3s var(--lp-ease);
 }
+@keyframes lp-fade { from { opacity: 0; } }
+@keyframes lp-drawer-in { from { transform: translateX(100%); } }
+.drawerClose { position: absolute; top: 14px; right: 14px; border: 0; background: none; padding: 8px; border-radius: var(--lp-r-pill); color: var(--lp-ink); cursor: pointer; }
+.drawerCta { margin-top: 28px; }
+.drawerCta a { width: 100%; }
 .drawerTitle { margin: 12px 0 4px; font-size: 18px; font-weight: 600; }
 .drawer .panel { flex-direction: column; gap: 12px; padding: 0; border: 0; }
 .drawer .col { min-width: 0; }
@@ -52,6 +59,6 @@
   .burger { display: inline-flex; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .panelWrap { animation: none; }
+  .panelWrap, .backdrop, .drawer { animation: none; }
   .trigger, .trigger svg, .item { transition: none; }
 }

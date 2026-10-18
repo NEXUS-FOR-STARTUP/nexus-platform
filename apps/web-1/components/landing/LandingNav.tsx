@@ -17,6 +17,12 @@ export default function LandingNav() {
   const { data, isPending } = useSession();
   const user = data?.user as (NonNullable<typeof data>["user"] & { role?: string }) | undefined;
 
+  const cta = isPending ? null : (
+    <Link href={user ? dashboardHref(user.role) : "/auth"} className={`${base.btn} ${base.btnPrimary} ${base.btnSm}`}>
+      {user ? "Vào Dashboard" : "Đăng nhập"}
+    </Link>
+  );
+
   return (
     <header className={s.nav}>
       <div className={s.navIn}>
@@ -24,13 +30,9 @@ export default function LandingNav() {
           <Image src="/landing/logo.svg" alt="Nexus" width={71} height={40} className={s.logo} unoptimized priority />
         </Link>
         <nav aria-label="Điều hướng chính" className={s.navMain}>
-          <NavMenu />
+          <NavMenu cta={cta} />
         </nav>
-        {!isPending && (
-          <Link href={user ? dashboardHref(user.role) : "/auth"} className={`${base.btn} ${base.btnPrimary} ${base.btnSm}`}>
-            {user ? "Vào Dashboard" : "Đăng nhập"}
-          </Link>
-        )}
+        <span className={s.navCta}>{cta}</span>
       </div>
     </header>
   );

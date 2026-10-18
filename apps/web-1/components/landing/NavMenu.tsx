@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { ChevronDown, Menu, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { NAV_ITEMS, isGroup, type NavGroup } from "./navData";
+import base from "./landing.module.css";
 import s from "./landingNav.module.css";
 
 function Panel({ group, onNavigate }: { group: NavGroup; onNavigate: () => void }) {
@@ -34,7 +36,8 @@ function Panel({ group, onNavigate }: { group: NavGroup; onNavigate: () => void 
   );
 }
 
-export default function NavMenu() {
+/** `cta` is the session-aware action; the mobile bar hides it, so the drawer carries it. */
+export default function NavMenu({ cta }: { cta: ReactNode }) {
   const [open, setOpen] = useState<number | null>(null);
   const [mobile, setMobile] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -45,7 +48,7 @@ export default function NavMenu() {
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) close();
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(null);
     };
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
     // Listen on the whole bar: the pill's padding sits between trigger and panel and must not count as leaving.
@@ -93,25 +96,36 @@ export default function NavMenu() {
           ),
         )}
       </ul>
-      <button type="button" className={s.burger} aria-label={mobile ? "Đóng menu" : "Mở menu"} aria-expanded={mobile} onClick={() => setMobile((v) => !v)}>
-        {mobile ? <X size={22} /> : <Menu size={22} />}
+      <button type="button" className={s.burger} aria-label="Mở menu" aria-expanded={mobile} onClick={() => setMobile((v) => !v)}>
+        <Menu size={22} />
       </button>
-      {mobile && (
-        <div className={s.drawer}>
-          {NAV_ITEMS.map((item) =>
-            isGroup(item) ? (
-              <section key={item.label}>
-                <h2 className={s.drawerTitle}>{item.label}</h2>
-                <Panel group={item} onNavigate={close} />
-              </section>
-            ) : (
-              <Link key={item.href} href={item.href} onClick={close} className={s.drawerLink}>
-                {item.label}
-              </Link>
-            ),
-          )}
-        </div>
-      )}
+      {mobile &&
+        createPortal(
+          <>
+            <button type="button" className={s.backdrop} aria-label="Đóng menu" onClick={close} />
+            <aside className={`${base.landing} ${s.drawer}`} aria-label="Menu">
+              <button type="button" className={s.drawerClose} aria-label="Đóng menu" onClick={close}>
+                <X size={22} />
+              </button>
+              {NAV_ITEMS.map((item) =>
+                isGroup(item) ? (
+                  <section key={item.label}>
+                    <h2 className={s.drawerTitle}>{item.label}</h2>
+                    <Panel group={item} onNavigate={close} />
+                  </section>
+                ) : (
+                  <Link key={item.href} href={item.href} onClick={close} className={s.drawerLink}>
+                    {item.label}
+                  </Link>
+                ),
+              )}
+              <div className={s.drawerCta} onClick={close}>
+                {cta}
+              </div>
+            </aside>
+          </>,
+          document.body,
+        )}
     </div>
   );
 }
