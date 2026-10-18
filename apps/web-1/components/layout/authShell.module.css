@@ -1,0 +1,17 @@
+/* Auth shell: soft landing ground, one 16px-radius card, home link above it. No shadows. */
+.root { flex: 1; display: grid; place-items: center; padding: 72px 24px; background: var(--lp-bg-soft); font-family: var(--font-inter-tight), system-ui, sans-serif; }
+.main { position: relative; width: 100%; max-width: 460px; }
+.back { position: absolute; bottom: calc(100% + 8px); left: -8px; display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px 8px 8px; border-radius: var(--lp-r-pill); font-size: 16px; color: var(--lp-muted) !important; text-decoration: none; transition: color 0.3s var(--lp-ease); }
+.back:hover { color: var(--lp-ink) !important; }
+
+.card { background: #fff; border: 1px solid var(--lp-line); border-radius: var(--lp-r-md); padding: 40px; }
+
+.loading { display: grid; place-items: center; gap: 16px; min-height: 240px; color: var(--lp-muted); font-size: 16px; }
+
+@media (max-width: 480px) {
+  .root { padding: 16px; }
+  .card { padding: 28px 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .back { transition: none; }
+}

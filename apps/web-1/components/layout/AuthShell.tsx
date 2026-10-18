@@ -1,5 +1,9 @@
 import React from "react";
-import ThemeToggler from "../ui/ThemeToggler";
+import Link from "next/link";
+import { Loader } from "@mantine/core";
+import { ArrowLeft } from "lucide-react";
+import base from "../landing/landing.module.css";
+import s from "./authShell.module.css";
 
 interface AuthShellProps {
   children: React.ReactNode;
@@ -7,20 +11,23 @@ interface AuthShellProps {
 
 export default function AuthShell({ children }: AuthShellProps) {
   return (
-    <div className="relative flex min-h-screen flex-col justify-center bg-bg-app px-4 py-12 transition-colors duration-200 sm:px-6 lg:px-8">
-      {/* Top action bar for theme toggle */}
-      <div className="absolute top-4 right-4 flex items-center gap-2">
-        <ThemeToggler />
-      </div>
-
-      <div className="mx-auto w-full max-w-[420px]">
-        {/* Form Content */}
-        <div className="rounded-2xl border border-border-app bg-surface-app p-6 sm:p-8">
-          {children}
-        </div>
-      </div>
+    <div className={`${base.landing} ${s.root}`}>
+      <main className={s.main}>
+        <Link href="/" className={s.back}>
+          <ArrowLeft size={18} aria-hidden="true" />
+          Về trang chủ
+        </Link>
+        <section className={s.card}>{children}</section>
+      </main>
     </div>
   );
 }
 
-
+export function AuthLoading({ label }: { label: string }) {
+  return (
+    <div className={s.loading} role="status">
+      <Loader color="brand" size="lg" type="dots" />
+      <span>{label}</span>
+    </div>
+  );
+}
