@@ -6,7 +6,8 @@ import { useClipboard } from "@mantine/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCaseAiStatus } from "../../../hooks/useCaseAiStatus";
 import { useTriggerAudit, type SubmissionType } from "../../../hooks/useTriggerAudit";
-import GradingPanelHeader, { describeGradingState } from "./GradingPanelHeader";
+import GradingPanelHeader from "./GradingPanelHeader";
+import { describeGradingState } from "./grading-state";
 import GradingSteps from "./GradingSteps";
 
 interface StageGradingPanelProps {

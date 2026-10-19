@@ -3,31 +3,9 @@
 import { ActionIcon, Button, Group, Text, Tooltip } from "@mantine/core";
 import { Check, ChevronDown, ChevronUp, MessageCircle, X } from "lucide-react";
 import { CopyIconButton } from "@/components/ui/CopyIconButton";
-import { StatusChip, type ChipTone } from "@/components/ui/StatusChip";
+import { StatusChip } from "@/components/ui/StatusChip";
 import { ZALO_GROUP_URL } from "@/lib/zalo";
-import type { CaseAiStatusResponse } from "../../../hooks/useCaseAiStatus";
-
-type Status = CaseAiStatusResponse["status"];
-type GradingAction = "retry" | "zalo" | "view" | "close" | "collapse";
-
-export interface GradingState {
-  tone: ChipTone;
-  label: string;
-  actions: GradingAction[];
-}
-
-const GRADING_STATES: Partial<Record<Status, GradingState>> = {
-  queued: { tone: "warn", label: "Hàng đợi", actions: ["collapse"] },
-  running: { tone: "draft", label: "Đang chấm", actions: ["collapse"] },
-  completed: { tone: "ok", label: "Hoàn tất", actions: ["view", "close"] },
-  failed: { tone: "error", label: "Gián đoạn", actions: ["retry", "zalo", "collapse"] },
-  cancelled: { tone: "neutral", label: "Đã dừng", actions: ["retry", "collapse"] },
-};
-
-/** Pure map from job status to chip + which actions the header offers. */
-export function describeGradingState(status: Status): GradingState | null {
-  return GRADING_STATES[status] ?? null;
-}
+import type { GradingAction, GradingState } from "./grading-state";
 
 interface GradingPanelHeaderProps {
   state: GradingState;

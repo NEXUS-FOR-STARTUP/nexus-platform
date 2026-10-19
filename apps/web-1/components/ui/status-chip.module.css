@@ -1,0 +1,5 @@
+/* Mantine Badge uppercases its label by default; spec wants sentence case, weight 500. */
+.label {
+  text-transform: none;
+  font-weight: var(--ui-weight-medium);
+}
