@@ -137,7 +137,6 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     isOwner,
     isAssignedSupporter: false,
   });
-  const canSubmitRevision = filteredTransitions.includes("T9_SUBMIT_REVISION");
   const canEditIntake = filteredTransitions.includes("T16_EDIT_INTAKE");
   const canOpenIntake = [
     "T2_SUBMIT_INTAKE",
@@ -297,7 +296,6 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               creditBalance={creditBalance}
               creditBalances={creditBalances}
               creditLedger={creditLedger}
-              orders={caseData.orders}
               packageName={packageName}
               pricePerCredit={pricePerCredit && pricePerCredit > 0 ? pricePerCredit : undefined}
               onBuyCredits={canBuyCredits ? () => setCreditBuyOpened(true) : undefined}

@@ -1,43 +1,65 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
+import { isAxiosError } from "axios";
 import { Case } from "@/types";
 import { useCaseDetails } from "../hooks/useCaseDetails";
-import { Settings, Save, Loader2 } from "lucide-react";
-import { Button, TextInput } from "@mantine/core";
+import { Save, Loader2 } from "lucide-react";
+import { Button, Stack, Text } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { isCaseContactComplete } from "@repo/validation";
 import CaseContactFields from "./CaseContactFields";
+import CaseProjectFields, { type CaseProjectValues } from "./CaseProjectFields";
 import CaseDeleteSection from "./CaseDeleteSection";
 import { contactFromSnapshot, validateCaseContact, type CaseContactValues } from "../../../_components/case-contact";
 
+interface IntakeSnapshotLike {
+  team_name?: string;
+  group_no?: string;
+  school?: string;
+  course_context?: string;
+  team_context?: { project_name?: string; group_no?: string; school?: string; course_context?: string };
+}
+
 interface TabCaseSettingsProps {
   caseData: Case;
-  intakeSnapshot?: any;
+  intakeSnapshot?: unknown;
+}
+
+interface SettingsValues {
+  project: CaseProjectValues;
+  contact: CaseContactValues;
 }
 
 export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSettingsProps) {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+  const formRef = useRef<HTMLFormElement>(null);
   const { updateSettings, isUpdatingSettings, contact: caseContact } = useCaseDetails(caseData.id);
 
-  const intake = (intakeSnapshot as any) || {};
+  const intake = (typeof intakeSnapshot === "object" && intakeSnapshot !== null ? intakeSnapshot : {}) as IntakeSnapshotLike;
   const teamCtx = intake.team_context || {};
 
-  // Fields matching simple settings configuration
-  const [teamName, setTeamName] = useState(caseData.team_name || teamCtx.project_name || intake.team_name || "");
-  const [groupNo, setGroupNo] = useState(caseData.group_no || teamCtx.group_no || intake.group_no || "");
-  const [school, setSchool] = useState(caseData.school || teamCtx.school || intake.school || "");
-  const [courseContext, setCourseContext] = useState(caseData.course_context || teamCtx.course_context || intake.course_context || "");
-
   // Contact is case-scoped: prefilled only from this case's contact (profile + intake).
-  const [contact, setContact] = useState<CaseContactValues>(() => contactFromSnapshot(caseContact));
+  const [initial, setInitial] = useState<SettingsValues>(() => ({
+    project: {
+      teamName: caseData.team_name || teamCtx.project_name || intake.team_name || "",
+      groupNo: caseData.group_no || teamCtx.group_no || intake.group_no || "",
+      school: caseData.school || teamCtx.school || intake.school || "",
+      courseContext: caseData.course_context || teamCtx.course_context || intake.course_context || "",
+    },
+    contact: contactFromSnapshot(caseContact),
+  }));
+  const [project, setProject] = useState<CaseProjectValues>(initial.project);
+  const [contact, setContact] = useState<CaseContactValues>(initial.contact);
   const showContactHint = searchParams.get("tab") === "settings" && !isCaseContactComplete(caseContact);
 
   // Validation Error State
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const isDirty = JSON.stringify({ project, contact }) !== JSON.stringify(initial);
 
   const clearError = (fieldName: string) => {
     if (errors[fieldName]) {
@@ -49,13 +71,24 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
     }
   };
 
+  // Input `name`s in DOM order; errors are keyed `<name>` (project) or `contact_<name>`.
+  const focusFirstError = (found: Record<string, string>) => {
+    const fieldNames = [...Object.keys(project), ...Object.keys(contact)];
+    const target = fieldNames.find((n) => found[n] || found[`contact_${n}`]);
+    const el = target && formRef.current?.querySelector<HTMLInputElement>(`[name="${target}"]`);
+    if (el) {
+      el.scrollIntoView({ block: "center" });
+      el.focus();
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const newErrors: Record<string, string> = {};
-    if (!teamName.trim()) newErrors.teamName = "Tên nhóm / Tên đề tài là bắt buộc.";
-    if (!school.trim()) newErrors.school = "Trường học / Viện đào tạo là bắt buộc.";
-    if (!courseContext.trim()) newErrors.courseContext = "Lớp học / Môn học là bắt buộc.";
+    if (!project.teamName.trim()) newErrors.teamName = "Tên nhóm / Tên đề tài là bắt buộc.";
+    if (!project.school.trim()) newErrors.school = "Trường học / Viện đào tạo là bắt buộc.";
+    if (!project.courseContext.trim()) newErrors.courseContext = "Lớp học / Môn học là bắt buộc.";
 
     const contactErrors = validateCaseContact(contact, true);
     Object.entries(contactErrors).forEach(([k, v]) => {
@@ -64,6 +97,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      focusFirstError(newErrors);
       notifications.show({
         title: "Chưa thể lưu cài đặt",
         message: "Vui lòng kiểm tra và điền đầy đủ các trường thông tin bắt buộc.",
@@ -76,95 +110,48 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
 
     try {
       await updateSettings({
-        team_name: teamName,
-        school,
-        course_context: courseContext,
-        group_no: groupNo,
+        team_name: project.teamName,
+        school: project.school,
+        course_context: project.courseContext,
+        group_no: project.groupNo,
         contact: Object.fromEntries(
           Object.entries(contact).map(([k, v]) => [k, v.trim()]),
         ),
       });
+      setInitial({ project, contact });
       queryClient.invalidateQueries({ queryKey: ["case", caseData.id] });
       notifications.show({
         title: "Thành công",
         message: "Đã lưu thông tin dự án và liên hệ. Bạn sẽ nhận thông báo qua số điện thoại và email này.",
         color: "green",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const data = isAxiosError(err) ? err.response?.data : undefined;
       notifications.show({
         title: "Lỗi",
-        message: err?.response?.data?.message || err?.response?.data?.error || "Gặp lỗi khi lưu thông tin cài đặt.",
+        message: data?.message || data?.error || "Gặp lỗi khi lưu thông tin cài đặt.",
         color: "red",
       });
     }
   };
 
   return (
-    <div className="bg-surface-app border border-border-app rounded-lg p-6 font-body text-sm text-text-app animate-fade-in space-y-6">
-      <div className="w-full space-y-6">
-        <div>
-          <div className="flex items-center gap-2 text-text-app">
-            <Settings className="w-5.5 h-5.5 text-brand" />
-            <h3 className="font-heading font-bold text-lg">Cài đặt thông tin dự án</h3>
-          </div>
-          <p className="text-text-muted text-sm mt-1">
-            Cập nhật tên nhóm, trường học và bối cảnh lớp học để báo cáo phản biện hiển thị chính xác.
-          </p>
-        </div>
+    <Stack gap="xl">
+      <div>
+        <Text fw={500} size="xl">Cài đặt dự án</Text>
+        <Text size="sm" c="dimmed">Thông tin dưới đây áp dụng cho dự án này.</Text>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <TextInput
-              label="Tên nhóm / Tên đề tài"
-              placeholder="Nhập tên nhóm hoặc đề tài"
-              value={teamName}
-              onChange={(e) => {
-                setTeamName(e.target.value);
-                clearError("teamName");
-              }}
-              error={errors.teamName}
-              radius="md"
-              withAsterisk
-            />
-
-            <TextInput
-              label="Mã số nhóm / Số thứ tự"
-              placeholder="Ví dụ: 5"
-              value={groupNo}
-              onChange={(e) => {
-                setGroupNo(e.target.value);
-                clearError("groupNo");
-              }}
-              error={errors.groupNo}
-              radius="md"
-            />
-
-            <TextInput
-              label="Trường học / Viện đào tạo"
-              placeholder="Ví dụ: Đại học FPT"
-              value={school}
-              onChange={(e) => {
-                setSchool(e.target.value);
-                clearError("school");
-              }}
-              error={errors.school}
-              radius="md"
-              withAsterisk
-            />
-
-            <TextInput
-              label="Lớp học / Môn học"
-              placeholder="Ví dụ: EXE101"
-              value={courseContext}
-              onChange={(e) => {
-                setCourseContext(e.target.value);
-                clearError("courseContext");
-              }}
-              error={errors.courseContext}
-              radius="md"
-              withAsterisk
-            />
-          </div>
+      <form ref={formRef} onSubmit={handleSubmit} noValidate>
+        <Stack gap="xl">
+          <CaseProjectFields
+            values={project}
+            errors={errors}
+            onChange={(field, value) => {
+              setProject((prev) => ({ ...prev, [field]: value }));
+              clearError(field);
+            }}
+          />
 
           <CaseContactFields
             values={contact}
@@ -178,21 +165,20 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
             showHint={showContactHint}
           />
 
-          <div className="pt-2 flex justify-end">
+          <div className="flex justify-end">
             <Button
               type="submit"
-              disabled={isUpdatingSettings}
+              disabled={!isDirty || isUpdatingSettings}
               color="brand"
               leftSection={isUpdatingSettings ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-              className="font-semibold text-xs h-9 px-6 cursor-pointer disabled:opacity-60"
             >
-              <span>{isUpdatingSettings ? "Đang lưu..." : "Lưu thay đổi"}</span>
+              {isUpdatingSettings ? "Đang lưu..." : "Lưu thay đổi"}
             </Button>
           </div>
-        </form>
+        </Stack>
+      </form>
 
-        <CaseDeleteSection caseId={caseData.id} stage={caseData.user_facing_stage} />
-      </div>
-    </div>
+      <CaseDeleteSection caseId={caseData.id} stage={caseData.user_facing_stage} />
+    </Stack>
   );
 }

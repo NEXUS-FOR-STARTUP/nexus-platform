@@ -1,0 +1,39 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-gap-section);
+}
+
+.title {
+  font-size: var(--ui-text-title);
+  font-weight: var(--ui-weight-medium);
+  line-height: 1.25;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+}
+
+.sectionTitle {
+  font-size: var(--ui-text-section);
+  font-weight: var(--ui-weight-medium);
+}
+
+.body {
+  font-size: var(--ui-text-body);
+  font-weight: var(--ui-weight-regular);
+}
+
+.name {
+  font-size: var(--ui-text-body);
+  font-weight: var(--ui-weight-medium);
+}
+
+.note {
+  font-size: var(--ui-text-note);
+  font-weight: var(--ui-weight-regular);
+  color: var(--mantine-color-dimmed);
+  white-space: pre-line;
+}

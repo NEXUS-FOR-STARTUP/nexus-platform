@@ -1,0 +1,41 @@
+.group {
+  margin: 0 0 var(--mantine-spacing-xs);
+  font-size: var(--ui-text-note);
+  font-weight: var(--ui-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.rows {
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--mantine-radius-md);
+  background: var(--color-surface);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+}
+
+.row + .row {
+  border-top: 1.5px solid var(--color-border);
+}
+
+.name {
+  min-width: 0;
+  font-size: var(--ui-text-body);
+  font-weight: var(--ui-weight-medium);
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  font-size: var(--ui-text-note);
+  color: var(--color-text-muted);
+}
+
+.actions {
+  flex-shrink: 0;
+}

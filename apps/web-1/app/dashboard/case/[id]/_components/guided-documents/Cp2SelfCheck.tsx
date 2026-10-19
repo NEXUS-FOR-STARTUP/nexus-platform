@@ -2,6 +2,7 @@
 
 import { Checkbox } from "@mantine/core";
 import { CP2_SELF_CHECKS, type Cp2SelfCheckId } from "@repo/validation";
+import s from "./guided-editor.module.css";
 
 /** Rubric pass conditions the paid CP2 audit reads, keyed by the question that evidences each one. */
 export const CP2_SELF_CHECK_BY_QUESTION: Readonly<Record<string, Cp2SelfCheckId>> = {
@@ -23,7 +24,7 @@ export default function Cp2SelfCheck({ questionId, answersMap, isSaving, onSaveA
   if (!check) return null;
 
   return (
-    <div className="flex flex-col gap-1 rounded-lg border border-border-app bg-surface-soft px-4 py-3">
+    <div className={s.selfCheck}>
       <Checkbox
         size="sm"
         label={check.label}
@@ -31,7 +32,7 @@ export default function Cp2SelfCheck({ questionId, answersMap, isSaving, onSaveA
         disabled={isSaving}
         onChange={(e) => onSaveAnswers([{ question_id: check.id, answer_text: String(e.currentTarget.checked) }])}
       />
-      <p className="m-0 pl-7 text-xs text-text-muted">
+      <p className={s.selfCheckNote}>
         Mục quan trọng khi chấm. Nhóm tự xác nhận, AI chấm sẽ đọc xác nhận này.
       </p>
     </div>

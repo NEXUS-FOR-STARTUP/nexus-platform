@@ -1,0 +1,67 @@
+/* Breakpoint 820px phải khớp DESKTOP_QUERY trong JourneyMobileNav. */
+.layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  width: 100%;
+}
+
+.sidebar {
+  min-width: 0;
+}
+
+.main {
+  min-width: 0;
+  padding: 40px 48px 96px;
+  background-color: var(--color-surface);
+}
+
+.col {
+  max-width: 880px;
+}
+
+.narrow {
+  max-width: 720px;
+}
+
+.wide {
+  max-width: 1320px;
+}
+
+.fab {
+  display: none;
+  position: fixed;
+  left: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 50;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background-color: var(--color-brand);
+  color: var(--mantine-color-white);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-brand-hover);
+  }
+}
+
+@media (max-width: 820px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .main {
+    padding: 24px 16px 88px;
+  }
+
+  .fab {
+    display: flex;
+  }
+}

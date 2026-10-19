@@ -1,153 +1,67 @@
- .navbar {
-   position: sticky;
-   top: 64px;
-   height: calc(100dvh - 64px);
-   min-height: calc(100dvh - 64px);
-   max-height: calc(100dvh - 64px);
-   overflow-y: auto;
-   width: 280px;
-   padding: calc(var(--mantine-spacing-md) + 4px) var(--mantine-spacing-md) var(--mantine-spacing-md);
-   display: flex;
-   flex-direction: column;
-   flex-shrink: 0;
-   background-color: var(--color-brand);
- }
-
- [data-mantine-color-scheme="dark"] .navbar {
-   background-color: var(--color-brand);
-   border-right: 1px solid rgba(255, 255, 255, 0.12);
- }
-
- [data-mantine-color-scheme="light"] .navbar {
-   background-color: var(--color-brand);
-   border-right: 1px solid rgba(0, 0, 0, 0.06);
- }
+.navbar {
+  position: sticky;
+  top: var(--ui-topbar-height);
+  height: calc(100dvh - var(--ui-topbar-height));
+  overflow-y: auto;
+  padding: var(--mantine-spacing-md);
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+}
 
 .navbarMain {
   flex: 1;
 }
 
- .footer {
+.footer {
   padding-top: var(--mantine-spacing-md);
   margin-top: var(--mantine-spacing-md);
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid var(--color-border);
 }
 
- .link {
-   display: flex;
-   align-items: center;
-   text-decoration: none;
-   font-size: var(--mantine-font-size-sm);
-   color: rgba(255, 255, 255, 0.7);
-   padding: var(--mantine-spacing-sm) var(--mantine-spacing-sm);
-   border-radius: var(--mantine-radius-sm);
-   font-weight: 500;
-   cursor: pointer;
-   margin-bottom: var(--mantine-spacing-xs);
+.link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  padding: 10px 12px;
+  margin-bottom: var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-md);
+  font-size: var(--ui-text-body);
+  font-weight: var(--ui-weight-regular);
+  color: var(--color-text);
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--mantine-color-white);
-
-    .linkIcon {
-      color: var(--mantine-color-white);
-    }
+    background-color: var(--color-surface-soft);
   }
 
-  &[data-active] {
-    &,
-    &:hover {
-      background-color: var(--mantine-color-white);
-      color: var(--color-brand);
+  &[data-active],
+  &[data-active]:hover {
+    background-color: var(--color-brand-subtle);
+    color: var(--color-brand);
+    font-weight: var(--ui-weight-medium);
 
-      .linkIcon {
-        color: var(--color-brand);
-      }
+    .linkIcon {
+      color: var(--color-brand);
     }
   }
 }
 
 .linkIcon {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--color-text-muted);
   margin-right: var(--mantine-spacing-sm);
   width: 20px;
   height: 20px;
   flex-shrink: 0;
 }
 
- .mobileDrawerHeader {
-  background-color: var(--color-brand) !important;
-  color: var(--mantine-color-white) !important;
-  border-bottom: none !important;
-  min-height: 56px !important;
-  padding: var(--mantine-spacing-md) !important;
-  justify-content: flex-end !important;
+.external {
+  margin-left: auto;
+  color: var(--color-text-muted);
 }
 
-.mobileDrawerClose {
-  color: var(--mantine-color-white) !important;
-  opacity: 0.9;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--mantine-radius-md);
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.15) !important;
-    color: var(--mantine-color-white) !important;
-    opacity: 1;
-  }
-
-  & svg {
-    width: 22px !important;
-    height: 22px !important;
-    stroke-width: 2.5;
-  }
-}
-
-.mobileDrawerBody {
-  background-color: var(--color-brand) !important;
-  flex: 1;
+.drawerBody {
   display: flex;
   flex-direction: column;
-  padding: var(--mantine-spacing-md);
-}
-
-.mobileDrawerContent {
-  background-color: var(--color-brand) !important;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-.mobileNavButton {
-  width: 100%;
-  padding: var(--mantine-spacing-md) var(--mantine-spacing-md);
-  border-radius: var(--mantine-radius-md);
-  font-size: var(--mantine-font-size-md);
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 600;
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--mantine-color-white);
-  }
-}
-.mobileNavButtonActive {
-  composes: mobileNavButton;
-  background-color: var(--mantine-color-white) !important;
-  color: var(--color-brand) !important;
-
-  &:hover {
-    background-color: var(--mantine-color-white) !important;
-    color: var(--color-brand) !important;
-  }
-
-  & .linkIcon {
-    color: var(--color-brand) !important;
-  }
-}
-
-.mobileNavButton .linkIcon,
-.mobileNavButtonActive .linkIcon {
-  width: 24px;
-  height: 24px;
 }

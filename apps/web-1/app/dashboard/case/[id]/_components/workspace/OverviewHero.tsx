@@ -1,8 +1,9 @@
 "use client";
 
-import { Button, Group, Paper, Stack, Text } from "@mantine/core";
+import { Button, Paper, Stack, Text } from "@mantine/core";
 import { ArrowRight } from "lucide-react";
 import type { NextAction } from "../../hooks/useNextActions";
+import s from "./overview.module.css";
 
 interface OverviewHeroProps {
   action: NextAction | null;
@@ -13,20 +14,13 @@ export default function OverviewHero({ action, onOpenStage }: OverviewHeroProps)
   if (!action) return null;
 
   return (
-    <Paper p="lg" radius="md" bg="var(--mantine-color-blue-0)" withBorder>
-      <Stack gap="xs">
-        <Text size="xs" fw={600} c="blue" tt="uppercase">Việc tiếp theo</Text>
-        <Text fw={700} size="lg">{action.title}</Text>
-        <Text size="sm" c="dimmed">{action.description}</Text>
-        <Group>
-          <Button
-            size="sm"
-            rightSection={<ArrowRight size={14} />}
-            onClick={() => onOpenStage(action.stageSlug, action.view)}
-          >
-            {action.cta}
-          </Button>
-        </Group>
+    <Paper p="lg" radius="md" withBorder>
+      <Stack gap="xs" align="flex-start">
+        <h2 className={s.sectionTitle}>{action.title}</h2>
+        <Text className={s.body}>{action.description}</Text>
+        <Button size="md" rightSection={<ArrowRight size={16} />} onClick={() => onOpenStage(action.stageSlug, action.view)}>
+          {action.cta}
+        </Button>
       </Stack>
     </Paper>
   );

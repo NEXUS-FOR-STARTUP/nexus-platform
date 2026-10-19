@@ -59,3 +59,6 @@ Mức: **B** blocker (không làm được nếu không quyết), **H** high, **
 | C-34 | L | `index.html:11` topbar mockup có chữ "CP1 và CP2"; `billing.js` hiện `cp1_audit` trong `<code>`; catalog hiện "Pass/Fail" | Không chép. Tên dịch vụ dựng từ `stageName` | N |
 | C-35 | L | `fmtVND` mockup in `50.000 VND` (dấu chấm) | Sai quy tắc; dùng `formatVndAmount` | N |
 | C-36 | L | CP3/CP4 catalog (`questions-cp3.ts`, `questions-cp4.ts`) chứa chữ "CP2/CP3" hiện cho người dùng khi mở khóa | Chưa mở; báo trước khi bạn mở CP3/CP4 | Y (Q9) |
+| C-37 | M | P9: mockup có nhóm lọc dòng thời gian (Chấm bài / Lượt chấm / Dự án) nhưng chưa có phân loại `event_type` chính thức | **Đã bỏ bộ lọc** (không tự đoán ánh xạ); chờ chủ dự án cung cấp phân loại | Y |
+| C-38 | L | P8: sổ cái không có `reason` nên chưa dựng cảnh báo hoàn tiền; 403 khi lấy đơn hàng hiện chung một thông báo | Chờ quyết | Y |
+| C-39 | L | P7 (Q8) `missingMandatoryCount` vẫn không được truyền; P6 nhóm "Phản hồi ngoài" giữ trong Tài liệu | Theo mặc định plan | Y |

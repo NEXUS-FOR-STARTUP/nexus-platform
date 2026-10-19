@@ -1,21 +1,28 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { Button, Loader, Modal, Text } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { useRef, useState } from "react";
+import { Button, Loader } from "@mantine/core";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 // UploadCloud tạm ẩn cùng nút nhập file
-import { Download, ChevronLeft, RefreshCw } from "lucide-react";
-import type { TemplateKey } from "@repo/validation";
+import { ChevronLeft } from "lucide-react";
+import { QUESTION_REGISTRY, type Question, type TemplateKey } from "@repo/validation";
 import { useGuidedDocuments } from "../../hooks/useGuidedDocuments";
-import { useGuidedDrafts } from "../../hooks/useGuidedDrafts";
+import type { useGuidedDrafts } from "../../hooks/useGuidedDrafts";
+import { GUIDED_MOBILE_QUERY, useGuidedNavigation } from "../../hooks/useGuidedNavigation";
 import Cp2SelfCheck, { CP2_SELF_CHECK_BY_QUESTION } from "./Cp2SelfCheck";
 import GuidedImportModal from "./GuidedImportModal";
+import GuidedLeaveModal from "./GuidedLeaveModal";
+import StageActionsMenu from "../workspace/stage/StageActionsMenu";
 import GuidedTOC from "./GuidedTOC";
 import GuidedQuestionCard from "./GuidedQuestionCard";
+import GuidedHintPanel from "./GuidedHintPanel";
+import s from "./guided-editor.module.css";
 
 interface GuidedDocumentsEditorProps {
   caseId: string;
   templateKey: TemplateKey;
+  /** Drafts live in the parent so the stage header menu sees the same unsaved answers. */
+  draftsApi: ReturnType<typeof useGuidedDrafts>;
   onBack: () => void;
   hideBackButton?: boolean;
 }
@@ -23,6 +30,7 @@ interface GuidedDocumentsEditorProps {
 export default function GuidedDocumentsEditor({
   caseId,
   templateKey,
+  draftsApi,
   onBack,
   hideBackButton = false,
 }: GuidedDocumentsEditorProps) {
@@ -31,21 +39,25 @@ export default function GuidedDocumentsEditor({
     answersMap,
     isLoading,
     isSaving,
-    isGenerating,
-    isSyncing,
     saveAnswers,
-    syncAnswers,
     importFile,
-    generateDocx,
     isQuestionUnlocked,
   } = useGuidedDocuments(caseId, templateKey);
 
-  const [activeQuestionId, setActiveQuestionId] = useState<string>(
-    template.phases[0]?.questions[0]?.question_id || ""
-  );
+  const { flat, current, prev, next, select } = useGuidedNavigation(template, isQuestionUnlocked);
+  const isMobile = useMediaQuery(GUIDED_MOBILE_QUERY);
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [confirmBackOpen, { open: openConfirmBack, close: closeConfirmBack }] = useDisclosure(false);
-  const { drafts, setDraft, clearDraft, clearDrafts } = useGuidedDrafts(caseId);
+  const { drafts, setDraft, clearDraft, clearDrafts } = draftsApi;
+
+  const templateDraftIds = flat.map((q) => q.question_id).filter((id) => id in drafts);
+
+  const goTo = (questionId: string) => {
+    select(questionId);
+    // Folding the list on phones would drop focus, so move it to the new question.
+    if (isMobile) requestAnimationFrame(() => headingRef.current?.focus());
+  };
 
   const handleBack = () => {
     if (isSaving) return;
@@ -65,31 +77,6 @@ export default function GuidedDocumentsEditor({
     closeConfirmBack();
     onBack();
   };
-
-  // Flat list of all questions in current template
-  const flatQuestions = useMemo(() => {
-    const list: Array<{
-      question_id: string;
-      phaseIndex: number;
-      questionIndex: number;
-    }> = [];
-    template.phases.forEach((p, pIdx) => {
-      p.questions.forEach((q, qIdx) => {
-        list.push({
-          question_id: q.question_id,
-          phaseIndex: pIdx,
-          questionIndex: qIdx,
-        });
-      });
-    });
-    return list;
-  }, [template]);
-
-  const currentIndex = flatQuestions.findIndex(
-    (q) => q.question_id === activeQuestionId
-  );
-  const currentItem = flatQuestions[currentIndex] || flatQuestions[0];
-  const templateDraftIds = flatQuestions.map((q) => q.question_id).filter((id) => id in drafts);
 
   const handleChange = (qId: string, text: string) => {
     if (text === (answersMap[qId] ?? "")) clearDraft(qId);
@@ -116,25 +103,17 @@ export default function GuidedDocumentsEditor({
     );
   }
 
+  const currentId = current?.question_id ?? "";
+
   return (
     <div className="flex flex-col gap-4 w-full">
-      <Modal
+      <GuidedLeaveModal
         opened={confirmBackOpen}
+        isSaving={isSaving}
         onClose={closeConfirmBack}
-        title="Chưa lưu thay đổi"
-        centered
-        size="sm"
-      >
-        <Text size="sm">Bạn có thay đổi chưa lưu. Muốn lưu trước khi quay về?</Text>
-        <div className="flex items-center justify-end gap-2 pt-4">
-          <Button variant="default" size="sm" disabled={isSaving} onClick={handleDiscardBack}>
-            Bỏ thay đổi
-          </Button>
-          <Button size="sm" loading={isSaving} onClick={handleSaveBack}>
-            Lưu và quay về
-          </Button>
-        </div>
-      </Modal>
+        onDiscard={handleDiscardBack}
+        onSaveAndLeave={handleSaveBack}
+      />
       <div className="flex flex-col gap-2">
         {!hideBackButton && (
           <div>
@@ -154,75 +133,59 @@ export default function GuidedDocumentsEditor({
             <h2 className="font-bold text-lg md:text-xl text-text-app">{template.title}</h2>
             <p className="text-xs text-text-muted">{template.description}</p>
           </div>
-
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            {/* Tạm ẩn nút nhập file: bộ trích xuất hiện chỉ khớp từ khóa, gán nhầm tiêu đề mục
-                làm câu trả lời. Bật lại khi có bước xử lý bằng AI.
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => setIsImportModalOpen(true)}
-              leftSection={<UploadCloud className="w-4 h-4" />}
-            >
-              Nhập file
-            </Button>
-            */}
-            <Button
-              variant="default"
-              size="sm"
-              loading={isSyncing}
-              onClick={() => syncAnswers(Object.keys(drafts))}
-              leftSection={<RefreshCw className="w-4 h-4" />}
-            >
-              Đồng bộ thông tin
-            </Button>
-
-            <Button
-              variant="filled"
-              color="blue"
-              size="sm"
-              loading={isGenerating}
-              onClick={() => generateDocx()}
-              leftSection={<Download className="w-4 h-4" />}
-            >
-              Xuất file DOCX
-            </Button>
-          </div>
+          {/* Stage workspace shows this menu in its own header; the legacy gallery flow has none. */}
+          {!hideBackButton && (
+            <StageActionsMenu caseId={caseId} templateKey={templateKey} draftQuestionIds={Object.keys(drafts)} />
+          )}
         </div>
       </div>
 
-      {/* Main Content: TOC on Left, Question Editor on Right */}
-      <div className="flex flex-col md:flex-row items-start gap-4 w-full">
-        <GuidedTOC
-          template={template}
-          answersMap={answersMap}
-          activeQuestionId={activeQuestionId || currentItem?.question_id || ""}
-          onSelectQuestion={(qId) => setActiveQuestionId(qId)}
-          isQuestionUnlocked={isQuestionUnlocked}
-          criticalQuestionIds={templateKey === "cp2" ? Object.keys(CP2_SELF_CHECK_BY_QUESTION) : undefined}
-        />
+      <div className={s.layout}>
+        <div className={s.toc}>
+          <GuidedTOC
+            template={template}
+            answersMap={answersMap}
+            activeQuestionId={currentId}
+            onSelectQuestion={goTo}
+            isQuestionUnlocked={isQuestionUnlocked}
+            criticalQuestionIds={templateKey === "cp2" ? Object.keys(CP2_SELF_CHECK_BY_QUESTION) : undefined}
+          />
+        </div>
 
-        {currentItem && (
-          <GuidedQuestionCard
-            key={currentItem.question_id}
-            questionId={currentItem.question_id}
-            questionNumber={`${currentItem.phaseIndex + 1}.${currentItem.questionIndex + 1}`}
-            value={drafts[currentItem.question_id] ?? answersMap[currentItem.question_id] ?? ""}
-            isDirty={currentItem.question_id in drafts}
-            onChange={(text) => handleChange(currentItem.question_id, text)}
-            onSave={handleSaveQuestion}
-            isSaving={isSaving}
-          >
-            {templateKey === "cp2" && (
-              <Cp2SelfCheck
-                questionId={currentItem.question_id}
-                answersMap={answersMap}
-                isSaving={isSaving}
-                onSaveAnswers={saveAnswers}
-              />
-            )}
-          </GuidedQuestionCard>
+        {current && (
+          <div className={s.card}>
+            <GuidedQuestionCard
+              key={currentId}
+              questionId={currentId}
+              questionNumber={`${current.phaseIndex + 1}.${current.questionIndex + 1}`}
+              classification={current.classification}
+              value={drafts[currentId] ?? answersMap[currentId] ?? ""}
+              isDirty={currentId in drafts}
+              onChange={(text) => handleChange(currentId, text)}
+              onSave={handleSaveQuestion}
+              isSaving={isSaving}
+              headingRef={headingRef}
+              onPrev={prev && (() => goTo(prev.question_id))}
+              onNext={next && (() => goTo(next.question_id))}
+            >
+              {templateKey === "cp2" && (
+                <Cp2SelfCheck
+                  questionId={currentId}
+                  answersMap={answersMap}
+                  isSaving={isSaving}
+                  onSaveAnswers={saveAnswers}
+                />
+              )}
+            </GuidedQuestionCard>
+          </div>
         )}
+
+        <div className={s.hint}>
+          <GuidedHintPanel
+            key={currentId}
+            question={(QUESTION_REGISTRY as Record<string, Question | undefined>)[currentId]}
+          />
+        </div>
       </div>
 
       <GuidedImportModal

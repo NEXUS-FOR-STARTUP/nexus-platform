@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Modal, Button, NumberInput, Stack, Text, Group, Paper, Select, Divider } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useWalletBalance } from "@/app/dashboard/wallet/hooks/useWallet";
 import { useServiceCatalog, filterPackagesByService } from "@/hooks/useServiceCatalog";
 import { useShortageDepositRedirect } from "../use-shortage-deposit-redirect";
 import { usePlaceServiceOrder } from "./usePlaceServiceOrder";
+import { formatVndAmount } from "@/lib/pricing";
 import DiscountCodeInput from "../DiscountCodeInput";
 import { MAX_TEAM_MEMBERS, type DiscountCodeCheckResult } from "@repo/validation";
 
@@ -20,7 +21,6 @@ interface ServiceCheckoutModalProps {
 }
 
 const MIN_TOPUP_AMOUNT = 2000;
-const formatVnd = (amount: number): string => `${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })} VND`;
 /** Giá/thành viên luôn tính theo nhóm đủ người, độc lập với số thành viên đã khai. */
 const PRICING_TEAM_SIZE = MAX_TEAM_MEMBERS;
 
@@ -34,19 +34,14 @@ export default function ServiceCheckoutModal({
 }: ServiceCheckoutModalProps) {
   const { data: allPackages, isLoading: isCatalogLoading } = useServiceCatalog();
   const availablePackages = filterPackagesByService(allPackages, serviceCode);
-  const [selectedPackageId, setSelectedPackageId] = useState<string>("");
+  const [pickedPackageId, setPickedPackageId] = useState<string>("");
+  const selectedPackageId = pickedPackageId || availablePackages[0]?.id || "";
   const [quantity, setQuantity] = useState<number>(1);
   const [discount, setDiscount] = useState<DiscountCodeCheckResult | null>(null);
 
-  useEffect(() => {
-    if (availablePackages.length > 0 && !selectedPackageId) {
-      setSelectedPackageId(availablePackages[0]!.id);
-    }
-  }, [availablePackages, selectedPackageId]);
-
   const handleSelectPackage = (newId: string | null) => {
     if (newId && newId !== selectedPackageId) {
-      setSelectedPackageId(newId);
+      setPickedPackageId(newId);
       setDiscount(null);
     }
   };
@@ -75,8 +70,7 @@ export default function ServiceCheckoutModal({
   const handlePay = async () => {
     if (!selectedPackageId) return;
     if (hasSufficientBalance) {
-      try {
-        await placeOrder({ packageId: selectedPackageId, quantity, discountCode: discount?.code });
+      placeOrder({ packageId: selectedPackageId, quantity, discountCode: discount?.code }, () => {
         notifications.show({
           color: "green",
           title: "Thành công",
@@ -84,9 +78,7 @@ export default function ServiceCheckoutModal({
         });
         onPurchased?.();
         handleClose();
-      } catch {
-        // handled in hook
-      }
+      });
     } else {
       const suggested = Math.max(shortage, MIN_TOPUP_AMOUNT);
       await startShortageDeposit({
@@ -114,7 +106,7 @@ export default function ServiceCheckoutModal({
               label="Chọn gói"
               value={selectedPackageId}
               onChange={handleSelectPackage}
-              data={availablePackages.map((p) => ({ value: p.id, label: `${p.credits_granted ?? 0} lượt chấm (${formatVnd(p.price)})` }))}
+              data={availablePackages.map((p) => ({ value: p.id, label: `${p.credits_granted ?? 0} lượt chấm (${formatVndAmount(p.price)})` }))}
             />
           )}
 
@@ -128,12 +120,12 @@ export default function ServiceCheckoutModal({
               </Group>
               {perMemberPrice !== null && (
                 <Group gap={6} align="baseline">
-                  <Text fw={800} fz={30} c="teal.8" lh={1.1}>{formatVnd(perMemberPrice)}</Text>
+                  <Text fw={800} fz={30} c="teal.8" lh={1.1}>{formatVndAmount(perMemberPrice)}</Text>
                   <Text size="sm" c="dimmed">/ thành viên</Text>
                 </Group>
               )}
               <Text size="xs" c="dimmed">
-                {`Tổng ${formatVnd(totalAmount)} chia đều cho nhóm ${PRICING_TEAM_SIZE} người`}
+                {`Tổng ${formatVndAmount(totalAmount)} chia đều cho nhóm ${PRICING_TEAM_SIZE} người`}
               </Text>
             </Stack>
           </Paper>
@@ -166,15 +158,15 @@ export default function ServiceCheckoutModal({
             )}
             <Group justify="space-between">
               <Text size="sm" c="dimmed">Số dư ví</Text>
-              <Text size="sm">{formatVnd(walletBalance)}</Text>
+              <Text size="sm">{formatVndAmount(walletBalance)}</Text>
             </Group>
             <Divider />
             <Group justify="space-between" align="baseline">
               <Text fw={600}>Tổng thanh toán</Text>
-              <Text fw={700} fz="xl">{formatVnd(totalAmount)}</Text>
+              <Text fw={700} fz="xl">{formatVndAmount(totalAmount)}</Text>
             </Group>
             {!hasSufficientBalance && (
-              <Text size="xs" c="red" fw={500} ta="right">Ví thiếu {formatVnd(shortage)}</Text>
+              <Text size="xs" c="red" fw={500} ta="right">Ví thiếu {formatVndAmount(shortage)}</Text>
             )}
           </Stack>
 
@@ -186,8 +178,8 @@ export default function ServiceCheckoutModal({
             onClick={handlePay}
           >
             {hasSufficientBalance
-              ? `Thanh toán ${formatVnd(totalAmount)} bằng ví`
-              : `Nạp ${formatVnd(Math.max(shortage, MIN_TOPUP_AMOUNT))} & mua`}
+              ? `Thanh toán ${formatVndAmount(totalAmount)} bằng ví`
+              : `Nạp ${formatVndAmount(Math.max(shortage, MIN_TOPUP_AMOUNT))} & mua`}
           </Button>
         </Stack>
       )}

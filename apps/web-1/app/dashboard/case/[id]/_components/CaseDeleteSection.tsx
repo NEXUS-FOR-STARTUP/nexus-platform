@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
-import { Button, TextInput, Modal } from "@mantine/core";
+import { isAxiosError } from "axios";
+import { Button, Modal, Stack, Text, TextInput } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/navigation";
 import { useCaseDetails } from "../hooks/useCaseDetails";
@@ -30,10 +31,10 @@ export default function CaseDeleteSection({ caseId, stage }: CaseDeleteSectionPr
         color: "green",
       });
       router.push("/dashboard");
-    } catch (err: any) {
+    } catch (err: unknown) {
       notifications.show({
         title: "Lỗi",
-        message: err?.response?.data?.error || "Gặp lỗi khi xóa dự án.",
+        message: (isAxiosError(err) && err.response?.data?.error) || "Gặp lỗi khi xóa dự án.",
         color: "red",
       });
       setIsDeleteModalOpen(false);
@@ -43,27 +44,22 @@ export default function CaseDeleteSection({ caseId, stage }: CaseDeleteSectionPr
   return (
     <>
       {stage === "submitted" && (
-          <div className="pt-6 border-t border-red-500/10 mt-6 space-y-4">
-            <div>
-              <h4 className="font-heading font-semibold text-sm text-red-500 flex items-center gap-2">
-                <Trash2 className="w-4.5 h-4.5" />
-                Vùng nguy hiểm
-              </h4>
-              <p className="text-text-muted text-xs mt-1">
-                Dự án này chưa được admin duyệt. Bạn có thể xóa vĩnh viễn dự án này. Hành động này không thể hoàn tác.
-              </p>
-            </div>
-            <div>
-              <Button
-                color="red"
-                variant="outline"
-                onClick={() => setIsDeleteModalOpen(true)}
-                className="font-semibold text-xs h-9 px-4 cursor-pointer hover:bg-red-50 hover:text-red-600 border-red-200 text-red-500 rounded-lg"
-              >
-                Xóa dự án
-              </Button>
-            </div>
+        <Stack gap="sm">
+          <div>
+            <Text fw={500} size="lg" c="red" className="flex items-center gap-2">
+              <Trash2 size={18} aria-hidden />
+              Vùng nguy hiểm
+            </Text>
+            <Text size="sm" c="dimmed">
+              Dự án này chưa được admin duyệt. Bạn có thể xóa vĩnh viễn dự án này. Hành động này không thể hoàn tác.
+            </Text>
           </div>
+          <div>
+            <Button color="red" variant="outline" onClick={() => setIsDeleteModalOpen(true)}>
+              Xóa dự án
+            </Button>
+          </div>
+        </Stack>
       )}
 
       <Modal

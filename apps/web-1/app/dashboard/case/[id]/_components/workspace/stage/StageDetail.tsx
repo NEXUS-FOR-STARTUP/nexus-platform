@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Stack, Tabs, Paper, Text } from "@mantine/core";
-import { FileEdit, FolderUp, Award } from "lucide-react";
+import { UNDERLINE_TABS_CLASSES } from "@/components/ui/underline-tabs";
 import { findStageBySlug } from "@app/shared/stages";
 import StageHeader from "./StageHeader";
 import StageDraftView from "./StageDraftView";
@@ -13,7 +13,8 @@ import AuditConfirmModal from "./AuditConfirmModal";
 import type { Cp2InputSource } from "@app/shared";
 import ServiceCheckoutModal from "../../billing/ServiceCheckoutModal";
 import { useTriggerAudit } from "../../../hooks/useTriggerAudit";
-import { useGuidedDocuments } from "../../../hooks/useGuidedDocuments";
+import { useGuidedDrafts } from "../../../hooks/useGuidedDrafts";
+import { parseStageView, type StageView } from "../stage-view";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
 import type { TemplateKey } from "@repo/validation";
 import type { Case, DocumentWorkspace, RoundHistoryEntry } from "@/types";
@@ -21,8 +22,8 @@ import type { Case, DocumentWorkspace, RoundHistoryEntry } from "@/types";
 interface StageDetailProps {
   caseId: string;
   stageSlug: string;
-  view: "draft" | "files" | "results";
-  onViewChange: (view: "draft" | "files" | "results") => void;
+  view: StageView;
+  onViewChange: (view: StageView) => void;
   onBack: () => void;
   summary?: StageSummary;
   creditsRemaining: number;
@@ -52,7 +53,8 @@ export default function StageDetail({
   const { triggerAudit, isTriggering: isAuditPending } = useTriggerAudit(caseId);
 
   const templateKey = (stage?.templateKey ?? "cp1") as TemplateKey;
-  const { generateDocx, isGenerating } = useGuidedDocuments(caseId, templateKey);
+  // Single source of unsaved drafts: the editor edits them, the header menu syncs around them.
+  const draftsApi = useGuidedDrafts(caseId);
 
   if (!stage || !stage.available) {
     return (
@@ -84,7 +86,11 @@ export default function StageDetail({
   return (
     <Stack gap="md">
       <StageHeader
+        caseId={caseId}
         stage={stage}
+        templateKey={templateKey}
+        view={view}
+        draftQuestionIds={Object.keys(draftsApi.drafts)}
         summary={summary}
         creditsRemaining={creditsRemaining}
         onBack={onBack}
@@ -99,15 +105,15 @@ export default function StageDetail({
         onViewResults={() => onViewChange("results")}
       />
 
-      <Tabs value={view} onChange={(val) => onViewChange(val as "draft" | "files" | "results")} variant="pills" radius="md">
-        <Tabs.List justify="flex-start">
-          <Tabs.Tab value="draft" leftSection={<FileEdit size={16} />}>
+      <Tabs value={view} onChange={(val) => onViewChange(parseStageView(val))} classNames={UNDERLINE_TABS_CLASSES}>
+        <Tabs.List>
+          <Tabs.Tab value="draft">
             Soạn thảo
           </Tabs.Tab>
-          <Tabs.Tab value="files" leftSection={<FolderUp size={16} />}>
-            Tài liệu nộp ({summary?.file_count ?? 0})
+          <Tabs.Tab value="files">
+            Tài liệu ({summary?.file_count ?? 0})
           </Tabs.Tab>
-          <Tabs.Tab value="results" leftSection={<Award size={16} />}>
+          <Tabs.Tab value="results">
             Kết quả chấm
           </Tabs.Tab>
         </Tabs.List>
@@ -116,6 +122,7 @@ export default function StageDetail({
           <StageDraftView
             caseId={caseId}
             templateKey={templateKey}
+            draftsApi={draftsApi}
             onBack={onBack}
           />
         </Tabs.Panel>
@@ -124,7 +131,6 @@ export default function StageDetail({
           <StageFilesView
             caseId={caseId}
             checkpointCode={stage.code}
-            checkpointId={checkpointId}
             fileCount={summary?.file_count ?? 0}
             documentWorkspace={documentWorkspace}
           />

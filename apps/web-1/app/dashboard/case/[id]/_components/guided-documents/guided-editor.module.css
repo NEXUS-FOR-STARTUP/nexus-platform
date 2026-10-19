@@ -1,0 +1,158 @@
+.layout {
+  display: grid;
+  grid-template-columns: 17.5rem minmax(0, 1fr) 22.5rem;
+  grid-template-areas: "toc card hint";
+  gap: 1rem;
+  align-items: start;
+}
+
+.toc {
+  grid-area: toc;
+  min-width: 0;
+}
+
+.card {
+  grid-area: card;
+  min-width: 0;
+}
+
+/* Stretches to the row height so the panel inside can stay sticky. */
+.hint {
+  grid-area: hint;
+  min-width: 0;
+  align-self: stretch;
+}
+
+@media (max-width: 1240px) {
+  .layout {
+    grid-template-columns: 17.5rem minmax(0, 1fr);
+    grid-template-areas:
+      "toc card"
+      "toc hint";
+  }
+
+  .hint {
+    align-self: start;
+  }
+}
+
+/* Same breakpoint as the useMediaQuery in the editor: one column, folds collapsed. */
+@media (max-width: 767px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "toc"
+      "card"
+      "hint";
+  }
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--mantine-radius-md);
+  background-color: var(--color-surface-app);
+}
+
+.foldHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  font-size: var(--ui-text-note);
+  font-weight: var(--ui-weight-medium);
+  color: var(--color-text);
+}
+
+.foldHead:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+.foldTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.foldNote {
+  font-weight: var(--ui-weight-regular);
+  color: var(--color-text-muted);
+}
+
+.chevron {
+  transition: transform 150ms ease-out;
+}
+
+.chevronClosed {
+  transform: rotate(-90deg);
+}
+
+.heading {
+  margin: 0;
+  font-size: var(--ui-text-section);
+  font-weight: var(--ui-weight-medium);
+  line-height: 1.4;
+  color: var(--color-text);
+}
+
+.heading:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 4px;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  font-size: var(--ui-text-note);
+  color: var(--color-text-muted);
+}
+
+.answer {
+  font-size: var(--ui-text-body);
+  line-height: 1.6;
+}
+
+.status {
+  margin: 0;
+  font-size: var(--ui-text-note);
+  color: var(--color-text-muted);
+}
+
+.warn {
+  margin: 0;
+  font-size: var(--ui-text-note);
+  color: var(--mantine-color-yellow-8);
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1.5px solid var(--color-border);
+}
+
+.selfCheck {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--mantine-radius-md);
+  background-color: var(--color-surface-soft);
+}
+
+.selfCheckNote {
+  margin: 0;
+  padding-left: 1.75rem;
+  font-size: var(--ui-text-note);
+  color: var(--color-text-muted);
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { formatVndAmount } from "@/lib/pricing";
 import { formatCreditBalances, type CreditBalances } from "@/lib/credit-balances";
 import { Badge } from "@mantine/core";
 import RainbowBuyButton from "@/components/ui/RainbowBuyButton";
@@ -69,7 +70,7 @@ export default function CreditBalanceCard({
             <p className="text-base text-text-muted mb-1">Đơn giá</p>
             <p className="text-base font-semibold text-text-app tabular-nums">
               {pricePerCredit
-                ? `${pricePerCredit.toLocaleString("vi-VN")} VND`
+                ? formatVndAmount(pricePerCredit)
                 : "—"}{" "}
               <span className="text-base font-normal text-text-muted">
                 / lượt

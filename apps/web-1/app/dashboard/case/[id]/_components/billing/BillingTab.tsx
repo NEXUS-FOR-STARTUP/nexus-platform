@@ -1,52 +1,40 @@
- "use client";
+"use client";
 
- import { Stack, Text } from "@mantine/core";
- import StageBalanceTable from "./StageBalanceTable";
- import CreditTransactionHistory from "../CreditTransactionHistory";
- import type { CreditBalances } from "@/lib/credit-balances";
- import type { CreditEntry } from "../credit-history.types";
- import type { Order } from "@/types/payment";
+import { Stack, Text } from "@mantine/core";
+import StageBalanceCards from "./StageBalanceCards";
+import CreditHistorySection from "./credit-history/CreditHistorySection";
+import type { CreditBalances } from "@/lib/credit-balances";
+import type { CreditEntry } from "../credit-history.types";
+
 interface BillingTabProps {
   caseId: string;
   balances?: CreditBalances | null;
   creditLedger?: CreditEntry[];
-  orders?: Order[];
   isLoading?: boolean;
 }
 
-export default function BillingTab({
-  caseId,
-  balances,
-  creditLedger,
-  orders,
-  isLoading = false,
-}: BillingTabProps) {
+export default function BillingTab({ caseId, balances, creditLedger, isLoading = false }: BillingTabProps) {
   return (
-    <Stack gap="lg">
+    <Stack gap="xl">
       <div>
-        <Text fw={700} size="xl">Lượt chấm & tiền</Text>
-        <Text size="sm" c="dimmed">
-          Mỗi lần bấm chấm trừ 1 lượt của đúng giai đoạn đó.
-        </Text>
+        <Text fz="var(--ui-text-title)" fw={500}>Lượt chấm và thanh toán</Text>
+        <Text c="dimmed">Mỗi lần bấm chấm trừ 1 lượt của đúng giai đoạn đó.</Text>
       </div>
 
-      <Stack gap="xs">
+      <Stack gap="sm">
         <div>
-          <Text fw={700} size="lg">Lượt chấm từng giai đoạn</Text>
-          <Text size="sm" c="dimmed">Mỗi giai đoạn giữ lượt riêng. Hết lượt thì bấm Mua thêm, tiền trừ vào ví của bạn.</Text>
+          <Text fz="var(--ui-text-section)" fw={500}>Lượt chấm từng giai đoạn</Text>
+          <Text c="dimmed">Mỗi giai đoạn giữ lượt riêng. Hết lượt thì bấm Mua thêm, tiền trừ vào ví của bạn.</Text>
         </div>
-        <StageBalanceTable caseId={caseId} balances={balances} />
+        <StageBalanceCards caseId={caseId} balances={balances} />
       </Stack>
-      <Stack gap="xs">
+
+      <Stack gap="sm">
         <div>
-          <Text fw={700} size="lg">Lịch sử lượt chấm</Text>
-          <Text size="sm" c="dimmed">Mọi lần mua, dùng và hoàn lượt chấm của dự án này.</Text>
+          <Text fz="var(--ui-text-section)" fw={500}>Lịch sử giao dịch</Text>
+          <Text c="dimmed">Mọi lần mua, dùng và hoàn lượt chấm của dự án này.</Text>
         </div>
-        <CreditTransactionHistory
-          entries={creditLedger}
-          orders={orders}
-          isLoading={isLoading}
-        />
+        <CreditHistorySection entries={creditLedger} isLoading={isLoading} />
       </Stack>
     </Stack>
   );

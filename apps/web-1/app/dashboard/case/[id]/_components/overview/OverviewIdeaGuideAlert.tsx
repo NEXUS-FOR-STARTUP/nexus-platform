@@ -16,7 +16,7 @@ export default function OverviewIdeaGuideAlert({ onOpenStage }: OverviewIdeaGuid
         <List.Item>Sửa ý tưởng theo báo cáo, rồi đánh giá lại.</List.Item>
       </List>
       <Button
-        size="xs"
+        size="sm"
         variant="light"
         rightSection={<ArrowRight size={14} />}
         onClick={() => onOpenStage("y-tuong", "draft")}

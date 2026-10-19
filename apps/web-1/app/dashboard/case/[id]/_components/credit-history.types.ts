@@ -1,189 +1,46 @@
-import type { Order } from "@/types/payment";
+export type CreditEntryType = "purchase" | "consumption" | "refund";
 
 export interface CreditEntry {
   id: string;
   amount: number;
   balance_after: number;
-  type: "purchase" | "consumption" | "refund";
+  type: CreditEntryType;
+  reference_type?: string | null;
   reference_id: string | null;
   created_at: string;
   service_type_code?: string | null;
 }
 
-export interface CreditTransactionHistoryProps {
-  entries?: CreditEntry[];
-  orders?: Order[];
-  pricePerCredit?: number;
-  isLoading?: boolean;
-}
+export const CREDIT_TYPE_LABELS: Readonly<Record<CreditEntryType, string>> = {
+  purchase: "Mua lượt",
+  consumption: "Dùng lượt",
+  refund: "Hoàn lượt",
+};
 
-export type DateFilter = "all" | "today" | "7days" | "30days";
-export type TypeFilter = "all" | "purchase" | "consumption" | "refund" | "order";
+export const ORDER_REFERENCE_TYPE = "order";
 
-export type SortField = "created_at" | "amount";
-export type SortOrder = "asc" | "desc";
-
-export interface SortState {
-  field: SortField;
-  order: SortOrder;
-}
-
-export interface UnifiedTransactionItem {
-  id: string;
-  timestamp: number;
-  created_at: string;
-  date: string;
-  time: string;
-  typeKey: TypeFilter;
-  typeLabel: string;
-  badgeColor: string;
-  description: string;
-  subDescription?: string;
-  amountValue: number;
-  amountDisplay: {
-    text: string;
-    colorClass: string;
-  };
-  balanceAfterDisplay: string;
-  statusLabel: string;
-  statusColor: string;
-}
-
-export function formatVND(amount: number): string {
-  return `${amount.toLocaleString("vi-VN")} VND`;
-}
-
-export function formatDateTime(dateStr: string): { date: string; time: string } {
-  const d = new Date(dateStr);
-  const date = d.toLocaleDateString("vi-VN", {
+export function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-  });
-  const time = d.toLocaleTimeString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",
   });
-  return { date, time };
 }
 
-const SERVICE_TYPE_LABELS: Readonly<Record<string, string>> = {
-  credit_audit: "Lượt chấm",
-  cp1_audit: "Lượt chấm vòng Ý tưởng",
-  cp2_audit: "Lượt chấm vòng Thị trường",
-};
-const FALLBACK_SERVICE_LABEL = "Lượt chấm";
-
-function getOrderItemSummary(order: Order): string {
-  if (!order.items || order.items.length === 0) return "Mua lượt chấm";
-  return order.items
-    .map((item) => `${SERVICE_TYPE_LABELS[item.service_type] ?? FALLBACK_SERVICE_LABEL} x${item.quantity}`)
-    .join(", ");
+export function formatDateTimeFull(iso: string): string {
+  return new Date(iso).toLocaleString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 }
 
-export function transformToUnifiedItems(
-  entries?: CreditEntry[],
-  orders?: Order[]
-): UnifiedTransactionItem[] {
-  const items: UnifiedTransactionItem[] = [];
-
-  (orders || []).forEach((order) => {
-    const { date, time } = formatDateTime(order.created_at);
-    const timestamp = new Date(order.created_at).getTime();
-    const isPaid = order.status === "paid";
-    const isPending = order.status === "pending";
-
-    let statusLabel = "Chờ thanh toán";
-    let statusColor = "yellow";
-
-    if (isPaid) {
-      statusLabel = "Đã thanh toán";
-      statusColor = "green";
-    } else if (order.status === "cancelled") {
-      statusLabel = "Đã hủy";
-      statusColor = "red";
-    } else if (order.status === "refunded") {
-      statusLabel = "Đã hoàn tiền";
-      statusColor = "orange";
-    }
-
-    items.push({
-      id: `order-${order.id}`,
-      timestamp,
-      created_at: order.created_at,
-      date,
-      time,
-      typeKey: "order",
-      typeLabel: "Đơn mua",
-      badgeColor: isPaid ? "teal" : isPending ? "yellow" : "gray",
-      description: getOrderItemSummary(order),
-      subDescription: `Mã đơn hàng: #${order.id.slice(0, 8).toUpperCase()}`,
-      amountValue: order.total_amount,
-      amountDisplay: {
-        text: formatVND(order.total_amount),
-        colorClass: "text-text-app",
-      },
-      balanceAfterDisplay: "—",
-      statusLabel,
-      statusColor,
-    });
-  });
-
-  (entries || []).forEach((entry) => {
-    const { date, time } = formatDateTime(entry.created_at);
-    const timestamp = new Date(entry.created_at).getTime();
-    const isConsumption = entry.type === "consumption" || entry.amount < 0;
-
-    let typeKey: TypeFilter = "purchase";
-    let typeLabel = "Nạp credit";
-    let badgeColor = "green";
-    let description = "Cộng credit vào số dư";
-    let statusLabel = "Thành công";
-    let statusColor = "green";
-
-    if (isConsumption) {
-      typeKey = "consumption";
-      typeLabel = "Trừ credit";
-      badgeColor = "red";
-      description = "Sử dụng cho lượt đánh giá case";
-      statusLabel = "Thành công";
-      statusColor = "green";
-    } else if (entry.type === "refund") {
-      typeKey = "refund";
-      typeLabel = "Hoàn credit";
-      badgeColor = "orange";
-      description = "Hoàn trả credit đánh giá";
-      statusLabel = "Thành công";
-      statusColor = "green";
-    }
-
-    const absAmount = Math.abs(entry.amount);
-    const amountText = isConsumption ? `-${absAmount} credit` : `+${absAmount} credit`;
-    const colorClass = isConsumption
-      ? "text-red-600 dark:text-red-400"
-      : "text-emerald-600 dark:text-emerald-400";
-
-    items.push({
-      id: `ledger-${entry.id}`,
-      timestamp,
-      created_at: entry.created_at,
-      date,
-      time,
-      typeKey,
-      typeLabel,
-      badgeColor,
-      description,
-      subDescription: entry.reference_id ? `Mã tham chiếu: ${entry.reference_id}` : undefined,
-      amountValue: isConsumption ? -absAmount : absAmount,
-      amountDisplay: {
-        text: amountText,
-        colorClass,
-      },
-      balanceAfterDisplay: `${entry.balance_after} credit`,
-      statusLabel,
-      statusColor,
-    });
-  });
-
-  return items;
+/** "+2 lượt" / "-1 lượt"; sign follows amount, not type. */
+export function formatCreditDelta(amount: number): string {
+  return `${amount > 0 ? "+" : amount < 0 ? "-" : ""}${Math.abs(amount)} lượt`;
 }

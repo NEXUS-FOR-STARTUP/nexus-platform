@@ -3,9 +3,9 @@
 import React from "react";
 import { Button } from "@mantine/core";
 import CreditBalanceCard from "./CreditBalanceCard";
-import CreditTransactionHistory from "./CreditTransactionHistory";
+import CreditHistorySection from "./billing/credit-history/CreditHistorySection";
+import type { CreditEntryType } from "./credit-history.types";
 import type { CreditBalances } from "@/lib/credit-balances";
-import type { Order } from "@/types/payment";
 
 interface CreditPanelProps {
   creditBalance: number | null | undefined;
@@ -14,11 +14,11 @@ interface CreditPanelProps {
     id: string;
     amount: number;
     balance_after: number;
-    type: "purchase" | "consumption" | "refund";
+    type: CreditEntryType;
+    reference_type?: string | null;
     reference_id: string | null;
     created_at: string;
   }>;
-  orders?: Order[];
   packageName?: string;
   pricePerCredit?: number;
   onBuyCredits?: () => void;
@@ -28,7 +28,6 @@ export default function CreditPanel({
   creditBalance,
   creditBalances,
   creditLedger,
-  orders,
   packageName,
   pricePerCredit,
   onBuyCredits,
@@ -72,11 +71,7 @@ export default function CreditPanel({
         onBuyCredits={onBuyCredits}
       />
 
-      <CreditTransactionHistory
-        entries={creditLedger}
-        orders={orders}
-        pricePerCredit={pricePerCredit}
-      />
+      <CreditHistorySection entries={creditLedger} />
     </div>
   );
 }

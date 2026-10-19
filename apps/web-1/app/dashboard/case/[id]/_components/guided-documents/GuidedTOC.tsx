@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { Collapse, UnstyledButton } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { Check, Lock, Circle, CircleAlert, ChevronRight, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { QUESTION_REGISTRY, type Question, type Template } from "@repo/validation";
+import { GUIDED_MOBILE_QUERY } from "../../hooks/useGuidedNavigation";
 import { isThinAnswer } from "./answer-quality";
-
-const MOBILE_QUERY = "(max-width: 767px)";
+import TocQuestionRow, { type TocQuestionState } from "./TocQuestionRow";
+import editor from "./guided-editor.module.css";
+import s from "./guided-toc.module.css";
 
 interface GuidedTOCProps {
   template: Template;
@@ -28,7 +31,7 @@ export default function GuidedTOC({
 }: GuidedTOCProps) {
   const questionIds = template.phases.flatMap((p) => p.questions.map((q) => q.question_id));
   const answeredCount = questionIds.filter((id) => answersMap[id]?.trim()).length;
-  const isMobile = useMediaQuery(MOBILE_QUERY);
+  const isMobile = useMediaQuery(GUIDED_MOBILE_QUERY);
   // null = follow the viewport default (open on desktop, collapsed on phones); boolean = user's choice.
   const [openedOverride, setOpenedOverride] = useState<boolean | null>(null);
   const opened = openedOverride ?? !isMobile;
@@ -38,111 +41,53 @@ export default function GuidedTOC({
     if (isMobile) setOpenedOverride(false);
   };
 
+  const stateOf = (questionId: string, phaseIndex: number, questionIndex: number): TocQuestionState => {
+    if (!isQuestionUnlocked(phaseIndex, questionIndex)) return "locked";
+    if (isThinAnswer(questionId, answersMap[questionId])) return "thin";
+    return answersMap[questionId]?.trim() ? "answered" : "empty";
+  };
+
   return (
-    <div className="w-full md:w-80 shrink-0 bg-surface-app border border-border-app rounded-xl p-4 flex flex-col gap-4">
-      <button
-        type="button"
+    <div className={editor.panel}>
+      <UnstyledButton
+        className={editor.foldHead}
         onClick={() => setOpenedOverride(!opened)}
         aria-expanded={opened}
-        className={`flex items-center justify-between gap-2 cursor-pointer ${
-          opened ? "pb-3 border-b border-border-app" : ""
-        }`}
       >
-        <span className="flex items-center gap-2">
-          <ChevronDown
-            className={`w-4 h-4 text-text-muted transition-transform ${opened ? "" : "-rotate-90"}`}
-          />
-          <span className="font-semibold text-sm text-text-app">Mục lục</span>
+        <span className={editor.foldTitle}>
+          <ChevronDown size={16} className={`${editor.chevron} ${opened ? "" : editor.chevronClosed}`} aria-hidden />
+          Mục lục
         </span>
-        <span className="text-xs text-text-muted">
+        <span className={editor.foldNote}>
           {answeredCount}/{questionIds.length} câu
         </span>
-      </button>
+      </UnstyledButton>
 
-      {opened && (
-      <div className="flex flex-col gap-4 overflow-y-auto max-h-[600px] pr-1">
-        {template.phases.map((phase, pIndex) => (
-          <div key={phase.id} className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold text-text-muted uppercase tracking-wider px-2">
-              Phần {pIndex + 1}: {phase.title}
-            </span>
-
-            <div className="flex flex-col gap-1">
+      <Collapse expanded={opened}>
+        <div className={s.list}>
+          {template.phases.map((phase, pIndex) => (
+            <div key={phase.id} className={s.group}>
+              <span className={s.groupTitle}>
+                Phần {pIndex + 1}: {phase.title}
+              </span>
               {phase.questions.map((tq, qIndex) => {
-                const isUnlocked = isQuestionUnlocked(pIndex, qIndex);
-                const isThin = isThinAnswer(tq.question_id, answersMap[tq.question_id]);
-                const hasAnswer = !isThin && (answersMap[tq.question_id]?.trim().length ?? 0) > 0;
-                const isActive = activeQuestionId === tq.question_id;
-                const questionMeta = (
-                  QUESTION_REGISTRY as Record<string, Question | undefined>
-                )[tq.question_id];
-                const questionTitle = questionMeta?.text || tq.question_id;
-
+                const meta = (QUESTION_REGISTRY as Record<string, Question | undefined>)[tq.question_id];
                 return (
-                  <button
+                  <TocQuestionRow
                     key={tq.question_id}
-                    type="button"
-                    disabled={!isUnlocked}
-                    onClick={() => handleSelect(tq.question_id)}
-                    className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium text-left transition-colors cursor-pointer ${
-                      isActive
-                        ? "bg-brand text-white font-semibold"
-                        : isUnlocked
-                          ? "text-text-app hover:bg-surface-soft"
-                          : "text-text-disabled cursor-not-allowed opacity-50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 truncate pr-2">
-                      {!isUnlocked ? (
-                        <Lock className="w-3.5 h-3.5 shrink-0 text-text-muted" />
-                      ) : isThin ? (
-                        <span title="Câu trả lời còn ngắn - bấm để viết thêm" className="shrink-0">
-                          <CircleAlert className="w-3.5 h-3.5 text-amber-500" />
-                        </span>
-                      ) : hasAnswer ? (
-                        <span
-                          className={`w-3.5 h-3.5 shrink-0 rounded-full flex items-center justify-center ${
-                            isActive ? "bg-white" : "bg-emerald-500"
-                          }`}
-                        >
-                          <Check
-                            className={`w-2.5 h-2.5 ${
-                              isActive ? "text-brand" : "text-white"
-                            }`}
-                            strokeWidth={3}
-                          />
-                        </span>
-                      ) : (
-                        <Circle
-                          className={`w-3.5 h-3.5 shrink-0 ${
-                            isActive ? "text-white" : "text-text-muted"
-                          }`}
-                        />
-                      )}
-                      <span className="truncate" title={questionTitle}>
-                        {pIndex + 1}.{qIndex + 1} {questionTitle}
-                      </span>
-                    </div>
-                    {criticalQuestionIds?.includes(tq.question_id) ? (
-                      <span
-                        title="Mục quan trọng khi chấm điểm"
-                        className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold ${
-                          isActive ? "bg-white text-brand" : "bg-orange-100 text-orange-700"
-                        }`}
-                      >
-                        Quan trọng
-                      </span>
-                    ) : (
-                      isActive && <ChevronRight className="w-3.5 h-3.5 shrink-0 text-white" />
-                    )}
-                  </button>
+                    number={`${pIndex + 1}.${qIndex + 1}`}
+                    title={meta?.text || tq.question_id}
+                    state={stateOf(tq.question_id, pIndex, qIndex)}
+                    important={criticalQuestionIds?.includes(tq.question_id) ?? false}
+                    selected={activeQuestionId === tq.question_id}
+                    onSelect={() => handleSelect(tq.question_id)}
+                  />
                 );
               })}
             </div>
-          </div>
-        ))}
-      </div>
-      )}
+          ))}
+        </div>
+      </Collapse>
     </div>
   );
 }

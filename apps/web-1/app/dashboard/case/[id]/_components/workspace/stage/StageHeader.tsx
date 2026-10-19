@@ -1,78 +1,85 @@
 "use client";
 
-import { Group, Stack, Text, Badge, Button } from "@mantine/core";
-import { ChevronLeft, Sparkles } from "lucide-react";
+import { Anchor, Breadcrumbs, Button, Group, Stack, Text } from "@mantine/core";
+import { Sparkles } from "lucide-react";
 import BuyButton from "@/components/ui/BuyButton";
+import { StatusChip } from "@/components/ui/StatusChip";
 import type { StageDefinition } from "@app/shared/stages";
-import { STAGE_DISPLAY_META, stageNumberOf } from "../stageDisplayMeta";
-import { TEMPLATE_REGISTRY } from "@repo/validation";
+import { TEMPLATE_REGISTRY, type TemplateKey } from "@repo/validation";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
+import type { StageView } from "../stage-view";
+import StageActionsMenu from "./StageActionsMenu";
+import s from "./StageHeader.module.css";
 
 interface StageHeaderProps {
+  caseId: string;
   stage: StageDefinition;
+  templateKey: TemplateKey;
+  view: StageView;
   summary?: StageSummary;
   creditsRemaining: number;
+  draftQuestionIds: string[];
   onBack: () => void;
   onAudit: () => void;
   onBuyCredits: () => void;
 }
 
 export default function StageHeader({
+  caseId,
   stage,
+  templateKey,
+  view,
   summary,
   creditsRemaining,
+  draftQuestionIds,
   onBack,
   onAudit,
   onBuyCredits,
 }: StageHeaderProps) {
   const isGrading = summary?.status === "grading";
   const hasResult = summary?.status === "has_result";
-  const auditLabel = hasResult ? "Chấm lại" : "Chấm bài";
-  const meta = STAGE_DISPLAY_META[stage.slug] ?? STAGE_DISPLAY_META["y-tuong"];
+  const questionCount = TEMPLATE_REGISTRY[stage.templateKey]?.phases.flatMap((p) => p.questions).length ?? 0;
 
   return (
     <Stack gap="xs">
-      <div>
-        <Button variant="subtle" size="sm" leftSection={<ChevronLeft className="w-4 h-4" />} onClick={onBack}>
-          Quay lại
-        </Button>
-      </div>
+      <Breadcrumbs separator="/" aria-label="Đường dẫn">
+        <Anchor component="button" type="button" size="sm" onClick={onBack}>
+          Hành trình
+        </Anchor>
+        <Text size="sm" c="dimmed">{stage.name}</Text>
+      </Breadcrumbs>
 
       <Group justify="space-between" align="center" wrap="wrap" gap="md">
         <Stack gap={2}>
-          <Group gap={6} align="center">
-            <Text fw={800} size="lg" c={meta.color}>
-              {stageNumberOf(stage.code)}
-            </Text>
-            <Text fw={700} size="xl">{stage.name}</Text>
+          <Group gap="sm" align="center">
+            <h1 className={s.title}>{stage.name}</h1>
             {isGrading ? (
-              <Badge color="orange" variant="filled">Đang chấm</Badge>
-            ) : summary?.status === "has_result" ? (
-              <Badge color="green" variant="light">Đã có kết quả</Badge>
+              <StatusChip tone="warn">Đang chấm</StatusChip>
+            ) : hasResult ? (
+              <StatusChip tone="ok">Đã có kết quả</StatusChip>
             ) : null}
           </Group>
-          <Text size="xs" c="dimmed">
-            <Text span fw={700} c="blue.7">{summary?.answered_count ?? 0}/{TEMPLATE_REGISTRY[stage.templateKey]?.phases.flatMap((p) => p.questions).length ?? 0}</Text>
-            {" "}câu đã trả lời / <Text span fw={700} c="blue.7">{summary?.file_count ?? 0}</Text> tệp đính kèm / Còn{" "}
-            <Text span fw={700} c={creditsRemaining === 0 ? "red.7" : "blue.7"}>{creditsRemaining}</Text> lượt chấm
-          </Text>
+          <p className={s.note}>
+            {summary?.answered_count ?? 0}/{questionCount} câu đã trả lời
+            <br />
+            {summary?.file_count ?? 0} tệp đính kèm
+            <br />
+            {creditsRemaining > 0 ? `Còn ${creditsRemaining} lượt chấm` : "Hết lượt chấm"}
+          </p>
         </Stack>
 
         <Group gap="xs">
           {creditsRemaining > 0 ? (
-            <Button
-              size="sm"
-              color="blue"
-              leftSection={<Sparkles size={16} />}
-              disabled={isGrading}
-              onClick={onAudit}
-            >
-              {auditLabel}
+            <Button size="sm" leftSection={<Sparkles size={16} />} disabled={isGrading} onClick={onAudit}>
+              {hasResult ? "Chấm lại" : "Chấm bài"}
             </Button>
           ) : (
-            <BuyButton size="md" onClick={onBuyCredits}>
+            <BuyButton size="sm" onClick={onBuyCredits}>
               Mua lượt chấm
             </BuyButton>
+          )}
+          {view === "draft" && (
+            <StageActionsMenu caseId={caseId} templateKey={templateKey} draftQuestionIds={draftQuestionIds} />
           )}
         </Group>
       </Group>

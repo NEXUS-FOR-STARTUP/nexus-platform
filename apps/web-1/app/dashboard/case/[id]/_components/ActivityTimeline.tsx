@@ -1,79 +1,54 @@
 "use client";
 
-import React from "react";
-import { Case } from "@/types";
+import { useMemo, useState } from "react";
+import { Accordion, Stack, Text } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { Clock } from "lucide-react";
-import { getEventDetails } from "@/lib/event-details";
+import type { Case } from "@/types";
+import { groupEventsByDay } from "./activity/activity-groups";
+import TimelineDayGroup from "./activity/TimelineDayGroup";
+
+// Must match the `take` of case events in apps/api case.repository.
+const API_EVENT_LIMIT = 50;
+const MOBILE_QUERY = "(max-width: 48em)";
 
 interface ActivityTimelineProps {
   caseData: Case;
 }
 
 export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
-  const events = caseData.events || [];
+  const isMobile = useMediaQuery(MOBILE_QUERY, false);
+  const [opened, setOpened] = useState<string[] | null>(null);
 
-  // Filter out message_sent events to avoid cluttering the timeline with chat messages
-  const filteredEvents = events.filter(event => event.event_type !== "message_sent");
-
-  // Sort events chronologically (oldest first)
-  const sortedEvents = [...filteredEvents].sort(
-    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  // Chat messages would drown the timeline.
+  const events = useMemo(
+    () => (caseData.events ?? []).filter((e) => e.event_type !== "message_sent"),
+    [caseData.events],
   );
+  const groups = useMemo(() => groupEventsByDay(events), [events]);
 
-  const formatDateTime = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) + " ngày " + d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
-  };
-
-  if (sortedEvents.length === 0) {
+  if (events.length === 0) {
     return (
-      <div className="bg-surface-app border border-border-app rounded-lg p-8 text-center flex flex-col items-center justify-center gap-3 animate-fade-in">
-        <Clock className="w-8 h-8 text-text-subtle animate-pulse" />
-        <p className="text-xs text-text-muted font-body">Chưa có hoạt động nào được ghi nhận cho dự án này.</p>
-      </div>
+      <Stack align="center" gap="xs" py="xl">
+        <Clock size={32} aria-hidden />
+        <Text size="sm" c="dimmed">Chưa có hoạt động nào được ghi nhận cho dự án này.</Text>
+      </Stack>
     );
   }
 
+  const defaultOpen = isMobile ? groups.slice(0, 1).map((g) => g.dayKey) : groups.map((g) => g.dayKey);
+
   return (
-    <div className="bg-surface-app border border-border-app rounded-lg p-6 md:p-8 space-y-6 animate-fade-in">
-      <div className="relative pl-6 border-l-2 border-border-app space-y-8 py-2 ml-4">
-        {sortedEvents.map((event) => {
-          const { label, desc, icon: Icon, colorClass } = getEventDetails(event.event_type);
+    <Stack gap="md">
+      {(caseData.events?.length ?? 0) >= API_EVENT_LIMIT && (
+        <Text size="sm" c="dimmed">Hiển thị {API_EVENT_LIMIT} sự kiện gần nhất.</Text>
+      )}
 
-          return (
-            <div key={event.id} className="relative group">
-              {/* Timeline Marker Point */}
-              <div className={`absolute -left-[38px] top-0 w-8 h-8 rounded-full flex items-center justify-center border ${colorClass} shadow-sm transition-transform group-hover:scale-110 z-10 bg-surface-app`}>
-                <Icon className="w-4 h-4" />
-              </div>
-
-              {/* Event Content card */}
-              <div className="space-y-1.5 font-body">
-                <div className="flex flex-wrap items-baseline gap-2">
-                  <h4 className="font-heading font-semibold text-xs text-text-app">
-                    {label}
-                  </h4>
-                  <span className="text-base text-text-subtle">
-                    {formatDateTime(event.created_at)}
-                  </span>
-                </div>
-                <p className="text-xs text-text-muted leading-relaxed">
-                  {desc}
-                  {(event.event_type === "case_rejected" || event.event_type === "vetoed") &&
-                    (event.metadata_json as any)?.reason && (
-                      <> - Lý do: {(event.metadata_json as any).reason}</>
-                    )}
-                </p>
-                {event.actor && (
-                  <p className="text-base text-text-subtle">
-                    Thực hiện bởi: <strong className="text-text-muted">{event.actor.name}</strong> ({event.actor.role === "admin" ? "Admin" : event.actor.role === "supporter" ? "Supporter" : "Sinh viên"})
-                  </p>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+      <Accordion multiple value={opened ?? defaultOpen} onChange={setOpened} variant="default">
+        {groups.map((group) => (
+          <TimelineDayGroup key={group.dayKey} group={group} />
+        ))}
+      </Accordion>
+    </Stack>
   );
 }

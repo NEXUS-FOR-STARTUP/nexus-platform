@@ -1,8 +1,9 @@
 "use client";
 
-import { Alert, Button, Stack, Text } from "@mantine/core";
+import { Button, Paper, Stack, Text } from "@mantine/core";
 import { isCaseContactComplete } from "@repo/validation";
 import { missingContactLabels } from "../../../../_components/case-contact";
+import s from "./overview.module.css";
 
 interface ContactNextStepCardProps {
   contact: unknown;
@@ -15,15 +16,16 @@ export default function ContactNextStepCard({ contact, onOpenSettings }: Contact
   const missing = missingContactLabels(contact).join(", ");
 
   return (
-    <Alert color="yellow" variant="light" radius="md" title="Bạn cần điền thông tin liên hệ trước">
-      <Stack gap="sm">
-        <Text size="sm">
-          Còn thiếu: {missing}. Chúng tôi dùng để báo kết quả và gửi mã QR thanh toán cho đúng người.
+    <Paper p="lg" radius="md" withBorder>
+      <Stack gap="xs" align="flex-start">
+        <h2 className={s.sectionTitle}>Việc tiếp theo: điền thông tin liên hệ</h2>
+        <Text className={s.body}>
+          Còn thiếu {missing}. Chúng tôi dùng để báo kết quả và gửi mã QR thanh toán cho đúng người.
         </Text>
-        <Button size="md" color="yellow" className="self-start cursor-pointer" onClick={onOpenSettings}>
+        <Button size="md" onClick={onOpenSettings}>
           Điền thông tin liên hệ
         </Button>
       </Stack>
-    </Alert>
+    </Paper>
   );
 }

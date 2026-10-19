@@ -49,16 +49,16 @@ RootLayout → Providers
 - **Student Workspace (`/dashboard/*`, `/intake`, `/team-fit`)**: Fully mobile-responsive. Mobile drawer nav, responsive card-view tables for documents + transactions, adaptive headers.
 - **Admin & Supporter Consoles (`/admin/*`, `/supporter/*`)**: Strictly **DESKTOP-ONLY**. Rendered with `DesktopOnlyNotice.tsx`, blocks viewport width < 1024px. **Never write responsive mobile overrides for Admin/Supporter screens.**
 
-## CASE WORKSPACE (7 TABS & STATE GATING)
+## CASE WORKSPACE (5 TABS & STATE GATING)
 
-Case detail (`dashboard/case/[id]`) has 7 tabs synced with query string `?tab=`:
-1. `overview`: Radar score, phase cards, status guidance, quick actions.
-2. `documents`: Uploaded artifacts, student documents, supporter outputs, external feedback.
-3. `report`: Rendered AI critique report, scorecards, Typst PDF download.
-4. `discussion`: Realtime chat via Centrifugo (hidden for pure AI packages like `pkg_ai_audit`).
-5. `timeline`: Audit history, stage changes, chronological event ledger.
-6. `settings`: Case metadata editing, member management, danger zone actions.
-7. `credits`: Evaluation balance, purchase CTA (locked once case reaches `completed` stage).
+Case detail (`dashboard/case/[id]`, live path `NEXT_PUBLIC_JOURNEY_WORKSPACE=true`) has 5 tabs synced with `?tab=` (stage detail adds `&stage=<slug>&view=<draft|files|results>`):
+1. `overview`: header, next-step hero, journey list, recent reports, profile fold.
+2. `journey`: stage rows; stage detail with draft editor (TOC + question + hint panel), files, results (run list + PDF).
+3. `billing`: stage balance cards, buy CTA, expandable credit history (lazy order fetch).
+4. `timeline`: activity grouped by day, newest first (API returns the latest 50).
+5. `settings`: project + contact forms (save enabled only when dirty), danger zone.
+
+Redesign primitives: `--ui-text-*`/`--ui-weight-*`/`--ui-gap-section`/`--ui-topbar-height` in `globals.css`; `components/ui/{underline-tabs,StatusChip,CopyIconButton,expandable-list/ExpandableList}`; `formatVndAmount` in `lib/pricing.ts` (always `1,000 VND`).
 
 ## DATA FETCHING PATTERN
 

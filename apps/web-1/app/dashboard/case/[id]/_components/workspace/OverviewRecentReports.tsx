@@ -1,8 +1,9 @@
- "use client";
+"use client";
 
 import { Button, Group, Paper, Stack, Text } from "@mantine/core";
 import { findStageByCode } from "@app/shared/stages";
 import FileTypeIcon from "@/components/ui/FileTypeIcon";
+import s from "./overview.module.css";
 import type { DocumentWorkspace, RoundHistoryEntry } from "@/types";
 import { CP2_REPORT_TYPE_LABELS, SUBMISSION_TYPE_LABELS, formatDateShort } from "../report.utils";
 
@@ -42,44 +43,40 @@ export default function OverviewRecentReports({
     .slice(0, RECENT_REPORTS_LIMIT);
 
   return (
-    <Paper p="md" withBorder radius="md">
-      <Group gap="xs" mb="sm">
-        <Text fw={600} size="sm">Báo cáo gần đây</Text>
-      </Group>
+    <section className={s.section}>
+      <h2 className={s.sectionTitle}>Báo cáo gần đây</h2>
       {recentReports.length === 0 ? (
-        <Text size="sm" c="dimmed">
+        <Text className={s.note}>
           Chưa có báo cáo nào. Hoàn thiện câu trả lời và bấm chấm để nhận đánh giá đầu tiên.
         </Text>
       ) : (
-        <Stack gap="xs">
+        <Stack gap="sm">
           {recentReports.map((entry) => {
             const slug = slugForReport(entry);
             return (
-              <Group key={entry.report_id} justify="space-between" wrap="nowrap" gap="sm">
-                <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
-                  <FileTypeIcon extension="pdf" size={28} />
-                  <Stack gap={0} style={{ minWidth: 0 }}>
-                    <Text fw={600} size="sm" truncate>
-                      {reportLabel(entry)}
-                      {typeof entry.version_no === "number" ? ` (bản ${String(entry.version_no + 1).padStart(2, "0")})` : ""}
-                    </Text>
-                    <Text size="xs" c="dimmed">{formatDateShort(entry.submitted_at)}</Text>
-                  </Stack>
+              <Paper key={entry.report_id} p="md" withBorder radius="md">
+                <Group justify="space-between" wrap="nowrap" gap="sm">
+                  <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
+                    <FileTypeIcon extension="pdf" size={28} />
+                    <Stack gap={0} style={{ minWidth: 0 }}>
+                      <Text className={s.name} truncate>
+                        {reportLabel(entry)}
+                        {typeof entry.version_no === "number" ? ` (bản ${String(entry.version_no + 1).padStart(2, "0")})` : ""}
+                      </Text>
+                      <Text className={s.note}>{formatDateShort(entry.submitted_at)}</Text>
+                    </Stack>
+                  </Group>
+                  {slug && (
+                    <Button size="sm" variant="default" onClick={() => onOpenStage(slug, "results")}>
+                      Xem
+                    </Button>
+                  )}
                 </Group>
-                {slug && (
-                  <Button
-                    size="sm"
-                    variant="light"
-                    onClick={() => onOpenStage(slug, "results")}
-                  >
-                    Xem
-                  </Button>
-                )}
-              </Group>
+              </Paper>
             );
           })}
         </Stack>
       )}
-    </Paper>
+    </section>
   );
 }

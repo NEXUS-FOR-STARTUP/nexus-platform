@@ -1,11 +1,13 @@
 "use client";
 
-import { Accordion, Modal, Stack, Text, Textarea, Button, Radio, Group, Alert, ThemeIcon } from "@mantine/core";
+import { Modal, Stack, Button, Group } from "@mantine/core";
 import { useState } from "react";
-import { Check, Minus, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import type { StageDefinition } from "@app/shared/stages";
 import type { Cp2InputSource } from "@app/shared";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
+import AuditStepSources from "./AuditStepSources";
+import AuditStepOptions, { type Cp2Scope, type RunKind } from "./AuditStepOptions";
 
 interface AuditConfirmModalProps {
   stage: StageDefinition;
@@ -20,12 +22,8 @@ interface AuditConfirmModalProps {
   onGoFiles?: () => void;
 }
 
-type Cp2Scope = "full" | "questionnaire";
-
 const SOURCE_PRIORITY: readonly Cp2InputSource[] = ["both", "answers", "files"];
 const SCOPE_PRIORITY: readonly Cp2Scope[] = ["full", "questionnaire"];
-const SOURCE_LABEL: Record<Cp2InputSource, string> = { both: "Cả câu trả lời và tài liệu", answers: "Chỉ câu trả lời", files: "Chỉ tài liệu" };
-const SCOPE_LABEL: Record<Cp2Scope, string> = { full: "Đánh giá toàn diện", questionnaire: "Chỉ soát bảng hỏi" };
 
 /**
  * Single grading entry point. Step 1 = what the team has (answers / files).
@@ -51,7 +49,7 @@ export default function AuditConfirmModal({
   // remembered as an override, so readiness changing under it can't reset it.
   const [scopeOverride, setScopeOverride] = useState<Cp2Scope | null>(null);
   const [sourceOverride, setSourceOverride] = useState<Cp2InputSource | null>(null);
-  const [submissionTypeOverride, setSubmissionTypeOverride] = useState<"initial" | "resubmit" | null>(null);
+  const [submissionTypeOverride, setSubmissionTypeOverride] = useState<RunKind | null>(null);
   const [changeSummary, setChangeSummary] = useState("");
   const [userNote, setUserNote] = useState("");
   const [step, setStep] = useState(1);
@@ -68,8 +66,7 @@ export default function AuditConfirmModal({
     if (src === "answers") return answersReadyFor(sc);
     return hasFiles && answersReadyFor(sc);
   };
-  const handleScopeChange = (value: string) => {
-    const next = value as Cp2Scope;
+  const handleScopeChange = (next: Cp2Scope) => {
     setScopeOverride(next);
     if (next === "questionnaire") setSubmissionTypeOverride("initial");
   };
@@ -120,158 +117,50 @@ export default function AuditConfirmModal({
   };
 
   return (
-    <Modal opened={opened} onClose={handleClose} title={`Xác nhận chấm bài - ${stage.name}`} centered size="md">
+    <Modal opened={opened} onClose={handleClose} title={`Xác nhận chấm bài - ${stage.name}`} centered radius="md" size="md">
       <Stack gap="md">
         {step === 1 && (
           <>
-            <Text size="sm" fw={600}>Bước 1/2: bạn đang có gì để chấm?</Text>
-            <Stack gap="xs">
-              <Group gap="xs" wrap="nowrap">
-                <ThemeIcon size="sm" radius="xl" color={hasAnswers ? "green" : "gray"} variant={hasAnswers ? "filled" : "light"}>
-                  {hasAnswers ? <Check size={14} /> : <Minus size={14} />}
-                </ThemeIcon>
-                <Stack gap={0}>
-                  <Text size="sm">Câu trả lời: {answeredCount} câu</Text>
-                  {isCp2 && <Text size="xs" c="dimmed">Không bắt buộc nếu bạn chấm bằng tài liệu. Nếu dùng, cần đủ số câu có nội dung thật, mỗi câu viết thành câu hoàn chỉnh</Text>}
-                </Stack>
-              </Group>
-              <Group gap="xs" wrap="nowrap">
-                <ThemeIcon size="sm" radius="xl" color={hasFiles ? "green" : "gray"} variant={hasFiles ? "filled" : "light"}>
-                  {hasFiles ? <Check size={14} /> : <Minus size={14} />}
-                </ThemeIcon>
-                <Stack gap={0}>
-                  <Text size="sm">Tài liệu đính kèm: {fileCount} tệp</Text>
-                  {isCp2 ? <Text size="xs" c="dimmed">Không bắt buộc nếu bạn chấm bằng câu trả lời. Khảo sát .xlsx, ghi chép phỏng vấn .docx/.pdf</Text> : <Text size="xs" c="dimmed">Không bắt buộc nếu bạn đã trả lời câu hỏi ở tab Soạn thảo</Text>}
-                </Stack>
-              </Group>
-            </Stack>
-
-            {!hasFiles && onGoFiles && (
-              <Button size="sm" variant="default" onClick={handleGoFiles}>
-                Sang tab Tài liệu để tải lên
-              </Button>
-            )}
-
-            {blocked && (
-              <Alert color="red" title="Chưa có gì để chấm">
-                {isCp2
-                  ? `Bạn cần một trong hai: tải tài liệu lên ở tab Tài liệu, hoặc trả lời đủ câu ở tab Soạn thảo (${answeredCount} câu hiện có nội dung nhưng quá ngắn hoặc chưa đủ số câu).`
-                  : "Chưa có câu trả lời nào và chưa có tệp nào. Trả lời ít nhất một câu ở tab Soạn thảo hoặc tải một tệp lên ở tab Tài liệu trước khi chấm."}
-              </Alert>
-            )}
-            {!blocked && missingMandatoryCount > 0 && (
-              <Alert color="yellow" title="Còn câu điều kiện chưa điền">
-                Bạn còn {missingMandatoryCount} câu điều kiện chưa trả lời. Bạn vẫn có thể gửi chấm, nhưng hội đồng có thể trừ điểm phần này.
-              </Alert>
-            )}
-
+            <AuditStepSources
+              isCp2={isCp2}
+              answeredCount={answeredCount}
+              fileCount={fileCount}
+              hasAnswers={hasAnswers}
+              hasFiles={hasFiles}
+              blocked={blocked}
+              missingMandatoryCount={missingMandatoryCount}
+              onGoFiles={onGoFiles ? handleGoFiles : undefined}
+            />
             <Group justify="flex-end" gap="xs">
-              <Button variant="default" onClick={handleClose} disabled={isLoading}>
-                Hủy
-              </Button>
-              <Button color="blue" disabled={blocked} onClick={() => setStep(2)}>
-                Tiếp tục
-              </Button>
+              <Button variant="default" onClick={handleClose} disabled={isLoading}>Hủy</Button>
+              <Button disabled={blocked} onClick={() => setStep(2)}>Tiếp tục</Button>
             </Group>
           </>
         )}
 
         {step === 2 && (
           <>
-            <Text size="sm" fw={600}>Bước 2/2: chọn cách chấm và xác nhận</Text>
-            {isCp2 && (
-              <Accordion variant="separated" radius="md" defaultValue="source">
-                <Accordion.Item value="source">
-                  <Accordion.Control>Chấm gì <Text span size="xs" c="dimmed">- {SOURCE_LABEL[source]}</Text></Accordion.Control>
-                  <Accordion.Panel>
-                    <Radio.Group value={source} onChange={(value) => setSourceOverride(value as Cp2InputSource)}>
-                      <Stack gap="xs">
-                        <Radio value="both" label="Cả câu trả lời và tài liệu" description="Đối chiếu lời trả lời với tệp bạn nộp" disabled={!sourceReady("both", scope)} />
-                        <Radio value="answers" label="Chỉ câu trả lời" description="Hợp khi chưa có tài liệu riêng" disabled={!sourceReady("answers", scope)} />
-                        <Radio value="files" label="Chỉ tài liệu" description="Hợp khi tài liệu đã chi tiết" disabled={!hasFiles} />
-                      </Stack>
-                    </Radio.Group>
-                  </Accordion.Panel>
-                </Accordion.Item>
-
-                <Accordion.Item value="scope">
-                  <Accordion.Control>Chấm tới đâu <Text span size="xs" c="dimmed">- {SCOPE_LABEL[scope]}</Text></Accordion.Control>
-                  <Accordion.Panel>
-                    <Radio.Group value={scope} onChange={handleScopeChange}>
-                      <Stack gap="xs">
-                        <Radio value="full" label="Toàn diện (Đề xuất)" description="Bảng hỏi, logic khảo sát và bằng chứng" disabled={!sourceReady(source, "full")} />
-                        <Radio value="questionnaire" label="Chỉ soát bảng hỏi" description="Cấu trúc câu hỏi khảo sát" disabled={!sourceReady(source, "questionnaire")} />
-                      </Stack>
-                    </Radio.Group>
-                  </Accordion.Panel>
-                </Accordion.Item>
-
-                <Accordion.Item value="kind">
-                  <Accordion.Control>Lần chấm này <Text span size="xs" c="dimmed">- {submissionType === "resubmit" ? "Chấm lại" : "Chấm mới"}</Text></Accordion.Control>
-                  <Accordion.Panel>
-                    <Radio.Group value={submissionType} onChange={(value) => setSubmissionTypeOverride(value as "initial" | "resubmit")}>
-                      <Stack gap="xs">
-                        <Radio value="initial" label="Chấm mới từ đầu" description="Không đối chiếu bản cũ" />
-                        <Radio value="resubmit" label="Chấm lại sau khi sửa" description={scope === "full" ? "Đối chiếu với kết quả lần trước" : "Chỉ có ở chấm toàn diện"} disabled={scope !== "full"} />
-                      </Stack>
-                    </Radio.Group>
-                    {submissionType === "resubmit" && (
-                      <Textarea
-                        mt="sm"
-                        label="Bạn đã sửa gì"
-                        placeholder="Ví dụ: phỏng vấn thêm 3 chuyên gia, tính lại SOM"
-                        value={changeSummary}
-                        onChange={(e) => setChangeSummary(e.currentTarget.value)}
-                        minRows={2}
-                        maxLength={5000}
-                      />
-                    )}
-                  </Accordion.Panel>
-                </Accordion.Item>
-
-                <Accordion.Item value="note">
-                  <Accordion.Control>Ghi chú thêm <Text span size="xs" c="dimmed">- {userNote.trim() ? "đã viết" : "không bắt buộc"}</Text></Accordion.Control>
-                  <Accordion.Panel>
-                    <Textarea
-                      placeholder="Ví dụ: soi kỹ phần SOM giúp mình"
-                      value={userNote}
-                      onChange={(e) => setUserNote(e.currentTarget.value)}
-                      minRows={2}
-                      maxLength={2000}
-                    />
-                  </Accordion.Panel>
-                </Accordion.Item>
-              </Accordion>
-            )}
-
-            {isCp2 && source === "answers" && !hasFiles && (
-              <Alert color="yellow" title="Chấm khi thiếu tệp">
-                Vẫn chấm được theo lời nhóm mô tả, nhưng các tiêu chí thiếu bằng chứng sẽ bị đánh giá thấp.
-              </Alert>
-            )}
-
-            <Group justify="space-between">
-              <Text size="sm">Chi phí:</Text>
-              <Text size="sm" fw={600} c="blue">
-                Tốn 1 lượt - còn lại {Math.max(creditsRemaining - 1, 0)} sau lần chấm này
-              </Text>
-            </Group>
-
+            <AuditStepOptions
+              isCp2={isCp2}
+              scope={scope}
+              source={source}
+              submissionType={submissionType}
+              hasFiles={hasFiles}
+              sourceReady={sourceReady}
+              changeSummary={changeSummary}
+              userNote={userNote}
+              creditsRemaining={creditsRemaining}
+              onSourceChange={setSourceOverride}
+              onScopeChange={handleScopeChange}
+              onKindChange={setSubmissionTypeOverride}
+              onChangeSummary={setChangeSummary}
+              onUserNote={setUserNote}
+            />
             <Group justify="space-between" gap="xs">
-              <Button variant="default" onClick={() => setStep(1)} disabled={isLoading}>
-                Quay lại
-              </Button>
+              <Button variant="default" onClick={() => setStep(1)} disabled={isLoading}>Quay lại</Button>
               <Group gap="xs">
-                <Button variant="default" onClick={handleClose} disabled={isLoading}>
-                  Hủy
-                </Button>
-                <Button
-                  color="blue"
-                  leftSection={<Sparkles size={16} />}
-                  loading={isLoading}
-                  disabled={!canConfirm}
-                  onClick={handleConfirm}
-                >
+                <Button variant="default" onClick={handleClose} disabled={isLoading}>Hủy</Button>
+                <Button leftSection={<Sparkles size={16} />} loading={isLoading} disabled={!canConfirm} onClick={handleConfirm}>
                   Bắt đầu chấm bài
                 </Button>
               </Group>

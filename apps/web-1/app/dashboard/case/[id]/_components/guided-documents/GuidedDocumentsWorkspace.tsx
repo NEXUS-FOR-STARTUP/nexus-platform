@@ -9,6 +9,7 @@ import {
   type FileTemplateKey,
   type TemplateKey,
 } from "@repo/validation";
+import { useGuidedDrafts } from "../../hooks/useGuidedDrafts";
 import GuidedDocumentsEditor from "./GuidedDocumentsEditor";
 import GuidedFileTemplateView from "./GuidedFileTemplateView";
 import GuidedTemplateGallery from "./GuidedTemplateGallery";
@@ -22,6 +23,7 @@ export default function GuidedDocumentsWorkspace({
 }: GuidedDocumentsWorkspaceProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const draftsApi = useGuidedDrafts(caseId);
   const rawTemplate = searchParams.get("template");
 
   // push (not replace) so the browser Back button returns to the gallery.
@@ -39,6 +41,7 @@ export default function GuidedDocumentsWorkspace({
         key={rawTemplate}
         caseId={caseId}
         templateKey={rawTemplate}
+        draftsApi={draftsApi}
         onBack={() => navigate(null)}
       />
     );

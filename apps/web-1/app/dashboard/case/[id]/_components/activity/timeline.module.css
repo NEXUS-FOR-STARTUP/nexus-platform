@@ -1,0 +1,68 @@
+.list {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-lg);
+}
+
+/* Structural spine of the timeline, not a decorative rule. */
+.list::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 1rem;
+  width: 1.5px;
+  background: var(--color-border-strong);
+}
+
+.item {
+  position: relative;
+  display: flex;
+  gap: var(--mantine-spacing-md);
+}
+
+.marker {
+  position: relative;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid;
+  border-radius: 50%;
+  background: var(--color-surface);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--mantine-spacing-xs);
+}
+
+.title {
+  font-size: var(--ui-text-body);
+  font-weight: var(--ui-weight-medium);
+}
+
+.note {
+  font-size: var(--ui-text-note);
+  font-weight: var(--ui-weight-regular);
+  color: var(--mantine-color-dimmed);
+}
+
+.count {
+  margin-left: var(--mantine-spacing-xs);
+  font-size: var(--ui-text-note);
+  color: var(--mantine-color-dimmed);
+}
+
+.dayLabel {
+  font-size: var(--ui-text-body);
+  font-weight: var(--ui-weight-medium);
+}
