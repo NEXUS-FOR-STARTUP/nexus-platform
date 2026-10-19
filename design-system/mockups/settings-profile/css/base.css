@@ -27,10 +27,10 @@ a:hover{text-decoration:underline}
 .side{position:sticky;top:56px;align-self:start;height:calc(100vh - 56px);overflow-y:auto;background:var(--surface);border-right:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:4px} /* sticky: the menu stays put while the page scrolls. taste-skill-ignore: web-1 surfaces (Mantine Paper withBorder) are bordered; the mockup mirrors the product. */
 .nav,.nav:hover{text-decoration:none}
 .nav{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;color:var(--ink);cursor:pointer;font-size:var(--t-body);font-weight:400}
-.nav .ic{stroke:var(--muted)}
+.nav .ic{color:var(--muted)}
 .nav:hover{background:var(--surface-2)}
 .nav.on{background:var(--brand-subtle);color:var(--brand);font-weight:500}
-.nav.on .ic{stroke:var(--brand)}
+.nav.on .ic{color:var(--brand)}
 .side .sp{flex:1}
 .main{padding:40px 48px 96px}
 .col{max-width:880px}

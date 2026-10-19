@@ -15,7 +15,7 @@ Tệp này ghi nhận toàn bộ quyết định thiết kế cho giao diện `h
 | `index.html` | Khung trang, cấu trúc DOM và thứ tự nạp script |
 | `css/base.css` | Hệ thống token (màu, khoảng cách, font, bề mặt), layout shell và nút bấm |
 | `css/views.css` | Style chuyên biệt cho avatar, vùng nguy hiểm và bảng quy ước |
-| `js/icons.js` | Tập hợp SVG icon Lucide inline dùng cho offline |
+| `js/icons.js` | Icon Phosphor inline (chuyển từ `@phosphor-icons/core` regular, mở được bằng `file://`) |
 | `js/data/user.js` | Dữ liệu phiên người dùng mẫu (session user) và cấu hình giới hạn avatar |
 | `js/app.js` | Điều hướng router theo query, quản lý ngăn kéo menu trên mobile |
 | `js/views/profile.js` | Màn hình Thông tin cơ bản: Avatar, Tên hiển thị, Email và tương tác lưu |

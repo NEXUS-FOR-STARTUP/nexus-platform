@@ -19,7 +19,7 @@ Tệp này ghi nhận toàn bộ quyết định thiết kế cho giao diện `h
 | `index.html` | Khung trang, cấu trúc DOM và thứ tự nạp script |
 | `css/base.css` | Hệ thống token (màu, font, khoảng cách), layout shell và nút bấm |
 | `css/views.css` | Style thẻ số dư, bảng giao dịch, chip trạng thái và hộp mã QR |
-| `js/icons.js` | Tập hợp SVG icon Lucide inline dùng cho offline |
+| `js/icons.js` | Icon Phosphor inline (chuyển từ `@phosphor-icons/core` regular, mở được bằng `file://`) |
 | `js/data/wallet.js` | Dữ liệu số dư ví mẫu, cấu hình mức nạp tối thiểu và thông tin ngân hàng |
 | `js/data/transactions.js` | Danh sách 6 giao dịch mẫu đầy đủ các loại (Nạp, Trừ ví, Hoàn tiền, Điều chỉnh) |
 | `js/data/deposits.js` | Danh sách 4 yêu cầu nạp tiền kèm minh chứng và trạng thái |

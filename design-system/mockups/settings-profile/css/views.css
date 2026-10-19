@@ -6,7 +6,7 @@
 
 .danger-box{background:var(--surface);border:1px solid rgba(239,68,68,.35);border-radius:8px;padding:24px 28px;margin-top:32px} /* taste-skill-ignore: danger box with border */
 .danger-head{display:flex;align-items:center;gap:8px;color:var(--err);font-weight:500;margin-bottom:8px}
-.danger-head .ic{stroke:var(--err)}
+.danger-head .ic{color:var(--err)}
 
 /* spec view */
 .spec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin:16px 0 32px}
