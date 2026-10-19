@@ -76,15 +76,15 @@ export default function ProfileInfoForm({ user, refetch, hideDangerZone = false 
                 />
               )}
             </form.Field>
-            {/* isDirty là sticky sau khi gõ-rồi-hoàn-tác; isDefaultValue so với giá trị gốc. */}
-            <form.Subscribe selector={(s) => s.isDefaultValue}>
-              {(isDefaultValue) => (
+            {/* So tên đã trim với tên đã lưu: không dùng isDirty (sticky) và không bật nút khi chỉ thêm khoảng trắng. */}
+            <form.Subscribe selector={(s) => s.values.name.trim() === (user.name ?? "")}>
+              {(unchanged) => (
                 <Button
                   type="submit"
                   color="brand"
                   size="sm"
                   className="self-start"
-                  disabled={isDefaultValue}
+                  disabled={unchanged}
                   loading={updateName.isPending}
                 >
                   Lưu thay đổi

@@ -1,13 +1,11 @@
-/* Global rule forces Paper border-color with !important; doubled class wins on specificity. */
-.card.card {
-  border: 1.5px solid var(--color-border) !important;
-  box-shadow: none;
+.card {
+  border: 1.5px solid var(--color-border);
   max-width: 32rem;
 }
 
+/* Global Paper rule sets border-color with !important; this one needs the same to differ. */
 .dangerCard.dangerCard {
   border: 1.5px solid color-mix(in srgb, var(--color-danger) 35%, transparent) !important;
-  box-shadow: none;
   max-width: 32rem;
 }
 

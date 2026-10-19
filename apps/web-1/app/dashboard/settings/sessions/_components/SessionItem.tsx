@@ -46,9 +46,9 @@ export function SessionItem({ session, onRevoke, isRevoking }: SessionItemProps)
   return (
     <Paper withBorder radius="md" p="md" className={classes.row}>
       <Group justify="space-between" align="center" wrap="nowrap" gap="md" w="100%">
-        <Group gap="md" align="center" wrap="nowrap">
+        <Group gap="md" align="center" wrap="nowrap" miw={0}>
           <div className={classes.iconBox}>{renderDeviceIcon()}</div>
-          <Stack gap={2}>
+          <Stack gap={2} miw={0}>
             <Group gap="xs" align="center">
               <Text className={classes.deviceName}>{deviceName}</Text>
               {session.isCurrent && <StatusChip tone="ok">Phiên hiện tại</StatusChip>}
