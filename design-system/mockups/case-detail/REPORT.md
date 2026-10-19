@@ -60,7 +60,8 @@ Tệp này gom mọi quyết định đã chốt trong quá trình làm mockup, 
 | Quan trọng | nhãn cam "Quan trọng" | `cp2_expert_interviews`, `cp2_survey`, `cp2_ai_disclosure` |
 
 - Luật khoá sinh từ catalog thật (49 câu), cùng thứ tự ưu tiên với hook thật: luật riêng của câu, rồi luật của phần cho câu đầu phần, rồi câu bắt buộc liền trước.
-- **Dòng dài**: các dòng có nhãn "Quan trọng" cho phép tên câu xuống 2 dòng, để nhãn không làm tên bị cắt vô nghĩa.
+- **Dòng dài**: dòng có nhãn "Quan trọng" xếp icon và tên câu thành 2 cột, nhãn nằm dòng riêng dưới tên (căn theo tên), tên tối đa 3 dòng. Nhãn không còn chiếm chỗ của tên nên tên không bị bẻ thành cột hẹp.
+- **Icon gợi ý**: mỗi mục trong "Gợi ý cho câu này" có icon trên nền màu nhạt (Cần nêu: xanh brand, Ví dụ: vàng, Tự kiểm tra: xanh lục, Đọc thêm: tím). Màu chỉ để phân biệt mục, không mang trạng thái.
 - **Cảnh báo còn ngắn** dưới ô trả lời: "Câu trả lời còn ngắn (N/10 từ). Viết thêm để AI có đủ căn cứ chấm." Tính theo lúc gõ, tắt khi đủ 10 từ.
 - **Lưu**: bấm Lưu cập nhật câu trả lời trong bộ nhớ và icon trong mục lục đổi theo (chỉ trong phiên xem, không lưu thật).
 - **Tự xác nhận (CP2)**: ba câu quan trọng có ô tick "Mục quan trọng khi chấm. Nhóm tự xác nhận, AI chấm sẽ đọc xác nhận này." Đây là checkbox duy nhất mang ý nghĩa, vì ở UI thật trạng thái này được lưu cùng câu trả lời và AI đọc khi chấm.

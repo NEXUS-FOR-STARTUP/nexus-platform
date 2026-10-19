@@ -34,7 +34,7 @@ function parseHint(text){
 }
 
 const checklist=items=>'<ul class="blt">'+items.map(t=>'<li>'+esc(t)+'</li>').join("")+'</ul>';
-const section=(icon,title,body)=>'<div class="hs"><h4>'+ic(icon,16)+title+'</h4>'+body+'</div>';
+const section=(icon,title,body)=>'<div class="hs hs-'+icon+'"><h4>'+ic(icon,16)+title+'</h4>'+body+'</div>';
 
 function hintHtml(q){
   const h=parseHint(q.explanation);
@@ -74,7 +74,7 @@ function renderQ(){
     (isCritical(q)?'<div class="selfbox"><label><input type="checkbox" id="selfc"'+(SELF[q.id]?' checked':'')+'><span>'+SELF_LABEL[q.id]+'</span></label><p class="note">Mục quan trọng khi chấm. Nhóm tự xác nhận, AI chấm sẽ đọc xác nhận này.</p></div>':"")+
     '<div class="foot"><span class="note" id="saved">'+(has(q)?"Đã lưu":"Chưa có câu trả lời")+'</span><div>'+
     '<button class="btn quiet" id="prev"'+(cur?'':' disabled')+'>'+ic("left")+'Câu trước</button>'+
-    '<button class="btn quiet" id="save-q" disabled>Lưu</button>'+
+    '<button class="btn" id="save-q" disabled>Lưu</button>'+
     '<button class="btn quiet" id="next"'+(nextOpen?'':' disabled')+'>Câu tiếp'+ic("right")+'</button></div></div>';
   $("#hintp").innerHTML=hintHtml(q);
   const ta=$("#q textarea");
