@@ -33,9 +33,6 @@ const FIELD_LABELS: Record<string, string> = {
 export default function IdeaMadLibsStep({ blanks, onChange, errors = {}, onBlur }: IdeaMadLibsStepProps) {
   return (
     <div className="space-y-4 py-1 sm:py-2">
-      <p className="font-body text-xs sm:text-sm text-text-muted">
-        Hoàn thành các câu bên dưới để định hình nhanh bài toán dự án đang giải quyết.
-      </p>
       {/* Main Pitch MadLibs paragraph */}
       <p className="font-body text-base sm:text-lg leading-relaxed sm:leading-loose text-text-app select-text break-words">
         {MADLIBS_TEMPLATE.map((item, idx) => {
