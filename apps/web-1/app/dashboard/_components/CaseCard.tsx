@@ -44,10 +44,10 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
 
   return (
     <Link href={`${hrefPrefix}/${item.id}`} className="block group">
-      <Card p="lg" radius="md" withBorder className="bg-surface-app group-hover:border-brand shadow-sm hover:shadow-md transition-all duration-200">
+      <Card p="lg" radius="lg" withBorder className="bg-surface-app group-hover:border-brand transition-colors duration-200">
         <div className="mb-4 space-y-2.5">
           {/* Row 1: case code */}
-          <span className="block text-xs font-semibold text-text-subtle uppercase font-body tracking-wider">
+          <span className="block text-sm font-medium text-text-subtle font-body">
             {item.case_code}
           </span>
           {/* Row 2: team name */}

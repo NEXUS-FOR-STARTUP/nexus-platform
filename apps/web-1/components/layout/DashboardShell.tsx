@@ -42,7 +42,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
   return (
     <div className="flex flex-col min-h-screen min-h-dvh bg-bg-app transition-colors duration-200">
       {/* Top Navbar */}
-      <nav className="border-b border-border-app bg-surface-app sticky top-0 z-40 h-16 flex items-center gap-4 px-4 sm:px-6 lg:px-8 shadow-sm">
+      <nav className="border-b border-border-app bg-surface-app sticky top-0 z-40 h-16 flex items-center gap-4 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-6 sm:gap-8 min-w-0">
           <Link href={getHomeLink()} className="flex items-center shrink-0">
             <Logo height={62} />
