@@ -12,11 +12,9 @@ import UserMenu from "./_components/UserMenu";
 
 interface DashboardShellProps {
   children: React.ReactNode;
-  /** Page gray (--color-surface-soft) behind the content, so every page of a section shares one background. */
-  softBackground?: boolean;
 }
 
-export default function DashboardShell({ children, softBackground = false }: DashboardShellProps) {
+export default function DashboardShell({ children }: DashboardShellProps) {
   const { data: sessionData, isPending } = useSession();
   const pathname = usePathname();
   const isNewsActive = pathname?.startsWith("/news");
@@ -75,7 +73,7 @@ export default function DashboardShell({ children, softBackground = false }: Das
       </nav>
 
       {/* Main Content */}
-      <main className={`flex-grow flex flex-col min-h-0 ${softBackground ? "bg-surface-soft" : ""}`}>{children}</main>
+      <main className="flex-grow flex flex-col min-h-0">{children}</main>
     </div>
   );
 }

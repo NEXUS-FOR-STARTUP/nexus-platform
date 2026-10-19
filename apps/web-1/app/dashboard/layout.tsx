@@ -46,5 +46,5 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return null;
   }
 
-  return <DashboardShell softBackground>{children}</DashboardShell>;
+  return <DashboardShell>{children}</DashboardShell>;
 }

@@ -20,7 +20,7 @@
   padding: 0 12px;
   border: 0;
   border-radius: 999px;
-  background: #e2e8f0;
+  background: #f1f5f9;
   color: #475569;
   font: inherit;
   font-size: var(--ui-text-note);
@@ -31,7 +31,7 @@
 }
 
 .codeChip:hover {
-  background: #cbd5e1;
+  background: #e2e8f0;
 }
 
 .codeChip:focus-visible {
