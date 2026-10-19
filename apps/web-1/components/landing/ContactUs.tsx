@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Mail, Phone } from "lucide-react";
+import { Envelope as Mail, Phone } from "@phosphor-icons/react/ssr";
 import { ZALO_GROUP_URL } from "@/lib/zalo";
 import base from "./landing.module.css";
 import s from "./landingSections.module.css";

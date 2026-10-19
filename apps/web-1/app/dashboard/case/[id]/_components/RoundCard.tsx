@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Download, ExternalLink, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import { DownloadSimple as Download, ArrowSquareOut as ExternalLink, FileText, CaretDown as ChevronDown, CaretUp as ChevronUp } from "@phosphor-icons/react";
 import { Button, Badge, LoadingOverlay } from "@mantine/core";
 import { useDownloadReportPdfById } from "../hooks/useDownloadReportPdf";
 import type { RoundHistoryEntry } from "@/types/case";

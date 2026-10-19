@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button, Group, Select, Text, Pagination, TextInput } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { Plus, Search, X } from 'lucide-react';
+import { Plus, MagnifyingGlass as Search, X } from "@phosphor-icons/react";
 import {
   useAdminNewsList,
   usePublishNewsItem,

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Title, Text, Stack, Skeleton } from '@mantine/core';
-import { MessageSquare } from 'lucide-react';
+import { Chat as MessageSquare } from "@phosphor-icons/react";
 import { useNewsComments } from '../hooks/useNewsComments';
 import { NewsCommentForm } from './NewsCommentForm';
 import { NewsCommentItem } from './NewsCommentItem';

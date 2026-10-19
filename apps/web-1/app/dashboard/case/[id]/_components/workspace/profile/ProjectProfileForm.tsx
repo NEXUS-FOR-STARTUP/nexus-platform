@@ -15,7 +15,7 @@ import {
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, FloppyDisk as Save } from "@phosphor-icons/react";
 import { apiClient } from "@/lib/api-client";
 import type { Case } from "@/types";
 

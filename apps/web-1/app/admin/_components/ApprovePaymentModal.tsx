@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { CheckCircle2, ShieldCheck, Loader2 } from "lucide-react";
+import { CheckCircle as CheckCircle2, ShieldCheck, CircleNotch as Loader2 } from "@phosphor-icons/react";
 import { Modal, Button } from "@mantine/core";
 
 interface ApprovePaymentModalProps {

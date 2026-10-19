@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ActionIcon, Tooltip } from "@mantine/core";
-import { MoreVertical } from "lucide-react";
+import { DotsThreeVertical as MoreVertical } from "@phosphor-icons/react";
 
 export function WalletRowDetailAction({ href }: { href: string | null }) {
   const icon = <MoreVertical className="h-4 w-4" />;

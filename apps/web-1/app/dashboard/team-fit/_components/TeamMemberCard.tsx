@@ -1,5 +1,5 @@
 import { TextInput, TagsInput, Select } from '@mantine/core';
-import { Trash2 } from 'lucide-react';
+import { Trash as Trash2 } from "@phosphor-icons/react/ssr";
 import {
   ROLE_TRACK_CODES,
   ROLE_TRACK_LABELS,

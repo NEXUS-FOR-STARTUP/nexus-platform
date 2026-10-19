@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Compass, CreditCard, History, Settings, LayoutDashboard, HelpCircle, ExternalLink } from "lucide-react";
+import { Compass, CreditCard, ClockCounterClockwise as History, Gear as Settings, SquaresFour as LayoutDashboard, Question as HelpCircle, ArrowSquareOut as ExternalLink } from "@phosphor-icons/react";
 import { ZALO_GROUP_URL } from "@/lib/zalo";
 import classes from "./JourneySidebar.module.css";
 

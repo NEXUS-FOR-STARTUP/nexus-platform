@@ -1,7 +1,7 @@
 'use client';
 
 import { Fragment } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { Warning as AlertTriangle } from "@phosphor-icons/react";
 import InlineBlank from './InlineBlank';
 
 type IdeaMadLibsStepProps = {

@@ -5,7 +5,7 @@
 import React, { useState } from "react";
 import { Alert, Button, Loader, Text, Textarea, TextInput } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { Download, Save } from "lucide-react";
+import { DownloadSimple as Download, FloppyDisk as Save } from "@phosphor-icons/react";
 import {
   FINANCE_MAX_PERIODS,
   checkFinancePlan,

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Avatar, Text, Group, Button, Badge, Modal, Menu, ActionIcon } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { MoreVertical, Trash2, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { DotsThreeVertical as MoreVertical, Trash as Trash2, ThumbsUp, ThumbsDown } from "@phosphor-icons/react";
 import { useSession } from '@/lib/auth-client';
 import type { NewsCommentItem as CommentType, NewsCommentReplyItem, NewsReactionType } from '@repo/validation';
 import { NewsCommentForm } from './NewsCommentForm';

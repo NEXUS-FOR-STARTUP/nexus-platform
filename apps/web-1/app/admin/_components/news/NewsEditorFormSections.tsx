@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { Stack, TextInput, Text, FileInput, SegmentedControl } from '@mantine/core';
-import { Upload, Video, Link2 } from 'lucide-react';
+import { UploadSimple as Upload, VideoCamera as Video, Link as Link2 } from "@phosphor-icons/react/ssr";
 
 interface YouTubePreviewSectionProps {
   value: string;

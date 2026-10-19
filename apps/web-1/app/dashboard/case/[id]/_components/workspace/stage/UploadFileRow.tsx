@@ -1,5 +1,5 @@
 import { ActionIcon, Group, Paper, Select, Stack, Text } from "@mantine/core";
-import { X } from "lucide-react";
+import { X } from "@phosphor-icons/react/ssr";
 import FileTypeIcon from "@/components/ui/FileTypeIcon";
 
 const BYTES_PER_MB = 1024 * 1024;

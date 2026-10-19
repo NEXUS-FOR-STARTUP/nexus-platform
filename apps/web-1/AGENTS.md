@@ -6,7 +6,7 @@ Breaking changes — APIs, conventions, file structure may differ from training 
 
 ## OVERVIEW
 
-Next.js 16 App Router product app. Mantine UI v9, TanStack Query v5 / Form v1, Lucide React, Tailwind CSS v4. 3 persona surfaces: student (mobile-responsive), admin (desktop-only), supporter (desktop-only).
+Next.js 16 App Router product app. Mantine UI v9, TanStack Query v5 / Form v1, Phosphor Icons (@phosphor-icons/react), Tailwind CSS v4. 3 persona surfaces: student (mobile-responsive), admin (desktop-only), supporter (desktop-only).
 
 ## STRUCTURE
 

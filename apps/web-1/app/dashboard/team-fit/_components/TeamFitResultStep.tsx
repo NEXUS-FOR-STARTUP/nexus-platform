@@ -1,6 +1,6 @@
 import type { TeamFitSavedResult } from "@repo/validation";
 import { TeamFitReportCard } from "./TeamFitReportCard";
-import { AlertTriangle, Check } from "lucide-react";
+import { Warning as AlertTriangle, Check } from "@phosphor-icons/react/ssr";
 import { Button, Group, Text } from "@mantine/core";
 
 interface TeamFitResultStepProps {

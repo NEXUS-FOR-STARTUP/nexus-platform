@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Modal, Button, Textarea } from "@mantine/core";
-import { HelpCircle, Loader2 } from "lucide-react";
+import { Question as HelpCircle, CircleNotch as Loader2 } from "@phosphor-icons/react";
 
 interface SupporterRequestInfoModalProps {
   isOpen: boolean;

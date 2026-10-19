@@ -8,7 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // import { TanStackDevtools } from "@tanstack/react-devtools";
 // import { formDevtoolsPlugin } from "@tanstack/react-form-devtools";
 import { Alert, createTheme, MantineProvider } from "@mantine/core";
-import { Info } from "lucide-react";
+import { Info } from "@phosphor-icons/react";
 import { Notifications } from "@mantine/notifications";
 
 const theme = createTheme({

@@ -1,5 +1,5 @@
 import { UnstyledButton } from "@mantine/core";
-import { Circle, CircleAlert, CircleCheck, ChevronRight, Lock } from "lucide-react";
+import { Circle, WarningCircle as CircleAlert, CheckCircle as CircleCheck, CaretRight as ChevronRight, Lock } from "@phosphor-icons/react/ssr";
 import { StatusChip } from "@/components/ui/StatusChip";
 import s from "./guided-toc.module.css";
 

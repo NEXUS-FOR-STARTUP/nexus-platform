@@ -12,7 +12,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Avatar } from '@mantine/core';
-import { Play, Newspaper } from 'lucide-react';
+import { Play, Newspaper } from "@phosphor-icons/react";
 import { getNewsCategoryName, type NewsItemPublicCard } from '@repo/validation';
 import { isOptimizedImageDomain } from '@/lib/image-utils';
 

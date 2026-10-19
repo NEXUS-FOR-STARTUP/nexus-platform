@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button, Group, LoadingOverlay, Text } from "@mantine/core";
-import { Download, ExternalLink } from "lucide-react";
+import { DownloadSimple as Download, ArrowSquareOut as ExternalLink } from "@phosphor-icons/react";
 import { useDownloadReportPdfById } from "../../../hooks/useDownloadReportPdf";
 import { formatDateShort, getReportPdfFilename } from "../../report.utils";
 import type { ResultRun } from "./result-runs";

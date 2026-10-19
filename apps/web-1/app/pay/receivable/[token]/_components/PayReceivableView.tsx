@@ -1,14 +1,14 @@
 "use client";
 
 import { Alert } from "@mantine/core";
-import { CheckCircle2, Clock, XCircle } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { CheckCircle as CheckCircle2, Clock, XCircle } from "@phosphor-icons/react";
+import { type Icon } from "@phosphor-icons/react";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { getReceivableDisplay } from "@/lib/deposit-display";
 import { isNotFoundError, usePublicReceivable } from "@/hooks/usePublicReceivable";
 import { PaymentView } from "@/app/dashboard/payment/_components/PaymentView";
 
-const STATUS_ICONS: Record<string, LucideIcon> = {
+const STATUS_ICONS: Record<string, Icon> = {
   settled: CheckCircle2,
   written_off: XCircle,
 };

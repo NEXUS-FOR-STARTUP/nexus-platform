@@ -1,7 +1,7 @@
 "use client";
 
 import { Anchor, Button, Table, Text, Tooltip, Group } from "@mantine/core";
-import { Download, Trash2 } from "lucide-react";
+import { DownloadSimple as Download, Trash as Trash2 } from "@phosphor-icons/react";
 import FileTypeIcon from "@/components/ui/FileTypeIcon";
 import {
   DocumentRow,

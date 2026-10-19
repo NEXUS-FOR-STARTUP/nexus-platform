@@ -4,7 +4,7 @@ import React, { useRef, useState } from "react";
 import { isAxiosError } from "axios";
 import { Case } from "@/types";
 import { useCaseDetails } from "../hooks/useCaseDetails";
-import { Save, Loader2 } from "lucide-react";
+import { FloppyDisk as Save, CircleNotch as Loader2 } from "@phosphor-icons/react";
 import { Button, Stack, Text } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useSearchParams } from "next/navigation";

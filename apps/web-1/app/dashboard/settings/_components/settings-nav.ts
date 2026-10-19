@@ -1,9 +1,10 @@
-import { User, KeyRound, MonitorSmartphone, Bell, type LucideIcon } from "lucide-react";
+import { type Icon } from "@phosphor-icons/react";
+import { User, Key as KeyRound, Devices as MonitorSmartphone, Bell } from "@phosphor-icons/react/ssr";
 
 export interface SettingsNavItem {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon: Icon;
 }
 
 const SETTINGS_NAV_SUB_ITEMS = [
@@ -11,7 +12,7 @@ const SETTINGS_NAV_SUB_ITEMS = [
   { href: "/password", label: "Đổi mật khẩu", icon: KeyRound },
   { href: "/sessions", label: "Thiết bị & Phiên đăng nhập", icon: MonitorSmartphone },
   { href: "/notifications", label: "Cài đặt thông báo", icon: Bell },
-] satisfies { href: string; label: string; icon: LucideIcon }[];
+] satisfies { href: string; label: string; icon: Icon }[];
 
 export function getSettingsNav(basePath: string): SettingsNavItem[] {
   return SETTINGS_NAV_SUB_ITEMS.filter(

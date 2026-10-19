@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check } from "@phosphor-icons/react/ssr";
 import { PACKAGE_KEYS, formatPrice } from "@/lib/pricing";
 import base from "./landing.module.css";
 import s from "./landingSections.module.css";

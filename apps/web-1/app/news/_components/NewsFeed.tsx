@@ -1,7 +1,7 @@
 'use client';
 
 import { TextInput, Button, ActionIcon, Badge, Text, Container } from '@mantine/core';
-import { Search, X, SlidersHorizontal } from 'lucide-react';
+import { MagnifyingGlass as Search, X, SlidersHorizontal } from "@phosphor-icons/react";
 import { NewsCard } from './NewsCard';
 import { FeaturedCard } from './FeaturedCard';
 import { NewsFilterModal } from './NewsFilterModal';

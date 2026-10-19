@@ -1,7 +1,7 @@
 "use client";
 
 import { Alert, Button, List } from "@mantine/core";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@phosphor-icons/react";
 
 interface OverviewIdeaGuideAlertProps {
   onOpenStage: (slug: string, view: "draft" | "files" | "results") => void;

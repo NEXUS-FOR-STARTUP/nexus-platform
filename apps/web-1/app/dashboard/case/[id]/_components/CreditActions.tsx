@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Clock } from "lucide-react";
+import { Clock } from "@phosphor-icons/react";
 import { Button } from "@mantine/core";
 import RainbowBuyButton from "@/components/ui/RainbowBuyButton";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Group, Paper, Stack, Text } from "@mantine/core";
-import { Lock } from "lucide-react";
+import { Lock } from "@phosphor-icons/react";
 import { StatusChip } from "@/components/ui/StatusChip";
 import type { StageStatus } from "../../hooks/useStageSummaries";
 import { STAGE_STATUS } from "./stage-status";

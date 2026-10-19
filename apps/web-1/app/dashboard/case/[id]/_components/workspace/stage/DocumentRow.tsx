@@ -1,5 +1,5 @@
 import { ActionIcon, Anchor, Group, Stack, Text } from "@mantine/core";
-import { Download, Trash2 } from "lucide-react";
+import { DownloadSimple as Download, Trash as Trash2 } from "@phosphor-icons/react/ssr";
 import FileTypeIcon from "@/components/ui/FileTypeIcon";
 import { StatusChip } from "@/components/ui/StatusChip";
 import { formatDate, type DocumentRow as DocumentRowData } from "../../documents/document-workspace.types";

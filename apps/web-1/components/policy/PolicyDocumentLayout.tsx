@@ -9,7 +9,7 @@ import {
   Anchor,
   Divider,
 } from "@mantine/core";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "@phosphor-icons/react";
 import AppShell from "@/components/layout/AppShell";
 
 export interface TOCItem {

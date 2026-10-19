@@ -2,7 +2,7 @@
 
 import { useRef, type ReactNode } from "react";
 import { Accordion } from "@mantine/core";
-import { ChevronDown } from "lucide-react";
+import { CaretDown as ChevronDown } from "@phosphor-icons/react";
 import s from "./expandable-list.module.css";
 
 export interface ExpandableItem {

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Alert, Button, Group, Modal, Stack, Text } from "@mantine/core";
 import { Dropzone, type FileRejection } from "@mantine/dropzone";
 import { notifications } from "@mantine/notifications";
-import { AlertCircle, UploadCloud } from "lucide-react";
+import { WarningCircle as AlertCircle, CloudArrowUp as UploadCloud } from "@phosphor-icons/react";
 import { DOCUMENT_CATEGORY_CODES, docCategoryLabel } from "@repo/validation";
 import type { StageCode } from "@app/shared/stages";
 import { useStageDocumentUpload } from "../../../hooks/useStageDocumentUpload";

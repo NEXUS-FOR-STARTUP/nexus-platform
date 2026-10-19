@@ -14,7 +14,7 @@ import {
   Group,
   Select,
 } from "@mantine/core";
-import { ExternalLink, Image as ImageIcon, FileText } from "lucide-react";
+import { ArrowSquareOut as ExternalLink, Image as ImageIcon, FileText } from "@phosphor-icons/react";
 import { useMyDeposits } from "../hooks/useWallet";
 import { depositDetailHref } from "@/lib/deposit-display";
 import { WalletRowDetailAction } from "./WalletRowDetailAction";

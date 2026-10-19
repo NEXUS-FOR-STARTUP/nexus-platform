@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button, Text } from "@mantine/core";
-import { Plus } from "lucide-react";
+import { Plus } from "@phosphor-icons/react";
 import { STAGES, type StageDefinition } from "@app/shared/stages";
 import type { CreditBalances } from "@/lib/credit-balances";
 import { useServiceCatalog, filterPackagesByService } from "@/hooks/useServiceCatalog";

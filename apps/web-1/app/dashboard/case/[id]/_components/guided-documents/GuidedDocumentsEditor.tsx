@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { Button, Loader } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 // UploadCloud tạm ẩn cùng nút nhập file
-import { ChevronLeft } from "lucide-react";
+import { CaretLeft as ChevronLeft } from "@phosphor-icons/react";
 import { QUESTION_REGISTRY, type Question, type TemplateKey } from "@repo/validation";
 import { useGuidedDocuments } from "../../hooks/useGuidedDocuments";
 import type { useGuidedDrafts } from "../../hooks/useGuidedDrafts";

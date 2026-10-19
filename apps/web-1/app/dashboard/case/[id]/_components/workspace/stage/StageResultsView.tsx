@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Accordion, Button, Paper, Stack, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { FileCheck } from "lucide-react";
+import { FileText as FileCheck } from "@phosphor-icons/react";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
 import type { RoundHistoryEntry } from "@/types";
 import { formatDateShort } from "../../report.utils";

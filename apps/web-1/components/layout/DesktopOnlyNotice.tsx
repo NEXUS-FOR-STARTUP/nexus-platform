@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Monitor, ArrowLeft, LogOut, Laptop } from "lucide-react";
+import { Monitor, ArrowLeft, SignOut as LogOut, Laptop } from "@phosphor-icons/react";
 import { Button } from "@mantine/core";
 import { signOut } from "@/lib/auth-client";
 import Logo from "../ui/Logo";

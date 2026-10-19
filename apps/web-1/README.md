@@ -1,13 +1,13 @@
 # Web-1
 
-Next.js 16 product app. Mantine UI v9, TanStack Query v5 / Form v1, Lucide React, Tailwind CSS v4. 3 persona surfaces: student, admin, supporter.
+Next.js 16 product app. Mantine UI v9, TanStack Query v5 / Form v1, Phosphor Icons (@phosphor-icons/react), Tailwind CSS v4. 3 persona surfaces: student, admin, supporter.
 
 ## Tech Stack
 
 - **Framework:** Next.js 16 (App Router)
 - **UI:** Mantine UI v9, Tailwind CSS v4
 - **State:** TanStack Query v5, TanStack Form v1
-- **Icons:** Lucide React
+- **Icons:** Phosphor Icons (`@phosphor-icons/react`)
 - **Auth:** Better Auth client (`better-auth/react`)
 - **Charts:** Recharts (via @mantine/charts)
 - **Editor:** TipTap (@mantine/tiptap)

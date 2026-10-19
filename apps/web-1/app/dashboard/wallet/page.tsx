@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button, Tabs } from "@mantine/core";
-import { Plus } from "lucide-react";
+import { Plus } from "@phosphor-icons/react";
 import { WalletBalanceCard } from "./_components/WalletBalanceCard";
 import { WalletTransactionList } from "./_components/WalletTransactionList";
 import { WalletProofTable } from "./_components/WalletProofTable";

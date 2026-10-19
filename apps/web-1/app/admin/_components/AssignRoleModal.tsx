@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "@phosphor-icons/react";
 import { Modal, Button, Select, Text, Badge, Alert } from "@mantine/core";
 
 interface AssignRoleModalProps {

@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
   FileText,
-  Trash2,
-  ExternalLink,
-  Search,
-  MoreVertical,
-} from "lucide-react";
+  Trash as Trash2,
+  ArrowSquareOut as ExternalLink,
+  MagnifyingGlass as Search,
+  DotsThreeVertical as MoreVertical,
+} from "@phosphor-icons/react/ssr";
 import {
   Table,
   ActionIcon,

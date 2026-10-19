@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Popover } from "@mantine/core";
-import { ClipboardCheck } from "lucide-react";
+import { ClipboardText as ClipboardCheck } from "@phosphor-icons/react";
 import type { Template } from "@repo/validation";
 import { useCp2Readiness } from "../../hooks/useCp2Readiness";
 import Cp2AuditActions from "./Cp2AuditActions";

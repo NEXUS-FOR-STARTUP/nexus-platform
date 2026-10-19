@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Tooltip, UnstyledButton } from "@mantine/core";
-import { FileText, MessageCircle, History, Settings, CreditCard, Info, Award, ChevronLeft, ChevronRight, FileEdit } from "lucide-react";
+import { FileText, ChatCircle as MessageCircle, ClockCounterClockwise as History, Gear as Settings, CreditCard, Info, Medal as Award, CaretLeft as ChevronLeft, CaretRight as ChevronRight, NotePencil as FileEdit } from "@phosphor-icons/react";
 import classes from "../../../../../components/layout/DoubleNavbar.module.css";
 
 export type WorkspaceTab = "overview" | "guided" | "documents" | "report" | "discussion" | "timeline" | "settings" | "credits";
@@ -45,7 +45,7 @@ export default function WorkspaceSidebar({
       icon: FileEdit,
     },
     // DEPRECATED (2026-10-10): Finance tab hidden, replaced by the FINANCE TEMPLATE in the guided-documents gallery.
-    // Re-enable with the "finance" tab id, the Calculator icon from lucide-react and the page.tsx wiring.
+    // Re-enable with the "finance" tab id, the Calculator icon from @phosphor-icons/react and the page.tsx wiring.
     // {
     //   id: "finance" as const,
     //   label: "Tài chính",

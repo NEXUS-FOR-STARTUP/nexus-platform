@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Terminal } from "lucide-react";
+import { CaretDown as ChevronDown, Terminal } from "@phosphor-icons/react";
 import type { LogEntry } from "../hooks/useCaseAiStatus";
 
 interface RadarLogsViewerProps {

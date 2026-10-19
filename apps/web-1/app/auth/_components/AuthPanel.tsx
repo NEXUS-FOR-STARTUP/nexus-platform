@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { AlertCircle } from "lucide-react";
+import { WarningCircle as AlertCircle } from "@phosphor-icons/react";
 import { getAuthRedirectUrl } from "../get-auth-redirect";
 import { useEmailOtpLogin } from "../hooks/use-email-otp-login";
 import { useEmailPasswordLogin } from "../hooks/use-email-password-login";

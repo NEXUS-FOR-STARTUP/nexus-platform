@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Ban, AlertCircle } from "lucide-react";
+import { Prohibit as Ban, WarningCircle as AlertCircle } from "@phosphor-icons/react";
 import { Modal, Button, Textarea, Text } from "@mantine/core";
 
 interface BanUserModalProps {

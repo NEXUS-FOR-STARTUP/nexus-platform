@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CircleCheck } from "lucide-react";
+import { ArrowRight, CheckCircle as CircleCheck } from "@phosphor-icons/react/ssr";
 import HeroVideo from "./HeroVideo";
 import { LandingQuestionCards } from "./LandingQuestionCards";
 import { HERO_CTA_ID } from "./landingConstants";

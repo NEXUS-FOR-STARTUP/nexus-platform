@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Case } from "@/types";
 import { studentStatusThemeMap } from "@/types";
-import { Clock, Users, Calendar, AlertCircle } from "lucide-react";
+import { Clock, Users, Calendar, WarningCircle as AlertCircle } from "@phosphor-icons/react";
 import { useSession } from "@/lib/auth-client";
 import { Tooltip } from "@mantine/core";
 import type { WorkspaceTab } from "./WorkspaceSidebar";

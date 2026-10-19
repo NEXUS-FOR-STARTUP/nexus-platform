@@ -1,7 +1,7 @@
 "use client";
 
 import { Select, TextInput } from "@mantine/core";
-import { Search } from "lucide-react";
+import { MagnifyingGlass as Search } from "@phosphor-icons/react";
 
 export const SUPPORTER_STATUS_OPTIONS = [
   { value: "assigned", label: "Đã phân công" },

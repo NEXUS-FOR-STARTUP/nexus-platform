@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Case } from "@/types";
-import { AlertCircle, ArrowRight, Upload } from "lucide-react";
+import { WarningCircle as AlertCircle, ArrowRight, UploadSimple as Upload } from "@phosphor-icons/react";
 import { Alert, Button, Group, Modal, Select, Stack, Textarea } from "@mantine/core";
 import { Dropzone, type FileRejection } from "@mantine/dropzone";
 import {

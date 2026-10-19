@@ -1,7 +1,7 @@
 "use client";
 
 import { ActionIcon, CopyButton, Tooltip } from "@mantine/core";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy } from "@phosphor-icons/react";
 
 const COPIED_RESET_MS = 1500;
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Modal, Button, Textarea, Group, Stack, Text, Alert } from "@mantine/core";
-import { Wrench } from "lucide-react";
+import { Wrench } from "@phosphor-icons/react";
 import type { AdminWorkerJobListItem } from "../hooks/useAdminWorkers";
 
 interface HealStuckJobModalProps {

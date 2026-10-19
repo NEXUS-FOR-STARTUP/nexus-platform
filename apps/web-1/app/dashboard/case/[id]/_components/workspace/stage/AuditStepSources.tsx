@@ -1,7 +1,7 @@
 "use client";
 
 import { Alert, Button, Group, Stack, Text, ThemeIcon } from "@mantine/core";
-import { Check, Minus } from "lucide-react";
+import { Check, Minus } from "@phosphor-icons/react";
 
 interface AuditStepSourcesProps {
   isCp2: boolean;

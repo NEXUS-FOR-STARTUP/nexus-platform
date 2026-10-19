@@ -70,7 +70,7 @@ _Cập nhật: 2026-10-04_
 - Credit/ledger economy là core (CreditPanel/CreditQuantityModal/CreditTransactionHistory/CreditBalanceCard + sepay webhook); không để credit lấn narrative chính của audit/review flow.
 - Data fetching: TanStack Query + Axios. Không dùng Redux/Zustand — server state qua query.
 - Forms: TanStack Form everywhere.
-- Icons: Lucide React, không dùng Mantine icons.
+- Icons: Phosphor Icons (@phosphor-icons/react), không dùng Mantine icons.
 
 ## Testing standards
 

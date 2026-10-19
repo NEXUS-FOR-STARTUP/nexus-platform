@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { AlertCircle, Coins } from "lucide-react";
+import { WarningCircle as AlertCircle, Coins } from "@phosphor-icons/react";
 import { Button } from "@mantine/core";
 
 interface UnpaidAlertBannerProps {

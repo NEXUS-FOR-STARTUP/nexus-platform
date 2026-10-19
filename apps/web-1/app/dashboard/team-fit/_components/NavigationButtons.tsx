@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@mantine/core";
-import { ArrowLeft, ArrowRight, Sparkles, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkle as Sparkles, ArrowCounterClockwise as RotateCcw } from "@phosphor-icons/react";
 
 interface NavigationButtonsProps {
   currentStep: 0 | 1 | 2;

@@ -2,7 +2,7 @@
 
 import { useDisclosure } from "@mantine/hooks";
 import { Alert, Button, Group, Skeleton, Stack, Text } from "@mantine/core";
-import { AlertCircle, LogOut, RefreshCw } from "lucide-react";
+import { WarningCircle as AlertCircle, SignOut as LogOut, ArrowsClockwise as RefreshCw } from "@phosphor-icons/react";
 import { useActiveSessionsQuery } from "../../hooks/useSessionQueries";
 import { useSessionMutations } from "../../hooks/useSessionMutations";
 import { SessionItem } from "./SessionItem";

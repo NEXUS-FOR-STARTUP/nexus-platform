@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@phosphor-icons/react";
 import base from "./landing.module.css";
 import s from "./landingHero.module.css";
 import { HERO_CTA_ID } from "./landingConstants";

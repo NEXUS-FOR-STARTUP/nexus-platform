@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Modal, Button, Textarea } from "@mantine/core";
 import { Dropzone, type FileRejection } from "@mantine/dropzone";
 import { notifications } from "@mantine/notifications";
-import { Send, AlertCircle, UploadCloud, X, CheckCircle2 } from "lucide-react";
+import { PaperPlaneTilt as Send, WarningCircle as AlertCircle, CloudArrowUp as UploadCloud, X, CheckCircle as CheckCircle2 } from "@phosphor-icons/react";
 import FileTypeIcon from "@/components/ui/FileTypeIcon";
 import { useStudentDocumentUpload } from "../hooks/useCaseDocumentUploads";
 

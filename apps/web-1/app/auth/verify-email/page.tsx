@@ -9,7 +9,7 @@
 import React, { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertCircle, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
+import { WarningCircle as AlertCircle, ArrowLeft, CheckCircle as CheckCircle2, CircleNotch as Loader2 } from "@phosphor-icons/react";
 import { Anchor, Box, Button, Center, Group, Loader, PinInput, Text, Title } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { authClient } from "@/lib/auth-client";

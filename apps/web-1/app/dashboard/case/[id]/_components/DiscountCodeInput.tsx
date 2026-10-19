@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button, Group, Text, TextInput } from "@mantine/core";
-import { Tag, X } from "lucide-react";
+import { Tag, X } from "@phosphor-icons/react";
 import type { DiscountCodeCheckResult } from "@repo/validation";
 import { useCheckDiscountCode } from "./use-check-discount-code";
 

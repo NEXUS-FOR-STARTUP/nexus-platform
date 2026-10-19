@@ -6,7 +6,7 @@ Monorepo cho `apps/api`, `apps/web-1`, và shared `packages/*`. Nền tảng wor
 
 - **Frontend:** Next.js 16.2.0, React 19.2.0, Mantine UI v9 (`@mantine/core`, `@mantine/hooks`, `@mantine/charts`, `@mantine/tiptap`, `@mantine/notifications`, `@mantine/dropzone`...)
 - **TanStack:** Query v5, Form v1, Virtual v3
-- **UI:** Lucide React (icons), Recharts (charts), TipTap (editor)
+- **UI:** Phosphor Icons (`@phosphor-icons/react`), Recharts (charts), TipTap (editor)
 - **Backend:** Hono 4.12, Better Auth 1.4 (email/password + Google OAuth), Vercel AI SDK (`@ai-sdk/google`), BullMQ + Redis
 - **Database:** Prisma 7 + PostgreSQL (PgBouncer adapter, 32 models, 31 migrations)
 - **Tooling:** TypeScript, Turborepo, Tailwind CSS v4, next-themes, dayjs, axios

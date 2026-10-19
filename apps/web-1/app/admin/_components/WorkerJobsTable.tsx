@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Table, Badge, ActionIcon, Tooltip, TextInput, Pagination, Group, Text, Paper, CopyButton } from "@mantine/core";
-import { Eye, RotateCcw, Wrench, Square, Search, AlertTriangle, Copy, Check } from "lucide-react";
+import { Eye, ArrowCounterClockwise as RotateCcw, Wrench, Square, MagnifyingGlass as Search, Warning as AlertTriangle, Copy, Check } from "@phosphor-icons/react";
 import type { AdminWorkerJobListItem } from "../hooks/useAdminWorkers";
 import { SUBMISSION_TYPE_DISPLAY_LABELS } from "@repo/validation";
 

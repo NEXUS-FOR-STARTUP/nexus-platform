@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { Anchor, Collapse, UnstyledButton } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { BookOpen, ChevronDown, ExternalLink, ListChecks } from "lucide-react";
+import { BookOpen, CaretDown as ChevronDown, ArrowSquareOut as ExternalLink, ListChecks } from "@phosphor-icons/react";
 import type { Question } from "@repo/validation";
 import { GUIDED_MOBILE_QUERY } from "../../hooks/useGuidedNavigation";
 import editor from "./guided-editor.module.css";

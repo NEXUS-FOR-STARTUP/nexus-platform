@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Collapse, UnstyledButton } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { ChevronDown } from "lucide-react";
+import { CaretDown as ChevronDown } from "@phosphor-icons/react";
 import { QUESTION_REGISTRY, type Question, type Template } from "@repo/validation";
 import { GUIDED_MOBILE_QUERY } from "../../hooks/useGuidedNavigation";
 import { isThinAnswer } from "./answer-quality";

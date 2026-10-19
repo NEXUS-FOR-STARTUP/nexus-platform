@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Compass, ArrowRight } from "lucide-react";
+import { Compass, ArrowRight } from "@phosphor-icons/react";
 
 export default function NotFound() {
   return (

@@ -2,7 +2,7 @@
 
 import { useForm } from "@tanstack/react-form";
 import { Button, Group, Paper, PasswordInput, Skeleton, Stack, Text, Tooltip } from "@mantine/core";
-import { Info } from "lucide-react";
+import { Info } from "@phosphor-icons/react";
 import {
   useHasPasswordQuery,
   usePasswordMutations,

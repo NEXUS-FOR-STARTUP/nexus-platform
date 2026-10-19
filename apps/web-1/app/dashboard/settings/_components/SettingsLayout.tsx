@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { Drawer } from "@mantine/core";
-import { Menu } from "lucide-react";
+import { List as Menu } from "@phosphor-icons/react";
 import SettingsSidebar from "./SettingsSidebar";
 import classes from "../settings.module.css";
 

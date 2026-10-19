@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Newspaper } from 'lucide-react';
+import { Newspaper } from "@phosphor-icons/react/ssr";
 import { Avatar } from '@mantine/core';
 import { getNewsCategoryName } from '@repo/validation';
 import { isOptimizedImageDomain } from '@/lib/image-utils';

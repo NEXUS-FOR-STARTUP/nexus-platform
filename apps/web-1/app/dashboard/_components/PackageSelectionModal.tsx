@@ -1,7 +1,7 @@
 "use client";
 
 import { Modal, Card, Text, Button, Stack, Badge, ThemeIcon, List, SimpleGrid } from "@mantine/core";
-import { Check } from "lucide-react";
+import { Check } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { PACKAGE_KEYS } from "@/lib/pricing";
 

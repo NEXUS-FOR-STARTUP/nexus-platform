@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Avatar, Button, Loader } from "@mantine/core";
-import { ImagePlus } from "lucide-react";
+import { ImageSquare as ImagePlus } from "@phosphor-icons/react";
 import { AVATAR_LIMIT_NOTE, getAvatarFileError } from "../../hooks/avatar-limits";
 import { useChangeAvatar } from "../../hooks/useChangeAvatar";
 import styles from "../profile.module.css";

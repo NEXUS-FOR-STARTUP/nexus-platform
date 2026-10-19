@@ -3,7 +3,7 @@
 import React from 'react';
 import { Group, Button, Text, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ThumbsUp, ThumbsDown } from "@phosphor-icons/react";
 import { useSession } from '@/lib/auth-client';
 import { useNewsReactions } from '../hooks/useNewsReactions';
 

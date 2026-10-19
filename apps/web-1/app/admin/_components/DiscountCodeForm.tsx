@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button, Group, NumberInput, Select, TextInput } from "@mantine/core";
-import { Plus } from "lucide-react";
+import { Plus } from "@phosphor-icons/react";
 import type { CreateDiscountCodeInput } from "@repo/validation";
 import type { DiscountServiceType } from "../hooks/useAdminDiscountCodes";
 

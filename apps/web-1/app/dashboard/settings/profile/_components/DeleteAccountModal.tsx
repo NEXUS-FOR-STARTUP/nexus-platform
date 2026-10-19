@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Modal, Stack, Text, TextInput, Button, Group } from "@mantine/core";
-import { Trash2, TriangleAlert } from "lucide-react";
+import { Trash as Trash2, Warning as TriangleAlert } from "@phosphor-icons/react";
 
 interface DeleteAccountModalProps {
   opened: boolean;

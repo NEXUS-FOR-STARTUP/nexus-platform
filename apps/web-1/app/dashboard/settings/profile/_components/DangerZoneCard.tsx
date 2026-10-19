@@ -2,7 +2,7 @@
 
 import { Button, Paper } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { Trash2, TriangleAlert } from "lucide-react";
+import { Trash as Trash2, Warning as TriangleAlert } from "@phosphor-icons/react";
 import { useDeleteAccount } from "../../hooks/useDeleteAccount";
 import styles from "../profile.module.css";
 import { DeleteAccountModal } from "./DeleteAccountModal";

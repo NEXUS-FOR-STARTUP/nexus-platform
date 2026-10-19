@@ -12,7 +12,7 @@ import Superscript from '@tiptap/extension-superscript';
 import ImageExtension from '@tiptap/extension-image';
 import { RichTextEditor } from '@mantine/tiptap';
 import { Skeleton } from '@mantine/core';
-import { Image as ImageIcon } from 'lucide-react';
+import { Image as ImageIcon } from "@phosphor-icons/react";
 import { NewsImageInsertModal } from './NewsImageInsertModal';
 
 interface NewsRichTextEditorProps {

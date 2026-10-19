@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Case } from "@/types";
-import { ExternalLink, FolderOpen, HelpCircle, Target, Users } from "lucide-react";
+import { ArrowSquareOut as ExternalLink, FolderOpen, Question as HelpCircle, Target, Users } from "@phosphor-icons/react";
 
 interface TabIdeaContentProps {
   caseData: Case;

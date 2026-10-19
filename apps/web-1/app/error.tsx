@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { AlertOctagon, RefreshCw } from "lucide-react";
+import { WarningOctagon as AlertOctagon, ArrowsClockwise as RefreshCw } from "@phosphor-icons/react";
 import { Button } from "@mantine/core";
 
 interface ErrorProps {

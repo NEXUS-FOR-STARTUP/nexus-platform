@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { List as Menu, X } from "@phosphor-icons/react";
 import { Stack, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import JourneySidebar, { type WorkspaceTabKey } from "./JourneySidebar";

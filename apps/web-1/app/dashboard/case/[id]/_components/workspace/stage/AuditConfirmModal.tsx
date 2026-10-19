@@ -2,7 +2,7 @@
 
 import { Modal, Stack, Button, Group } from "@mantine/core";
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkle as Sparkles } from "@phosphor-icons/react";
 import type { StageDefinition } from "@app/shared/stages";
 import type { Cp2InputSource } from "@app/shared";
 import type { StageSummary } from "../../../hooks/useStageSummaries";

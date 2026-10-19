@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Users } from "lucide-react";
+import { Users } from "@phosphor-icons/react";
 import { useDisclosure } from "@mantine/hooks";
 import { CreateProjectModal } from "./CreateProjectModal";
 

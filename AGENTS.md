@@ -7,7 +7,7 @@
 
 ## OVERVIEW
 
-Turborepo monorepo. Stack: Next.js 16, Hono, Better Auth, Prisma 7, Mantine UI v9, TanStack Query/Form/Virtual, Lucide React, Vercel AI SDK (@ai-sdk/google), BullMQ + Redis, shared `@repo/*` + `@app/*` packages.
+Turborepo monorepo. Stack: Next.js 16, Hono, Better Auth, Prisma 7, Mantine UI v9, TanStack Query/Form/Virtual, Phosphor Icons (@phosphor-icons/react), Vercel AI SDK (@ai-sdk/google), BullMQ + Redis, shared `@repo/*` + `@app/*` packages.
 
 ## STRUCTURE
 
@@ -62,7 +62,7 @@ root/
 - Tailwind CSS v4 + postcss-preset-mantine.
 - TanStack Query + Axios for data fetching (no Redux/Zustand).
 - TanStack Form for form state.
-- Lucide React for icons (not Mantine icons).
+- Phosphor Icons (@phosphor-icons/react) for icons (not Mantine icons).
 - Test: Node built-in runner (`node:test` + `node:assert`), only in apps/api.
 - CI/CD: see `docs/ci-guide.md`.
 - Docker build: see `docs/docker-build-push-guide.md`.
@@ -88,7 +88,7 @@ root/
 
 ## UNIQUE STYLES
 
-- `apps/web-1`: Mantine UI v9 + TanStack Form + Lucide React.
+- `apps/web-1`: Mantine UI v9 + TanStack Form + Phosphor Icons.
 - `apps/api`: Hono streaming helpers, Better Auth plugins, Vercel AI SDK for Google/OpenAI.
 - `packages/validation`: Zod schemas shared FE↔BE; single source of truth for entity types.
 

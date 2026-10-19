@@ -1,7 +1,7 @@
 "use client";
 
 import { Modal, Stack, Text, Button, Group } from "@mantine/core";
-import { AlertTriangle, LogOut } from "lucide-react";
+import { Warning as AlertTriangle, SignOut as LogOut } from "@phosphor-icons/react";
 
 interface RevokeOthersModalProps {
   opened: boolean;

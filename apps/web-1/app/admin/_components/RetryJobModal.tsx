@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Modal, Button, Select, TextInput, Radio, Group, Stack, Text, Switch, Alert } from "@mantine/core";
-import { RotateCcw, Sparkles } from "lucide-react";
+import { ArrowCounterClockwise as RotateCcw, Sparkle as Sparkles } from "@phosphor-icons/react";
 import type { AdminWorkerJobListItem, RetryJobPayload } from "../hooks/useAdminWorkers";
 
 interface RetryJobModalProps {

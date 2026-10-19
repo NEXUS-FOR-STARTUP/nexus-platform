@@ -1,7 +1,7 @@
 "use client";
 
 import { ActionIcon, Menu } from "@mantine/core";
-import { Download, Ellipsis, RefreshCw } from "lucide-react";
+import { DownloadSimple as Download, DotsThree as Ellipsis, ArrowsClockwise as RefreshCw } from "@phosphor-icons/react";
 import type { TemplateKey } from "@repo/validation";
 import { useGuidedDocuments } from "../../../hooks/useGuidedDocuments";
 

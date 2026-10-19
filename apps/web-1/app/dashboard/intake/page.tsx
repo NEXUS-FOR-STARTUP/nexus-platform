@@ -11,7 +11,7 @@ import { IntakeStep, IntakeData } from "./_types/intake.types";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import Link from "next/link";
 import { Modal, Button, Alert } from "@mantine/core";
-import { Trash2, AlertTriangle } from "lucide-react";
+import { Trash as Trash2, Warning as AlertTriangle } from "@phosphor-icons/react";
 import { apiClient } from "@/lib/api-client";
 import DemoDataFAB from "@/components/ui/DemoDataFAB";
 import { DEMO_PRESETS } from "./_data/demo-presets";

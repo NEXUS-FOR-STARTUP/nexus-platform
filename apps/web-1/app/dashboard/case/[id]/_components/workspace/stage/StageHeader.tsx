@@ -1,7 +1,7 @@
 "use client";
 
 import { Anchor, Breadcrumbs, Button, Group, Stack, Text } from "@mantine/core";
-import { Sparkles } from "lucide-react";
+import { Sparkle as Sparkles } from "@phosphor-icons/react";
 import BuyButton from "@/components/ui/BuyButton";
 import { StatusChip } from "@/components/ui/StatusChip";
 import type { StageDefinition } from "@app/shared/stages";

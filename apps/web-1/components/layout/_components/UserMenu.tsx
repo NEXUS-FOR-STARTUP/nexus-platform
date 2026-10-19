@@ -7,20 +7,20 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Avatar, Popover } from "@mantine/core";
 import {
   CreditCard,
-  HandCoins,
-  Home,
-  LogOut,
+  Coins as HandCoins,
+  House as Home,
+  SignOut as LogOut,
   Newspaper,
-  Settings,
-  type LucideIcon,
-} from "lucide-react";
+  Gear as Settings,
+  type Icon,
+} from "@phosphor-icons/react";
 import { useWalletBalance } from "@/app/dashboard/wallet/hooks/useWallet";
 import { useReceivableSystemAccount } from "@/app/admin/hooks/useReceivableCaseOptions";
 
 type UserMenuOption = {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon: Icon;
 };
 
 export default function UserMenu() {

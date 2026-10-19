@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { Loader } from "@mantine/core";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "@phosphor-icons/react/ssr";
 import base from "../landing/landing.module.css";
 import s from "./authShell.module.css";
 

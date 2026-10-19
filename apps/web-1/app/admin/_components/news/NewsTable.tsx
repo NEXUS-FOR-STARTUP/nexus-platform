@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Table, Badge, Menu, ActionIcon, Text } from '@mantine/core';
 import { NewsTableModals } from './NewsTableModals';
-import { MoreVertical, Edit, Send, Undo2, Trash2, Video, Newspaper } from 'lucide-react';
+import { DotsThreeVertical as MoreVertical, PencilSimple as Edit, PaperPlaneTilt as Send, ArrowUUpLeft as Undo2, Trash as Trash2, VideoCamera as Video, Newspaper } from "@phosphor-icons/react/ssr";
 import { getNewsCategoryName, type NewsItemAdmin } from '@repo/validation';
 import { isOptimizedImageDomain } from '@/lib/image-utils';
 

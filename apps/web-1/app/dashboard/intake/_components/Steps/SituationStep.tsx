@@ -1,7 +1,7 @@
 "use client";
 
 import { Alert, Text, Textarea, Tooltip } from "@mantine/core";
-import { HelpCircle } from "lucide-react";
+import { Question as HelpCircle } from "@phosphor-icons/react";
 
 const BLOCKER_MAX = 20000;
 

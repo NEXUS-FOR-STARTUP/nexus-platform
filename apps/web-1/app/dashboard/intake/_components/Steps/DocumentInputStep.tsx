@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import { Alert, Button, Tooltip, Text, Badge, ActionIcon, Paper, Group, Select, Stack } from "@mantine/core";
-import { HelpCircle, Copy, Download, Upload, X, FileText } from "lucide-react";
+import { Question as HelpCircle, Copy, DownloadSimple as Download, UploadSimple as Upload, X, FileText } from "@phosphor-icons/react";
 import { DOCUMENT_CATEGORY_CODES, docCategoryLabel } from "@repo/validation";
 import { apiClient } from "@/lib/api-client";
 import { IntakeDocument } from "../../_types/intake.types";

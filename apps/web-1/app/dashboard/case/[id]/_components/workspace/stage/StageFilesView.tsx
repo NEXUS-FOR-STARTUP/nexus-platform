@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Alert, Button, Group, Modal, Paper, Stack, Text } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { isAxiosError } from "axios";
-import { Upload } from "lucide-react";
+import { UploadSimple as Upload } from "@phosphor-icons/react";
 import type { StageCode } from "@app/shared/stages";
 import type { DocumentWorkspace } from "@/types";
 import { useStageDocumentDelete } from "../../../hooks/useStageDocumentDelete";

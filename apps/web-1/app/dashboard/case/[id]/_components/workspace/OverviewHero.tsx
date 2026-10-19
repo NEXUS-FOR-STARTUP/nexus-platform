@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Paper, Stack, Text } from "@mantine/core";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@phosphor-icons/react";
 import type { NextAction } from "../../hooks/useNextActions";
 import s from "./overview.module.css";
 

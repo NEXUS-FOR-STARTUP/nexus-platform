@@ -1,6 +1,6 @@
 "use client";
 
-import { Wallet } from "lucide-react";
+import { Wallet } from "@phosphor-icons/react";
 import { Skeleton } from "@mantine/core";
 import { useWalletBalance } from "../hooks/useWallet";
 

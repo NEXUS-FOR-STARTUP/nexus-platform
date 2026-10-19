@@ -1,11 +1,12 @@
-import { ChartLine, Landmark, Layers, Lightbulb, type LucideIcon } from "lucide-react";
+import { type Icon } from "@phosphor-icons/react";
+import { ChartLine, Bank as Landmark, Stack as Layers, Lightbulb } from "@phosphor-icons/react/ssr";
 import base from "./landing.module.css";
 import s from "./landingSections.module.css";
 
 interface Stage {
   title: string;
   text?: string;
-  Icon: LucideIcon;
+  Icon: Icon;
   numClass: string;
   soon?: boolean;
 }

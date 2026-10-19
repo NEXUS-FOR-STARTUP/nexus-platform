@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Checkbox, Tooltip, Alert } from "@mantine/core";
-import { HelpCircle } from "lucide-react";
+import { Question as HelpCircle } from "@phosphor-icons/react";
 
 interface BoundaryStepProps {
   form: any;

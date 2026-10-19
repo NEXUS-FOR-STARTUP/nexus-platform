@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Group, Paper, Stack, Text } from "@mantine/core";
-import { Laptop, Smartphone, Tablet, Globe, LogOut } from "lucide-react";
+import { Laptop, DeviceMobile as Smartphone, DeviceTablet as Tablet, Globe, SignOut as LogOut } from "@phosphor-icons/react";
 import type { ActiveSessionDto } from "@repo/validation";
 import { StatusChip } from "@/components/ui/StatusChip";
 import { parseUserAgent, formatIpAddress } from "@/lib/utils/ua-parser";

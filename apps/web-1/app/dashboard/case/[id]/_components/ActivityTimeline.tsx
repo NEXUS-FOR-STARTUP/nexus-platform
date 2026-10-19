@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Accordion, Stack, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { Clock } from "lucide-react";
+import { Clock } from "@phosphor-icons/react";
 import type { Case } from "@/types";
 import { groupEventsByDay } from "./activity/activity-groups";
 import TimelineDayGroup from "./activity/TimelineDayGroup";

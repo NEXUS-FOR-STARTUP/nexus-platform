@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus } from 'lucide-react';
+import { Plus } from "@phosphor-icons/react";
 import type { TeamMemberInput } from '../hooks/useTeamFitMutation';
 import TeamMemberCard from './TeamMemberCard';
 

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Textarea, Button, Group, Text, Paper, Avatar } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { MessageSquare, X } from 'lucide-react';
+import { Chat as MessageSquare, X } from "@phosphor-icons/react";
 import Link from 'next/link';
 import { useSession } from '@/lib/auth-client';
 

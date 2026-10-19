@@ -6,7 +6,7 @@ import { useCaseChat } from "../hooks/useCaseChat";
 import { useCaseUnreadCount } from "../hooks/useCaseUnreadCount";
 import { useCaseChatVirtualizer } from "../hooks/useCaseChatVirtualizer";
 import { useSession } from "@/lib/auth-client";
-import { ArrowUp, MessageCircle, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowUp, ChatCircle as MessageCircle, ArrowsClockwise as RefreshCw, WarningCircle as AlertCircle, CircleNotch as Loader2 } from "@phosphor-icons/react";
 import { ActionIcon, Textarea, Tooltip, Alert } from "@mantine/core";
 
 interface TabDiscussionChatProps {

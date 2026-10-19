@@ -1,7 +1,7 @@
 "use client";
 
 import { ActionIcon, Button, Group, Text, Tooltip } from "@mantine/core";
-import { Check, ChevronDown, ChevronUp, MessageCircle, X } from "lucide-react";
+import { Check, CaretDown as ChevronDown, CaretUp as ChevronUp, ChatCircle as MessageCircle, X } from "@phosphor-icons/react";
 import { CopyIconButton } from "@/components/ui/CopyIconButton";
 import { StatusChip } from "@/components/ui/StatusChip";
 import { ZALO_GROUP_URL } from "@/lib/zalo";

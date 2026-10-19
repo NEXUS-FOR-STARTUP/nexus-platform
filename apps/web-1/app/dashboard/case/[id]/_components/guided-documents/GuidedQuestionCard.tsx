@@ -2,7 +2,7 @@
 
 import type { ReactNode, Ref } from "react";
 import { Button, Textarea } from "@mantine/core";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CaretLeft as ChevronLeft, CaretRight as ChevronRight } from "@phosphor-icons/react";
 import { QUESTION_REGISTRY, type Classification, type Question } from "@repo/validation";
 import { countWords, isThinAnswer, THIN_ANSWER_WORDS } from "./answer-quality";
 import s from "./guided-editor.module.css";

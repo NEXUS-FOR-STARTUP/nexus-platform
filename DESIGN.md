@@ -129,7 +129,7 @@ elevation:
 
 ## 1. System Overview
 **Nexus Platform** là nền tảng cố vấn và phản biện khởi nghiệp học thuật kết hợp AI chuyên sâu và chuyên gia con người (Supporter).
-- **Ngăn xếp công nghệ UI**: Next.js 16 App Router, Mantine UI v9, Tailwind CSS v4, Lucide React.
+- **Ngăn xếp công nghệ UI**: Next.js 16 App Router, Mantine UI v9, Tailwind CSS v4, Phosphor Icons (@phosphor-icons/react).
 - **Phong cách thị giác (Visual Tone)**: Tinh tế, điềm đạm (calm), chuẩn mực học thuật & startup công nghệ, rõ ràng (clear), đáng tin cậy (trustworthy). Tuyệt đối không rực rỡ giả tạo, không dùng hiệu ứng AI neon sáo rỗng.
 - **Ngôn ngữ giao diện**: Ưu tiên tiếng Việt tự nhiên, trực diện, tôn trọng văn phong học thuật và khởi nghiệp thực chiến.
 
@@ -263,7 +263,7 @@ UI luôn phân biệt trực quan 3 tầng:
 ### Don'ts (KHÔNG ĐƯỢC):
 - **Không** sử dụng nền chuyển sắc (gradients) loè loẹt trên các thẻ Card, Paper, Button.
 - **Không** dùng bóng đổ đậm (`shadow-md`, `shadow-lg`) lên các thành phần thẻ của Mantine.
-- **Không** import icon từ `@mantine/icons-react` hoặc `@tabler/icons-react`. Toàn bộ dự án chỉ dùng duy nhất thư viện `lucide-react`.
+- **Không** import icon từ `@mantine/icons-react` hoặc `@tabler/icons-react`. Toàn bộ dự án dùng thư viện `@phosphor-icons/react`.
 - **Không** viết responsive layout mobile cho giao diện Admin và Supporter (bắt buộc dùng `DesktopOnlyNotice`).
 - **Không** dùng thuật ngữ kỹ thuật nội bộ (mã enum, transition state) làm nhãn UI cho sinh viên.
 - **Không** can thiệp class positioning cứng (`fixed`, `inset-0`) đè lên các component Mantine Modal/Drawer vì sẽ phá hỏng canh giữa tự động.
