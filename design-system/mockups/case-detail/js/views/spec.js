@@ -16,7 +16,7 @@ $("#v-spec").innerHTML=`
   <button class="it on" type="button"><span class="tick on">${ic("tick",10)}</span><span class="lb">Đang chọn</span>${ic("right",14)}</button>
   <button class="it" type="button">${ic("ring",14)}<span class="lb">Mục quan trọng khi chấm</span><em class="crit">Quan trọng</em></button>
 </div>
-<p class="note" style="margin-top:8px">Cùng icon Lucide (Check, Circle, CircleAlert, Lock) và cùng luật khoá, còn ngắn như GuidedTOC. Mở Soạn thảo của Thị trường để xem đủ các trạng thái.</p>
+<p class="note" style="margin-top:8px">Cùng các biểu tượng trạng thái chuyển từ Phosphor Icons (Check, Circle, WarningCircle, LockSimple) và cùng luật khoá, còn ngắn như GuidedTOC. Mở Soạn thảo của Thị trường để xem đủ các trạng thái.</p>
 <h2 style="margin-top:40px">Tabs</h2>
 <div class="tabs"><button class="on" type="button">Đang chọn</button><button type="button">Tab khác</button><button type="button">Tab khác</button></div>
 <p class="note">Chữ thường, tab đang chọn có thanh xanh dày 3px bên dưới, không có đường kẻ nền. Dùng cho tab giai đoạn và cả bộ lọc loại (Lượt chấm, Lịch sử).</p>

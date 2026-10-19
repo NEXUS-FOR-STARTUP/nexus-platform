@@ -19,7 +19,7 @@ Tệp này gom mọi quyết định đã chốt trong quá trình làm mockup, 
 | `css/base.css` | Token, khung (topbar, sidebar), thành phần dùng chung |
 | `css/views.css` | Style riêng từng màn |
 | `js/app.js` | Router theo query, hàm dùng chung, ngăn kéo menu trên điện thoại |
-| `js/icons.js` | Icon Lucide inline (tạo từ `lucide-react` của repo, mở được bằng `file://`) |
+| `js/icons.js` | Icon Phosphor inline (chuyển từ `@phosphor-icons/core` regular, mở được bằng `file://`) |
 | `js/data/questions-cp1.js`, `questions-cp2.js` | Câu hỏi, gợi ý lấy từ catalog thật, câu trả lời mẫu bịa |
 | `js/data/unlocks.js` | Luật khoá câu, tạo từ catalog thật (`cp1.ts`, `cp2.ts`) |
 | `js/data/states.js` | Trạng thái mẫu cho Thị trường (xem mục 5) |
@@ -34,7 +34,7 @@ Tệp này gom mọi quyết định đã chốt trong quá trình làm mockup, 
 - **Bề mặt**: thẻ, hàng danh sách, hộp mục lục đều trắng có viền (giống Paper `withBorder` của web-1). Không shadow ở trạng thái nghỉ; shadow chỉ cho menu `⋯`, hộp thoại và ngăn kéo.
 - **Nhãn trạng thái (chip)**: nền màu nhạt, chữ đậm cùng tông, một thành phần dùng cho mọi trạng thái (Đang soạn, Đã có kết quả, Cần bổ sung, Sắp ra mắt, Lỗi). Không còn kiểu badge viết hoa nhỏ.
 - **Nút**: mỗi màn một nút chính (xanh); nút còn lại là nút phụ (xám). Ví dụ trong Hành trình: nút xanh chỉ ở trang chi tiết giai đoạn, danh sách giai đoạn dùng nút phụ.
-- **Icon**: Lucide cho thao tác và trạng thái (từ gói `lucide-react` trong repo). Icon tệp tài liệu là PNG của sản phẩm (`pdf`, `doc`, `xls`, `ppt`, `txt`), cùng bảng ánh xạ đuôi tệp với `FileTypeIcon.tsx`, chép vào `assets/` để mockup mở độc lập. Chỉ dùng cạnh tên tệp thật.
+- **Icon**: Phosphor Icons (regular weight) cho thao tác và trạng thái (viewBox `0 0 256 256`, fill/stroke). Icon tệp tài liệu là PNG của sản phẩm (`pdf`, `doc`, `xls`, `ppt`, `txt`), cùng bảng ánh xạ đuôi tệp với `FileTypeIcon.tsx`, chép vào `assets/` để mockup mở độc lập. Chỉ dùng cạnh tên tệp thật.
 - **Tabs**: kiểu A (chữ thường, tab đang chọn có thanh xanh dày 3px bên dưới, không có đường kẻ nền) dùng cho cả ba tab Soạn thảo, Tài liệu, Kết quả chấm và bộ lọc loại ở Lượt chấm, Lịch sử. Mockup không còn kiểu khối xám bo tròn nào. Tab giai đoạn hiện có `role="tablist"`, `role="tab"`, `aria-selected`, `aria-controls` và panel `role="tabpanel"`. **Chưa có** bàn phím theo mẫu ARIA tab (roving tabindex, phím mũi tên trái phải): cả ba tab đều Tab được; Mantine `Tabs` có sẵn phần này nên khi implement thì lấy từ đó. Bộ lọc là nhóm nút `aria-pressed`, vì không đổi panel.
 - **Không dùng**: eyebrow viết hoa, đánh số, gradient, font monospace ngoài `<code>`. Hai chỗ có `taste-skill-ignore` kèm lý do: viền của bề mặt web-1 và nhãn "bản 02" (nhãn phiên bản của sản phẩm).
 - **Chưa dùng Tailwind Play CDN**: mockup giữ CSS tự viết với token khớp `globals.css`, để mở offline bằng `file://` và chạy được kiểm tra của `lint.mjs`. Play CDN cần mạng và chỉ dành cho phát triển. Nếu muốn chuyển sang lớp Tailwind để copy thẳng vào code thật thì cần một đợt viết lại riêng.
@@ -48,14 +48,14 @@ Tệp này gom mọi quyết định đã chốt trong quá trình làm mockup, 
 
 ## 5. Hành trình, Soạn thảo (đã sửa lần này)
 
-- **Trạng thái dòng câu hỏi** theo đúng `GuidedTOC.tsx`, dùng lại icon Lucide của UI cũ:
+- **Trạng thái dòng câu hỏi** theo đúng `GuidedTOC.tsx`, biểu tượng tương đương từ Phosphor Icons:
 
 | Trạng thái | Icon | Điều kiện (khớp UI cũ) |
 |---|---|---|
-| Đã trả lời | tròn xanh lục có dấu tick (Check) | có nội dung, không ngắn |
+| Đã trả lời | tròn xanh lục có dấu tick (CheckCircle/Check) | có nội dung, không ngắn |
 | Chưa trả lời | vòng tròn rỗng (Circle) | chưa có nội dung |
-| Còn ngắn | tròn cảnh báo vàng (CircleAlert) | chỉ câu `cp2_`, có chữ nhưng dưới 10 từ |
-| Đang khoá | ổ khoá (Lock), mờ, không bấm được | thiếu câu điều kiện (`unlock_requires`), hoặc câu bắt buộc liền trước chưa trả lời |
+| Còn ngắn | tròn cảnh báo vàng (WarningCircle) | chỉ câu `cp2_`, có chữ nhưng dưới 10 từ |
+| Đang khoá | ổ khoá (LockSimple), mờ, không bấm được | thiếu câu điều kiện (`unlock_requires`), hoặc câu bắt buộc liền trước chưa trả lời |
 | Đang chọn | nền xanh nhạt, chữ xanh, mũi tên phải | câu đang mở |
 | Quan trọng | nhãn cam "Quan trọng" | `cp2_expert_interviews`, `cp2_survey`, `cp2_ai_disclosure` |
 
@@ -134,7 +134,7 @@ Mockup là đặc tả hình thức; code thật dùng Mantine v9 + token trong 
 | Bảng tiến trình chấm | `workspace/stage/StageGradingPanel.tsx` (`Stepper`, `Collapse`) | Giữ cấu trúc; chỉ xếp dọc trên điện thoại. |
 | Hộp thoại xác nhận chấm, tải tài liệu | `workspace/stage/AuditConfirmModal.tsx`, `StageDocumentUploadModal.tsx` | Mockup mô phỏng luật hiện có; không đổi luật. |
 | Lịch sử lượt chấm có dòng mở rộng | `CreditTransactionHistory.tsx` (hiện `Table` 740px cuộn ngang) | Đổi từ bảng cột sang danh sách dòng bấm để mở; phần mở rộng cần thêm dữ liệu mà hiện bảng không hiện (xem mục 6). |
-| Icon tệp PNG | `components/ui/FileTypeIcon.tsx` | Giữ nguyên; chỉ dùng đúng thành phần này, không thêm icon tệp Lucide. |
+| Icon tệp PNG | `components/ui/FileTypeIcon.tsx` | Giữ nguyên; chỉ dùng đúng thành phần này, không thêm icon tệp vector. |
 
 ### Token
 
