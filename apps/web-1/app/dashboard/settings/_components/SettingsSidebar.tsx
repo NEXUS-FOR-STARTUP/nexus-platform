@@ -7,13 +7,16 @@ import classes from "../settings.module.css";
 
 export default function SettingsSidebar({
   basePath = "/dashboard/settings",
+  onItemClickAction,
 }: {
   basePath?: string;
+  onItemClickAction?: () => void;
 }) {
   const pathname = usePathname();
   const items = getSettingsNav(basePath);
+
   return (
-    <nav className={classes.nav} aria-label="Cài đặt tài khoản">
+    <nav aria-label="Cài đặt tài khoản">
       {items.map((item) => {
         const active = pathname === item.href;
         const Icon = item.icon;
@@ -23,8 +26,9 @@ export default function SettingsSidebar({
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={`${classes.link} ${active ? classes.linkActive : ""}`}
+            onClick={onItemClickAction}
           >
-            <Icon className="w-4 h-4" />
+            <Icon className={`w-4 h-4 ${classes.linkIcon}`} />
             <span>{item.label}</span>
           </Link>
         );

@@ -1,21 +1,26 @@
-.card[data-with-border] {
-  max-width: 28rem;
-  border-width: var(--ui-card-border-width);
+.card {
+  max-width: 560px;
+  border: 1px solid var(--color-border, #e2e8f0) !important;
+  border-radius: 8px;
+  background: var(--color-surface, #ffffff);
+  padding: 24px 28px !important;
 }
 
 .title {
-  font-size: var(--ui-text-section);
-  font-weight: var(--ui-weight-medium);
-  color: var(--color-text);
+  font-size: var(--ui-text-section, 1.125rem);
+  font-weight: 500;
+  color: var(--color-text, #0f172a);
+  margin-bottom: 4px;
 }
 
 .label {
-  font-size: var(--ui-text-body);
-  font-weight: var(--ui-weight-medium);
-  color: var(--color-text);
+  font-size: var(--ui-text-body, 1rem);
+  font-weight: 500;
+  color: var(--color-text, #0f172a);
 }
 
 .note {
-  font-size: var(--ui-text-note);
-  color: var(--color-text-muted);
+  font-size: var(--ui-text-note, 0.875rem);
+  color: var(--color-text-muted, #475569);
+  line-height: 1.45;
 }

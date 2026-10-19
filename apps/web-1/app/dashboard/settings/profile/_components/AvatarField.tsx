@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Avatar, Button, Group, Loader, Stack } from "@mantine/core";
+import { Avatar, Button, Loader } from "@mantine/core";
 import { ImagePlus } from "lucide-react";
 import { AVATAR_LIMIT_NOTE, getAvatarFileError } from "../../hooks/avatar-limits";
 import { useChangeAvatar } from "../../hooks/useChangeAvatar";
@@ -29,7 +29,7 @@ export function AvatarField({ name, image, refetch }: AvatarFieldProps) {
   };
 
   return (
-    <Group align="center" wrap="nowrap">
+    <div className={styles.avatarRow}>
       <div className="relative">
         <Avatar
           size={96}
@@ -43,17 +43,19 @@ export function AvatarField({ name, image, refetch }: AvatarFieldProps) {
           <Loader size="sm" className="absolute inset-0 m-auto" aria-label="Đang tải ảnh lên" />
         )}
       </div>
-      <Stack gap={6} align="flex-start">
+
+      <div className="flex flex-col gap-2 items-start">
         <Button
           variant="default"
           size="sm"
+          className={styles.avatarBtn}
           leftSection={<ImagePlus className="w-4 h-4" />}
           onClick={() => fileInputRef.current?.click()}
           loading={changeAvatar.isPending}
         >
           Đổi ảnh
         </Button>
-        <p className={styles.note}>{AVATAR_LIMIT_NOTE}</p>
+        <span className={styles.note}>{AVATAR_LIMIT_NOTE}</span>
         {fileError && (
           <p role="alert" className={styles.avatarError}>
             {fileError}
@@ -66,7 +68,7 @@ export function AvatarField({ name, image, refetch }: AvatarFieldProps) {
           hidden
           onChange={handleFile}
         />
-      </Stack>
-    </Group>
+      </div>
+    </div>
   );
 }

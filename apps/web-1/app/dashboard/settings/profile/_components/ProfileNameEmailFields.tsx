@@ -1,6 +1,7 @@
 "use client";
 
-import { Stack, TextInput } from "@mantine/core";
+import { TextInput } from "@mantine/core";
+import styles from "../profile.module.css";
 
 interface ProfileNameEmailFieldsProps {
   name: {
@@ -14,7 +15,7 @@ interface ProfileNameEmailFieldsProps {
 
 export function ProfileNameEmailFields({ name, email }: ProfileNameEmailFieldsProps) {
   return (
-    <Stack gap="md">
+    <div>
       <TextInput
         label="Tên hiển thị"
         placeholder="Nhập tên hiển thị"
@@ -23,15 +24,24 @@ export function ProfileNameEmailFields({ name, email }: ProfileNameEmailFieldsPr
         onBlur={name.onBlur}
         onChange={(e) => name.onChange(e.currentTarget.value)}
         error={name.error}
-        size="md"
+        classNames={{
+          root: styles.inputRoot,
+          label: styles.inputLabel,
+          input: styles.inputField,
+          error: styles.inputError,
+        }}
       />
       <TextInput
         label="Email đăng nhập"
         description="Không thể thay đổi"
         value={email ?? ""}
         disabled
-        size="md"
+        classNames={{
+          root: styles.inputRoot,
+          label: styles.inputLabel,
+          input: styles.inputField,
+        }}
       />
-    </Stack>
+    </div>
   );
 }

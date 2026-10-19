@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Paper, Stack } from "@mantine/core";
+import { Button, Paper } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Trash2, TriangleAlert } from "lucide-react";
 import { useDeleteAccount } from "../../hooks/useDeleteAccount";
@@ -13,25 +13,22 @@ export function DangerZoneCard() {
 
   return (
     <>
-      <Paper p="xl" radius="md" className={styles.dangerCard}>
-        <Stack gap="md" align="flex-start">
-          <h2 className={`${styles.dangerTitle} flex items-center gap-2`}>
-            <TriangleAlert className="w-5 h-5" aria-hidden />
-            Vùng nguy hiểm
-          </h2>
-          <p className={styles.note}>
-            Xóa tài khoản của bạn và toàn bộ thông tin cá nhân. Hành động này không thể hoàn tác.
-          </p>
-          <Button
-            color="red"
-            variant="light"
-            size="sm"
-            leftSection={<Trash2 className="w-4 h-4" />}
-            onClick={open}
-          >
-            Xóa tài khoản
-          </Button>
-        </Stack>
+      <Paper withBorder className={styles.dangerCard}>
+        <h2 className={styles.dangerTitle}>
+          <TriangleAlert className="w-5 h-5 flex-shrink-0" aria-hidden />
+          <span>Vùng nguy hiểm</span>
+        </h2>
+        <p className={`${styles.note} mb-4`}>
+          Xóa tài khoản của bạn và toàn bộ thông tin cá nhân. Hành động này không thể hoàn tác.
+        </p>
+        <Button
+          className={styles.dangerBtn}
+          size="sm"
+          leftSection={<Trash2 className="w-4 h-4" />}
+          onClick={open}
+        >
+          Xóa tài khoản
+        </Button>
       </Paper>
 
       <DeleteAccountModal
