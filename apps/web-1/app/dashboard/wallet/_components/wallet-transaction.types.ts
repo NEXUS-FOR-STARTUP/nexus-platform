@@ -7,7 +7,11 @@ export interface WalletTransactionItem {
   balance_after: number;
   source_type: string;
   source_id: string | null;
-  source_description?: string;
+  source_description?: string | null;
+  reference_type?: string | null;
+  reference_id?: string | null;
+  metadata_json?: Record<string, unknown> | null;
+  currency?: string;
   created_at: string;
 }
 
@@ -19,7 +23,7 @@ export interface SortState {
   order: SortOrder;
 }
 
-export type QuickFilterTab = "all" | "deposit" | "withdrawal" | "refund";
+export type QuickFilterTab = "all" | "deposit" | "service_payment" | "refund" | "adjustment";
 
 export const TYPE_LABELS: Record<string, string> = {
   deposit: "Nạp tiền",
@@ -27,7 +31,7 @@ export const TYPE_LABELS: Record<string, string> = {
   refund: "Hoàn tiền",
   adjustment: "Điều chỉnh",
   migration: "Chuyển đổi",
-  service_payment: "Mua gói đánh giá",
+  service_payment: "Mua gói",
 };
 
 export const TYPE_COLORS: Record<string, string> = {
@@ -44,10 +48,6 @@ export const TYPE_OPTIONS = Object.entries(TYPE_LABELS).map(([value, label]) => 
   label,
 }));
 
-export function formatVND(amount: number): string {
-  return `${amount.toLocaleString("vi-VN")} VND`;
-}
-
 export function formatDateTime(dateStr: string): { date: string; time: string } {
   const d = new Date(dateStr);
   const date = d.toLocaleDateString("vi-VN", {
@@ -60,4 +60,19 @@ export function formatDateTime(dateStr: string): { date: string; time: string } 
     minute: "2-digit",
   });
   return { date, time };
+}
+
+export function formatDateTimeFull(dateStr: string): string {
+  const d = new Date(dateStr);
+  const date = d.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+  const time = d.toLocaleTimeString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  return `${time} ${date}`;
 }

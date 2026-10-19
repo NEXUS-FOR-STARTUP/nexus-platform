@@ -2,19 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { Button, Tabs } from "@mantine/core";
 import { Plus } from "@phosphor-icons/react";
 import { WalletBalanceCard } from "./_components/WalletBalanceCard";
-import { WalletTransactionList } from "./_components/WalletTransactionList";
-import { WalletProofTable } from "./_components/WalletProofTable";
+import { WalletTabs } from "./_components/WalletTabs";
 import { WalletTopupModal } from "./_components/WalletTopupModal";
+import { parseTopupAmount } from "./_components/wallet-topup.constants";
 import { clearAllBuyCreditAfterDepositIntents } from "@/app/dashboard/payment/credit-after-deposit-intent";
+import styles from "./wallet.module.css";
 
 export default function WalletPage() {
   const searchParams = useSearchParams();
-  const amountParam = searchParams.get("amount");
-  const initialTopupAmount = amountParam ? Number(amountParam) : undefined;
-  const [topupOpened, setTopupOpened] = useState(!!initialTopupAmount);
+  const initialTopupAmount = parseTopupAmount(searchParams.get("amount"));
+  const [topupOpened, setTopupOpened] = useState(Boolean(initialTopupAmount));
   const [topupAmount, setTopupAmount] = useState<number | undefined>(initialTopupAmount);
 
   useEffect(() => {
@@ -27,27 +26,26 @@ export default function WalletPage() {
   };
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-      <header className="flex items-center justify-between">
-        <h1 className="font-heading text-2xl font-bold text-text-app sm:text-3xl">
-          Ví của tôi
-        </h1>
-        <Button leftSection={<Plus size={16} />} onClick={() => openTopup()}>
-          Nạp tiền
-        </Button>
+    <main className="mx-auto flex w-full max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
+      <header className={styles.head}>
+        <div>
+          <h1 className={styles.title}>Ví của tôi</h1>
+          <p className={styles.subtitle}>
+            Quản lý số dư trả trước và đối soát lịch sử giao dịch đánh giá dự án.
+          </p>
+        </div>
+        <button
+          type="button"
+          className={styles.btn}
+          onClick={() => openTopup()}
+        >
+          <Plus size={16} />
+          <span>Nạp tiền</span>
+        </button>
       </header>
 
       <WalletBalanceCard />
-
-      <Tabs defaultValue="history" variant="pills" radius="md">
-        <Tabs.Panel value="history">
-          <WalletTransactionList />
-        </Tabs.Panel>
-
-        <Tabs.Panel value="proofs">
-          <WalletProofTable />
-        </Tabs.Panel>
-      </Tabs>
+      <WalletTabs />
 
       <WalletTopupModal
         opened={topupOpened}
