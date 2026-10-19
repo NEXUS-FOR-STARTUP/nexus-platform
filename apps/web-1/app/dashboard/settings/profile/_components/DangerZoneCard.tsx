@@ -1,7 +1,6 @@
 "use client";
 
-import { Button, Paper } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { useState } from "react";
 import { Trash as Trash2, Warning as TriangleAlert } from "@phosphor-icons/react";
 import { useDeleteAccount } from "../../hooks/useDeleteAccount";
 import styles from "../profile.module.css";
@@ -9,31 +8,31 @@ import { DeleteAccountModal } from "./DeleteAccountModal";
 
 export function DangerZoneCard() {
   const deleteAccount = useDeleteAccount();
-  const [opened, { open, close }] = useDisclosure(false);
+  const [opened, setOpened] = useState(false);
 
   return (
     <>
-      <Paper withBorder className={styles.dangerCard}>
-        <h2 className={styles.dangerTitle}>
-          <TriangleAlert className="w-5 h-5 flex-shrink-0" aria-hidden />
+      <div className={styles.dangerBox}>
+        <h2 className={styles.dangerHead}>
+          <TriangleAlert size={20} />
           <span>Vùng nguy hiểm</span>
         </h2>
-        <p className={`${styles.note} mb-4`}>
+        <p className={styles.note} style={{ marginBottom: "16px" }}>
           Xóa tài khoản của bạn và toàn bộ thông tin cá nhân. Hành động này không thể hoàn tác.
         </p>
-        <Button
+        <button
+          type="button"
           className={styles.dangerBtn}
-          size="sm"
-          leftSection={<Trash2 className="w-4 h-4" />}
-          onClick={open}
+          onClick={() => setOpened(true)}
         >
-          Xóa tài khoản
-        </Button>
-      </Paper>
+          <Trash2 size={16} />
+          <span>Xóa tài khoản</span>
+        </button>
+      </div>
 
       <DeleteAccountModal
         opened={opened}
-        onClose={close}
+        onClose={() => setOpened(false)}
         onConfirm={() => deleteAccount.mutate()}
         loading={deleteAccount.isPending}
       />

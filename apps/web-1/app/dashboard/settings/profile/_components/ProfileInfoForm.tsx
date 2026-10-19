@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
-import { Button, Paper } from "@mantine/core";
 import { useUpdateProfileName } from "../../hooks/useUpdateProfileName";
 import styles from "../profile.module.css";
 import { AvatarField } from "./AvatarField";
@@ -47,8 +46,8 @@ export default function ProfileInfoForm({
   }, [user.name, form]);
 
   return (
-    <div className="flex flex-col gap-8 max-w-[560px]">
-      <Paper withBorder className={styles.card}>
+    <div className={styles.formCol}>
+      <div className={styles.card}>
         <h2 className={styles.cardTitle}>Thông tin cơ bản</h2>
         <p className={styles.cardSubtitle}>
           Thông tin hiển thị trên hệ thống và trong các báo cáo phản biện.
@@ -95,19 +94,18 @@ export default function ProfileInfoForm({
               }
             >
               {(unchanged) => (
-                <Button
+                <button
                   type="submit"
                   className={styles.saveBtn}
                   disabled={unchanged || updateName.isPending}
-                  loading={updateName.isPending}
                 >
-                  Lưu thay đổi
-                </Button>
+                  {updateName.isPending ? "Đang lưu..." : "Lưu thay đổi"}
+                </button>
               )}
             </form.Subscribe>
           </div>
         </form>
-      </Paper>
+      </div>
 
       {!hideDangerZone && <DangerZoneCard />}
     </div>

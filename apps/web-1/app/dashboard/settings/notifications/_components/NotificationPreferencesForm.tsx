@@ -1,61 +1,67 @@
 "use client";
 
 import { useState } from "react";
-import { Paper, Stack, Switch, Text } from "@mantine/core";
 import { useNotificationPreferences } from "../../hooks/useNotificationPreferences";
 import classes from "../notifications.module.css";
 
 export default function NotificationPreferencesForm() {
   const { query, save } = useNotificationPreferences();
-  // Optimistic value set synchronously in onChange (no flicker); cleared on error => rollback; on success it equals the server value (shortcut: stale if changed elsewhere before remount) to query.data on error.
   const [optimistic, setOptimistic] = useState<boolean | null>(null);
   const enabled = optimistic ?? query.data?.email_enabled;
 
   if (query.isError) {
     return (
-      <Text className={classes.note}>
+      <p className={classes.note}>
         Không thể tải cài đặt thông báo. Vui lòng thử lại sau.
-      </Text>
+      </p>
     );
   }
 
   if (query.isPending || enabled === undefined) {
     return (
-      <Text className={classes.note}>
+      <p className={classes.note}>
         Đang tải cài đặt thông báo...
-      </Text>
+      </p>
     );
   }
 
+  const handleToggle = () => {
+    if (save.isPending) return;
+    const nextVal = !enabled;
+    setOptimistic(nextVal);
+    save.mutate({ email_enabled: nextVal }, { onError: () => setOptimistic(null) });
+  };
+
   return (
-    <Paper withBorder radius="md" p="lg" className={classes.card}>
-      <Stack gap="md">
-        <div>
-          <Text className={classes.title}>Cài đặt thông báo</Text>
-          <Text className={classes.note}>Bật hoặc tắt nhận email thông báo.</Text>
+    <div className={classes.colNarrow}>
+      <div className={classes.card}>
+        <div className={classes.cardHead}>
+          <div>
+            <h2 className={classes.title}>Cài đặt thông báo</h2>
+            <p className={classes.note}>Bật hoặc tắt nhận email thông báo từ hệ thống.</p>
+          </div>
         </div>
 
-        <Switch
-          checked={enabled}
-          classNames={{
-            root: classes.switchRoot,
-            track: classes.switchTrack,
-            thumb: classes.switchThumb,
-            label: classes.switchLabel,
-            description: classes.switchDescription,
-          }}
-          color="brand"
-          label="Nhận email"
-          description="Gửi thông báo tới email đã đăng ký."
-          onChange={(event) => {
-            if (save.isPending) return;
-            const checked = event.currentTarget.checked;
-            if (checked === enabled) return;
-            setOptimistic(checked);
-            save.mutate({ email_enabled: checked }, { onError: () => setOptimistic(null) });
-          }}
-        />
-      </Stack>
-    </Paper>
+        <div className={classes.notifRow}>
+          <div>
+            <div className={classes.notifLabel}>Nhận email</div>
+            <div className={classes.note}>Gửi thông báo tới email đã đăng ký tài khoản.</div>
+          </div>
+
+          {/* Pure HTML Switch matching mockup base.css .switch */}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={enabled}
+            className={`${classes.switch} ${enabled ? classes.switchOn : ""}`}
+            onClick={handleToggle}
+            disabled={save.isPending}
+            aria-label="Bật hoặc tắt nhận email thông báo"
+          >
+            <span className={classes.thumb} />
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -1,8 +1,8 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { Button, Group, Paper, PasswordInput, Skeleton, Stack, Text, Tooltip } from "@mantine/core";
-import { Info } from "@phosphor-icons/react";
+import { useState } from "react";
+import { Eye, EyeSlash, Info } from "@phosphor-icons/react";
 import {
   useHasPasswordQuery,
   usePasswordMutations,
@@ -20,6 +20,10 @@ export default function ChangePasswordForm() {
   const hasPassword = hasPasswordQuery.data === true;
   const { changePassword, setPassword } = usePasswordMutations();
   const pending = changePassword.isPending || setPassword.isPending;
+
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -41,37 +45,44 @@ export default function ChangePasswordForm() {
 
   if (hasPasswordQuery.isError && hasPasswordQuery.data === undefined) {
     return (
-      <Text className={classes.note}>
+      <p className={classes.note}>
         Không thể tải trạng thái mật khẩu. Vui lòng thử lại sau.
-      </Text>
+      </p>
     );
   }
+
   if (hasPasswordQuery.isPending) {
     return (
-      <Paper withBorder radius="md" p="lg" className={classes.card}>
-        <Stack gap="md">
-          <Skeleton height={20} width="40%" />
-          <Skeleton height={36} />
-          <Skeleton height={36} />
-          <Skeleton height={36} />
-          <Skeleton height={36} width={160} />
-        </Stack>
-      </Paper>
+      <div className={classes.colNarrow}>
+        <div className={classes.card}>
+          <div className={classes.skeletonRow} style={{ height: "180px" }} />
+        </div>
+      </div>
     );
   }
+
   return (
-    <Paper withBorder radius="md" p="lg" className={classes.card}>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit();
-        }}
-      >
-        <Stack gap="md">
-          <Text className={classes.title}>
+    <div className={classes.colNarrow}>
+      <div className={classes.card}>
+        <div className={classes.cardHead}>
+          <h2 className={classes.title}>
             {hasPassword ? "Đổi mật khẩu" : "Đặt mật khẩu"}
-          </Text>
-          {hasPassword ? (
+          </h2>
+          <p className={classes.note}>
+            {hasPassword
+              ? "Cập nhật mật khẩu để bảo mật tài khoản tốt hơn."
+              : "Tài khoản đăng nhập qua mạng xã hội chưa có mật khẩu."}
+          </p>
+        </div>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            form.handleSubmit();
+          }}
+          noValidate
+        >
+          {hasPassword && (
             <form.Field
               name="currentPassword"
               validators={{
@@ -79,23 +90,40 @@ export default function ChangePasswordForm() {
                   !value ? "Vui lòng nhập mật khẩu hiện tại." : undefined,
               }}
             >
-              {(field) => {
-                const hasError =
-                  field.state.meta.isTouched && field.state.meta.errors.length > 0;
-                return (
-                  <PasswordInput
-                    label="Mật khẩu hiện tại"
-                    placeholder="Nhập mật khẩu hiện tại"
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.currentTarget.value)}
-                    error={hasError ? field.state.meta.errors[0] : undefined}
-                    classNames={{ root: classes.inputRoot, label: classes.inputLabel, input: classes.inputField, error: classes.inputError }} autoComplete="current-password"
-                  />
-                );
-              }}
+              {(field) => (
+                <div className={classes.field}>
+                  <label htmlFor="current-pw">
+                    <span>Mật khẩu hiện tại</span>
+                    <span className={classes.req}>*</span>
+                  </label>
+                  <div className={classes.inputWrap}>
+                    <input
+                      id="current-pw"
+                      type={showCurrent ? "text" : "password"}
+                      placeholder="Nhập mật khẩu hiện tại"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      className={`${classes.input} ${field.state.meta.errors[0] ? classes.inputErr : ""}`}
+                      autoComplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      className={classes.eyeBtn}
+                      onClick={() => setShowCurrent(!showCurrent)}
+                      tabIndex={-1}
+                      aria-label={showCurrent ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                    >
+                      {showCurrent ? <EyeSlash size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                  {field.state.meta.errors[0] && (
+                    <p className={classes.errText}>{field.state.meta.errors[0]}</p>
+                  )}
+                </div>
+              )}
             </form.Field>
-          ) : null}
+          )}
 
           <form.Field
             name="newPassword"
@@ -107,35 +135,43 @@ export default function ChangePasswordForm() {
               },
             }}
           >
-            {(field) => {
-              const hasError =
-                field.state.meta.isTouched && field.state.meta.errors.length > 0;
-              return (
-                <PasswordInput
-                  label={
-                    <Group gap={6} align="center">
-                      <span>{hasPassword ? "Mật khẩu mới" : "Mật khẩu"}</span>
-                      <Tooltip
-                        label="Tối thiểu 8 ký tự. Không nên trùng mật khẩu đã dùng ở nơi khác."
-                        withArrow
-                        openDelay={200}
-                        classNames={{ tooltip: "font-body text-xs" }}
-                      >
-                        <span className="cursor-help">
-                          <Info className="w-3.5 h-3.5 text-text-muted" />
-                        </span>
-                      </Tooltip>
-                    </Group>
-                  }
-                  placeholder="Ít nhất 8 ký tự"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.currentTarget.value)}
-                  error={hasError ? field.state.meta.errors[0] : undefined}
-                  classNames={{ root: classes.inputRoot, label: classes.inputLabel, input: classes.inputField, error: classes.inputError }} autoComplete="new-password"
-                />
-              );
-            }}
+            {(field) => (
+              <div className={classes.field}>
+                <label htmlFor="new-pw">
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <span>{hasPassword ? "Mật khẩu mới" : "Mật khẩu"}</span>
+                    <span className={classes.req}>*</span>
+                    <span title="Tối thiểu 8 ký tự. Không nên trùng mật khẩu đã dùng ở nơi khác." style={{ cursor: "help", display: "inline-flex" }}>
+                      <Info size={14} className="text-muted" />
+                    </span>
+                  </div>
+                </label>
+                <div className={classes.inputWrap}>
+                  <input
+                    id="new-pw"
+                    type={showNew ? "text" : "password"}
+                    placeholder="Ít nhất 8 ký tự"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    className={`${classes.input} ${field.state.meta.errors[0] ? classes.inputErr : ""}`}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    className={classes.eyeBtn}
+                    onClick={() => setShowNew(!showNew)}
+                    tabIndex={-1}
+                    aria-label={showNew ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  >
+                    {showNew ? <EyeSlash size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {field.state.meta.errors[0] && (
+                  <p className={classes.errText}>{field.state.meta.errors[0]}</p>
+                )}
+              </div>
+            )}
           </form.Field>
 
           <form.Field
@@ -148,31 +184,51 @@ export default function ChangePasswordForm() {
                   : undefined,
             }}
           >
-            {(field) => {
-              const hasError =
-                field.state.meta.isTouched && field.state.meta.errors.length > 0;
-              return (
-                <PasswordInput
-                  label={hasPassword ? "Xác nhận mật khẩu mới" : "Xác nhận mật khẩu"}
-                  placeholder="Nhập lại mật khẩu"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.currentTarget.value)}
-                  error={hasError ? field.state.meta.errors[0] : undefined}
-                  size="md"
-                  autoComplete="new-password"
-                />
-              );
-            }}
+            {(field) => (
+              <div className={classes.field}>
+                <label htmlFor="confirm-pw">
+                  <span>{hasPassword ? "Xác nhận mật khẩu mới" : "Xác nhận mật khẩu"}</span>
+                  <span className={classes.req}>*</span>
+                </label>
+                <div className={classes.inputWrap}>
+                  <input
+                    id="confirm-pw"
+                    type={showConfirm ? "text" : "password"}
+                    placeholder="Nhập lại mật khẩu"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    className={`${classes.input} ${field.state.meta.errors[0] ? classes.inputErr : ""}`}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    className={classes.eyeBtn}
+                    onClick={() => setShowConfirm(!showConfirm)}
+                    tabIndex={-1}
+                    aria-label={showConfirm ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  >
+                    {showConfirm ? <EyeSlash size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {field.state.meta.errors[0] && (
+                  <p className={classes.errText}>{field.state.meta.errors[0]}</p>
+                )}
+              </div>
+            )}
           </form.Field>
 
           <div className={classes.formActions}>
-            <Button type="submit" className={classes.submitBtn} loading={pending}>
-              {hasPassword ? "Xác nhận đổi mật khẩu" : "Đặt mật khẩu"}
-            </Button>
+            <button
+              type="submit"
+              className={classes.btnPrimary}
+              disabled={pending}
+            >
+              {pending ? "Đang xử lý..." : hasPassword ? "Xác nhận đổi mật khẩu" : "Đặt mật khẩu"}
+            </button>
           </div>
-        </Stack>
-      </form>
-    </Paper>
+        </form>
+      </div>
+    </div>
   );
 }

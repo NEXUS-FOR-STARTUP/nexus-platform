@@ -1,8 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Avatar, Button, Loader } from "@mantine/core";
-import { ImageSquare as ImagePlus } from "@phosphor-icons/react";
+import { ImageSquare as ImagePlus, CircleNotch as Loader2 } from "@phosphor-icons/react";
 import { AVATAR_LIMIT_NOTE, getAvatarFileError } from "../../hooks/avatar-limits";
 import { useChangeAvatar } from "../../hooks/useChangeAvatar";
 import styles from "../profile.module.css";
@@ -30,31 +29,32 @@ export function AvatarField({ name, image, refetch }: AvatarFieldProps) {
 
   return (
     <div className={styles.avatarRow}>
-      <div className="relative">
-        <Avatar
-          size={96}
-          radius="100%"
-          src={image ?? undefined}
-          className={`${styles.avatar} ${changeAvatar.isPending ? styles.avatarBusy : ""}`}
-        >
-          {(name || "U").substring(0, 2).toUpperCase()}
-        </Avatar>
+      <div style={{ position: "relative" }}>
+        <div className={`${styles.avatar} ${changeAvatar.isPending ? styles.avatarBusy : ""}`}>
+          {image ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={image} alt="Avatar" />
+          ) : (
+            <span>{(name || "U").substring(0, 2).toUpperCase()}</span>
+          )}
+        </div>
         {changeAvatar.isPending && (
-          <Loader size="sm" className="absolute inset-0 m-auto" aria-label="Đang tải ảnh lên" />
+          <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>
+            <Loader2 size={24} className="animate-spin text-brand" />
+          </div>
         )}
       </div>
 
-      <div className="flex flex-col gap-2 items-start">
-        <Button
-          variant="default"
-          size="sm"
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "flex-start" }}>
+        <button
+          type="button"
           className={styles.avatarBtn}
-          leftSection={<ImagePlus className="w-4 h-4" />}
           onClick={() => fileInputRef.current?.click()}
-          loading={changeAvatar.isPending}
+          disabled={changeAvatar.isPending}
         >
-          Đổi ảnh
-        </Button>
+          <ImagePlus size={16} />
+          <span>{changeAvatar.isPending ? "Đang tải..." : "Đổi ảnh"}</span>
+        </button>
         <span className={styles.note}>{AVATAR_LIMIT_NOTE}</span>
         {fileError && (
           <p role="alert" className={styles.avatarError}>

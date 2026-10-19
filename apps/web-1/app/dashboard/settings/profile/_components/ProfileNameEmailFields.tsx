@@ -1,6 +1,5 @@
 "use client";
 
-import { TextInput } from "@mantine/core";
 import styles from "../profile.module.css";
 
 interface ProfileNameEmailFieldsProps {
@@ -16,32 +15,36 @@ interface ProfileNameEmailFieldsProps {
 export function ProfileNameEmailFields({ name, email }: ProfileNameEmailFieldsProps) {
   return (
     <div>
-      <TextInput
-        label="Tên hiển thị"
-        placeholder="Nhập tên hiển thị"
-        withAsterisk
-        value={name.value}
-        onBlur={name.onBlur}
-        onChange={(e) => name.onChange(e.currentTarget.value)}
-        error={name.error}
-        classNames={{
-          root: styles.inputRoot,
-          label: styles.inputLabel,
-          input: styles.inputField,
-          error: styles.inputError,
-        }}
-      />
-      <TextInput
-        label="Email đăng nhập"
-        description="Không thể thay đổi"
-        value={email ?? ""}
-        disabled
-        classNames={{
-          root: styles.inputRoot,
-          label: styles.inputLabel,
-          input: styles.inputField,
-        }}
-      />
+      <div className={styles.field}>
+        <label htmlFor="user-name">
+          <span>Tên hiển thị</span>
+          <span className={styles.req}>*</span>
+        </label>
+        <input
+          id="user-name"
+          type="text"
+          placeholder="Nhập tên hiển thị"
+          value={name.value}
+          onBlur={name.onBlur}
+          onChange={(e) => name.onChange(e.target.value)}
+          className={`${styles.inputField} ${name.error ? styles.inputErrorBorder : ""}`}
+        />
+        {name.error && <p className={styles.inputError}>{name.error}</p>}
+      </div>
+
+      <div className={styles.field}>
+        <label htmlFor="user-email">
+          <span>Email đăng nhập</span>
+        </label>
+        <input
+          id="user-email"
+          type="email"
+          value={email ?? ""}
+          disabled
+          className={styles.inputField}
+        />
+        <p className={styles.fieldNote}>Không thể thay đổi</p>
+      </div>
     </div>
   );
 }

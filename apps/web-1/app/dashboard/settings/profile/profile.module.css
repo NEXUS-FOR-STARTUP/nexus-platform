@@ -1,9 +1,15 @@
-.card {
-  border: 1px solid var(--color-border, #e2e8f0) !important;
-  border-radius: 8px;
-  background: var(--color-surface, #ffffff);
-  padding: 24px 28px !important;
+.formCol {
   max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.card {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 8px;
+  padding: 24px 28px;
 }
 
 .cardTitle {
@@ -19,32 +25,7 @@
   margin: 0 0 20px;
 }
 
-.dangerCard.dangerCard {
-  border: 1px solid rgba(239, 68, 68, 0.35) !important;
-  border-radius: 8px;
-  background: var(--color-surface, #ffffff);
-  padding: 24px 28px !important;
-  max-width: 560px;
-}
-
-.dangerTitle {
-  font-size: var(--ui-text-section, 1.125rem);
-  font-weight: 500;
-  color: var(--color-danger, #ef4444);
-  margin: 0 0 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.note {
-  font-size: var(--ui-text-note, 0.875rem);
-  color: var(--color-text-muted, #475569);
-  margin: 0;
-  line-height: 1.45;
-}
-
-/* Avatar row matches mockup */
+/* Avatar row matches mockup views.css .avatar-row, .avatar */
 .avatarRow {
   display: flex;
   align-items: center;
@@ -58,9 +39,18 @@
   border-radius: 50%;
   background: var(--color-brand-soft, #dbeafe);
   color: var(--color-brand, #2563eb);
+  display: grid;
+  place-items: center;
   font-size: 32px;
   font-weight: 500;
+  overflow: hidden;
   flex-shrink: 0;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .avatarBusy {
@@ -68,17 +58,22 @@
 }
 
 .avatarBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   height: 38px;
   padding: 0 16px;
   border-radius: 8px;
+  font-size: var(--ui-text-note, 0.875rem);
   font-weight: 500;
   background: var(--color-surface, #ffffff);
   color: var(--color-text, #0f172a);
   border: 1px solid var(--color-border, #cbd5e1);
+  cursor: pointer;
   transition: background-color 0.15s ease;
 }
 
-.avatarBtn:hover {
+.avatarBtn:hover:not(:disabled) {
   background: var(--color-surface-soft, #f1f5f9);
 }
 
@@ -88,12 +83,18 @@
   margin-top: 4px;
 }
 
-/* Input Styles API matching mockup */
-.inputRoot {
-  margin-bottom: 16px;
+.note {
+  font-size: var(--ui-text-note, 0.875rem);
+  color: var(--color-text-muted, #475569);
+  margin: 0;
 }
 
-.inputLabel {
+/* Fields matching mockup base.css .field, label, input */
+.field {
+  margin-bottom: 20px;
+}
+
+.field label {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -103,7 +104,18 @@
   color: var(--color-text, #0f172a);
 }
 
+.req {
+  color: var(--color-danger, #ef4444);
+}
+
+.fieldNote {
+  font-size: var(--ui-text-note, 0.875rem);
+  color: var(--color-text-muted, #94a3b8);
+  margin: 4px 0 0;
+}
+
 .inputField {
+  width: 100%;
   height: 42px;
   padding: 10px 14px;
   border: 1px solid var(--color-border, #cbd5e1);
@@ -111,6 +123,7 @@
   background: var(--color-surface, #ffffff);
   color: var(--color-text, #0f172a);
   font-size: var(--ui-text-body, 1rem);
+  outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -119,11 +132,15 @@
   box-shadow: 0 0 0 1px var(--color-brand, #2563eb);
 }
 
-.inputField[disabled] {
+.inputField:disabled {
   background: var(--color-surface-soft, #f1f5f9);
-  color: var(--color-text-muted, #475569);
+  color: var(--color-text-muted, #94a3b8);
   cursor: not-allowed;
   border-color: var(--color-border, #e2e8f0);
+}
+
+.inputErrorBorder {
+  border-color: var(--color-danger, #ef4444) !important;
 }
 
 .inputError {
@@ -132,7 +149,7 @@
   margin-top: 4px;
 }
 
-/* Save button aligned to bottom right */
+/* Actions */
 .formActions {
   display: flex;
   justify-content: flex-end;
@@ -140,13 +157,18 @@
 }
 
 .saveBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   height: 40px;
   padding: 0 20px;
   border-radius: 8px;
+  border: 0;
   font-size: var(--ui-text-body, 1rem);
   font-weight: 500;
   background: var(--color-brand, #2563eb);
   color: #ffffff;
+  cursor: pointer;
   transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
@@ -159,20 +181,42 @@
 }
 
 .saveBtn:disabled {
-  background: var(--color-surface-soft, #f1f5f9) !important;
-  color: var(--color-text-muted, #94a3b8) !important;
-  border-color: transparent !important;
+  background: var(--color-surface-soft, #f1f5f9);
+  color: var(--color-text-muted, #94a3b8);
   cursor: not-allowed;
 }
 
+/* Danger Box matches mockup views.css .danger-box */
+.dangerBox {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 8px;
+  padding: 24px 28px;
+}
+
+.dangerHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--ui-text-section, 1.125rem);
+  font-weight: 500;
+  color: var(--color-danger, #ef4444);
+  margin: 0 0 8px;
+}
+
 .dangerBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   height: 38px;
   padding: 0 16px;
   border-radius: 8px;
+  border: 0;
+  font-size: var(--ui-text-note, 0.875rem);
+  font-weight: 500;
   background: var(--color-danger-soft, #fee2e2);
   color: var(--color-danger, #ef4444);
-  font-weight: 500;
-  border: 1px solid transparent;
+  cursor: pointer;
   transition: background-color 0.15s ease;
 }
 
