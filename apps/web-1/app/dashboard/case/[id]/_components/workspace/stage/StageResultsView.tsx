@@ -5,8 +5,8 @@ import { useMediaQuery } from "@mantine/hooks";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
 import type { RoundHistoryEntry } from "@/types";
 import { formatDateShort } from "../../report.utils";
-import { Button } from "../../ui/Button";
 import ResultPdfViewer, { ResultPdfActions } from "./ResultPdfViewer";
+import ResultsEmptyState from "./ResultsEmptyState";
 import ResultRunList from "./ResultRunList";
 import { toResultRuns } from "./result-runs";
 import s from "./stage-results.module.css";
@@ -42,24 +42,13 @@ export default function StageResultsView({
 
   if (runs.length === 0) {
     return (
-      <div className={s.empty}>
-        <h2>Chưa có kết quả chấm</h2>
-        <p className={s.note}>Làm theo 3 bước để nhận kết quả:</p>
-        <ol>
-          <li>
-            <button type="button" className={s.link} onClick={onGoDraft}>
-              Trả lời các câu hỏi ở mục Soạn thảo.
-            </button>
-          </li>
-          <li>
-            <button type="button" className={s.link} onClick={onGoFiles}>
-              Tải tài liệu ở mục Tài liệu.
-            </button>
-          </li>
-          <li>Bấm Chấm bài.</li>
-        </ol>
-        <Button onClick={onAudit}>Chấm bài</Button>
-      </div>
+      <ResultsEmptyState
+        answeredCount={summary?.answered_count ?? 0}
+        fileCount={summary?.file_count ?? 0}
+        onGoDraft={onGoDraft}
+        onGoFiles={onGoFiles}
+        onAudit={onAudit}
+      />
     );
   }
 

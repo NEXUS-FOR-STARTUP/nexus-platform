@@ -138,34 +138,6 @@
   border: 0;
 }
 
-.empty h2 {
-  margin: 0 0 12px;
-  font-size: var(--ui-text-section);
-  font-weight: var(--ui-weight-medium);
-}
-
-.empty ol {
-  margin: 12px 0 20px 20px;
-  padding: 0;
-}
-
-.empty li {
-  padding: 3px 0;
-}
-
-.link {
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  color: #2563eb;
-  cursor: pointer;
-}
-
-.link:hover {
-  text-decoration: underline;
-}
-
 /* Phones skip the embedded PDF: one fold per run with its actions. */
 .fold {
   margin-bottom: 8px;

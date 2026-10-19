@@ -1,0 +1,100 @@
+/* Empty results: one white card, three steps as tone-stepped rows, the CTA closes the list. */
+.card {
+  max-width: 720px;
+  padding: 28px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: var(--ui-text-section);
+  font-weight: var(--ui-weight-medium);
+  line-height: 1.3;
+  color: #0f172a;
+}
+
+.lead {
+  margin: 0 0 20px;
+  font-size: var(--ui-text-note);
+  color: #475569;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #f1f5f9;
+  font: inherit;
+  color: #0f172a;
+  text-align: left;
+}
+
+button.step {
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+button.step:hover {
+  background: #e2e8f0;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #fff;
+  color: #2563eb;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  display: block;
+  font-weight: 500;
+}
+
+.note {
+  display: block;
+  font-size: var(--ui-text-note);
+  color: #475569;
+}
+
+.go {
+  flex: none;
+  color: #475569;
+}
+
+.last {
+  justify-content: space-between;
+}
+
+@media (max-width: 767px) {
+  .card {
+    padding: 20px;
+  }
+
+  .last {
+    flex-wrap: wrap;
+  }
+}
