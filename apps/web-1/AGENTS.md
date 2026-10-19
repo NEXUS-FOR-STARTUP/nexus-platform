@@ -76,7 +76,7 @@ Core hooks across routes:
 - **Wallet & Orders**: `useWalletBalance`, `useWalletHistory`, `useCreateDeposit`, `useCreateOrder`, `useOrderDetails`.
 - **Admin Console**: `useAdminCases`, `useAdminCaseDetail`, `useAdminStats`, `useAdminDeposits`, `useAdminUsers`, `useAdminDocuments`, `useAdminPayments`, `useAdminPackages`, `useAdminWorkerKpi`, `useAdminWorkerJobs`, `useAdminWorkerJobDetail`, `useAdminCancelJob`.
 - **Supporter Workspace**: `useSupporterCases`, `useSupporterActions`, `useSupporterReportDraft`.
-- **Shared / Settings**: `useNotifications`, `useProfileMutations`, `useUserPreferences`.
+- **Shared / Settings**: `useNotifications`, `useUpdateProfileName`, `useChangeAvatar`, `usePasswordMutations`, `useDeleteAccount`, `useUserPreferences`.
 
  ## MANTINE UI STYLING RULE
 

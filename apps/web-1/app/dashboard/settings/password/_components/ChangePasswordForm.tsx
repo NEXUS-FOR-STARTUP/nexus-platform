@@ -5,8 +5,8 @@ import { Button, Group, Paper, PasswordInput, Stack, Tooltip } from "@mantine/co
 import { Info } from "lucide-react";
 import {
   useHasPasswordQuery,
-  useProfileMutations,
-} from "../../hooks/useProfileMutations";
+  usePasswordMutations,
+} from "../../hooks/usePasswordMutations";
 
 interface ChangePasswordFormValues {
   currentPassword: string;
@@ -17,7 +17,7 @@ interface ChangePasswordFormValues {
 export default function ChangePasswordForm() {
   const hasPasswordQuery = useHasPasswordQuery();
   const hasPassword = hasPasswordQuery.data === true;
-  const { changePassword, setPassword } = useProfileMutations();
+  const { changePassword, setPassword } = usePasswordMutations();
   const pending = changePassword.isPending || setPassword.isPending;
 
   const form = useForm({

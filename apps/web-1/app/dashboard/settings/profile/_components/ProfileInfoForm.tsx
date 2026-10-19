@@ -5,7 +5,9 @@ import { useForm } from "@tanstack/react-form";
 import { Avatar, Button, Group, Paper, Stack, Text, TextInput, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { AlertTriangle, ImagePlus, Info, Trash2 } from "lucide-react";
-import { useProfileMutations } from "../../hooks/useProfileMutations";
+import { useUpdateProfileName } from "../../hooks/useUpdateProfileName";
+import { useChangeAvatar } from "../../hooks/useChangeAvatar";
+import { useDeleteAccount } from "../../hooks/useDeleteAccount";
 import { DeleteAccountModal } from "./DeleteAccountModal";
 
 interface ProfileFormValues {
@@ -23,7 +25,9 @@ interface ProfileInfoFormProps {
 }
 
 export default function ProfileInfoForm({ user, refetch, hideDangerZone = false }: ProfileInfoFormProps) {
-  const { updateName, changeAvatar, deleteAccount } = useProfileMutations();
+  const updateName = useUpdateProfileName();
+  const changeAvatar = useChangeAvatar();
+  const deleteAccount = useDeleteAccount();
   const [deleteModalOpened, { open: openDeleteModal, close: closeDeleteModal }] = useDisclosure(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
