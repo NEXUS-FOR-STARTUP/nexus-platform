@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Check } from "@phosphor-icons/react/ssr";
-import { PACKAGE_KEYS, formatPrice } from "@/lib/pricing";
+import { formatPrice } from "@/lib/pricing";
 import base from "./landing.module.css";
 import s from "./landingSections.module.css";
 
@@ -38,10 +38,10 @@ export default function LandingPricing() {
             ))}
           </ul>
           <Link
-            href={`/dashboard/intake?packageId=${PACKAGE_KEYS.AI_AUDIT}`}
+            href="/dashboard?create=1"
             className={`${base.btn} ${base.btnPrimary} ${base.btnBlock}`}
           >
-            Bắt đầu đánh giá
+            Tạo dự án
             <ArrowRight size={18} aria-hidden="true" />
           </Link>
         </div>

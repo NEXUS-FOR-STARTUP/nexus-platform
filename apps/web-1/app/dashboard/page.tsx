@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Pagination } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
@@ -24,6 +24,16 @@ export default function StudentDashboard() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const [opened, { open, close }] = useDisclosure(false);
+
+  // `/dashboard?create=1` (landing pricing CTA) opens the create-project modal once, then drops the flag.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("create") !== "1") return;
+    open();
+    params.delete("create");
+    const qs = params.toString();
+    window.history.replaceState(null, "", `${window.location.pathname}${qs ? `?${qs}` : ""}`);
+  }, [open]);
   const { data, isLoading, error } = useCasesList({
     page,
     limit: PAGE_SIZE,

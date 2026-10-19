@@ -36,7 +36,7 @@ export default function LandingHero() {
             ))}
           </ul>
           <div className={s.ctaRow} id={HERO_CTA_ID}>
-            <Link href="/dashboard" className={`${base.btn} ${base.btnPrimary}`} data-cta="free">
+            <Link href="/dashboard/team-fit?step=1" className={`${base.btn} ${base.btnPrimary}`} data-cta="free">
               Kiểm tra nhanh ý tưởng
               <ArrowRight size={18} aria-hidden="true" />
             </Link>

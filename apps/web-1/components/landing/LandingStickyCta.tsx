@@ -21,7 +21,7 @@ export default function LandingStickyCta() {
 
   return (
     <div className={`${s.sticky} ${show ? s.stickyShow : ""}`} aria-hidden={!show}>
-      <Link href="/dashboard" tabIndex={show ? 0 : -1} className={`${base.btn} ${base.btnPrimary}`}>
+      <Link href="/dashboard/team-fit?step=1" tabIndex={show ? 0 : -1} className={`${base.btn} ${base.btnPrimary}`}>
         Kiểm tra nhanh ý tưởng
         <ArrowRight size={18} aria-hidden="true" />
       </Link>
