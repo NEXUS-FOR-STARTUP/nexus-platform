@@ -1,36 +1,26 @@
-"use client";
-
-import React from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { Compass, ArrowRight } from "@phosphor-icons/react";
+import { ArrowRightIcon } from "@phosphor-icons/react/ssr";
+import base from "@/components/landing/landing.module.css";
+import s from "@/components/layout/statusPage.module.css";
 
 export default function NotFound() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-bg-app p-6 font-body text-text-app text-center">
-      <div className="max-w-md space-y-6">
-        {/* Animated Compass Icon */}
-        <div className="w-16 h-16 rounded-full bg-brand-soft/40 text-brand flex items-center justify-center mx-auto shadow-sm">
-          <Compass className="w-8 h-8 animate-pulse" />
+    <div className={`${base.landing} ${s.root}`}>
+      <main className={s.col}>
+        <Image src="/landing/logo.svg" alt="Nexus" width={71} height={40} className={s.logo} unoptimized />
+        <p className={s.code}>Lỗi 404</p>
+        <h1 className={s.title}>Không tìm thấy trang</h1>
+        <p className={s.text}>
+          Đường dẫn bạn truy cập có thể đã thay đổi hoặc không tồn tại. Hãy quay về trang chủ hoặc liên hệ hỗ trợ nếu bạn nghĩ đây là nhầm lẫn.
+        </p>
+        <div className={s.actions}>
+          <Link href="/" className={`${base.btn} ${base.btnPrimary}`}>
+            Về trang chủ
+            <ArrowRightIcon size={18} aria-hidden="true" />
+          </Link>
         </div>
-
-        {/* 404 Titles */}
-        <div className="space-y-2">
-          <h1 className="font-heading text-4xl font-extrabold tracking-tight text-brand">404</h1>
-          <h2 className="font-heading text-xl font-semibold">Không tìm thấy trang</h2>
-          <p className="text-xs text-text-muted leading-relaxed">
-            Đường dẫn bạn truy cập có thể đã thay đổi hoặc không tồn tại. Vui lòng quay lại trang chủ hoặc liên hệ hỗ trợ kỹ thuật.
-          </p>
-        </div>
-
-        {/* Action Link */}
-        <Link
-          href="/"
-          className="inline-flex items-center justify-center gap-2 font-body text-xs font-semibold bg-brand hover:bg-brand-hover text-white px-5 py-2.5 rounded-lg shadow-sm shadow-brand/10 transition-colors cursor-pointer"
-        >
-          <span>Quay về trang chủ</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
-      </div>
+      </main>
     </div>
   );
 }
