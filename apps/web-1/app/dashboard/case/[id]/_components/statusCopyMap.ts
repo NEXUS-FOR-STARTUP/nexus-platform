@@ -78,21 +78,21 @@ export const STATUS_GUIDANCE_COPY: Record<string, StatusGuidanceCopy> = {
   approved: {
     title: "Quy trình phản biện đã hoàn tất",
     description:
-      "Hồ sơ phản biện dự án của bạn đã hoàn thành qua các vòng. Bạn có thể xem báo cáo chi tiết và điểm số tại tab Tài liệu dự án.",
+      "Dự án phản biện của bạn đã hoàn thành qua các vòng. Bạn có thể xem báo cáo chi tiết và điểm số tại tab Tài liệu dự án.",
     tone: "success",
     icon: "check",
   },
   APPROVED: {
     title: "Quy trình phản biện đã hoàn tất",
     description:
-      "Hồ sơ phản biện dự án của bạn đã hoàn thành qua các vòng. Bạn có thể xem báo cáo chi tiết và điểm số tại tab Tài liệu dự án.",
+      "Dự án phản biện của bạn đã hoàn thành qua các vòng. Bạn có thể xem báo cáo chi tiết và điểm số tại tab Tài liệu dự án.",
     tone: "success",
     icon: "check",
   },
   sent: {
     title: "Quy trình phản biện đã hoàn tất",
     description:
-      "Hồ sơ phản biện dự án của bạn đã hoàn thành qua các vòng. Bạn có thể xem báo cáo chi tiết và điểm số tại tab Tài liệu dự án.",
+      "Dự án phản biện của bạn đã hoàn thành qua các vòng. Bạn có thể xem báo cáo chi tiết và điểm số tại tab Tài liệu dự án.",
     tone: "success",
     icon: "check",
   },

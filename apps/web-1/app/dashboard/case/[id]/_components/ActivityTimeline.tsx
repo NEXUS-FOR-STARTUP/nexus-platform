@@ -29,7 +29,7 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
     return (
       <div className="bg-surface-app border border-border-app rounded-lg p-8 text-center flex flex-col items-center justify-center gap-3 animate-fade-in">
         <Clock className="w-8 h-8 text-text-subtle animate-pulse" />
-        <p className="text-xs text-text-muted font-body">Chưa có hoạt động nào được ghi nhận cho hồ sơ này.</p>
+        <p className="text-xs text-text-muted font-body">Chưa có hoạt động nào được ghi nhận cho dự án này.</p>
       </div>
     );
   }

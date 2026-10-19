@@ -52,7 +52,7 @@ import type { Case, DocumentWorkspace, RoundHistoryEntry, TeamFitReport } from "
           {caseData?.case_code && (
             <CopyButton value={caseData.case_code} timeout={1500}>
               {({ copied, copy }) => (
-                <Tooltip label={copied ? "Đã sao chép" : "Sao chép mã hồ sơ"} withArrow>
+                <Tooltip label={copied ? "Đã sao chép" : "Sao chép mã dự án"} withArrow>
                   <Badge
                     size="sm"
                     variant="light"

@@ -116,7 +116,7 @@ export default function StageGradingPanel({ caseId, checkpoint, submissionType, 
       "Mình gặp lỗi khi chấm bài, nhờ admin hỗ trợ:",
       `- Trang: ${window.location.href}`,
       `- Mã lần chấm: ${data.jobId ?? "không có"}`,
-      `- Mã hồ sơ: ${caseId}`,
+      `- Mã dự án: ${caseId}`,
       `- Thời điểm: ${new Date().toLocaleString("vi-VN")}`,
     ];
     clipboard.copy(lines.join("\n"));

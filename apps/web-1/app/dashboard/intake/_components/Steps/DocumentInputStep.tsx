@@ -87,7 +87,7 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
     const existingDocs = (parentField.state.value ?? []) as IntakeDocument[];
     if (existingDocs.length >= MAX_DOCUMENT_COUNT) {
       setUploadError(
-        `Tối đa ${MAX_DOCUMENT_COUNT} tài liệu mỗi hồ sơ. Vui lòng xóa bớt tài liệu trước khi tải thêm.`,
+        `Tối đa ${MAX_DOCUMENT_COUNT} tài liệu mỗi dự án. Vui lòng xóa bớt tài liệu trước khi tải thêm.`,
       );
       return;
     }

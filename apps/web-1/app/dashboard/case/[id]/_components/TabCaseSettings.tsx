@@ -105,7 +105,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
         <div>
           <div className="flex items-center gap-2 text-text-app">
             <Settings className="w-5.5 h-5.5 text-brand" />
-            <h3 className="font-heading font-bold text-lg">Cài đặt thông tin hồ sơ</h3>
+            <h3 className="font-heading font-bold text-lg">Cài đặt thông tin dự án</h3>
           </div>
           <p className="text-text-muted text-sm mt-1">
             Cập nhật tên nhóm, trường học và bối cảnh lớp học để báo cáo phản biện hiển thị chính xác.

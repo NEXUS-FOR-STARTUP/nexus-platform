@@ -138,10 +138,10 @@ export default function CaseStatusHeader({
       <div className="space-y-3">
         <div className="space-y-0.5">
           <span className="text-xs font-medium text-text-muted block">
-            Hồ sơ phản biện
+            Dự án phản biện
           </span>
           <div className="flex flex-wrap items-center gap-3">
-            <Tooltip label="Xem tổng quan hồ sơ & ý tưởng khởi nghiệp" withArrow position="top">
+            <Tooltip label="Xem tổng quan dự án & ý tưởng khởi nghiệp" withArrow position="top">
               <h2
                 onClick={() => onSelectTab?.("overview")}
                 className="font-heading text-xl sm:text-2xl font-bold text-text-app hover:text-brand transition-colors cursor-pointer"

@@ -174,7 +174,7 @@ export default function CaseOverviewPanel({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 className="font-heading text-lg font-semibold text-text-app">
-            Tổng quan hồ sơ
+            Tổng quan dự án
           </h2>
           <p className="text-sm font-normal text-text-muted mt-0.5">
             Thông tin chi tiết về đội ngũ, ý tưởng khởi nghiệp và nhu cầu phản biện.
@@ -188,7 +188,7 @@ export default function CaseOverviewPanel({
             className="cursor-pointer font-medium self-start sm:self-auto"
             onClick={onEditIntake}
           >
-            Cập nhật hồ sơ
+            Cập nhật dự án
           </Button>
         )}
       </div>

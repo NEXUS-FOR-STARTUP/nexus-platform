@@ -26,7 +26,7 @@ export default function CaseProfilePage({ params }: ProfilePageProps) {
     return (
       <Container size="md" py="xl">
         <div className="p-4 bg-danger-soft border border-danger/10 text-danger rounded-xl text-sm">
-          Không thể tải dữ liệu hồ sơ dự án.
+          Không thể tải thông tin dự án.
         </div>
       </Container>
     );

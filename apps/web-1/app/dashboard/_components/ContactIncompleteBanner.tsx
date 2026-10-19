@@ -39,7 +39,7 @@ export default function ContactIncompleteBanner({ cases }: { cases: Case[] }) {
           className="cursor-pointer shrink-0"
           onClick={() => router.push(`/dashboard/case/${incomplete[0].id}?tab=settings`)}
         >
-          Cập nhật hồ sơ
+          Cập nhật thông tin liên hệ
         </Button>
       </div>
     </Alert>

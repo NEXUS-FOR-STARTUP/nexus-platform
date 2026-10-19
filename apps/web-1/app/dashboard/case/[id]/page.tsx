@@ -108,7 +108,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     return (
       <div className="w-full p-4">
         <div className="p-4 bg-danger-soft border border-danger/10 text-danger rounded-xl font-body text-sm">
-          Không thể tải dữ liệu không gian làm việc của hồ sơ. Vui lòng thử lại sau.
+          Không thể tải dữ liệu không gian làm việc của dự án. Vui lòng thử lại sau.
         </div>
       </div>
     );

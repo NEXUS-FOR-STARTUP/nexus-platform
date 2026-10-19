@@ -172,7 +172,7 @@ function IntakePageContent() {
           variant="light"
           className="max-w-md"
         >
-          <p className="text-sm font-body">Không tải được hồ sơ. Vui lòng thử lại.</p>
+          <p className="text-sm font-body">Không tải được dự án. Vui lòng thử lại.</p>
         </Alert>
       </div>
     );
@@ -214,7 +214,7 @@ function IntakePageContent() {
         <LoadingSkeleton variant="text-block" count={2} />
         <p className="mt-4 text-sm text-text-muted font-body animate-pulse">
           {isUpdateMode
-            ? "Đang tải dữ liệu hồ sơ..."
+            ? "Đang tải dữ liệu dự án..."
             : "Đang tải cấu hình biểu mẫu..."}
         </p>
       </div>

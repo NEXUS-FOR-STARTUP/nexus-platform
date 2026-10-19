@@ -615,13 +615,13 @@ export default function StatusGuidanceCard({
         variant="light"
         color="yellow"
         radius="md"
-        title="Hồ sơ đã nộp - chờ thanh toán"
+        title="Dự án đã nộp - chờ thanh toán"
         icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
       >
         <div className="space-y-3">
           <p className="text-text-muted text-xs leading-relaxed">
-            Hồ sơ đã gửi thành công. Đội ngũ Nexus chỉ duyệt và phân công Supporter sau khi thanh toán hoàn tất.
+            Dự án đã gửi thành công. Đội ngũ Nexus chỉ duyệt và phân công Supporter sau khi thanh toán hoàn tất.
           </p>
           {onOpenPayment && (
             <Button

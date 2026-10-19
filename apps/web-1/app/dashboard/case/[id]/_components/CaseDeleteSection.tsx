@@ -26,14 +26,14 @@ export default function CaseDeleteSection({ caseId, stage }: CaseDeleteSectionPr
       setIsDeleteModalOpen(false);
       notifications.show({
         title: "Thành công",
-        message: "Đã xóa hồ sơ dự án.",
+        message: "Đã xóa dự án.",
         color: "green",
       });
       router.push("/dashboard");
     } catch (err: any) {
       notifications.show({
         title: "Lỗi",
-        message: err?.response?.data?.error || "Gặp lỗi khi xóa hồ sơ dự án.",
+        message: err?.response?.data?.error || "Gặp lỗi khi xóa dự án.",
         color: "red",
       });
       setIsDeleteModalOpen(false);
@@ -50,7 +50,7 @@ export default function CaseDeleteSection({ caseId, stage }: CaseDeleteSectionPr
                 Vùng nguy hiểm
               </h4>
               <p className="text-text-muted text-xs mt-1">
-                Hồ sơ này chưa được admin duyệt. Bạn có thể xóa vĩnh viễn hồ sơ này. Hành động này không thể hoàn tác.
+                Dự án này chưa được admin duyệt. Bạn có thể xóa vĩnh viễn dự án này. Hành động này không thể hoàn tác.
               </p>
             </div>
             <div>
@@ -60,7 +60,7 @@ export default function CaseDeleteSection({ caseId, stage }: CaseDeleteSectionPr
                 onClick={() => setIsDeleteModalOpen(true)}
                 className="font-semibold text-xs h-9 px-4 cursor-pointer hover:bg-red-50 hover:text-red-600 border-red-200 text-red-500 rounded-lg"
               >
-                Xóa hồ sơ dự án
+                Xóa dự án
               </Button>
             </div>
           </div>
@@ -75,7 +75,7 @@ export default function CaseDeleteSection({ caseId, stage }: CaseDeleteSectionPr
         title={
           <span className="font-heading font-semibold text-sm text-red-600 flex items-center gap-1.5">
             <Trash2 className="w-4.5 h-4.5" />
-            Xác nhận xóa hồ sơ dự án
+            Xác nhận xóa dự án
           </span>
         }
         centered
@@ -84,7 +84,7 @@ export default function CaseDeleteSection({ caseId, stage }: CaseDeleteSectionPr
       >
         <div className="space-y-4 font-body text-xs">
           <p className="text-text-app leading-relaxed">
-            Hành động này sẽ <strong className="text-red-600">xóa vĩnh viễn</strong> hồ sơ dự án này, bao gồm toàn bộ tài liệu đính kèm, các phiên bản và lịch sử trao đổi. <strong className="text-red-600">Dữ liệu đã xóa không thể khôi phục.</strong>
+            Hành động này sẽ <strong className="text-red-600">xóa vĩnh viễn</strong> dự án này, bao gồm toàn bộ tài liệu đính kèm, các phiên bản và lịch sử trao đổi. <strong className="text-red-600">Dữ liệu đã xóa không thể khôi phục.</strong>
           </p>
 
           <TextInput

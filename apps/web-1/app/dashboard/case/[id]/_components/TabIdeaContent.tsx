@@ -105,10 +105,10 @@ export default function TabIdeaContent({ caseData, selectedVersion }: TabIdeaCon
           <div className="space-y-1">
             <h4 className="font-heading font-semibold text-sm text-text-app flex items-center gap-2">
               <FolderOpen className="w-4.5 h-4.5 text-brand" />
-              <span>Tài liệu minh chứng hồ sơ</span>
+              <span>Tài liệu minh chứng dự án</span>
             </h4>
             <p className="font-body text-xs text-text-muted">
-              Tài liệu mà Supporter sẽ đọc để chuẩn bị phản biện hồ sơ của nhóm.
+              Tài liệu mà Supporter sẽ đọc để chuẩn bị phản biện dự án của nhóm.
             </p>
           </div>
           <a
