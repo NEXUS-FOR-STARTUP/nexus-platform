@@ -1,0 +1,75 @@
+/* Matches FormField.module.css so a select sits beside text inputs. */
+.field {
+  margin-bottom: 16px;
+}
+
+.label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: var(--ui-weight-medium);
+}
+
+.input {
+  height: 44px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--ui-radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 16px;
+  font-weight: var(--ui-weight-regular);
+  cursor: pointer;
+}
+
+.input:hover:not(:disabled) {
+  border-color: var(--color-text-disabled);
+}
+
+.input:focus,
+.input[data-expanded] {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand) 20%, transparent);
+}
+
+.input[data-error] {
+  border-color: var(--color-danger);
+}
+
+.input:disabled {
+  background: var(--color-surface-muted);
+  color: var(--color-text-subtle);
+  cursor: not-allowed;
+}
+
+.error {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--color-danger);
+}
+
+.dropdown {
+  padding: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--ui-radius);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-float);
+}
+
+.option {
+  padding: 8px 12px;
+  border-radius: var(--ui-radius-sm);
+  color: var(--color-text);
+  font-size: 16px;
+  font-weight: var(--ui-weight-regular);
+}
+
+.option[data-combobox-selected] {
+  background: var(--color-brand-subtle);
+  color: var(--color-brand);
+}
+
+.option:hover:not([data-combobox-selected]) {
+  background: var(--color-surface-soft);
+}

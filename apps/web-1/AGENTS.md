@@ -89,6 +89,18 @@ Quy tắc:
 - Mỗi màn hình tối đa một mảng navy đặc. Không gradient, không glow, không tím/indigo, không màu mới ngoài bảng này.
 - Thêm hoặc đổi màu: sửa ở `globals.css` (cả light và dark), cập nhật bảng này. Không đặt biến màu cục bộ trong module CSS.
 
+### Quy tắc tương phản chữ/nền (BẮT BUỘC)
+
+- **Nền đậm thì chữ sáng; nền sáng thì chữ đậm.** Không ngoại lệ, không để Mantine tự chọn: `autoContrast` có thể cho chữ đen trên nền cam/xanh trung bình, nhìn như lỗi.
+- Nền đậm là navy (`--color-brand`, `-hover`): chữ `--color-on-brand` (trắng). Nền nhạt (`-soft`, `-subtle`, `--color-surface*`): chữ `--color-text` hoặc `-ink`.
+- Cam và xanh lá logo (`--color-accent-warm`, `--color-success`) ở mức giữa, chữ trắng chỉ 2.9:1 còn chữ đen trông xám: **không làm nền nút**. Nút dùng navy. Cam/xanh lá chỉ làm mảng màu, ô icon, thanh tiến độ, hoặc nền `-soft` kèm chữ `-ink`.
+- Mantine `Button`/`Badge` `variant="filled"` chỉ với `color="brand"` (hoặc `red` cho hành động xoá). Alert/banner cảnh báo dùng `variant="light"`; nút hành động bên trong vẫn là nút navy chữ trắng, không dùng `color="yellow"`.
+- Tỉ lệ tối thiểu: chữ thường 4.5:1, chữ lớn (từ 18px, hoặc từ 14px đậm) 3:1.
+
+### Chữ hoa trong badge/chip
+
+- Badge, chip, nhãn trạng thái chỉ viết hoa chữ cái đầu câu ("Báo cáo đã sẵn sàng", không phải "BÁO CÁO ĐÃ SẴN SÀNG"). Theme Mantine đã đặt `Badge` `text-transform: none`; không thêm `uppercase` cho nhãn.
+
 ### 2. Border, radius, bóng, focus
 
 | Token | Giá trị | Dùng cho |

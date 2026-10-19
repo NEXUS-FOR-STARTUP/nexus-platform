@@ -26,6 +26,10 @@
   gap: 16px;
 }
 
+.wide {
+  grid-column: 1 / -1;
+}
+
 .save {
   display: flex;
   justify-content: flex-end;

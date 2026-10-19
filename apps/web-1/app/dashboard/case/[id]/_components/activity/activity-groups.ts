@@ -8,19 +8,15 @@ export interface DayGroup {
 
 export type TimelineCategory = "all" | "grade" | "pay" | "project";
 
+const GRADE_WORD_PREFIXES = ["audit", "grad", "eval", "score", "checkpoint", "report"];
+
 export function getEventCategory(eventType: string): "grade" | "pay" | "project" {
-  const t = eventType.toLowerCase();
-  if (
-    t.includes("audit") ||
-    t.includes("grade") ||
-    t.includes("grading") ||
-    t.includes("eval") ||
-    t.includes("score") ||
-    t.includes("checkpoint") ||
-    t.includes("report")
-  ) {
+  // Match whole `_`-separated words: "package_upgraded" must not count as a "grade" event.
+  const words = eventType.toLowerCase().split("_");
+  if (words.some((w) => GRADE_WORD_PREFIXES.some((p) => w.startsWith(p)))) {
     return "grade";
   }
+  const t = eventType.toLowerCase();
   if (
     t.includes("credit") ||
     t.includes("pay") ||

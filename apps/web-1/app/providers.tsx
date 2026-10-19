@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 // import { TanStackDevtools } from "@tanstack/react-devtools";
 // import { formDevtoolsPlugin } from "@tanstack/react-form-devtools";
-import { Alert, createTheme, MantineProvider, type MantineColorsTuple } from "@mantine/core";
+import { Alert, Badge, createTheme, MantineProvider, Modal, type MantineColorsTuple } from "@mantine/core";
 import { Info } from "@phosphor-icons/react";
 import { Notifications } from "@mantine/notifications";
 
@@ -44,6 +44,21 @@ const theme = createTheme({
   components: {
     // Mantine's Alert has no default icon; every alert shows the same Info icon unless it opts out.
     Alert: Alert.extend({ defaultProps: { icon: <Info className="w-4 h-4" /> } }),
+    // Mantine uppercases badges at 12px/700; labels are sentence case, so match the StatusChip scale instead.
+    Badge: Badge.extend({
+      styles: {
+        root: {
+          textTransform: "none",
+          height: "auto",
+          minHeight: 26,
+          padding: "3px 12px",
+          fontSize: "var(--ui-text-note)",
+          fontWeight: "var(--ui-weight-medium)",
+        },
+      },
+    }),
+    // Modal inputs match the profile page controls (42px); Mantine's default sm input is 36px and reads thin.
+    Modal: Modal.extend({ styles: { content: { "--input-height-sm": "2.625rem" } } }),
   },
 });
 

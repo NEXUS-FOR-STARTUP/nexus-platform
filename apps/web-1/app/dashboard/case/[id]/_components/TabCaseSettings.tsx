@@ -8,7 +8,7 @@ import { useCaseDetails } from "../hooks/useCaseDetails";
 import { contactFromSnapshot, validateCaseContact, type CaseContactValues } from "../../../_components/case-contact";
 import CaseContactFields from "./CaseContactFields";
 import CaseDeleteSection from "./CaseDeleteSection";
-import CaseProjectFields, { type CaseProjectValues } from "./CaseProjectFields";
+import CaseProjectFields, { needsGroupNo, type CaseProjectValues } from "./CaseProjectFields";
 import { Button } from "./ui/Button";
 import Notice, { type NoticeKind } from "./ui/Notice";
 import PageHead from "./ui/PageHead";
@@ -79,7 +79,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
   const focusFirstError = (found: Record<string, string>) => {
     const fieldNames = [...Object.keys(project), ...Object.keys(contact)];
     const target = fieldNames.find((n) => found[n] || found[`contact_${n}`]);
-    const el = target && formRef.current?.querySelector<HTMLInputElement>(`[name="${target}"]`);
+    const el = target && formRef.current?.querySelector<HTMLElement>(`[name="${target}"], [data-field="${target}"]`);
     if (el) {
       el.scrollIntoView({ block: "center" });
       el.focus();
@@ -91,8 +91,13 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
 
     const newErrors: Record<string, string> = {};
     if (!project.teamName.trim()) newErrors.teamName = "Tên nhóm / Tên đề tài là bắt buộc.";
-    if (!project.school.trim()) newErrors.school = "Trường học / Viện đào tạo là bắt buộc.";
-    if (!project.courseContext.trim()) newErrors.courseContext = "Lớp học / Môn học là bắt buộc.";
+    if (!project.school.trim()) newErrors.school = "Vui lòng chọn trường học.";
+    if (!project.courseContext.trim()) newErrors.courseContext = "Vui lòng chọn lớp học / môn học.";
+    if (needsGroupNo(project)) {
+      const group = project.groupNo.trim();
+      if (!group) newErrors.groupNo = "Mã số nhóm là bắt buộc.";
+      else if (!/^\d+$/.test(group)) newErrors.groupNo = "Mã số nhóm chỉ được chứa chữ số (ví dụ: 5).";
+    }
 
     const contactErrors = validateCaseContact(contact, true);
     Object.entries(contactErrors).forEach(([k, v]) => {

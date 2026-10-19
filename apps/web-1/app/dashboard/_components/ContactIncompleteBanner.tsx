@@ -34,7 +34,7 @@ export default function ContactIncompleteBanner({ cases }: { cases: Case[] }) {
         </span>
         <Button
           size="md"
-          color="yellow"
+          color="brand"
           className="cursor-pointer shrink-0"
           onClick={() => router.push(`/dashboard/case/${incomplete[0].id}?tab=settings`)}
         >

@@ -99,7 +99,7 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--color-surface-soft);
+  background: var(--color-surface-muted);
   color: var(--color-text-muted);
 }
 
@@ -110,7 +110,7 @@
 
 .markerPay {
   background: var(--color-success-soft);
-  color: var(--color-success);
+  color: var(--color-success-ink);
 }
 
 .head {
