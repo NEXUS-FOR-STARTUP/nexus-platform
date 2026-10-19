@@ -3,7 +3,7 @@
 import { isCaseContactComplete } from "@repo/validation";
 import { missingContactLabels } from "../../../../_components/case-contact";
 import { Button } from "../ui/Button";
-import s from "./overview.module.css";
+import s from "./next-step-card.module.css";
 
 interface ContactNextStepCardProps {
   contact: unknown;
@@ -17,11 +17,11 @@ export default function ContactNextStepCard({ contact, onOpenSettings }: Contact
 
   return (
     <div className={s.card}>
-      <h2 className={s.cardTitle}>Việc tiếp theo: điền thông tin liên hệ</h2>
+      <h2 className={s.title}>Việc tiếp theo: điền thông tin liên hệ</h2>
       <p className={s.lead}>
         Còn thiếu {missing}. Chúng tôi dùng để báo kết quả và gửi mã QR thanh toán cho đúng người.
       </p>
-      <Button variant="primary" onClick={onOpenSettings}>
+      <Button variant="quiet" onClick={onOpenSettings}>
         Điền thông tin liên hệ
       </Button>
     </div>

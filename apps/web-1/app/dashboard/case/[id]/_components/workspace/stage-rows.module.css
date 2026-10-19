@@ -11,9 +11,9 @@
   gap: 24px;
   align-items: center;
   padding: 14px 20px;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--ui-radius);
 }
 
 .row > :nth-child(2) {
@@ -21,23 +21,60 @@
 }
 
 .locked {
-  color: #475569;
+  color: var(--color-text-muted);
 }
 
 .name {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-weight: 500;
+  font-weight: var(--ui-weight-medium);
 }
 
-.locked .name svg {
-  color: #475569;
+.lead {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.tile {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--ui-radius);
+}
+
+.tileDone {
+  background: var(--color-success-soft);
+  color: var(--color-success-ink);
+}
+
+.tileAttn {
+  background: var(--color-accent-warm-soft);
+  color: var(--color-accent-warm-ink);
+}
+
+.tileNext {
+  background: var(--color-brand);
+  color: var(--color-on-brand);
+}
+
+.tileTodo {
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+}
+
+.tileLocked {
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
 }
 
 .note {
   font-size: 14px;
-  color: #475569;
+  color: var(--color-text-muted);
 }
 
 .after {

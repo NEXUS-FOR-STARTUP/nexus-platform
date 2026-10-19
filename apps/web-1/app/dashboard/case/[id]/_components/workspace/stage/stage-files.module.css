@@ -18,14 +18,14 @@
 .note {
   margin: 0;
   font-size: var(--ui-text-note);
-  color: #475569;
+  color: var(--color-text-muted);
 }
 
 .empty {
   padding: 24px 28px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--ui-radius);
+  background: var(--color-surface);
 }
 
 .empty .title {

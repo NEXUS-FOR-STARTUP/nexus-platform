@@ -14,21 +14,21 @@
   font-size: 16px;
   padding: 10px 2px 7px;
   cursor: pointer;
-  color: #475569;
+  color: var(--color-text-muted);
   white-space: nowrap;
 }
 
 .tab:hover {
-  color: #0f172a;
+  color: var(--color-text);
 }
 
 .on {
-  color: #0f172a;
-  font-weight: 500;
-  border-bottom-color: #2563eb;
+  color: var(--color-text);
+  font-weight: var(--ui-weight-medium);
+  border-bottom-color: var(--color-brand);
 }
 
 .tab:focus-visible {
-  outline: 2px solid #2563eb;
-  outline-offset: 2px;
+  outline: var(--ui-focus-ring);
+  outline-offset: var(--ui-focus-offset);
 }

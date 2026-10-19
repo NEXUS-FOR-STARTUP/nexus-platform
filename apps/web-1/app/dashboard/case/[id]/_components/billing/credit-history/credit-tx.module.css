@@ -1,8 +1,8 @@
 /* design-system/mockups/case-detail views.css: billing expandable rows (.tx .txd .kv .kvh .items). One transaction is a details element whose summary is the row. */
 .tx {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--ui-radius);
 }
 
 .summary {
@@ -20,30 +20,30 @@
 }
 
 .summary:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: var(--ui-focus-ring);
   outline-offset: -2px;
-  border-radius: 8px;
+  border-radius: var(--ui-radius);
 }
 
 .note {
   font-size: 14px;
-  color: #475569;
+  color: var(--color-text-muted);
 }
 
 .amt {
   text-align: right;
-  font-weight: 500;
+  font-weight: var(--ui-weight-medium);
   font-variant-numeric: tabular-nums;
 }
 
 .plus {
-  color: #10b981;
+  color: var(--color-success);
 }
 
 .cv {
   display: grid;
   place-items: center;
-  color: #475569;
+  color: var(--color-text-muted);
   transition: transform 0.2s;
 }
 
@@ -52,13 +52,13 @@
 }
 
 .txd {
-  background: #f1f5f9;
-  border-radius: 0 0 8px 8px;
+  background: var(--color-surface-soft);
+  border-radius: 0 0 var(--ui-radius) var(--ui-radius);
   padding: 8px 20px 20px;
 }
 
 .kvh {
-  font-weight: 500;
+  font-weight: var(--ui-weight-medium);
   margin: 28px 0 4px;
 }
 
@@ -79,7 +79,7 @@
 }
 
 .kv dt {
-  color: #475569;
+  color: var(--color-text-muted);
   font-size: 14px;
   padding-top: 2px;
 }
@@ -97,8 +97,8 @@
 .code {
   font-family: ui-monospace, Consolas, monospace;
   font-size: 14px;
-  background: #fff;
-  border-radius: 6px;
+  background: var(--color-surface);
+  border-radius: var(--ui-radius-sm);
   padding: 2px 8px;
   overflow-wrap: anywhere;
 }
@@ -109,15 +109,15 @@
   flex: none;
   display: grid;
   place-items: center;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  background: #fff;
-  color: #0f172a;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--ui-radius);
+  background: var(--color-surface);
+  color: var(--color-text);
   cursor: pointer;
 }
 
 .cp:hover {
-  background: #f1f5f9;
+  background: var(--color-surface-soft);
 }
 
 .tw {
@@ -129,14 +129,14 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
-  background: #fff;
-  border-radius: 8px;
+  background: var(--color-surface);
+  border-radius: var(--ui-radius);
 }
 
 .items th {
   text-align: left;
-  font-weight: 500;
-  color: #475569;
+  font-weight: var(--ui-weight-medium);
+  color: var(--color-text-muted);
   padding: 10px 14px;
 }
 
@@ -150,11 +150,11 @@
 }
 
 .items tfoot td {
-  font-weight: 500;
+  font-weight: var(--ui-weight-medium);
 }
 
 .err {
-  color: #991b1b;
+  color: var(--color-danger-ink);
 }
 
 @media (max-width: 820px) {

@@ -6,8 +6,8 @@
 }
 
 .card {
-  background: var(--color-surface, #ffffff);
-  border: 1px solid var(--color-border, #e2e8f0);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 24px 28px;
 }
@@ -15,13 +15,13 @@
 .cardTitle {
   font-size: var(--ui-text-section, 1.125rem);
   font-weight: 500;
-  color: var(--color-text, #0f172a);
+  color: var(--color-text);
   margin: 0 0 4px;
 }
 
 .cardSubtitle {
   font-size: var(--ui-text-note, 0.875rem);
-  color: var(--color-text-muted, #475569);
+  color: var(--color-text-muted);
   margin: 0 0 20px;
 }
 
@@ -37,8 +37,8 @@
   width: 96px;
   height: 96px;
   border-radius: 50%;
-  background: var(--color-brand-soft, #dbeafe);
-  color: var(--color-brand, #2563eb);
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
   display: grid;
   place-items: center;
   font-size: 32px;
@@ -66,26 +66,26 @@
   border-radius: 8px;
   font-size: var(--ui-text-note, 0.875rem);
   font-weight: 500;
-  background: var(--color-surface, #ffffff);
-  color: var(--color-text, #0f172a);
-  border: 1px solid var(--color-border, #cbd5e1);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
 
 .avatarBtn:hover:not(:disabled) {
-  background: var(--color-surface-soft, #f1f5f9);
+  background: var(--color-surface-soft);
 }
 
 .avatarError {
   font-size: var(--ui-text-note, 0.875rem);
-  color: var(--color-danger, #ef4444);
+  color: var(--color-danger);
   margin-top: 4px;
 }
 
 .note {
   font-size: var(--ui-text-note, 0.875rem);
-  color: var(--color-text-muted, #475569);
+  color: var(--color-text-muted);
   margin: 0;
 }
 
@@ -101,16 +101,16 @@
   font-size: var(--ui-text-note, 0.875rem);
   font-weight: 500;
   margin-bottom: 6px;
-  color: var(--color-text, #0f172a);
+  color: var(--color-text);
 }
 
 .req {
-  color: var(--color-danger, #ef4444);
+  color: var(--color-danger);
 }
 
 .fieldNote {
   font-size: var(--ui-text-note, 0.875rem);
-  color: var(--color-text-muted, #94a3b8);
+  color: var(--color-text-muted);
   margin: 4px 0 0;
 }
 
@@ -118,34 +118,34 @@
   width: 100%;
   height: 42px;
   padding: 10px 14px;
-  border: 1px solid var(--color-border, #cbd5e1);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: var(--color-surface, #ffffff);
-  color: var(--color-text, #0f172a);
+  background: var(--color-surface);
+  color: var(--color-text);
   font-size: var(--ui-text-body, 1rem);
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .inputField:focus {
-  border-color: var(--color-brand, #2563eb);
-  box-shadow: 0 0 0 1px var(--color-brand, #2563eb);
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 1px var(--color-brand);
 }
 
 .inputField:disabled {
-  background: var(--color-surface-soft, #f1f5f9);
-  color: var(--color-text-muted, #94a3b8);
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
   cursor: not-allowed;
-  border-color: var(--color-border, #e2e8f0);
+  border-color: var(--color-border);
 }
 
 .inputErrorBorder {
-  border-color: var(--color-danger, #ef4444) !important;
+  border-color: var(--color-danger) !important;
 }
 
 .inputError {
   font-size: var(--ui-text-note, 0.875rem);
-  color: var(--color-danger, #ef4444);
+  color: var(--color-danger);
   margin-top: 4px;
 }
 
@@ -166,14 +166,14 @@
   border: 0;
   font-size: var(--ui-text-body, 1rem);
   font-weight: 500;
-  background: var(--color-brand, #2563eb);
-  color: #ffffff;
+  background: var(--color-brand);
+  color: var(--color-on-brand);
   cursor: pointer;
   transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
 .saveBtn:hover:not(:disabled) {
-  background: var(--color-brand-hover, #1d4ed8);
+  background: var(--color-brand-hover);
 }
 
 .saveBtn:active:not(:disabled) {
@@ -181,14 +181,14 @@
 }
 
 .saveBtn:disabled {
-  background: var(--color-surface-soft, #f1f5f9);
-  color: var(--color-text-muted, #94a3b8);
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
   cursor: not-allowed;
 }
 
 /* Danger Box matches mockup views.css .danger-box */
 .dangerBox {
-  background: var(--color-surface, #ffffff);
+  background: var(--color-surface);
   border: 1px solid rgba(239, 68, 68, 0.35);
   border-radius: 8px;
   padding: 24px 28px;
@@ -200,7 +200,7 @@
   gap: 8px;
   font-size: var(--ui-text-section, 1.125rem);
   font-weight: 500;
-  color: var(--color-danger, #ef4444);
+  color: var(--color-danger);
   margin: 0 0 8px;
 }
 
@@ -214,12 +214,12 @@
   border: 0;
   font-size: var(--ui-text-note, 0.875rem);
   font-weight: 500;
-  background: var(--color-danger-soft, #fee2e2);
-  color: var(--color-danger, #ef4444);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
 
 .dangerBtn:hover {
-  background: #fecaca;
+  background: color-mix(in srgb, var(--color-danger) 25%, var(--color-surface));
 }

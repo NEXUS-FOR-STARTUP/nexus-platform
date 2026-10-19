@@ -1,38 +1,39 @@
 /* Measured from design-system/mockups/case-detail .chip: 26px pill, 14px/500, padding 0 12px. */
+/* Tones follow the colour meanings in AGENTS.md > DESIGN SYSTEM: navy = in progress, green = done, orange = attention. */
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   height: 26px;
   padding: 0 12px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--ui-radius-pill);
+  font-size: var(--ui-text-note);
+  font-weight: var(--ui-weight-medium);
   line-height: 1;
   white-space: nowrap;
 }
 
 .neutral {
-  background: #f1f5f9;
-  color: #475569;
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
 }
 
 .draft {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
 }
 
 .ok {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--color-success-soft);
+  color: var(--color-success-ink);
 }
 
 .warn {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-accent-warm-soft);
+  color: var(--color-accent-warm-ink);
 }
 
 .error {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-soft);
+  color: var(--color-danger-ink);
 }

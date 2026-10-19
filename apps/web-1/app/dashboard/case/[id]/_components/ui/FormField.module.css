@@ -6,7 +6,7 @@
 .label {
   display: block;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: var(--ui-weight-medium);
   margin-bottom: 6px;
 }
 
@@ -15,23 +15,23 @@
   font: inherit;
   font-size: 16px;
   padding: 10px 14px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  background: #fff;
-  color: #0f172a;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--ui-radius);
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .input:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: var(--ui-focus-ring);
   outline-offset: 1px;
 }
 
 .input[aria-invalid="true"] {
-  border-color: #ef4444;
+  border-color: var(--color-danger);
 }
 
 .error {
   margin: 4px 0 0;
   font-size: 14px;
-  color: #ef4444;
+  color: var(--color-danger);
 }

@@ -7,11 +7,11 @@
   gap: 8px;
   height: 40px;
   padding: 0 20px;
-  border-radius: 8px;
+  border-radius: var(--ui-radius);
   border: 1px solid transparent;
   font-family: inherit;
   font-size: 16px;
-  font-weight: 400;
+  font-weight: var(--ui-weight-regular);
   line-height: 1;
   cursor: pointer;
   white-space: nowrap;
@@ -30,53 +30,53 @@
 
 /* Variants */
 .primary {
-  background: var(--color-brand, #2563eb);
-  color: #ffffff;
+  background: var(--color-brand);
+  color: var(--color-on-brand);
   border-color: transparent;
 }
 
 .primary:hover:not(:disabled) {
-  background: var(--color-brand-hover, #1d4ed8);
+  background: var(--color-brand-hover);
 }
 
 .quiet {
-  background: var(--color-surface, #ffffff);
-  color: var(--color-text-app, #0f172a);
-  border-color: var(--color-border-strong, #cbd5e1);
+  background: var(--color-surface);
+  color: var(--color-text-app);
+  border-color: var(--color-border-strong);
 }
 
 .quiet:hover:not(:disabled) {
-  background: var(--color-surface-soft, #f1f5f9);
+  background: var(--color-surface-soft);
 }
 
 .ghost {
   background: transparent;
-  color: var(--color-text-app, #0f172a);
+  color: var(--color-text-app);
   border-color: transparent;
 }
 
 .ghost:hover:not(:disabled) {
-  background: var(--color-surface-soft, #f1f5f9);
+  background: var(--color-surface-soft);
 }
 
 .danger {
-  background: var(--color-danger, #ef4444);
-  color: #ffffff;
+  background: var(--color-danger);
+  color: var(--color-on-brand);
   border-color: transparent;
 }
 
 .danger:hover:not(:disabled) {
-  background: #dc2626;
+  background: color-mix(in srgb, var(--color-danger) 85%, black);
 }
 
 .dangerQuiet {
-  background: var(--color-danger-soft, #fee2e2);
-  color: #991b1b;
+  background: var(--color-danger-soft);
+  color: var(--color-danger-ink);
   border-color: transparent;
 }
 
 .dangerQuiet:hover:not(:disabled) {
-  background: #fecaca;
+  background: color-mix(in srgb, var(--color-danger) 25%, var(--color-surface));
 }
 
 /* Sizes */
@@ -86,21 +86,21 @@
   height: 40px;
   padding: 0 20px;
   font-size: 16px;
-  border-radius: 8px;
+  border-radius: var(--ui-radius);
 }
 
 .lg {
   height: 48px;
   padding: 0 24px;
   font-size: 16px;
-  border-radius: 8px;
+  border-radius: var(--ui-radius);
 }
 
 /* Disabled */
 .btn:disabled,
 .btn[aria-disabled="true"] {
-  background: var(--color-surface-muted, #e2e8f0);
-  color: var(--color-text-muted, #94a3b8);
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
   border-color: transparent;
   cursor: not-allowed;
   transform: none;
@@ -114,21 +114,21 @@
   padding: 0;
   display: grid;
   place-items: center;
-  border: 1px solid var(--color-border-strong, #cbd5e1);
-  border-radius: 8px;
-  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--ui-radius);
+  background: var(--color-surface);
   cursor: pointer;
-  color: var(--color-text-app, #0f172a);
+  color: var(--color-text-app);
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .ib:hover:not(:disabled) {
-  background: var(--color-surface-soft, #f1f5f9);
+  background: var(--color-surface-soft);
 }
 
 .ib:disabled {
-  background: var(--color-surface-soft, #f1f5f9);
-  color: var(--color-text-muted, #94a3b8);
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
   cursor: not-allowed;
   border-color: transparent;
 }

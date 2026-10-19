@@ -12,12 +12,12 @@
 
 .card {
   position: relative;
-  background: #fff;
-  border: 1px solid var(--lp-line-strong, #d3dae6);
+  background: var(--color-surface);
+  border: 1px solid var(--lp-line-strong);
   border-radius: var(--lp-r-md, 16px);
   overflow: hidden;
   box-shadow: var(--lp-shadow-float, -12px 16px 32px -8px rgba(26, 26, 28, 0.5));
-  color: var(--lp-ink, #1a1a1c);
+  color: var(--lp-ink);
 }
 
 /* ---- JS active: cards pile up ---- */
@@ -51,7 +51,7 @@
 
 .stack:focus-visible,
 .card:focus-visible {
-  outline: 2px solid var(--lp-blue, #2563eb);
+  outline: 2px solid var(--lp-blue);
   outline-offset: 10px;
   border-radius: var(--lp-r-md, 16px);
 }
@@ -59,7 +59,7 @@
 .hint {
   margin: 22px 0 0;
   font-size: 14px;
-  color: var(--lp-muted, #454b59);
+  color: var(--lp-muted);
 }
 
 .hint[hidden] {
@@ -87,7 +87,7 @@
 
 .qMeta {
   font-size: 13px;
-  color: var(--lp-muted, #454b59);
+  color: var(--lp-muted);
 }
 
 .qTitle {
@@ -99,7 +99,7 @@
 
 .qDesc {
   margin: 0 0 6px;
-  color: var(--lp-muted, #454b59);
+  color: var(--lp-muted);
   font-size: 15px;
 }
 
@@ -134,12 +134,12 @@
   min-height: 132px;
   overflow: hidden;
   margin-top: 22px;
-  border-top: 1px dashed var(--lp-line, #dfe4eb);
+  border-top: 1px dashed var(--lp-line);
   padding-top: 18px;
 }
 
 .qNext small {
-  color: var(--lp-muted, #454b59);
+  color: var(--lp-muted);
   font-size: 12px;
 }
 
@@ -167,7 +167,7 @@
 }
 
 .more {
-  color: var(--lp-blue, #2563eb) !important;
+  color: var(--lp-blue) !important;
   text-decoration: none;
   font-weight: 500;
   display: inline-flex;
@@ -182,7 +182,7 @@
 
 /* Lift via `translate` so it composes with the inline `transform` used for drag/fly. */
 .stack[data-js="true"] .card[data-top="true"]:hover:not([data-dragging="true"]) {
-  border-color: var(--lp-blue, #2563eb);
+  border-color: var(--lp-blue);
   translate: 0 -6px;
 }
 
@@ -235,7 +235,7 @@
   width: min(640px, 100%);
   margin: 4px auto 0;
   font-size: 14px;
-  color: var(--lp-muted, #454b59);
+  color: var(--lp-muted);
 }
 
 .rNote {
@@ -246,7 +246,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--lp-blue, #2563eb) !important;
+  color: var(--lp-blue) !important;
   text-decoration: none;
   white-space: nowrap;
   font-weight: 500;

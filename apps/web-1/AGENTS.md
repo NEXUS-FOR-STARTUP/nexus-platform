@@ -60,6 +60,72 @@ Case detail (`dashboard/case/[id]`, live path `NEXT_PUBLIC_JOURNEY_WORKSPACE=tru
 
 Redesign primitives: `--ui-text-*`/`--ui-weight-*`/`--ui-gap-section`/`--ui-topbar-height` in `globals.css`; `components/ui/{underline-tabs,StatusChip,CopyIconButton}`; `formatVndAmount` in `lib/pricing.ts` (always `1,000 VND`).
 
+## DESIGN SYSTEM (BẮT BUỘC, KHÔNG ĐƯỢC VI PHẠM)
+
+Màu, border, font là hợp đồng giao diện. Nguồn duy nhất: `app/globals.css` (khối `:root`, `[data-mantine-color-scheme="dark"]`, `@theme`). Code UI chỉ dùng biến, không gõ giá trị.
+
+### 1. Màu: 3 màu logo Nexus + thang xám
+
+Logo có đúng 3 màu: navy `#0b409e`, xanh lá `#22ad46`, cam `#f36f21`. **Một màu một nghĩa, theo trạng thái, không theo tên giai đoạn** (số giai đoạn sẽ tăng, không có màu cho từng giai đoạn).
+
+| Token | Giá trị | Nghĩa | Dùng cho |
+|---|---|---|---|
+| `--color-brand` / `-hover` / `-soft` / `-subtle` / `-mid` | `#0B409E` / `#09337D` / `#DBE4F3` / `#EAEFF8` / `#9FB4DC` | Hành động, đang ở đây, việc tiếp theo | Nút chính, liên kết, tab chọn, vòng focus, 1 mảng navy đặc mỗi màn hình |
+| `--color-on-brand` | `#FFFFFF` | Chữ trên mảng navy | Chỉ trên `--color-brand` (9.4:1) |
+| `--color-success` / `-soft` / `-ink` | `#22AD46` / `#D8F1DF` / `#166534` | Hoàn thành, đã có kết quả | Thanh tiến độ, ô icon, chip, tick |
+| `--color-accent-warm` / `-hover` / `-soft` / `-ink` | `#F36F21` / `#D95A12` / `#FDE5D3` / `#9A3412` | Đang chấm, cần chú ý | Thanh tiến độ, ô icon, chip |
+| `--color-danger` / `-soft` / `-ink` | `#EF4444` / `#FEE2E2` / `#991B1B` | Lỗi, xoá, bắt buộc | Nút xoá, lỗi form, nhãn "Quan trọng" |
+| `--color-warning` / `-soft` / `-ink` | `#F59E0B` / `#FEF3C7` / `#A16207` | Cảnh báo nhẹ (câu còn ngắn) | Dòng cảnh báo, icon cảnh báo |
+| `--color-bg` | `#F8FAFC` | Nền trang duy nhất | `<main>`, body |
+| `--color-surface` | `#FFFFFF` | Thẻ, input, menu | Card, ô nhập |
+| `--color-surface-soft` | `#F1F5F9` | Hàng, chip, hover | Dòng danh sách, chip trung tính |
+| `--color-surface-muted` | `#E2E8F0` | Khoá, vô hiệu | Đoạn tiến độ khoá, nút disabled |
+| `--color-border` / `--color-border-strong` | `#E2E8F0` / `#CBD5E1` | Viền thẻ / viền control | Card / nút phụ, input, select |
+| `--color-text` / `-muted` / `-subtle` / `-disabled` | `#0F172A` / `#475569` / `#64748B` / `#94A3B8` | Chữ chính / phụ / chú thích / vô hiệu | Mọi chữ. Chữ phụ không nhạt hơn `-muted` |
+
+Quy tắc:
+- **CẤM** hex, `rgb()`, `hsl()` trong `*.module.css`, `style={{}}`, Tailwind arbitrary (`bg-[#...]`). Dùng `var(--color-*)` hoặc class Tailwind map từ `@theme` (`bg-brand`, `text-text-app`).
+- Cam và xanh lá chỉ làm **nền** (độ tương phản trên trắng chỉ 2.9:1). Chữ trên nền nhạt dùng `-ink`. Chữ trắng chỉ đặt trên navy.
+- Mỗi màn hình tối đa một mảng navy đặc. Không gradient, không glow, không tím/indigo, không màu mới ngoài bảng này.
+- Thêm hoặc đổi màu: sửa ở `globals.css` (cả light và dark), cập nhật bảng này. Không đặt biến màu cục bộ trong module CSS.
+
+### 2. Border, radius, bóng, focus
+
+| Token | Giá trị | Dùng cho |
+|---|---|---|
+| `--ui-border-width` | `1px` | Mọi viền (thẻ stage dùng `--ui-card-border-width`) |
+| `--ui-radius` | `0.5rem` (8px) | Thẻ, nút, input, select, menu, ô icon |
+| `--ui-radius-sm` | `0.375rem` (6px) | Mục bên trong menu/danh sách/dropdown |
+| `--ui-radius-pill` | `999px` | Chip, và chỉ chip |
+| `--ui-focus-ring` + `--ui-focus-offset` | `2px solid brand`, `2px` | `:focus-visible` của mọi control |
+| `--shadow-float` | | Chỉ menu, popover, dialog |
+
+- Thẻ: `1px solid var(--color-border)`, nền `--color-surface`, **không bóng khi đứng yên**. Control: `1px solid var(--color-border-strong)`, cao 40px.
+- Không viền chân tóc để trang trí, không bóng trên thẻ, không glass/blur.
+
+### 3. Font
+
+- Chỉ **Inter Tight** (`--font-inter-tight`, nạp bằng `next/font`). Merriweather chỉ cho news/bài đọc.
+- Không monospace, ngoại lệ duy nhất: giá trị mã thật (ID giao dịch, mã tham chiếu ngân hàng, code block).
+- Vùng redesign (case, wallet, profile): cỡ chữ dùng `--ui-text-title|section|body|note`, độ đậm chỉ `--ui-weight-regular` (400) và `--ui-weight-medium` (500). **Không 600/700.**
+
+### 4. Dark theme (CHƯA LÀM, phải tính sau)
+
+Giá trị dark trong `globals.css` hiện chỉ là tạm, chưa kiểm. Việc còn lại:
+- Navy `#0B409E` quá tối trên nền tối; dark đang dùng `#3B82F6`. Cần chọn lại navy/`-soft`/`-mid` và kiểm tương phản chữ trên mảng navy.
+- Kiểm lại `-ink` của success/warm/danger, thanh tiến độ, ô icon, chip, khung PDF, thẻ navy.
+- Rà các chỗ ghi đè Mantine (`--mantine-color-dark-*`) và modal/dropdown trong portal.
+- Quy tắc từ giờ: mọi màu mới phải có giá trị dark ngay trong `[data-mantine-color-scheme="dark"]`. Chỉ dùng token thì dark chỉ cần đổi ở một nơi.
+
+### 5. Nợ còn lại (chưa thống nhất, không được làm nặng thêm)
+
+- **Mantine palette**: `app/providers.tsx` là nơi duy nhất được giữ hex (Mantine cần màu parse được để dựng thang). Ở đó `brand` và `blue` = navy, `green` và `teal` = xanh lá logo, `orange` = cam logo, `red` = danger, `gray` = thang slate; `autoContrast` bật. Vì vậy `color="blue|teal|green|orange|red|gray"` đi theo hệ màu. **Không dùng** `yellow|grape|violet|indigo|cyan|lime|pink` (còn khoảng 321 chỗ dùng màu Mantine toàn app, chưa rà từng chỗ).
+- **Tailwind palette** (`bg-amber-50`, `text-red-600`, `border-blue-200`...): còn khoảng 203 chỗ (admin, news, team-fit, intake, case). Chưa map về token. Code mới dùng class token (`bg-brand`, `text-text-app`, `border-border-app`), không dùng bậc màu Tailwind.
+- **Hex gõ cứng**: 85 chỗ: `app/admin/_components` (18), `components/landing/*` (30), `app/auth/_components` (10), `components/ui/RainbowBuyButton.tsx` (9, cố ý nhiều màu), `app/news/[slug]` (4).
+- **Trang đã biết còn lệch**: `/dashboard` (banner vàng "cần cập nhật thông tin liên hệ" dùng amber/yellow), landing (chữ xanh `#2563eb` cũ, CTA cam).
+
+Đưa về token khi chạm tới các file này; không thêm hex hoặc bậc màu mới.
+
 ## DATA FETCHING PATTERN
 
 - TanStack Query + Axios `apiClient`

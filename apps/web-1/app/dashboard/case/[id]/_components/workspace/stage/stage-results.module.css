@@ -8,9 +8,9 @@
 
 .list {
   padding: 16px 8px 8px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--ui-radius);
+  background: var(--color-surface);
 }
 
 .listHead {
@@ -30,8 +30,8 @@
 .note {
   margin: 0;
   font-size: var(--ui-text-note);
-  font-weight: 400;
-  color: #475569;
+  font-weight: var(--ui-weight-regular);
+  color: var(--color-text-muted);
   white-space: pre-line;
 }
 
@@ -50,27 +50,27 @@
   width: 100%;
   padding: 10px 12px;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--ui-radius);
   background: transparent;
   font: inherit;
-  color: #0f172a;
+  color: var(--color-text);
   text-align: left;
   cursor: pointer;
 }
 
 .run:hover {
-  background: #f1f5f9;
+  background: var(--color-surface-soft);
 }
 
 .run[data-active="true"] {
-  background: #eff6ff;
+  background: var(--color-brand-subtle);
 }
 
 .runLabel {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 500;
+  font-weight: var(--ui-weight-medium);
 }
 
 .chip {
@@ -78,12 +78,12 @@
   align-items: center;
   height: 26px;
   padding: 0 12px;
-  border-radius: 999px;
-  background: #dbeafe;
+  border-radius: var(--ui-radius-pill);
+  background: var(--color-brand-soft);
   font-size: var(--ui-text-note);
-  font-weight: 500;
+  font-weight: var(--ui-weight-medium);
   line-height: 1;
-  color: #1e40af;
+  color: var(--color-brand);
 }
 
 .viewer {
@@ -108,7 +108,7 @@
 }
 
 .fileName {
-  font-weight: 500;
+  font-weight: var(--ui-weight-medium);
   overflow-wrap: anywhere;
 }
 
@@ -119,17 +119,17 @@
 
 .paper {
   padding: 24px;
-  border-radius: 8px;
-  background: #f1f5f9;
+  border-radius: var(--ui-radius);
+  background: var(--color-surface-soft);
 }
 
 .frameWrap {
   position: relative;
   height: calc(100vh - 22rem);
   min-height: 30rem;
-  border-radius: 8px;
+  border-radius: var(--ui-radius);
   overflow: hidden;
-  background: #fff;
+  background: var(--color-surface);
 }
 
 .frame {
@@ -142,9 +142,9 @@
 .fold {
   margin-bottom: 8px;
   padding: 0 20px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--ui-radius);
+  background: var(--color-surface);
 }
 
 .fold summary {

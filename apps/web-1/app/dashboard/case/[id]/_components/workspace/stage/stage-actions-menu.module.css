@@ -10,10 +10,10 @@
   height: 40px;
   display: grid;
   place-items: center;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  background: #fff;
-  color: #0f172a;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--ui-radius);
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .menu > summary::-webkit-details-marker {
@@ -21,7 +21,7 @@
 }
 
 .menu > summary:hover {
-  background: #f1f5f9;
+  background: var(--color-surface-soft);
 }
 
 .pop {
@@ -31,10 +31,10 @@
   z-index: 5;
   min-width: 200px;
   padding: 6px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--color-border);
+  border-radius: var(--ui-radius);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-float);
 }
 
 .pop button {
@@ -44,19 +44,19 @@
   width: 100%;
   padding: 9px 12px;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--ui-radius-sm);
   background: none;
   font: inherit;
-  color: #0f172a;
+  color: var(--color-text);
   text-align: left;
   cursor: pointer;
 }
 
 .pop button:hover:not(:disabled) {
-  background: #f1f5f9;
+  background: var(--color-surface-soft);
 }
 
 .pop button:disabled {
-  color: #94a3b8;
+  color: var(--color-text-disabled);
   cursor: not-allowed;
 }

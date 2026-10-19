@@ -12,8 +12,8 @@
   align-self: start;
   height: calc(100vh - 4rem);
   overflow-y: auto;
-  background: var(--color-surface, #ffffff);
-  border-right: 1px solid var(--color-border, #e2e8f0);
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -32,14 +32,14 @@
 .headTitle {
   font-size: var(--ui-text-title, 1.5rem);
   font-weight: 500;
-  color: var(--color-text, #0f172a);
+  color: var(--color-text);
   margin: 0 0 4px;
   letter-spacing: -0.01em;
 }
 
 .headNote {
   font-size: var(--ui-text-note, 0.875rem);
-  color: var(--color-text-muted, #475569);
+  color: var(--color-text-muted);
   margin: 0;
 }
 
@@ -50,7 +50,7 @@
   gap: 12px;
   padding: 10px 12px;
   border-radius: 8px;
-  color: var(--color-text, #0f172a);
+  color: var(--color-text);
   font-size: var(--ui-text-body, 1rem);
   font-weight: 400;
   text-decoration: none;
@@ -59,23 +59,23 @@
 }
 
 .navItem .navIcon {
-  color: var(--color-text-muted, #475569);
+  color: var(--color-text-muted);
   flex-shrink: 0;
 }
 
 .navItem:hover {
-  background: var(--color-surface-soft, #f1f5f9);
+  background: var(--color-surface-soft);
   text-decoration: none;
 }
 
 .navItem.active {
-  background: var(--color-brand-subtle, #eff6ff) !important;
-  color: var(--color-brand, #2563eb) !important;
+  background: var(--color-brand-subtle) !important;
+  color: var(--color-brand) !important;
   font-weight: 500;
 }
 
 .navItem.active .navIcon {
-  color: var(--color-brand, #2563eb);
+  color: var(--color-brand);
 }
 
 /* Mobile Drawer & Burger matches mockup */
@@ -115,15 +115,15 @@
     height: 48px;
     border: 0;
     border-radius: 8px;
-    background: var(--color-brand, #2563eb);
-    color: #ffffff;
+    background: var(--color-brand);
+    color: var(--color-on-brand);
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.24);
     transition: background-color 0.15s ease, transform 0.15s ease;
   }
 
   .burger:hover {
-    background: var(--color-brand-hover, #1d4ed8);
+    background: var(--color-brand-hover);
   }
 
   .burger:active {

@@ -30,6 +30,15 @@
   --color-info: var(--color-info);
   --color-info-soft: var(--color-info-soft);
 
+  --color-brand-mid: var(--color-brand-mid);
+  --color-on-brand: var(--color-on-brand);
+  --color-accent-warm-ink: var(--color-accent-warm-ink);
+  --color-success-ink: var(--color-success-ink);
+  --color-warning-ink: var(--color-warning-ink);
+  --color-danger-ink: var(--color-danger-ink);
+  --color-text-disabled: var(--color-text-disabled);
+  --shadow-float: var(--shadow-float);
+
   --color-bg-app: var(--color-bg);
   --color-surface-app: var(--color-surface);
   --color-surface-soft: var(--color-surface-soft);
@@ -77,41 +86,56 @@
   --app-text-sm: 0.875rem;
   --app-text-meta: 0.9375rem;
 
-  /* Brand - Sapphire Blue */
-  --color-brand: #2563EB;
-  --color-brand-hover: #1D4ED8;
-  --color-brand-soft: #DBEAFE;
-  --color-brand-subtle: #EFF6FF;
+  /* ==========================================================================
+     COLOUR SYSTEM (Nexus logo: navy #0b409e, green #22ad46, orange #f36f21).
+     Locked: see "DESIGN SYSTEM" in AGENTS.md. Components use these variables only, never a hex.
+     One meaning per colour: navy = action / where you are, green = done, orange = attention.
+     ========================================================================== */
 
-  /* Warm Accent - Orange */
-  --color-accent-warm: #F97316;
-  --color-accent-warm-hover: #EA580C;
-  --color-accent-warm-soft: #FFEDD5;
+  /* Brand: navy. Buttons, links, active tab, focus ring, the one solid accent field per screen. */
+  --color-brand: #0B409E;
+  --color-brand-hover: #09337D;
+  --color-brand-soft: #DBE4F3;
+  --color-brand-subtle: #EAEFF8;
+  --color-brand-mid: #9FB4DC; /* open stage that is not the next one (progress segment) */
+  --color-on-brand: #FFFFFF; /* text on a solid brand field; contrast 9.4:1 */
 
-  /* Status */
-  --color-success: #10B981;
-  --color-success-soft: #D1FAE5;
+  /* Warm accent: orange. Grading in progress, needs attention. Fill only: orange text on white is 2.9:1, use -ink for text. */
+  --color-accent-warm: #F36F21;
+  --color-accent-warm-hover: #D95A12;
+  --color-accent-warm-soft: #FDE5D3;
+  --color-accent-warm-ink: #9A3412;
+
+  /* Status. Green = has result / done (fill only, text uses -ink). */
+  --color-success: #22AD46;
+  --color-success-soft: #D8F1DF;
+  --color-success-ink: #166534;
   --color-warning: #F59E0B;
   --color-warning-soft: #FEF3C7;
+  --color-warning-ink: #A16207;
   --color-danger: #EF4444;
   --color-danger-soft: #FEE2E2;
+  --color-danger-ink: #991B1B;
   --color-info: #3B82F6;
   --color-info-soft: #DBEAFE;
 
-  /* Neutral */
-  --color-bg: #F8FAFC; /* Slate 50 */
-  --color-surface: #FFFFFF;
-  --color-surface-soft: #F1F5F9; /* Slate 100 */
-  --color-surface-muted: #E2E8F0; /* Slate 200 */
-  --color-border: #E2E8F0; /* Slate 200 */
-  --color-border-strong: #CBD5E1; /* Slate 300 */
+  /* Neutral ladder: page < card < row/chip. Locked / disabled things use surface-muted and text-disabled. */
+  --color-bg: #F8FAFC; /* Slate 50: the one page ground */
+  --color-surface: #FFFFFF; /* cards, inputs, menus */
+  --color-surface-soft: #F1F5F9; /* Slate 100: rows, chips, hover */
+  --color-surface-muted: #E2E8F0; /* Slate 200: locked segment, disabled button */
+  --color-border: #E2E8F0; /* Slate 200: card and divider border */
+  --color-border-strong: #CBD5E1; /* Slate 300: control border (button, input, select) */
   --color-text: #0F172A; /* Slate 900 */
-  --color-text-muted: #475569; /* Slate 600 */
-  --color-text-subtle: #64748B; /* Slate 500 */
+  --color-text-muted: #475569; /* Slate 600: secondary text, never lighter */
+  --color-text-subtle: #64748B; /* Slate 500: placeholders, captions on white only */
+  --color-text-disabled: #94A3B8; /* Slate 400: disabled controls only */
 
   /* 4-sided soft shadows for light mode */
   --shadow-sm: 0 0 12px 1px rgba(15, 23, 42, 0.04), 0 2px 4px 0 rgba(15, 23, 42, 0.02);
   --shadow-md: 0 0 18px 2px rgba(15, 23, 42, 0.06), 0 4px 6px -1px rgba(15, 23, 42, 0.03);
+  /* Cards at rest have no shadow; --shadow-float is for menus and popovers only. */
+  --shadow-float: 0 8px 24px rgba(15, 23, 42, 0.12);
 
   /* Paid Audit CTA card */
   --audit-cta-bg: #f0fdfa;
@@ -154,11 +178,21 @@
   --audit-cta-border: #0f766e;
   --audit-cta-title: #5eead4;
 
-  /* Status Soft Colors for Dark Theme */
-  --color-success-soft: rgba(16, 185, 129, 0.15);
+  /* Status and accent soft colours for dark theme.
+     Provisional: the dark pass is still open (AGENTS.md > DESIGN SYSTEM > Dark theme). Every new colour must exist here. */
+  --color-brand-mid: rgba(59, 130, 246, 0.45);
+  --color-on-brand: #FFFFFF;
+  --color-accent-warm-soft: rgba(243, 111, 33, 0.15);
+  --color-accent-warm-ink: #FDBA74;
+  --color-success-soft: rgba(34, 173, 70, 0.15);
+  --color-success-ink: #86EFAC;
   --color-warning-soft: rgba(245, 158, 11, 0.15);
+  --color-warning-ink: #FCD34D;
   --color-danger-soft: rgba(239, 68, 68, 0.15);
+  --color-danger-ink: #FCA5A5;
   --color-info-soft: rgba(59, 130, 246, 0.15);
+  --color-text-disabled: #475569;
+  --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.5);
 
   /* Shadows for dark mode */
   --shadow-sm: 0 0 12px 1px rgba(0, 0, 0, 0.25), 0 2px 4px 0 rgba(0, 0, 0, 0.15);
@@ -323,4 +357,12 @@ button:disabled,
   --ui-gap-section: 3rem;
   --ui-card-border-width: 1.5px; /* frontend-ui-rules §6.3 */
   --ui-topbar-height: 4rem; /* matches DashboardShell h-16 */
+
+  /* Border / radius / focus: one value each, used by every control and card. */
+  --ui-border-width: 1px;
+  --ui-radius: 0.5rem; /* cards, controls, menus, tiles */
+  --ui-radius-sm: 0.375rem; /* items inside a menu / list / dropdown */
+  --ui-radius-pill: 999px; /* chips only */
+  --ui-focus-ring: 2px solid var(--color-brand);
+  --ui-focus-offset: 2px;
 }

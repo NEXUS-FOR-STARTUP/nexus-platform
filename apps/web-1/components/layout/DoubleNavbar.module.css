@@ -142,11 +142,11 @@
 
 .singleWidth .mainLink:hover {
   background-color: var(--color-brand-hover);
-  color: #ffffff;
+  color: var(--color-on-brand);
 }
 
 .singleWidth .mainLink[data-active] {
-  background-color: #ffffff;
+  background-color: var(--color-surface);
   color: var(--color-brand);
 }
 

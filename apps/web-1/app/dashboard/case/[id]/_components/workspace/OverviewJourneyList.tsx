@@ -2,6 +2,7 @@
 
 import { STAGES } from "@app/shared/stages";
 import type { StageSummary } from "../../hooks/useStageSummaries";
+import JourneyProgress from "./JourneyProgress";
 import StageRow from "./StageRow";
 import { STAGE_STATUS, stageQuestionTotal } from "./stage-status";
 import type { StageView } from "./stage-view";
@@ -20,6 +21,9 @@ export default function OverviewJourneyList({ stages, onOpenStage }: OverviewJou
   return (
     <section className={s.section}>
       <h2 className={s.sectionTitle}>Hành trình</h2>
+      <div className={s.progress}>
+        <JourneyProgress stages={stages} />
+      </div>
       <div className={r.rows}>
         {STAGES.filter((st) => st.available).map((stage) => {
           const summary = summaryByCode.get(stage.code);

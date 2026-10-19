@@ -4,8 +4,8 @@
 }
 
 .card {
-  background: var(--color-surface, #ffffff);
-  border: 1px solid var(--color-border, #e2e8f0);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 24px 28px;
 }
@@ -22,13 +22,13 @@
 .title {
   font-size: var(--ui-text-section, 1.125rem);
   font-weight: 500;
-  color: var(--color-text, #0f172a);
+  color: var(--color-text);
   margin: 0 0 4px;
 }
 
 .note {
   font-size: var(--ui-text-note, 0.875rem);
-  color: var(--color-text-muted, #475569);
+  color: var(--color-text-muted);
   line-height: 1.45;
   margin: 0;
 }
@@ -42,18 +42,18 @@
   height: 40px;
   padding: 0 16px;
   border-radius: 8px;
-  border: 1px solid var(--color-border, #cbd5e1);
+  border: 1px solid var(--color-border);
   font-size: var(--ui-text-body, 0.9375rem);
   font-weight: 500;
-  background: var(--color-surface, #ffffff);
-  color: var(--color-text, #0f172a);
+  background: var(--color-surface);
+  color: var(--color-text);
   cursor: pointer;
   white-space: nowrap;
   transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
 .btnQuiet:hover:not(:disabled) {
-  background: var(--color-surface-soft, #f1f5f9);
+  background: var(--color-surface-soft);
 }
 
 .btnQuiet:active:not(:disabled) {
@@ -73,15 +73,15 @@
   justify-content: space-between;
   gap: 16px;
   padding: 16px;
-  background: var(--color-surface, #ffffff);
-  border: 1px solid var(--color-border, #e2e8f0);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .sessionItem.current {
-  background: var(--color-brand-subtle, #eff6ff);
-  border-color: var(--color-brand-soft, #bfdbfe);
+  background: var(--color-brand-subtle);
+  border-color: var(--color-brand-soft);
 }
 
 .sessionInfo {
@@ -95,22 +95,22 @@
   width: 40px;
   height: 40px;
   border-radius: 8px;
-  background: var(--color-surface-soft, #f1f5f9);
+  background: var(--color-surface-soft);
   display: grid;
   place-items: center;
-  color: var(--color-text-muted, #475569);
+  color: var(--color-text-muted);
   flex-shrink: 0;
 }
 
 .sessionItem.current .sessionIcon {
-  background: var(--color-brand-soft, #dbeafe);
-  color: var(--color-brand, #2563eb);
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
 }
 
 .deviceName {
   font-size: var(--ui-text-body, 1rem);
   font-weight: 500;
-  color: var(--color-text, #0f172a);
+  color: var(--color-text);
 }
 
 /* Badge 'Thiết bị này' matching mockup .chip.ok */
@@ -121,21 +121,21 @@
   font-weight: 500;
   padding: 2px 8px;
   border-radius: 999px;
-  background: #dcfce7;
-  color: #15803d;
+  background: var(--color-success-soft);
+  color: var(--color-success-ink);
 }
 
 /* Text 'Đang hoạt động' bên phải matching mockup */
 .statusRight {
   font-size: var(--ui-text-note, 0.875rem);
-  color: #16a34a;
+  color: var(--color-success);
   font-weight: 500;
   white-space: nowrap;
 }
 
 .meta {
   font-size: var(--ui-text-note, 0.875rem);
-  color: var(--color-text-muted, #475569);
+  color: var(--color-text-muted);
   margin-top: 2px;
 }
 
@@ -144,9 +144,9 @@
   height: 36px;
   padding: 0 14px;
   border-radius: 8px;
-  border: 1px solid var(--color-border, #cbd5e1);
-  background: var(--color-surface, #ffffff);
-  color: var(--color-text, #0f172a);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
   font-size: var(--ui-text-note, 0.875rem);
   font-weight: 500;
   display: inline-flex;
@@ -157,7 +157,7 @@
 }
 
 .revokeBtn:hover {
-  background: var(--color-surface-soft, #f1f5f9);
+  background: var(--color-surface-soft);
 }
 
 .skeletonRow {

@@ -1,8 +1,8 @@
 /* Breakpoint 820px phải khớp DESKTOP_QUERY trong JourneyMobileNav. */
-/* Mantine defaults (dimmed #868e96, text #000, antialiased) differ from the mockup; pin the mockup's values here. */
+/* Mantine defaults (dimmed #868e96, text #000, antialiased) differ from the mockup; pin them to the system tokens. */
 .layout {
-  --mantine-color-dimmed: #475569;
-  --mantine-color-text: #0f172a;
+  --mantine-color-dimmed: var(--color-text-muted);
+  --mantine-color-text: var(--color-text);
   -webkit-font-smoothing: auto;
   -moz-osx-font-smoothing: auto;
   display: grid;

@@ -18,5 +18,5 @@
   gap: 8px;
   margin: 4px 0 0;
   font-size: var(--ui-text-note);
-  color: #475569;
+  color: var(--color-text-muted);
 }

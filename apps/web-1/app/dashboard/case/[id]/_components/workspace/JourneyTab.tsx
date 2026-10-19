@@ -4,6 +4,7 @@ import { STAGES } from "@app/shared/stages";
 import type { CreditBalances } from "@/lib/credit-balances";
 import type { StageSummary } from "../../hooks/useStageSummaries";
 import PageHead from "../ui/PageHead";
+import JourneyProgress from "./JourneyProgress";
 import StageRow from "./StageRow";
 import { STAGE_DESCRIPTIONS } from "./stage-descriptions";
 import { stageQuestionTotal } from "./stage-status";
@@ -24,27 +25,30 @@ export default function JourneyTab({ stages, balances, onOpenStage }: JourneyTab
   return (
     <div className={s.page}>
       <PageHead title="Hành trình" note={`${STAGES.length} giai đoạn từ ý tưởng đến gọi vốn.`} />
-      <div className={r.rows}>
-        {STAGES.map((stage) => {
-          if (!stage.available) return <StageRow key={stage.code} locked name={stage.name} note={LOCKED_NOTE} />;
-          const summary = summaryByCode.get(stage.code);
-          const credits = stage.serviceType ? balances?.[stage.serviceType] ?? 0 : 0;
-          const note = [
-            STAGE_DESCRIPTIONS[stage.slug],
-            `${summary?.answered_count ?? 0}/${stageQuestionTotal(stage.templateKey)} câu`,
-            `${summary?.file_count ?? 0} tài liệu`,
-            credits > 0 ? `còn ${credits} lượt chấm` : "hết lượt chấm",
-          ].join(" · ");
-          return (
-            <StageRow
-              key={stage.code}
-              name={stage.name}
-              note={note}
-              status={summary?.status}
-              onOpen={() => onOpenStage(stage.slug)}
-            />
-          );
-        })}
+      <div className={s.group}>
+        <JourneyProgress stages={stages} />
+        <div className={r.rows}>
+          {STAGES.map((stage) => {
+            if (!stage.available) return <StageRow key={stage.code} locked name={stage.name} note={LOCKED_NOTE} />;
+            const summary = summaryByCode.get(stage.code);
+            const credits = stage.serviceType ? balances?.[stage.serviceType] ?? 0 : 0;
+            const note = [
+              STAGE_DESCRIPTIONS[stage.slug],
+              `${summary?.answered_count ?? 0}/${stageQuestionTotal(stage.templateKey)} câu`,
+              `${summary?.file_count ?? 0} tài liệu`,
+              credits > 0 ? `còn ${credits} lượt chấm` : "hết lượt chấm",
+            ].join(" · ");
+            return (
+              <StageRow
+                key={stage.code}
+                name={stage.name}
+                note={note}
+                status={summary?.status}
+                onOpen={() => onOpenStage(stage.slug)}
+              />
+            );
+          })}
+        </div>
       </div>
     </div>
   );

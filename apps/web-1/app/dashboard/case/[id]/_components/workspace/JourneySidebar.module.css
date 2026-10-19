@@ -26,7 +26,7 @@
   text-decoration: none;
   padding: 10px 12px;
   margin-bottom: var(--mantine-spacing-xs);
-  border-radius: var(--mantine-radius-md);
+  border-radius: var(--ui-radius);
   font-size: var(--ui-text-body);
   font-weight: var(--ui-weight-regular);
   color: var(--color-text);

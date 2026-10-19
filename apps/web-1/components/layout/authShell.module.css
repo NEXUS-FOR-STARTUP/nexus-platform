@@ -4,7 +4,7 @@
 .back { position: absolute; bottom: calc(100% + 8px); left: -8px; display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px 8px 8px; border-radius: var(--lp-r-pill); font-size: 16px; color: var(--lp-muted) !important; text-decoration: none; transition: color 0.3s var(--lp-ease); }
 .back:hover { color: var(--lp-ink) !important; }
 
-.card { background: #fff; border: 1px solid var(--lp-line); border-radius: var(--lp-r-md); padding: 40px; }
+.card { background: var(--color-surface); border: 1px solid var(--lp-line); border-radius: var(--lp-r-md); padding: 40px; }
 
 .loading { display: grid; place-items: center; gap: 16px; min-height: 240px; color: var(--lp-muted); font-size: 16px; }
 

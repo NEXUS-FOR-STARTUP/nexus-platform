@@ -1,9 +1,9 @@
 /* design-system/mockups/case-detail views.css: .toc, .grp, .it, .tick, .crit. */
 .toc {
   padding: 20px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--ui-radius);
+  background: var(--color-surface);
 }
 
 /* The fold header only exists on phones; on desktop the list is always open. */
@@ -16,7 +16,7 @@
   border: 0;
   background: none;
   font: inherit;
-  color: #0f172a;
+  color: var(--color-text);
   text-align: left;
   cursor: pointer;
 }
@@ -35,13 +35,13 @@
 
 .note {
   font-size: 14px;
-  font-weight: 400;
-  color: #475569;
+  font-weight: var(--ui-weight-regular);
+  color: var(--color-text-muted);
 }
 
 .chevron {
   flex: none;
-  color: #475569;
+  color: var(--color-text-muted);
   transition: transform 0.2s;
 }
 
@@ -54,7 +54,7 @@
   justify-content: space-between;
   margin: 16px 0 6px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: var(--ui-weight-medium);
 }
 
 .list > div:first-child .group {
@@ -62,8 +62,8 @@
 }
 
 .group span {
-  font-weight: 400;
-  color: #475569;
+  font-weight: var(--ui-weight-regular);
+  color: var(--color-text-muted);
 }
 
 .row {
@@ -73,7 +73,7 @@
   width: 100%;
   padding: 7px 10px;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--ui-radius);
   background: none;
   font: inherit;
   font-size: 14px;
@@ -83,7 +83,7 @@
 }
 
 .row:hover:not(.on):not(.locked) {
-  background: #f1f5f9;
+  background: var(--color-surface-soft);
 }
 
 .label {
@@ -95,25 +95,25 @@
 }
 
 .on {
-  background: #eff6ff;
-  color: #2563eb;
-  font-weight: 500;
+  background: var(--color-brand-subtle);
+  color: var(--color-brand);
+  font-weight: var(--ui-weight-medium);
 }
 
 .locked {
   opacity: 0.5;
-  color: #475569;
+  color: var(--color-text-muted);
   cursor: not-allowed;
 }
 
 .icon,
 .iconOn {
   flex: none;
-  color: #475569;
+  color: var(--color-text-muted);
 }
 
 .iconOn {
-  color: #2563eb;
+  color: var(--color-brand);
 }
 
 .tick {
@@ -123,25 +123,25 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #10b981;
-  color: #fff;
+  background: var(--color-success);
+  color: var(--color-on-brand);
 }
 
 .warnIcon {
   display: grid;
   flex: none;
-  color: #f59e0b;
+  color: var(--color-warning);
 }
 
 .crit {
   flex: none;
   padding: 1px 8px;
-  border-radius: 6px;
-  background: #ffedd5;
+  border-radius: var(--ui-radius-sm);
+  background: var(--color-danger-soft);
   font-size: 14px;
   font-style: normal;
-  font-weight: 500;
-  color: #c2410c;
+  font-weight: var(--ui-weight-medium);
+  color: var(--color-danger-ink);
 }
 
 /* Desktop: the badge drops under the title so the title keeps its full line. */

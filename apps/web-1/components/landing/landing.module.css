@@ -20,7 +20,7 @@
   --lp-wrap: 1200px;
 
   color: var(--lp-ink);
-  background: #fff;
+  background: var(--color-surface);
   line-height: 1.55;
   scroll-padding-top: 96px;
 }
@@ -40,7 +40,7 @@
   top: 8px;
   z-index: 100;
   background: var(--lp-ink);
-  color: #fff !important;
+  color: var(--color-on-brand) !important;
   padding: 8px 14px;
   border-radius: var(--lp-r-pill);
 }
@@ -62,10 +62,10 @@
   transition: background 0.5s var(--lp-ease), transform 0.5s var(--lp-ease), border-color 0.5s var(--lp-ease), color 0.5s var(--lp-ease);
 }
 .btn:active { transform: scale(0.98); }
-.btnPrimary { background: var(--lp-orange); color: #fff !important; }
+.btnPrimary { background: var(--lp-orange); color: var(--color-surface) !important; }
 .btnPrimary:hover { background: var(--lp-orange-dark); transform: translateY(-2px); }
 .btnGhost { background: #fcfcfd; color: var(--lp-ink); border-color: #d7dde5; }
-.btnGhost:hover { background: #fff; border-color: var(--lp-blue); color: var(--lp-blue); }
+.btnGhost:hover { background: var(--color-surface); border-color: var(--lp-blue); color: var(--lp-blue); }
 .btnSm { height: 48px; padding: 0 26px; font-size: 16px; }
 .btnBlock { width: 100%; }
 .btn svg { transition: transform 0.5s var(--lp-ease); }

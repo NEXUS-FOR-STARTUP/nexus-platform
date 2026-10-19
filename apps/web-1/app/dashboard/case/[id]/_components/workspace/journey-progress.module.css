@@ -1,0 +1,58 @@
+/* One flat segment per stage; colour = state (see stage-state.ts and AGENTS.md > DESIGN SYSTEM). No rules, no shadows. */
+.bar {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.seg {
+  height: 8px;
+  border-radius: calc(var(--ui-radius) / 2);
+}
+
+.done {
+  background: var(--color-success);
+}
+
+.attn {
+  background: var(--color-accent-warm);
+}
+
+.next {
+  background: var(--color-brand);
+}
+
+.todo {
+  background: var(--color-brand-mid);
+}
+
+.locked {
+  background: var(--color-surface-muted);
+}
+
+.name {
+  overflow: hidden;
+  font-size: var(--ui-text-note);
+  color: var(--color-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

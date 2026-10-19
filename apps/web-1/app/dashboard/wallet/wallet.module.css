@@ -10,14 +10,14 @@
   font-size: var(--ui-text-title, 24px);
   font-weight: 500;
   line-height: 1.25;
-  color: var(--color-text-app, #0f172a);
+  color: var(--color-text-app);
   margin: 0;
 }
 
 .subtitle {
   font-size: var(--ui-text-note, 14px);
   font-weight: 400;
-  color: var(--color-text-muted, #475569);
+  color: var(--color-text-muted);
   margin-top: 4px;
   margin-bottom: 0;
 }
@@ -35,15 +35,15 @@
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
-  background: var(--color-brand, #2563eb);
-  color: #ffffff;
+  background: var(--color-brand);
+  color: var(--color-on-brand);
   white-space: nowrap;
   transition: all 0.15s ease;
   user-select: none;
 }
 
 .btn:hover:not(:disabled) {
-  background: var(--color-brand-hover, #1d4ed8);
+  background: var(--color-brand-hover);
 }
 
 .btn:active:not(:disabled) {
@@ -51,13 +51,13 @@
 }
 
 .btnQuiet {
-  background: var(--color-surface-app, #ffffff);
-  color: var(--color-text-app, #0f172a);
-  border-color: var(--color-border-strong, #cbd5e1);
+  background: var(--color-surface-app);
+  color: var(--color-text-app);
+  border-color: var(--color-border-strong);
 }
 
 .btnQuiet:hover:not(:disabled) {
-  background: var(--color-surface-soft, #f1f5f9);
+  background: var(--color-surface-soft);
 }
 
 .btnSm {
@@ -68,8 +68,8 @@
 }
 
 .btn:disabled {
-  background: var(--color-surface-soft, #f1f5f9);
-  color: var(--color-text-muted, #94a3b8);
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
   border-color: transparent;
   cursor: not-allowed;
   transform: none;
@@ -86,28 +86,28 @@
   font-weight: 500;
   line-height: 1;
   white-space: nowrap;
-  background: var(--color-surface-soft, #f1f5f9);
-  color: var(--color-text-muted, #475569);
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
 }
 
 .chipGreen {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--color-success-soft);
+  color: var(--color-success-ink);
 }
 
 .chipBlue {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
 }
 
 .chipRed {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-soft);
+  color: var(--color-danger-ink);
 }
 
 .chipOrange {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-warning-soft);
+  color: var(--color-warning-ink);
 }
 
 .select {
@@ -115,15 +115,15 @@
   padding: 0 12px;
   font-size: 14px;
   font-weight: 400;
-  border: 1px solid var(--color-border-strong, #cbd5e1);
+  border: 1px solid var(--color-border-strong);
   border-radius: 8px;
-  background: var(--color-surface-app, #ffffff);
-  color: var(--color-text-app, #0f172a);
+  background: var(--color-surface-app);
+  color: var(--color-text-app);
   cursor: pointer;
 }
 
 .select:focus {
-  border-color: var(--color-brand, #2563eb);
+  border-color: var(--color-brand);
   outline: none;
 }
 
@@ -133,21 +133,21 @@
   padding: 8px 14px;
   font-size: 16px;
   font-weight: 400;
-  border: 1px solid var(--color-border-strong, #cbd5e1);
+  border: 1px solid var(--color-border-strong);
   border-radius: 8px;
-  background: var(--color-surface-app, #ffffff);
-  color: var(--color-text-app, #0f172a);
+  background: var(--color-surface-app);
+  color: var(--color-text-app);
 }
 
 .inputField:focus {
-  border-color: var(--color-brand, #2563eb);
+  border-color: var(--color-brand);
   outline: none;
-  box-shadow: 0 0 0 1px var(--color-brand, #2563eb);
+  box-shadow: 0 0 0 1px var(--color-brand);
 }
 
 .balanceCard {
-  background: var(--color-surface-app, #ffffff);
-  border: 1px solid var(--color-border-app, #e2e8f0);
+  background: var(--color-surface-app);
+  border: 1px solid var(--color-border-app);
   border-radius: 8px;
   padding: 28px 32px;
   margin-bottom: 28px;
@@ -166,7 +166,7 @@
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: var(--color-text-muted, #475569);
+  color: var(--color-text-muted);
   font-weight: 500;
 }
 
@@ -175,21 +175,21 @@
   font-weight: 500;
   line-height: 1.15;
   font-variant-numeric: tabular-nums;
-  color: var(--color-text-app, #0f172a);
+  color: var(--color-text-app);
   margin: 8px 0 16px;
 }
 
 .balanceUnit {
   font-size: 20px;
   font-weight: 400;
-  color: var(--color-text-muted, #475569);
+  color: var(--color-text-muted);
   margin-left: 6px;
 }
 
 .balanceNote {
   font-size: 14px;
   font-weight: 400;
-  color: var(--color-text-muted, #475569);
+  color: var(--color-text-muted);
   margin: 0;
 }
 
@@ -200,18 +200,18 @@
   gap: 16px;
   padding-top: 20px;
   margin-top: 16px;
-  border-top: 1px solid var(--color-border-app, #e2e8f0);
+  border-top: 1px solid var(--color-border-app);
 }
 
 .metaItem {
-  background: var(--color-surface-soft, #f1f5f9);
+  background: var(--color-surface-soft);
   border-radius: 6px;
   padding: 12px 16px;
 }
 
 .metaLbl {
   font-size: 14px;
-  color: var(--color-text-muted, #475569);
+  color: var(--color-text-muted);
   margin-bottom: 4px;
   font-weight: 400;
 }
@@ -220,7 +220,7 @@
   font-size: 16px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
-  color: var(--color-text-app, #0f172a);
+  color: var(--color-text-app);
 }
 
 /* Filter bar & tabs */
@@ -240,9 +240,9 @@
 }
 
 .filterTab {
-  border: 1px solid var(--color-border-app, #e2e8f0);
-  background: var(--color-surface-app, #ffffff);
-  color: var(--color-text-muted, #475569);
+  border: 1px solid var(--color-border-app);
+  background: var(--color-surface-app);
+  color: var(--color-text-muted);
   padding: 8px 14px;
   border-radius: 8px;
   font-size: 14px;
@@ -252,14 +252,14 @@
 }
 
 .filterTab:hover {
-  color: var(--color-text-app, #0f172a);
-  background: var(--color-surface-soft, #f1f5f9);
+  color: var(--color-text-app);
+  background: var(--color-surface-soft);
 }
 
 .filterTabActive {
-  background: var(--color-brand-subtle, #eff6ff);
-  border-color: var(--color-brand-soft, #dbeafe);
-  color: var(--color-brand, #2563eb);
+  background: var(--color-brand-subtle);
+  border-color: var(--color-brand-soft);
+  color: var(--color-brand);
   font-weight: 500;
 }
 
@@ -271,8 +271,8 @@
 }
 
 .rows > * {
-  background: var(--color-surface-app, #ffffff);
-  border: 1px solid var(--color-border-app, #e2e8f0);
+  background: var(--color-surface-app);
+  border: 1px solid var(--color-border-app);
   border-radius: 8px;
 }
 
@@ -302,7 +302,7 @@
 .txRow .dt {
   font-size: 14px;
   font-weight: 400;
-  color: var(--color-text-muted, #475569);
+  color: var(--color-text-muted);
   margin-left: 0;
 }
 
@@ -312,14 +312,14 @@
 }
 
 .txRow .titleText {
-  color: var(--color-text-app, #0f172a);
+  color: var(--color-text-app);
   font-weight: 500;
 }
 
 .txRow .subtitleText {
   font-size: 14px;
   font-weight: 400;
-  color: var(--color-text-muted, #475569);
+  color: var(--color-text-muted);
   margin-top: 2px;
 }
 
@@ -331,11 +331,11 @@
 }
 
 .amtPlus {
-  color: var(--color-success, #10b981);
+  color: var(--color-success);
 }
 
 .amtMinus {
-  color: var(--color-danger, #ef4444);
+  color: var(--color-danger);
 }
 
 .txRow .cv {
@@ -344,7 +344,7 @@
 }
 
 .txChevron {
-  color: var(--color-text-muted, #475569);
+  color: var(--color-text-muted);
   transition: transform 0.2s ease;
 }
 
@@ -354,16 +354,16 @@
 
 /* expanded transaction detail */
 .txd {
-  background: var(--color-surface-soft, #f1f5f9);
+  background: var(--color-surface-soft);
   border-radius: 0 0 8px 8px;
   padding: 8px 20px 20px;
-  border-top: 1px solid var(--color-border-app, #e2e8f0);
+  border-top: 1px solid var(--color-border-app);
 }
 
 .kvh {
   font-weight: 500;
   font-size: 16px;
-  color: var(--color-text-app, #0f172a);
+  color: var(--color-text-app);
   margin: 16px 0 6px;
 }
 
@@ -375,7 +375,7 @@
 }
 
 .kv dt {
-  color: var(--color-text-muted, #475569);
+  color: var(--color-text-muted);
   font-size: 14px;
   font-weight: 400;
   padding-top: 2px;
@@ -390,15 +390,15 @@
   min-width: 0;
   font-size: 14px;
   font-weight: 400;
-  color: var(--color-text-app, #0f172a);
+  color: var(--color-text-app);
 }
 
 .codeBox {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 14px;
   font-weight: 400;
-  background: var(--color-surface-app, #ffffff);
-  border: 1px solid var(--color-border-app, #e2e8f0);
+  background: var(--color-surface-app);
+  border: 1px solid var(--color-border-app);
   border-radius: 6px;
   padding: 2px 8px;
   word-break: break-all;
@@ -409,9 +409,9 @@
   border-collapse: collapse;
   font-size: 14px;
   font-weight: 400;
-  background: var(--color-surface-app, #ffffff);
+  background: var(--color-surface-app);
   border-radius: 8px;
-  border: 1px solid var(--color-border-app, #e2e8f0);
+  border: 1px solid var(--color-border-app);
   margin-top: 10px;
   overflow: hidden;
 }
@@ -419,14 +419,14 @@
 .itemsTable th {
   text-align: left;
   font-weight: 500;
-  color: var(--color-text-muted, #475569);
+  color: var(--color-text-muted);
   padding: 10px 14px;
-  border-bottom: 1px solid var(--color-border-app, #e2e8f0);
+  border-bottom: 1px solid var(--color-border-app);
 }
 
 .itemsTable td {
   padding: 10px 14px;
-  border-bottom: 1px solid var(--color-border-app, #e2e8f0);
+  border-bottom: 1px solid var(--color-border-app);
 }
 
 .itemsTable th:nth-child(n+3),
@@ -436,8 +436,8 @@
 
 .itemsTable tfoot td {
   font-weight: 500;
-  border-top: 1px solid var(--color-border-app, #e2e8f0);
-  background: var(--color-surface-soft, #f8fafc);
+  border-top: 1px solid var(--color-border-app);
+  background: var(--color-surface-soft);
 }
 
 /* Preset grid for modal */
@@ -450,10 +450,10 @@
 
 .presetBtn {
   height: 38px;
-  border: 1px solid var(--color-border-app, #e2e8f0);
+  border: 1px solid var(--color-border-app);
   border-radius: 6px;
-  background: var(--color-surface-app, #ffffff);
-  color: var(--color-text-app, #0f172a);
+  background: var(--color-surface-app);
+  color: var(--color-text-app);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -461,14 +461,14 @@
 }
 
 .presetBtn:hover {
-  background: var(--color-surface-soft, #f1f5f9);
-  border-color: var(--color-brand, #2563eb);
+  background: var(--color-surface-soft);
+  border-color: var(--color-brand);
 }
 
 .presetBtnActive {
-  background: var(--color-brand-subtle, #eff6ff);
-  border-color: var(--color-brand, #2563eb);
-  color: var(--color-brand, #2563eb);
+  background: var(--color-brand-subtle);
+  border-color: var(--color-brand);
+  color: var(--color-brand);
 }
 
 @media (max-width: 820px) {

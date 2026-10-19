@@ -16,7 +16,7 @@
 @keyframes lp-nav-in { from { opacity: 0; transform: translateY(-6px); } }
 .panel {
   display: flex; gap: 40px; padding: 24px 28px;
-  background: #fff; border: 1px solid var(--lp-line); border-radius: var(--lp-r-md);
+  background: var(--color-surface); border: 1px solid var(--lp-line); border-radius: var(--lp-r-md);
 }
 .col { min-width: 220px; }
 .colTitle { margin: 0 0 12px; font-size: 15px; color: var(--lp-muted); }
@@ -41,7 +41,7 @@
 .drawer {
   position: fixed; top: 0; right: 0; z-index: 100; width: min(380px, 100vw); height: 100vh; height: 100dvh;
   overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch;
-  padding: 64px 24px calc(32px + env(safe-area-inset-bottom)); background: #fff; border-left: 1px solid var(--lp-line);
+  padding: 64px 24px calc(32px + env(safe-area-inset-bottom)); background: var(--color-surface); border-left: 1px solid var(--lp-line);
   font-family: var(--font-inter-tight), system-ui, sans-serif; animation: lp-drawer-in 0.3s var(--lp-ease);
 }
 @keyframes lp-fade { from { opacity: 0; } }
