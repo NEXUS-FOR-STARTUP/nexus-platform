@@ -1,8 +1,8 @@
 "use client";
 
-import { Modal, Stack, Button, Group } from "@mantine/core";
+import { Modal, Stack, Group } from "@mantine/core";
+import { Button } from "../../ui/Button";
 import { useState } from "react";
-import { Sparkle as Sparkles } from "@phosphor-icons/react";
 import type { StageDefinition } from "@app/shared/stages";
 import type { Cp2InputSource } from "@app/shared";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
@@ -132,7 +132,7 @@ export default function AuditConfirmModal({
               onGoFiles={onGoFiles ? handleGoFiles : undefined}
             />
             <Group justify="flex-end" gap="xs">
-              <Button variant="default" onClick={handleClose} disabled={isLoading}>Hủy</Button>
+              <Button variant="quiet" onClick={handleClose} disabled={isLoading}>Hủy</Button>
               <Button disabled={blocked} onClick={() => setStep(2)}>Tiếp tục</Button>
             </Group>
           </>
@@ -157,10 +157,10 @@ export default function AuditConfirmModal({
               onUserNote={setUserNote}
             />
             <Group justify="space-between" gap="xs">
-              <Button variant="default" onClick={() => setStep(1)} disabled={isLoading}>Quay lại</Button>
+              <Button variant="quiet" onClick={() => setStep(1)} disabled={isLoading}>Quay lại</Button>
               <Group gap="xs">
-                <Button variant="default" onClick={handleClose} disabled={isLoading}>Hủy</Button>
-                <Button leftSection={<Sparkles size={16} />} loading={isLoading} disabled={!canConfirm} onClick={handleConfirm}>
+                <Button variant="quiet" onClick={handleClose} disabled={isLoading}>Hủy</Button>
+                <Button loading={isLoading} disabled={!canConfirm} onClick={handleConfirm}>
                   Bắt đầu chấm bài
                 </Button>
               </Group>

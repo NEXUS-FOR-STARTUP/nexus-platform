@@ -1,6 +1,7 @@
 "use client";
 
-import { Alert, Button, Group, Stack, Text, ThemeIcon } from "@mantine/core";
+import { Alert, Group, Stack, Text, ThemeIcon } from "@mantine/core";
+import { Button } from "../../ui/Button";
 import { Check, Minus } from "@phosphor-icons/react";
 
 interface AuditStepSourcesProps {
@@ -47,7 +48,7 @@ export default function AuditStepSources({ isCp2, answeredCount, fileCount, hasA
       </Stack>
 
       {!hasFiles && onGoFiles && (
-        <Button variant="default" onClick={onGoFiles}>Sang tab Tài liệu để tải lên</Button>
+        <Button variant="quiet" onClick={onGoFiles}>Sang tab Tài liệu để tải lên</Button>
       )}
 
       {blocked && (
