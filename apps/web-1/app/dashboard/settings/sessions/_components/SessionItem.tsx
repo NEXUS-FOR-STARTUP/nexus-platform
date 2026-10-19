@@ -63,6 +63,7 @@ export function SessionItem({ session, onRevoke, isRevoking }: SessionItemProps)
           <Button
             variant="default"
             size="sm"
+            className={classes.revoke}
             aria-label={`Đăng xuất khỏi ${deviceName}`}
             leftSection={<LogOut className="w-4 h-4" />}
             loading={isRevoking}

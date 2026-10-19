@@ -14,3 +14,12 @@ Run: 2026-10-19, branch feat/landing-redesign.
 ## Open for owner
 Q-P1 (4 notification groups need backend), Q-P2 (location/last-seen need backend), Q-P3..P7 defaults applied.
 Avatar errors now inline only (no duplicate toast) for client-side validation; server errors still toast.
+
+## Run 2 (authenticated, student account, 1440 + 390, light/dark partial)
+- Taste `lint.mjs` on `settings/`: 0 FAIL, 0 WARN.
+- Profile: Save disabled initially / after revert / trailing-space only; enabled on real edit; empty name error; invalid avatar -> inline `role=alert`; email description; delete modal opens via keyboard, confirm disabled until XOA, Esc closes, focus returns to opener. Modal input did not receive autofocus (not fixed).
+- Notifications: label/input click toggles, focus kept, round-tripped to original value.
+- Password: "Đặt mật khẩu" mode only (account has no password); change mode NOT tested.
+- Sessions: rows, StatusChip, bulk button render. Bug found at 390: revoke button clipped -> fixed (`.revoke { flex-shrink: 0 }`), re-verified.
+- 390: no horizontal overflow; strip + underline OK. Dark: profile OK.
+- Not tested: save/delete/revoke (real account), 768, admin/supporter/writer routes, API suite.

@@ -43,3 +43,7 @@
 .skeletonRow {
   height: 5rem;
 }
+
+.revoke {
+  flex-shrink: 0;
+}
