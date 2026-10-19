@@ -39,9 +39,9 @@ function formatDate(isoString: string): string {
 
 function getCategoryTag(item: NewsItemPublicCard): string {
   if (item.category) {
-    return getNewsCategoryName(item.category).toUpperCase();
+    return getNewsCategoryName(item.category);
   }
-  return item.type === 'video' ? 'VIDEO' : 'KHỞI NGHIỆP';
+  return item.type === 'video' ? 'Video' : 'Khởi nghiệp';
 }
 
 export function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
@@ -54,7 +54,7 @@ export function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
   const categoryTag = getCategoryTag(item);
 
   return (
-    <article className="group mb-10 bg-surface-app border border-border-app rounded-lg p-5 sm:p-7 hover:border-brand/50 transition-all duration-200">
+    <article className="group mb-10 bg-surface-app border border-border-app rounded-lg p-5 sm:p-7 hover:border-brand/50 transition-colors duration-200">
       <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 items-stretch">
         {/* Featured Image bên trái */}
         <div className="relative w-full lg:w-[480px] aspect-video rounded-md overflow-hidden bg-surface-soft shrink-0">
@@ -70,7 +70,7 @@ export function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
               />
               <div className="absolute inset-0 bg-black/25 flex items-center justify-center group-hover:bg-black/35 transition-colors">
-                <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center text-white shadow-lg">
+                <div className="w-12 h-12 rounded-full bg-danger-ink flex items-center justify-center text-white">
                   <Play size={22} className="fill-current ml-0.5" />
                 </div>
               </div>
@@ -96,7 +96,7 @@ export function FeaturedCard({ item }: { item: NewsItemPublicCard }) {
             {/* Tag/Phân loại: click để filter theo category */}
             <Link
               href={`/news?category=${item.category || 'khoi-nghiep'}`}
-              className="news-featured-tag text-text-muted hover:text-brand transition-colors uppercase font-medium tracking-wide mb-2 inline-block"
+              className="news-featured-tag text-text-muted hover:text-brand transition-colors font-medium mb-2 inline-block"
             >
               {categoryTag}
             </Link>

@@ -39,9 +39,9 @@ function formatDate(isoString: string): string {
 
 function getCategoryTag(item: NewsItemPublicCard): string {
   if (item.category) {
-    return getNewsCategoryName(item.category).toUpperCase();
+    return getNewsCategoryName(item.category);
   }
-  return item.type === 'video' ? 'VIDEO CHIA SẺ' : 'KHỞI NGHIỆP';
+  return item.type === 'video' ? 'Video chia sẻ' : 'Khởi nghiệp';
 }
 
 export function NewsCard({ item }: { item: NewsItemPublicCard }) {
@@ -53,7 +53,7 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
   if (item.type === 'video') {
     const youtubeUrl = `https://www.youtube.com/watch?v=${item.youtube_video_id}`;
     return (
-      <article className="group bg-surface-app border border-border-app rounded-lg p-4 sm:p-5 hover:border-brand/40 transition-all duration-200 h-full">
+      <article className="group bg-surface-app border border-border-app rounded-lg p-4 sm:p-5 hover:border-brand/40 transition-colors duration-200 h-full">
         <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 items-stretch h-full">
           {/* Thumbnail bên trái */}
           <a
@@ -71,7 +71,7 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
             <div className="absolute inset-0 bg-black/25 flex items-center justify-center group-hover:bg-black/35 transition-colors">
-              <div className="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center text-white shadow-md">
+              <div className="w-9 h-9 rounded-full bg-danger-ink flex items-center justify-center text-white">
                 <Play size={16} className="fill-current ml-0.5" />
               </div>
             </div>
@@ -83,7 +83,7 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
               {/* Tag/Phân loại: click để filter theo category */}
               <Link
                 href={`/news?category=${item.category || 'khoi-nghiep'}`}
-                className="news-card-tag text-text-muted hover:text-brand transition-colors uppercase font-medium tracking-wide mb-1.5 inline-block"
+                className="news-card-tag text-text-muted hover:text-brand transition-colors font-medium mb-1.5 inline-block"
               >
                 {categoryTag}
               </Link>
@@ -127,7 +127,7 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
   }
 
   return (
-    <article className="group bg-surface-app border border-border-app rounded-lg p-4 sm:p-5 hover:border-brand/40 transition-all duration-200 h-full">
+    <article className="group bg-surface-app border border-border-app rounded-lg p-4 sm:p-5 hover:border-brand/40 transition-colors duration-200 h-full">
       <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 items-stretch h-full">
         {/* Thumbnail bên trái */}
         {item.cover_image_url ? (
@@ -156,7 +156,7 @@ export function NewsCard({ item }: { item: NewsItemPublicCard }) {
             {/* Tag/Phân loại: click để filter theo category */}
             <Link
               href={`/news?category=${item.category || 'khoi-nghiep'}`}
-              className="news-card-tag text-text-muted hover:text-brand transition-colors uppercase font-medium tracking-wide mb-1.5 inline-block"
+              className="news-card-tag text-text-muted hover:text-brand transition-colors font-medium mb-1.5 inline-block"
             >
               {categoryTag}
             </Link>
