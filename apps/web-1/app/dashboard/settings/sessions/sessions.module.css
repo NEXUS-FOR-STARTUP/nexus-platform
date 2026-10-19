@@ -14,7 +14,7 @@
   min-height: 5rem;
   display: flex;
   align-items: center;
-  border-width: 1.5px;
+  border-width: var(--ui-card-border-width);
 }
 
 .iconBox {

@@ -34,6 +34,8 @@ export default function ProfileInfoForm({ user, refetch, hideDangerZone = false 
     onSubmit: ({ value }) => {
       updateName.mutate(value.name.trim(), {
         onSuccess: () => {
+          // Reset ngay để nút Lưu khoá lại, không chờ refetch session.
+          form.reset({ name: value.name.trim() });
           void refetch();
         },
       });
@@ -47,7 +49,7 @@ export default function ProfileInfoForm({ user, refetch, hideDangerZone = false 
 
   return (
     <Stack gap="xl">
-      <Paper p="xl" radius="md" className={styles.card}>
+      <Paper withBorder p="xl" radius="md" className={styles.card}>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -77,7 +79,7 @@ export default function ProfileInfoForm({ user, refetch, hideDangerZone = false 
               )}
             </form.Field>
             {/* So tên đã trim với tên đã lưu: không dùng isDirty (sticky) và không bật nút khi chỉ thêm khoảng trắng. */}
-            <form.Subscribe selector={(s) => s.values.name.trim() === (user.name ?? "")}>
+            <form.Subscribe selector={(s) => s.values.name.trim() === (user.name ?? "").trim()}>
               {(unchanged) => (
                 <Button
                   type="submit"

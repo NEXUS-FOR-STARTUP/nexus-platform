@@ -311,3 +311,16 @@ button:disabled,
   cursor: not-allowed;
 }
 
+
+/* Redesign scale (case detail / wallet / profile). Additive: --app-text-* untouched (admin shares it). */
+:root {
+  --ui-text-title: 1.5rem;
+  --ui-text-section: 1.125rem;
+  --ui-text-body: 1rem;
+  --ui-text-note: 0.875rem;
+  --ui-weight-regular: 400;
+  --ui-weight-medium: 500;
+  --ui-gap-section: 3rem;
+  --ui-card-border-width: 1.5px; /* frontend-ui-rules §6.3 */
+  --ui-topbar-height: 4rem; /* matches DashboardShell h-16 */
+}

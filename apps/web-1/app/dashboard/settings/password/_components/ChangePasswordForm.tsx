@@ -39,14 +39,14 @@ export default function ChangePasswordForm() {
     },
   });
 
-  if (hasPasswordQuery.isError) {
+  if (hasPasswordQuery.isError && hasPasswordQuery.data === undefined) {
     return (
       <Text className={classes.note}>
         Không thể tải trạng thái mật khẩu. Vui lòng thử lại sau.
       </Text>
     );
   }
-  if (hasPasswordQuery.isLoading) {
+  if (hasPasswordQuery.isPending) {
     return (
       <Paper withBorder radius="md" p="lg" className={classes.card}>
         <Stack gap="md">

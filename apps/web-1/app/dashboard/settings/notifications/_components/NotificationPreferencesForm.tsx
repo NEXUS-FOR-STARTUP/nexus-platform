@@ -7,7 +7,7 @@ import classes from "../notifications.module.css";
 
 export default function NotificationPreferencesForm() {
   const { query, save } = useNotificationPreferences();
-  // Optimistic value set synchronously in onChange (no flicker); cleared on settle => rollback to query.data on error.
+  // Optimistic value set synchronously in onChange (no flicker); cleared on error => rollback; on success it equals the server value (shortcut: stale if changed elsewhere before remount) to query.data on error.
   const [optimistic, setOptimistic] = useState<boolean | null>(null);
   const enabled = optimistic ?? query.data?.email_enabled;
 
@@ -37,7 +37,6 @@ export default function NotificationPreferencesForm() {
 
         <Switch
           checked={enabled}
-          disabled={save.isPending}
           color="brand"
           label="Nhận email"
           description="Gửi thông báo tới email đã đăng ký."
@@ -46,7 +45,7 @@ export default function NotificationPreferencesForm() {
             const checked = event.currentTarget.checked;
             if (checked === enabled) return;
             setOptimistic(checked);
-            save.mutate({ email_enabled: checked }, { onSettled: () => setOptimistic(null) });
+            save.mutate({ email_enabled: checked }, { onError: () => setOptimistic(null) });
           }}
         />
       </Stack>
