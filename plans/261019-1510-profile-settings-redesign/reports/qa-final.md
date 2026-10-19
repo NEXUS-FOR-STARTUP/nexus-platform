@@ -23,3 +23,10 @@ Avatar errors now inline only (no duplicate toast) for client-side validation; s
 - Sessions: rows, StatusChip, bulk button render. Bug found at 390: revoke button clipped -> fixed (`.revoke { flex-shrink: 0 }`), re-verified.
 - 390: no horizontal overflow; strip + underline OK. Dark: profile OK.
 - Not tested: save/delete/revoke (real account), 768, admin/supporter/writer routes, API suite.
+
+### Run 2 corrections
+- Card border: computed width is `1px` for the settings cards. A bare probe `<div style="border:1.5px solid">` also computes `1px` in this headless Chromium (dpr 1 and 2), and `--ui-card-border-width` resolves to `1.5px`. So the token is applied; the engine snaps the width. 1.5px on real hi-dpi screens NOT observed. Light/dark border visual QA is therefore not a full pass.
+- Sessions: only one live state observed (3 rows, one with the "Phiên hiện tại" chip, visible in the screenshot; the 400-char text capture cut before it). One row had unknown OS/browser/IP and a newer login time than the current one; its origin was not investigated. Loading, error, empty states NOT RUN.
+- Password: only OAuth/no-password mode ("Đặt mật khẩu") observed; change mode and `isError` NOT RUN.
+- NOT RUN: 768, admin/supporter/writer routes, API suite, real saves/deletes/revokes.
+- Session token used for QA was shared in chat: rotate/revoke it.
