@@ -52,11 +52,12 @@ export function RevokeOthersModal({
         </Text>
 
         <Group justify="flex-end" gap="sm" mt="sm">
-          <Button variant="default" onClick={handleClose} disabled={loading}>
+          <Button variant="default" size="sm" onClick={handleClose} disabled={loading}>
             Hủy bỏ
           </Button>
           <Button
             color="red"
+            size="sm"
             leftSection={<LogOut className="w-4 h-4" />}
             onClick={handleConfirm}
             loading={loading}

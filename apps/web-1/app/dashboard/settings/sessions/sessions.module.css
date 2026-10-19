@@ -1,0 +1,45 @@
+.title {
+  font-size: var(--ui-text-section);
+  font-weight: var(--ui-weight-medium);
+  color: var(--color-text);
+}
+
+.note {
+  font-size: var(--ui-text-note);
+  color: var(--color-text-muted);
+}
+
+/* Skeleton uses the same height so the list does not jump on load */
+.row {
+  min-height: 5rem;
+  display: flex;
+  align-items: center;
+  border-width: 1.5px;
+}
+
+.iconBox {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--mantine-radius-md);
+  background: var(--color-surface-soft);
+  color: var(--color-text);
+}
+
+.deviceName {
+  font-size: var(--ui-text-body);
+  font-weight: var(--ui-weight-medium);
+  color: var(--color-text);
+}
+
+.meta {
+  font-size: var(--ui-text-note);
+  color: var(--color-text-muted);
+}
+
+.skeletonRow {
+  height: 5rem;
+}

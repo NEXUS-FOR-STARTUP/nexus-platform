@@ -1,12 +1,13 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { Button, Group, Paper, PasswordInput, Stack, Tooltip } from "@mantine/core";
+import { Button, Group, Paper, PasswordInput, Skeleton, Stack, Text, Tooltip } from "@mantine/core";
 import { Info } from "lucide-react";
 import {
   useHasPasswordQuery,
   usePasswordMutations,
 } from "../../hooks/usePasswordMutations";
+import classes from "../password.module.css";
 
 interface ChangePasswordFormValues {
   currentPassword: string;
@@ -40,22 +41,29 @@ export default function ChangePasswordForm() {
 
   if (hasPasswordQuery.isLoading) {
     return (
-      <Paper p="xl" radius="md" className="bg-surface-app border border-border-app max-w-md">
-        <Button type="button" color="brand" loading>
-          Đặt mật khẩu
-        </Button>
+      <Paper withBorder radius="md" p="lg" className={classes.card}>
+        <Stack gap="md">
+          <Skeleton height={20} width="40%" />
+          <Skeleton height={36} />
+          <Skeleton height={36} />
+          <Skeleton height={36} />
+          <Skeleton height={36} width={160} />
+        </Stack>
       </Paper>
     );
   }
   return (
-    <Paper p="xl" radius="md" className="bg-surface-app border border-border-app max-w-md">
+    <Paper withBorder radius="md" p="lg" className={classes.card}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
           form.handleSubmit();
         }}
       >
-        <Stack gap="lg">
+        <Stack gap="md">
+          <Text className={classes.title}>
+            {hasPassword ? "Đổi mật khẩu" : "Đặt mật khẩu"}
+          </Text>
           {hasPassword ? (
             <form.Field
               name="currentPassword"
@@ -119,6 +127,7 @@ export default function ChangePasswordForm() {
                   onChange={(e) => field.handleChange(e.currentTarget.value)}
                   error={hasError ? field.state.meta.errors[0] : undefined}
                   size="md"
+                  autoComplete="new-password"
                 />
               );
             }}
@@ -146,12 +155,13 @@ export default function ChangePasswordForm() {
                   onChange={(e) => field.handleChange(e.currentTarget.value)}
                   error={hasError ? field.state.meta.errors[0] : undefined}
                   size="md"
+                  autoComplete="new-password"
                 />
               );
             }}
           </form.Field>
 
-          <Button type="submit" color="brand" loading={pending || hasPasswordQuery.isLoading}>
+          <Button type="submit" color="brand" size="md" loading={pending}>
             {hasPassword ? "Xác nhận đổi mật khẩu" : "Đặt mật khẩu"}
           </Button>
         </Stack>

@@ -1,7 +1,7 @@
 ---
 title: "Redesign Cài đặt tài khoản (profile, mật khẩu, phiên, thông báo) theo mockup, giữ Mantine + logic cũ"
 description: "Áp hình thức mockup settings-profile lên /dashboard/settings/*; giữ TanStack Form, hook, luật kiểm tra, chế độ đặt mật khẩu; không giả công tắc thông báo hay địa điểm phiên mà API không có."
-status: pending
+status: implemented-unverified-in-browser
 priority: P3
 effort: 17h
 tags: [frontend, web-1, ux, refactor]

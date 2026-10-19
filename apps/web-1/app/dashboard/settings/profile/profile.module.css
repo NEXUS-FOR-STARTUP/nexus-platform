@@ -1,0 +1,49 @@
+/* Global rule forces Paper border-color with !important; doubled class wins on specificity. */
+.card.card {
+  border: 1.5px solid var(--color-border) !important;
+  box-shadow: none;
+  max-width: 32rem;
+}
+
+.dangerCard.dangerCard {
+  border: 1.5px solid color-mix(in srgb, var(--color-danger) 35%, transparent) !important;
+  box-shadow: none;
+  max-width: 32rem;
+}
+
+.cardTitle {
+  font-size: var(--ui-text-section);
+  font-weight: var(--ui-weight-medium);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.dangerTitle {
+  font-size: var(--ui-text-section);
+  font-weight: var(--ui-weight-medium);
+  color: var(--color-danger);
+  margin: 0;
+}
+
+.note {
+  font-size: var(--ui-text-note);
+  font-weight: var(--ui-weight-regular);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.avatar {
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+  font-weight: var(--ui-weight-medium);
+}
+
+.avatarBusy {
+  opacity: 0.5;
+}
+
+.avatarError {
+  font-size: var(--ui-text-note);
+  color: var(--color-danger);
+  margin: 0;
+}

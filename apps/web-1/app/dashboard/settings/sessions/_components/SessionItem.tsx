@@ -1,9 +1,11 @@
 "use client";
 
-import { Badge, Button, Group, Paper, Stack, Text } from "@mantine/core";
+import { Button, Group, Paper, Stack, Text } from "@mantine/core";
 import { Laptop, Smartphone, Tablet, Globe, LogOut } from "lucide-react";
 import type { ActiveSessionDto } from "@repo/validation";
+import { StatusChip } from "@/components/ui/StatusChip";
 import { parseUserAgent, formatIpAddress } from "@/lib/utils/ua-parser";
+import classes from "../sessions.module.css";
 
 interface SessionItemProps {
   session: ActiveSessionDto;
@@ -39,29 +41,19 @@ export function SessionItem({ session, onRevoke, isRevoking }: SessionItemProps)
     }
   };
 
+  const deviceName = `${parsed.os} • ${parsed.browser}`;
+
   return (
-    <Paper
-      p="md"
-      radius="md"
-      className="bg-surface-app border border-border-app transition-colors hover:border-brand-subtle"
-    >
-      <Group justify="space-between" align="center" wrap="wrap" gap="md">
-        <Group gap="md" align="center">
-          <div className="w-10 h-10 rounded-full bg-brand-soft text-brand flex items-center justify-center shrink-0">
-            {renderDeviceIcon()}
-          </div>
+    <Paper withBorder radius="md" p="md" className={classes.row}>
+      <Group justify="space-between" align="center" wrap="nowrap" gap="md" w="100%">
+        <Group gap="md" align="center" wrap="nowrap">
+          <div className={classes.iconBox}>{renderDeviceIcon()}</div>
           <Stack gap={2}>
             <Group gap="xs" align="center">
-              <Text size="sm" fw={600} className="text-text-primary">
-                {parsed.os} • {parsed.browser}
-              </Text>
-              {session.isCurrent && (
-                <Badge color="teal" variant="light" size="sm">
-                  Phiên hiện tại
-                </Badge>
-              )}
+              <Text className={classes.deviceName}>{deviceName}</Text>
+              {session.isCurrent && <StatusChip tone="ok">Phiên hiện tại</StatusChip>}
             </Group>
-            <Text size="xs" c="dimmed">
+            <Text className={classes.meta}>
               IP: {formattedIp} • Đăng nhập lúc: {formattedCreatedAt}
             </Text>
           </Stack>
@@ -69,10 +61,10 @@ export function SessionItem({ session, onRevoke, isRevoking }: SessionItemProps)
 
         {!session.isCurrent && (
           <Button
-            color="red"
-            variant="light"
-            size="xs"
-            leftSection={<LogOut className="w-3.5 h-3.5" />}
+            variant="default"
+            size="sm"
+            aria-label={`Đăng xuất khỏi ${deviceName}`}
+            leftSection={<LogOut className="w-4 h-4" />}
             loading={isRevoking}
             disabled={isRevoking}
             onClick={() => onRevoke(session.id)}
