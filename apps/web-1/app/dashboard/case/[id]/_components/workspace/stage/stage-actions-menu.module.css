@@ -1,0 +1,62 @@
+/* design-system/mockups/case-detail base.css: .menu, .menu .pop. */
+.menu {
+  position: relative;
+}
+
+.menu > summary {
+  list-style: none;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+}
+
+.menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.menu > summary:hover {
+  background: #f1f5f9;
+}
+
+.pop {
+  position: absolute;
+  right: 0;
+  top: 46px;
+  z-index: 5;
+  min-width: 200px;
+  padding: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.pop button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font: inherit;
+  color: #0f172a;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pop button:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.pop button:disabled {
+  color: #94a3b8;
+  cursor: not-allowed;
+}

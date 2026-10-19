@@ -1,41 +1,86 @@
+/* design-system/mockups/case-detail: .gh, .rows > .file, .ib, .note. */
 .group {
-  margin: 0 0 var(--mantine-spacing-xs);
+  margin: 24px 0 8px;
   font-size: var(--ui-text-note);
   font-weight: var(--ui-weight-medium);
-  color: var(--color-text-muted);
+  color: #475569;
 }
 
 .rows {
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--mantine-radius-md);
-  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--mantine-spacing-sm);
-  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  padding: 14px 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
 }
 
-.row + .row {
-  border-top: 1.5px solid var(--color-border);
+.nm {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 
 .name {
-  min-width: 0;
-  font-size: var(--ui-text-body);
-  font-weight: var(--ui-weight-medium);
-  color: var(--color-text);
+  font-weight: 500;
+  color: #0f172a;
   overflow-wrap: anywhere;
+}
+
+a.name:hover {
+  color: #2563eb;
 }
 
 .meta {
   font-size: var(--ui-text-note);
-  color: var(--color-text-muted);
+  color: #475569;
 }
 
-.actions {
-  flex-shrink: 0;
+.more {
+  margin: 16px 0 0;
+  font-size: var(--ui-text-note);
+  color: #475569;
+}
+
+.acts {
+  display: flex;
+  gap: 8px;
+}
+
+/* Download is a link, so it carries the same box as the IconButton next to it. */
+.ib {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+}
+
+.ib:hover {
+  background: #f1f5f9;
+}
+
+@media (max-width: 767px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
 }

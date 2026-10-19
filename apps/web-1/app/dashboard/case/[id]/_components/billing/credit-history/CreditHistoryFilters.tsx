@@ -1,3 +1,5 @@
+import { Select } from "@mantine/core";
+import { CaretDownIcon } from "@phosphor-icons/react";
 import FilterTabs from "../../ui/FilterTabs";
 import type { CreditDaysFilter, CreditTypeFilter } from "./credit-history-filter";
 import s from "./credit-history.module.css";
@@ -33,18 +35,16 @@ export default function CreditHistoryFilters({ type, days, counts, onTypeChange,
         onChange={onTypeChange}
         items={TYPE_TABS.map((t) => ({ value: t.value, label: `${t.label} (${counts[t.value]})` }))}
       />
-      <select
-        className={s.select}
+      <Select
         aria-label="Khoảng thời gian"
+        data={DAYS_OPTIONS}
         value={days === null ? "all" : String(days)}
-        onChange={(e) => onDaysChange(e.target.value === "all" ? null : Number(e.target.value))}
-      >
-        {DAYS_OPTIONS.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+        onChange={(v) => onDaysChange(v === null || v === "all" ? null : Number(v))}
+        allowDeselect={false}
+        checkIconPosition="right"
+        rightSection={<CaretDownIcon size={16} aria-hidden />}
+        classNames={{ root: s.selectRoot, input: s.select, dropdown: s.selectDropdown, option: s.selectOption }}
+      />
     </div>
   );
 }

@@ -1,12 +1,10 @@
 "use client";
 
-import { Anchor, Breadcrumbs, Button, Group, Stack, Text } from "@mantine/core";
-import { Sparkle as Sparkles } from "@phosphor-icons/react";
-import BuyButton from "@/components/ui/BuyButton";
 import { StatusChip } from "@/components/ui/StatusChip";
 import type { StageDefinition } from "@app/shared/stages";
 import { TEMPLATE_REGISTRY, type TemplateKey } from "@repo/validation";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
+import { Button } from "../../ui/Button";
 import type { StageView } from "../stage-view";
 import StageActionsMenu from "./StageActionsMenu";
 import s from "./StageHeader.module.css";
@@ -39,50 +37,48 @@ export default function StageHeader({
   const isGrading = summary?.status === "grading";
   const hasResult = summary?.status === "has_result";
   const questionCount = TEMPLATE_REGISTRY[stage.templateKey]?.phases.flatMap((p) => p.questions).length ?? 0;
+  const hasCredits = creditsRemaining > 0;
+  const meta = [
+    `${summary?.answered_count ?? 0}/${questionCount} câu`,
+    `${summary?.file_count ?? 0} tệp`,
+    hasCredits ? `còn ${creditsRemaining} lượt chấm` : "hết lượt chấm",
+  ].join(" · ");
 
   return (
-    <Stack gap="xs">
-      <Breadcrumbs separator="/" aria-label="Đường dẫn">
-        <Anchor component="button" type="button" size="sm" onClick={onBack}>
+    <div className={s.root}>
+      <p className={s.crumb}>
+        <button type="button" className={s.crumbLink} onClick={onBack}>
           Hành trình
-        </Anchor>
-        <Text size="sm" c="dimmed">{stage.name}</Text>
-      </Breadcrumbs>
+        </button>{" "}
+        / <span>{stage.name}</span>
+      </p>
 
-      <Group justify="space-between" align="center" wrap="wrap" gap="md">
-        <Stack gap={2}>
-          <Group gap="sm" align="center">
-            <h1 className={s.title}>{stage.name}</h1>
+      <div className={s.head}>
+        <div>
+          <h1 className={s.title}>
+            {stage.name}
             {isGrading ? (
               <StatusChip tone="warn">Đang chấm</StatusChip>
             ) : hasResult ? (
               <StatusChip tone="ok">Đã có kết quả</StatusChip>
             ) : null}
-          </Group>
-          <p className={s.note}>
-            {summary?.answered_count ?? 0}/{questionCount} câu đã trả lời
-            <br />
-            {summary?.file_count ?? 0} tệp đính kèm
-            <br />
-            {creditsRemaining > 0 ? `Còn ${creditsRemaining} lượt chấm` : "Hết lượt chấm"}
-          </p>
-        </Stack>
+          </h1>
+          <p className={s.note}>{meta}</p>
+        </div>
 
-        <Group gap="xs">
-          {creditsRemaining > 0 ? (
-            <Button size="sm" leftSection={<Sparkles size={16} />} disabled={isGrading} onClick={onAudit}>
-              {hasResult ? "Chấm lại" : "Chấm bài"}
-            </Button>
-          ) : (
-            <BuyButton size="sm" onClick={onBuyCredits}>
-              Mua lượt chấm
-            </BuyButton>
-          )}
+        <div className={s.actions}>
           {view === "draft" && (
             <StageActionsMenu caseId={caseId} templateKey={templateKey} draftQuestionIds={draftQuestionIds} />
           )}
-        </Group>
-      </Group>
-    </Stack>
+          {hasCredits ? (
+            <Button disabled={isGrading} onClick={onAudit}>
+              {hasResult ? "Chấm lại" : "Chấm bài"}
+            </Button>
+          ) : (
+            <Button onClick={onBuyCredits}>Mua lượt chấm</Button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

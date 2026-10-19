@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Anchor, Collapse, UnstyledButton } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { BookOpen, CaretDown as ChevronDown, ArrowSquareOut as ExternalLink, ListChecks } from "@phosphor-icons/react";
+import { BookOpenIcon, CaretDownIcon, CheckCircleIcon, LightbulbIcon, ListBulletsIcon } from "@phosphor-icons/react";
 import type { Question } from "@repo/validation";
 import { GUIDED_MOBILE_QUERY } from "../../hooks/useGuidedNavigation";
-import editor from "./guided-editor.module.css";
+import { parseHint } from "./parse-hint";
 import s from "./guided-hint-panel.module.css";
 
 interface GuidedHintPanelProps {
@@ -14,17 +13,27 @@ interface GuidedHintPanelProps {
   question: Question | undefined;
 }
 
-function HintSection({ icon, tone, title, children }: { icon: ReactNode; tone: string; title: string; children: ReactNode }) {
+type Tone = "need" | "example" | "check" | "read";
+
+function HintSection({ icon, tone, title, children }: { icon: ReactNode; tone: Tone; title: string; children: ReactNode }) {
   return (
     <div className={s.section}>
-      <h4 className={s.sectionTitle}>
-        <span className={`${s.badge} ${tone}`}>{icon}</span>
+      <h4 className={`${s.sectionTitle} ${s[tone]}`}>
+        <span className={s.badge}>{icon}</span>
         {title}
       </h4>
       {children}
     </div>
   );
 }
+
+const Bullets = ({ items }: { items: string[] }) => (
+  <ul className={s.bullets}>
+    {items.map((t) => (
+      <li key={t}>{t}</li>
+    ))}
+  </ul>
+);
 
 export default function GuidedHintPanel({ question }: GuidedHintPanelProps) {
   const isMobile = useMediaQuery(GUIDED_MOBILE_QUERY);
@@ -34,46 +43,77 @@ export default function GuidedHintPanel({ question }: GuidedHintPanelProps) {
 
   const actions = question?.suggested_actions ?? [];
   const readings = question?.further_reading ?? [];
-  const explanation = question?.explanation;
-  if (!explanation && actions.length === 0 && readings.length === 0) return null;
+  const hint = parseHint(question?.explanation ?? "");
+  const hasExamples = Boolean(hint.bad || hint.good);
+  if (!question?.explanation && actions.length === 0 && readings.length === 0) return null;
 
   return (
-    <div className={`${editor.panel} ${s.panel}`}>
-      <UnstyledButton className={editor.foldHead} onClick={() => setOpenedOverride(!opened)} aria-expanded={opened}>
-        <span className={editor.foldTitle}>
-          <ChevronDown size={16} className={`${editor.chevron} ${opened ? "" : editor.chevronClosed}`} aria-hidden />
-          Gợi ý cho câu này
-        </span>
-      </UnstyledButton>
+    <aside className={s.panel} aria-label="Gợi ý">
+      <button type="button" className={s.fold} onClick={() => setOpenedOverride(!opened)} aria-expanded={opened}>
+        <span className={s.foldTitle}>Gợi ý cho câu này</span>
+        <CaretDownIcon size={16} className={`${s.chevron} ${opened ? s.chevronOpen : ""}`} aria-hidden />
+      </button>
 
-      <Collapse expanded={opened}>
+      {opened && (
         <div className={s.body}>
-          {explanation && <p className={s.lead}>{explanation}</p>}
+          <h3 className={s.title}>Gợi ý cho câu này</h3>
+          {hint.lead && <p className={s.lead}>{hint.lead}</p>}
+          {hint.need.length > 0 && (
+            <HintSection icon={<ListBulletsIcon size={16} aria-hidden />} tone="need" title="Cần nêu">
+              <Bullets items={hint.need} />
+            </HintSection>
+          )}
+          {hasExamples ? (
+            <HintSection icon={<LightbulbIcon size={16} aria-hidden />} tone="example" title="Ví dụ">
+              {hint.bad && (
+                <div className={s.ex}>
+                  <span className={`${s.chip} ${s.chipWarn}`}>Chưa tốt</span>
+                  {hint.bad}
+                </div>
+              )}
+              {hint.good && (
+                <div className={s.ex}>
+                  <span className={`${s.chip} ${s.chipOk}`}>Tốt</span>
+                  {hint.good}
+                </div>
+              )}
+            </HintSection>
+          ) : (
+            hint.example && (
+              <HintSection icon={<LightbulbIcon size={16} aria-hidden />} tone="example" title="Ví dụ">
+                <div className={s.ex}>{hint.example}</div>
+              </HintSection>
+            )
+          )}
           {actions.length > 0 && (
-            <HintSection icon={<ListChecks size={16} aria-hidden />} tone={s.success} title="Tự kiểm tra trước khi lưu">
-              <ul className={s.items}>
-                {actions.map((act) => (
-                  <li key={act}>{act}</li>
-                ))}
-              </ul>
+            <HintSection icon={<CheckCircleIcon size={16} aria-hidden />} tone="check" title="Tự kiểm tra trước khi lưu">
+              <Bullets items={actions} />
             </HintSection>
           )}
           {readings.length > 0 && (
-            <HintSection icon={<BookOpen size={16} aria-hidden />} tone={s.violet} title="Đọc thêm">
-              <ul className={s.items}>
-                {readings.map((link) => (
-                  <li key={link.url}>
-                    <Anchor href={link.url} target="_blank" rel="noopener noreferrer" size="sm" className={s.link}>
-                      {link.title}
-                      <ExternalLink size={14} aria-hidden />
-                    </Anchor>
-                  </li>
-                ))}
-              </ul>
+            <HintSection icon={<BookOpenIcon size={16} aria-hidden />} tone="read" title="Đọc thêm">
+              {readings.map((link) => (
+                <p key={link.url}>
+                  <a href={link.url} target="_blank" rel="noopener noreferrer">
+                    {link.title}
+                  </a>
+                </p>
+              ))}
             </HintSection>
           )}
+          {hint.notes.length > 0 && (
+            <details className={s.more}>
+              <summary>
+                Xem thêm lưu ý
+                <CaretDownIcon size={16} className={s.moreIcon} aria-hidden />
+              </summary>
+              {hint.notes.map((n) => (
+                <p key={n}>{n}</p>
+              ))}
+            </details>
+          )}
         </div>
-      </Collapse>
-    </div>
+      )}
+    </aside>
   );
 }

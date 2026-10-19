@@ -1,16 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Accordion, Button, Paper, Stack, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { FileText as FileCheck } from "@phosphor-icons/react";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
 import type { RoundHistoryEntry } from "@/types";
 import { formatDateShort } from "../../report.utils";
+import { Button } from "../../ui/Button";
 import ResultPdfViewer, { ResultPdfActions } from "./ResultPdfViewer";
 import ResultRunList from "./ResultRunList";
 import { toResultRuns } from "./result-runs";
-import styles from "./result-runs.module.css";
+import s from "./stage-results.module.css";
 
 interface StageResultsViewProps {
   caseId: string;
@@ -43,42 +42,48 @@ export default function StageResultsView({
 
   if (runs.length === 0) {
     return (
-      <Paper p="xl" withBorder radius="md" ta="center">
-        <Stack align="center" gap="md">
-          <FileCheck size={40} aria-hidden />
-          <Text fw={500} size="lg">Chưa có kết quả chấm</Text>
-          <Text size="sm" c="dimmed">3 bước để có kết quả:</Text>
-          <Stack gap="xs" align="center">
-            <Button variant="subtle" onClick={onGoDraft}>1. Trả lời câu hỏi ở tab Soạn thảo</Button>
-            <Button variant="subtle" onClick={onGoFiles}>2. Tải tài liệu ở tab Tài liệu</Button>
-            <Button onClick={onAudit}>3. Chấm bài</Button>
-          </Stack>
-        </Stack>
-      </Paper>
+      <div className={s.empty}>
+        <h2>Chưa có kết quả chấm</h2>
+        <p className={s.note}>Làm theo 3 bước để nhận kết quả:</p>
+        <ol>
+          <li>
+            <button type="button" className={s.link} onClick={onGoDraft}>
+              Trả lời các câu hỏi ở mục Soạn thảo.
+            </button>
+          </li>
+          <li>
+            <button type="button" className={s.link} onClick={onGoFiles}>
+              Tải tài liệu ở mục Tài liệu.
+            </button>
+          </li>
+          <li>Bấm Chấm bài.</li>
+        </ol>
+        <Button onClick={onAudit}>Chấm bài</Button>
+      </div>
     );
   }
 
   if (!isDesktop) {
     return (
-      <Accordion variant="separated" radius="md" defaultValue={runs[0].id}>
-        {runs.map((run) => (
-          <Accordion.Item key={run.id} value={run.id}>
-            <Accordion.Control>
-              <Text>Lịch sử chấm</Text>
-              <Text size="sm" c="dimmed">{`${run.label}, ${formatDateShort(run.submittedAt)}`}</Text>
-            </Accordion.Control>
-            <Accordion.Panel>
+      <div>
+        {runs.map((run, index) => (
+          <details key={run.id} className={s.fold} open={index === 0}>
+            <summary>
+              Lịch sử chấm
+              <span className={s.note}>{`${run.label}, ${formatDateShort(run.submittedAt)}`}</span>
+            </summary>
+            <div className={s.foldBody}>
               <ResultPdfActions run={run} caseId={caseId} openLabel="Mở PDF" />
-            </Accordion.Panel>
-          </Accordion.Item>
+            </div>
+          </details>
         ))}
-      </Accordion>
+      </div>
     );
   }
 
   const selected = runs.find((run) => run.id === pickedId) ?? runs[0];
   return (
-    <div className={styles.layout}>
+    <div className={s.layout}>
       <ResultRunList runs={runs} selectedId={selected.id} onSelect={setPickedId} />
       <ResultPdfViewer run={selected} caseId={caseId} projectName={projectName} />
     </div>

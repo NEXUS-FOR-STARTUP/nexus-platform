@@ -1,12 +1,54 @@
+/* design-system/mockups/case-detail: .crumb, .head, h1 24/500, .note 14 muted. */
+.root {
+  margin-bottom: 24px;
+}
+
+.crumb {
+  margin: 0 0 16px;
+  font-size: var(--ui-text-note);
+  color: #475569;
+}
+
+.crumbLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.crumbLink:hover {
+  text-decoration: underline;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
 .title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
   margin: 0;
   font-size: var(--ui-text-title);
   font-weight: var(--ui-weight-medium);
-  line-height: 1.3;
-  color: var(--color-text);
+  line-height: 1.25;
+  color: #0f172a;
 }
 
 .note {
+  margin: 4px 0 0;
   font-size: var(--ui-text-note);
-  color: var(--color-text-muted);
+  color: #475569;
+}
+
+.actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { Checkbox } from "@mantine/core";
 import { CP2_SELF_CHECKS, type Cp2SelfCheckId } from "@repo/validation";
 import s from "./guided-editor.module.css";
 
@@ -25,13 +24,15 @@ export default function Cp2SelfCheck({ questionId, answersMap, isSaving, onSaveA
 
   return (
     <div className={s.selfCheck}>
-      <Checkbox
-        size="sm"
-        label={check.label}
-        checked={answersMap[check.id] === "true"}
-        disabled={isSaving}
-        onChange={(e) => onSaveAnswers([{ question_id: check.id, answer_text: String(e.currentTarget.checked) }])}
-      />
+      <label>
+        <input
+          type="checkbox"
+          checked={answersMap[check.id] === "true"}
+          disabled={isSaving}
+          onChange={(e) => onSaveAnswers([{ question_id: check.id, answer_text: String(e.currentTarget.checked) }])}
+        />
+        <span>{check.label}</span>
+      </label>
       <p className={s.selfCheckNote}>
         Mục quan trọng khi chấm. Nhóm tự xác nhận, AI chấm sẽ đọc xác nhận này.
       </p>

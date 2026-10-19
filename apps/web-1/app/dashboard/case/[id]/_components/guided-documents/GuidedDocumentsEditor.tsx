@@ -1,10 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Button, Loader } from "@mantine/core";
+import { Loader } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
-// UploadCloud tạm ẩn cùng nút nhập file
-import { CaretLeft as ChevronLeft } from "@phosphor-icons/react";
+import { CaretLeftIcon } from "@phosphor-icons/react";
 import { QUESTION_REGISTRY, type Question, type TemplateKey } from "@repo/validation";
 import { useGuidedDocuments } from "../../hooks/useGuidedDocuments";
 import type { useGuidedDrafts } from "../../hooks/useGuidedDrafts";
@@ -13,6 +12,7 @@ import Cp2SelfCheck, { CP2_SELF_CHECK_BY_QUESTION } from "./Cp2SelfCheck";
 import GuidedImportModal from "./GuidedImportModal";
 import GuidedLeaveModal from "./GuidedLeaveModal";
 import StageActionsMenu from "../workspace/stage/StageActionsMenu";
+import { Button } from "../ui/Button";
 import GuidedTOC from "./GuidedTOC";
 import GuidedQuestionCard from "./GuidedQuestionCard";
 import GuidedHintPanel from "./GuidedHintPanel";
@@ -114,31 +114,22 @@ export default function GuidedDocumentsEditor({
         onDiscard={handleDiscardBack}
         onSaveAndLeave={handleSaveBack}
       />
-      <div className="flex flex-col gap-2">
-        {!hideBackButton && (
+      {!hideBackButton && (
+        <div className="flex flex-col gap-2">
           <div>
-            <Button
-              variant="subtle"
-              size="sm"
-              onClick={handleBack}
-              leftSection={<ChevronLeft className="w-4 h-4" />}
-            >
+            <Button variant="ghost" onClick={handleBack} leftSection={<CaretLeftIcon size={16} aria-hidden />}>
               Tất cả biểu mẫu
             </Button>
           </div>
-        )}
-
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex flex-col gap-1">
-            <h2 className="font-bold text-lg md:text-xl text-text-app">{template.title}</h2>
-            <p className="text-xs text-text-muted">{template.description}</p>
-          </div>
-          {/* Stage workspace shows this menu in its own header; the legacy gallery flow has none. */}
-          {!hideBackButton && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex flex-col gap-1">
+              <h2 className="font-bold text-lg md:text-xl text-text-app">{template.title}</h2>
+              <p className="text-xs text-text-muted">{template.description}</p>
+            </div>
             <StageActionsMenu caseId={caseId} templateKey={templateKey} draftQuestionIds={Object.keys(drafts)} />
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className={s.layout}>
         <div className={s.toc}>
@@ -157,7 +148,8 @@ export default function GuidedDocumentsEditor({
             <GuidedQuestionCard
               key={currentId}
               questionId={currentId}
-              questionNumber={`${current.phaseIndex + 1}.${current.questionIndex + 1}`}
+              questionPosition={flat.findIndex((q) => q.question_id === currentId) + 1}
+              questionTotal={flat.length}
               classification={current.classification}
               value={drafts[currentId] ?? answersMap[currentId] ?? ""}
               isDirty={currentId in drafts}

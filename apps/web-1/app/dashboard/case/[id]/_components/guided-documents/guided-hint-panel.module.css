@@ -1,78 +1,196 @@
+/* design-system/mockups/case-detail views.css: .hintp, .hs, .blt, .ex. */
 .panel {
   position: sticky;
-  top: calc(var(--ui-topbar-height) + 0.5rem);
+  top: 72px;
+  max-height: calc(100vh - 88px);
+  overflow: auto;
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
 }
 
-@media (max-width: 1240px) {
-  .panel {
-    position: static;
-  }
+.fold {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: #0f172a;
+  text-align: left;
+  cursor: pointer;
 }
 
-.body {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding-top: 1rem;
+.foldTitle {
+  flex: 1;
+}
+
+.chevron {
+  flex: none;
+  color: #475569;
+  transition: transform 0.2s;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.title {
+  margin: 0 0 8px;
+  font-size: var(--ui-text-section);
+  font-weight: var(--ui-weight-medium);
+  line-height: 1.3;
 }
 
 .lead {
-  margin: 0;
-  font-size: var(--ui-text-note);
-  line-height: 1.6;
-  white-space: pre-line;
-  color: var(--color-text);
+  margin: 0 0 20px;
 }
 
 .section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  margin-top: 20px;
 }
 
 .sectionTitle {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin: 0;
-  font-size: var(--ui-text-note);
-  font-weight: var(--ui-weight-medium);
-  color: var(--color-text);
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
-/* Icon tint only tells sections apart; it never carries status. */
 .badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: var(--mantine-radius-md);
+  display: grid;
+  place-items: center;
+  flex: none;
+  padding: 6px;
+  border-radius: 8px;
 }
 
-.success {
-  background-color: var(--color-success-soft);
-  color: var(--color-success);
+.need .badge {
+  color: #2563eb;
+  background: #eff6ff;
 }
 
-.violet {
-  background-color: var(--mantine-color-violet-light);
-  color: var(--mantine-color-violet-light-color);
+.example .badge {
+  color: #b45309;
+  background: #fef3c7;
 }
 
-.items {
+.check .badge {
+  color: #047857;
+  background: #d1fae5;
+}
+
+.read .badge {
+  color: #6d28d9;
+  background: #ede9fe;
+}
+
+.bullets {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: 6px;
   margin: 0;
-  padding-left: 1.25rem;
-  font-size: var(--ui-text-note);
-  line-height: 1.5;
-  color: var(--color-text);
+  padding-left: 20px;
+  list-style: disc;
 }
 
-.link {
-  display: inline-flex;
+.ex {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  white-space: pre-line;
+}
+
+.ex + .ex {
+  margin-top: 8px;
+}
+
+.chip {
+  display: flex;
   align-items: center;
-  gap: 0.25rem;
+  width: max-content;
+  height: 26px;
+  margin-bottom: 8px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.chipWarn {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.chipOk {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.section p {
+  margin: 0;
+}
+
+.section a {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.more {
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.more summary {
+  display: block;
+  list-style: none;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.more summary::-webkit-details-marker {
+  display: none;
+}
+
+.moreIcon {
+  display: inline-block;
+  margin-left: 12px;
+  vertical-align: -3px;
+  transition: transform 0.2s;
+}
+
+.more[open] .moreIcon {
+  transform: rotate(180deg);
+}
+
+.more p {
+  margin: 8px 0 0;
+  color: #475569;
+}
+
+@media (max-width: 1240px) {
+  .panel {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .fold {
+    display: flex;
+  }
+
+  .fold[aria-expanded="true"] {
+    margin-bottom: 12px;
+  }
+
+  .title {
+    display: none;
+  }
 }

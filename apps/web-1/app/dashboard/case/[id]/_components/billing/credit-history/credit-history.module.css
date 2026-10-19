@@ -68,15 +68,57 @@
   margin: 0;
 }
 
+.selectRoot {
+  width: 192px;
+}
+
 .select {
   height: 40px;
-  padding: 0 12px;
+  min-height: 40px;
+  padding-left: 14px;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   background: #fff;
   color: #0f172a;
-  font: inherit;
   font-size: 16px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.select:hover {
+  border-color: #94a3b8;
+}
+
+.select:focus,
+.select[data-expanded] {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.selectDropdown {
+  padding: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.selectOption {
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.selectOption[data-combobox-selected] {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.selectOption:hover:not([data-combobox-selected]) {
+  background: #f1f5f9;
 }
 
 .rows {

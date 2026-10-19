@@ -1,8 +1,8 @@
-import { ActionIcon, Anchor, Group, Stack, Text } from "@mantine/core";
-import { DownloadSimple as Download, Trash as Trash2 } from "@phosphor-icons/react/ssr";
+import { DownloadSimpleIcon, TrashIcon } from "@phosphor-icons/react/ssr";
 import FileTypeIcon from "@/components/ui/FileTypeIcon";
 import { StatusChip } from "@/components/ui/StatusChip";
 import { formatDate, type DocumentRow as DocumentRowData } from "../../documents/document-workspace.types";
+import { IconButton } from "../../ui/Button";
 import { versionChip } from "./document-groups";
 import s from "./DocumentGroupList.module.css";
 
@@ -16,57 +16,48 @@ export default function DocumentRow({ row, onDelete, isDeleting }: DocumentRowPr
   const chip = versionChip(row.versionLabel);
   const documentId = row.documentId;
   const downloadUrl = row.hasAction ? row.url : null;
+  const meta = [row.formatLabel, row.uploaderLabel, formatDate(row.createdAt).date].join(" · ");
 
   return (
     <div className={s.row}>
-      <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
+      <div className={s.nm}>
         <FileTypeIcon name={row.displayName} size={32} />
-        <Stack gap={2} style={{ minWidth: 0 }}>
-          <Group gap="xs" wrap="wrap">
+        <div>
+          <div className={s.title}>
             {downloadUrl ? (
-              <Anchor href={downloadUrl} target="_blank" rel="noopener noreferrer" className={s.name}>
+              <a href={downloadUrl} target="_blank" rel="noopener noreferrer" className={s.name}>
                 {row.displayName}
-              </Anchor>
+              </a>
             ) : (
               <span className={s.name}>{row.displayName}</span>
             )}
             {chip && <StatusChip tone="neutral">{chip}</StatusChip>}
-          </Group>
-          <Group gap="md" wrap="wrap">
-            <Text className={s.meta}>{row.formatLabel}</Text>
-            <Text className={s.meta}>{row.uploaderLabel}</Text>
-            <Text className={s.meta}>{formatDate(row.createdAt).date}</Text>
-          </Group>
-        </Stack>
-      </Group>
-      <Group gap={4} wrap="nowrap" className={s.actions}>
+          </div>
+          <div className={s.meta}>{meta}</div>
+        </div>
+      </div>
+      <div className={s.acts}>
         {downloadUrl && (
-          <ActionIcon
-            component="a"
+          <a
             href={downloadUrl}
             target="_blank"
             rel="noopener noreferrer"
-            variant="subtle"
-            color="gray"
-            size="lg"
+            className={s.ib}
             aria-label={`Tải xuống ${row.displayName}`}
           >
-            <Download size={16} />
-          </ActionIcon>
+            <DownloadSimpleIcon size={18} aria-hidden />
+          </a>
         )}
         {documentId && (
-          <ActionIcon
-            variant="subtle"
-            color="red"
-            size="lg"
+          <IconButton
+            label={`Xoá ${row.displayName}`}
             loading={isDeleting}
             onClick={() => onDelete(documentId, row.displayName)}
-            aria-label={`Xoá ${row.displayName}`}
           >
-            <Trash2 size={16} />
-          </ActionIcon>
+            <TrashIcon size={18} aria-hidden />
+          </IconButton>
         )}
-      </Group>
+      </div>
     </div>
   );
 }

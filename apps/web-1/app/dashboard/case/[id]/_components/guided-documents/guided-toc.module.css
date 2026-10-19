@@ -1,93 +1,166 @@
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  max-height: 37.5rem;
-  overflow-y: auto;
-  padding-top: 1rem;
-  padding-right: 0.25rem;
+/* design-system/mockups/case-detail views.css: .toc, .grp, .it, .tick, .crit. */
+.toc {
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+/* The fold header only exists on phones; on desktop the list is always open. */
+.fold {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: #0f172a;
+  text-align: left;
+  cursor: pointer;
+}
+
+.foldOpen {
+  margin-bottom: 12px;
+}
+
+.foldTitle {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note {
+  font-size: 14px;
+  font-weight: 400;
+  color: #475569;
+}
+
+.chevron {
+  flex: none;
+  color: #475569;
+  transition: transform 0.2s;
+}
+
+.foldOpen .chevron {
+  transform: rotate(180deg);
 }
 
 .group {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  justify-content: space-between;
+  margin: 16px 0 6px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
-.groupTitle {
-  padding: 0 0.5rem;
-  font-size: var(--ui-text-note);
-  font-weight: var(--ui-weight-medium);
-  color: var(--color-text-muted);
+.list > div:first-child .group {
+  margin-top: 0;
+}
+
+.group span {
+  font-weight: 400;
+  color: #475569;
 }
 
 .row {
-  display: grid;
-  grid-template-columns: 1rem minmax(0, 1fr) auto;
-  column-gap: 0.5rem;
-  row-gap: 0.25rem;
-  align-items: start;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   width: 100%;
-  padding: 0.5rem 0.625rem;
-  border-radius: var(--mantine-radius-md);
-  font-size: var(--ui-text-note);
-  font-weight: var(--ui-weight-regular);
-  line-height: 1.4;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  color: inherit;
   text-align: left;
-  color: var(--color-text);
-  transition: background-color 150ms ease-out;
+  cursor: pointer;
 }
 
-.row:hover {
-  background-color: var(--color-surface-soft);
+.row:hover:not(.on):not(.locked) {
+  background: #f1f5f9;
 }
 
-.row:focus-visible {
-  outline: 2px solid var(--color-brand);
-  outline-offset: 1px;
+.label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.selected,
-.selected:hover {
-  background-color: var(--color-brand-subtle);
-  font-weight: var(--ui-weight-medium);
+.on {
+  background: #eff6ff;
+  color: #2563eb;
+  font-weight: 500;
 }
 
 .locked {
   opacity: 0.5;
+  color: #475569;
   cursor: not-allowed;
 }
 
-.locked:hover {
-  background-color: transparent;
+.icon,
+.iconOn {
+  flex: none;
+  color: #475569;
 }
 
-.icon {
-  margin-top: 0.1875rem;
-  color: var(--color-text-muted);
+.iconOn {
+  color: #2563eb;
 }
 
-.iconAnswered {
-  color: var(--color-success);
+.tick {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #10b981;
+  color: #fff;
 }
 
-.iconThin {
-  color: var(--color-warning);
+.warnIcon {
+  display: grid;
+  flex: none;
+  color: #f59e0b;
 }
 
-.name {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+.crit {
+  flex: none;
+  padding: 1px 8px;
+  border-radius: 6px;
+  background: #ffedd5;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  color: #c2410c;
 }
 
-.chevron {
-  margin-top: 0.1875rem;
-  color: var(--color-brand);
+/* Desktop: the badge drops under the title so the title keeps its full line. */
+@media (min-width: 768px) {
+  .hasCrit {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 10px;
+    row-gap: 4px;
+  }
+
+  .hasCrit .crit {
+    grid-column: 2;
+    justify-self: start;
+  }
 }
 
-.chip {
-  grid-column: 2 / -1;
-  justify-self: start;
+@media (max-width: 767px) {
+  .fold {
+    display: flex;
+  }
 }
