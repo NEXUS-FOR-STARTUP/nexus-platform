@@ -108,7 +108,7 @@
   padding-top: 0.5rem;
 }
 
-@media (min-width: 48em) {
+@media (min-width: 51.3125em) /* 821px matches mockup */ {
   .layout {
     padding: 2.5rem 2rem 6rem;
   }

@@ -37,6 +37,13 @@ export default function NotificationPreferencesForm() {
 
         <Switch
           checked={enabled}
+          classNames={{
+            root: classes.switchRoot,
+            track: classes.switchTrack,
+            thumb: classes.switchThumb,
+            label: classes.switchLabel,
+            description: classes.switchDescription,
+          }}
           color="brand"
           label="Nhận email"
           description="Gửi thông báo tới email đã đăng ký."

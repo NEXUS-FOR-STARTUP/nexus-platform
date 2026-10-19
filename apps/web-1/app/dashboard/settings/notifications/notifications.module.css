@@ -24,3 +24,24 @@
   color: var(--color-text-muted, #475569);
   line-height: 1.45;
 }
+
+.switchRoot { display: flex; align-items: center; }
+.switchTrack {
+  width: 44px; height: 24px; min-width: 44px;
+  border-radius: 9999px; border: 0; cursor: pointer;
+  background: var(--color-border, #cbd5e1);
+  transition: background-color 0.2s ease;
+}
+.switchTrack[data-checked] { background: var(--color-brand, #2563eb) !important; }
+.switchThumb {
+  width: 20px; height: 20px; background: #ffffff;
+  border-radius: 50%; border: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.switchLabel {
+  font-size: var(--ui-text-body, 1rem); font-weight: 500;
+  color: var(--color-text, #0f172a); padding-left: 12px; cursor: pointer;
+}
+.switchDescription {
+  font-size: var(--ui-text-note, 0.875rem);
+  color: var(--color-text-muted, #475569); padding-left: 12px; margin-top: 2px;
+}

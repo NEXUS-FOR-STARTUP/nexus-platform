@@ -90,8 +90,7 @@ export default function ChangePasswordForm() {
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.currentTarget.value)}
                     error={hasError ? field.state.meta.errors[0] : undefined}
-                    size="md"
-                    autoComplete="current-password"
+                    classNames={{ root: classes.inputRoot, label: classes.inputLabel, input: classes.inputField, error: classes.inputError }} autoComplete="current-password"
                   />
                 );
               }}
@@ -133,8 +132,7 @@ export default function ChangePasswordForm() {
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.currentTarget.value)}
                   error={hasError ? field.state.meta.errors[0] : undefined}
-                  size="md"
-                  autoComplete="new-password"
+                  classNames={{ root: classes.inputRoot, label: classes.inputLabel, input: classes.inputField, error: classes.inputError }} autoComplete="new-password"
                 />
               );
             }}
@@ -168,9 +166,11 @@ export default function ChangePasswordForm() {
             }}
           </form.Field>
 
-          <Button type="submit" color="brand" size="md" loading={pending}>
-            {hasPassword ? "Xác nhận đổi mật khẩu" : "Đặt mật khẩu"}
-          </Button>
+          <div className={classes.formActions}>
+            <Button type="submit" className={classes.submitBtn} loading={pending}>
+              {hasPassword ? "Xác nhận đổi mật khẩu" : "Đặt mật khẩu"}
+            </Button>
+          </div>
         </Stack>
       </form>
     </Paper>
