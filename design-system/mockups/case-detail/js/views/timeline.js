@@ -1,11 +1,11 @@
 $("#v-timeline").innerHTML=`
 <div class="head"><div><h1>Lịch sử hoạt động</h1><p class="note">Mọi thay đổi trạng thái, lượt chấm và cập nhật của dự án.</p></div></div>
 <p class="note" style="margin:0 0 12px">Dữ liệu mẫu, không phải dữ liệu thật</p>
-<div class="seg" id="tseg"></div>
+<div class="tabs" id="tseg" role="group" aria-label="Lọc theo loại"></div>
 <div id="tgroups"></div>
 <p class="mock">Dòng thời gian dọc như UI cũ: mỗi sự kiện một mốc có icon theo loại. Nhóm theo ngày, ngày mới nhất mở sẵn, các ngày khác gập trên điện thoại.</p>`;
 let tf="all";
-const TL_ICON={grade:"file",pay:"card",project:"compass"};
+const TL_ICON={grade:"check",pay:"card",project:"compass"};
 function renderTl(){
   let first=true;
   $("#tgroups").innerHTML=EVENTS.map(([day,list])=>{

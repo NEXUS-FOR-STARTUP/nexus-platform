@@ -7,6 +7,19 @@ $("#v-spec").innerHTML=`
 <div class="sw"><span class="note">Ghi chú, trạng thái · 14/400 mờ</span><span class="note">Còn thiếu 6 thông tin</span></div>
 <h2 style="margin-top:40px">Trạng thái: nhãn bo tròn, nền màu nhạt, chữ đậm cùng tông (như Badge của Mantine)</h2>
 <div class="sw"><span class="chip draft">Đang soạn</span><span class="chip ok">Đã có kết quả</span><span class="chip warn">Cần bổ sung</span><span class="chip lock">Sắp ra mắt</span></div>
+<h2 style="margin-top:40px">Dòng câu hỏi trong mục lục (icon của UI cũ)</h2>
+<div class="toc" style="max-width:420px">
+  <button class="it" type="button"><span class="tick">${ic("tick",10)}</span><span class="lb">Đã trả lời</span></button>
+  <button class="it" type="button">${ic("ring",14)}<span class="lb">Chưa trả lời</span></button>
+  <button class="it" type="button"><span class="st-warn">${ic("alert",14)}</span><span class="lb">Còn ngắn, dưới 10 từ (chỉ giai đoạn Thị trường)</span></button>
+  <button class="it locked" type="button" disabled>${ic("lock",14)}<span class="lb">Đang khoá, cần trả lời câu trước</span></button>
+  <button class="it on" type="button"><span class="tick on">${ic("tick",10)}</span><span class="lb">Đang chọn</span>${ic("right",14)}</button>
+  <button class="it" type="button">${ic("ring",14)}<span class="lb">Mục quan trọng khi chấm</span><em class="crit">Quan trọng</em></button>
+</div>
+<p class="note" style="margin-top:8px">Cùng icon Lucide (Check, Circle, CircleAlert, Lock) và cùng luật khoá, còn ngắn như GuidedTOC. Mở Soạn thảo của Thị trường để xem đủ các trạng thái.</p>
+<h2 style="margin-top:40px">Tabs</h2>
+<div class="tabs"><button class="on" type="button">Đang chọn</button><button type="button">Tab khác</button><button type="button">Tab khác</button></div>
+<p class="note">Chữ thường, tab đang chọn có thanh xanh dày 3px bên dưới, không có đường kẻ nền. Dùng cho tab giai đoạn và cả bộ lọc loại (Lượt chấm, Lịch sử).</p>
 <h2 style="margin-top:40px">Nút</h2>
 <div class="sw"><button class="btn">Hành động chính (1 mỗi màn)</button><button class="btn quiet">Phụ</button><a>Liên kết</a><button class="btn" disabled>Đang khoá</button></div>
 <h2 style="margin-top:40px">Bề mặt</h2>

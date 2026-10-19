@@ -3,9 +3,9 @@ const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 
 function segs(el,items,cb){
-  el.innerHTML=items.map(([k,l],i)=>'<button data-f="'+k+'"'+(i?'':' class="on"')+'>'+l+'</button>').join('');
+  el.innerHTML=items.map(([k,l],i)=>'<button data-f="'+k+'" aria-pressed="'+(i?"false":"true")+'"'+(i?'':' class="on"')+'>'+l+'</button>').join('');
   el.onclick=e=>{const b=e.target.closest("button");if(!b)return;
-    el.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));cb(b.dataset.f)};
+    el.querySelectorAll("button").forEach(x=>{x.classList.toggle("on",x===b);x.setAttribute("aria-pressed",x===b)});cb(b.dataset.f)};
 }
 
 // Long lists fold on phones (<=820px) and stay open on desktop. A [data-keep] fold stays open everywhere.

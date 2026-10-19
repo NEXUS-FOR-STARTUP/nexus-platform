@@ -14,7 +14,7 @@ function upHtml(){
     (UP.error?'<div class="alert bad" role="alert">'+esc(UP.error)+'</div>':"")+
     '<label class="drop" id="up-drop"><input type="file" id="up-input" multiple accept="'+UP_EXT.join(",")+'">'+ic("upload",24)+
     '<b>Kéo thả tệp vào đây hoặc bấm để chọn</b><span class="note">Tối đa '+UP_MAX_FILES+' tệp, mỗi tệp '+UP_MAX_MB+'MB</span><span class="note">PDF, DOCX, XLSX, PPTX, TXT</span></label>'+
-    (UP.files.length?'<div class="rows">'+UP.files.map((f,i)=>'<div class="file up-f"><div class="nm">'+ic("file")+'<div><div class="b">'+esc(f.name)+'</div><div class="note">'+(f.size/1024/1024).toFixed(2)+' MB</div></div></div>'+
+    (UP.files.length?'<div class="rows">'+UP.files.map((f,i)=>'<div class="file up-f"><div class="nm">'+fileIc(f.name)+'<div><div class="b">'+esc(f.name)+'</div><div class="note">'+(f.size/1024/1024).toFixed(2)+' MB</div></div></div>'+
       '<button class="ib" data-rm="'+i+'" aria-label="Xóa '+esc(f.name)+'">'+ic("trash")+'</button>'+
       '<div class="field up-t"><label for="up-s'+i+'">Loại tài liệu</label><select id="up-s'+i+'" data-i="'+i+'"><option value="">Chọn loại tài liệu</option>'+
       UP_TYPES.map(([v,l])=>'<option value="'+v+'"'+(UP.types[i]===v?" selected":"")+'>'+l+'</option>').join("")+'</select><span class="note">AI dùng loại này để phân loại tài liệu của bạn</span></div></div>').join("")+'</div>':"")+

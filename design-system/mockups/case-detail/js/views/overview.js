@@ -4,7 +4,6 @@ const RECENT=[
   {stage:"thi-truong",label:"Chấm toàn bộ (vòng Thị trường)",run:MARKET_RUNS[1]},
   {stage:"y-tuong",label:"Đánh giá lại",run:RUNS[0]}
 ];
-const CASE_CODE="NX-894046";
 const versionLabel=n=>String(n).padStart(2,"0"); // taste-skill-ignore: "bản 02" is the product's own version label, not step numbering.
 $("#v-overview").innerHTML=`
 <div class="head"><div><h1>Tổng quan dự án</h1><p class="note" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">MentorMap <button class="chip" id="copy-code" aria-label="Sao chép mã dự án">${CASE_CODE}${ic("copy",14)}</button></p></div></div>
@@ -17,14 +16,14 @@ $("#v-overview").innerHTML=`
   <h2>Hành trình</h2>
   <div class="rows">
     <div class="row"><div><div class="name">Ý tưởng</div><div class="note">Đã trả lời 22/22 câu · 3 tài liệu</div></div><span class="chip ok">Đã có kết quả</span><button class="btn quiet" data-to="tab=journey&stage=y-tuong&view=results">Xem kết quả</button></div>
-    <div class="row"><div><div class="name">Thị trường</div><div class="note">Đã trả lời 26/27 câu · 0 tài liệu</div></div><span class="chip ok">Đã có kết quả</span><button class="btn quiet" data-to="tab=journey&stage=thi-truong&view=results">Xem kết quả</button></div>
+    <div class="row"><div><div class="name">Thị trường</div><div class="note">Đã trả lời ${MARKET_COUNT[0]}/${MARKET_COUNT[1]} câu · 0 tài liệu</div></div><span class="chip ok">Đã có kết quả</span><button class="btn quiet" data-to="tab=journey&stage=thi-truong&view=results">Xem kết quả</button></div>
   </div>
   <p class="note" style="margin-top:8px">Sản phẩm &amp; mô hình và Gọi vốn &amp; tài chính sẽ mở sau.</p>
 </div>
 <div class="sec">
   <h2>Báo cáo gần đây</h2>
   <div class="rows">${RECENT.map(r=>`
-    <div class="file"><div class="nm">${ic("file")}<div><div class="b">${r.label} (bản ${versionLabel(r.run.n)})</div><div class="note">${r.run.when.split(" ")[0]}</div></div></div>
+    <div class="file"><div class="nm">${fileIc("report.pdf")}<div><div class="b">${r.label} (bản ${versionLabel(r.run.n)})</div><div class="note">${r.run.when.split(" ")[0]}</div></div></div>
     <div class="acts"><button class="btn quiet" data-to="tab=journey&stage=${r.stage}&view=results">Xem</button></div></div>`).join("")}
   </div>
 </div>

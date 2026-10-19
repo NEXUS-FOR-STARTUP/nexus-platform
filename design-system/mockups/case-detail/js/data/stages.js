@@ -16,3 +16,4 @@ const D=STAGE_DATA[STAGE]||STAGE_DATA["y-tuong"];
 const countQs=d=>{const all=d.phases.flatMap(p=>p.questions);return[all.filter(q=>q.answer).length,all.length]};
 for(const k in STAGE_DATA){const s=STAGE_DATA[k],[a,t]=countQs(s);
  s.note=a+"/"+t+" câu · "+s.docs.length+" tệp · "+(s.credits?"còn "+s.credits+" lượt chấm":"hết lượt chấm");}
+const MARKET_COUNT=countQs(STAGE_DATA["thi-truong"]); // answered/total, shown on Hành trình and Tổng quan

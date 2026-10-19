@@ -9,7 +9,7 @@ const RUNS=Array.from({length:20},(_,i)=>{
 // Categories come from DOCUMENT_CATEGORY_LABELS in packages/validation/src/index.ts.
 // [category label, icon, name, meta]
 const DOCS=[
- ["Bản mô tả ý tưởng","file","MentorMap_Mo-ta-y-tuong.docx","DOCX · 412 KB · Phung Luu Hoang Long · 06/10/2026 21:30","Bản 2"],
- ["Slide thuyết trình","slides","MentorMap_Pitch-deck.pptx","PPTX · 3,2 MB · Phung Luu Hoang Long · 06/10/2026 21:35",""],
- ["Nghiên cứu thị trường","sheet","Khao-sat-tan-sinh-vien.xlsx","XLSX · 86 KB · Phung Luu Hoang Long · 07/10/2026 20:10",""]
+ ["Bản mô tả ý tưởng","","MentorMap_Mo-ta-y-tuong.docx","DOCX · 412 KB · Phung Luu Hoang Long · 06/10/2026 21:30","Bản 2"],
+ ["Slide thuyết trình","","MentorMap_Pitch-deck.pptx","PPTX · 3,2 MB · Phung Luu Hoang Long · 06/10/2026 21:35",""],
+ ["Nghiên cứu thị trường","","Khao-sat-tan-sinh-vien.xlsx","XLSX · 86 KB · Phung Luu Hoang Long · 07/10/2026 20:10",""]
 ];

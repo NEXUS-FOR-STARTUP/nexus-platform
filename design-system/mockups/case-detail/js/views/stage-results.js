@@ -9,7 +9,7 @@ $("#sv-results").innerHTML=`
       <div class="rl" id="rl"></div>
     </details>
     <section class="rdoc">
-      <div class="file rfile"><div class="nm">${ic("file")}<div><div class="b" id="r-name"></div><div class="note" id="r-meta"></div></div></div>
+      <div class="file rfile"><div class="nm"><span id="r-ic"></span><div><div class="b" id="r-name"></div><div class="note" id="r-meta"></div></div></div>
         <div class="acts"><button class="btn quiet">Mở toàn màn hình</button><button class="btn">${ic("download")}Tải PDF</button></div></div>
       <div class="paper"><div class="pg pdfph"><p class="note" id="r-when"></p><p class="note">Vùng này hiển thị file PDF (iframe). Mockup không có file PDF thật.</p></div></div>
     </section>
@@ -26,7 +26,7 @@ $("#sv-results").innerHTML=`
 function renderRun(i){const r=D.runs[i];
   $("#rl").innerHTML=D.runs.map((x,k)=>`<button class="ri${k===i?" on":""}" data-i="${k}">
     <div><div class="b">Lần ${x.n}${k===0?'<span class="chip">Mới nhất</span>':""}</div><div class="note">${x.when}</div></div></button>`).join("");
-  $("#r-name").textContent=r.pdf;
+  $("#r-ic").innerHTML=fileIc(r.pdf);$("#r-name").textContent=r.pdf;
   $("#r-meta").textContent="PDF · Chấm lúc "+r.when;
   $("#r-when").textContent="Lần "+r.n+" · "+r.when;
   $("#rl-s").innerHTML='<span class="fs">Lịch sử chấm<span class="note"> · Lần '+r.n+', '+r.when+'</span></span><span class="note">'+D.runs.length+' lần</span>'+ic("down");}

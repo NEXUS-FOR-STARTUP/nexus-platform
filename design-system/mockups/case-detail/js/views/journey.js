@@ -4,7 +4,7 @@ $("#v-journey").innerHTML=`
   <div class="head"><div><h1>Hành trình</h1><p class="note">4 giai đoạn từ ý tưởng đến gọi vốn.</p></div></div>
   <div class="rows">
     <div class="row"><div><div class="name">Ý tưởng</div><div class="note">Làm rõ ý tưởng, khách hàng và giá trị cốt lõi · 22/22 câu · 3 tài liệu · còn 2 lượt chấm</div></div><span class="chip ok">Đã có kết quả</span><button class="btn quiet" data-to="tab=journey&stage=y-tuong&view=results">Xem kết quả</button></div>
-    <div class="row"><div><div class="name">Thị trường</div><div class="note">Phân tích thị trường, đối thủ và xác thực nhu cầu · 26/27 câu · hết lượt chấm</div></div><span class="chip ok">Đã có kết quả</span><button class="btn quiet" data-to="tab=journey&stage=thi-truong&view=results">Xem kết quả</button></div>
+    <div class="row"><div><div class="name">Thị trường</div><div class="note">Phân tích thị trường, đối thủ và xác thực nhu cầu · ${MARKET_COUNT[0]}/${MARKET_COUNT[1]} câu · hết lượt chấm</div></div><span class="chip ok">Đã có kết quả</span><button class="btn quiet" data-to="tab=journey&stage=thi-truong&view=results">Xem kết quả</button></div>
     <div class="row locked"><div><div class="name">${ic("lock",16)} Sản phẩm &amp; mô hình</div><div class="note">Mở sau khi hoàn thành các giai đoạn trước.</div></div><span class="chip lock">Sắp ra mắt</span><span></span></div>
     <div class="row locked"><div><div class="name">${ic("lock",16)} Gọi vốn &amp; tài chính</div><div class="note">Mở sau khi hoàn thành các giai đoạn trước.</div></div><span class="chip lock">Sắp ra mắt</span><span></span></div>
   </div>
@@ -21,12 +21,12 @@ $("#v-journey").innerHTML=`
     </div>
   </div>
   <div id="j-grade" hidden></div>
-  <div class="seg" role="tablist">
-    <button class="on" data-sv="draft">Soạn thảo</button><button data-sv="files"></button><button data-sv="results">Kết quả chấm</button>
+  <div class="tabs" role="tablist" aria-label="Nội dung giai đoạn">
+    <button role="tab" id="t-draft" aria-controls="sv-draft" aria-selected="true" class="on" data-sv="draft">Soạn thảo</button><button role="tab" id="t-files" aria-controls="sv-files" aria-selected="false" data-sv="files"></button><button role="tab" id="t-results" aria-controls="sv-results" aria-selected="false" data-sv="results">Kết quả chấm</button>
   </div>
-  <div id="sv-draft"></div>
-  <div id="sv-files" hidden></div>
-  <div id="sv-results" hidden></div>
+  <div id="sv-draft" role="tabpanel" aria-labelledby="t-draft"></div>
+  <div id="sv-files" role="tabpanel" aria-labelledby="t-files" hidden></div>
+  <div id="sv-results" role="tabpanel" aria-labelledby="t-results" hidden></div>
   <p class="mock" id="j-gmock"></p>
 </div>`;
 // Called by initRouter() with the stage/view read from the URL.
@@ -38,7 +38,7 @@ function showStage(stage,view){
   if(!detail)return;
   $("#j-name").textContent=$("#j-title").textContent=D.name;
   $("#j-note").textContent=D.note;
-  $$("[data-sv]").forEach(b=>{b.dataset.to="tab=journey&stage="+stage+"&view="+b.dataset.sv;b.classList.toggle("on",b.dataset.sv===view)});
+  $$("[data-sv]").forEach(b=>{const on=b.dataset.sv===view;b.dataset.to="tab=journey&stage="+stage+"&view="+b.dataset.sv;b.classList.toggle("on",on);b.setAttribute("aria-selected",on)});
   $("[data-sv=files]").textContent="Tài liệu ("+D.docs.length+")";
   // "Đồng bộ thông tin" and "Xuất file DOCX" act on the question-and-answer template, so they only exist in the Soạn thảo tab.
   // Next to the results or files tabs, "DOCX" would read as exporting the report.
