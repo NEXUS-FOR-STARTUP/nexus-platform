@@ -5,9 +5,9 @@
 
 .card {
   background: var(--color-surface, #ffffff);
-  border: 1px solid var(--color-border, #e2e8f0) !important;
+  border: 1px solid var(--color-border, #e2e8f0);
   border-radius: 8px;
-  padding: 24px 28px !important;
+  padding: 24px 28px;
 }
 
 .cardHead {
@@ -113,10 +113,24 @@
   color: var(--color-text, #0f172a);
 }
 
+/* Badge 'Thiết bị này' matching mockup .chip.ok */
 .currentBadge {
-  color: #16a34a;
-  font-size: var(--ui-text-note, 0.875rem);
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
   font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* Text 'Đang hoạt động' bên phải matching mockup */
+.statusRight {
+  font-size: var(--ui-text-note, 0.875rem);
+  color: #16a34a;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .meta {

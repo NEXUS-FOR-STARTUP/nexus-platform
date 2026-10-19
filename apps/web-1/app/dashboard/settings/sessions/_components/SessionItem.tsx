@@ -26,13 +26,9 @@ export function SessionItem({ session, onRevoke, isRevoking }: SessionItemProps)
   const [mountedTime] = useState(() => Date.now());
   const parsed = parseUserAgent(session.userAgent);
   
-  // Format IP & Location matching mockup: "Hà Nội, Việt Nam · IP: 118.70.192.44 · Đang hoạt động"
-  const rawIp = session.ipAddress;
-  const displayIp = (!rawIp || rawIp === "::1" || rawIp.includes("127.0.0.1")) 
-    ? "118.70.192.44" 
-    : formatIpAddress(rawIp);
-  const location = "Hà Nội, Việt Nam";
-  const activeText = calculateRelativeTime(session.createdAt, mountedTime, session.isCurrent);
+  // Dữ liệu thật từ DB: IP thật và thời gian tính từ createdAt
+  const formattedIp = formatIpAddress(session.ipAddress);
+  const activeTimeText = calculateRelativeTime(session.createdAt, mountedTime, session.isCurrent);
 
   const renderDeviceIcon = () => {
     switch (parsed.deviceType) {
@@ -47,10 +43,9 @@ export function SessionItem({ session, onRevoke, isRevoking }: SessionItemProps)
     }
   };
 
-  // Device display matching mockup: "Chrome trên Windows 11"
-  const os = parsed.os === "Không xác định" ? "Windows 11" : parsed.os;
-  const browser = parsed.browser === "Không xác định" ? "Chrome" : parsed.browser;
-  const deviceName = `${browser} trên ${os}${session.isCurrent ? " Thiết bị này" : ""}`;
+  const os = parsed.os;
+  const browser = parsed.browser;
+  const deviceName = `${browser} trên ${os}`;
 
   return (
     <div className={`${classes.sessionItem} ${session.isCurrent ? classes.current : ""}`}>
@@ -60,27 +55,32 @@ export function SessionItem({ session, onRevoke, isRevoking }: SessionItemProps)
           <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
             <span className={classes.deviceName}>{deviceName}</span>
             {session.isCurrent && (
-              <span className={classes.currentBadge}>Đang hoạt động</span>
+              <span className={classes.currentBadge}>Thiết bị này</span>
             )}
           </div>
           <div className={classes.meta}>
-            {location} · IP: {displayIp} · {activeText}
+            IP: {formattedIp} · {activeTimeText}
           </div>
         </div>
       </div>
 
-      {!session.isCurrent && (
-        <button
-          type="button"
-          className={classes.revokeBtn}
-          aria-label={`Đăng xuất khỏi ${deviceName}`}
-          disabled={isRevoking}
-          onClick={() => onRevoke(session.id)}
-        >
-          <LogOut size={16} />
-          <span>{isRevoking ? "Đang xử lý..." : "Đăng xuất"}</span>
-        </button>
-      )}
+      {/* Cột bên phải khớp 100% Mockup spec.js dòng 53-58: Nếu là phiên hiện tại thì hiện text xanh lá 'Đang hoạt động', ngược lại hiện nút 'Đăng xuất' */}
+      <div>
+        {session.isCurrent ? (
+          <span className={classes.statusRight}>Đang hoạt động</span>
+        ) : (
+          <button
+            type="button"
+            className={classes.revokeBtn}
+            aria-label={`Đăng xuất khỏi ${deviceName}`}
+            disabled={isRevoking}
+            onClick={() => onRevoke(session.id)}
+          >
+            <LogOut size={14} />
+            <span>{isRevoking ? "Đang xử lý..." : "Đăng xuất"}</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 }
