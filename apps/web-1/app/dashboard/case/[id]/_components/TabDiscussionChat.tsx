@@ -414,21 +414,15 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
 
         {isChatClosed && (
           <Alert color="red" variant="light" radius="md" className="mt-2">
-            <div className="flex items-center gap-2 text-[13px]">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>Chat hiện không khả dụng. Vui lòng liên hệ qua email hoặc điện thoại.</span>
-            </div>
+            <span className="text-[13px]">Chat hiện không khả dụng. Vui lòng liên hệ qua email hoặc điện thoại.</span>
           </Alert>
         )}
 
         {isChatLocked && (
           <Alert color="yellow" variant="light" radius="md" className="mt-2">
-            <div className="flex items-center gap-2 text-[13px]">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>
-                Hết lượt kiểm tra và đã qua thời gian ân hạn 24h. Vui lòng mua thêm credit để tiếp tục trao đổi.
-              </span>
-            </div>
+            <span className="text-[13px]">
+              Hết lượt kiểm tra và đã qua thời gian ân hạn 24h. Vui lòng mua thêm credit để tiếp tục trao đổi.
+            </span>
           </Alert>
         )}
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { Alert, Button } from "@mantine/core";
-import { UserRoundPen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Case } from "@/types";
 
@@ -22,7 +21,7 @@ export default function ContactIncompleteBanner({ cases }: { cases: Case[] }) {
       : `${incomplete.length} dự án cần cập nhật thông tin liên hệ`;
 
   return (
-    <Alert color="yellow" variant="light" radius="md" icon={<UserRoundPen className="w-4 h-4" />} title={title}>
+    <Alert color="yellow" variant="light" radius="md" title={title}>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <span className="text-sm">
           {incomplete.length > 1 && (

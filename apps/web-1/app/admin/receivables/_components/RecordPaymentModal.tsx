@@ -3,7 +3,6 @@
 import { Alert, Button, Modal, NumberInput, TextInput } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useForm } from "@tanstack/react-form";
-import { AlertTriangle } from "lucide-react";
 import { RecordReceivablePaymentSchema, type AdminReceivable } from "@repo/validation";
 import { useRecordReceivablePayment } from "../../hooks/useReceivableMutations";
 import { datetimeLocalNow, formatVnd } from "./format";
@@ -48,7 +47,7 @@ export default function RecordPaymentModal({ receivable, onClose }: RecordPaymen
           void form.handleSubmit();
         }}
       >
-        <Alert color="blue" icon={<AlertTriangle className="h-4 w-4" />}>
+        <Alert color="blue">
           Chỉ dùng khi khách đã chuyển nhưng hệ thống không tự khớp được giao dịch. Khách còn nợ bạn: {formatVnd(receivable.outstanding)}.
         </Alert>
         <form.Field name="gross_amount">

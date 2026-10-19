@@ -2,7 +2,7 @@
 
 import { Accordion, Modal, Stack, Text, Textarea, Button, Radio, Group, Alert, ThemeIcon } from "@mantine/core";
 import { useState } from "react";
-import { AlertCircle, Check, Minus, Sparkles } from "lucide-react";
+import { Check, Minus, Sparkles } from "lucide-react";
 import type { StageDefinition } from "@app/shared/stages";
 import type { Cp2InputSource } from "@app/shared";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
@@ -153,14 +153,14 @@ export default function AuditConfirmModal({
             )}
 
             {blocked && (
-              <Alert icon={<AlertCircle size={16} />} color="red" title="Chưa có gì để chấm">
+              <Alert color="red" title="Chưa có gì để chấm">
                 {isCp2
                   ? `Bạn cần một trong hai: tải tài liệu lên ở tab Tài liệu, hoặc trả lời đủ câu ở tab Soạn thảo (${answeredCount} câu hiện có nội dung nhưng quá ngắn hoặc chưa đủ số câu).`
                   : "Chưa có câu trả lời nào và chưa có tệp nào. Trả lời ít nhất một câu ở tab Soạn thảo hoặc tải một tệp lên ở tab Tài liệu trước khi chấm."}
               </Alert>
             )}
             {!blocked && missingMandatoryCount > 0 && (
-              <Alert icon={<AlertCircle size={16} />} color="yellow" title="Còn câu điều kiện chưa điền">
+              <Alert color="yellow" title="Còn câu điều kiện chưa điền">
                 Bạn còn {missingMandatoryCount} câu điều kiện chưa trả lời. Bạn vẫn có thể gửi chấm, nhưng hội đồng có thể trừ điểm phần này.
               </Alert>
             )}

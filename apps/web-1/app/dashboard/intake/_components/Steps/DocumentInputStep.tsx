@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import { Alert, Button, Tooltip, Text, Badge, ActionIcon, Paper, Group, Select, Stack } from "@mantine/core";
-import { CheckCircle2, HelpCircle, Copy, Download, Upload, X, FileText, AlertCircle } from "lucide-react";
+import { HelpCircle, Copy, Download, Upload, X, FileText } from "lucide-react";
 import { DOCUMENT_CATEGORY_CODES, docCategoryLabel } from "@repo/validation";
 import { apiClient } from "@/lib/api-client";
 import { IntakeDocument } from "../../_types/intake.types";
@@ -178,7 +178,6 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
         color="blue"
         radius="md"
         title="Chưa có tài liệu hoàn chỉnh hoặc ý tưởng còn sơ lược?"
-        icon={<CheckCircle2 className="w-4 h-4" />}
       >
         <div className="space-y-3 text-sm leading-relaxed">
           <p>
@@ -272,7 +271,6 @@ export default function DocumentInputStep({ form, values }: DocumentInputStepPro
                     variant="light"
                     color="red"
                     radius="md"
-                    icon={<AlertCircle className="w-4 h-4" />}
                     onClose={() => setUploadError("")}
                     withCloseButton
                   >

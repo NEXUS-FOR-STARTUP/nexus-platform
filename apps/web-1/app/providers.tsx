@@ -7,7 +7,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 // import { TanStackDevtools } from "@tanstack/react-devtools";
 // import { formDevtoolsPlugin } from "@tanstack/react-form-devtools";
-import { createTheme, MantineProvider } from "@mantine/core";
+import { Alert, createTheme, MantineProvider } from "@mantine/core";
+import { Info } from "lucide-react";
 import { Notifications } from "@mantine/notifications";
 
 const theme = createTheme({
@@ -36,6 +37,10 @@ const theme = createTheme({
     sizes: {
       h6: { fontSize: "1rem" },
     },
+  },
+  components: {
+    // Mantine's Alert has no default icon; every alert shows the same Info icon unless it opts out.
+    Alert: Alert.extend({ defaultProps: { icon: <Info className="w-4 h-4" /> } }),
   },
 });
 

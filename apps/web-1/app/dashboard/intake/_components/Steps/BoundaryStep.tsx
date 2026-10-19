@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Checkbox, Tooltip, Alert } from "@mantine/core";
-import { AlertTriangle, HelpCircle } from "lucide-react";
+import { HelpCircle } from "lucide-react";
 
 interface BoundaryStepProps {
   form: any;
@@ -38,7 +38,6 @@ export default function BoundaryStep({ form, values }: BoundaryStepProps) {
         color="red"
         radius="md"
         title="ĐIỀU KHOẢN QUAN TRỌNG"
-        icon={<AlertTriangle className="w-4 h-4" />}
       >
         Bạn cần xác nhận các cam kết bên dưới để gửi dự án. Nexus từ chối hỗ trợ tài liệu sao chép hoặc yêu cầu cam kết điểm số/kết quả đánh giá chính thức.
       </Alert>

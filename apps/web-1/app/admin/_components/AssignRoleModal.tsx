@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ShieldAlert, ShieldCheck, AlertTriangle } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { Modal, Button, Select, Text, Badge, Alert } from "@mantine/core";
 
 interface AssignRoleModalProps {
@@ -108,7 +108,6 @@ export default function AssignRoleModal({
 
         {selectedRole === "admin" && user.currentRole !== "admin" && (
           <Alert
-            icon={<ShieldAlert className="w-4 h-4" />}
             title="Cảnh báo quyền quản trị"
             color="red"
             variant="light"
@@ -120,7 +119,6 @@ export default function AssignRoleModal({
 
         {isDemotingSelf && (
           <Alert
-            icon={<AlertTriangle className="w-4 h-4" />}
             title="Không thể tự hạ quyền"
             color="yellow"
             variant="light"

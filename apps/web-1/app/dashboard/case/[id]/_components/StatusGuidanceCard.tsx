@@ -1,24 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { Case } from "@/types";
-import {
-  Clock,
-  Activity,
-  AlertCircle,
-  CheckCircle2,
-  HelpCircle,
-  ArrowRight,
-  Zap,
-  Upload,
-} from "lucide-react";
+import { AlertCircle, ArrowRight, Upload } from "lucide-react";
 import { Alert, Button, Group, Modal, Select, Stack, Textarea } from "@mantine/core";
 import { Dropzone, type FileRejection } from "@mantine/dropzone";
 import {
   STATUS_GUIDANCE_COPY,
   AI_STATUS_GUIDANCE_COPY,
   type GuidanceTone,
-  type GuidanceIconKey,
 } from "./statusCopyMap";
 import type { OpenInfoRequest } from "../hooks/useCaseDetails";
 import { isCaseFree, PACKAGE_KEYS, caseRequiresPayment, formatPrice } from "@/lib/pricing";
@@ -58,14 +48,6 @@ interface StatusGuidanceCardProps {
   onTriggerAudit?: (submissionType: SubmissionType, lifecycleUnitId?: string) => Promise<void>;
   isTriggeringAudit?: boolean;
 }
-
-const ICON_BY_KEY: Record<GuidanceIconKey, React.ComponentType<{ className?: string }>> = {
-  clock: Clock,
-  activity: Activity,
-  help: HelpCircle,
-  check: CheckCircle2,
-  alert: AlertCircle,
-};
 
 const COLOR_BY_TONE: Record<GuidanceTone, string> = {
   info: "blue",
@@ -217,7 +199,6 @@ export default function StatusGuidanceCard({
         color="orange"
         radius="md"
         title="Yêu cầu bổ sung thông tin từ Supporter"
-        icon={<HelpCircle className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
       >
         <div className="space-y-2 flex-grow">
@@ -247,7 +228,6 @@ export default function StatusGuidanceCard({
         color="red"
         radius="md"
         title="Yêu cầu chưa được duyệt"
-        icon={<AlertCircle className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
       >
         <div className="space-y-2 flex-grow">
@@ -278,7 +258,6 @@ export default function StatusGuidanceCard({
           color="teal"
           radius="md"
           title={`Đã có ${creditBalance} lượt - Sẵn sàng đánh giá dự án`}
-          icon={<CheckCircle2 className="w-4.5 h-4.5 shrink-0" />}
           className={ALERT_CLASS}
         >
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -302,7 +281,6 @@ export default function StatusGuidanceCard({
         color={isFree ? "blue" : "yellow"}
         radius="md"
         title={isFree ? "Kích hoạt quy trình đánh giá dự án" : "Chưa kích hoạt lượt đánh giá"}
-        icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
       >
         <div className="space-y-3">
@@ -330,7 +308,6 @@ export default function StatusGuidanceCard({
         variant="light"
         color="blue"
         radius="md"
-        icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
         styles={{ wrapper: { alignItems: "center" } }}
       >
@@ -359,7 +336,6 @@ export default function StatusGuidanceCard({
         color="blue"
         radius="md"
         title="Đã tải lên phiên bản mới - Sẵn sàng đánh giá lại"
-        icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
       >
         <p className="text-text-muted text-xs leading-relaxed">
@@ -376,7 +352,6 @@ export default function StatusGuidanceCard({
         color="orange"
         radius="md"
         title="Cần bổ sung thông tin"
-        icon={<HelpCircle className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
       >
         <div className="space-y-2 flex-grow">
@@ -405,7 +380,6 @@ export default function StatusGuidanceCard({
           color="green"
           radius="md"
           title="Báo cáo đánh giá đã sẵn sàng"
-          icon={<CheckCircle2 className="w-4.5 h-4.5 shrink-0" />}
           className={ALERT_CLASS}
         >
           <div className="space-y-3 flex-grow mt-1">
@@ -472,7 +446,6 @@ export default function StatusGuidanceCard({
             variant="light"
             color="red"
             radius="md"
-            icon={<AlertCircle className="w-4.5 h-4.5 shrink-0" />}
             className={ALERT_CLASS}
           >
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 flex-grow">
@@ -501,7 +474,6 @@ export default function StatusGuidanceCard({
             color="blue"
             radius="md"
             title="Gửi đánh giá mới"
-            icon={<Zap className="w-4.5 h-4.5 shrink-0" />}
             className={ALERT_CLASS}
           >
             <Stack gap="sm">
@@ -616,7 +588,6 @@ export default function StatusGuidanceCard({
         color="yellow"
         radius="md"
         title="Dự án đã nộp - chờ thanh toán"
-        icon={<Clock className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
       >
         <div className="space-y-3">
@@ -651,7 +622,6 @@ export default function StatusGuidanceCard({
             color="orange"
             radius="md"
             title="Đánh giá chưa hoàn tất"
-            icon={<AlertCircle className="w-4.5 h-4.5 shrink-0" />}
             className={ALERT_CLASS}
           >
             <p className="text-text-muted text-xs leading-relaxed">
@@ -664,7 +634,6 @@ export default function StatusGuidanceCard({
             color="blue"
             radius="md"
             title="Dự án đã nộp - Sẵn sàng đánh giá"
-            icon={<Activity className="w-4.5 h-4.5 shrink-0" />}
             className={ALERT_CLASS}
           >
             <p className="text-text-muted text-xs leading-relaxed">
@@ -680,7 +649,6 @@ export default function StatusGuidanceCard({
             color="blue"
             radius="md"
             title="Gửi đánh giá mới"
-            icon={<Zap className="w-4.5 h-4.5 shrink-0" />}
             className={ALERT_CLASS}
           >
             <Stack gap="sm">
@@ -780,14 +748,12 @@ export default function StatusGuidanceCard({
 
   const copy = (isAiPackage && AI_STATUS_GUIDANCE_COPY[stage]) || STATUS_GUIDANCE_COPY[stage];
   if (copy) {
-    const Icon = ICON_BY_KEY[copy.icon];
     return (
       <Alert
         variant="light"
         color={COLOR_BY_TONE[copy.tone]}
         radius="md"
         title={copy.title}
-        icon={<Icon className="w-4.5 h-4.5 shrink-0" />}
         className={ALERT_CLASS}
       >
         <p className="text-text-muted text-xs leading-relaxed">{copy.description}</p>

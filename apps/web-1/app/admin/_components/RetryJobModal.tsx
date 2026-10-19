@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Modal, Button, Select, TextInput, Radio, Group, Stack, Text, Switch, Alert } from "@mantine/core";
-import { RotateCcw, ShieldCheck, Sparkles } from "lucide-react";
+import { RotateCcw, Sparkles } from "lucide-react";
 import type { AdminWorkerJobListItem, RetryJobPayload } from "../hooks/useAdminWorkers";
 
 interface RetryJobModalProps {
@@ -73,7 +73,7 @@ export default function RetryJobModal({ job, isOpen, onClose, onConfirm, isSubmi
       centered
     >
       <Stack gap="md" className="font-body text-xs text-text-app">
-        <Alert icon={<ShieldCheck className="w-4 h-4" />} color="blue" variant="light" title="Chính sách tín chỉ">
+        <Alert color="blue" variant="light" title="Chính sách tín chỉ">
           Thao tác này <b>KHÔNG trừ credit</b> của sinh viên. Hệ thống sử dụng quota nội bộ của quản trị viên để hoàn tất thẩm định.
         </Alert>
 
