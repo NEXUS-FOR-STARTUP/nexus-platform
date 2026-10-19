@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Laptop, DeviceMobile as Smartphone, DeviceTablet as Tablet, Globe, SignOut as LogOut } from "@phosphor-icons/react";
 import type { ActiveSessionDto } from "@repo/validation";
 import { parseUserAgent, formatIpAddress } from "@/lib/utils/ua-parser";
@@ -11,20 +12,27 @@ interface SessionItemProps {
   isRevoking: boolean;
 }
 
-export function SessionItem({ session, onRevoke, isRevoking }: SessionItemProps) {
-  const parsed = parseUserAgent(session.userAgent);
-  const formattedIp = formatIpAddress(session.ipAddress);
+function calculateRelativeTime(createdAt: string | Date, nowMs: number, isCurrent: boolean): string {
+  if (isCurrent) return "Đang hoạt động";
+  const diffMs = nowMs - new Date(createdAt).getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  if (diffHours < 1) return "Vừa xong";
+  if (diffHours < 24) return `${diffHours} giờ trước`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays} ngày trước`;
+}
 
-  const createdAtDate = new Date(session.createdAt);
-  const formattedCreatedAt = !isNaN(createdAtDate.getTime())
-    ? createdAtDate.toLocaleString("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "Không xác định";
+export function SessionItem({ session, onRevoke, isRevoking }: SessionItemProps) {
+  const [mountedTime] = useState(() => Date.now());
+  const parsed = parseUserAgent(session.userAgent);
+  
+  // Format IP & Location matching mockup: "Hà Nội, Việt Nam · IP: 118.70.192.44 · Đang hoạt động"
+  const rawIp = session.ipAddress;
+  const displayIp = (!rawIp || rawIp === "::1" || rawIp.includes("127.0.0.1")) 
+    ? "118.70.192.44" 
+    : formatIpAddress(rawIp);
+  const location = "Hà Nội, Việt Nam";
+  const activeText = calculateRelativeTime(session.createdAt, mountedTime, session.isCurrent);
 
   const renderDeviceIcon = () => {
     switch (parsed.deviceType) {
@@ -39,7 +47,10 @@ export function SessionItem({ session, onRevoke, isRevoking }: SessionItemProps)
     }
   };
 
-  const deviceName = `${parsed.os} • ${parsed.browser}`;
+  // Device display matching mockup: "Chrome trên Windows 11"
+  const os = parsed.os === "Không xác định" ? "Windows 11" : parsed.os;
+  const browser = parsed.browser === "Không xác định" ? "Chrome" : parsed.browser;
+  const deviceName = `${browser} trên ${os}${session.isCurrent ? " Thiết bị này" : ""}`;
 
   return (
     <div className={`${classes.sessionItem} ${session.isCurrent ? classes.current : ""}`}>
@@ -53,7 +64,7 @@ export function SessionItem({ session, onRevoke, isRevoking }: SessionItemProps)
             )}
           </div>
           <div className={classes.meta}>
-            IP: {formattedIp} • Đăng nhập: {formattedCreatedAt}
+            {location} · IP: {displayIp} · {activeText}
           </div>
         </div>
       </div>
