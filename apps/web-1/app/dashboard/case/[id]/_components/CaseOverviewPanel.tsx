@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Button } from "@mantine/core";
+import { Button } from "./ui/Button";
 import type { Case, TeamFitReport } from "@/types";
 import OverviewTeamSection from "./overview/OverviewTeamSection";
 import OverviewIdeaSection from "./overview/OverviewIdeaSection";
@@ -46,9 +46,7 @@ export default function CaseOverviewPanel({
           {onEditIntake && (
             <Button
               size="sm"
-              variant="light"
-              color="brand"
-              className="cursor-pointer font-medium self-start sm:self-auto"
+              variant="quiet"
               onClick={onEditIntake}
             >
               Cập nhật dự án

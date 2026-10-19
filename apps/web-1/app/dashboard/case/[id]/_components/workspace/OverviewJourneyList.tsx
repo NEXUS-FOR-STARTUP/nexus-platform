@@ -29,7 +29,7 @@ export default function OverviewJourneyList({ stages, onOpenStage }: OverviewJou
               key={stage.code}
               name={stage.name}
               status={status}
-              note={`Đã trả lời ${summary?.answered_count ?? 0}/${stageQuestionTotal(stage.templateKey)} câu\n${summary?.file_count ?? 0} tài liệu`}
+              note={`Đã trả lời ${summary?.answered_count ?? 0}/${stageQuestionTotal(stage.templateKey)} câu · ${summary?.file_count ?? 0} tài liệu`}
               onOpen={() => onOpenStage(stage.slug, STAGE_STATUS[status].view)}
             />
           );

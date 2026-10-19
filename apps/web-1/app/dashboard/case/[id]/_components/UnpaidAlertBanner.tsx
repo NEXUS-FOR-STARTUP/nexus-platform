@@ -2,7 +2,7 @@
 
 import React from "react";
 import { WarningCircle as AlertCircle, Coins } from "@phosphor-icons/react";
-import { Button } from "@mantine/core";
+import { Button } from "./ui/Button";
 
 interface UnpaidAlertBannerProps {
   creditBalance?: number | null;
@@ -26,10 +26,10 @@ export default function UnpaidAlertBanner({ creditBalance, onBuyCredits }: Unpai
       </div>
       <Button
         onClick={onBuyCredits}
-        color="brand"
+        variant="primary"
         size="sm"
         leftSection={<Coins className="w-4 h-4" />}
-        className="font-body font-semibold shrink-0 cursor-pointer"
+        className="shrink-0"
       >
         Mua lượt đánh giá ngay
       </Button>

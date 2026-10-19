@@ -6,6 +6,35 @@ export interface DayGroup {
   events: CaseEvent[];
 }
 
+export type TimelineCategory = "all" | "grade" | "pay" | "project";
+
+export function getEventCategory(eventType: string): "grade" | "pay" | "project" {
+  const t = eventType.toLowerCase();
+  if (
+    t.includes("audit") ||
+    t.includes("grade") ||
+    t.includes("grading") ||
+    t.includes("eval") ||
+    t.includes("score") ||
+    t.includes("checkpoint") ||
+    t.includes("report")
+  ) {
+    return "grade";
+  }
+  if (
+    t.includes("credit") ||
+    t.includes("pay") ||
+    t.includes("deposit") ||
+    t.includes("order") ||
+    t.includes("refund") ||
+    t.includes("balance") ||
+    t.includes("package")
+  ) {
+    return "pay";
+  }
+  return "project";
+}
+
 export const TIMELINE_TIMEZONE = "Asia/Ho_Chi_Minh";
 
 const dayKeyFmt = new Intl.DateTimeFormat("en-CA", {

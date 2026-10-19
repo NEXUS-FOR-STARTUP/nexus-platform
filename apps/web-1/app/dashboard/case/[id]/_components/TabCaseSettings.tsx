@@ -4,8 +4,8 @@ import React, { useRef, useState } from "react";
 import { isAxiosError } from "axios";
 import { Case } from "@/types";
 import { useCaseDetails } from "../hooks/useCaseDetails";
-import { FloppyDisk as Save, CircleNotch as Loader2 } from "@phosphor-icons/react";
-import { Button, Stack, Text } from "@mantine/core";
+import { FloppyDisk as Save } from "@phosphor-icons/react";
+import { Button } from "./ui/Button";
 import { notifications } from "@mantine/notifications";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
@@ -136,14 +136,14 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
   };
 
   return (
-    <Stack gap="xl">
+    <div className="flex flex-col gap-8">
       <div>
-        <Text fw={500} size="xl">Cài đặt dự án</Text>
-        <Text size="sm" c="dimmed">Thông tin dưới đây áp dụng cho dự án này.</Text>
+        <h2 className="text-xl font-medium text-text-app m-0">Cài đặt dự án</h2>
+        <p className="text-sm text-text-muted mt-1 mb-0">Thông tin dưới đây áp dụng cho dự án này.</p>
       </div>
 
       <form ref={formRef} onSubmit={handleSubmit} noValidate>
-        <Stack gap="xl">
+        <div className="flex flex-col gap-8">
           <CaseProjectFields
             values={project}
             errors={errors}
@@ -168,17 +168,18 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
           <div className="flex justify-end">
             <Button
               type="submit"
-              disabled={!isDirty || isUpdatingSettings}
-              color="brand"
-              leftSection={isUpdatingSettings ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              variant="primary"
+              disabled={!isDirty}
+              loading={isUpdatingSettings}
+              leftSection={<Save className="w-3.5 h-3.5" />}
             >
-              {isUpdatingSettings ? "Đang lưu..." : "Lưu thay đổi"}
+              Lưu thay đổi
             </Button>
           </div>
-        </Stack>
+        </div>
       </form>
 
       <CaseDeleteSection caseId={caseData.id} stage={caseData.user_facing_stage} />
-    </Stack>
+    </div>
   );
 }

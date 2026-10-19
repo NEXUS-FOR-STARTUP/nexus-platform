@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button } from "@mantine/core";
+import { Button } from "./ui/Button";
 import CreditBalanceCard from "./CreditBalanceCard";
 import CreditHistorySection from "./billing/credit-history/CreditHistorySection";
 import type { CreditEntryType } from "./credit-history.types";
@@ -49,9 +49,9 @@ export default function CreditPanel({
           {onBuyCredits && (
             <Button
               onClick={onBuyCredits}
-              color="brand"
+              variant="primary"
               size="sm"
-              className="font-semibold shrink-0 cursor-pointer"
+              className="shrink-0"
             >
               Mua lượt đánh giá
             </Button>

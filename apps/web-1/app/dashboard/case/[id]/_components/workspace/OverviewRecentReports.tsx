@@ -1,6 +1,7 @@
 "use client";
 
-import { Button, Group, Paper, Stack, Text } from "@mantine/core";
+import { Group, Paper, Stack, Text } from "@mantine/core";
+import { Button } from "../ui/Button";
 import { findStageByCode } from "@app/shared/stages";
 import FileTypeIcon from "@/components/ui/FileTypeIcon";
 import s from "./overview.module.css";
@@ -67,7 +68,7 @@ export default function OverviewRecentReports({
                     </Stack>
                   </Group>
                   {slug && (
-                    <Button size="sm" variant="default" onClick={() => onOpenStage(slug, "results")}>
+                    <Button size="sm" variant="quiet" onClick={() => onOpenStage(slug, "results")}>
                       Xem
                     </Button>
                   )}

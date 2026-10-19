@@ -1,8 +1,8 @@
 "use client";
 
-import { Accordion, Button, Group, Text } from "@mantine/core";
+import { CaretDown } from "@phosphor-icons/react";
 import type { Case, TeamFitReport } from "@/types";
-import CaseOverviewPanel from "../CaseOverviewPanel";
+import OverviewProfileDetails from "./OverviewProfileDetails";
 import { countMissingProfileFields, deriveOverviewData } from "../overview/caseOverviewData";
 import s from "./overview.module.css";
 
@@ -19,26 +19,32 @@ export default function OverviewProfileFold({
   teamFitReport,
   onOpenSettings,
 }: OverviewProfileFoldProps) {
-  const missing = countMissingProfileFields(deriveOverviewData(caseData, intakeSnapshot, teamFitReport));
+  const data = deriveOverviewData(caseData, intakeSnapshot, teamFitReport);
+  const missing = countMissingProfileFields(data);
 
   return (
-    <Accordion variant="separated" radius="md">
-      <Accordion.Item value="profile">
-        <Accordion.Control>
-          <span className={s.sectionTitle}>Hồ sơ dự án</span>
-        </Accordion.Control>
-        <Accordion.Panel>
-          {missing > 0 && (
-            <Group gap="xs" mb="md">
-              <Text className={s.body}>Còn thiếu {missing} thông tin</Text>
-              <Button variant="subtle" size="sm" onClick={onOpenSettings}>
-                Bổ sung
-              </Button>
-            </Group>
-          )}
-          <CaseOverviewPanel embedded caseData={caseData} intakeSnapshot={intakeSnapshot} teamFitReport={teamFitReport} />
-        </Accordion.Panel>
-      </Accordion.Item>
-    </Accordion>
+    <details className={s.fold}>
+      <summary className={s.foldSummary}>
+        <span className={s.sectionTitle}>Hồ sơ dự án</span>
+        {missing > 0 && (
+          <span className={s.foldNote}>
+            Còn thiếu {missing} thông tin ·{" "}
+            <button
+              type="button"
+              className={s.foldLink}
+              onClick={(e) => {
+                // Inside <summary>: a click would also toggle the fold.
+                e.preventDefault();
+                onOpenSettings();
+              }}
+            >
+              Bổ sung
+            </button>
+          </span>
+        )}
+        <CaretDown size={18} className={s.foldChevron} aria-hidden />
+      </summary>
+      <OverviewProfileDetails data={data} />
+    </details>
   );
 }

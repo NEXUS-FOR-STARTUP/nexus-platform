@@ -1,6 +1,7 @@
 "use client";
 
-import { Button, Group, Paper, Stack, Text } from "@mantine/core";
+import { Group, Paper, Stack, Text } from "@mantine/core";
+import { Button } from "../ui/Button";
 import { Lock } from "@phosphor-icons/react";
 import { StatusChip } from "@/components/ui/StatusChip";
 import type { StageStatus } from "../../hooks/useStageSummaries";
@@ -34,7 +35,7 @@ export default function StageRow({ name, note, status = "not_started", onOpen, l
         <Group gap="sm" wrap="nowrap">
           <StatusChip tone={locked ? "neutral" : meta.tone}>{locked ? "Sắp ra mắt" : meta.label}</StatusChip>
           {!locked && onOpen && (
-            <Button variant="default" size="sm" onClick={onOpen}>
+            <Button variant="quiet" size="sm" onClick={onOpen}>
               {meta.cta}
             </Button>
           )}

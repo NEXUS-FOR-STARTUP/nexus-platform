@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Text } from "@mantine/core";
+import { Text } from "@mantine/core";
+import { Button } from "../ui/Button";
 import { Plus } from "@phosphor-icons/react";
 import { STAGES, type StageDefinition } from "@app/shared/stages";
 import type { CreditBalances } from "@/lib/credit-balances";
@@ -32,7 +33,7 @@ export default function StageBalanceCards({ caseId, balances }: StageBalanceCard
                 {`${count} lượt`}
               </Text>
               {canBuy ? (
-                <Button variant="light" leftSection={<Plus size={16} />} onClick={() => setSelectedStage(stage)}>
+                <Button variant="quiet" size="sm" leftSection={<Plus size={16} />} onClick={() => setSelectedStage(stage)}>
                   Mua thêm
                 </Button>
               ) : (

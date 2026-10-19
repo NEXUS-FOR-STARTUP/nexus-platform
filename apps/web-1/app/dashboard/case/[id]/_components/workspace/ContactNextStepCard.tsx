@@ -1,6 +1,7 @@
 "use client";
 
-import { Button, Paper, Stack, Text } from "@mantine/core";
+import { Paper, Stack, Text } from "@mantine/core";
+import { Button } from "../ui/Button";
 import { isCaseContactComplete } from "@repo/validation";
 import { missingContactLabels } from "../../../../_components/case-contact";
 import s from "./overview.module.css";
@@ -22,7 +23,7 @@ export default function ContactNextStepCard({ contact, onOpenSettings }: Contact
         <Text className={s.body}>
           Còn thiếu {missing}. Chúng tôi dùng để báo kết quả và gửi mã QR thanh toán cho đúng người.
         </Text>
-        <Button size="md" onClick={onOpenSettings}>
+        <Button variant="primary" size="md" onClick={onOpenSettings}>
           Điền thông tin liên hệ
         </Button>
       </Stack>

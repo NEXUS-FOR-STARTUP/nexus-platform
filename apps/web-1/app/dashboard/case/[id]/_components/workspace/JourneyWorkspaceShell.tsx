@@ -2,7 +2,6 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { List as Menu, X } from "@phosphor-icons/react";
-import { Stack, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import JourneySidebar, { type WorkspaceTabKey } from "./JourneySidebar";
 import JourneyMobileNav from "./JourneyMobileNav";
@@ -154,15 +153,7 @@ export default function JourneyWorkspaceShell({
           />
         )}
 
-        {activeTab === "timeline" && (
-          <Stack gap="xs">
-            <div>
-              <Text fw={700} size="xl">Lịch sử hoạt động</Text>
-              <Text size="sm" c="dimmed">Mọi thay đổi trạng thái, lần chấm và cập nhật của dự án theo thời gian.</Text>
-            </div>
-            <ActivityTimeline caseData={caseData!} />
-          </Stack>
-        )}
+        {activeTab === "timeline" && <ActivityTimeline caseData={caseData!} />}
 
         {activeTab === "settings" && <TabCaseSettings caseData={caseData!} intakeSnapshot={intakeSnapshot} />}
       </WorkspaceMain>

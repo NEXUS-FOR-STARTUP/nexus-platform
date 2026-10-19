@@ -1,0 +1,147 @@
+/* Mockup button styling ported 1:1 from design-system/mockups/case-detail/css/base.css */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease, color 0.15s ease;
+  text-decoration: none;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+/* Variants */
+.primary {
+  background: var(--color-brand, #2563eb);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--color-brand-hover, #1d4ed8);
+}
+
+.quiet {
+  background: var(--color-surface, #ffffff);
+  color: var(--color-text-app, #0f172a);
+  border-color: var(--color-border-strong, #cbd5e1);
+}
+
+.quiet:hover:not(:disabled) {
+  background: var(--color-surface-soft, #f1f5f9);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--color-text-app, #0f172a);
+  border-color: transparent;
+}
+
+.ghost:hover:not(:disabled) {
+  background: var(--color-surface-soft, #f1f5f9);
+}
+
+.danger {
+  background: var(--color-danger, #ef4444);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.danger:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.dangerQuiet {
+  background: var(--color-danger-soft, #fee2e2);
+  color: #991b1b;
+  border-color: transparent;
+}
+
+.dangerQuiet:hover:not(:disabled) {
+  background: #fecaca;
+}
+
+/* Sizes */
+/* The mockup has one button size (40px); sm and md are intentionally identical. */
+.sm,
+.md {
+  height: 40px;
+  padding: 0 20px;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+.lg {
+  height: 48px;
+  padding: 0 24px;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+/* Disabled */
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  background: var(--color-surface-soft, #f1f5f9);
+  color: var(--color-text-muted, #94a3b8);
+  border-color: transparent;
+  cursor: not-allowed;
+  transform: none;
+  pointer-events: none;
+}
+
+/* Icon Button (.ib from mockup) */
+.ib {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-border-strong, #cbd5e1);
+  border-radius: 8px;
+  background: var(--color-surface, #ffffff);
+  cursor: pointer;
+  color: var(--color-text-app, #0f172a);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.ib:hover:not(:disabled) {
+  background: var(--color-surface-soft, #f1f5f9);
+}
+
+.ib:disabled {
+  background: var(--color-surface-soft, #f1f5f9);
+  color: var(--color-text-muted, #94a3b8);
+  cursor: not-allowed;
+  border-color: transparent;
+}
+
+.spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -27,7 +27,7 @@ import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadMod
 import StudentDocumentUploadModal from "./_components/StudentDocumentUploadModal";
 import StatusGuidanceCard from "./_components/StatusGuidanceCard";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Button } from "@mantine/core";
+import { Button } from "./_components/ui/Button";
 import type { Report, RoundHistoryEntry } from "@/types/case";
 import { useTriggerAudit } from "./hooks/useTriggerAudit";
 import JourneyWorkspaceShell from "./_components/workspace/JourneyWorkspaceShell";
@@ -238,9 +238,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                 {canEditIntake && (
                   <Button
                     size="sm"
-                    variant="outline"
-                    color="brand"
-                    className="w-full sm:w-auto font-semibold cursor-pointer h-9 sm:h-8.5 text-xs sm:bg-brand sm:text-white sm:border-transparent sm:hover:bg-brand-hover"
+                    variant="quiet"
                     onClick={() => router.push(`/dashboard/intake?caseId=${id}`)}
                   >
                     Cập nhật thông tin

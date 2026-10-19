@@ -1,16 +1,26 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Accordion, Stack, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { Clock } from "@phosphor-icons/react";
 import type { Case } from "@/types";
-import { groupEventsByDay } from "./activity/activity-groups";
+import {
+  groupEventsByDay,
+  getEventCategory,
+  type TimelineCategory,
+} from "./activity/activity-groups";
 import TimelineDayGroup from "./activity/TimelineDayGroup";
+import classes from "./activity/timeline.module.css";
 
 // Must match the `take` of case events in apps/api case.repository.
 const API_EVENT_LIMIT = 50;
 const MOBILE_QUERY = "(max-width: 48em)";
+
+const TABS: { id: TimelineCategory; label: string }[] = [
+  { id: "all", label: "Tất cả" },
+  { id: "grade", label: "Chấm bài" },
+  { id: "pay", label: "Lượt chấm" },
+  { id: "project", label: "Dự án" },
+];
 
 interface ActivityTimelineProps {
   caseData: Case;
@@ -18,37 +28,84 @@ interface ActivityTimelineProps {
 
 export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
   const isMobile = useMediaQuery(MOBILE_QUERY, false);
-  const [opened, setOpened] = useState<string[] | null>(null);
+  const [selectedTab, setSelectedTab] = useState<TimelineCategory>("all");
 
   // Chat messages would drown the timeline.
   const events = useMemo(
     () => (caseData.events ?? []).filter((e) => e.event_type !== "message_sent"),
     [caseData.events],
   );
-  const groups = useMemo(() => groupEventsByDay(events), [events]);
+
+  const counts = useMemo(() => {
+    const map: Record<TimelineCategory, number> = { all: events.length, grade: 0, pay: 0, project: 0 };
+    for (const e of events) {
+      const cat = getEventCategory(e.event_type);
+      map[cat] = (map[cat] ?? 0) + 1;
+    }
+    return map;
+  }, [events]);
+
+  const filteredEvents = useMemo(() => {
+    if (selectedTab === "all") return events;
+    return events.filter((e) => getEventCategory(e.event_type) === selectedTab);
+  }, [events, selectedTab]);
+
+  const groups = useMemo(() => groupEventsByDay(filteredEvents), [filteredEvents]);
+
+  const heading = (
+    <>
+      <h2 className={classes.title}>Lịch sử hoạt động</h2>
+      <p className={classes.lead}>Mọi thay đổi trạng thái, lượt chấm và cập nhật của dự án.</p>
+    </>
+  );
 
   if (events.length === 0) {
     return (
-      <Stack align="center" gap="xs" py="xl">
-        <Clock size={32} aria-hidden />
-        <Text size="sm" c="dimmed">Chưa có hoạt động nào được ghi nhận cho dự án này.</Text>
-      </Stack>
+      <div className={classes.root}>
+        {heading}
+        <p className={classes.empty}>Chưa có hoạt động nào được ghi nhận cho dự án này.</p>
+      </div>
     );
   }
 
-  const defaultOpen = isMobile ? groups.slice(0, 1).map((g) => g.dayKey) : groups.map((g) => g.dayKey);
-
   return (
-    <Stack gap="md">
+    <div className={classes.root}>
+      {heading}
       {(caseData.events?.length ?? 0) >= API_EVENT_LIMIT && (
-        <Text size="sm" c="dimmed">Hiển thị {API_EVENT_LIMIT} sự kiện gần nhất.</Text>
+        <p className={classes.lead}>Hiển thị {API_EVENT_LIMIT} sự kiện gần nhất.</p>
       )}
 
-      <Accordion multiple value={opened ?? defaultOpen} onChange={setOpened} variant="default">
-        {groups.map((group) => (
-          <TimelineDayGroup key={group.dayKey} group={group} />
-        ))}
-      </Accordion>
-    </Stack>
+      {/* Filter Tabs matching mockup #tseg */}
+      <div className={classes.tabs} role="tablist" aria-label="Lọc theo loại sự kiện">
+        {TABS.map((tab) => {
+          const count = counts[tab.id] ?? 0;
+          const isActive = selectedTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              className={`${classes.tabBtn} ${isActive ? classes.tabBtnActive : ""}`}
+              onClick={() => setSelectedTab(tab.id)}
+            >
+              {tab.label} ({count})
+            </button>
+          );
+        })}
+      </div>
+
+      {groups.length === 0 ? (
+        <p className={classes.empty}>Chưa có hoạt động nào thuộc loại này.</p>
+      ) : (
+        groups.map((group, idx) => (
+          <TimelineDayGroup
+            key={group.dayKey}
+            group={group}
+            defaultOpen={isMobile ? idx === 0 : true}
+          />
+        ))
+      )}
+    </div>
   );
 }

@@ -1,5 +1,10 @@
 /* Breakpoint 820px phải khớp DESKTOP_QUERY trong JourneyMobileNav. */
+/* Mantine defaults (dimmed #868e96, text #000, antialiased) differ from the mockup; pin the mockup's values here. */
 .layout {
+  --mantine-color-dimmed: #475569;
+  --mantine-color-text: #0f172a;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
   width: 100%;

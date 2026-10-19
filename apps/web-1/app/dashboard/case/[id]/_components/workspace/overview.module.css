@@ -37,3 +37,101 @@
   color: var(--mantine-color-dimmed);
   white-space: pre-line;
 }
+
+/* Fold + key/value list copied from the mockup (base.css details rules, views.css .kv/.kvh). */
+.fold {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0 28px;
+}
+
+.foldSummary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.foldSummary::-webkit-details-marker {
+  display: none;
+}
+
+.fold[open] > .foldSummary {
+  padding-bottom: 8px;
+}
+
+.foldNote {
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: 400;
+  color: #475569;
+}
+
+.foldLink {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 500;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.foldLink:hover {
+  text-decoration: underline;
+}
+
+.foldChevron {
+  margin-left: 12px;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.fold[open] .foldChevron {
+  transform: rotate(180deg);
+}
+
+.inner {
+  padding: 0 0 24px;
+}
+
+.kv {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 12px 24px;
+  padding: 6px 0;
+  margin: 0;
+}
+
+/* dt/dd wrapped in a div for valid markup; display: contents keeps the two-column grid. */
+.kvRow {
+  display: contents;
+}
+
+.kv dt {
+  color: #475569;
+  font-size: 14px;
+  padding-top: 2px;
+}
+
+.kv dd {
+  margin: 0;
+  min-height: 24px;
+}
+
+.kvh {
+  font-weight: 500;
+  margin: 28px 0 4px;
+}
+
+@media (max-width: 820px) {
+  .kv {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
