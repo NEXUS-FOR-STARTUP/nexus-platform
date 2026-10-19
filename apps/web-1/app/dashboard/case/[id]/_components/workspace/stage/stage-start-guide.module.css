@@ -1,0 +1,162 @@
+/* Tells a first-time user what to do on a stage. Flat brand tint sets it apart from white cards;
+   the only motion is a short entrance and a slow ring on the primary button (transform/opacity only). */
+.root {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px 48px;
+  padding: 24px 56px 24px 28px;
+  border-radius: var(--ui-radius);
+  background: var(--color-brand-subtle);
+  animation: guide-in 0.4s ease-out both;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: var(--ui-text-section);
+  font-weight: var(--ui-weight-medium);
+  line-height: 1.3;
+  color: var(--color-text);
+}
+
+.lead {
+  margin: 4px 0 16px;
+  max-width: 56ch;
+  font-size: var(--ui-text-body);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+}
+
+.cta {
+  position: relative;
+  display: inline-flex;
+}
+
+.cta::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border: 2px solid var(--color-brand);
+  border-radius: calc(var(--ui-radius) + 4px);
+  opacity: 0;
+  pointer-events: none;
+  animation: guide-ring 2.6s ease-out 0.8s infinite;
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--ui-text-body);
+  color: var(--color-brand);
+  cursor: pointer;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.steps {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--ui-text-body);
+  color: var(--color-text-muted);
+}
+
+.step svg {
+  flex: none;
+}
+
+.done {
+  color: var(--color-text-muted);
+}
+
+.done svg {
+  color: var(--color-success);
+}
+
+.current {
+  font-weight: var(--ui-weight-medium);
+  color: var(--color-text);
+}
+
+.current svg {
+  color: var(--color-brand);
+}
+
+.close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--ui-radius-sm);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.close:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+@keyframes guide-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes guide-ring {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.98);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+}
+
+@media (max-width: 767px) {
+  .root {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px 48px 20px 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    animation: none;
+  }
+  .cta::after {
+    animation: none;
+  }
+}

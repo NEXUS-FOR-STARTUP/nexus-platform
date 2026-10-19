@@ -21,9 +21,9 @@ export default function ContactNextStepCard({ contact, onOpenSettings }: Contact
       <p className={s.lead}>
         Còn thiếu {missing}. Chúng tôi dùng để báo kết quả và gửi mã QR thanh toán cho đúng người.
       </p>
-      <Button variant="quiet" onClick={onOpenSettings}>
-        Điền thông tin liên hệ
-      </Button>
+      <span className={s.cta}>
+        <Button onClick={onOpenSettings}>Điền thông tin liên hệ</Button>
+      </span>
     </div>
   );
 }

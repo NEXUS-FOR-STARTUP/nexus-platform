@@ -16,9 +16,9 @@ export default function OverviewHero({ action, onOpenStage }: OverviewHeroProps)
     <div className={s.card}>
       <h2 className={s.title}>{action.title}</h2>
       <p className={s.lead}>{action.description}</p>
-      <Button variant="quiet" onClick={() => onOpenStage(action.stageSlug, action.view)}>
-        {action.cta}
-      </Button>
+      <span className={s.cta}>
+        <Button onClick={() => onOpenStage(action.stageSlug, action.view)}>{action.cta}</Button>
+      </span>
     </div>
   );
 }

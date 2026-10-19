@@ -9,6 +9,7 @@ import StageDraftView from "./StageDraftView";
 import StageFilesView from "./StageFilesView";
 import StageResultsView from "./StageResultsView";
 import StageGradingPanel from "./StageGradingPanel";
+import StageStartGuide from "./StageStartGuide";
 import AuditConfirmModal from "./AuditConfirmModal";
 import type { Cp2InputSource } from "@app/shared";
 import ServiceCheckoutModal from "../../billing/ServiceCheckoutModal";
@@ -18,6 +19,8 @@ import type { StageView } from "../stage-view";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
 import type { TemplateKey } from "@repo/validation";
 import type { Case, DocumentWorkspace, RoundHistoryEntry } from "@/types";
+
+const FOCUS_RETRY_FRAMES = 30;
 
 interface StageDetailProps {
   caseId: string;
@@ -82,6 +85,17 @@ export default function StageDetail({
       submission_type: args.submissionType,
     });
   };
+  const handleAnswerClick = () => {
+    onViewChange("draft");
+    // Coming from another tab the editor mounts a few frames later; wait for it, then focus the first answer box.
+    let framesLeft = FOCUS_RETRY_FRAMES;
+    const focusEditor = () => {
+      const box = document.querySelector<HTMLTextAreaElement>("textarea");
+      if (box) box.focus();
+      else if (framesLeft-- > 0) requestAnimationFrame(focusEditor);
+    };
+    requestAnimationFrame(focusEditor);
+  };
 
   return (
     <Stack gap="md">
@@ -96,6 +110,18 @@ export default function StageDetail({
         onBack={onBack}
         onAudit={handleAuditClick}
         onBuyCredits={() => setCheckoutOpen(true)}
+      />
+
+      <StageStartGuide
+        caseId={caseId}
+        stageCode={stage.code}
+        isCp2={stage.code === "CP2"}
+        summary={summary}
+        creditsRemaining={creditsRemaining}
+        onAnswer={handleAnswerClick}
+        onUpload={() => onViewChange("files")}
+        onBuyCredits={() => setCheckoutOpen(true)}
+        onAudit={handleAuditClick}
       />
 
       <StageGradingPanel

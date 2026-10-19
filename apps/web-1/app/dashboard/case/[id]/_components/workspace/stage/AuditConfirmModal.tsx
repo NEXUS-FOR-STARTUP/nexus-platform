@@ -7,6 +7,7 @@ import type { StageDefinition } from "@app/shared/stages";
 import type { Cp2InputSource } from "@app/shared";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
 import AuditStepSources from "./AuditStepSources";
+import { hasStageInput } from "./stage-input";
 import AuditStepOptions, { type Cp2Scope, type RunKind } from "./AuditStepOptions";
 
 interface AuditConfirmModalProps {
@@ -88,7 +89,7 @@ export default function AuditConfirmModal({
   // CP1 has no CP2-style readiness bar, but no stage is ever graded on nothing:
   // zero answers AND zero files is a dead end in both checkpoints.
   const hasAnswers = isCp2 ? readyFull || readyQuestionnaire : answeredCount > 0;
-  const blocked = !hasFiles && !hasAnswers;
+  const blocked = !hasStageInput(isCp2, summary);
   const canConfirm = !blocked && (!isCp2 || sourceReady(source, scope));
 
   const handleClose = () => {
