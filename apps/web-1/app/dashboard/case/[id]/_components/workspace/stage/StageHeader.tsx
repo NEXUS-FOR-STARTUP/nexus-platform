@@ -2,7 +2,7 @@
 
 import { Group, Stack, Text, Badge, Button } from "@mantine/core";
 import { ChevronLeft, Sparkles } from "lucide-react";
-import RainbowBuyButton from "@/components/ui/RainbowBuyButton";
+import BuyButton from "@/components/ui/BuyButton";
 import type { StageDefinition } from "@app/shared/stages";
 import { STAGE_DISPLAY_META, stageNumberOf } from "../stageDisplayMeta";
 import { TEMPLATE_REGISTRY } from "@repo/validation";
@@ -70,9 +70,9 @@ export default function StageHeader({
               {auditLabel}
             </Button>
           ) : (
-            <RainbowBuyButton size="md" onClick={onBuyCredits}>
+            <BuyButton size="md" onClick={onBuyCredits}>
               Mua lượt chấm
-            </RainbowBuyButton>
+            </BuyButton>
           )}
         </Group>
       </Group>
