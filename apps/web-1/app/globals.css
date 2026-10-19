@@ -75,6 +75,7 @@
   /* Font sizes: Mobile defaults */
   --app-text-xs: 0.8125rem;
   --app-text-sm: 0.875rem;
+  --app-text-meta: 0.9375rem;
 
   /* Brand - Sapphire Blue */
   --color-brand: #2563EB;

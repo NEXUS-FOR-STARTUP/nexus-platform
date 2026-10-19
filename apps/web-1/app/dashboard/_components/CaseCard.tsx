@@ -72,7 +72,7 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
           </div>
         </div>
 
-        <div className="flex flex-col gap-2.5 pt-4 border-t border-border-app text-xs font-body text-text-muted">
+        <div className="flex flex-col gap-2 pt-4 border-t border-border-app text-[length:var(--app-text-meta)] font-body text-text-muted">
           <div>
             <span>{item.package?.name || "Gói dịch vụ"}</span>
           </div>
@@ -82,7 +82,7 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
           <div className="min-h-[20px]">
             {item.school ? (
               <>
-                <span className="truncate">{item.school} {item.course_context ? `(${item.course_context})` : ""}</span>
+                <span className="truncate">{item.course_context ? `${item.school} - ${item.course_context}` : item.school}</span>
               </>
             ) : (
               <span className="invisible">placeholder</span>
