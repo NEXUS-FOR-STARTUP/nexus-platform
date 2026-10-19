@@ -1,37 +1,110 @@
+/* Sessions view matches mockup views.css and spec.js */
+.colNarrow {
+  max-width: 720px;
+}
+
+.card {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e2e8f0) !important;
+  border-radius: 8px;
+  padding: 24px 28px !important;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .title {
   font-size: var(--ui-text-section, 1.125rem);
   font-weight: 500;
   color: var(--color-text, #0f172a);
-  margin-bottom: 4px;
+  margin: 0 0 4px;
 }
 
 .note {
   font-size: var(--ui-text-note, 0.875rem);
   color: var(--color-text-muted, #475569);
   line-height: 1.45;
+  margin: 0;
 }
 
-/* Skeleton & real row matches mockup session-item */
-.row {
-  min-height: 4.75rem;
-  display: flex;
-  align-items: center;
-  border: 1px solid var(--color-border, #e2e8f0) !important;
-  border-radius: 8px;
-  background: var(--color-surface, #ffffff);
-  padding: 16px !important;
-}
-
-.iconBox {
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  display: flex;
+/* Button quiet matching mockup base.css .btn.quiet */
+.btnQuiet {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border, #cbd5e1);
+  font-size: var(--ui-text-body, 0.9375rem);
+  font-weight: 500;
+  background: var(--color-surface, #ffffff);
+  color: var(--color-text, #0f172a);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.btnQuiet:hover:not(:disabled) {
+  background: var(--color-surface-soft, #f1f5f9);
+}
+
+.btnQuiet:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Session List & Items matches mockup views.css .session-list, .session-item */
+.sessionList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sessionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 8px;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.sessionItem.current {
+  background: var(--color-brand-subtle, #eff6ff);
+  border-color: var(--color-brand-soft, #bfdbfe);
+}
+
+.sessionInfo {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.sessionIcon {
+  width: 40px;
+  height: 40px;
   border-radius: 8px;
   background: var(--color-surface-soft, #f1f5f9);
+  display: grid;
+  place-items: center;
   color: var(--color-text-muted, #475569);
+  flex-shrink: 0;
+}
+
+.sessionItem.current .sessionIcon {
+  background: var(--color-brand-soft, #dbeafe);
+  color: var(--color-brand, #2563eb);
 }
 
 .deviceName {
@@ -40,18 +113,40 @@
   color: var(--color-text, #0f172a);
 }
 
+.currentBadge {
+  color: #16a34a;
+  font-size: var(--ui-text-note, 0.875rem);
+  font-weight: 500;
+}
+
 .meta {
   font-size: var(--ui-text-note, 0.875rem);
   color: var(--color-text-muted, #475569);
+  margin-top: 2px;
+}
+
+.revokeBtn {
+  flex-shrink: 0;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border, #cbd5e1);
+  background: var(--color-surface, #ffffff);
+  color: var(--color-text, #0f172a);
+  font-size: var(--ui-text-note, 0.875rem);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.revokeBtn:hover {
+  background: var(--color-surface-soft, #f1f5f9);
 }
 
 .skeletonRow {
-  height: 4.75rem;
-}
-
-.revoke {
-  flex-shrink: 0;
-  height: 36px;
+  height: 72px;
   border-radius: 8px;
-  font-weight: 500;
 }

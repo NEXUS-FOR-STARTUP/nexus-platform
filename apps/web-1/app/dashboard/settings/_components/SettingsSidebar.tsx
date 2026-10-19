@@ -16,7 +16,7 @@ export default function SettingsSidebar({
   const items = getSettingsNav(basePath);
 
   return (
-    <nav aria-label="Cài đặt tài khoản">
+    <nav aria-label="Cài đặt tài khoản" className="flex flex-col gap-1">
       {items.map((item) => {
         const active = pathname === item.href;
         const Icon = item.icon;
@@ -25,10 +25,10 @@ export default function SettingsSidebar({
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
-            className={`${classes.link} ${active ? classes.linkActive : ""}`}
+            className={`${classes.navItem} ${active ? classes.active : ""}`}
             onClick={onItemClickAction}
           >
-            <Icon className={`w-4 h-4 ${classes.linkIcon}`} />
+            <Icon size={18} className={classes.navIcon} />
             <span>{item.label}</span>
           </Link>
         );

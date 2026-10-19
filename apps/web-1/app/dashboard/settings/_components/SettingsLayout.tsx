@@ -18,27 +18,26 @@ export default function SettingsLayout({
 
   return (
     <div className={classes.layout}>
-      <header className={classes.header}>
-        <h1 className={classes.title}>Cài đặt</h1>
-        <p className={classes.note}>Quản lý thông tin cá nhân và bảo mật tài khoản</p>
-      </header>
+      <aside className={classes.side}>
+        <SettingsSidebar basePath={basePath} />
+      </aside>
 
-      <div className={classes.body}>
-        <div className={classes.desktopNav}>
-          <SettingsSidebar basePath={basePath} />
+      <main className={classes.main}>
+        <div className={classes.head}>
+          <h1 className={classes.headTitle}>Cài đặt</h1>
+          <p className={classes.headNote}>Quản lý thông tin cá nhân và bảo mật tài khoản</p>
         </div>
-        <div className="min-w-0">{children}</div>
-      </div>
+        {children}
+      </main>
 
-      {/* Mobile Drawer Navigation (Matching Mockup Drawer Pattern) */}
       <button
         type="button"
-        className={classes.mobileBurger}
+        className={classes.burger}
         onClick={() => setDrawerOpen(true)}
-        aria-label="Mở menu cài đặt"
+        aria-label="Mở menu"
         aria-expanded={drawerOpen}
       >
-        <Menu className="w-5 h-5" />
+        <Menu size={22} weight="bold" />
       </button>
 
       <Drawer
@@ -46,7 +45,7 @@ export default function SettingsLayout({
         onClose={() => setDrawerOpen(false)}
         title="Cài đặt tài khoản"
         padding="md"
-        size="280px"
+        size="320px"
       >
         <div className={classes.drawerContent}>
           <SettingsSidebar

@@ -1,9 +1,7 @@
 "use client";
 
-import { Button, Group, Paper, Stack, Text } from "@mantine/core";
 import { Laptop, DeviceMobile as Smartphone, DeviceTablet as Tablet, Globe, SignOut as LogOut } from "@phosphor-icons/react";
 import type { ActiveSessionDto } from "@repo/validation";
-import { StatusChip } from "@/components/ui/StatusChip";
 import { parseUserAgent, formatIpAddress } from "@/lib/utils/ua-parser";
 import classes from "../sessions.module.css";
 
@@ -31,49 +29,47 @@ export function SessionItem({ session, onRevoke, isRevoking }: SessionItemProps)
   const renderDeviceIcon = () => {
     switch (parsed.deviceType) {
       case "desktop":
-        return <Laptop className="w-5 h-5" />;
+        return <Laptop size={20} />;
       case "mobile":
-        return <Smartphone className="w-5 h-5" />;
+        return <Smartphone size={20} />;
       case "tablet":
-        return <Tablet className="w-5 h-5" />;
+        return <Tablet size={20} />;
       default:
-        return <Globe className="w-5 h-5" />;
+        return <Globe size={20} />;
     }
   };
 
   const deviceName = `${parsed.os} • ${parsed.browser}`;
 
   return (
-    <Paper withBorder radius="md" p="md" className={classes.row}>
-      <Group justify="space-between" align="center" wrap="nowrap" gap="md" w="100%">
-        <Group gap="md" align="center" wrap="nowrap" miw={0}>
-          <div className={classes.iconBox}>{renderDeviceIcon()}</div>
-          <Stack gap={2} miw={0}>
-            <Group gap="xs" align="center">
-              <Text className={classes.deviceName}>{deviceName}</Text>
-              {session.isCurrent && <StatusChip tone="ok">Phiên hiện tại</StatusChip>}
-            </Group>
-            <Text className={classes.meta}>
-              IP: {formattedIp} • Đăng nhập lúc: {formattedCreatedAt}
-            </Text>
-          </Stack>
-        </Group>
+    <div className={`${classes.sessionItem} ${session.isCurrent ? classes.current : ""}`}>
+      <div className={classes.sessionInfo}>
+        <div className={classes.sessionIcon}>{renderDeviceIcon()}</div>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            <span className={classes.deviceName}>{deviceName}</span>
+            {session.isCurrent && (
+              <span className={classes.currentBadge}>Đang hoạt động</span>
+            )}
+          </div>
+          <div className={classes.meta}>
+            IP: {formattedIp} • Đăng nhập: {formattedCreatedAt}
+          </div>
+        </div>
+      </div>
 
-        {!session.isCurrent && (
-          <Button
-            variant="default"
-            size="sm"
-            className={classes.revoke}
-            aria-label={`Đăng xuất khỏi ${deviceName}`}
-            leftSection={<LogOut className="w-4 h-4" />}
-            loading={isRevoking}
-            disabled={isRevoking}
-            onClick={() => onRevoke(session.id)}
-          >
-            Đăng xuất
-          </Button>
-        )}
-      </Group>
-    </Paper>
+      {!session.isCurrent && (
+        <button
+          type="button"
+          className={classes.revokeBtn}
+          aria-label={`Đăng xuất khỏi ${deviceName}`}
+          disabled={isRevoking}
+          onClick={() => onRevoke(session.id)}
+        >
+          <LogOut size={16} />
+          <span>{isRevoking ? "Đang xử lý..." : "Đăng xuất"}</span>
+        </button>
+      )}
+    </div>
   );
 }
