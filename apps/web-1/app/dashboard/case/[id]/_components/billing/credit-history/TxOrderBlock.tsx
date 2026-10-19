@@ -1,8 +1,8 @@
-import { Skeleton, Stack, Text } from "@mantine/core";
 import { STAGES } from "@app/shared/stages";
 import { formatVndAmount } from "@/lib/pricing";
 import { useOrderSummary } from "@/hooks/useOrderSummary";
-import s from "./credit-history.module.css";
+import h from "./credit-history.module.css";
+import s from "./credit-tx.module.css";
 
 const FALLBACK_SERVICE_NAME = "Lượt chấm";
 
@@ -16,33 +16,40 @@ export default function TxOrderBlock({ orderId }: { orderId: string | null }) {
   if (!orderId) return null;
 
   return (
-    <div className={s.orderBlock}>
-      <Text fw={500} mb="xs">Đơn hàng</Text>
-      {isLoading && (
-        <Stack gap="xs">
-          <Skeleton height={20} />
-          <Skeleton height={20} />
-          <Skeleton height={20} />
-        </Stack>
-      )}
-      {isError && <Text c="red.8">Không tải được chi tiết đơn hàng</Text>}
+    <>
+      <p className={s.kvh}>Đơn hàng</p>
+      {isLoading && <div className={h.skeleton} aria-hidden />}
+      {isError && <p className={s.err}>Không tải được chi tiết đơn hàng</p>}
       {order && (
-        <div>
-          {order.items.map((item) => (
-            <div key={item.id} className={s.orderRow}>
-              <div>
-                <Text>{serviceName(item.service_type)}</Text>
-                <Text size="sm" c="dimmed">{`${item.quantity} x ${formatVndAmount(item.unit_price)}`}</Text>
-              </div>
-              <Text className={s.nums}>{formatVndAmount(item.amount)}</Text>
-            </div>
-          ))}
-          <div className={`${s.orderRow} ${s.orderTotal}`}>
-            <Text fw={500}>Tổng tiền</Text>
-            <Text fw={500} className={s.nums}>{formatVndAmount(order.total_amount)}</Text>
-          </div>
+        <div className={s.tw}>
+          <table className={s.items}>
+            <thead>
+              <tr>
+                <th>Dịch vụ</th>
+                <th>Số lượng</th>
+                <th>Đơn giá</th>
+                <th>Thành tiền</th>
+              </tr>
+            </thead>
+            <tbody>
+              {order.items.map((item) => (
+                <tr key={item.id}>
+                  <td>{serviceName(item.service_type)}</td>
+                  <td>{item.quantity}</td>
+                  <td>{formatVndAmount(item.unit_price)}</td>
+                  <td>{formatVndAmount(item.amount)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colSpan={3}>Tổng tiền</td>
+                <td>{formatVndAmount(order.total_amount)}</td>
+              </tr>
+            </tfoot>
+          </table>
         </div>
       )}
-    </div>
+    </>
   );
 }

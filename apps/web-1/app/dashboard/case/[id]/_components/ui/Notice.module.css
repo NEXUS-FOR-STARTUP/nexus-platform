@@ -1,0 +1,20 @@
+/* design-system/mockups/case-detail views.css: .alert, .alert b, .alert.ok, .alert.bad. */
+.notice {
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.title {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.ok {
+  background: #d1fae5;
+}
+
+.bad {
+  background: #fee2e2;
+}

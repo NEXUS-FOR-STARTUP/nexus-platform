@@ -10,6 +10,7 @@ import {
 } from "./activity/activity-groups";
 import TimelineDayGroup from "./activity/TimelineDayGroup";
 import classes from "./activity/timeline.module.css";
+import FilterTabs from "./ui/FilterTabs";
 
 // Must match the `take` of case events in apps/api case.repository.
 const API_EVENT_LIMIT = 50;
@@ -75,25 +76,12 @@ export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
         <p className={classes.lead}>Hiển thị {API_EVENT_LIMIT} sự kiện gần nhất.</p>
       )}
 
-      {/* Filter Tabs matching mockup #tseg */}
-      <div className={classes.tabs} role="tablist" aria-label="Lọc theo loại sự kiện">
-        {TABS.map((tab) => {
-          const count = counts[tab.id] ?? 0;
-          const isActive = selectedTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              className={`${classes.tabBtn} ${isActive ? classes.tabBtnActive : ""}`}
-              onClick={() => setSelectedTab(tab.id)}
-            >
-              {tab.label} ({count})
-            </button>
-          );
-        })}
-      </div>
+      <FilterTabs
+        ariaLabel="Lọc theo loại sự kiện"
+        value={selectedTab}
+        onChange={setSelectedTab}
+        items={TABS.map((tab) => ({ value: tab.id, label: `${tab.label} (${counts[tab.id] ?? 0})` }))}
+      />
 
       {groups.length === 0 ? (
         <p className={classes.empty}>Chưa có hoạt động nào thuộc loại này.</p>

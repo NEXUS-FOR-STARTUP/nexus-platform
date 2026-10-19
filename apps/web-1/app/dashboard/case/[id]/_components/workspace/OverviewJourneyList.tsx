@@ -1,12 +1,12 @@
 "use client";
 
-import { Stack } from "@mantine/core";
 import { STAGES } from "@app/shared/stages";
 import type { StageSummary } from "../../hooks/useStageSummaries";
 import StageRow from "./StageRow";
 import { STAGE_STATUS, stageQuestionTotal } from "./stage-status";
 import type { StageView } from "./stage-view";
 import s from "./overview.module.css";
+import r from "./stage-rows.module.css";
 
 interface OverviewJourneyListProps {
   stages?: StageSummary[];
@@ -20,7 +20,7 @@ export default function OverviewJourneyList({ stages, onOpenStage }: OverviewJou
   return (
     <section className={s.section}>
       <h2 className={s.sectionTitle}>Hành trình</h2>
-      <Stack gap="sm">
+      <div className={r.rows}>
         {STAGES.filter((st) => st.available).map((stage) => {
           const summary = summaryByCode.get(stage.code);
           const status = summary?.status ?? "not_started";
@@ -35,7 +35,7 @@ export default function OverviewJourneyList({ stages, onOpenStage }: OverviewJou
           );
         })}
         {locked.length > 0 && <StageRow locked name="Sẽ mở sau" note={locked.map((st) => st.name).join(", ")} />}
-      </Stack>
+      </div>
     </section>
   );
 }

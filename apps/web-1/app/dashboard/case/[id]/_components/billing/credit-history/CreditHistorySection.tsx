@@ -1,17 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button, Skeleton, Stack, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { ExpandableList } from "@/components/ui/expandable-list/ExpandableList";
+import { Button } from "../../ui/Button";
 import type { CreditEntry } from "../../credit-history.types";
 import CreditHistoryFilters from "./CreditHistoryFilters";
 import CreditTransactionRow from "./CreditTransactionRow";
-import CreditTxDetail from "./CreditTxDetail";
 import { countByType, filterCreditEntries, type CreditDaysFilter, type CreditTypeFilter } from "./credit-history-filter";
+import s from "./credit-history.module.css";
 
 const MOBILE_QUERY = "(max-width: 820px)";
 const MOBILE_VISIBLE_ROWS = 5;
+const SKELETON_ROWS = 3;
 
 interface Props {
   entries?: CreditEntry[];
@@ -22,7 +22,6 @@ export default function CreditHistorySection({ entries, isLoading = false }: Pro
   const [type, setType] = useState<CreditTypeFilter>("all");
   const [days, setDays] = useState<CreditDaysFilter>(null);
   const [showAll, setShowAll] = useState(false);
-  const [openedIds, setOpenedIds] = useState<ReadonlySet<string>>(new Set());
   const isMobile = useMediaQuery(MOBILE_QUERY);
 
   const sorted = useMemo(
@@ -39,42 +38,42 @@ export default function CreditHistorySection({ entries, isLoading = false }: Pro
 
   if (isLoading) {
     return (
-      <Stack gap="xs">
-        <Skeleton height={56} />
-        <Skeleton height={56} />
-        <Skeleton height={56} />
-      </Stack>
+      <div className={s.rows} aria-busy>
+        {Array.from({ length: SKELETON_ROWS }, (_, i) => (
+          <div key={i} className={s.skeleton} />
+        ))}
+      </div>
     );
   }
 
   if (sorted.length === 0) {
-    return <Text c="dimmed">Chưa có giao dịch nào. Giao dịch sẽ xuất hiện khi bạn mua hoặc dùng lượt chấm.</Text>;
+    return <p className={s.empty}>Chưa có giao dịch nào. Giao dịch sẽ xuất hiện khi bạn mua hoặc dùng lượt chấm.</p>;
   }
 
-  const hidden = isMobile && !showAll ? Math.max(filtered.length - MOBILE_VISIBLE_ROWS, 0) : 0;
-  const visible = hidden > 0 ? filtered.slice(0, MOBILE_VISIBLE_ROWS) : filtered;
+  const folded = !!isMobile && !showAll && filtered.length > MOBILE_VISIBLE_ROWS;
+  const visible = folded ? filtered.slice(0, MOBILE_VISIBLE_ROWS) : filtered;
+  const countText = isMobile ? `Hiện ${visible.length} trên ${filtered.length} giao dịch` : `${filtered.length} giao dịch`;
 
   return (
     <div>
       <CreditHistoryFilters type={type} days={days} counts={counts} onTypeChange={setType} onDaysChange={setDays} />
       {filtered.length === 0 ? (
-        <Text c="dimmed">Không có giao dịch nào khớp bộ lọc.</Text>
+        <p className={s.empty}>Không có giao dịch nào khớp bộ lọc.</p>
       ) : (
-        <ExpandableList
-          onOpen={(id) => setOpenedIds((prev) => new Set(prev).add(id))}
-          items={visible.map((entry) => ({
-            id: entry.id,
-            summary: <CreditTransactionRow entry={entry} />,
-            children: <CreditTxDetail entry={entry} opened={openedIds.has(entry.id)} />,
-          }))}
-        />
+        <div className={s.rows}>
+          {visible.map((entry) => (
+            <CreditTransactionRow key={entry.id} entry={entry} />
+          ))}
+        </div>
       )}
-      {hidden > 0 && (
-        <Button variant="default" fullWidth onClick={() => setShowAll(true)}>{`Xem thêm ${hidden} giao dịch`}</Button>
-      )}
-      {isMobile && showAll && filtered.length > MOBILE_VISIBLE_ROWS && (
-        <Button variant="default" fullWidth onClick={() => setShowAll(false)}>Thu gọn</Button>
-      )}
+      <p className={s.footer}>
+        <span className={s.note}>{countText}</span>
+        {isMobile && filtered.length > MOBILE_VISIBLE_ROWS && (
+          <Button variant="quiet" onClick={() => setShowAll(!showAll)}>
+            {showAll ? "Thu gọn" : `Xem thêm ${filtered.length - MOBILE_VISIBLE_ROWS} giao dịch`}
+          </Button>
+        )}
+      </p>
     </div>
   );
 }

@@ -1,93 +1,125 @@
-.summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  width: 100%;
-}
-
-.summaryMain {
-  min-width: 0;
-}
-
-.summaryEnd {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-shrink: 0;
-}
-
-.plus {
-  color: var(--mantine-color-green-8);
-}
-
-.minus {
-  color: var(--mantine-color-red-8);
-}
-
-.nums {
-  font-variant-numeric: tabular-nums;
-}
-
-.metaGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: 0.75rem 1.5rem;
-  margin: 0;
-}
-
-.metaGrid dt {
-  color: var(--color-text-muted);
-  font-size: var(--ui-text-note);
-}
-
-.metaGrid dd {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  word-break: break-all;
-}
-
-.orderBlock {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1.5px solid var(--color-border);
-}
-
-.orderRow {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.5rem 0;
-}
-
-.orderTotal {
-  border-top: 1.5px solid var(--color-border);
-  font-weight: var(--ui-weight-medium);
-}
-
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.balanceGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 0.75rem;
-}
-
-.balanceCard {
+/* design-system/mockups/case-detail: base.css (.card .rows .bar select) and views.css (.bal .hist). Transaction rows are in credit-tx.module.css. */
+.page {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: var(--color-surface);
-  border: 1.5px solid var(--color-border);
-  border-radius: 0.5rem;
+}
+
+.page > :first-child + * {
+  margin-top: 32px;
+}
+
+.bal {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.balCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 24px 28px;
+}
+
+.note {
+  font-size: 14px;
+  color: #475569;
+}
+
+.balName {
+  margin: 0 0 4px;
+}
+
+.big {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.balNote {
+  margin: 12px 0 0;
+}
+
+.hist {
+  margin-top: 48px;
+}
+
+.histTitle {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.barTabs {
+  margin: 0;
+}
+
+.select {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+  font: inherit;
+  font-size: 16px;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.empty {
+  padding: 24px 0;
+  color: #475569;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 8px 0 0;
+}
+
+.skeleton {
+  height: 56px;
+  border-radius: 8px;
+  background: #e2e8f0;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+@media (max-width: 820px) {
+  .bal {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

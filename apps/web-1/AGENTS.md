@@ -58,7 +58,7 @@ Case detail (`dashboard/case/[id]`, live path `NEXT_PUBLIC_JOURNEY_WORKSPACE=tru
 4. `timeline`: activity grouped by day, newest first (API returns the latest 50).
 5. `settings`: project + contact forms (save enabled only when dirty), danger zone.
 
-Redesign primitives: `--ui-text-*`/`--ui-weight-*`/`--ui-gap-section`/`--ui-topbar-height` in `globals.css`; `components/ui/{underline-tabs,StatusChip,CopyIconButton,expandable-list/ExpandableList}`; `formatVndAmount` in `lib/pricing.ts` (always `1,000 VND`).
+Redesign primitives: `--ui-text-*`/`--ui-weight-*`/`--ui-gap-section`/`--ui-topbar-height` in `globals.css`; `components/ui/{underline-tabs,StatusChip,CopyIconButton}`; `formatVndAmount` in `lib/pricing.ts` (always `1,000 VND`).
 
 ## DATA FETCHING PATTERN
 

@@ -12,7 +12,6 @@ import OverviewHero from "./OverviewHero";
 import OverviewJourneyList from "./OverviewJourneyList";
 import OverviewProfileFold from "./OverviewProfileFold";
 import OverviewRecentReports from "./OverviewRecentReports";
-import OverviewIdeaGuideAlert from "../overview/OverviewIdeaGuideAlert";
 import s from "./overview.module.css";
 
 interface OverviewTabProps {
@@ -49,10 +48,6 @@ export default function OverviewTab({
       <ContactNextStepCard contact={contact} onOpenSettings={openSettings} />
 
       {contactComplete && <OverviewHero action={actions[0] ?? null} onOpenStage={onOpenStage} />}
-
-      {contactComplete && !(actions[0]?.stageSlug === "y-tuong" && actions[0].view === "draft") && (
-        <OverviewIdeaGuideAlert onOpenStage={onOpenStage} />
-      )}
 
       <OverviewJourneyList stages={stages} onOpenStage={onOpenStage} />
 

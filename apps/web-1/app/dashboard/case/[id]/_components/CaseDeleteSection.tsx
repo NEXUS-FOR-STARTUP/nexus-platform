@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { Trash as Trash2 } from "@phosphor-icons/react";
 import { isAxiosError } from "axios";
-import { Button, Modal, Stack, Text, TextInput } from "@mantine/core";
+import { Button, Modal, TextInput } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/navigation";
 import { useCaseDetails } from "../hooks/useCaseDetails";
+import { Button as DangerButton } from "./ui/Button";
+import s from "./settings-tab.module.css";
 
 interface CaseDeleteSectionProps {
   caseId: string;
@@ -44,22 +46,15 @@ export default function CaseDeleteSection({ caseId, stage }: CaseDeleteSectionPr
   return (
     <>
       {stage === "submitted" && (
-        <Stack gap="sm">
-          <div>
-            <Text fw={500} size="lg" c="red" className="flex items-center gap-2">
-              <Trash2 size={18} aria-hidden />
-              Vùng nguy hiểm
-            </Text>
-            <Text size="sm" c="dimmed">
-              Dự án này chưa được admin duyệt. Bạn có thể xóa vĩnh viễn dự án này. Hành động này không thể hoàn tác.
-            </Text>
-          </div>
-          <div>
-            <Button color="red" variant="outline" onClick={() => setIsDeleteModalOpen(true)}>
-              Xóa dự án
-            </Button>
-          </div>
-        </Stack>
+        <div className={s.danger}>
+          <h2 className={s.dangerTitle}>Xoá dự án</h2>
+          <p className={s.dangerLead}>
+            Dự án này chưa được admin duyệt. Bạn có thể xóa vĩnh viễn dự án này. Hành động này không thể hoàn tác.
+          </p>
+          <DangerButton variant="danger" onClick={() => setIsDeleteModalOpen(true)}>
+            Xoá dự án
+          </DangerButton>
+        </div>
       )}
 
       <Modal

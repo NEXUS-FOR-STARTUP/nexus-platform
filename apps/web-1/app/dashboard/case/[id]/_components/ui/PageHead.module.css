@@ -1,0 +1,22 @@
+/* design-system/mockups/case-detail base.css: h1 24/500/1.25, `.head p` margin-top 4px, `.note` 14px muted. */
+.head {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--ui-text-title);
+  font-weight: var(--ui-weight-medium);
+  line-height: 1.25;
+}
+
+.note {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 0;
+  font-size: var(--ui-text-note);
+  color: #475569;
+}

@@ -1,12 +1,11 @@
 "use client";
 
-import { Group, Paper, Stack, Text } from "@mantine/core";
-import { Button } from "../ui/Button";
-import { Lock } from "@phosphor-icons/react";
+import { LockIcon } from "@phosphor-icons/react";
 import { StatusChip } from "@/components/ui/StatusChip";
 import type { StageStatus } from "../../hooks/useStageSummaries";
+import { Button } from "../ui/Button";
 import { STAGE_STATUS } from "./stage-status";
-import s from "./overview.module.css";
+import r from "./stage-rows.module.css";
 
 interface StageRowProps {
   name: string;
@@ -23,24 +22,22 @@ export default function StageRow({ name, note, status = "not_started", onOpen, l
   const meta = STAGE_STATUS[status];
 
   return (
-    <Paper p="md" withBorder radius="md">
-      <Group justify="space-between" wrap="wrap" gap="sm">
-        <Stack gap={2} style={{ flex: 1, minWidth: 200 }}>
-          <Group gap="xs" wrap="nowrap">
-            {locked && <Lock size={16} aria-hidden />}
-            <Text className={s.name}>{name}</Text>
-          </Group>
-          <Text className={s.note}>{note}</Text>
-        </Stack>
-        <Group gap="sm" wrap="nowrap">
-          <StatusChip tone={locked ? "neutral" : meta.tone}>{locked ? "Sắp ra mắt" : meta.label}</StatusChip>
-          {!locked && onOpen && (
-            <Button variant="quiet" size="sm" onClick={onOpen}>
-              {meta.cta}
-            </Button>
-          )}
-        </Group>
-      </Group>
-    </Paper>
+    <div className={`${r.row} ${locked ? r.locked : ""}`}>
+      <div>
+        <div className={r.name}>
+          {locked && <LockIcon size={16} aria-hidden />}
+          {name}
+        </div>
+        <div className={r.note}>{note}</div>
+      </div>
+      <StatusChip tone={locked ? "neutral" : meta.tone}>{locked ? "Sắp ra mắt" : meta.label}</StatusChip>
+      {!locked && onOpen ? (
+        <Button variant="quiet" onClick={onOpen}>
+          {meta.cta}
+        </Button>
+      ) : (
+        <span />
+      )}
+    </div>
   );
 }

@@ -2,18 +2,17 @@
 
 import React, { useRef, useState } from "react";
 import { isAxiosError } from "axios";
-import { Case } from "@/types";
-import { useCaseDetails } from "../hooks/useCaseDetails";
-import { FloppyDisk as Save } from "@phosphor-icons/react";
-import { Button } from "./ui/Button";
-import { notifications } from "@mantine/notifications";
-import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { isCaseContactComplete } from "@repo/validation";
-import CaseContactFields from "./CaseContactFields";
-import CaseProjectFields, { type CaseProjectValues } from "./CaseProjectFields";
-import CaseDeleteSection from "./CaseDeleteSection";
+import type { Case } from "@/types";
+import { useCaseDetails } from "../hooks/useCaseDetails";
 import { contactFromSnapshot, validateCaseContact, type CaseContactValues } from "../../../_components/case-contact";
+import CaseContactFields from "./CaseContactFields";
+import CaseDeleteSection from "./CaseDeleteSection";
+import CaseProjectFields, { type CaseProjectValues } from "./CaseProjectFields";
+import { Button } from "./ui/Button";
+import Notice, { type NoticeKind } from "./ui/Notice";
+import PageHead from "./ui/PageHead";
+import s from "./settings-tab.module.css";
 
 interface IntakeSnapshotLike {
   team_name?: string;
@@ -33,8 +32,13 @@ interface SettingsValues {
   contact: CaseContactValues;
 }
 
+interface NoticeState {
+  kind: NoticeKind;
+  title: string;
+  message: string;
+}
+
 export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSettingsProps) {
-  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const formRef = useRef<HTMLFormElement>(null);
   const { updateSettings, isUpdatingSettings, contact: caseContact } = useCaseDetails(caseData.id);
@@ -54,7 +58,7 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
   }));
   const [project, setProject] = useState<CaseProjectValues>(initial.project);
   const [contact, setContact] = useState<CaseContactValues>(initial.contact);
-  const showContactHint = searchParams.get("tab") === "settings" && !isCaseContactComplete(caseContact);
+  const [notice, setNotice] = useState<NoticeState | null>(null);
 
   // Validation Error State
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -98,10 +102,10 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       focusFirstError(newErrors);
-      notifications.show({
+      setNotice({
+        kind: "bad",
         title: "Chưa thể lưu cài đặt",
         message: "Vui lòng kiểm tra và điền đầy đủ các trường thông tin bắt buộc.",
-        color: "red",
       });
       return;
     }
@@ -120,30 +124,35 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
       });
       setInitial({ project, contact });
       queryClient.invalidateQueries({ queryKey: ["case", caseData.id] });
-      notifications.show({
+      setNotice({
+        kind: "ok",
         title: "Thành công",
         message: "Đã lưu thông tin dự án và liên hệ. Bạn sẽ nhận thông báo qua số điện thoại và email này.",
-        color: "green",
       });
     } catch (err: unknown) {
       const data = isAxiosError(err) ? err.response?.data : undefined;
-      notifications.show({
+      setNotice({
+        kind: "bad",
         title: "Lỗi",
         message: data?.message || data?.error || "Gặp lỗi khi lưu thông tin cài đặt.",
-        color: "red",
       });
     }
   };
 
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <h2 className="text-xl font-medium text-text-app m-0">Cài đặt dự án</h2>
-        <p className="text-sm text-text-muted mt-1 mb-0">Thông tin dưới đây áp dụng cho dự án này.</p>
-      </div>
+    <div className={s.page}>
+      <PageHead
+        title="Cài đặt"
+        note="Cập nhật tên nhóm, trường học và bối cảnh lớp học để báo cáo phản biện hiển thị chính xác. Mục có dấu * là bắt buộc."
+      />
 
-      <form ref={formRef} onSubmit={handleSubmit} noValidate>
-        <div className="flex flex-col gap-8">
+      <div>
+        {notice && (
+          <Notice kind={notice.kind} title={notice.title}>
+            {notice.message}
+          </Notice>
+        )}
+        <form ref={formRef} onSubmit={handleSubmit} noValidate>
           <CaseProjectFields
             values={project}
             errors={errors}
@@ -162,22 +171,15 @@ export default function TabCaseSettings({ caseData, intakeSnapshot }: TabCaseSet
               setContact((prev) => ({ ...prev, [field]: value }));
               clearError(`contact_${field}`);
             }}
-            showHint={showContactHint}
           />
 
-          <div className="flex justify-end">
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={!isDirty}
-              loading={isUpdatingSettings}
-              leftSection={<Save className="w-3.5 h-3.5" />}
-            >
+          <div className={s.save}>
+            <Button type="submit" disabled={!isDirty} loading={isUpdatingSettings}>
               Lưu thay đổi
             </Button>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
 
       <CaseDeleteSection caseId={caseData.id} stage={caseData.user_facing_stage} />
     </div>

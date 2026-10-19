@@ -26,37 +26,6 @@
   color: #475569;
 }
 
-.tabs {
-  display: flex;
-  gap: 28px;
-  margin-bottom: 24px;
-  overflow-x: auto;
-}
-
-.tabBtn {
-  border: 0;
-  border-bottom: 3px solid transparent;
-  background: transparent;
-  font-family: inherit;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 500;
-  padding: 10px 2px 7px;
-  cursor: pointer;
-  color: #475569;
-  white-space: nowrap;
-}
-
-.tabBtn:hover {
-  color: #0f172a;
-}
-
-.tabBtnActive {
-  color: #0f172a;
-  border-bottom-color: #2563eb;
-}
-
-.tabBtn:focus-visible,
 .summary:focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
@@ -130,7 +99,7 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: #f1f5f9;
+  background: #e2e8f0;
   color: #475569;
 }
 

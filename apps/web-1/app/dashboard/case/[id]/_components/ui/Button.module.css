@@ -99,7 +99,7 @@
 /* Disabled */
 .btn:disabled,
 .btn[aria-disabled="true"] {
-  background: var(--color-surface-soft, #f1f5f9);
+  background: var(--color-surface-muted, #e2e8f0);
   color: var(--color-text-muted, #94a3b8);
   border-color: transparent;
   cursor: not-allowed;
