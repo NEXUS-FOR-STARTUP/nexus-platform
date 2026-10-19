@@ -1,7 +1,7 @@
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know
 
-This version has breaking changes - APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+Breaking changes — APIs, conventions, file structure may differ from training data. Read relevant guide in `node_modules/next/dist/docs/` before writing code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
 ## OVERVIEW
@@ -39,33 +39,33 @@ RootLayout → Providers
 
 ## AUTH & SECURITY PATTERN
 
-- **Server-side guard (`proxy.ts`)**: Next.js 16 entry interceptor checking session and role permissions before rendering protected trees. Preserves `returnUrl` for seamless post-login redirection.
-- **Maintenance Mode**: `proxy.ts` evaluates `MAINTENANCE_MODE` env flag; when enabled, routes redirect to `/maintenance`.
-- **Client-side sync**: `useSession()` in layouts ensures reactive state synchronization and immediate client-side redirects on logout or expired sessions.
-- **Axios 401 Interceptor**: Auto-clears stale session tokens and routes back to `/auth`.
+- **Server-side guard (`proxy.ts`)**: Next.js 16 entry interceptor checks session + role permissions before rendering protected trees. Preserves `returnUrl` for post-login redirect.
+- **Maintenance Mode**: `proxy.ts` evaluates `MAINTENANCE_MODE` env flag; enabled → routes redirect `/maintenance`.
+- **Client-side sync**: `useSession()` in layouts → reactive state sync, immediate client redirect on logout/expired session.
+- **Axios 401 Interceptor**: Auto-clear stale session tokens, route back to `/auth`.
 
 ## PERSONA DEVICE SCOPE (MOBILE VS DESKTOP)
 
-- **Student Workspace (`/dashboard/*`, `/intake`, `/team-fit`)**: Fully mobile-responsive. Employs mobile drawer navigation, responsive card-view tables for documents and transactions, and adaptive headers.
-- **Admin & Supporter Consoles (`/admin/*`, `/supporter/*`)**: Strictly **DESKTOP-ONLY**. Rendered with `DesktopOnlyNotice.tsx` which explicitly blocks screens with viewport width < 1024px. **Never write responsive mobile overrides for Admin/Supporter screens.**
+- **Student Workspace (`/dashboard/*`, `/intake`, `/team-fit`)**: Fully mobile-responsive. Mobile drawer nav, responsive card-view tables for documents + transactions, adaptive headers.
+- **Admin & Supporter Consoles (`/admin/*`, `/supporter/*`)**: Strictly **DESKTOP-ONLY**. Rendered with `DesktopOnlyNotice.tsx`, blocks viewport width < 1024px. **Never write responsive mobile overrides for Admin/Supporter screens.**
 
 ## CASE WORKSPACE (7 TABS & STATE GATING)
 
-Case detail (`dashboard/case/[id]`) contains 7 distinct tabs synchronized with the query string `?tab=`:
-1. `overview`: Radar score, phase cards, status guidance, and quick actions.
-2. `documents`: Uploaded artifacts, student documents, supporter outputs, and external feedback.
-3. `report`: Rendered AI critique report, scorecards, and Typst PDF download.
-4. `discussion`: Realtime chat via Centrifugo (conditionally hidden for pure AI packages like `pkg_ai_audit`).
-5. `timeline`: Audit history, stage changes, and chronological event ledger.
-6. `settings`: Case metadata editing, member management, and danger zone actions.
+Case detail (`dashboard/case/[id]`) has 7 tabs synced with query string `?tab=`:
+1. `overview`: Radar score, phase cards, status guidance, quick actions.
+2. `documents`: Uploaded artifacts, student documents, supporter outputs, external feedback.
+3. `report`: Rendered AI critique report, scorecards, Typst PDF download.
+4. `discussion`: Realtime chat via Centrifugo (hidden for pure AI packages like `pkg_ai_audit`).
+5. `timeline`: Audit history, stage changes, chronological event ledger.
+6. `settings`: Case metadata editing, member management, danger zone actions.
 7. `credits`: Evaluation balance, purchase CTA (locked once case reaches `completed` stage).
 
 ## DATA FETCHING PATTERN
 
 - TanStack Query + Axios `apiClient`
 - Query keys: `["cases"]`, `["case", id]`, `["case-messages", caseId]`, `["admin-workers"]`
-- Realtime chat: Centrifugo WebSocket via `useRealtimeChat` (sub `chat:{caseId}`, token from `/api/realtime/cases/:caseId/subscribe-token`) → updates query cache directly.
-- Polling: case details (10s), chat messages (60s fallback - WebSocket is primary), worker KPI (10s).
+- Realtime chat: Centrifugo WebSocket via `useRealtimeChat` (sub `chat:{caseId}`, token from `/api/realtime/cases/:caseId/subscribe-token`) → update query cache directly.
+- Polling: case details (10s), chat messages (60s fallback - WebSocket primary), worker KPI (10s).
 - Mutations invalidate related queries on success. No Redux/Zustand.
 
 ## CUSTOM HOOKS (37 total)
@@ -80,14 +80,14 @@ Core hooks across routes:
 
  ## MANTINE UI STYLING RULE
 
- - **Không tự thêm Tailwind positioning classes** (`fixed`, `inset-0`, `flex`, `items-center`, `justify-center`) vào Mantine UI components (`Modal`, `Drawer`, v.v.). Mantine đã có layout mặc định. Override class gây xung đột hiển thị, lệch modal khỏi giữa màn hình.
- - **Độ dày control đồng nhất**: mọi `Button`, `Select`, `TextInput`, `NumberInput` tương tác cùng hàng phải dùng chung `size="sm"` trở lên (cấm `size="xs"` cho control lọc/bấm). Chiều cao các control đứng cạnh nhau phải bằng nhau trên cả desktop và mobile.
+ - **Không tự thêm Tailwind positioning classes** (`fixed`, `inset-0`, `flex`, `items-center`, `justify-center`) vào Mantine UI components (`Modal`, `Drawer`, v.v.). Mantine có layout mặc định. Override class gây xung đột hiển thị, lệch modal khỏi giữa màn hình.
+ - **Độ dày control đồng nhất**: mọi `Button`, `Select`, `TextInput`, `NumberInput` tương tác cùng hàng dùng chung `size="sm"` trở lên (cấm `size="xs"` cho control lọc/bấm). Control đứng cạnh nhau cao bằng nhau trên desktop + mobile.
 ## UI CONVENTIONS & WORDING
 
-- Vietnamese-first (all labels, messages, notifications).
-- Currency: **BẮT BUỘC chỉ dùng đơn vị `VND`**, đặt sau số, cách 1 dấu cách, phân cách phần ngàn bằng dấu phẩy `,` (đúng: `79,000 VND`, `13,167 VND`). **TUYỆT ĐỐI KHÔNG** dùng `đ`, `₫`, `VNĐ`, `đồng` hay dấu chấm `.` làm phân cách (sai: `79.000đ`, `79.000 VND`). Áp dụng cho mọi chuỗi hiển thị (kể cả landing, FAQ, banner, modal, thông báo). Dùng `formatPrice` (`lib/pricing.ts`) khi số tiền khác 0; số 0 cần hiện `0 VND` thì không dùng `formatPrice` (nó trả "Miễn phí").
-- **Canonical Wording**: Khi chỉnh sửa copy giao diện, bắt buộc tra cứu tài liệu tại `design-system/wording/` (1288 lines report + 28 page audits) để tuân thủ mental model người dùng (tránh dùng thuật ngữ kỹ thuật nội bộ như mã transition hay tên enum).
-- **Cấm CP1/CP2/CP3/CP4 và "Checkpoint N" trên UI** (mọi persona: student, admin, supporter): label, tiêu đề, thông báo, tooltip, tên gói/dịch vụ hiển thị. Dùng tên vòng: CP1 = "Ý tưởng", CP2 = "Thị trường" (vd. "Gói chấm Thị trường", "Vòng Thị trường"). Mã nội bộ (`cp1_audit`, `"CP2"`, tên biến/enum/query param) được giữ nguyên trong code. Tên gói/dịch vụ lấy từ API (`ServicePackageDto.name`, `service_type.name`) có thể còn chứa "Checkpoint" trong DB, nên KHÔNG render trực tiếp: dựng nhãn từ tên vòng (`stageName`) hoặc `credits_granted`.
+- Vietnamese-first (mọi label, message, notification).
+- Currency: **BẮT BUỘC chỉ dùng đơn vị `VND`**, đặt sau số, cách 1 dấu cách, phân cách phần ngàn bằng dấu phẩy `,` (đúng: `79,000 VND`, `13,167 VND`). **TUYỆT ĐỐI KHÔNG** dùng `đ`, `₫`, `VNĐ`, `đồng` hay dấu chấm `.` làm phân cách (sai: `79.000đ`, `79.000 VND`). Áp dụng mọi chuỗi hiển thị (landing, FAQ, banner, modal, thông báo). Dùng `formatPrice` (`lib/pricing.ts`) khi số tiền khác 0; số 0 cần hiện `0 VND` thì không dùng `formatPrice` (trả "Miễn phí").
+- **Canonical Wording**: Chỉnh copy giao diện bắt buộc tra `design-system/wording/` (1288 lines report + 28 page audits) để theo mental model người dùng (tránh thuật ngữ kỹ thuật nội bộ như mã transition hay tên enum).
+- **Cấm CP1/CP2/CP3/CP4 và "Checkpoint N" trên UI** (mọi persona: student, admin, supporter): label, tiêu đề, thông báo, tooltip, tên gói/dịch vụ hiển thị. Dùng tên vòng: CP1 = "Ý tưởng", CP2 = "Thị trường" (vd. "Gói chấm Thị trường", "Vòng Thị trường"). Mã nội bộ (`cp1_audit`, `"CP2"`, tên biến/enum/query param) giữ nguyên trong code. Tên gói/dịch vụ từ API (`ServicePackageDto.name`, `service_type.name`) có thể còn chứa "Checkpoint" trong DB, nên KHÔNG render trực tiếp: dựng nhãn từ tên vòng (`stageName`) hoặc `credits_granted`.
 
 ## DOCUMENTATION REFERENCE
 

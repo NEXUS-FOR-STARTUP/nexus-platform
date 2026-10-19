@@ -7,7 +7,7 @@
 
 ## OVERVIEW
 
-Turborepo monorepo. Stack: Next.js 16, Hono, Better Auth, Prisma 7, Mantine UI v9, TanStack Query/Form/Virtual, Lucide React, Vercel AI SDK (@ai-sdk/google), BullMQ + Redis, shared `@repo/*` and `@app/*` packages.
+Turborepo monorepo. Stack: Next.js 16, Hono, Better Auth, Prisma 7, Mantine UI v9, TanStack Query/Form/Virtual, Lucide React, Vercel AI SDK (@ai-sdk/google), BullMQ + Redis, shared `@repo/*` + `@app/*` packages.
 
 ## STRUCTURE
 
@@ -30,25 +30,25 @@ root/
 
 ## WHERE TO LOOK
 
-| Task            | Location                                              | Notes                                                        |
-| --------------- | ----------------------------------------------------- | ------------------------------------------------------------ |
-| Backend/API     | `apps/api/src/index.ts`, `auth.ts`, `db.ts`, `env.ts` | Hono entry, auth mount, DB wiring                            |
-| Worker OMP      | `apps/worker-omp/src/index.ts`, `storage.ts`          | BullMQ daemon, Redis Pub/Sub, sandbox execution              |
-| Web UI          | `apps/web-1/app/*`                                    | Mantine UI v9 app; read `apps/web-1/AGENTS.md` first         |
-| Shared UI       | Mantine UI v9                                          | Real design system for web-1                                 |
-| DB schema       | `prisma/schema-*.md` or `prisma/schema.prisma`        | 32 models, plural snake_case fields (31 migrations)          |
-| DB migration    | `docs/db-migration-guide.md`                          | Prisma migration workflow, generate/migrate/deploy          |
-| Tech docs       | `docs/tech-doc-urls.txt`                              | Source of truth for external docs                            |
-| CI/CD           | `docs/ci-guide.md`                                    | GitHub Actions workflow, automate build/test/deploy          |
-| Workspace rules | `package.json`, `turbo.json`                          | Root scripts + Turbo task graph                              |
-| Shared packages | `packages/validation/src/`, `packages/shared/src/`    | Zod schemas (shared FE↔BE) & telemetry metrics               |
-| Agent rules     | `.agents/rules/`                                      | Development, docs, orchestration, workflow, prisma-migration |
-| Test infra      | `apps/api/src/shared/infrastructure/tests/`           | 48 files (47 *.test.ts + coverage-report.ts), node:test in api |
-| Realtime chat   | `apps/api/src/modules/realtime/`                      | Centrifugo v6; ops: `docs/realtime-centrifugo-guide.md`     |
-| DB query (prod) | `docs/db-query-guide.md`                              | Read-only query via READONLY_DATABASE_URL, guest account     |
-| DB backup       | `docs/db-backup-guide.md`                             | pg_dump via Docker, safe SQL on VPS, restore                 |
-| Docker build    | `docs/docker-build-push-guide.md`                     | Build/push API & Web images, deploy to VPS                   |
-| VPS deploy      | `docs/vps-deployment-guide.md`                        | Safe VPS deployment checklist (Single Compose, OMP worker)    |
+|Task|Location|Notes|
+|---|---|---|
+|Backend/API|`apps/api/src/index.ts`, `auth.ts`, `db.ts`, `env.ts`|Hono entry, auth mount, DB wiring|
+|Worker OMP|`apps/worker-omp/src/index.ts`, `storage.ts`|BullMQ daemon, Redis Pub/Sub, sandbox execution|
+|Web UI|`apps/web-1/app/*`|Mantine UI v9 app; read `apps/web-1/AGENTS.md` first|
+|Shared UI|Mantine UI v9|Real design system for web-1|
+|DB schema|`prisma/schema-*.md` or `prisma/schema.prisma`|32 models, plural snake_case fields (31 migrations)|
+|DB migration|`docs/db-migration-guide.md`|Prisma migration workflow, generate/migrate/deploy|
+|Tech docs|`docs/tech-doc-urls.txt`|Source of truth for external docs|
+|CI/CD|`docs/ci-guide.md`|GitHub Actions workflow, automate build/test/deploy|
+|Workspace rules|`package.json`, `turbo.json`|Root scripts + Turbo task graph|
+|Shared packages|`packages/validation/src/`, `packages/shared/src/`|Zod schemas (shared FE↔BE) & telemetry metrics|
+|Agent rules|`.agents/rules/`|Development, docs, orchestration, workflow, prisma-migration|
+|Test infra|`apps/api/src/shared/infrastructure/tests/`|48 files (47 *.test.ts + coverage-report.ts), node:test in api|
+|Realtime chat|`apps/api/src/modules/realtime/`|Centrifugo v6; ops: `docs/realtime-centrifugo-guide.md`|
+|DB query (prod)|`docs/db-query-guide.md`|Read-only query via READONLY_DATABASE_URL, guest account|
+|DB backup|`docs/db-backup-guide.md`|pg_dump via Docker, safe SQL on VPS, restore|
+|Docker build|`docs/docker-build-push-guide.md`|Build/push API & Web images, deploy to VPS|
+|VPS deploy|`docs/vps-deployment-guide.md`|Safe VPS deployment checklist (Single Compose, OMP worker)|
 
 ## CONVENTIONS
 
@@ -58,14 +58,14 @@ root/
 - Better Auth in `apps/api`; frontend only consumes client/session helpers.
 - Prisma schema: plural tables + snake_case columns.
 - Mantine UI web-only.
-- ESLint 9 flat config (not legacy .eslintrc).
+- ESLint 9 flat config (no legacy .eslintrc).
 - Tailwind CSS v4 + postcss-preset-mantine.
 - TanStack Query + Axios for data fetching (no Redux/Zustand).
-- TanStack Form for form state management.
+- TanStack Form for form state.
 - Lucide React for icons (not Mantine icons).
 - Test: Node built-in runner (`node:test` + `node:assert`), only in apps/api.
-- CI/CD: see `docs/ci-guide.md` for GitHub Actions workflow setup.
-- Docker build: see `docs/docker-build-push-guide.md` for API & Web images.
+- CI/CD: see `docs/ci-guide.md`.
+- Docker build: see `docs/docker-build-push-guide.md`.
 - Shared validation: see `docs/shared-validation-convention.md` for zod/entity rules.
 
 ## ANTI-PATTERNS
@@ -76,15 +76,15 @@ root/
 - Reintroduce shadcn-style components into `apps/web-1`.
 - Change Prisma names away from plural/snake_case.
 - Ignore `docs/tech-doc-urls.txt` when touching Hono, Better Auth, or Mantine UI code.
-- Add manual Tailwind positioning classes (`fixed`, `inset-0`, `flex`, `items-center`, `justify-center`) to Mantine UI components (`Modal`, `Drawer`). Mantine has default layout; override classes break display (e.g., center alignment).
+- Add manual Tailwind positioning classes (`fixed`, `inset-0`, `flex`, `items-center`, `justify-center`) to Mantine UI components (`Modal`, `Drawer`). Mantine has default layout; override breaks display (e.g., center alignment).
 - Split `.env` per app (3 violations found: `apps/web-1/.env`, `apps/web-1/.env.prod`, `.env.prod`).
 - Direct `apiClient` calls in UI components instead of hooks.
-- `as any` type escapes (126 occurrences in API, 20 in web-1 — số đếm hiện tại, có thể trôi).
+- `as any` type escapes (126 in API, 20 in web-1 — số đếm hiện tại, có thể trôi).
 - try/catch in component code (delegate to hook/query layer).
-- Files exceeding 200-line limit (20 files across API and web-1).
+- Files exceeding 200-line limit (20 files across API + web-1).
 - Shadows on Mantine Card/Paper (`shadow-sm`, `shadow-md` on 22 files).
-- Adding responsive mobile layouts to Admin or Supporter interfaces (violates Desktop-only design enforced by `DesktopOnlyNotice`).
-- Assuming frontend has no server-side auth guard (Next.js 16 `proxy.ts` performs server-side route guarding and maintenance mode).
+- Responsive mobile layouts on Admin or Supporter interfaces (violates Desktop-only design enforced by `DesktopOnlyNotice`).
+- Assume frontend has no server-side auth guard (Next.js 16 `proxy.ts` does server-side route guarding + maintenance mode).
 
 ## UNIQUE STYLES
 
@@ -135,31 +135,31 @@ bun run format                 # Prettier (not in CI pipeline)
 - `prisma db push`
 - `DROP TABLE`, `DROP COLUMN`, `DELETE FROM`, `TRUNCATE`
 
-Nếu DATABASE_URL trỏ host remote VPS, IP production (hoặc domain ngoài localhost/127.0.0.1) → **tuyệt đối không chạy destructive command**. Production DB là self-hosted PostgreSQL 18.4 trên VPS (container `nexus-db` theo `docker-compose.prod.yml`). Orchestrator phải inject safety block vào mọi subagent prompt (xem `.agents/rules/orchestration-protocol.md` → DB SAFETY PROTOCOL).
+DATABASE_URL trỏ host remote VPS, IP production (hoặc domain ngoài localhost/127.0.0.1) → **tuyệt đối không chạy destructive command**. Production DB = self-hosted PostgreSQL 18.4 trên VPS (container `nexus-db` theo `docker-compose.prod.yml`). Orchestrator phải inject safety block vào mọi subagent prompt (xem `.agents/rules/orchestration-protocol.md` → DB SAFETY PROTOCOL).
 
 **Vi phạm = data loss = irrecoverable.** Đã xảy ra 1 lần. Không được phép lần 2.
 
 ## NOTES
 
-- `apps/web-1/AGENTS.md` is child-specific Mantine UI note; sync with web work.
-- `apps/worker-omp/AGENTS.md` covers the BullMQ AI worker daemon and sandbox environment.
-- **Agent Rules**: [.agents/rules/](.agents/rules/) contains project-wide guidelines:
+- `apps/web-1/AGENTS.md` = child-specific Mantine UI note; sync with web work.
+- `apps/worker-omp/AGENTS.md` covers BullMQ AI worker daemon + sandbox environment.
+- **Agent Rules**: [.agents/rules/](.agents/rules/) project-wide guidelines:
   - [development-rules.md](.agents/rules/development-rules.md): Coding standards, file sizes, visual aids, no direct `apiClient` calls in UI.
   - [documentation-management.md](.agents/rules/documentation-management.md): Roadmaps, changelogs, plan files.
-  - [orchestration-protocol.md](.agents/rules/orchestration-protocol.md): Subagent delegation and parallel execution — **includes DB Safety Protocol**.
+  - [orchestration-protocol.md](.agents/rules/orchestration-protocol.md): Subagent delegation + parallel execution — **includes DB Safety Protocol**.
   - [primary-workflow.md](.agents/rules/primary-workflow.md): Planning, implementation, testing, code quality, integration, visual explanations — **includes DB Migration Safety Gate**.
 - Apps/api: 112 endpoints (108 module routes + 4 system) across 15 modules (`admin, ai-engine, auth, cases, deposits, documents, notifications, orders, packages, payments, profile, realtime, reports, supporter, wallet`). Clean Architecture (domain/application/infrastructure/http). Event bus (`shared/domain/domain-events.ts`, 14 event types) + 2 Outbox Relays (`DomainEventOutbox` 5s tick crash recovery, `NotificationOutbox` 2s tick). BullMQ `omp-queue` producer for AI jobs.
-- Apps/web-1: 37 custom hooks across route groups. Auth server-side guard via Next.js 16 `proxy.ts` (with `MAINTENANCE_MODE`). Case workspace has 5 tabs (`overview, journey, billing, timeline, settings`) with URL sync `?tab=journey&stage=<slug>&view=<draft|files|results>`. Supporter flow is frozen (unmounted 2026-10-11). Zalo community link externalized via `NEXT_PUBLIC_ZALO_GROUP_URL`. Student workspace is mobile-responsive; Admin is strictly Desktop-only (`DesktopOnlyNotice.tsx` < 1024px). Canonical UX wording reference: `design-system/wording/`. Vietnamese-first UI; never show CP1/CP2 in user-facing UI.
-- Apps/worker-omp: Dedicated BullMQ worker daemon on Bun. Consumes `omp-queue`, isolates runs in `storage/jobs/${caseId}/${jobId}/`, dual-publishes logs to Redis (`job:logs:${jobId}` and `job:logs:${caseId}`), listens to `job-cancellation`. Typst PDF generation is handled in `apps/api`, not worker.
+- Apps/web-1: 37 custom hooks across route groups. Auth server-side guard via Next.js 16 `proxy.ts` (with `MAINTENANCE_MODE`). Case workspace 5 tabs (`overview, journey, billing, timeline, settings`) with URL sync `?tab=journey&stage=<slug>&view=<draft|files|results>`. Supporter flow frozen (unmounted 2026-10-11). Zalo community link externalized via `NEXT_PUBLIC_ZALO_GROUP_URL`. Student workspace mobile-responsive; Admin strictly Desktop-only (`DesktopOnlyNotice.tsx` < 1024px). Canonical UX wording reference: `design-system/wording/`. Vietnamese-first UI; never show CP1/CP2 in user-facing UI.
+- Apps/worker-omp: Dedicated BullMQ worker daemon on Bun. Consumes `omp-queue`, isolates runs in `storage/jobs/${caseId}/${jobId}/`, dual-publishes logs to Redis (`job:logs:${jobId}` + `job:logs:${caseId}`), listens `job-cancellation`. Typst PDF generation in `apps/api`, not worker.
 - Packages/validation: Zod v4, shared schemas for IdeaInput, TeamMemberInput, TeamFitInput.
 - Packages/shared: Shared worker telemetry, CPU/RAM/disk metrics (`@app/shared`).
-- No `packages/ui` package exists; Mantine UI v9 is the real design system for web-1.
+- No `packages/ui` package; Mantine UI v9 = real design system for web-1.
 
 ## UI-UX-PRO-MAX USAGE RULE
 
-ui-ux-pro-max is UI/UX reference, not source of truth.
+ui-ux-pro-max = UI/UX reference, not source of truth.
 
-Before building major frontend screen, optionally query for:
+Before major frontend screen, optionally query for:
 
 - visual direction
 - layout pattern
@@ -180,4 +180,4 @@ Never let skill override Nexus requirements:
 - Student screens not admin dashboards.
 - Landing creative; workspace/admin restrained.
 
-Use skill as inspiration and validation, not rigid generator.
+Skill = inspiration + validation, not rigid generator.
