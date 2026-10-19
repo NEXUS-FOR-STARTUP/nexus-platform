@@ -1,0 +1,32 @@
+/* profile view */
+.avatar-row{display:flex;align-items:center;gap:20px;margin-bottom:24px}
+.avatar{width:96px;height:96px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-size:32px;font-weight:500;overflow:hidden;flex:none}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.avatar-actions{display:flex;flex-direction:column;gap:8px}
+
+.danger-box{background:var(--surface);border:1px solid rgba(239,68,68,.35);border-radius:8px;padding:24px 28px;margin-top:32px} /* taste-skill-ignore: danger box with border */
+.danger-head{display:flex;align-items:center;gap:8px;color:var(--err);font-weight:500;margin-bottom:8px}
+.danger-head .ic{stroke:var(--err)}
+
+/* spec view */
+.spec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin:16px 0 32px}
+.swatch{height:48px;border-radius:6px;border:1px solid var(--line);margin-bottom:8px}
+.spec-table{width:100%;border-collapse:collapse;margin:16px 0 32px}
+.spec-table th,.spec-table td{padding:10px 14px;border:1px solid var(--line);text-align:left;font-size:var(--t-note)}
+.spec-table th{background:var(--surface-2);font-weight:500}
+
+/* sessions list */
+.session-list{display:flex;flex-direction:column;gap:12px}
+.session-item{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:8px} /* taste-skill-ignore: session item border */
+.session-item.current{background:var(--brand-subtle);border-color:var(--brand-soft)}
+.session-info{display:flex;align-items:flex-start;gap:14px}
+.session-icon{width:40px;height:40px;border-radius:8px;background:var(--surface-2);display:grid;place-items:center;color:var(--muted);flex:none}
+.session-item.current .session-icon{background:var(--brand-soft);color:var(--brand)}
+
+/* toggle switch */
+.notif-list{display:flex;flex-direction:column;gap:16px}
+.notif-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:8px} /* taste-skill-ignore: notif row border */
+.switch{position:relative;display:inline-block;width:44px;height:24px;background:var(--line-strong);border-radius:999px;cursor:pointer;flex:none;transition:background .2s;border:0;padding:0}
+.switch[aria-checked="true"]{background:var(--brand)}
+.switch .thumb{position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .2s}
+.switch[aria-checked="true"] .thumb{transform:translateX(20px)}
