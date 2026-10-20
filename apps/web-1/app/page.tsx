@@ -9,6 +9,7 @@ import FAQSection from "@/components/landing/FAQSection";
 import ContactUs from "@/components/landing/ContactUs";
 import LandingFooter from "@/components/landing/LandingFooter";
 import LandingStickyCta from "@/components/landing/LandingStickyCta";
+import LandingMotion from "@/components/landing/LandingMotion";
 import base from "@/components/landing/landing.module.css";
 
 const TITLE = "Nexus | Đánh giá và phản biện dự án khởi nghiệp";
@@ -45,6 +46,7 @@ export default function Home() {
       </main>
       <LandingFooter />
       <LandingStickyCta />
+      <LandingMotion />
     </div>
   );
 }

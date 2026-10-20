@@ -91,3 +91,10 @@
 @media (prefers-reduced-motion: reduce) {
   .stage, .art, .go, .channel { transition: none; }
 }
+
+.price { transition: transform 0.5s var(--lp-ease), border-color 0.5s var(--lp-ease); }
+.price:hover { transform: translateY(-4px); border-color: var(--lp-chip-line); }
+@media (prefers-reduced-motion: reduce) {
+  .price { transition: none; }
+  .price:hover { transform: none; }
+}

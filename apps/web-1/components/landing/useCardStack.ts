@@ -21,6 +21,10 @@ export const OUT_MS = 320;
 export const LOCK_MS = 450;
 /** Offset (px) of each card behind the top one (up and to the right). */
 export const STACK_OFFSET_PX = 14;
+/** Share of the stack that must be visible before the intro plays. */
+const INTRO_VISIBLE_RATIO = 0.4;
+/** How long (ms) the one-time "draggable" nudge stays armed after the pile opens. */
+const INTRO_NUDGE_MS = 1800;
 /** Fly-out direction for click/keyboard: left and slightly down. */
 export const FLY_VECTOR = { x: -1, y: 0.35 } as const;
 /** Fly-out distance as a share of the stack width. */
@@ -67,6 +71,32 @@ export function useCardStack(count: number, hasLinks: boolean) {
   const busyRef = useRef(false);
   const dragRef = useRef<DragState | null>(null);
   const timersRef = useRef<number[]>([]);
+  const [intro, setIntro] = useState<"pending" | "fan" | "done">("pending");
+
+  // Intro: the pile opens once when it scrolls into view, then the top card nudges to show it can be dragged.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    if (window.matchMedia(REDUCED_MOTION_QUERY).matches) {
+      setIntro("done");
+      return;
+    }
+    let timer = 0;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        io.disconnect();
+        setIntro("fan");
+        timer = window.setTimeout(() => setIntro("done"), INTRO_NUDGE_MS);
+      },
+      { threshold: INTRO_VISIBLE_RATIO },
+    );
+    io.observe(root);
+    return () => {
+      io.disconnect();
+      window.clearTimeout(timer);
+    };
+  }, []);
 
   useEffect(() => {
     const query = window.matchMedia(REDUCED_MOTION_QUERY);
@@ -155,6 +185,7 @@ export function useCardStack(count: number, hasLinks: boolean) {
 
   const rootProps = {
     "data-js": ready,
+    "data-intro": intro,
     // Cards with their own links keep them clickable, so the stack itself takes keyboard focus.
     tabIndex: ready && hasLinks ? 0 : undefined,
     style: { "--lp-stack-offset": `${STACK_OFFSET_PX}px` } as CSSProperties,
