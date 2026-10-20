@@ -599,6 +599,8 @@ export const DOCUMENT_CATEGORY_CODES = [
   "pitch_deck",
   "market_research",
   "financial_plan",
+  "interview_survey",
+  "lecturer_guidance",
   "other",
 ] as const;
 
@@ -609,6 +611,8 @@ export const DOCUMENT_CATEGORY_LABELS: Record<DocumentCategoryCode, string> = {
   pitch_deck: "Slide thuyết trình",
   market_research: "Nghiên cứu thị trường",
   financial_plan: "Kế hoạch tài chính",
+  interview_survey: "Phỏng vấn / khảo sát khách hàng",
+  lecturer_guidance: "Hướng dẫn / yêu cầu từ giảng viên",
   other: "Tài liệu bổ sung",
 };
 
