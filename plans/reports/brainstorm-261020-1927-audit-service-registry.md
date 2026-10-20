@@ -192,7 +192,7 @@ Mỗi bước một commit, chạy test API trước khi sang bước sau.
 
 ## 6. Next steps & dependencies
 
-**Của bạn:** ~~đưa 4 file `cp2_*.md` lên VPS~~ đã làm (hash khớp repo, xem 1.2b). Còn lại: kiểm image API trên VPS (digest/ngày build/log deploy), rồi deploy nhánh `fix/cp2-sandbox-schema-guard` nếu chưa.
+**Của bạn:** ~~đưa 4 file `cp2_*.md` lên VPS~~ đã làm (hash khớp repo, xem 1.2b). Deploy bị chặn vì prod tốn tiền thật mua lượt và làm rác DB: sửa và kiểm hết ở local trước, gom thành một lần build image (image lớn), rồi mới tính deploy `fix/cp2-sandbox-schema-guard` và `feat/attachment-manifest`. Prod cũng cần kiểm: image worker trên VPS có phải bản trước JobSpec không (image local tạo 12/10 11:21 UTC, trước `fa09978`).
 
 **Sau khi deploy:**
 - Chạy thêm job CP2; kiểm sandbox có `AGENTS.md` và `tools/validate-cp2-report.mjs`, validator chạy được trong container API (xem mục 5).
@@ -218,8 +218,9 @@ Mỗi bước một commit, chạy test API trước khi sang bước sau.
 - Còn mở: có lọc danh mục theo giai đoạn không (modal dùng chung, mã mới hiện cả ở CP1); `business_model_canvas` chờ rubric CP3; `missingCategories` trên UI sẽ liệt kê hai nhãn mới là "chưa có" ở mọi giai đoạn (chưa xem cách hiển thị).
 
 ### Chưa kiểm
-- Chưa quan sát guard trên prod: sandbox job `5196feab` không có `AGENTS.md` và `tools/`. Chưa rõ lý do (chưa deploy, hay lý do khác). Chưa xác nhận `.mjs` tới được sandbox trong container API (phụ thuộc `createRequire` resolve `@repo/validation`).
-- Chưa biết tỷ lệ model đúng schema khi đã có prompt: mới có 1 job đúng; chưa đủ để nói AI không còn tự sai schema.
+- **Kiểm local (không đụng prod, không qua worker/Redis/DB):** sandbox dựng bằng đúng code API (`prepareSandbox`, `buildCp2AgentsMd`, validator, manifest) từ input job `5196feab`, rồi chạy CLI `omp` trực tiếp với `OMP_MODEL` local. 1 job: model đọc `AGENTS.md` và manifest, chạy validator 10 lần (lệnh `validate-cp2-report.mjs output/report.json cp2_full_v1`), kết thúc `OK`; `report.json` `schema: cp2_full_v1`, `checks` 30 tiêu chí, không `guidance_warning`; chạy lại validator ngoài cho `OK`. Image API build local: `validate-cp2-report.mjs` có trong `packages/validation/dist` và `createRequire` resolve đúng. Giới hạn: 1 lần chạy, nhãn danh mục trong manifest do tôi gán tay theo tên file (không qua modal/DB); chưa chạy đường trigger → coordinator → worker → finalizer; worker local là image cũ (trước `fa09978`, không có JobSpec), chưa dùng.
+- Lỗi tìm được khi smoke: `tsup` chính có `clean: true` nên mọi lần build/watch `@repo/validation` xóa `validate-cp2-report.mjs`, sandbox CP2 `throw` "Sandbox tool missing". Đã sửa: `onSuccess` trong `tsup.config.ts` dựng lại CLI sau mỗi lần build, `build` chỉ còn `tsup`.
+- Chưa biết tỷ lệ model đúng schema qua nhiều job (mới 2 job đúng: `5196feab` trên prod, 1 job local).
 - Số nhánh `CP1/CP2` từ grep chỉ trong `apps/api/src`; chưa soi `apps/web-1`, phần còn lại của `derive-stage-summaries.ts`, `ai-audit-order.listener.ts`.
 - Chưa đọc: coordinator dòng 600-776 (dispatch, nhánh lỗi sau dispatch), nội dung `saveOmpAuditReport`, `renderStageAnswers`, `ai-job.repository:158`, `derive-stage-summaries`, `admin-workers:533`. Chưa xác nhận ai đọc `input_source`, `change_summary`, `user_note` từ `input_json` ngoài assembler.
 - Chưa đọc `document-groups.ts` (nhóm tài liệu theo nhãn): chưa biết nhãn mới có sinh nhóm mới trên UI không. Chưa quyết modal giai đoạn có lọc danh mục theo giai đoạn không (hiện dùng chung một danh sách, mã mới sẽ hiện cả ở CP1 intake).
