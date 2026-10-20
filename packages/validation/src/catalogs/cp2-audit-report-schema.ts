@@ -54,20 +54,20 @@ export type Cp2Report = z.infer<typeof Cp2ReportSchema>;
 
 export type Cp2ValidationResult =
   | { ok: true; report: Cp2Report }
-  | { ok: false; issues: Array<{ path: string; code: string }> };
+  | { ok: false; issues: Array<{ path: string; code: string; message: string }> };
 
 /**
  * Validates raw report.json. `allowedSchemas` pins the `schema` values the job may produce
  * (a resubmit job without a usable previous report is allowed to answer `cp2_full_v1`).
- * Issues carry path + code only, never document text, so they are safe to log.
+ * Messages are zod's static texts (no input echoed), safe for logs and for the model's repair prompt.
  */
 export function validateCp2Report(raw: unknown, allowedSchemas: readonly Cp2SchemaId[]): Cp2ValidationResult {
   const parsed = Cp2ReportSchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false, issues: parsed.error.issues.map((i) => ({ path: i.path.join("."), code: i.code })) };
+    return { ok: false, issues: parsed.error.issues.map((i) => ({ path: i.path.join("."), code: i.code, message: i.message })) };
   }
   if (!allowedSchemas.includes(parsed.data.schema)) {
-    return { ok: false, issues: [{ path: "schema", code: "schema_not_allowed" }] };
+    return { ok: false, issues: [{ path: "schema", code: "schema_not_allowed", message: `schema must be one of: ${allowedSchemas.join(", ")}` }] };
   }
   return { ok: true, report: parsed.data };
 }
