@@ -109,7 +109,7 @@ Hiện trạng CP3/CP4: chỉ có catalog câu hỏi sinh viên (`packages/valid
 | D12 | Phân loại file người dùng chọn (lưu ở `document_records.metadata_json.category`, không phải `doc_type`) được đưa vào job qua manifest **JSON** `input/attachments_manifest.json` (tên trong sandbox đã dedupe, `category`, nhãn tiếng Việt, tên gốc, định dạng). Không đổi tên file theo loại | Bạn chọn JSON; đổi tên làm hỏng đối chiếu quote trong `evidence.source` |
 | D13 | Thêm hai danh mục: `lecturer_guidance` ("Hướng dẫn / yêu cầu từ giảng viên", gộp rubric + đề bài) và `interview_survey` ("Phỏng vấn / khảo sát khách hàng"). `business_model_canvas` chờ rubric CP3 | Bạn chọn; CP2 có nhóm bằng chứng riêng cho phỏng vấn/khảo sát |
 | D14 | Nhãn là người dùng tự khai: instruction ghi rõ file `lecturer_guidance` chỉ là tài liệu tham chiếu, không ghi đè prompt chấm | Chống gài nhãn để lái điểm |
-| D15 | Dữ liệu kế thừa giữa các CP: mỗi dịch vụ khai báo `upstream`; hàm chung dựng `input/context/`; là bối cảnh, không phải bằng chứng (xem 3.5) | Bạn chỉ ra CP2 cần ý tưởng CP1; hiện CP2 không nhận dữ liệu CP1 nào |
+| D15 | CP sau nhận dữ liệu CP trước qua `input/context/` do API dựng từ DB, nói rõ bằng `stage`/`role` trong manifest JSON; không phân cấp thư mục theo CP; context không phải bằng chứng, ép bằng postprocess (xem 3.5) | Bạn chỉ ra CP2 cần ý tưởng CP1; cắt phân cấp vì manifest đủ nói giai đoạn |
 
 ### 3.2 Thiết kế: hook rút từ các nhánh `if` thật
 
@@ -165,10 +165,16 @@ Sai sót của tôi: gộp hai việc khác nhau. CP1 đến CP4 thuộc cùng m
 | 2. Dữ liệu dự án (kế thừa) | thứ CP trước đã tạo ra cho cùng `case` | Không: CP sau đọc CP trước |
 | 3. Đầu vào của lần chạy | bài nộp riêng của CP này | Có |
 
-**Đề xuất (chờ duyệt):** mỗi dịch vụ khai báo thêm `upstream`: danh sách thứ nó cần từ CP trước. Một hàm chung dựng `input/context/<cp>/...` từ DB cho cùng `case`. Manifest ghi rõ tệp nào thuộc `context` (CP trước) hay bài nộp CP này.
-- CP2 cần (đề xuất): nội dung intake (`intake_submission.md`) và tệp tài liệu ý tưởng ở intake, báo cáo CP1 đã duyệt gần nhất.
-- Nguồn đã có trong code: `findFirstIntakeUnit`, `findApprovedReports`, `findDocumentRecordsByCaseId` (CP1 đang dùng).
-- Ghi vào `input_json` của job phiên bản CP1 nào đã dùng (CP1 có thể chạy lại sau CP2).
+**Thiết kế tối giản (thay đề xuất trước, theo yêu cầu "cắt cái không cần"):**
+- **Không phân cấp thư mục theo CP.** Vị trí job giữ `storage/jobs/<caseId>/<jobId>/`; không sửa worker (đường dẫn cứng ở `omp-runner.ts:67-69`), không compose, không liên kết, không thư mục dùng chung.
+- **Giai đoạn của từng tệp nói bằng manifest JSON:** thêm `stage` (`CP1`/`CP2`) và `role` (`submission`/`context`) vào mỗi mục của `input/attachments_manifest.json`.
+- **Một tín hiệu cấu trúc rẻ:** tệp giai đoạn trước nằm ở `input/context/`, bài nộp lần này ở chỗ cũ. Giữ vì chưa chứng minh được model luôn đọc manifest (mục "Chưa kiểm"); đường dẫn là tín hiệu dự phòng.
+- **Nguồn:** DB + Cloudinary, dựng lúc tạo job. Không lưu thư mục dự án dùng chung (sẽ thành nguồn sự thật thứ hai).
+- **CP2 `context/` gồm:** `intake_submission.md`, `cp1_answers.md` (render `renderStageAnswers("CP1")`), tệp tài liệu ở intake. **Không gồm báo cáo CP1** (đầu ra AI, dễ sai, dễ bị chép làm bằng chứng); thêm khi rubric CP2 cần đối chiếu.
+- **Ép bằng code, không bằng lời dặn:** `evidence.source` bắt đầu bằng `context/` thì postprocess gắn cờ không hợp lệ (cần xác minh chỗ kiểm quote hiện tại khi cài).
+- **Cắt:** bản ghi phiên bản CP1 trong `input_json` (thư mục job đã lưu đúng thứ model thấy, miễn không xóa), dedupe/cache tải tệp, cây `cp1/ cp2/`, `sandboxPath` trong JobSpec.
+- **Làm được ngay, không chờ registry:** một hàm dựng context + một lời gọi trong `assembleCp2InputFiles`. Khi có registry thì chuyển thành khai báo `upstream`.
+- Cô lập quyền đọc giữa các case là việc riêng (3.6), thiết kế này không dựa vào nó.
 
 **Ràng buộc để không hỏng chấm điểm:**
 - Dữ liệu CP trước là **bối cảnh, không phải bằng chứng**. Quote trong `evidence.source` của CP2 chỉ được lấy từ bài nộp CP2. Nếu không, model có thể "điền chỗ trống" bằng CP1 và cho điểm thứ nhóm chưa viết ở CP2.
@@ -176,6 +182,15 @@ Sai sót của tôi: gộp hai việc khác nhau. CP1 đến CP4 thuộc cùng m
 - Prompt CP2 phải được bạn viết lại để nói rõ cách dùng `context/` (hiện không có chỗ nào nhắc).
 
 **Chưa xác minh:** `triad_handoff_packet.md` của CP1 có được lưu lại sau job không (`saveOmpAuditReport` chưa đọc); CP2 có cần đối chiếu nhất quán với CP1 hay chỉ cần biết dự án bán gì (cần bạn quyết).
+
+### 3.6 Phát hiện: agent không bị cô lập giữa các case (đo bằng file canary, chưa sửa)
+Đo trong container `nexus-worker-omp` local (cấu hình mount giống `docker-compose.prod.yml`), bằng lệnh filesystem với file canary, không đọc dữ liệu thật; canary đã xóa:
+- Tiến trình chạy `uid=0` (root, `Config.User` rỗng).
+- Từ `cwd` của job A: **đọc** file của case B được; **ghi đè** file của case B được; liệt kê toàn bộ `/app/storage/jobs` được; ghi ở gốc `/app/storage` được.
+- `/app/data` mount `ro` (đúng thiết kế). `/root/.omp` đọc được, gồm `auth.json` (OAuth omp).
+- Worker chạy `omp --cwd <jobDir> --approval-mode yolo`: `--cwd` chỉ đặt thư mục làm việc, không giới hạn quyền.
+- **Chưa kiểm trên prod** (không truy cập VPS); suy ra từ compose prod giống nhau (`./storage` rw, `./data:ro`, `/root/.omp`, không có `user:`).
+- Hệ quả: cô lập giữa nhóm chỉ là quy ước; tệp người dùng tải lên có thể chứa chỉ dẫn độc hại đọc/ghi case khác hoặc `auth.json`. Cách sửa nằm ở container (user không root, mount chỉ thư mục job, tách `auth.json`), đụng worker/compose, **không nằm trong phạm vi các thiết kế ở trên**. Cần bạn quyết có làm không và có kiểm trên VPS không.
 
 ---
 
