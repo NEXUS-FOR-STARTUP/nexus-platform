@@ -1,6 +1,6 @@
 # Brainstorm report: lỗi CP2 + kiến trúc dịch vụ chấm (CP1–CP4) — 2026-10-20
 
-File duy nhất cho chủ đề này. Trạng thái: sửa lỗi CP2 xong (`fix/cp2-sandbox-schema-guard`) và kiến trúc dịch vụ chấm đã triển khai phía API (`feat/attachment-manifest`, xếp chồng, chưa push/merge): registry hook, `_library` + `context/` + manifest `stage`/`role`, lưu báo cáo không mặc định CP1, D9. Prompt CP2 đã lên VPS và 1 job CP2 chạy đúng schema (mục 1.2b). Chưa chạy job `omp` thật trên code mới; guard (`AGENTS.md`, validator) chưa quan sát được trên prod; web CP3/CP4 chưa làm (D20).
+File duy nhất cho chủ đề này. Trạng thái (2026-10-21): sửa lỗi CP2 và kiến trúc dịch vụ chấm phía API đã triển khai, đã chạy job CP1/CP2 thật trên local, đã mở **PR #54** (`feat/attachment-manifest` -> `dev`, gồm cả `fix/cp2-sandbox-schema-guard`), chưa merge, chưa deploy. Prompt CP2 đã lên VPS và 1 job CP2 chạy đúng schema (mục 1.2b). Chưa kiểm trên prod; web CP3/CP4 chưa làm (D20). Xem "Trạng thái hiện tại" ở cuối.
 
 ---
 
@@ -244,7 +244,7 @@ storage/jobs/<caseId>/
 
 ## 4. Implementation considerations & risks
 
-### 4.1 Thứ tự triển khai (đã triển khai phía API trên `feat/attachment-manifest`, chưa push; xem "Trạng thái triển khai" ở cuối mục 6)
+### 4.1 Thứ tự triển khai (đã triển khai phía API, đã mở PR #54 vào `dev`; xem "Trạng thái triển khai" và "Trạng thái hiện tại" ở cuối)
 1. Test đặc tả CP1/CP2 (plan, nội dung sandbox, đường lỗi); chụp danh sách file sandbox CP1 hiện tại.
 2. Registry không mặc định + hook `sandbox`, `instruction` (CP1 `promptFiles` rõ ràng, thêm `workflow_operator_rule` đứng đầu theo D9).
 3. Hook finalizer.
@@ -269,12 +269,12 @@ Mỗi bước một commit, chạy test API trước khi sang bước sau.
 |---|---|---|
 | Không còn `=== "CPn"` / `?? "CP1"` ở coordinator, finalizer, job-spec-builder, trigger-opts, admin-workers ngoài file dịch vụ | grep | **Đạt**: grep 5 file không còn kết quả. Còn `stage.code === "CP2"` ở `derive-stage-summaries.ts:89-90` (trạng thái sẵn sàng cho web, giữ nguyên) |
 | Sandbox CP1 chứa đúng `plan.prompts` (+ knowledge, `AGENTS.md`), không có `cp2_*.md` | test + so danh sách trước/sau | **Đạt**: test `audit-services.test.ts`; baseline trước 11 file, sau 3-5 file |
-| Sandbox CP2 có `system_prompt/` đủ file, `AGENTS.md`, `tools/validate-cp2-report.mjs`; validator chạy được trong container API | smoke 1 job CP2 thật | **Một phần**: sandbox dựng đúng (smoke local), validator chạy được trong image API (đã kiểm); chưa có job CP2 thật qua worker mới |
+| Sandbox CP2 có `system_prompt/` đủ file, `AGENTS.md`, `tools/validate-cp2-report.mjs`; validator chạy được trong container API | smoke 1 job CP2 thật | **Đạt trên local**: job `8f69ebb5` qua worker đã build lại, sandbox đúng thiết kế, validator `OK`; bạn báo đã test CP1/CP2 thêm và sửa lỗi. Model có tự chạy validator hay không vẫn chưa chứng minh; chưa quan sát trên prod |
 | API không start khi thiếu prompt của dịch vụ đã đăng ký | test khởi động | **Đạt**: test boot guard (`assertAuditPromptsPresent`) |
 | Mã checkpoint chưa đăng ký (CP3/CP4) → 400, không rơi về CP1 | test trigger | **Đạt**: test `TriggerOptsSchema` + `getAuditService` |
 | Thêm dịch vụ mới = một file dịch vụ + prompt, không sửa coordinator/finalizer | review khi có CP3 | **Chưa đo** (cần CP3); thực tế còn thêm hàng `AUDIT_CHECKPOINTS` + khóa registry (xem "Lệch có chủ ý") |
 | Diff `apps/worker-omp` bằng 0 | `git diff` | **Đạt về mã**: `git diff fa09978 HEAD -- apps/worker-omp` chỉ còn `AGENTS.md` (tài liệu), không có file `src` |
-| Test API hiện có (CP1 + CP2) vẫn pass sau từng bước | `tsx --test` + `tsc --noEmit` | **Một phần**: `tsc` sạch, test vùng đổi pass; chưa chạy toàn bộ test API (theo ý bạn) |
+| Test API hiện có (CP1 + CP2) vẫn pass sau từng bước | `tsx --test` + `tsc --noEmit` | **Một phần**: `tsc` sạch, test vùng đổi pass ở cả hai chế độ `AUDIT_STAGE_INPUT_RULES`; chưa chạy toàn bộ test API (theo ý bạn), nên chạy trước khi merge PR #54 |
 
 ---
 
@@ -403,3 +403,20 @@ Kết luận: không phát hiện chỗ web bị hỏng bởi thay đổi API l�
 - **API:** `user_note` (tối đa 2000 ký tự) vốn đã qua `TriggerOptsSchema` và CP1 không chặn nó; nay `audit-services.ts` lưu vào `input_json`, `cp1-audit-input.ts` ghi `input/user_note.md` (tên giữ chỗ, tệp nhóm tải lên trùng tên bị đổi tên), `audit-instructions.ts` thêm câu vào instruction CP1: ưu tiên soi kỹ phần nhóm nêu, vẫn làm đủ mọi bước, ghi chú không phải bằng chứng và không ghi đè `system_prompt/`. Prompt CP1 không sửa (prompt CP2 tự nêu quy tắc này nên không đổi).
 - **Lỗi bắt được khi viết test:** nhánh `initial` của CP1 `return` sớm nên bản đầu của thay đổi này đã bỏ mất ghi chú đúng ở trường hợp phổ biến nhất; đã sửa bằng `pushUserNote` gọi ở cả hai điểm trả về.
 - **Test:** `cp1-report-artifacts.test.ts` (ghi chú vào `user_note.md`, ghi chú trống không thêm gì, tệp tải lên tên `user_note.md` không chiếm chỗ). Chưa chạy job CP1 thật có ghi chú; chưa kiểm model CP1 có tuân theo câu hướng dẫn không; chưa mở UI.
+
+### Trạng thái hiện tại (2026-10-21)
+**Đã giao:** PR #54 vào `dev` (50 commit, 63 file; có vài commit không thuộc chủ đề: scripts backfill, wallet, web-case, admin tab). Bạn báo đã test CP1/CP2 local và sửa các lỗi tìm thấy (chi tiết không có trong report này; xem lịch sử commit).
+
+**Phát sinh ngoài thiết kế ban đầu (đã ghi ở các mục trên):** bỏ quy tắc "một `initial` mỗi unit" + cấp `seq` artifact có thử lại; tài liệu hệ thống sinh ra không bao giờ là đầu vào CP1; CP1 chọn chấm mới/chấm lại từ trang giai đoạn; ô "Ghi chú thêm" cho CP1 (kể cả "Thử lại").
+
+**Còn mở:**
+| Việc | Ai | Ghi chú |
+|---|---|---|
+| Chạy toàn bộ test API, rồi merge PR #54 | tôi / bạn | chưa chạy toàn bộ |
+| Kiểm VPS trước deploy: image API + worker, `AUDIT_STAGE_INPUT_RULES`, `data/system-prompts` đủ file, Cloudinary backup, `ai_jobs` cũ thiếu `checkpoint` | bạn | không có migration DB |
+| Model có tự chạy validator CP2; model CP1 có đọc `workflow_operator_rule_v1.md`, `previous_report.md`, `user_note.md` đúng cách | cần job thật có log tên công cụ | chưa chứng minh |
+| Rubric, schema, prompt CP3/CP4; `persistence` CP3/CP4 (`unit` hay `per-trigger`); tên vòng | bạn | mở khóa web CP3/CP4 |
+| Web CP3/CP4 (~18 chỗ gắn cứng CP2; dùng `Record<AuditCheckpointCode, …>` hoặc `switch` exhaustive) | tôi, sau khi có rubric | `tsc` chưa tự bắt mã mới |
+| Lọc danh mục tài liệu theo giai đoạn trong modal (hai mã mới hiện cả ở intake CP1) | bạn quyết | |
+| Lưu báo cáo lỗi vào kết quả job; siết zod `calcChecks`/`itemReviews`/`reaudit`; chính sách quote không khớp; đo token prompt CP2; cutover worker (`plans/261012-worker-jobspec/phase-03-cutover.md`) | chưa lên lịch | |
+| Cô lập agent giữa các case (chạy root, đọc được case khác và `auth.json`) | bạn hoãn | nằm ở container worker, nên quyết trước khi deploy VPS |
