@@ -335,4 +335,8 @@ Mỗi bước một commit, chạy test API trước khi sang bước sau.
 
 **Đã kiểm:** `tsc` API sạch; test vùng đổi pass (`audit-services`, `audit-service-flow`, `cp2-audit-quotes`, `cp2-audit-trigger`, `assessment-routing`, `attachment-manifest*`, `prepare-sandbox-prompts`). Smoke local lắp sandbox CP1/CP2 từ DB local (case có CP1 + CP2). DB local: 8/8 report CP1 có lifecycle unit thuộc checkpoint CP1 và 9/9 report `input_clarification` nằm ở checkpoint CP1, nên đổi sang `ensureCheckpoint("CP1")` không đổi nơi lưu với dữ liệu này.
 
-**Chưa kiểm:** chưa chạy job `omp` thật trên code mới (cần build lại worker: image local trước JobSpec); chưa có bản chụp "trước" của sandbox CP1 (chỉ suy ra từ code: copy cả 11 file); `preflight` CP1 chưa có test (phụ thuộc `AUDIT_STAGE_INPUT_RULES`); chưa chạy toàn bộ test API theo yêu cầu.
+**Baseline sandbox CP1 (dựng lại, không sửa working tree):** coordinator ở commit `0c13e1f` dựng CP1 với `sandboxOpts = {}`; `prepareSandbox` và `data/` không đổi từ commit đó. Chạy `prepareSandbox(dir, [], {})` cho `system_prompt/` = cả 11 file (`cp2_*` x4, `input_clarification_gate_*` x5, `triad_framework_v1_1.md`, `workflow_operator_rule_v1.md`), có `AGENTS.md`, `knowledge/` 2 file. Sau D9 mỗi tổ hợp chỉ còn 3-5 file, vẫn có `AGENTS.md` và `knowledge/`.
+
+**Test `preflight` CP1** (nhánh 409): `audit-service-flow.test.ts`, chạy hai tiến trình với `AUDIT_STAGE_INPUT_RULES=false` (report đã có -> 409; override, resubmit, chưa có report, chưa có intake unit -> qua) và `=true` (không chặn, không truy vấn report). Cả hai pass.
+
+**Chưa kiểm:** chưa chạy job `omp` thật trên code mới (cần build lại worker: image local trước JobSpec); chưa chạy toàn bộ test API theo yêu cầu.

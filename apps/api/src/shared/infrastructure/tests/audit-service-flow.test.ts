@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { afterEach, test } from "node:test";
 import { AUDIT_CHECKPOINTS } from "@app/shared";
 import { TEMPLATE_REGISTRY } from "@repo/validation";
+import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
 import { prisma } from "../../../db.js";
 import { AppError } from "../../domain/app-error.js";
 import { assertAuditPromptsPresent, resolveAuditPlan } from "../../../modules/ai-engine/application/audit-registry.js";
@@ -115,4 +116,32 @@ test("boot guard: names every missing prompt, passes when all are shipped", () =
 
 test("a checkpoint without a service (CP3) is rejected at the trigger boundary, not defaulted to CP1", () => {
   assert.equal(TriggerOptsSchema.safeParse({ checkpoint: "CP3" }).success, false);
+});
+
+// AUDIT_STAGE_INPUT_RULES is read once at import, so each mode runs in its own process:
+//   AUDIT_STAGE_INPUT_RULES=false tsx --test ...   and   AUDIT_STAGE_INPUT_RULES=true tsx --test ...
+function stubIntake(existingReport: boolean, calls: { reportQueries: number }) {
+  swap(prisma.lifecycleUnit, "findFirst", async () => ({ id: "unit-v00" }));
+  swap(prisma.report, "findFirst", async () => (calls.reportQueries++, existingReport ? { id: "r1" } : null));
+}
+const cp1Preflight = (submissionType: "initial" | "resubmit", override: boolean) =>
+  getAuditService("CP1").preflight({ caseId: "case-1", plan: resolveAuditPlan("CP1", "full", submissionType), submissionType, override });
+
+test("CP1 preflight (stage rules off): a second initial is a 409 unless it is an override, no report or a resubmit passes", { skip: AUDIT_STAGE_INPUT_RULES }, async () => {
+  const calls = { reportQueries: 0 };
+  stubIntake(true, calls);
+  await assert.rejects(cp1Preflight("initial", false), (err) => err instanceof AppError && err.status === 409 && err.code === "AUDIT_IN_PROGRESS");
+  await assert.doesNotReject(cp1Preflight("initial", true));
+  await assert.doesNotReject(cp1Preflight("resubmit", false));
+  stubIntake(false, calls);
+  await assert.doesNotReject(cp1Preflight("initial", false));
+  swap(prisma.lifecycleUnit, "findFirst", async () => null);
+  await assert.doesNotReject(cp1Preflight("initial", false));
+});
+
+test("CP1 preflight (stage rules on): an existing report never blocks and is not even queried", { skip: !AUDIT_STAGE_INPUT_RULES }, async () => {
+  const calls = { reportQueries: 0 };
+  stubIntake(true, calls);
+  await assert.doesNotReject(cp1Preflight("initial", false));
+  assert.equal(calls.reportQueries, 0);
 });
