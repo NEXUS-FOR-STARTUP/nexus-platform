@@ -114,6 +114,7 @@ Hiện trạng CP3/CP4: chỉ có catalog câu hỏi sinh viên (`packages/valid
 | D17 | Job cũ không có `checkpoint` trong `input_json`: một hàm tương thích dùng chung, ghi rõ lý do. Hiện có ba bản chép tay (`finalizer:72,145`, `derive-stage-summaries:29`, `admin-workers:531`) gom về một | Bạn chọn; giữ job cũ chạy lại và finalize được |
 | D18 | Câu trả lời CP1 copy vào `context/` độc lập với `AUDIT_STAGE_INPUT_RULES` | Bạn chọn; khỏi phụ thuộc cờ chưa biết giá trị trên prod |
 | D19 | `_library` giữ cùng vòng đời case, không dọn | Bạn chọn; đơn giản |
+| D20 | Lượt implement này chỉ làm phía API (registry, thư viện tài liệu, manifest, lưu báo cáo); giữ nguyên hợp đồng API với web cho CP1/CP2. Web cho CP3/CP4 (kiểu `"CP1" \| "CP2"`, payload, tên vòng) làm lượt sau, khi có rubric và tên vòng | Bạn chọn |
 
 ### 3.2 Thiết kế: hook rút từ các nhánh `if` thật
 
