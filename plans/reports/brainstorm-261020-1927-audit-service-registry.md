@@ -365,3 +365,5 @@ Mục đích: biết web phải đổi những gì khi mở CP3/CP4 (D20). Web k
 | API | `derive-stage-summaries.ts:89-90` (`answers_ready_*` theo `stage.code === "CP2"`) | trạng thái sẵn sàng cho web | Chuyển vào dịch vụ khi CP3/CP4 có luật sẵn sàng |
 
 Kết luận: không phát hiện chỗ web bị hỏng bởi thay đổi API lần này (API vẫn nhận body không có `checkpoint` là CP1; mọi trường CP2 giữ nguyên tên). Phần web cho CP3/CP4 là một đợt làm riêng, phụ thuộc tên vòng và rubric từ bạn. Luật UI "cấm CP1/CP2 trên giao diện" (`apps/web-1/AGENTS.md:168`) vẫn áp dụng cho tên vòng mới.
+
+**Đã sửa ngay:** kiểu `"CP1" | "CP2"` ở `useTriggerAudit.ts` và `StageGradingPanel.tsx` đổi sang `AuditCheckpointCode` từ `@app/shared` (cùng tập giá trị hôm nay; thêm mã vào bảng checkpoint thì `tsc` web tự báo chỗ cần xử lý). `tsc` web sạch. **Cố ý không sửa** các nhánh còn lại: chúng là hành vi riêng của CP2 (payload, bước mở, gói giá, readiness, nhãn vòng), viết trước khi có định nghĩa CP3/CP4 sẽ là đoán.

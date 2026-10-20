@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { notifications } from "@mantine/notifications";
 import { apiClient } from "@/lib/api-client";
-import type { Cp2InputSource } from "@app/shared";
+import type { AuditCheckpointCode, Cp2InputSource } from "@app/shared";
 
 export type SubmissionType = "initial" | "resubmit" | "logic_check";
 
@@ -10,7 +10,7 @@ interface TriggerAuditPayload {
   submission_type: SubmissionType;
   lifecycle_unit_id?: string;
   /** Omitted = CP1 (API default). CP2 requires `scope`. */
-  checkpoint?: "CP1" | "CP2";
+  checkpoint?: AuditCheckpointCode;
   scope?: "questionnaire" | "full";
   /** CP2 only: what the grader reads. API default = answers. */
   input_source?: Cp2InputSource;

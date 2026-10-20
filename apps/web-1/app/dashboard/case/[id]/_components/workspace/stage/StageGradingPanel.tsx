@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Collapse, Paper } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
 import { useQueryClient } from "@tanstack/react-query";
+import type { AuditCheckpointCode } from "@app/shared";
 import { useCaseAiStatus } from "../../../hooks/useCaseAiStatus";
 import { useTriggerAudit, type SubmissionType } from "../../../hooks/useTriggerAudit";
 import GradingPanelHeader from "./GradingPanelHeader";
@@ -12,7 +13,7 @@ import GradingSteps from "./GradingSteps";
 
 interface StageGradingPanelProps {
   caseId: string;
-  checkpoint: "CP1" | "CP2";
+  checkpoint: AuditCheckpointCode;
   /** Submission type for "Chạy lại" (retry after a failed run reuses the previous run's type; the API falls back to initial when there is no previous report). The note is carried from the last run's status. */
   submissionType: SubmissionType;
   onViewResults: () => void;
