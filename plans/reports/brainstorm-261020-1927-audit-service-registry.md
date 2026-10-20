@@ -210,10 +210,11 @@ Mỗi bước một commit, chạy test API trước khi sang bước sau.
 
 **Bạn viết:** rubric, tiêu chí, ngưỡng, schema báo cáo, prompt CP3/CP4. Chưa quyết: `persistence` CP3/CP4 là `unit` hay `per-trigger` (phụ thuộc rubric).
 
-**Phân loại file (mục 1.6):**
-- Thêm `lecturer_guidance`, `interview_survey` vào `DOCUMENT_CATEGORY_CODES` (`packages/validation/src/index.ts:597`) + nhãn; build lại `packages/validation`.
-- Đưa `category` vào manifest JSON `input/attachments_manifest.json` trong assembler CP1 và CP2; instruction/`AGENTS.md` bảo model đọc manifest trước.
-- Quyết sau: có lọc danh mục theo giai đoạn không; `business_model_canvas` thêm khi viết rubric CP3.
+**Phân loại file (mục 1.6): đã triển khai** trên nhánh `feat/attachment-manifest` (xếp trên `fix/cp2-sandbox-schema-guard`, chưa push), cả CP1 và CP2:
+- `lecturer_guidance`, `interview_survey` đã thêm vào `DOCUMENT_CATEGORY_CODES`.
+- Manifest `input/attachments_manifest.json` do `attachment-manifest.ts` tạo, ghi trong `assembleCp1InputFiles` và `assembleCp2InputFiles`; instruction CP1/CP2 bảo model đọc manifest trước và coi nhãn là tự khai (D14).
+- Test 3 ca (`attachment-manifest.test.ts`) + 98 test liên quan pass, `tsc` API và web sạch. **Chưa chạy job thật**: chưa biết model có đọc/dùng manifest không.
+- Còn mở: có lọc danh mục theo giai đoạn không (modal dùng chung, mã mới hiện cả ở CP1); `business_model_canvas` chờ rubric CP3; `missingCategories` trên UI sẽ liệt kê hai nhãn mới là "chưa có" ở mọi giai đoạn (chưa xem cách hiển thị).
 
 ### Chưa kiểm
 - Chưa quan sát guard trên prod: sandbox job `5196feab` không có `AGENTS.md` và `tools/`. Chưa rõ lý do (chưa deploy, hay lý do khác). Chưa xác nhận `.mjs` tới được sandbox trong container API (phụ thuộc `createRequire` resolve `@repo/validation`).
