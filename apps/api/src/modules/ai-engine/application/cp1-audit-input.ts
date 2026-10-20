@@ -15,6 +15,9 @@ type SubmissionType = AuditSubmissionType;
 
 type DocFileSource = Pick<DocumentRecord, "id" | "download_url" | "original_name" | "canonical_name" | "extension" | "metadata_json">;
 
+/** The team's free note for this run (which part to focus on). */
+export const USER_NOTE_FILE = "user_note.md";
+
 /** Files this assembler writes into input/ itself; an upload must never take one of these names (case-insensitive). */
 const CP1_SYSTEM_INPUT_FILES = [
   "intake_submission.md",
@@ -23,6 +26,7 @@ const CP1_SYSTEM_INPUT_FILES = [
   "previous_report.md",
   "previous_report.json",
   "change_summary.md",
+  USER_NOTE_FILE,
   ATTACHMENT_MANIFEST_FILE,
 ];
 
@@ -62,6 +66,11 @@ async function findLatestCp1Reports(caseId: string) {
   return await prisma.report.findMany({ where: { case_id: caseId, checkpoint_id: checkpoint.id }, orderBy: { created_at: "desc" }, take: 1 });
 }
 
+function pushUserNote(inputFiles: OmpAuditInputFile[], userNote?: string): void {
+  const note = userNote?.trim();
+  if (note) inputFiles.push({ name: USER_NOTE_FILE, content: `# Ghi chú của nhóm cho lần chấm này\n\n${note}` });
+}
+
 /**
  * Assemble input files scoped by submission type.
  *
@@ -74,6 +83,7 @@ export async function assembleCp1InputFiles(
   submissionType: SubmissionType,
   lifecycleUnitId: string | null,
   changeSummary?: string,
+  userNote?: string,
 ): Promise<{ inputFiles: OmpAuditInputFile[]; resolvedLifecycleUnitId: string | null }> {
   const inputFiles: OmpAuditInputFile[] = [];
   const entries: AttachmentManifestEntry[] = [];
@@ -121,6 +131,7 @@ ${JSON.stringify(team, null, 2)}
     // A second initial run is the team re-grading after adding files, so it reads the same uploads, not the earlier verdicts.
     const submitted = await findStageDocs(caseId, "CP1");
     await appendDocFiles(submitted, inputFiles, entries, used);
+    pushUserNote(inputFiles, userNote);
     const manifest = buildAttachmentManifest(entries);
     if (manifest) inputFiles.push(manifest);
     return { inputFiles, resolvedLifecycleUnitId: intakeUnit?.id ?? null };
@@ -200,6 +211,8 @@ ${JSON.stringify(team, null, 2)}
       }
     }
   }
+
+  pushUserNote(inputFiles, userNote);
 
   const manifest = buildAttachmentManifest(entries);
   if (manifest) inputFiles.push(manifest);

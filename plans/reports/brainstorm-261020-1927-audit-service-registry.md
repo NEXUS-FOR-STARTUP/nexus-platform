@@ -397,3 +397,9 @@ Kết luận: không phát hiện chỗ web bị hỏng bởi thay đổi API l�
 - **Test:** `cp1-stage-resubmit.test.ts` (4 ca, chạy ở cả hai chế độ cờ). Smoke trên case thật `1ed757c0` (assemble, không chạy model).
 - **Chưa kiểm:** chưa chạy job CP1 `resubmit` thật qua worker; chưa biết model đọc `previous_report.md` và `change_summary.md` đúng cách với prompt `input_clarification_gate_v4_1_resubmit.md` (prompt viết cho luồng unit cũ); chưa mở UI để xem modal; chưa kiểm preflight CP1 ở cờ bật với `resubmit` (luôn qua).
 - **Chưa làm:** ô "Ghi chú thêm" (`user_note`) cho CP1, chỉ CP2 có.
+
+### Ô "Ghi chú thêm" cho CP1 (bạn yêu cầu, 2026-10-20)
+- **Web:** modal CP1 có mục "Ghi chú thêm" như CP2 (nhóm nhắc lượt chấm nên tập trung vào đâu), cạnh "Lần chấm này". Ghi chú đi kèm cả khi chấm mới lẫn chấm lại; nút "Thử lại" khi lượt chấm lỗi giữ ghi chú và tóm tắt đã nhập.
+- **API:** `user_note` (tối đa 2000 ký tự) vốn đã qua `TriggerOptsSchema` và CP1 không chặn nó; nay `audit-services.ts` lưu vào `input_json`, `cp1-audit-input.ts` ghi `input/user_note.md` (tên giữ chỗ, tệp nhóm tải lên trùng tên bị đổi tên), `audit-instructions.ts` thêm câu vào instruction CP1: ưu tiên soi kỹ phần nhóm nêu, vẫn làm đủ mọi bước, ghi chú không phải bằng chứng và không ghi đè `system_prompt/`. Prompt CP1 không sửa (prompt CP2 tự nêu quy tắc này nên không đổi).
+- **Lỗi bắt được khi viết test:** nhánh `initial` của CP1 `return` sớm nên bản đầu của thay đổi này đã bỏ mất ghi chú đúng ở trường hợp phổ biến nhất; đã sửa bằng `pushUserNote` gọi ở cả hai điểm trả về.
+- **Test:** `cp1-report-artifacts.test.ts` (ghi chú vào `user_note.md`, ghi chú trống không thêm gì, tệp tải lên tên `user_note.md` không chiếm chỗ). Chưa chạy job CP1 thật có ghi chú; chưa kiểm model CP1 có tuân theo câu hướng dẫn không; chưa mở UI.

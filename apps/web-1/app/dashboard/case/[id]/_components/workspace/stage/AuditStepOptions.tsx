@@ -65,6 +65,15 @@ export default function AuditStepOptions({
       </Accordion.Panel>
     </Accordion.Item>
   );
+  const noteItem = (
+    <Accordion.Item value="note">
+      <Accordion.Control>Ghi chú thêm <Text span size="sm" c="dimmed">- {userNote.trim() ? "đã viết" : "không bắt buộc"}</Text></Accordion.Control>
+      <Accordion.Panel>
+        <Textarea placeholder="Ví dụ: soi kỹ phần thị trường mục tiêu giúp mình" value={userNote} onChange={(e) => onUserNote(e.currentTarget.value)} minRows={2} maxLength={USER_NOTE_MAX} />
+      </Accordion.Panel>
+    </Accordion.Item>
+  );
+
   return (
     <>
       <Text fw={500}>Bước 2/2: chọn cách chấm và xác nhận</Text>
@@ -97,18 +106,14 @@ export default function AuditStepOptions({
 
           {kindItem}
 
-          <Accordion.Item value="note">
-            <Accordion.Control>Ghi chú thêm <Text span size="sm" c="dimmed">- {userNote.trim() ? "đã viết" : "không bắt buộc"}</Text></Accordion.Control>
-            <Accordion.Panel>
-              <Textarea placeholder="Ví dụ: soi kỹ phần SOM giúp mình" value={userNote} onChange={(e) => onUserNote(e.currentTarget.value)} minRows={2} maxLength={USER_NOTE_MAX} />
-            </Accordion.Panel>
-          </Accordion.Item>
+          {noteItem}
         </Accordion>
       )}
 
       {!isCp2 && (
         <Accordion variant="separated" radius="md" defaultValue="kind">
           {kindItem}
+          {noteItem}
         </Accordion>
       )}
 

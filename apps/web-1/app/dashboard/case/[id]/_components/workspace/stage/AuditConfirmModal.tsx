@@ -110,7 +110,7 @@ export default function AuditConfirmModal({
       inputSource: source,
       submissionType: effectiveType,
       ...(effectiveType === "resubmit" && changeSummary.trim() ? { changeSummary: changeSummary.trim() } : {}),
-      ...(isCp2 && userNote.trim() ? { userNote: userNote.trim() } : {}),
+      ...(userNote.trim() ? { userNote: userNote.trim() } : {}),
     });
     handleClose();
   };

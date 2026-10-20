@@ -119,7 +119,10 @@ export default function StageGradingPanel({ caseId, checkpoint, submissionType, 
             ...(typeof data.userNote === "string" && data.userNote.trim() ? { user_note: data.userNote } : {}),
             ...(typeof data.changeSummary === "string" && data.changeSummary.trim() ? { change_summary: data.changeSummary } : {}),
           }
-        : {}),
+        : {
+            ...(typeof data.userNote === "string" && data.userNote.trim() ? { user_note: data.userNote } : {}),
+            ...(typeof data.changeSummary === "string" && data.changeSummary.trim() ? { change_summary: data.changeSummary } : {}),
+          }),
     });
 
   const handleViewResults = () => {

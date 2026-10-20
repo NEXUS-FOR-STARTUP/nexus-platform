@@ -99,3 +99,26 @@ test("CP1 logic_check input and manifest drop saved report PDFs of the unit", as
   assert.ok(manifest);
   assert.equal(String(manifest.content).includes("tiboo_y_tuong"), false);
 });
+
+test("CP1 writes the team's note as user_note.md; a blank note adds nothing; an upload named user_note.md cannot take its place", async () => {
+  const rows = [{ ...doc("d1", "user_note.md", "intake_document", "cloudinary"), checkpoint_id: "cp1" }];
+  const stub = () => {
+    swap(prisma.lifecycleUnit, "findFirst", async () => ({ id: "v00", content: "intake" }));
+    swap(prisma.teamFitReport, "findUnique", async () => null);
+    swap(prisma.projectAnswer, "findMany", async () => []);
+    swap(prisma.checkpoint, "findUnique", async () => ({ id: "cp1" }));
+    swap(prisma.documentRecord, "findMany", async (args: { where: DocWhere }) => dbFilter(rows, args.where));
+    globalThis.fetch = (async () => new Response("UPLOADED")) as typeof fetch;
+  };
+
+  stub();
+  const withNote = await assembleCp1InputFiles("case-1", "initial", null, undefined, "  soi kỹ thị trường  ");
+  const note = withNote.inputFiles.filter((f) => f.name === "user_note.md");
+  assert.equal(note.length, 1);
+  assert.match(String(note[0].content), /soi kỹ thị trường/);
+  assert.equal(withNote.inputFiles.filter((f) => String(f.content) === "UPLOADED").length, 1);
+
+  stub();
+  const blank = await assembleCp1InputFiles("case-1", "initial", null, undefined, "   ");
+  assert.equal(blank.inputFiles.filter((f) => f.name === "user_note.md" && !String(f.content).includes("UPLOADED")).length, 0);
+});
