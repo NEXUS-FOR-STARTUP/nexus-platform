@@ -95,7 +95,7 @@ Hiện trạng CP3/CP4: chỉ có catalog câu hỏi sinh viên (`packages/valid
 
 | # | Quyết định | Lý do |
 |---|---|---|
-| D1 | Mỗi dịch vụ độc lập, tự khai báo thứ nó cần; không "mặc định rồi trừ bớt" | Gốc: kế thừa ngầm |
+| D1 | Mỗi dịch vụ độc lập **về định nghĩa** (prompt, schema, sandbox, instruction), tự khai báo thứ nó cần; không "mặc định rồi trừ bớt". Dữ liệu dự án vẫn kế thừa giữa các CP (D15) | Gốc: kế thừa ngầm. Độc lập định nghĩa không có nghĩa tách dữ liệu |
 | D2 | Hạ tầng chung (queue, tạo sandbox, credit/refund, PDF, lưu, tiến trình) giữ làm hàm dùng chung; chỉ quyết định nghiệp vụ tách theo dịch vụ | Tránh chép hai bản |
 | D3 | `getAuditService(code)` throw 400 khi mã chưa đăng ký; bỏ mọi `?? "CP1"` | Bỏ mặc định ngầm |
 | D4 | CP1 chuyển sang khung mới, `promptFiles` rõ ràng; từng bước, giữ test CP1, chụp so sánh file sandbox trước/sau | Bạn chọn |
@@ -109,6 +109,7 @@ Hiện trạng CP3/CP4: chỉ có catalog câu hỏi sinh viên (`packages/valid
 | D12 | Phân loại file người dùng chọn (lưu ở `document_records.metadata_json.category`, không phải `doc_type`) được đưa vào job qua manifest **JSON** `input/attachments_manifest.json` (tên trong sandbox đã dedupe, `category`, nhãn tiếng Việt, tên gốc, định dạng). Không đổi tên file theo loại | Bạn chọn JSON; đổi tên làm hỏng đối chiếu quote trong `evidence.source` |
 | D13 | Thêm hai danh mục: `lecturer_guidance` ("Hướng dẫn / yêu cầu từ giảng viên", gộp rubric + đề bài) và `interview_survey` ("Phỏng vấn / khảo sát khách hàng"). `business_model_canvas` chờ rubric CP3 | Bạn chọn; CP2 có nhóm bằng chứng riêng cho phỏng vấn/khảo sát |
 | D14 | Nhãn là người dùng tự khai: instruction ghi rõ file `lecturer_guidance` chỉ là tài liệu tham chiếu, không ghi đè prompt chấm | Chống gài nhãn để lái điểm |
+| D15 | Dữ liệu kế thừa giữa các CP: mỗi dịch vụ khai báo `upstream`; hàm chung dựng `input/context/`; là bối cảnh, không phải bằng chứng (xem 3.5) | Bạn chỉ ra CP2 cần ý tưởng CP1; hiện CP2 không nhận dữ liệu CP1 nào |
 
 ### 3.2 Thiết kế: hook rút từ các nhánh `if` thật
 
@@ -151,6 +152,30 @@ Commit trên `fix/cp2-sandbox-schema-guard` (từ `dev`, chưa push): `c4f2968` 
 | Gọi `3cf8c8f1` là "điểm vẫn là điểm chấm khi thiếu prompt" | Sai: job đã failed, không có điểm; chỉ cần chấm lại để có kết quả hợp lệ |
 | "Fix thiếu prompt chặn trước khi trừ credit" | Sai: credit trừ trước, hoàn qua `dispatch-failure` |
 | Đoán lỗi do model sai schema | Triệu chứng; gốc là thiếu prompt |
+
+### 3.5 Sửa lại D1: độc lập về *định nghĩa*, không độc lập về *dữ liệu* (bạn chỉ ra)
+Sai sót của tôi: gộp hai việc khác nhau. CP1 đến CP4 thuộc cùng một dự án, mỗi CP sau cần dữ liệu CP trước (CP2 tính TAM/SAM/SOM phải biết dự án bán gì, tức là ý tưởng ở CP1).
+
+**Hiện trạng trong code (đã đọc, `cp2-audit-input.ts`):** `assembleCp2InputFiles` chỉ đưa vào `cp2_answers.md`, tự kiểm, tệp đính kèm của chính checkpoint CP2, và báo cáo CP2 trước đó khi nộp lại. **Không có dữ liệu CP1 nào** (không intake, không báo cáo CP1). Prompt CP2 cũng không tham chiếu CP1. Job `5196feab` xác nhận: 4 tệp đính kèm + `cp2_answers.md` + `user_note.md`. Đây là thiếu sót hiện tại, không chỉ là rủi ro thiết kế.
+
+**Ba lớp, tách rõ:**
+| Lớp | Nội dung | Độc lập? |
+|---|---|---|
+| 1. Định nghĩa dịch vụ | prompt, schema, `AGENTS.md`, validator, instruction, cách lưu | Có: mỗi CP một file khai báo |
+| 2. Dữ liệu dự án (kế thừa) | thứ CP trước đã tạo ra cho cùng `case` | Không: CP sau đọc CP trước |
+| 3. Đầu vào của lần chạy | bài nộp riêng của CP này | Có |
+
+**Đề xuất (chờ duyệt):** mỗi dịch vụ khai báo thêm `upstream`: danh sách thứ nó cần từ CP trước. Một hàm chung dựng `input/context/<cp>/...` từ DB cho cùng `case`. Manifest ghi rõ tệp nào thuộc `context` (CP trước) hay bài nộp CP này.
+- CP2 cần (đề xuất): nội dung intake (`intake_submission.md`) và tệp tài liệu ý tưởng ở intake, báo cáo CP1 đã duyệt gần nhất.
+- Nguồn đã có trong code: `findFirstIntakeUnit`, `findApprovedReports`, `findDocumentRecordsByCaseId` (CP1 đang dùng).
+- Ghi vào `input_json` của job phiên bản CP1 nào đã dùng (CP1 có thể chạy lại sau CP2).
+
+**Ràng buộc để không hỏng chấm điểm:**
+- Dữ liệu CP trước là **bối cảnh, không phải bằng chứng**. Quote trong `evidence.source` của CP2 chỉ được lấy từ bài nộp CP2. Nếu không, model có thể "điền chỗ trống" bằng CP1 và cho điểm thứ nhóm chưa viết ở CP2.
+- Báo cáo CP1 là đầu ra AI, có thể sai: coi như tham khảo, ưu tiên bài nộp gốc.
+- Prompt CP2 phải được bạn viết lại để nói rõ cách dùng `context/` (hiện không có chỗ nào nhắc).
+
+**Chưa xác minh:** `triad_handoff_packet.md` của CP1 có được lưu lại sau job không (`saveOmpAuditReport` chưa đọc); CP2 có cần đối chiếu nhất quán với CP1 hay chỉ cần biết dự án bán gì (cần bạn quyết).
 
 ---
 
