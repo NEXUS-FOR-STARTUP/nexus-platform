@@ -32,6 +32,7 @@ import { finalizeOmpAuditResult } from "./omp-audit-finalizer.js";
 import { getCaseAiAuditStatus } from "./omp-audit-status.js";
 import { findLatestCp2FullReport } from "../../reports/infrastructure/persistence/report.repository.js";
 import { INPUT_ASSEMBLERS, resolveAuditPlan } from "./audit-registry.js";
+import { buildCp2AgentsMd, cp2ValidatorSource } from "./cp2-agents-md.js";
 import { buildOmpJobSpec } from "./job-spec-builder.js";
 import { CP2_CHECKPOINT_CODE, assertCp2InputSource } from "./cp2-audit-input.js";
 import { consumeAuditCredit, grantAuditRefund } from "./audit-credit.js";
@@ -442,7 +443,9 @@ export async function triggerOmpAuditForCase(
     service_type: plan.serviceType,
   };
   const sandboxOpts: SandboxOptions =
-    checkpointCode === "CP1" ? {} : { promptFiles: plan.prompts, includeKnowledge: false };
+    checkpointCode === "CP1"
+      ? {}
+      : { promptFiles: plan.prompts, includeKnowledge: false, agentsMd: buildCp2AgentsMd(plan.scope, submissionType), tools: [cp2ValidatorSource()] };
   let newAiJob!: AiJob;
 
   try {
