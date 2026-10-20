@@ -80,7 +80,7 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
   },
   {
     id: "pkg_ai_audit",
-    name: "Basic AI Audit",
+    name: "Gói chấm Ý tưởng",
     price: 79000,
     features: {
       items: [

@@ -4,6 +4,7 @@ import logger from "../../../shared/infrastructure/logger.js";
 import { createCaseMessage, findCaseById, findLatestCaseEventByType } from "../infrastructure/persistence/case.repository.js";
 import { CP1_AUDIT_SERVICE_CODE, getCreditBalance, getCreditLedgerByCaseId, getServiceTypeId } from "../infrastructure/persistence/credit-ledger.repository.js";
 import { evaluateChatAccess } from "./chat-access.js";
+import { buildChatAiTierMessage } from "./chat-ai-tier-message.js";
 import { claimMessageSendSlot } from "./message-send-rate-limit.js";
 import { publishToChannel } from "../../realtime/infrastructure/centrifugo.service.js";
 import { chatChannel } from "../../realtime/domain/realtime.types.js";
@@ -54,7 +55,7 @@ export async function sendMessageUseCase(
   if (!access.ok) {
     const messageByCode: Record<string, string> = {
       CHAT_FREE_TIER: "Chat là đặc quyền cho dự án trả phí. Vui lòng liên hệ admin qua email hoặc điện thoại.",
-      CHAT_AI_TIER: "Gói Basic AI Audit được xử lý tự động bằng AI, không bao gồm tính năng trao đổi với Supporter.",
+      CHAT_AI_TIER: access.code === "CHAT_AI_TIER" ? await buildChatAiTierMessage(caseItem.package_id) : "",
       CHAT_REJECTED: "Dự án đang ở trạng thái từ chối. Vui lòng chỉnh sửa hồ sơ và nộp lại, hoặc liên hệ admin.",
       CHAT_CLOSED: "Hồ sơ đã đóng, không thể gửi tin nhắn. Vui lòng liên hệ admin qua email hoặc điện thoại.",
       CHAT_LOCKED: "Hết lượt kiểm tra và đã qua thời gian ân hạn. Vui lòng nạp thêm credit để tiếp tục chat.",

@@ -3,6 +3,7 @@ import type { AuthEnv } from "../../../shared/infrastructure/middlewares/auth.js
 import { requireCaseAccess } from "../../../shared/infrastructure/authorization.js";
 import { handleError } from "../../../shared/infrastructure/http-helpers.js";
 import logger from "../../../shared/infrastructure/logger.js";
+import { buildChatAiTierMessage } from "../../cases/application/chat-ai-tier-message.js";
 import {
   signConnectionToken,
   signSubscriptionToken,
@@ -31,7 +32,7 @@ export async function subscriptionTokenHandler(c: Context<AuthEnv>) {
   if (access.caseRecord.package_id === "pkg_ai_audit") {
     return c.json(
       {
-        error: "Gói Basic AI Audit được xử lý tự động bằng AI, không bao gồm tính năng trao đổi với Supporter.",
+        error: await buildChatAiTierMessage(access.caseRecord.package_id),
         code: "CHAT_AI_TIER",
       },
       409,

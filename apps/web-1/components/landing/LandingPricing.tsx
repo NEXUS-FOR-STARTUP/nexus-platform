@@ -1,20 +1,30 @@
 import Link from "next/link";
 import { ArrowRight, Check } from "@phosphor-icons/react/ssr";
+import { MAX_TEAM_MEMBERS } from "@repo/validation";
+import { formatPrice } from "@/lib/pricing";
+import { getAuditPackage } from "@/lib/get-public-package";
 import CountUp from "./CountUp";
 import base from "./landing.module.css";
 import s from "./landingSections.module.css";
 
-const AUDIT_PRICE_VND = 79000;
+/** Giá/thành viên tính theo nhóm đủ người, cùng quy ước với ServiceCheckoutModal. */
+const PRICING_TEAM_SIZE = MAX_TEAM_MEMBERS;
 
-const FEATURES = [
-  "2 lượt đánh giá tài liệu độc lập",
+const STATIC_FEATURES = [
   "Đánh giá theo 5 nhóm tiêu chí cốt lõi",
   "Phân loại vấn đề theo mức độ ưu tiên xử lý",
   "Kết quả thường có sau khoảng 10 phút",
-  "Chỉ ~16,000 VND/thành viên (nhóm 5 người)",
 ];
 
-export default function LandingPricing() {
+
+export default async function LandingPricing() {
+  const pkg = await getAuditPackage();
+  const credits = pkg?.credits_granted ?? null;
+  const features = [
+    ...(credits ? [`${credits} lượt đánh giá tài liệu độc lập`] : []),
+    ...STATIC_FEATURES,
+    ...(pkg ? [`Chỉ ~${formatPrice(Math.round(pkg.price / PRICING_TEAM_SIZE))}/thành viên (nhóm ${PRICING_TEAM_SIZE} người)`] : []),
+  ];
   return (
     <section className={`${base.section} ${base.soft}`} id="pricing">
       <div className={base.wrap}>
@@ -23,14 +33,16 @@ export default function LandingPricing() {
           <p>Chi phí minh bạch, tính theo gói đánh giá tài liệu cho cả nhóm.</p>
         </div>
         <div className={s.price}>
-          <h3>Đánh giá Dự án Tự động</h3>
-          <div className={s.amount}>
-            <CountUp value={AUDIT_PRICE_VND} />
-            <small>/ Bao gồm 2 lượt đánh giá</small>
-          </div>
+          {pkg && <h3>{pkg.name}</h3>}
+          {pkg && (
+            <div className={s.amount}>
+              <CountUp value={pkg.price} />
+              {credits ? <small>/ gói {credits} lượt</small> : null}
+            </div>
+          )}
           <p>Phù hợp cho nhóm cần rà soát tài liệu, nhận diện điểm yếu và đánh giá lại sau khi chỉnh sửa.</p>
           <ul>
-            {FEATURES.map((f) => (
+            {features.map((f) => (
               <li key={f}>
                 <Check size={22} aria-hidden="true" />
                 {f}

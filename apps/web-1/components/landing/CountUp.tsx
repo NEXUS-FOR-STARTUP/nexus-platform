@@ -43,10 +43,11 @@ export default function CountUp({ value }: CountUpProps) {
     };
   }, [value]);
 
-  // Reserve the final width so the "/ Bao gồm ..." label does not slide while counting.
+  // Hidden copy of the final text reserves the exact width so the label does not slide while counting.
   return (
-    <span ref={ref} style={{ display: "inline-block", minWidth: `${finalText.length}ch`, fontVariantNumeric: "tabular-nums" }}>
-      {formatPrice(shown)}
+    <span ref={ref} style={{ display: "inline-grid", fontVariantNumeric: "tabular-nums" }}>
+      <span aria-hidden="true" style={{ gridArea: "1 / 1", visibility: "hidden" }}>{finalText}</span>
+      <span style={{ gridArea: "1 / 1" }}>{formatPrice(shown)}</span>
     </span>
   );
 }

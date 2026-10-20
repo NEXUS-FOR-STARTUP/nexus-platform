@@ -45,9 +45,9 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
 
   const walletBalance = walletData?.balance ?? 0;
   const isCp2Pack = packageId === PACKAGE_KEYS.CP2_AUDIT;
-  const isAiAudit = isCp2Pack || packageId === PACKAGE_KEYS.AI_AUDIT || pkg?.id === PACKAGE_KEYS.AI_AUDIT || pkg?.price === 79000;
+  const isAiAudit = isCp2Pack || packageId === PACKAGE_KEYS.AI_AUDIT || pkg?.id === PACKAGE_KEYS.AI_AUDIT;
   const effectiveQuantity = isAiAudit ? 1 : quantity;
-  const listUnitPrice = pkg?.price ?? (isAiAudit ? 79000 : 0);
+  const listUnitPrice = pkg?.price ?? 0;
   const unitPrice = appliedDiscount?.discounted_price ?? listUnitPrice;
   const totalAmount = effectiveQuantity * unitPrice;
   const shortage = Math.max(totalAmount - walletBalance, 0);

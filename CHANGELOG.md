@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (2026-10-21) — Tên và giá gói lấy từ DB
+- Migration dữ liệu `20261021100000_rename_audit_package_names`: đổi tên `pkg_ai_audit` "Basic AI Audit" → "Gói chấm Ý tưởng" và `pkg_cp2_audit` "Gói chấm Checkpoint 2" → "Gói chấm Thị trường". Chỉ đổi cột `name`, không đổi id; điều kiện `WHERE name = <tên cũ>` nên chạy lại an toàn.
+- API: thông báo chặn chat gói AI lấy tên gói từ DB (`buildChatAiTierMessage`). Web: bỏ tên gói, giá, số lượt và giá/lượt viết cứng, lấy từ `GET /packages/:id`.
+
 ### Added (2026-10-16) — Làm trước, thu tiền sau (khoản ứng nợ)
 - Bảng mới `receivables`, `receivable_payments`, `receivable_adjustments` (chỉ cộng thêm; 3 migration cộng thêm `20261016160000`, `20261016180000`, `20261016190000`; xem `docs/pay-later-runbook.md`). Còn nợ/trạng thái tính từ dữ liệu, không lưu cột.
 - `POST/GET /api/admin/receivables`, `/:id/payments`, `/:id/write-off`, `/:id/payment-link`; `GET /api/public/receivables/:token` (không đăng nhập, giới hạn tần suất, token chỉ lưu dạng hash SHA-256).

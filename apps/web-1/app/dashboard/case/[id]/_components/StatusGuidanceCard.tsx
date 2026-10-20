@@ -81,12 +81,8 @@ export default function StatusGuidanceCard({
   const { submitStudentUpload, isSubmitting: isUploading } = useStudentDocumentUpload(caseData.id);
 
   const isFree = isCaseFree(caseData);
-  const targetPackageId = isFree
-    ? PACKAGE_KEYS.AI_AUDIT
-    : caseData.package_id || caseData.package?.id || PACKAGE_KEYS.AI_AUDIT;
-  const { data: pkgData } = usePackagePrice(targetPackageId);
-  const effectivePrice = pkgData?.price ?? (isFree ? 79000 : caseData.locked_price ?? caseData.package?.price ?? 79000);
-  const auditPriceLabel = formatPrice(effectivePrice);
+  const { data: auditPkg } = usePackagePrice(PACKAGE_KEYS.AI_AUDIT);
+  const auditPackageHint = auditPkg?.credits_granted ? ` (${formatPrice(auditPkg.price)} / ${auditPkg.credits_granted} lượt)` : "";
 
   const stage = caseData.user_facing_stage;
   const hasInfoRequest = !!openRequestsForMoreInfo && openRequestsForMoreInfo.length > 0;
@@ -286,8 +282,8 @@ export default function StatusGuidanceCard({
         <div className="space-y-3">
           <p className="text-text-muted text-xs leading-relaxed">
             {isFree
-              ? "Dự án hiện tại thuộc gói xem trước miễn phí. Hãy chọn gói Đánh giá Dự án Tự động để tải lên slide hoặc đề cương hoàn chỉnh và nhận báo cáo phân tích chi tiết."
-              : "Dự án chưa có lượt đánh giá. Hãy nạp tiền vào ví và mua gói đánh giá (79,000 VND / 2 lượt) để bắt đầu phân tích tài liệu."}
+              ? `Dự án hiện tại thuộc gói xem trước miễn phí. Hãy chọn ${auditPkg?.name ?? "gói đánh giá"} để tải lên slide hoặc đề cương hoàn chỉnh và nhận báo cáo phân tích chi tiết.`
+              : `Dự án chưa có lượt đánh giá. Hãy nạp tiền vào ví và mua gói đánh giá${auditPackageHint} để bắt đầu phân tích tài liệu.`}
           </p>
 
           <div className="flex flex-wrap items-center gap-3 pt-1">

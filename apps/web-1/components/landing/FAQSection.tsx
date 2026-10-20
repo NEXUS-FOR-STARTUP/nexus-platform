@@ -1,9 +1,18 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { formatPrice } from "@/lib/pricing";
+import { getAuditPackage, type PublicPackage } from "@/lib/get-public-package";
 import base from "./landing.module.css";
 import s from "./landingSections.module.css";
 
-const faqItems: Array<{ question: string; answer: ReactNode }> = [
+interface FaqItem {
+  question: string;
+  answer: ReactNode;
+}
+
+function buildFaqItems(pkg: PublicPackage | null): FaqItem[] {
+  const credits = pkg?.credits_granted ?? null;
+  return [
   {
     question: "Nexus đánh giá và phản biện dự án như thế nào?",
     answer: "Nexus phân tích tài liệu slide hoặc đề cương do bạn tải lên trực tiếp, đối chiếu qua 5 nhóm tiêu chí đánh giá trọng yếu. Kết quả là bản báo cáo chi tiết chỉ ra các lỗ hổng lập luận, giả định thiếu căn cứ và gợi ý hướng hoàn thiện cụ thể.",
@@ -13,8 +22,8 @@ const faqItems: Array<{ question: string; answer: ReactNode }> = [
     answer: "Không. Nexus là hệ thống phản biện hỗ trợ hoàn thiện tài liệu dự án trước khi trình bày. Kết quả bảo vệ thực tế phụ thuộc vào việc triển khai và năng lực thuyết trình của nhóm.",
   },
   {
-    question: "Gói 79,000 VND bao gồm những gì và được sử dụng như thế nào?",
-    answer: "Mỗi gói cung cấp 2 lượt đánh giá cho dự án. Lượt 1 giúp nhóm phát hiện các điểm thiếu logic và lỗ hổng ban đầu. Sau khi chỉnh sửa tài liệu, nhóm sử dụng lượt 2 để đánh giá lại phiên bản mới xem đã khắc phục triệt để chưa.",
+    question: pkg ? `${pkg.name} (${formatPrice(pkg.price)}) bao gồm những gì và được sử dụng như thế nào?` : "Mỗi gói bao gồm những gì và được sử dụng như thế nào?",
+    answer: `${credits ? `Mỗi gói cung cấp ${credits} lượt đánh giá cho dự án.` : "Mỗi gói cung cấp các lượt đánh giá cho dự án."} Lượt 1 giúp nhóm phát hiện các điểm thiếu logic và lỗ hổng ban đầu. Sau khi chỉnh sửa tài liệu, nhóm sử dụng lượt tiếp theo để đánh giá lại phiên bản mới xem đã khắc phục triệt để chưa.`,
   },
   {
     question: "Tôi có thể chỉnh sửa dự án sau khi nhận báo cáo phản biện không?",
@@ -29,11 +38,12 @@ const faqItems: Array<{ question: string; answer: ReactNode }> = [
       </>
     ),
   },
-];
+  ];
+}
 
 const COLUMN_SPLIT = 3;
 
-function Column({ items }: { items: typeof faqItems }) {
+function Column({ items }: { items: FaqItem[] }) {
   return (
     <div className={s.faqCol}>
       {items.map((item) => (
@@ -46,7 +56,8 @@ function Column({ items }: { items: typeof faqItems }) {
   );
 }
 
-export default function FAQSection() {
+export default async function FAQSection() {
+  const faqItems = buildFaqItems(await getAuditPackage());
   return (
     <section className={`${base.section} ${base.soft}`} id="faq">
       <div className={base.wrap}>

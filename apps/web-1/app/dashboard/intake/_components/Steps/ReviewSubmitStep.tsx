@@ -2,7 +2,8 @@
 
 import React from "react";
 import { ServicePackage } from "@/types";
-import { formatPrice } from "@/lib/pricing";
+import { PACKAGE_KEYS, formatPrice } from "@/lib/pricing";
+import { usePackagePrice } from "@/lib/usePackagePrice";
 import { docCategoryLabel } from "@repo/validation";
 import { IntakeData } from "../../_types/intake.types";
 
@@ -63,6 +64,10 @@ export default function ReviewSubmitStep({
 }: ReviewSubmitStepProps) {
   const isAiOnly = Boolean(isAiOnlyPackage ?? (values?.package_id === "pkg_ai_audit"));
   const selectedPackage = packages?.find((p) => p.id === values.package_id);
+  const { data: auditPkg } = usePackagePrice(PACKAGE_KEYS.AI_AUDIT, isAiOnly && !selectedPackage);
+  const auditLabel = auditPkg
+    ? `${auditPkg.name} (${formatPrice(auditPkg.price)}${auditPkg.credits_granted ? ` / ${auditPkg.credits_granted} lượt` : ""})`
+    : "Gói đánh giá tự động";
 
 
   return (
@@ -175,7 +180,7 @@ export default function ReviewSubmitStep({
               {selectedPackage
                 ? `${selectedPackage.name} (${formatPrice(selectedPackage.price)})`
                 : (isAiOnly
-                  ? "Gói Đánh giá Dự án Tự động (79,000 VND / 2 lượt)"
+                  ? auditLabel
                   : "Gói phản biện tiêu chuẩn")}
             </div>
 
