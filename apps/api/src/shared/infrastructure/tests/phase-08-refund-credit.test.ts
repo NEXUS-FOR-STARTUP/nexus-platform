@@ -213,6 +213,7 @@ test("phase-08 refund regression — refundRemainingCreditInTx hoàn đúng 79k 
 
   try {
     const mockTx = {
+      caseEvent: { create: async () => ({}) },
       creditLedger: {
         groupBy: async () => [{ service_type_id: "st-cp1", _sum: { amount: 2 } }],
         findMany: async () => [
@@ -268,6 +269,7 @@ test("phase-08 refund regression — refundCaseAllInTx không cộng trùng lock
 
     try {
       const mockTx = {
+        caseEvent: { create: async () => ({}) },
         creditLedger: {
           groupBy: async () => [{ service_type_id: "st-cp1", _sum: { amount: 2 } }],
           findMany: async () => [
@@ -310,6 +312,7 @@ test("phase-08 refund regression — refundCaseAllInTx không cộng trùng lock
 
     try {
       const mockTx = {
+        caseEvent: { create: async () => ({}) },
         creditLedger: {
           groupBy: async () => [{ service_type_id: "st-cp1", _sum: { amount: 1 } }],
           findMany: async () => [
@@ -351,6 +354,7 @@ test("phase-08 refund regression — refundCaseAllInTx không cộng trùng lock
 
     try {
       const mockTx = {
+        caseEvent: { create: async () => ({}) },
         creditLedger: {
           groupBy: async () => [{ service_type_id: "st-cp1", _sum: { amount: 4 } }],
           findMany: async () => [
@@ -392,6 +396,7 @@ test("phase-08 refund regression — refundCaseAllInTx không cộng trùng lock
 
     try {
       const mockTx = {
+        caseEvent: { create: async () => ({}) },
         creditLedger: {
           groupBy: async () => [{ service_type_id: "st-cp1", _sum: { amount: 0 } }],
           findMany: async () => [],

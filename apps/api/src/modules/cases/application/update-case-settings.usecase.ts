@@ -1,3 +1,4 @@
+import { prisma } from "../../../db.js";
 import { AppError } from "../../../shared/domain/app-error.js";
 import { asNonEmptyString } from "../../../shared/infrastructure/http-helpers.js";
 import { isFinalCaseStage } from "../domain/case.types.js";
@@ -9,6 +10,7 @@ import {
   saveIntakeUnitContent,
   updateCaseSettings,
 } from "../infrastructure/persistence/case.repository.js";
+import { recordCaseEvent } from "../infrastructure/persistence/case-event.repository.js";
 import { CaseContactInputSchema } from "@repo/validation";
 import type { UpdateCaseSettingsRequest } from "./cases.dto.js";
 
@@ -18,6 +20,7 @@ const defaultDeps = {
   updateCaseSettings,
   saveIntakeUnitContent,
   saveCaseContactProfile,
+  recordCaseEvent: (input: Parameters<typeof recordCaseEvent>[1]) => recordCaseEvent(prisma, input),
 };
 
 export async function updateCaseSettingsUseCase(
@@ -192,6 +195,26 @@ export async function updateCaseSettingsUseCase(
     };
 
     await d.saveIntakeUnitContent(intakeUnit.id, JSON.stringify(mergedContent));
+  }
+
+  const changedFields = [
+    ...(team_name !== existingCase.team_name ? ["team_name"] : []),
+    ...(school !== existingCase.school ? ["school"] : []),
+    ...(course_context !== existingCase.course_context ? ["course_context"] : []),
+    ...(group_no !== existingCase.group_no ? ["group_no"] : []),
+    ...(contactPatch && Object.keys(contactPatch).length > 0 ? ["contact"] : []),
+    ...(body.idea ? ["idea"] : []),
+    ...(body.current_blocker !== undefined ? ["current_blocker"] : []),
+    ...(body.support_needs ? ["support_needs"] : []),
+  ];
+  if (changedFields.length > 0) {
+    await d.recordCaseEvent({
+      caseId,
+      eventType: "case_settings_updated",
+      actorUserId: userId,
+      actorRole: isAdmin && !isOwner ? "admin" : "user",
+      metadata: { fields: changedFields },
+    });
   }
 
   return updatedCase;

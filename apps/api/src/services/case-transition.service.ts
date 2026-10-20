@@ -1,3 +1,4 @@
+import { recordCaseEvent } from '../modules/cases/infrastructure/persistence/case-event.repository.js'
 import { Prisma, type PrismaClient } from '@prisma/client'
 import { prisma } from '../db.js'
 import { tryTransition } from '../modules/cases/domain/case-machine.js'
@@ -110,6 +111,13 @@ async function executeAction(
       }
       const key = `refund-${caseId}`
       await walletService.refund(ownerId, lockedPrice, 'admin_veto', caseId, key, tx)
+      await recordCaseEvent(tx, {
+        caseId,
+        eventType: 'credit_refunded',
+        actorUserId: ownerId,
+        actorRole: 'system',
+        metadata: { credits: 0, refund_vnd: lockedPrice, reason: 'admin_veto' },
+      })
       break
     }
 

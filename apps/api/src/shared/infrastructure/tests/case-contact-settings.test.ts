@@ -19,8 +19,10 @@ const baseCase = {
 
 function makeDeps(initialContent: Record<string, unknown> | null, profile: Record<string, string> | null = null) {
   const saved: { content?: Record<string, any>; profile?: Record<string, string>; writes: number } = { writes: 0 };
+  const events: Array<{ eventType: string; actorUserId?: string; metadata?: unknown }> = [];
   return {
     saved,
+    events,
     deps: {
       findCaseByIdWithMembers: async () => ({ ...baseCase, contact_profile: profile }) as any,
       findFirstIntakeUnit: async () =>
@@ -32,6 +34,10 @@ function makeDeps(initialContent: Record<string, unknown> | null, profile: Recor
       },
       saveCaseContactProfile: async (_id: string, p: Record<string, string>) => {
         saved.profile = p;
+      },
+      recordCaseEvent: async (input: { eventType: string; actorUserId?: string; metadata?: unknown }) => {
+        events.push(input);
+        return {} as never;
       },
     },
   };
@@ -87,11 +93,27 @@ test("updateCaseSettingsUseCase contact", async (t) => {
   });
 
   await t.test("non-member -> 403", async () => {
-    const { deps } = makeDeps({});
+    const { deps, events } = makeDeps({});
     await assert.rejects(
       updateCaseSettingsUseCase("stranger", "user", "case-1", { contact: { email: "a@x.com" } }, deps),
       (e: any) => e.status === 403,
     );
+    assert.equal(events.length, 0);
+  });
+
+  await t.test("records one timeline event naming only the fields that changed", async () => {
+    const { deps, events } = makeDeps({ contact: { full_name: "A" } });
+    await updateCaseSettingsUseCase("owner-1", "user", "case-1", { team_name: "New name", contact: { email: "a@x.com" } }, deps);
+    assert.equal(events.length, 1);
+    assert.equal(events[0]!.eventType, "case_settings_updated");
+    assert.equal(events[0]!.actorUserId, "owner-1");
+    assert.deepEqual(events[0]!.metadata, { fields: ["team_name", "contact"] });
+  });
+
+  await t.test("saving unchanged values records no event", async () => {
+    const { deps, events } = makeDeps({});
+    await updateCaseSettingsUseCase("owner-1", "user", "case-1", { team_name: "Team" }, deps);
+    assert.equal(events.length, 0);
   });
 });
 

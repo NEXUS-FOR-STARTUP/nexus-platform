@@ -78,7 +78,21 @@ test('open CP2: owner only, idempotent, never moves current_checkpoint', async (
     caseUpdates += 1;
     return {};
   }) as never);
-  swap(prisma.checkpoint, 'upsert', db.checkpoint.upsert as never);
+  const events: Array<{ data: Record<string, unknown> }> = [];
+  swap(prisma, '$transaction', (async (fn: (tx: unknown) => Promise<unknown>) =>
+    fn({
+      checkpoint: {
+        findUnique: async ({ where }: { where: { case_id_checkpoint_code: { case_id: string; checkpoint_code: string } } }) =>
+          rows.find((r) => r.checkpoint_code === where.case_id_checkpoint_code.checkpoint_code) ?? null,
+        upsert: db.checkpoint.upsert,
+      },
+      caseEvent: {
+        create: async (args: { data: Record<string, unknown> }) => {
+          events.push(args);
+          return {};
+        },
+      },
+    })) as never);
 
   try {
     const first = await openCheckpointUseCase(OWNER_ID, CASE_ID, 'CP2');
@@ -88,6 +102,9 @@ test('open CP2: owner only, idempotent, never moves current_checkpoint', async (
     assert.equal(first.checkpoint_code, 'CP2');
     assert.equal(rows.length, 1);
     assert.equal(caseUpdates, 0);
+    // Only the first open is an activity; the idempotent repeat records nothing.
+    assert.equal(events.length, 1);
+    assert.equal(events[0]!.data.event_type, 'stage_opened');
 
     await assert.rejects(
       () => openCheckpointUseCase('someone-else', CASE_ID, 'CP2'),

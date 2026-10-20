@@ -6,15 +6,19 @@ import { deleteStageDocumentUseCase } from '../../../modules/cases/application/d
 
 process.env.NODE_ENV = 'test'
 
+type DocumentRecordMock = {
+  findFirst: (args: unknown) => Promise<unknown>
+  updateMany: (args: unknown) => Promise<{ count: number }>
+}
+
 type MockablePrisma = {
-  documentRecord: {
-    findFirst: (args: unknown) => Promise<unknown>
-    updateMany: (args: unknown) => Promise<{ count: number }>
-  }
+  documentRecord: DocumentRecordMock
+  $transaction: (cb: (tx: unknown) => Promise<unknown>) => Promise<unknown>
 }
 
 const mockablePrisma = prisma as unknown as MockablePrisma
 const realDocumentRecord = mockablePrisma.documentRecord
+const realTransaction = mockablePrisma.$transaction
 
 const ownerRecord = {
   id: 'doc-1',
@@ -22,36 +26,58 @@ const ownerRecord = {
   superseded_at: null,
   source_kind: 'cloudinary',
   doc_type: 'revision_attachment',
+  original_name: 'slide.pdf',
+  checkpoint: { checkpoint_code: 'CP1' },
   case: { owner_auth_user_id: 'owner-1', internal_status: 'active' },
 }
 
+let events: Array<{ data: Record<string, unknown> }> = []
+
+/** Replaces the document delegate and runs the transaction body against the same delegate plus a recording caseEvent. */
+const mockDocuments = (documentRecord: DocumentRecordMock) => {
+  mockablePrisma.documentRecord = documentRecord
+  mockablePrisma.$transaction = (cb) =>
+    cb({
+      documentRecord,
+      caseEvent: {
+        create: async (args: { data: Record<string, unknown> }) => {
+          events.push(args)
+          return {}
+        },
+      },
+    })
+}
+
 const mockRecord = (record: unknown, count = 1) => {
-  mockablePrisma.documentRecord = {
-    findFirst: async () => record,
-    updateMany: async () => ({ count }),
-  }
+  mockDocuments({ findFirst: async () => record, updateMany: async () => ({ count }) })
 }
 
 beforeEach(() => {
   mockablePrisma.documentRecord = realDocumentRecord
+  mockablePrisma.$transaction = realTransaction
+  events = []
 })
 
 describe('deleteStageDocumentUseCase', () => {
-  it('soft-deletes an owner upload via superseded_at', async () => {
+  it('soft-deletes an owner upload via superseded_at and records the timeline event', async () => {
     let updated: unknown = null
-    mockablePrisma.documentRecord = {
+    mockDocuments({
       findFirst: async () => ownerRecord,
       updateMany: async (args: unknown) => {
         updated = args
         return { count: 1 }
       },
-    }
+    })
     const result = await deleteStageDocumentUseCase('owner-1', 'case-1', 'doc-1')
     assert.deepEqual(result, { deleted: true })
     const data = (updated as { where: { id: string; superseded_at: null }; data: { superseded_at: Date } })
     assert.equal(data.where.id, 'doc-1')
     assert.equal(data.where.superseded_at, null)
     assert.ok(data.data.superseded_at instanceof Date)
+    assert.equal(events.length, 1)
+    assert.equal(events[0]!.data.event_type, 'stage_document_deleted')
+    assert.equal(events[0]!.data.document_id, 'doc-1')
+    assert.deepEqual(events[0]!.data.metadata_json, { file_name: 'slide.pdf', checkpoint_code: 'CP1' })
   })
 
   it('rejects 404 when the document is missing or already deleted', async () => {
@@ -68,6 +94,7 @@ describe('deleteStageDocumentUseCase', () => {
       deleteStageDocumentUseCase('owner-1', 'case-1', 'doc-1'),
       (err: unknown) => err instanceof AppError && err.code === 'DOCUMENT_NOT_FOUND' && err.status === 404,
     )
+    assert.equal(events.length, 0)
   })
 
   it('rejects 403 when a non-owner deletes', async () => {

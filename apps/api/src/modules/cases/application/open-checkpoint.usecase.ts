@@ -2,6 +2,7 @@ import { prisma } from "../../../db.js";
 import { AppError } from "../../../shared/domain/app-error.js";
 import logger from "../../../shared/infrastructure/logger.js";
 import { ensureCheckpoint } from "../infrastructure/persistence/case.repository.js";
+import { recordCaseEvent } from "../infrastructure/persistence/case-event.repository.js";
 
 const OPENED_CHECKPOINT_STATUS = "draft";
 
@@ -30,7 +31,18 @@ export async function openCheckpointUseCase(
     throw new AppError(403, "FORBIDDEN", "Chỉ chủ dự án mới được mở checkpoint");
   }
 
-  const checkpoint = await ensureCheckpoint(prisma, caseId, code, OPENED_CHECKPOINT_STATUS);
+  const checkpoint = await prisma.$transaction(async (tx) => {
+    const existing = await tx.checkpoint.findUnique({
+      where: { case_id_checkpoint_code: { case_id: caseId, checkpoint_code: code } },
+      select: { id: true },
+    });
+    const ensured = await ensureCheckpoint(tx, caseId, code, OPENED_CHECKPOINT_STATUS);
+    // Only the first open is an activity; repeats are idempotent no-ops.
+    if (!existing) {
+      await recordCaseEvent(tx, { caseId, eventType: "stage_opened", actorUserId: userId, metadata: { checkpoint_code: code } });
+    }
+    return ensured;
+  });
   logger.info({ caseId, code, checkpointId: checkpoint.id, actorId: userId }, "checkpoint opened");
   return { checkpoint_id: checkpoint.id, checkpoint_code: checkpoint.checkpoint_code };
 }

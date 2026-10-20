@@ -9,6 +9,7 @@ import type { PostIntakeDocumentInput } from "../../../documents/application/val
  * Single place that creates a checkpoint row. Idempotent via the
  * (case_id, checkpoint_code) unique key, so concurrent callers share one row.
  */
+
 export async function ensureCheckpoint(
   db: Pick<Prisma.TransactionClient, "checkpoint">,
   caseId: string,
@@ -80,10 +81,9 @@ export async function findCaseByIdWithAllRelations(id: string) {
           },
         },
       },
-      // Bounded: the workspace timeline renders recent activity only, and
-      // unbounded event rows dominate payload size on long-lived cases.
+      // Full history on purpose: the activity timeline must show every recorded event.
+      // Volume stays small because autosave events are deduplicated at write time.
       events: {
-        take: 50,
         include: {
           actor: {
             select: { id: true, name: true, image: true, role: true },

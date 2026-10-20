@@ -134,6 +134,7 @@ function makeFakeTx(undo: (() => void)[]) {
         locked_price: null,
       }),
     },
+    caseEvent: { create: async () => ({}) },
     creditLedger: {
       findMany: async () => state.ledger.map((l) => ({ ...l, type: "purchase" })),
       aggregate: async () => ({ _sum: { amount: state.ledger.reduce((s, l) => s + l.amount, 0) } }),
