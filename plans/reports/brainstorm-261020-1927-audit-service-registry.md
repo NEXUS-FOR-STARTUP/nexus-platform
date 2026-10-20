@@ -110,6 +110,10 @@ Hiện trạng CP3/CP4: chỉ có catalog câu hỏi sinh viên (`packages/valid
 | D13 | Thêm hai danh mục: `lecturer_guidance` ("Hướng dẫn / yêu cầu từ giảng viên", gộp rubric + đề bài) và `interview_survey` ("Phỏng vấn / khảo sát khách hàng"). `business_model_canvas` chờ rubric CP3 | Bạn chọn; CP2 có nhóm bằng chứng riêng cho phỏng vấn/khảo sát |
 | D14 | Nhãn là người dùng tự khai: instruction ghi rõ file `lecturer_guidance` chỉ là tài liệu tham chiếu, không ghi đè prompt chấm | Chống gài nhãn để lái điểm |
 | D15 | CP sau nhận dữ liệu CP trước: câu trả lời copy vào `input/context/`; tài liệu nằm trong `storage/jobs/<caseId>/_library/` khóa theo `download_url`, manifest JSON (`stage`, `role`, `path`) dẫn agent tới; context không phải bằng chứng, ép bằng postprocess (xem 3.5, 3.7) | Bạn chỉ ra CP2 cần ý tưởng CP1; chọn thư viện chung thay vì copy để không nhân đôi đĩa và thời gian tải theo CP |
+| D16 | Registry đầy đủ kiểu hook (prompt, sandbox, instruction, preflight, optsSchema, jobInputExtras, tên file báo cáo, persistence); bỏ mọi `if CP1/CP2` và `?? "CP1"` | Bạn chọn; CP3/CP4 chỉ thêm một file |
+| D17 | Job cũ không có `checkpoint` trong `input_json`: một hàm tương thích dùng chung, ghi rõ lý do. Hiện có ba bản chép tay (`finalizer:72,145`, `derive-stage-summaries:29`, `admin-workers:531`) gom về một | Bạn chọn; giữ job cũ chạy lại và finalize được |
+| D18 | Câu trả lời CP1 copy vào `context/` độc lập với `AUDIT_STAGE_INPUT_RULES` | Bạn chọn; khỏi phụ thuộc cờ chưa biết giá trị trên prod |
+| D19 | `_library` giữ cùng vòng đời case, không dọn | Bạn chọn; đơn giản |
 
 ### 3.2 Thiết kế: hook rút từ các nhánh `if` thật
 
@@ -223,6 +227,16 @@ storage/jobs/<caseId>/
 - **Đánh đổi chấp nhận:** job không còn tự đủ để tái hiện (phụ thuộc `_library`, không được xóa cùng sandbox job); agent đang ghi được vào `_library` (xem 3.6, tính sau); `../_library` chỉ đúng với cấu trúc lồng `jobs/<caseId>/<jobId>` (bản phẳng `jobs/<jobId>` dành cho worker cũ không có).
 
 ---
+### 3.8 Đã đọc nốt code, kết quả (không đổi quyết định nào)
+- **Sandbox được ghi tối đa 4 chỗ** (`coordinator:528-595`): nested `jobs/<caseId>/<jobId>`, flat `jobs/<jobId>`, và hai bản trong `OMP_SANDBOX_MIRROR_ROOT` nếu đặt. Worker hiện tại dùng nested khi payload có `caseId` (có), flat chỉ cho worker cũ. Quyết định: `_library` ghi ở `jobs/<caseId>/_library` và bản mirror nested; **không** ghi cho flat (`../_library` không tồn tại ở đó, chấp nhận như đã nêu).
+- **`_library` không bị xóa nhầm:** `cleanDirectory` chỉ dọn `input/` và `output/` của từng job, không đụng `jobs/<caseId>/_library`.
+- **Lỗi sau dispatch** (`coordinator:665-674`) hoàn credit, đặt job `failed`, rollback stage. Tải thư viện chạy trước `prepareSandbox` trong cùng khối `try`: tải hỏng tài liệu context thì bỏ qua và ghi cảnh báo (đã chốt), lỗi khác vẫn đi đường hoàn credit này.
+- **Watchdog** (`coordinator:701`) không phụ thuộc CP, không cần sửa.
+- **Bản chép tay "thiếu checkpoint = CP1"** có ba chỗ ngoài finalizer: `derive-stage-summaries:29`, và `admin-workers:531-535` (chạy lại chỉ biết CP2, còn CP khác rơi về mặc định) nên chuyển thành hook `rerunInput` của registry.
+- **`derive-stage-summaries`** lặp theo `STAGES` dùng chung, chỉ có nhánh riêng cho CP2 (`answers_ready_*`); không cần đổi cho CP3/CP4 ngoài việc khai báo cờ sẵn sàng.
+
+---
+
 
 ## 4. Implementation considerations & risks
 
