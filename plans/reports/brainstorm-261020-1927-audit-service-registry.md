@@ -1,6 +1,6 @@
 # Brainstorm report: lỗi CP2 + kiến trúc dịch vụ chấm (CP1–CP4) — 2026-10-20
 
-File duy nhất cho chủ đề này. Trạng thái: sửa lỗi CP2 xong, commit trên `fix/cp2-sandbox-schema-guard` (chưa push/merge). Prompt CP2 đã lên VPS và 1 job CP2 chạy đúng schema (mục 1.2b), nhưng guard (`AGENTS.md`, validator) chưa quan sát được trên prod. Kiến trúc dịch vụ chấm: **brainstorm xong, chưa triển khai, chưa đổi code**.
+File duy nhất cho chủ đề này. Trạng thái: sửa lỗi CP2 xong (`fix/cp2-sandbox-schema-guard`) và kiến trúc dịch vụ chấm đã triển khai phía API (`feat/attachment-manifest`, xếp chồng, chưa push/merge): registry hook, `_library` + `context/` + manifest `stage`/`role`, lưu báo cáo không mặc định CP1, D9. Prompt CP2 đã lên VPS và 1 job CP2 chạy đúng schema (mục 1.2b). Chưa chạy job `omp` thật trên code mới; guard (`AGENTS.md`, validator) chưa quan sát được trên prod; web CP3/CP4 chưa làm (D20).
 
 ---
 
@@ -205,7 +205,7 @@ Sai sót của tôi: gộp hai việc khác nhau. CP1 đến CP4 thuộc cùng m
 - **Chưa kiểm trên prod** (không truy cập VPS); suy ra từ compose prod giống nhau (`./storage` rw, `./data:ro`, `/root/.omp`, không có `user:`).
 - Hệ quả: cô lập giữa nhóm chỉ là quy ước; tệp người dùng tải lên có thể chứa chỉ dẫn độc hại đọc/ghi case khác hoặc `auth.json`. Cách sửa nằm ở container (user không root, mount chỉ thư mục job, tách `auth.json`), đụng worker/compose, **không nằm trong phạm vi các thiết kế ở trên**. Cần bạn quyết có làm không và có kiểm trên VPS không.
 
-### 3.7 Thiết kế chốt: thư viện tài liệu theo case (bạn chọn; chưa code)
+### 3.7 Thiết kế chốt: thư viện tài liệu theo case (bạn chọn; đã code: `case-library.ts`)
 Quyết định của bạn: CP2 cần **cả tài liệu CP1 và câu trả lời CP1** (hệ thống cho chấm khi chỉ có một trong hai, nên phía còn lại có thể trống); **không copy tài liệu**, dùng một chỗ lưu chung để agent tự tìm đọc khi cần; **khóa theo `download_url`**; chức năng trước, bảo mật cô lập tính sau.
 ```
 storage/jobs/<caseId>/
@@ -244,7 +244,7 @@ storage/jobs/<caseId>/
 
 ## 4. Implementation considerations & risks
 
-### 4.1 Thứ tự triển khai (chưa bắt đầu; chờ lệnh)
+### 4.1 Thứ tự triển khai (đã triển khai phía API trên `feat/attachment-manifest`, chưa push; xem "Trạng thái triển khai" ở cuối mục 6)
 1. Test đặc tả CP1/CP2 (plan, nội dung sandbox, đường lỗi); chụp danh sách file sandbox CP1 hiện tại.
 2. Registry không mặc định + hook `sandbox`, `instruction` (CP1 `promptFiles` rõ ràng, thêm `workflow_operator_rule` đứng đầu theo D9).
 3. Hook finalizer.
@@ -323,3 +323,16 @@ Mỗi bước một commit, chạy test API trước khi sang bước sau.
 - `workflow_operator_rule_v1.md` đứng đầu danh sách prompt của cả 6 tổ hợp CP1 (`packages/shared/src/audit-checkpoints.ts`); hook `sandbox` CP1 trả `promptFiles: plan.prompts`; `cp1Instruction` bảo model đọc tệp đầu trước.
 - Trước: `system_prompt/` của CP1 chứa cả 11 file trong `data/system-prompts` (kể cả `cp2_*.md`, file lite). Sau: chỉ 3-5 file của đúng tổ hợp (smoke 6 tổ hợp: có `AGENTS.md`, `knowledge/` 2 file). `data/knowledge/AGENTS.md` chỉ tham chiếu `triad_framework_v1_1.md` và prompt được giao, không có file ngầm khác.
 - Chưa kiểm: chưa chạy job CP1 thật; chưa biết model CP1 đổi hành vi thế nào khi đọc thêm file này.
+
+### Trạng thái triển khai (phía API, 2026-10-20)
+**Đã làm:** D3, D5–D9, D11–D20. Registry hook `audit-services.ts` (planScope, normalizeSubmissionType, optsIssues, preflight, jobInputExtras, rerunInput, sandbox, instruction, reportMdName, lifecycleUnit); `case-library.ts` (`_library` khóa theo URL, ghi nguyên tử, `context/<stage>_answers.md`); manifest có `stage`/`role`; `saveOmpAuditReport` bắt buộc `checkpointCode` + `reportType`; kiểm prompt lúc boot (`assertAuditPromptsPresent`); `isContextSource` chặn bằng chứng trích từ `context/` hoặc `_library/`.
+
+**Lệch có chủ ý so với bản thiết kế:**
+- Luật bằng chứng chặn theo đoạn đường dẫn (`context`, `_library`), không tra `role` trong manifest: kết quả giống nhau vì hai thư mục này chỉ chứa tài liệu context.
+- Thêm dịch vụ mới vẫn cần dòng trong `AUDIT_CHECKPOINTS` (giữ cho worker legacy, D7), assembler/post-processor trong `audit-registry.ts` và phía web; phía coordinator/finalizer/admin thì không sửa.
+- `TriggerOptsSchema` vẫn mặc định `checkpoint = CP1` cho body không có `checkpoint` (hợp đồng API với web); mọi nơi khác không còn mặc định.
+- Slot CP3/CP4: không có entry; mã ngoài `AUDIT_CHECKPOINTS` bị 400 ở `TriggerOptsSchema`, mã có trong bảng mà thiếu service bị 400 ở `getAuditService` (và `tsc` không cho thiếu).
+
+**Đã kiểm:** `tsc` API sạch; test vùng đổi pass (`audit-services`, `audit-service-flow`, `cp2-audit-quotes`, `cp2-audit-trigger`, `assessment-routing`, `attachment-manifest*`, `prepare-sandbox-prompts`). Smoke local lắp sandbox CP1/CP2 từ DB local (case có CP1 + CP2). DB local: 8/8 report CP1 có lifecycle unit thuộc checkpoint CP1 và 9/9 report `input_clarification` nằm ở checkpoint CP1, nên đổi sang `ensureCheckpoint("CP1")` không đổi nơi lưu với dữ liệu này.
+
+**Chưa kiểm:** chưa chạy job `omp` thật trên code mới (cần build lại worker: image local trước JobSpec); chưa có bản chụp "trước" của sandbox CP1 (chỉ suy ra từ code: copy cả 11 file); `preflight` CP1 chưa có test (phụ thuộc `AUDIT_STAGE_INPUT_RULES`); chưa chạy toàn bộ test API theo yêu cầu.
