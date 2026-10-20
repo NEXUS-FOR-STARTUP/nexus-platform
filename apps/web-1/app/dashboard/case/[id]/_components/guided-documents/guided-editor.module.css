@@ -1,7 +1,8 @@
 /* design-system/mockups/case-detail views.css: .editor, .q, .thinw, .selfbox. */
 .layout {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 360px;
+  /* fr tracks so the three panes grow together on wide screens; floors keep the old widths. */
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 2.2fr) minmax(360px, 1.1fr);
   grid-template-areas: "toc card hint";
   gap: 24px;
   align-items: start;

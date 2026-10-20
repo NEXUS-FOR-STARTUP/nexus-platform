@@ -16,19 +16,20 @@
 
 .main {
   min-width: 0;
-  padding: 40px 48px 96px;
+  padding: 40px clamp(48px, 3vw, 120px) 96px;
 }
 
+/* Content tracks the viewport (floor = old fixed width) so 2K/4K screens show more, not wider margins. */
 .col {
-  max-width: 880px;
+  max-width: max(880px, 62vw);
 }
 
 .narrow {
-  max-width: 720px;
+  max-width: max(720px, 50vw);
 }
 
 .wide {
-  max-width: 1320px;
+  max-width: none;
 }
 
 .fab {

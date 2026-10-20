@@ -18,6 +18,10 @@
   --lp-shadow-float: -12px 16px 32px -8px rgba(26, 26, 28, 0.5);
   --lp-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --lp-wrap: 1200px;
+  /* Landing is a light-only marketing page: re-pin the theme tokens it consumes so dark mode never inverts surfaces under dark ink. */
+  --color-surface: #ffffff;
+  --color-on-brand: #ffffff;
+  color-scheme: light;
 
   color: var(--lp-ink);
   background: var(--color-surface);
