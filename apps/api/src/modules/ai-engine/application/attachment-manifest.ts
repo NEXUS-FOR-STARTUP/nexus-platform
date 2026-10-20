@@ -1,8 +1,22 @@
+import { basename } from "node:path";
 import { canonicalizeDocCategory, docCategoryLabel } from "@repo/validation";
 import type { OmpAuditInputFile } from "../omp-audit.service.js";
 
 /** Index of the team's uploaded files, written next to them so the model need not guess what each one is. */
 export const ATTACHMENT_MANIFEST_FILE = "attachments_manifest.json";
+
+/**
+ * A name no other sandbox input file uses. Strips path parts and illegal characters (the name becomes a path
+ * under input/), compares case-insensitively, and falls back to an id prefix on collision. `used` must be
+ * pre-seeded with every system file written to the same directory; it is updated with the returned name.
+ */
+export function uniqueSandboxName(rawName: string, docId: string, used: Set<string>): string {
+  const safe = basename(rawName).replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_") || "attachment";
+  let name = safe;
+  for (let n = 0; used.has(name.toLowerCase()); n++) name = `${docId.slice(0, 8)}${n > 0 ? `_${n}` : ""}_${safe}`;
+  used.add(name.toLowerCase());
+  return name;
+}
 
 export interface ManifestSourceDoc {
   original_name: string | null;

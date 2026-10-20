@@ -10,21 +10,44 @@ import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
 import { renderStageAnswers } from "./stage-audit-input.js";
 import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-types.js";
 import type { DocumentRecord } from "@prisma/client";
-import { buildAttachmentManifest, manifestEntry, type AttachmentManifestEntry } from "./attachment-manifest.js";
+import { ATTACHMENT_MANIFEST_FILE, buildAttachmentManifest, manifestEntry, uniqueSandboxName, type AttachmentManifestEntry } from "./attachment-manifest.js";
 
 type SubmissionType = AuditSubmissionType;
 
 type DocFileSource = Pick<DocumentRecord, "id" | "download_url" | "original_name" | "canonical_name" | "extension" | "metadata_json">;
 
-/** Downloads each document into the sandbox input and records it in the manifest; an unreachable file is skipped, not fatal. */
-async function appendDocFiles(docs: readonly DocFileSource[], inputFiles: OmpAuditInputFile[], entries: AttachmentManifestEntry[]): Promise<void> {
+/** Files this assembler writes into input/ itself; an upload must never take one of these names (case-insensitive). */
+const CP1_SYSTEM_INPUT_FILES = [
+  "intake_submission.md",
+  "team_fit_report.md",
+  "cp1_answers.md",
+  "previous_report.md",
+  "previous_report.json",
+  "change_summary.md",
+  ATTACHMENT_MANIFEST_FILE,
+];
+
+export function reservedInputNames(): Set<string> {
+  return new Set(CP1_SYSTEM_INPUT_FILES.map((name) => name.toLowerCase()));
+}
+
+/**
+ * Downloads each document into the sandbox input under a unique name and records it in the manifest;
+ * an unreachable file is skipped, not fatal. `used` is the set of names already taken in input/.
+ */
+export async function appendDocFiles(
+  docs: readonly DocFileSource[],
+  inputFiles: OmpAuditInputFile[],
+  entries: AttachmentManifestEntry[],
+  used: Set<string>,
+): Promise<void> {
   for (const doc of docs) {
     if (!doc.download_url) continue;
     try {
       const res = await fetch(doc.download_url);
       if (!res.ok) continue;
       const arrayBuf = await res.arrayBuffer();
-      const fileName = doc.original_name || doc.canonical_name || `document_${doc.id}.${doc.extension || "bin"}`;
+      const fileName = uniqueSandboxName(doc.original_name || doc.canonical_name || `document_${doc.id}.${doc.extension || "bin"}`, doc.id, used);
       inputFiles.push({ name: fileName, content: Buffer.from(arrayBuf) });
       entries.push(manifestEntry(fileName, doc));
     } catch (fetchErr) {
@@ -47,6 +70,7 @@ export async function assembleCp1InputFiles(
 ): Promise<{ inputFiles: OmpAuditInputFile[]; resolvedLifecycleUnitId: string | null }> {
   const inputFiles: OmpAuditInputFile[] = [];
   const entries: AttachmentManifestEntry[] = [];
+  const used = reservedInputNames();
 
   if (submissionType === "initial") {
     // Initial → intake unit (v00) docs + intake_submission.md
@@ -89,7 +113,7 @@ ${JSON.stringify(team, null, 2)}
     // already in cp1_answers.md — feeding them back is a self-loop.
     const documents = await findDocumentRecordsByCaseId(caseId);
     const submitted = documents.filter((d) => !(SUBMITTED_DOC_EXCLUDED_KINDS as readonly string[]).includes(d.source_kind));
-    await appendDocFiles(submitted, inputFiles, entries);
+    await appendDocFiles(submitted, inputFiles, entries, used);
     const manifest = buildAttachmentManifest(entries);
     if (manifest) inputFiles.push(manifest);
     return { inputFiles, resolvedLifecycleUnitId: intakeUnit?.id ?? null };
@@ -117,7 +141,7 @@ ${JSON.stringify(team, null, 2)}
       where: { lifecycle_unit_id: resolvedUnitId, superseded_at: null, source_kind: { notIn: [...SUBMITTED_DOC_EXCLUDED_KINDS] } },
       orderBy: [{ seq: "asc" }, { created_at: "asc" }],
     });
-    await appendDocFiles(unitDocs, inputFiles, entries);
+    await appendDocFiles(unitDocs, inputFiles, entries, used);
   }
 
   // For resubmit: add previous report + change_summary

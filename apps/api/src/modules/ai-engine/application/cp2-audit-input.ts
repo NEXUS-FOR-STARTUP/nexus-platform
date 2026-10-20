@@ -1,4 +1,3 @@
-import { basename } from "node:path";
 import type { Cp2InputSource } from "@app/shared";
 import { CP2_INTERVIEW_AUDIT_REQUIRED, CP2_QUESTION_BANK_ID, CP2_SELF_CHECKS, QUESTION_REGISTRY, TEMPLATE_REGISTRY } from "@repo/validation";
 import { prisma } from "../../../db.js";
@@ -8,7 +7,7 @@ import { findLatestCp2FullReport } from "../../reports/infrastructure/persistenc
 import type { OmpAuditInputFile } from "../omp-audit.service.js";
 import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-types.js";
 import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
-import { buildAttachmentManifest, manifestEntry, type AttachmentManifestEntry } from "./attachment-manifest.js";
+import { buildAttachmentManifest, manifestEntry, uniqueSandboxName, type AttachmentManifestEntry } from "./attachment-manifest.js";
 import { STAGE_DOC_EXCLUDED_TYPES, renderStageAnswers } from "./stage-audit-input.js";
 
 export const CP2_CHECKPOINT_CODE = "CP2";
@@ -148,10 +147,6 @@ export function renderSelfChecks(answers: AnswerMap): string {
   return `# Nhóm tự xác nhận (nhóm tự khai, chưa được kiểm chứng)\n\n${lines.join("\n")}\n`;
 }
 
-function safeFileName(name: string): string {
-  return basename(name).replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_") || "attachment";
-}
-
 async function loadAttachments(caseId: string): Promise<{ files: OmpAuditInputFile[]; entries: AttachmentManifestEntry[] }> {
   const checkpoint = await prisma.checkpoint.findUnique({
     where: { case_id_checkpoint_code: { case_id: caseId, checkpoint_code: CP2_CHECKPOINT_CODE } },
@@ -178,9 +173,7 @@ async function loadAttachments(caseId: string): Promise<{ files: OmpAuditInputFi
       logger.error({ caseId, docId: doc.id, status: res.status }, "CP2 attachment fetch failed");
       throw new AppError(502, "ATTACHMENT_FETCH_FAILED", "Không tải được tệp đính kèm để chấm. Vui lòng thử lại.");
     }
-    let name = safeFileName(doc.original_name || doc.canonical_name || `document_${doc.id}.${doc.extension || "bin"}`);
-    if (used.has(name.toLowerCase())) name = `${doc.seq}_${doc.id.slice(0, 8)}_${name}`;
-    used.add(name.toLowerCase());
+    const name = uniqueSandboxName(doc.original_name || doc.canonical_name || `document_${doc.id}.${doc.extension || "bin"}`, doc.id, used);
     const fileName = `${CP2_ATTACHMENTS_DIR}/${name}`;
     files.push({ name: fileName, content: Buffer.from(await res.arrayBuffer()) });
     entries.push(manifestEntry(fileName, doc));
