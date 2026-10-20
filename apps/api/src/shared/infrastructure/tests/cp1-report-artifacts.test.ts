@@ -50,12 +50,23 @@ test("CP1 initial input keeps the team's uploads and drops saved report PDFs, ev
   assert.equal(names.includes("export.docx"), false);
 });
 
-test("CP1 logic_check input drops saved report PDFs of the unit", async () => {
-  let where: { doc_type?: unknown } = {};
+test("CP1 logic_check input and manifest drop saved report PDFs of the unit", async () => {
+  const unitDocs = [
+    doc("d1", "Paper.docx", "revision_document", "cloudinary"),
+    doc("d2", "tiboo_y_tuong_lan_dau_20261013001720.pdf", "assessment_report", "cloudinary"),
+  ];
   swap(prisma.lifecycleUnit, "findFirst", async () => ({ id: "v01" }));
-  swap(prisma.documentRecord, "findMany", async (args: { where: typeof where }) => ((where = args.where), []));
+  // Honours the `doc_type: { not }` filter the way the database does, so the result depends on the query, not on a canned list.
+  swap(prisma.documentRecord, "findMany", async (args: { where: { doc_type?: { not?: string } } }) =>
+    unitDocs.filter((d) => d.doc_type !== args.where.doc_type?.not),
+  );
   swap(prisma.report, "findMany", async () => []);
+  globalThis.fetch = (async () => new Response("x")) as typeof fetch;
 
-  await assembleCp1InputFiles("case-1", "logic_check", null);
-  assert.deepEqual(where.doc_type, { not: "assessment_report" });
+  const { inputFiles } = await assembleCp1InputFiles("case-1", "logic_check", null);
+  const manifest = inputFiles.find((f) => f.name === "attachments_manifest.json");
+
+  assert.deepEqual(inputFiles.map((f) => f.name).filter((n) => n !== "attachments_manifest.json"), ["Paper.docx"]);
+  assert.ok(manifest);
+  assert.equal(String(manifest.content).includes("tiboo_y_tuong"), false);
 });
