@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ActionIcon, Button, Group, Text, Tooltip } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { Copy, Terminal, ArrowDown, Check } from "lucide-react";
+import { Copy, Terminal, ArrowDown, Check } from "@phosphor-icons/react";
 import { useAdminWorkerLogs, type AdminWorkerLogEntry } from "../hooks/useAdminWorkers";
 
 interface WorkerJobTerminalProps {

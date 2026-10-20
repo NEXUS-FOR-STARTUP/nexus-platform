@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { Clock } from "lucide-react";
-import { Button } from "@mantine/core";
+import { ClockCountdown } from "@phosphor-icons/react";
+import { Button } from "./ui/Button";
 import RainbowBuyButton from "@/components/ui/RainbowBuyButton";
 
 interface CreditActionsProps {
@@ -22,10 +22,9 @@ export default function CreditActions({ onBuyCredits, onViewHistory, hasCredits 
         {onViewHistory && (
           <Button
             onClick={onViewHistory}
-            variant="default"
+            variant="quiet"
             size="sm"
-            leftSection={<Clock className="w-4 h-4" />}
-            className="font-semibold cursor-pointer"
+            leftSection={<ClockCountdown className="w-4 h-4" />}
           >
             Lịch sử giao dịch
           </Button>

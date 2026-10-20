@@ -96,7 +96,7 @@ export function useGuidedDocuments(caseId: string, templateKey: TemplateKey) {
       queryClient.invalidateQueries({ queryKey: ['case', caseId] });
       notifications.show({
         title: 'Tạo tài liệu thành công',
-        message: 'Đã xuất file DOCX và lưu vào danh sách tài liệu của hồ sơ.',
+        message: 'Đã xuất file DOCX và lưu vào danh sách tài liệu của dự án.',
         color: 'teal',
       });
       const downloadTarget = data?.document?.download_url || data?.document?.file_url;

@@ -11,7 +11,7 @@ import { IntakeStep, IntakeData } from "./_types/intake.types";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import Link from "next/link";
 import { Modal, Button, Alert } from "@mantine/core";
-import { Trash2, AlertTriangle, AlertCircle } from "lucide-react";
+import { Trash as Trash2, Warning as AlertTriangle } from "@phosphor-icons/react";
 import { apiClient } from "@/lib/api-client";
 import DemoDataFAB from "@/components/ui/DemoDataFAB";
 import { DEMO_PRESETS } from "./_data/demo-presets";
@@ -165,14 +165,13 @@ function IntakePageContent() {
     return (
       <div className="flex items-center justify-center min-h-[400px] p-6">
         <Alert
-          icon={<AlertCircle className="w-5 h-5" />}
           title="Lỗi"
           color="red"
           radius="md"
           variant="light"
           className="max-w-md"
         >
-          <p className="text-sm font-body">Không tải được hồ sơ. Vui lòng thử lại.</p>
+          <p className="text-sm font-body">Không tải được dự án. Vui lòng thử lại.</p>
         </Alert>
       </div>
     );
@@ -181,7 +180,6 @@ function IntakePageContent() {
     return (
       <div className="flex items-center justify-center min-h-[400px] p-6">
         <Alert
-          icon={<AlertCircle className="w-5 h-5" />}
           title="Lỗi kết nối"
           color="red"
           radius="md"
@@ -214,7 +212,7 @@ function IntakePageContent() {
         <LoadingSkeleton variant="text-block" count={2} />
         <p className="mt-4 text-sm text-text-muted font-body animate-pulse">
           {isUpdateMode
-            ? "Đang tải dữ liệu hồ sơ..."
+            ? "Đang tải dữ liệu dự án..."
             : "Đang tải cấu hình biểu mẫu..."}
         </p>
       </div>
@@ -231,7 +229,6 @@ function IntakePageContent() {
       return (
         <div className="flex items-center justify-center min-h-[400px] p-6">
           <Alert
-            icon={<AlertCircle className="w-5 h-5" />}
             title="Lỗi"
             color="red"
             radius="md"

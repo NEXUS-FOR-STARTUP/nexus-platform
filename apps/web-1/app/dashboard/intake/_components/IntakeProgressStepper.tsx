@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { IntakeStep } from "../_types/intake.types";
-import { Check, ChevronDown, ListOrdered } from "lucide-react";
+import { Check, CaretDown as ChevronDown, ListNumbers as ListOrdered } from "@phosphor-icons/react";
 
 interface IntakeProgressStepperProps {
   currentStep: IntakeStep;

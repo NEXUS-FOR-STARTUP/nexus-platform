@@ -58,6 +58,16 @@ export function formatPrice(price: number): string {
   return `${num} VND`;
 }
 
+const VND_NUMBER_FORMAT = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+
+/** Always "1,000 VND" (0 -> "0 VND"); `signed` prefixes "+" on positives. Non-finite -> "—". */
+export function formatVndAmount(amount: number, opts?: { signed?: boolean }): string {
+  if (!Number.isFinite(amount)) return "—";
+  const rounded = Math.round(amount);
+  const sign = rounded < 0 ? "-" : opts?.signed && rounded > 0 ? "+" : "";
+  return `${sign}${VND_NUMBER_FORMAT.format(Math.abs(rounded))} VND`;
+}
+
 /**
  * Validates a file for payment proof upload (receipt).
  * Displays a Mantine notification if validation fails.

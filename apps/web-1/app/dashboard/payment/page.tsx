@@ -2,8 +2,8 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Alert, Button } from "@mantine/core";
-import { AlertCircle, ArrowLeft, CheckCircle2, Clock, XCircle } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { WarningCircle as AlertCircle, ArrowLeft, CheckCircle as CheckCircle2, Clock, XCircle } from "@phosphor-icons/react";
+import { type Icon } from "@phosphor-icons/react";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { WALLET_COPY, getDepositDisplay } from "@/lib/deposit-display";
 import { useDepositDetail } from "./hooks/usePayment";
@@ -16,7 +16,7 @@ import {
 import { useFulfillCreditAfterDeposit } from "./hooks/use-fulfill-credit-after-deposit";
 import { PaymentView } from "./_components/PaymentView";
 
-const STATUS_ICONS: Record<string, LucideIcon> = {
+const STATUS_ICONS: Record<string, Icon> = {
   pending: Clock,
   verified: CheckCircle2,
   rejected: XCircle,

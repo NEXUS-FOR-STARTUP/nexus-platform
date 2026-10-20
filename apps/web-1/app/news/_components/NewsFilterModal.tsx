@@ -108,7 +108,7 @@ export function NewsFilterModal({
           </Radio.Group>
         </div>
 
-        <div className="flex items-center justify-end gap-2 pt-3 border-t border-border-app">
+        <div className="flex items-center justify-end gap-2 pt-3">
           <Button
             variant="subtle"
             color="gray"

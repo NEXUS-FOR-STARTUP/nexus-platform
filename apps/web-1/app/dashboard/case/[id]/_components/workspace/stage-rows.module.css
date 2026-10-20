@@ -1,0 +1,99 @@
+/* Copied from design-system/mockups/case-detail base.css (.rows, .row, .chip placement) and the phone rules in views.css. */
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 24px;
+  align-items: center;
+  padding: 14px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--ui-radius);
+}
+
+.row > :nth-child(2) {
+  justify-self: start;
+}
+
+.locked {
+  color: var(--color-text-muted);
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: var(--ui-weight-medium);
+}
+
+.lead {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.tile {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--ui-radius);
+}
+
+.tileDone {
+  background: var(--color-success-soft);
+  color: var(--color-success-ink);
+}
+
+.tileAttn {
+  background: var(--color-accent-warm-soft);
+  color: var(--color-accent-warm-ink);
+}
+
+.tileNext {
+  background: var(--color-brand);
+  color: var(--color-on-brand);
+}
+
+.tileTodo {
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+}
+
+.tileLocked {
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
+}
+
+.note {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.after {
+  margin: 8px 0 0;
+}
+
+@media (max-width: 820px) {
+  .row {
+    grid-template-columns: 1fr auto;
+    gap: 8px 16px;
+  }
+
+  .row > :nth-child(2) {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .row > :last-child {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+}

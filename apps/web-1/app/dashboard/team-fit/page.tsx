@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useCallback, useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Center, Loader } from "@mantine/core";
 import { useSession } from "@/lib/auth-client";
 import StepIndicator from "./_components/StepIndicator";
 import IdeaMadLibsStep from "./_components/IdeaMadLibsStep";
 import TeamInputStep from "./_components/TeamInputStep";
 import TeamFitResultStep from "./_components/TeamFitResultStep";
+import TeamFitUpsellCard from "./_components/TeamFitUpsellCard";
 import ErrorBanner from "./_components/ErrorBanner";
 import NavigationButtons from "./_components/NavigationButtons";
 import { useTeamFitMutation, useTeamFitSaveMutation } from "./hooks/useTeamFitMutation";
@@ -18,7 +19,25 @@ import type { TeamMemberInput } from "./hooks/useTeamFitMutation";
 import DemoDataFAB from "@/components/ui/DemoDataFAB";
 import { NEXUS_PRESET, DEMO_PRESETS } from "./_data/demo-preset";
 
+type Step = 0 | 1 | 2;
+
+const STEP_PARAM = "step";
+const LAST_STEP_NUMBER = 3;
+
+function parseStepParam(raw: string | null): Step {
+  const n = Number(raw);
+  return Number.isInteger(n) && n >= 1 && n <= LAST_STEP_NUMBER ? ((n - 1) as Step) : 0;
+}
+
 export default function TeamFitPage() {
+  return (
+    <Suspense fallback={null}>
+      <TeamFitContent />
+    </Suspense>
+  );
+}
+
+function TeamFitContent() {
   // ── Auth guard ──
   const { data: session, isPending } = useSession();
   const router = useRouter();
@@ -29,7 +48,9 @@ export default function TeamFitPage() {
   }, [isPending, session, router]);
 
   // ── Page state ──
-  const [currentStep, setCurrentStep] = useState<0 | 1 | 2>(0);
+  const searchParams = useSearchParams();
+  const rawStep = searchParams.get(STEP_PARAM);
+  const requestedStep = parseStepParam(rawStep);
   const [blanks, setBlanks] = useState<Record<string, string>>(() =>
     loadSaved(LS_KEY_BLANKS, INITIAL_BLANKS),
   );
@@ -48,6 +69,26 @@ export default function TeamFitPage() {
   useEffect(() => { saveToLS(LS_KEY_BLANKS, blanks); }, [blanks]);
   useEffect(() => { saveToLS(LS_KEY_MEMBERS, members); }, [members]);
 
+  // Step trên URL chỉ hợp lệ khi các bước trước đã đủ dữ liệu; reload/dán link thẳng vào bước 3
+  // (kết quả AI không được lưu) sẽ lùi về bước gần nhất còn hợp lệ.
+  const ideaReady = Object.keys(validateAllBlanks(blanks)).length === 0;
+  const hasResultState = mutation.isPending || mutation.isError || mutation.data !== undefined;
+  let currentStep: Step = requestedStep;
+  if (currentStep === 2 && !hasResultState) currentStep = 1;
+  if (currentStep === 1 && !ideaReady) currentStep = 0;
+
+  const goToStep = useCallback(
+    (step: Step, mode: "push" | "replace" = "push") => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set(STEP_PARAM, String(step + 1));
+      router[mode](`?${params.toString()}`, { scroll: false });
+    },
+    [router, searchParams],
+  );
+
+  useEffect(() => {
+    if (rawStep !== String(currentStep + 1)) goToStep(currentStep, "replace");
+  }, [rawStep, currentStep, goToStep]);
 
   // ── Auth guard early returns ──
   if (isPending) {
@@ -93,7 +134,7 @@ export default function TeamFitPage() {
     const errors = validateAllBlanks(blanks);
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) return;
-    setCurrentStep(1);
+    goToStep(1);
   };
 
   const handleEvaluate = () => {
@@ -114,17 +155,17 @@ export default function TeamFitPage() {
       setValidationErrors(
         parsed.error.issues.map((issue) => formatIssue(issue.path, issue.message)),
       );
-      setCurrentStep(0);
+      goToStep(0);
       return;
     }
 
     setValidationErrors([]);
-    setCurrentStep(2);
     mutation.mutate(payload);
+    goToStep(2);
   };
 
   const handleReset = () => {
-    setCurrentStep(0);
+    goToStep(0);
     setBlanks(INITIAL_BLANKS);
     setMembers([]);
     setFieldErrors({});
@@ -212,19 +253,23 @@ export default function TeamFitPage() {
   // ── Render ──
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-6 sm:space-y-8 px-4 pt-6 pb-28 sm:py-8 sm:px-6">
+    <div
+      className={`mx-auto w-full space-y-6 sm:space-y-8 px-4 pt-6 pb-28 sm:py-8 sm:px-6 ${
+        currentStep === 2 ? "max-w-4xl" : "max-w-3xl"
+      }`}
+    >
       {/* Page header */}
       <div className="text-center space-y-2">
         <h1 className="font-heading text-2xl font-bold text-text-app">
           Kiểm tra nhanh ý tưởng & đội ngũ
         </h1>
         <p className="font-body text-sm text-text-muted">
-          Mô tả ngắn ý tưởng và các thành viên trong nhóm. Nexus sẽ chỉ ra những điểm còn chưa rõ và năng lực nhóm có thể đang thiếu.
+          Mô tả ý tưởng và đội ngũ để Nexus chỉ ra điểm còn thiếu.
         </p>
       </div>
 
       {/* Step indicator */}
-      <StepIndicator currentStep={currentStep} onStepClick={(step) => setCurrentStep(step)} />
+      <StepIndicator currentStep={currentStep} onStepClick={(step) => goToStep(step)} />
 
       {/* Step content */}
       <div className="bg-surface-app border border-border-app rounded-2xl p-4 sm:p-6">
@@ -251,19 +296,22 @@ export default function TeamFitPage() {
             onReset={handleReset}
             onSave={handleSave}
             onXemCase={handleXemCase}
-            onUpgrade={handleUpgrade}
             isSaving={saveMutation.isPending}
             hasSaved={hasSaved}
           />
         )}
       </div>
 
+      {currentStep === 2 && mutation.data && (
+        <TeamFitUpsellCard onUpgrade={handleUpgrade} isUpgrading={saveMutation.isPending} />
+      )}
+
       {/* Navigation buttons (step 0 & 1 only) */}
       <NavigationButtons
         currentStep={currentStep}
         canProceedToStep1={allFilledNoErrors}
         membersCount={members.length}
-        onBack={() => setCurrentStep((currentStep - 1) as 0 | 1 | 2)}
+        onBack={() => goToStep((currentStep - 1) as Step)}
         onNextFromStep0={handleNextFromStep0}
         onEvaluate={handleEvaluate}
         onReset={handleReset}

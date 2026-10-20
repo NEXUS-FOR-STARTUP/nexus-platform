@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Select } from "@mantine/core";
-import { UserCheck, Loader2 } from "lucide-react";
+import { UserCheck, CircleNotch as Loader2 } from "@phosphor-icons/react";
 import { User } from "@/types";
 
 interface AssignSupporterModalProps {

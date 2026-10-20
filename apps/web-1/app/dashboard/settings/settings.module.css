@@ -1,0 +1,132 @@
+/* Shell matches mockup base.css .layout, .side, .main */
+.layout {
+  display: grid;
+  grid-template-columns: 264px 1fr;
+  min-height: calc(100vh - 4rem);
+  width: 100%;
+}
+
+.side {
+  position: sticky;
+  top: 4rem;
+  align-self: start;
+  height: calc(100vh - 4rem);
+  overflow-y: auto;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.main {
+  padding: 40px 48px 96px;
+  min-width: 0;
+}
+
+.head {
+  margin-bottom: 28px;
+}
+
+.headTitle {
+  font-size: var(--ui-text-title, 1.5rem);
+  font-weight: 500;
+  color: var(--color-text);
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+
+.headNote {
+  font-size: var(--ui-text-note, 0.875rem);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Nav Link matches mockup .nav */
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--color-text);
+  font-size: var(--ui-text-body, 1rem);
+  font-weight: 400;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.navItem .navIcon {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.navItem:hover {
+  background: var(--color-surface-soft);
+  text-decoration: none;
+}
+
+.navItem.active {
+  background: var(--color-brand-subtle) !important;
+  color: var(--color-brand) !important;
+  font-weight: 500;
+}
+
+.navItem.active .navIcon {
+  color: var(--color-brand);
+}
+
+/* Mobile Drawer & Burger matches mockup */
+.burger {
+  display: none;
+}
+
+.drawerContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+}
+
+@media (max-width: 820px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .side {
+    display: none;
+  }
+
+  .main {
+    padding: 24px 16px 88px;
+  }
+
+  .burger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    left: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    z-index: 40;
+    width: 48px;
+    height: 48px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--color-brand);
+    color: var(--color-on-brand);
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.24);
+    transition: background-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .burger:hover {
+    background: var(--color-brand-hover);
+  }
+
+  .burger:active {
+    transform: scale(0.98);
+  }
+}

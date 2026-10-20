@@ -1,0 +1,141 @@
+/* Values measured from design-system/mockups/case-detail (computed styles), not guessed. */
+
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: var(--ui-weight-medium);
+  color: var(--color-text);
+}
+
+.lead {
+  margin: 4px 0 24px;
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--color-text-muted);
+}
+
+.note {
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--color-text-muted);
+}
+
+.summary:focus-visible {
+  outline: var(--ui-focus-ring);
+  outline-offset: var(--ui-focus-offset);
+}
+
+.fold {
+  margin: 0 0 8px;
+}
+
+.summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0 8px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: var(--ui-weight-medium);
+  color: var(--color-text);
+  user-select: none;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.count {
+  margin-left: auto;
+  margin-right: 12px;
+  font-weight: var(--ui-weight-regular);
+}
+
+.chevron {
+  color: var(--color-text-muted);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.fold[open] .chevron {
+  transform: rotate(180deg);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0 0;
+}
+
+.event {
+  position: relative;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 16px;
+  padding-bottom: 24px;
+}
+
+.event:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: 36px;
+  bottom: 4px;
+  width: 2px;
+  background: var(--color-text-disabled);
+}
+
+.marker {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+
+.markerGrade {
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+}
+
+.markerPay {
+  background: var(--color-success-soft);
+  color: var(--color-success-ink);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 12px;
+}
+
+.eventTitle {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: var(--ui-weight-medium);
+  color: var(--color-text);
+}
+
+.eventNote {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--color-text-muted);
+}
+
+.empty {
+  padding: 24px 0;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, Circle } from 'lucide-react';
+import { Check, Circle } from "@phosphor-icons/react";
 
 const STEPS = ['Ý tưởng cốt lõi', 'Thành viên nhóm', 'Kết quả sơ bộ'];
 

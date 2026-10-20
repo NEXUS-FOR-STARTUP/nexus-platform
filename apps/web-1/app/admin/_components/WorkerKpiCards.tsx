@@ -1,7 +1,7 @@
 "use client";
 
 import { Paper, Text, SimpleGrid, Badge, Group } from "@mantine/core";
-import { Activity, Clock, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Pulse as Activity, Clock, CheckCircle as CheckCircle2, Warning as AlertTriangle } from "@phosphor-icons/react";
 import type { AdminWorkerStats } from "../hooks/useAdminWorkers";
 
 interface WorkerKpiCardsProps {

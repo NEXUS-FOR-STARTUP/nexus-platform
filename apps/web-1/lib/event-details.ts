@@ -1,25 +1,10 @@
-import {
-  FolderPlus,
-  Upload,
-  CheckCircle,
-  XCircle,
-  FileEdit,
-  FileCheck,
-  HelpCircle,
-  Circle,
-  UserCheck,
-  MessageSquare,
-  Trash2,
-  Coins,
-  ArrowUpRight,
-  RotateCcw,
-  type LucideIcon,
-} from "lucide-react";
+import { type Icon } from "@phosphor-icons/react";
+import { FolderPlus, UploadSimple as Upload, CheckCircle, XCircle, NotePencil as FileEdit, FileText as FileCheck, Question as HelpCircle, Circle, UserCheck, Chat as MessageSquare, Trash as Trash2, Coins, ArrowUpRight, ArrowCounterClockwise as RotateCcw } from "@phosphor-icons/react/ssr";
 
 export interface EventDetails {
   label: string;
   desc: string;
-  icon: LucideIcon;
+  icon: Icon;
   colorClass: string;
 }
 

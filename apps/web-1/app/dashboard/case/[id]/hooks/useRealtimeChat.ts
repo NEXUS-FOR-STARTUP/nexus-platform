@@ -73,8 +73,8 @@ export function useRealtimeChat(caseId: string, options: UseRealtimeChatOptions 
 
       if (data?.type === "case_deleted") {
         notifications.show({
-          title: "Hồ sơ đã bị xóa",
-          message: "Hồ sơ này không còn tồn tại. Bạn sẽ được chuyển về trang tổng quan.",
+          title: "Dự án đã bị xóa",
+          message: "Dự án này không còn tồn tại. Bạn sẽ được chuyển về trang tổng quan.",
           color: "red",
         });
         queryClient.invalidateQueries();

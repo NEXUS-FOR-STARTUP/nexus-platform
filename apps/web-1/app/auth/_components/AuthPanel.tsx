@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { AlertCircle } from "lucide-react";
+import { WarningCircle as AlertCircle } from "@phosphor-icons/react";
 import { getAuthRedirectUrl } from "../get-auth-redirect";
 import { useEmailOtpLogin } from "../hooks/use-email-otp-login";
 import { useEmailPasswordLogin } from "../hooks/use-email-password-login";
@@ -12,6 +12,7 @@ import { EmailChoiceStep } from "./EmailChoiceStep";
 import { EmailOtpStep } from "./EmailOtpStep";
 import { PasswordStep } from "./PasswordStep";
 import { RegisterConfirmModal } from "./RegisterConfirmModal";
+import s from "./auth.module.css";
 
 const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
 
@@ -76,21 +77,15 @@ export default function AuthPanel() {
   };
 
   return (
-    <div className="w-full font-body text-xs text-text-app space-y-4">
-      <div className="text-center space-y-1 pb-1">
-        <h1 className="font-heading text-xl font-bold tracking-tight text-text-app sm:text-2xl">
-          Đăng nhập vào Nexus
-        </h1>
-        {step === "otp" && (
-          <p className="text-xs text-text-muted sm:text-sm">
-            Mã đã gửi đến {normalizedEmail}
-          </p>
-        )}
+    <div className={s.stack}>
+      <div className={s.head}>
+        <h1 className={s.title}>Đăng nhập vào Nexus</h1>
+        {step === "otp" && <p className={s.sub}>Mã đã gửi đến {normalizedEmail}</p>}
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 p-3 bg-danger-soft border border-danger/20 text-danger rounded-lg text-xs font-body">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+        <div className={s.error} role="alert">
+          <AlertCircle size={20} aria-hidden="true" />
           <span>{error}</span>
         </div>
       )}

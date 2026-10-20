@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Menu } from "@mantine/core";
-import { Download } from "lucide-react";
+import { DownloadSimple as Download } from "@phosphor-icons/react";
 import type { AdminExportResource } from "@repo/validation";
 import { useAdminExport } from "../hooks/useAdminExport";
 

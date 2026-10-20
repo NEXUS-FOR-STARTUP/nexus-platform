@@ -53,7 +53,7 @@ function renderMarks(text: string, marks?: TipTapMark[]): React.ReactNode {
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#288ad6] hover:underline font-medium inline-flex items-center gap-0.5"
+            className="text-brand hover:underline font-medium inline-flex items-center gap-0.5"
           >
             {element}
           </a>
@@ -159,7 +159,7 @@ function renderNode(node: TipTapNode, index: number): React.ReactNode {
       return (
         <blockquote
           key={index}
-          className="border-l-4 border-[#3199d5] pl-6 py-1 my-10 font-serif italic text-[19px] leading-[32px] text-text-app [&>p:last-child]:!mb-0"
+          className="border-l-4 border-brand pl-6 py-1 my-10 font-serif italic text-[19px] leading-[32px] text-text-app [&>p:last-child]:!mb-0"
         >
           {children}
         </blockquote>

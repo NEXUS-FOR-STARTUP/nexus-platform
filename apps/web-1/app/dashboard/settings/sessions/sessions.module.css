@@ -1,0 +1,166 @@
+/* Sessions view matches mockup views.css and spec.js */
+.colNarrow {
+  max-width: 720px;
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 24px 28px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.title {
+  font-size: var(--ui-text-section, 1.125rem);
+  font-weight: 500;
+  color: var(--color-text);
+  margin: 0 0 4px;
+}
+
+.note {
+  font-size: var(--ui-text-note, 0.875rem);
+  color: var(--color-text-muted);
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* Button quiet matching mockup base.css .btn.quiet */
+.btnQuiet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  font-size: var(--ui-text-body, 0.9375rem);
+  font-weight: 500;
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.btnQuiet:hover:not(:disabled) {
+  background: var(--color-surface-soft);
+}
+
+.btnQuiet:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Session List & Items matches mockup views.css .session-list, .session-item */
+.sessionList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sessionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.sessionItem.current {
+  background: var(--color-brand-subtle);
+  border-color: var(--color-brand-soft);
+}
+
+.sessionInfo {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.sessionIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--color-surface-soft);
+  display: grid;
+  place-items: center;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.sessionItem.current .sessionIcon {
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+}
+
+.deviceName {
+  font-size: var(--ui-text-body, 1rem);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+/* Badge 'Thiết bị này' matching mockup .chip.ok */
+.currentBadge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-success-soft);
+  color: var(--color-success-ink);
+}
+
+/* Text 'Đang hoạt động' bên phải matching mockup */
+.statusRight {
+  font-size: var(--ui-text-note, 0.875rem);
+  color: var(--color-success);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.meta {
+  font-size: var(--ui-text-note, 0.875rem);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.revokeBtn {
+  flex-shrink: 0;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--ui-text-note, 0.875rem);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.revokeBtn:hover {
+  background: var(--color-surface-soft);
+}
+
+.skeletonRow {
+  height: 72px;
+  border-radius: 8px;
+}

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Alert, Button, Modal, NumberInput, Textarea } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useForm } from "@tanstack/react-form";
-import { AlertTriangle } from "lucide-react";
 import { WriteOffReceivableSchema, type AdminReceivable } from "@repo/validation";
 import { useWriteOffReceivable } from "../../hooks/useReceivableMutations";
 import { formatVnd } from "./format";
@@ -44,7 +43,7 @@ export default function WriteOffModal({ receivable, onClose }: WriteOffModalProp
           void form.handleSubmit();
         }}
       >
-        <Alert color="red" icon={<AlertTriangle className="h-4 w-4" />}>
+        <Alert color="red">
           Bạn sẽ không thu phần này nữa và không thể hoàn tác. Khách còn nợ bạn: {formatVnd(receivable.outstanding)}.
         </Alert>
         <form.Field name="amount">

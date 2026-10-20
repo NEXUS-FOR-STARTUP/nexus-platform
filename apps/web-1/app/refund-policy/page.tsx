@@ -37,10 +37,10 @@ export default function RefundPolicyPage() {
       version="2026-09-v3.0"
       tocItems={refundTOC}
     >
-      <div className="space-y-10">
+      <>
         <RefundSections1 />
         <RefundSections2 />
-      </div>
+      </>
     </PolicyDocumentLayout>
   );
 }

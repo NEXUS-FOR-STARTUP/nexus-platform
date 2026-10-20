@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@mantine/core";
-import { ClipboardCheck, FileSearch, RefreshCw } from "lucide-react";
+import { ClipboardText as ClipboardCheck, FileMagnifyingGlass as FileSearch, ArrowsClockwise as RefreshCw } from "@phosphor-icons/react";
 import { QUESTION_REGISTRY, type Readiness } from "@repo/validation";
 import { useCp2Audit } from "../../hooks/useCp2Audit";
 import Cp2PackageCard from "../Cp2PackageCard";

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { User, statusThemeMap } from "@/types";
-import { CheckCircle, Search, MoreVertical, Trash2, Eye, RefreshCw, UserCheck, X } from "lucide-react";
+import { CheckCircle, MagnifyingGlass as Search, DotsThreeVertical as MoreVertical, Trash as Trash2, Eye, ArrowsClockwise as RefreshCw, UserCheck, X } from "@phosphor-icons/react";
 import { Select, Badge, Table, Pagination, TextInput, Group, Menu, ActionIcon, Tooltip } from "@mantine/core";
 import AdminCaseDetailModal from "./AdminCaseDetailModal";
 import AssignSupporterModal from "./AssignSupporterModal";

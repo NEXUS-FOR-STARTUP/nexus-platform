@@ -1,0 +1,287 @@
+/* Draggable card stacks (question + report). Tokens `--lp-*` come from landing.module.css; fallbacks keep this file safe alone. */
+
+.wrap {
+  min-width: 0;
+}
+
+.stack {
+  position: relative;
+  display: grid;
+  gap: 20px;
+}
+
+.card {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--lp-line-strong);
+  border-radius: var(--lp-r-md, 16px);
+  overflow: hidden;
+  box-shadow: var(--lp-shadow-float, -12px 16px 32px -8px rgba(26, 26, 28, 0.5));
+  color: var(--lp-ink);
+}
+
+/* ---- JS active: cards pile up ---- */
+.stack[data-js="true"] {
+  gap: 0;
+}
+
+.stack[data-js="true"] .card {
+  transform: translate(calc(var(--i, 0) * var(--lp-stack-offset, 14px)), calc(var(--i, 0) * var(--lp-stack-offset, 14px) * -1));
+  transition: transform 0.45s var(--lp-ease, cubic-bezier(0.4, 0, 0.2, 1)), background-color 0.45s var(--lp-ease, cubic-bezier(0.4, 0, 0.2, 1)),
+    box-shadow 0.45s var(--lp-ease, cubic-bezier(0.4, 0, 0.2, 1)), border-color 0.3s var(--lp-ease, cubic-bezier(0.4, 0, 0.2, 1)),
+    translate 0.3s var(--lp-ease, cubic-bezier(0.4, 0, 0.2, 1));
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.stack[data-js="true"] .card[data-dragging="true"] {
+  transition: none;
+  cursor: grabbing;
+}
+
+.stack[data-js="true"] .card > * {
+  transition: opacity 0.45s var(--lp-ease, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.stack[data-js="true"] .card[aria-hidden="true"] > * {
+  opacity: 0;
+}
+
+.stack:focus-visible,
+.card:focus-visible {
+  outline: 2px solid var(--lp-blue);
+  outline-offset: 10px;
+  border-radius: var(--lp-r-md, 16px);
+}
+
+.hint {
+  margin: 22px 0 0;
+  font-size: 14px;
+  color: var(--lp-muted);
+}
+
+.hint[hidden] {
+  display: none;
+}
+
+.footer {
+  min-width: 0;
+}
+
+/* ---- question variant ---- */
+.question {
+  margin: 28px 28px 0 0;
+}
+
+.question[data-js="true"] .card {
+  grid-area: 1 / 1;
+}
+
+.questionCard {
+  display: flex;
+  flex-direction: column;
+  padding: 28px;
+}
+
+.qMeta {
+  font-size: 13px;
+  color: var(--lp-muted);
+}
+
+.qTitle {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 14px 0 16px;
+  letter-spacing: -0.01em;
+}
+
+.qDesc {
+  margin: 0 0 6px;
+  color: var(--lp-muted);
+  font-size: 15px;
+}
+
+.verdict {
+  border-radius: var(--lp-r-sm, 12px);
+  padding: 14px 16px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  margin-top: 10px;
+}
+
+.verdict b {
+  display: block;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.bad {
+  background: #fdecec;
+  color: #9b1c1c;
+}
+
+.ok {
+  background: #e7f7ee;
+  color: #14633a;
+}
+
+.qNext {
+  flex: 1 1 0;
+  min-height: 132px;
+  overflow: hidden;
+  margin-top: 22px;
+  border-top: 1px dashed var(--lp-line);
+  padding-top: 18px;
+}
+
+.qNext small {
+  color: var(--lp-muted);
+  font-size: 12px;
+}
+
+.qNext p {
+  margin: 2px 0 0;
+  font-weight: 500;
+}
+
+.qNext .qDesc {
+  margin-top: 8px;
+  font-weight: 400;
+}
+
+.fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 130px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.92) 72%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 22px;
+}
+
+.more {
+  color: var(--lp-blue) !important;
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  transition: gap 0.3s var(--lp-ease, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.more:hover {
+  text-decoration: underline;
+}
+
+/* Lift via `translate` so it composes with the inline `transform` used for drag/fly. */
+.stack[data-js="true"] .card[data-top="true"]:hover:not([data-dragging="true"]) {
+  border-color: var(--lp-blue);
+  translate: 0 -6px;
+}
+
+.more:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.45);
+  outline-offset: 3px;
+  border-radius: var(--lp-r-sm, 12px);
+}
+
+/* ---- report variant ---- */
+.report {
+  width: min(640px, 100%);
+  margin: 0 auto;
+}
+
+.report[data-js="true"] {
+  position: relative;
+  left: calc(var(--lp-stack-offset, 14px) * -1);
+  width: min(640px, calc(100% - 28px));
+  aspect-ratio: 1.05;
+  display: block;
+}
+
+.reportCard {
+  aspect-ratio: 1.05;
+}
+
+.report[data-js="true"] .card {
+  position: absolute;
+  inset: 0;
+}
+
+.report[data-js="true"] .card[aria-hidden="true"] {
+  background: #e2e6ee;
+  box-shadow: none;
+}
+
+.pImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  pointer-events: none;
+}
+
+.rBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  width: min(640px, 100%);
+  margin: 4px auto 0;
+  font-size: 14px;
+  color: var(--lp-muted);
+}
+
+.rNote {
+  margin: 0;
+}
+
+.rOpen {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--lp-blue) !important;
+  text-decoration: none;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.rOpen:hover {
+  text-decoration: underline;
+}
+
+.rNoscript {
+  width: min(640px, 100%);
+  margin: 12px auto 0;
+  font-size: 14px;
+}
+
+.wrap:has(.report) .hint {
+  width: min(640px, 100%);
+  margin: 36px auto 0;
+}
+
+@media (max-width: 620px) {
+  .rBar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stack[data-js="true"] .card,
+  .stack[data-js="true"] .card > * {
+    transition: none;
+  }
+
+  .stack[data-js="true"] .card[data-top="true"]:hover:not([data-dragging="true"]) {
+    translate: none;
+  }
+}

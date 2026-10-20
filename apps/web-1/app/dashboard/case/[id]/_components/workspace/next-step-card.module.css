@@ -1,0 +1,69 @@
+/* The next step on the overview: flat brand tint (same as the stage start guide) and a slow ring on the primary
+   button. Motion is transform/opacity only and off under reduced motion. */
+.card {
+  padding: 24px 28px;
+  border-radius: var(--ui-radius);
+  background: var(--color-brand-subtle);
+  animation: card-in 0.4s ease-out both;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: var(--ui-text-section);
+  font-weight: var(--ui-weight-medium);
+  line-height: 1.3;
+  color: var(--color-text);
+}
+
+.lead {
+  margin: 4px 0 16px;
+  font-size: var(--ui-text-body);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.cta {
+  position: relative;
+  display: inline-flex;
+}
+
+.cta::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border: 2px solid var(--color-brand);
+  border-radius: calc(var(--ui-radius) + 4px);
+  opacity: 0;
+  pointer-events: none;
+  animation: card-ring 2.6s ease-out 0.8s infinite;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes card-ring {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.98);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .cta::after {
+    animation: none;
+  }
+}

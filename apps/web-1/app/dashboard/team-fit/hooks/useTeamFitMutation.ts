@@ -77,6 +77,7 @@ export function useTeamFitSaveMutation(
   SaveInput
 > {
   const queryClient = useQueryClient();
+  const { onSuccess, onError, ...rest } = options ?? {};
 
   return useMutation<{ caseId: string; caseCode: string }, Error, SaveInput>({
     mutationFn: async (input: SaveInput) => {
@@ -86,15 +87,15 @@ export function useTeamFitSaveMutation(
       );
       return res.data;
     },
-    ...options,
-    onSuccess: (data, variables, context) => {
+    ...rest,
+    onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: ["cases"] });
-      (options as any)?.onSuccess?.(data, variables, context);
+      onSuccess?.(...args);
     },
-    onError: (error, variables, context) => {
-      const message = extractErrorMessage(error);
+    onError: (...args) => {
+      const message = extractErrorMessage(args[0]);
       console.error("[useTeamFitSaveMutation]", message);
-      (options as any)?.onError?.(error, variables, context);
+      onError?.(...args);
     },
   });
 }

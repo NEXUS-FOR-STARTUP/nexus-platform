@@ -2,7 +2,7 @@
 
 import { useSession } from "@/lib/auth-client";
 import { Text } from "@mantine/core";
-import { Loader2 } from "lucide-react";
+import { CircleNotch as Loader2 } from "@phosphor-icons/react";
 import ChangePasswordForm from "../../../dashboard/settings/password/_components/ChangePasswordForm";
 
 export default function WriterSettingsPasswordPage() {

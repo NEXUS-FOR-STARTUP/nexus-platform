@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Card, Group, SegmentedControl, Stack, Text, TextInput, Textarea, Title, Select, TagsInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, FloppyDisk as Save } from "@phosphor-icons/react";
 import { useCreateNewsItem, useUploadNewsCover } from '@/app/admin/hooks/useAdminNews';
 import { NewsRichTextEditor } from '@/app/admin/_components/news/NewsRichTextEditor';
 import { YouTubePreviewSection, ArticleCoverSection } from '@/app/admin/_components/news/NewsEditorFormSections';

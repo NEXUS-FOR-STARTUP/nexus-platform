@@ -108,7 +108,7 @@ export function CreateProjectModal({ opened, onClose }: CreateProjectModalProps)
   };
 
   return (
-    <Modal opened={opened} onClose={handleClose} title="Tạo dự án mới" centered size="sm">
+    <Modal opened={opened} onClose={handleClose} title="Tạo dự án mới" centered size="md" radius="lg" padding="xl" classNames={{ title: "font-heading text-2xl font-medium tracking-tight" }}>
       <form onSubmit={handleSubmit}>
         <Stack gap="sm">
           <TextInput
@@ -195,10 +195,10 @@ export function CreateProjectModal({ opened, onClose }: CreateProjectModalProps)
           />
 
           <Group justify="flex-end" mt="md">
-            <Button variant="default" onClick={handleClose} disabled={createMutation.isPending}>
+            <Button variant="default" radius="xl" size="md" onClick={handleClose} disabled={createMutation.isPending}>
               Hủy
             </Button>
-            <Button type="submit" loading={createMutation.isPending}>
+            <Button type="submit" radius="xl" size="md" loading={createMutation.isPending}>
               Tạo dự án
             </Button>
           </Group>

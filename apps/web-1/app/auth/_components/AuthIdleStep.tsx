@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Anchor, Button, Checkbox, Text } from "@mantine/core";
+import { Checkbox } from "@mantine/core";
+import { AuthButton } from "./AuthButton";
 import { GoogleButton } from "./GoogleButton";
+import s from "./auth.module.css";
 
 interface AuthIdleStepProps {
   agreed: boolean;
@@ -22,65 +24,33 @@ export function AuthIdleStep({
   onEmail,
 }: AuthIdleStepProps) {
   return (
-    <div className="space-y-4">
-      <div className="space-y-3">
-        <GoogleButton
-          onClick={() => {
-            if (agreed) onGoogle();
-          }}
-          loading={googleLoading}
-          disabled={!agreed}
-        >
-          Tiếp tục với Google
-        </GoogleButton>
-
-        <Button
-          fullWidth
-          radius="md"
-          size="md"
-          variant="default"
-          className="h-10 cursor-pointer font-medium border-border-app hover:bg-surface-soft transition-colors"
-          onClick={() => {
-            if (agreed) onEmail();
-          }}
-          disabled={!agreed}
-        >
-          Tiếp tục với Email
-        </Button>
-      </div>
+    <div className={s.stack}>
+      <GoogleButton onClick={onGoogle} loading={googleLoading} disabled={!agreed || busy}>
+        Tiếp tục với Google
+      </GoogleButton>
+      <AuthButton variant="ghost" onClick={onEmail} disabled={!agreed || busy}>
+        Tiếp tục với Email
+      </AuthButton>
 
       <Checkbox
         checked={agreed}
         onChange={(e) => setAgreed(e.currentTarget.checked)}
         disabled={busy}
         radius="sm"
+        size="md"
         color="brand"
         label={
-          <Text size="xs" className="font-body text-text-muted select-none">
+          <span className={s.consent}>
             Bằng việc tiếp tục, bạn đồng ý với{" "}
-            <Anchor
-              component={Link}
-              href="/terms"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-brand font-medium hover:underline inline"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <Link href="/terms" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
               Điều khoản dịch vụ
-            </Anchor>{" "}
+            </Link>{" "}
             và{" "}
-            <Anchor
-              component={Link}
-              href="/privacy"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-brand font-medium hover:underline inline"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <Link href="/privacy" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
               Chính sách bảo mật
-            </Anchor>{" "}
+            </Link>{" "}
             của Nexus.
-          </Text>
+          </span>
         }
       />
     </div>

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Badge, Box, Center, Stack, Text, UnstyledButton } from "@mantine/core";
-import { FileSpreadsheet } from "lucide-react";
+import { FileXls as FileSpreadsheet } from "@phosphor-icons/react";
 import type { FileTemplate } from "@repo/validation";
 import classes from "./GuidedTemplateCard.module.css";
 

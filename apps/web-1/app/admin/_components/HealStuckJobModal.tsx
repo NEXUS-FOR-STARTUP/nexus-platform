@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Modal, Button, Textarea, Group, Stack, Text, Alert } from "@mantine/core";
-import { Wrench, AlertTriangle, Coins } from "lucide-react";
+import { Wrench } from "@phosphor-icons/react";
 import type { AdminWorkerJobListItem } from "../hooks/useAdminWorkers";
 
 interface HealStuckJobModalProps {
@@ -39,11 +39,11 @@ export default function HealStuckJobModal({ job, isOpen, onClose, onConfirm, isS
       centered
     >
       <Stack gap="md" className="font-body text-xs text-text-app">
-        <Alert icon={<AlertTriangle className="w-4 h-4" />} color="orange" variant="light" title="Cảnh báo ngắt tiến trình">
+        <Alert color="orange" variant="light" title="Cảnh báo ngắt tiến trình">
           Hệ thống sẽ <b>ngắt cưỡng bức (force-terminate)</b> tiến trình tính toán của OMP và giải phóng slot trong hàng đợi BullMQ.
         </Alert>
 
-        <Alert icon={<Coins className="w-4 h-4" />} color="blue" variant="light" title="Tự động hoàn trả tín chỉ">
+        <Alert color="blue" variant="light" title="Tự động hoàn trả tín chỉ">
           Nếu sinh viên chưa nhận được báo cáo kết quả hoàn chỉnh, <b>1 credit</b> sẽ tự động được hoàn trả vào ví hồ sơ kèm thông báo giải thích.
         </Alert>
 

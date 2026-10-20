@@ -1,5 +1,5 @@
 import { prisma } from '../../../../db.js'
-import type { Prisma } from '@prisma/client'
+import type { Prisma, WalletTxType } from '@prisma/client'
 
 // NOTE: race window khi 2 request đồng thời đều thấy thiếu ví → 1 request
 // dính P2002 (user_id unique) làm tx rollback, client retry sẽ qua. Được giảm
@@ -25,6 +25,46 @@ export async function getWalletBalance(userId: string): Promise<number> {
   return wallet?.balance ?? 0
 }
 
+export async function getWalletSummary(userId: string): Promise<{
+  balance: number
+  total_deposited: number
+  total_spent: number
+  total_refunded: number
+}> {
+  const wallet = await prisma.userWallet.findUnique({
+    where: { user_id: userId },
+    select: { id: true, balance: true },
+  })
+  if (!wallet) return { balance: 0, total_deposited: 0, total_spent: 0, total_refunded: 0 }
+
+  const spentTypes: WalletTxType[] = ['service_payment', 'withdrawal']
+
+  const [depResult, spentResult, refundResult] = await Promise.all([
+    prisma.walletTransaction.aggregate({
+      where: { wallet_id: wallet.id, type: 'deposit' },
+      _sum: { amount: true },
+    }),
+    prisma.walletTransaction.aggregate({
+      where: {
+        wallet_id: wallet.id,
+        type: { in: spentTypes },
+      },
+      _sum: { amount: true },
+    }),
+    prisma.walletTransaction.aggregate({
+      where: { wallet_id: wallet.id, type: 'refund' },
+      _sum: { amount: true },
+    }),
+  ])
+
+  return {
+    balance: wallet.balance,
+    total_deposited: depResult._sum.amount ?? 0,
+    total_spent: Math.abs(spentResult._sum.amount ?? 0),
+    total_refunded: refundResult._sum.amount ?? 0,
+  }
+}
+
 export async function getWalletForUpdate(
   tx: Prisma.TransactionClient,
   userId: string,
@@ -39,7 +79,7 @@ export async function createTransaction(
   tx: Prisma.TransactionClient,
   params: {
     walletId: string
-    type: string
+    type: WalletTxType
     amount: number
     balanceBefore: number
     balanceAfter: number
@@ -52,7 +92,7 @@ export async function createTransaction(
   return tx.walletTransaction.create({
     data: {
       wallet_id: params.walletId,
-      type: params.type as any,
+      type: params.type,
       amount: params.amount,
       balance_before: params.balanceBefore,
       balance_after: params.balanceAfter,
@@ -61,7 +101,7 @@ export async function createTransaction(
       source_type: params.referenceType,
       source_id: params.referenceId,
       idempotency_key: params.idempotencyKey,
-      metadata_json: (params.metadataJson ?? undefined) as any,
+      metadata_json: (params.metadataJson ?? undefined) as Prisma.InputJsonValue | undefined,
     },
   })
 }
@@ -91,7 +131,7 @@ export async function getTransactionHistory(
 
   const where: Prisma.WalletTransactionWhereInput = { wallet_id: wallet.id }
   if (opts.type) {
-    where.type = opts.type as any
+    where.type = opts.type as WalletTxType
   }
 
   const orderField = opts.sortBy === 'amount' ? 'amount' : 'created_at'
@@ -136,4 +176,3 @@ export async function findTransactionsExportPage(offset: number, take: number) {
     take,
   })
 }
-

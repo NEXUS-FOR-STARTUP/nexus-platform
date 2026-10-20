@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Button } from '@mantine/core';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from "@phosphor-icons/react/ssr";
 import { fetchPublicArticleDetail, fetchPublicNewsList } from '@/lib/news-server';
 import { isOptimizedImageDomain } from '@/lib/image-utils';
 import { NewsTipTapRenderer } from './_components/NewsTipTapRenderer';

@@ -1,11 +1,10 @@
 "use client";
 
-import AuthShell from "@/components/layout/AuthShell";
+import AuthShell, { AuthLoading } from "@/components/layout/AuthShell";
 import AuthPanel from "./_components/AuthPanel";
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useEffect, Suspense } from "react";
-import { Loader } from "@mantine/core";
 
 export default function AuthPage() {
   const { data: session } = useSession();
@@ -27,17 +26,14 @@ export default function AuthPage() {
   if (session) {
     return (
       <AuthShell>
-        <div className="py-12 flex flex-col items-center justify-center min-h-[300px] gap-4">
-          <Loader color="blue" size="lg" type="dots" />
-          <p className="text-sm font-medium text-text-muted animate-pulse">Đang tải phiên làm việc...</p>
-        </div>
+        <AuthLoading label="Đang tải phiên làm việc..." />
       </AuthShell>
     );
   }
 
   return (
     <AuthShell>
-      <Suspense fallback={<div className="py-12 flex flex-col items-center justify-center min-h-[300px] gap-4"><Loader color="blue" size="lg" type="dots" /></div>}>
+      <Suspense fallback={<AuthLoading label="Đang tải..." />}>
         <AuthPanel />
       </Suspense>
     </AuthShell>

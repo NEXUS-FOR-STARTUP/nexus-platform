@@ -1,5 +1,11 @@
+"use client";
+
+import { useState } from "react";
 import type { ReactNode } from "react";
+import { Drawer } from "@mantine/core";
+import { List as Menu } from "@phosphor-icons/react";
 import SettingsSidebar from "./SettingsSidebar";
+import classes from "../settings.module.css";
 
 export default function SettingsLayout({
   children,
@@ -8,18 +14,46 @@ export default function SettingsLayout({
   children: ReactNode;
   basePath?: string;
 }) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   return (
-    <div className="max-w-6xl mx-auto w-full py-8 px-4 sm:px-6 lg:px-8">
-      <div className="pb-4 mb-6 border-b border-border-app">
-        <h1 className="font-heading text-xl sm:text-2xl font-bold text-text-app">Cài đặt</h1>
-        <p className="font-body text-sm text-text-muted mt-1">
-          Quản lý thông tin cá nhân và bảo mật tài khoản
-        </p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6 md:gap-8 items-start">
+    <div className={classes.layout}>
+      <aside className={classes.side}>
         <SettingsSidebar basePath={basePath} />
-        <div className="min-w-0">{children}</div>
-      </div>
+      </aside>
+
+      <main className={classes.main}>
+        <div className={classes.head}>
+          <h1 className={classes.headTitle}>Cài đặt</h1>
+          <p className={classes.headNote}>Quản lý thông tin cá nhân và bảo mật tài khoản</p>
+        </div>
+        {children}
+      </main>
+
+      <button
+        type="button"
+        className={classes.burger}
+        onClick={() => setDrawerOpen(true)}
+        aria-label="Mở menu"
+        aria-expanded={drawerOpen}
+      >
+        <Menu size={22} weight="bold" />
+      </button>
+
+      <Drawer
+        opened={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        title="Cài đặt tài khoản"
+        padding="md"
+        size="320px"
+      >
+        <div className={classes.drawerContent}>
+          <SettingsSidebar
+            basePath={basePath}
+            onItemClickAction={() => setDrawerOpen(false)}
+          />
+        </div>
+      </Drawer>
     </div>
   );
 }

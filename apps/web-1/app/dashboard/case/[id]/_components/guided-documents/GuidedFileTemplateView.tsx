@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Blockquote, Button } from "@mantine/core";
-import { ChevronLeft, Download } from "lucide-react";
+import { CaretLeft as ChevronLeft, DownloadSimple as Download } from "@phosphor-icons/react";
 import type { FileTemplate } from "@repo/validation";
 
 interface GuidedFileTemplateViewProps {

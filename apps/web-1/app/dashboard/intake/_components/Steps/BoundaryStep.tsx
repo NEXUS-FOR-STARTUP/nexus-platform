@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Checkbox, Tooltip, Alert } from "@mantine/core";
-import { AlertTriangle, HelpCircle } from "lucide-react";
+import { Question as HelpCircle } from "@phosphor-icons/react";
 
 interface BoundaryStepProps {
   form: any;
@@ -12,7 +12,7 @@ interface BoundaryStepProps {
 const BOUNDARY_RULES = [
   { id: "originality", label: "Chúng tôi cam kết tài liệu đính kèm là do nhóm tự nghiên cứu và xây dựng, không sao chép trái phép." },
   { id: "advisory_only", label: "Chúng tôi hiểu rằng các đánh giá và phản biện từ Nexus mang tính chất tư vấn phản biện, không thay thế điểm số của giảng viên." },
-  { id: "accurate_contact", label: "Chúng tôi cam kết cung cấp đúng thông tin liên hệ để Supporter trao đổi khi cần làm rõ hồ sơ." }
+  { id: "accurate_contact", label: "Chúng tôi cam kết cung cấp đúng thông tin liên hệ để Supporter trao đổi khi cần làm rõ dự án." }
 ];
 
 export const BOUNDARY_RULE_IDS: string[] = BOUNDARY_RULES.map((rule) => rule.id);
@@ -38,9 +38,8 @@ export default function BoundaryStep({ form, values }: BoundaryStepProps) {
         color="red"
         radius="md"
         title="ĐIỀU KHOẢN QUAN TRỌNG"
-        icon={<AlertTriangle className="w-4 h-4" />}
       >
-        Bạn cần xác nhận các cam kết bên dưới để gửi hồ sơ. Nexus từ chối hỗ trợ tài liệu sao chép hoặc yêu cầu cam kết điểm số/kết quả đánh giá chính thức.
+        Bạn cần xác nhận các cam kết bên dưới để gửi dự án. Nexus từ chối hỗ trợ tài liệu sao chép hoặc yêu cầu cam kết điểm số/kết quả đánh giá chính thức.
       </Alert>
 
       <form.Field
@@ -50,7 +49,7 @@ export default function BoundaryStep({ form, values }: BoundaryStepProps) {
             const allChecked =
               Array.isArray(value) && BOUNDARY_RULE_IDS.every((id) => value.includes(id));
             if (!allChecked) {
-              return "Bạn phải tích chọn tất cả cam kết để có thể gửi hồ sơ.";
+              return "Bạn phải tích chọn tất cả cam kết để có thể gửi dự án.";
             }
             return undefined;
           },

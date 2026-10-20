@@ -1,0 +1,152 @@
+/* design-system/mockups/case-detail views.css: .editor, .q, .thinw, .selfbox. */
+.layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 360px;
+  grid-template-areas: "toc card hint";
+  gap: 24px;
+  align-items: start;
+}
+
+.toc {
+  grid-area: toc;
+  min-width: 0;
+}
+
+.card {
+  grid-area: card;
+  min-width: 0;
+}
+
+.hint {
+  grid-area: hint;
+  min-width: 0;
+  /* Stretches to the row height so the panel inside can stay sticky. */
+  align-self: stretch;
+}
+
+@media (max-width: 1240px) {
+  .layout {
+    grid-template-columns: 280px minmax(0, 1fr);
+    grid-template-areas:
+      "toc card"
+      "toc hint";
+  }
+
+  .hint {
+    align-self: start;
+  }
+}
+
+/* Same breakpoint as the useMediaQuery in the editor: one column, folds collapsed. */
+@media (max-width: 767px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "toc"
+      "card"
+      "hint";
+  }
+}
+
+.q {
+  min-width: 0;
+}
+
+.heading {
+  margin: 0 0 4px;
+  font-size: var(--ui-text-title);
+  font-weight: var(--ui-weight-medium);
+  line-height: 1.25;
+  color: var(--color-text);
+}
+
+.heading:focus-visible {
+  outline: var(--ui-focus-ring);
+  outline-offset: 4px;
+}
+
+.meta {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.answer {
+  display: block;
+  width: 100%;
+  min-height: 200px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--ui-radius);
+  background: var(--color-surface);
+  font: inherit;
+  font-size: 16px;
+  color: var(--color-text);
+  resize: vertical;
+}
+
+.answer:focus-visible {
+  outline: var(--ui-focus-ring);
+  outline-offset: var(--ui-focus-offset);
+}
+
+.warn {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--color-warning-ink);
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.footBtns {
+  display: flex;
+  gap: 8px;
+}
+
+.status {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+/* Desktop navigates from the table of contents, so "Câu tiếp" only shows when it folds on phones. */
+@media (min-width: 768px) {
+  .footBtns .next {
+    display: none;
+  }
+}
+
+.selfCheck {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: var(--ui-radius);
+  background: var(--color-surface-soft);
+}
+
+.selfCheck label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-weight: var(--ui-weight-medium);
+  cursor: pointer;
+}
+
+.selfCheck input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+  accent-color: var(--color-brand);
+}
+
+.selfCheckNote {
+  margin: 4px 0 0 28px;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}

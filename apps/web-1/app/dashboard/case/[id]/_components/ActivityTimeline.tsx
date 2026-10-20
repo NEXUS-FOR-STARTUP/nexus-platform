@@ -1,79 +1,99 @@
 "use client";
 
-import React from "react";
-import { Case } from "@/types";
-import { Clock } from "lucide-react";
-import { getEventDetails } from "@/lib/event-details";
+import { useMemo, useState } from "react";
+import { useMediaQuery } from "@mantine/hooks";
+import type { Case } from "@/types";
+import {
+  groupEventsByDay,
+  getEventCategory,
+  type TimelineCategory,
+} from "./activity/activity-groups";
+import TimelineDayGroup from "./activity/TimelineDayGroup";
+import classes from "./activity/timeline.module.css";
+import FilterTabs from "./ui/FilterTabs";
+
+// Must match the `take` of case events in apps/api case.repository.
+const API_EVENT_LIMIT = 50;
+const MOBILE_QUERY = "(max-width: 48em)";
+
+const TABS: { id: TimelineCategory; label: string }[] = [
+  { id: "all", label: "Tất cả" },
+  { id: "grade", label: "Chấm bài" },
+  { id: "pay", label: "Lượt chấm" },
+  { id: "project", label: "Dự án" },
+];
 
 interface ActivityTimelineProps {
   caseData: Case;
 }
 
 export default function ActivityTimeline({ caseData }: ActivityTimelineProps) {
-  const events = caseData.events || [];
+  const isMobile = useMediaQuery(MOBILE_QUERY, false);
+  const [selectedTab, setSelectedTab] = useState<TimelineCategory>("all");
 
-  // Filter out message_sent events to avoid cluttering the timeline with chat messages
-  const filteredEvents = events.filter(event => event.event_type !== "message_sent");
-
-  // Sort events chronologically (oldest first)
-  const sortedEvents = [...filteredEvents].sort(
-    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  // Chat messages would drown the timeline.
+  const events = useMemo(
+    () => (caseData.events ?? []).filter((e) => e.event_type !== "message_sent"),
+    [caseData.events],
   );
 
-  const formatDateTime = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) + " ngày " + d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
-  };
+  const counts = useMemo(() => {
+    const map: Record<TimelineCategory, number> = { all: events.length, grade: 0, pay: 0, project: 0 };
+    for (const e of events) {
+      const cat = getEventCategory(e.event_type);
+      map[cat] = (map[cat] ?? 0) + 1;
+    }
+    return map;
+  }, [events]);
 
-  if (sortedEvents.length === 0) {
+  const filteredEvents = useMemo(() => {
+    if (selectedTab === "all") return events;
+    return events.filter((e) => getEventCategory(e.event_type) === selectedTab);
+  }, [events, selectedTab]);
+
+  const groups = useMemo(() => groupEventsByDay(filteredEvents), [filteredEvents]);
+
+  const heading = (
+    <>
+      <h2 className={classes.title}>Lịch sử hoạt động</h2>
+      <p className={classes.lead}>Mọi thay đổi trạng thái, lượt chấm và cập nhật của dự án.</p>
+    </>
+  );
+
+  if (events.length === 0) {
     return (
-      <div className="bg-surface-app border border-border-app rounded-lg p-8 text-center flex flex-col items-center justify-center gap-3 animate-fade-in">
-        <Clock className="w-8 h-8 text-text-subtle animate-pulse" />
-        <p className="text-xs text-text-muted font-body">Chưa có hoạt động nào được ghi nhận cho hồ sơ này.</p>
+      <div className={classes.root}>
+        {heading}
+        <p className={classes.empty}>Chưa có hoạt động nào được ghi nhận cho dự án này.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-surface-app border border-border-app rounded-lg p-6 md:p-8 space-y-6 animate-fade-in">
-      <div className="relative pl-6 border-l-2 border-border-app space-y-8 py-2 ml-4">
-        {sortedEvents.map((event) => {
-          const { label, desc, icon: Icon, colorClass } = getEventDetails(event.event_type);
+    <div className={classes.root}>
+      {heading}
+      {(caseData.events?.length ?? 0) >= API_EVENT_LIMIT && (
+        <p className={classes.lead}>Hiển thị {API_EVENT_LIMIT} sự kiện gần nhất.</p>
+      )}
 
-          return (
-            <div key={event.id} className="relative group">
-              {/* Timeline Marker Point */}
-              <div className={`absolute -left-[38px] top-0 w-8 h-8 rounded-full flex items-center justify-center border ${colorClass} shadow-sm transition-transform group-hover:scale-110 z-10 bg-surface-app`}>
-                <Icon className="w-4 h-4" />
-              </div>
+      <FilterTabs
+        ariaLabel="Lọc theo loại sự kiện"
+        value={selectedTab}
+        onChange={setSelectedTab}
+        items={TABS.map((tab) => ({ value: tab.id, label: `${tab.label} (${counts[tab.id] ?? 0})` }))}
+      />
 
-              {/* Event Content card */}
-              <div className="space-y-1.5 font-body">
-                <div className="flex flex-wrap items-baseline gap-2">
-                  <h4 className="font-heading font-semibold text-xs text-text-app">
-                    {label}
-                  </h4>
-                  <span className="text-base text-text-subtle">
-                    {formatDateTime(event.created_at)}
-                  </span>
-                </div>
-                <p className="text-xs text-text-muted leading-relaxed">
-                  {desc}
-                  {(event.event_type === "case_rejected" || event.event_type === "vetoed") &&
-                    (event.metadata_json as any)?.reason && (
-                      <> - Lý do: {(event.metadata_json as any).reason}</>
-                    )}
-                </p>
-                {event.actor && (
-                  <p className="text-base text-text-subtle">
-                    Thực hiện bởi: <strong className="text-text-muted">{event.actor.name}</strong> ({event.actor.role === "admin" ? "Admin" : event.actor.role === "supporter" ? "Supporter" : "Sinh viên"})
-                  </p>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {groups.length === 0 ? (
+        <p className={classes.empty}>Chưa có hoạt động nào thuộc loại này.</p>
+      ) : (
+        groups.map((group, idx) => (
+          <TimelineDayGroup
+            key={group.dayKey}
+            group={group}
+            defaultOpen={isMobile ? idx === 0 : true}
+          />
+        ))
+      )}
     </div>
   );
 }

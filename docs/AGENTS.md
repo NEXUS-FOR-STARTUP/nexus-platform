@@ -2,7 +2,7 @@
 
 ## Mục đích
 
-`docs/` dùng business-first, PRD-led. Giữ business context, product scope, requirement, flow, technical note, archive trong một trục rõ.
+`docs/` business-first, PRD-led. Giữ business context, product scope, requirement, flow, technical note, archive trong một trục rõ.
 
 ## Tài liệu canonical
 
@@ -22,71 +22,71 @@
 
 ## Tài liệu vận hành
 
-- `db-query-guide.md` — hướng dẫn truy vấn DB an toàn (READONLY_DATABASE_URL).
-- `db-backup-guide.md` — hướng dẫn backup DB (pg_dump via Docker, self-hosted Postgres 18.4 trên VPS).
-- `db-migration-guide.md` — hướng dẫn migration Prisma (generate/migrate/deploy).
-- `docker-build-push-guide.md` — hướng dẫn build/push Docker image cho API và Web.
-- `ci-guide.md` — hướng dẫn CI/CD với GitHub Actions.
-- `deploy-log.md` — log các lần deploy image lên Docker Hub (commit/branch/message).
+- `db-query-guide.md` — truy vấn DB an toàn (READONLY_DATABASE_URL).
+- `db-backup-guide.md` — backup DB (pg_dump via Docker, self-hosted Postgres 18.4 trên VPS).
+- `db-migration-guide.md` — migration Prisma (generate/migrate/deploy).
+- `docker-build-push-guide.md` — build/push Docker image API + Web.
+- `ci-guide.md` — CI/CD GitHub Actions.
+- `deploy-log.md` — log deploy image lên Docker Hub (commit/branch/message).
 
 ## Tài liệu legacy & tham khảo lịch sử (Non-canonical)
 
-> ⛔ **CẢNH BÁO CHO AI AGENTS:** Các thư mục dưới đây KHÔNG PHẢI source of truth cho code. Tuyệt đối KHÔNG trích dẫn các quyết định kỹ thuật từ các khu vực này làm căn cứ triển khai hệ thống:
-- `archive/` — Bản lưu trữ specs và architecture cũ đã bị thay thế (bao gồm `archive/reference/` chứa các ghi chép tham khảo nghiệp vụ).
-- `research/` — Các nghiên cứu giải pháp, root-cause analysis (RCA), và benchmark quá khứ.
-- `nexus-document/` — Kho tài liệu học thuật (CP1-CP4, slide, biên bản phỏng vấn, mentor feedback).
-- `journals/` — Nhật ký công việc hằng ngày của team dev (53 files); chỉ mang tính ghi nhận lịch sử commit/deploy, không phải đặc tả kỹ thuật hiện hành.
+> ⛔ **CẢNH BÁO AI AGENTS:** Thư mục dưới KHÔNG PHẢI source of truth cho code. KHÔNG trích quyết định kỹ thuật từ đây làm căn cứ triển khai:
+- `archive/` — specs + architecture cũ đã bị thay thế (gồm `archive/reference/` ghi chép tham khảo nghiệp vụ).
+- `research/` — nghiên cứu giải pháp, root-cause analysis (RCA), benchmark quá khứ.
+- `nexus-document/` — kho tài liệu học thuật (CP1-CP4, slide, biên bản phỏng vấn, mentor feedback).
+- `journals/` — nhật ký hằng ngày team dev (53 files); chỉ ghi lịch sử commit/deploy, không phải đặc tả kỹ thuật hiện hành.
 
 ## Quy tắc đặt tài liệu mới
 
-1. Đặt vào đúng lớp canonical.
-2. Nếu thuộc business context, PRD, flow, requirement, technical note: cập nhật file canonical hiện có trước.
+1. Đặt đúng lớp canonical.
+2. Thuộc business context, PRD, flow, requirement, technical note: cập nhật file canonical hiện có trước.
 3. Không tạo top-level folder docs mới nếu chưa có lý do rõ.
-4. Giữ tên file ngắn, mô tả đúng chủ đề, tránh trùng nghĩa.
-5. Tài liệu vận hành (DB guide, backup guide) đặt ở root `docs/`, không tạo folder riêng.
+4. Tên file ngắn, đúng chủ đề, tránh trùng nghĩa.
+5. Tài liệu vận hành (DB guide, backup guide) đặt root `docs/`, không tạo folder riêng.
 
 ## `nexus-document/` — Tài liệu nguồn
 
-[`nexus-document/`](./nexus-document/) là kho **tài liệu gốc học thuật & vận hành** (bài nộp checkpoint, transcript mentoring, feedback GV, tài liệu hướng dẫn).
+[`nexus-document/`](./nexus-document/) = kho **tài liệu gốc học thuật & vận hành** (bài nộp checkpoint, transcript mentoring, feedback GV, tài liệu hướng dẫn).
 
-- **Không** sửa nội dung business trong các file CP.
-- **Không** dùng `nexus-document/` làm nguồn cho implementation — dùng `docs/` chính cho PRD, requirements, flows.
-- **Khi cần ngữ cảnh business** (số liệu phỏng vấn, mô tả value proposition, PMF), tham khảo `nexus-document/` trước rồi cập nhật `docs/project-context.md` hoặc `docs/prd/` tương ứng.
-- **Cấu trúc `nexus-document/` được tổ chức theo CP** — xem [`structure-map.md`](./nexus-document/structure-map.md) cho navigation.
-- **`overview.md`** trong `nexus-document/` là overview business, không phải product overview.
+- **Không** sửa nội dung business trong file CP.
+- **Không** dùng `nexus-document/` làm nguồn implementation — dùng `docs/` chính cho PRD, requirements, flows.
+- **Cần ngữ cảnh business** (số liệu phỏng vấn, value proposition, PMF): tham khảo `nexus-document/` trước, rồi cập nhật `docs/project-context.md` hoặc `docs/prd/` tương ứng.
+- **Cấu trúc `nexus-document/` theo CP** — xem [`structure-map.md`](./nexus-document/structure-map.md) để navigate.
+- **`overview.md`** trong `nexus-document/` = overview business, không phải product overview.
 
 ## backlog/
 
-`backlog/` chứa structured future work items — mỗi file là một ý tưởng/việc cần làm kèm context, decisions, notes, gotchas. Phân biệt với `plans/` (execution workspace) và `requirements/` (feature canonical). File có status (Draft → Researching → Planned → In Progress → Done → Deferred → Rejected). Khi item chuyển sang Planned → tạo plan trong `plans/`. Khi Done → update `CHANGELOG.md` ở root, xem xét archive.
+`backlog/` chứa structured future work items — mỗi file một ý tưởng/việc kèm context, decisions, notes, gotchas. Khác `plans/` (execution workspace) và `requirements/` (feature canonical). File có status (Draft → Researching → Planned → In Progress → Done → Deferred → Rejected). Item sang Planned → tạo plan trong `plans/`. Done → update `CHANGELOG.md` ở root, cân nhắc archive.
 
 ## journals/
 
-`journals/` chứa nhật ký hoàn thành implementation (1 file/ngày). Không phải tài liệu sản phẩm — không dùng làm source of truth cho business hay architecture. Sau khi feature shipped, journal có thể archive mà không ảnh hưởng docs chính.
+`journals/` chứa nhật ký hoàn thành implementation (1 file/ngày). Không phải tài liệu sản phẩm — không làm source of truth cho business hay architecture. Feature shipped xong, journal có thể archive, không ảnh hưởng docs chính.
 
 ## Quy tắc cập nhật
 
-- Không tự bịa API, kiến trúc, env key, runtime flow chưa thấy trong code/docs xác nhận.
+- Không bịa API, kiến trúc, env key, runtime flow chưa thấy trong code/docs xác nhận.
 - Sửa file canonical trước: `project-context.md`, `prd/core-product-prd.md`, `flows/*`, `requirements/*`, `technical-notes/*`.
 - Không dùng `archive/` làm nơi cập nhật chính.
 - Giữ tài liệu ngắn, quét nhanh, tách ý theo heading rõ.
-- Dùng `docs/tech-doc-urls.txt` khi cần nguồn ngoài cho Hono, Better Auth, Mantine UI, TanStack, hoặc thư viện khác.
+- Cần nguồn ngoài cho Hono, Better Auth, Mantine UI, TanStack, lib khác: dùng `docs/tech-doc-urls.txt`.
 - Bám quy ước repo: một root `.env`, auth/session ở `apps/api`, Prisma plural table + snake_case, web app ở `apps/web-1`.
 
 ## Chọn nơi sửa
 
 - Business context: sửa `project-context.md`.
 - Product scope: sửa `prd/core-product-prd.md`.
-- Feature behavior: sửa `requirements/*` và `flows/*`.
+- Feature behavior: sửa `requirements/*` + `flows/*`.
 - Technical impact: sửa `technical-notes/*`.
 - Legacy/trace: xem `archive/`.
 
 ## Khi làm AI agent
 
-- Đọc `codebase-summary.md` nếu cần bối cảnh nhanh.
+- Cần bối cảnh nhanh: đọc `codebase-summary.md`.
 - Ưu tiên sửa file canonical, không tạo bản chéo dư thừa.
-- Nếu thiếu dữ liệu, ghi `Missing`, `Unclear`, `Needs decision`, hoặc `Assumption`.
-- Chỉ ghi những gì kiểm tra được từ repo hiện tại hoặc docs đã xác nhận.
+- Thiếu dữ liệu: ghi `Missing`, `Unclear`, `Needs decision`, hoặc `Assumption`.
+- Chỉ ghi điều kiểm tra được từ repo hiện tại hoặc docs đã xác nhận.
 
 ## ai-rules/
 
-`ai-rules/` chứa quy tắc cho AI agent khi làm việc với documentation. Bổ trợ cho `.agents/rules/` — tập trung vào documentation-specific rules (ví dụ: `documentation-rules.md`).
+`ai-rules/` chứa quy tắc AI agent khi làm documentation. Bổ trợ `.agents/rules/` — tập trung documentation-specific rules (vd: `documentation-rules.md`).

@@ -4,7 +4,7 @@
 
 ## OVERVIEW
 
-Root Prisma schema (Prisma 7 + PostgreSQL). Single source of truth for all data models. Shared by `apps/api` and CLI tools. 16 models across auth + business layers.
+Root Prisma schema (Prisma 7 + PostgreSQL). Single source of truth for all data models. Shared by `apps/api` + CLI tools. 16 models across auth + business layers.
 
 ## STRUCTURE
 
@@ -41,7 +41,7 @@ ServicePackage
 - **IDs**: `@id @default(uuid())` for business models; string `@id` for Better Auth models
 - **Relations**: Business models reference users via `auth_user_id: String` (no direct FK to Better Auth User model)
 - **Indexes**: All FK columns indexed. Composites: `[case_id, checkpoint_id]`, `[case_id, source_kind]`
-- **Provider**: postgresql, uses `DATABASE_URL` at runtime, `DIRECT_URL` for migrations
+- **Provider**: postgresql, `DATABASE_URL` at runtime, `DIRECT_URL` for migrations
 
 ## MIGRATION SAFETY (CRITICAL RULES)
 
@@ -51,8 +51,8 @@ Read `.agents/rules/prisma-migration-safety.md` before any migration task.
 - **NEVER** edit applied migration history
 - **NEVER** mutate production DB directly as agent
 - **ALWAYS** backup via `docs/db-backup-guide.md` before migration
-- Use `prisma migrate dev` for local dev, `prisma migrate deploy` for prod deployment
-- Schema lives at root level — all commands reference `--schema prisma/schema.prisma`
+- `prisma migrate dev` local dev, `prisma migrate deploy` prod deploy
+- Schema at root — all commands reference `--schema prisma/schema.prisma`
 
 ## COMMANDS
 
@@ -67,8 +67,8 @@ bunx prisma migrate deploy --schema prisma/schema.prisma
 
 ## NOTES
 
-- `apps/api` runs `prisma generate` before `build` and `check-types`
+- `apps/api` runs `prisma generate` before `build` + `check-types`
 - `DATABASE_URL` = runtime connection (PgBouncer port 6543); `DIRECT_URL` = direct connection (port 5432)
 - `READONLY_DATABASE_URL` = read-only query account (see `docs/db-query-guide.md`)
 - Migrations committed to git (history tracks all schema changes)
-- Backup directory `prisma/backup/` is gitignored — DB dumps not versioned
+- `prisma/backup/` gitignored — DB dumps not versioned

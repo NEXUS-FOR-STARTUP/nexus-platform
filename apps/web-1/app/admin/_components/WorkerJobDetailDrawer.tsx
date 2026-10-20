@@ -1,7 +1,7 @@
 "use client";
 
 import { Drawer, Tabs, Stepper, Text, Badge, Group, Paper, Stack, Button, SimpleGrid, CopyButton, ActionIcon, Tooltip } from "@mantine/core";
-import { Bot, FileText, Download, AlertCircle, ExternalLink, Activity, Info, Code2, Copy, Check } from "lucide-react";
+import { Robot as Bot, FileText, DownloadSimple as Download, WarningCircle as AlertCircle, ArrowSquareOut as ExternalLink, Pulse as Activity, Info, Code as Code2, Copy, Check } from "@phosphor-icons/react";
 import { useAdminWorkerJobDetail } from "../hooks/useAdminWorkers";
 import WorkerJobTerminal from "./WorkerJobTerminal";
 

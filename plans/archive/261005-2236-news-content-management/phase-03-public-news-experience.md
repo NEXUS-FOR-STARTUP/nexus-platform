@@ -32,7 +32,7 @@
 - Article card is one internal link. Video card is one new-tab canonical YouTube anchor with visible `Mở trên YouTube`, ExternalLink, accessible new-tab phrase, and safe `rel`.
 - `/news/[slug]`: badge, H1, deck, `Nexus Team · date · x phút đọc`, wide cover, 720px article body. Draft/video/missing = localized 404.
 - Body: 17/30 base, 18/32 `md+`; H2 28/36, H3 22/30; 60–75 characters/line; brand-border blockquote.
-- Existing semantic tokens and Google Sans Flex only. No global CSS/font/color changes, gradients, heavy shadows, fixed social rail, share/progress/related modules.
+- Existing semantic tokens and Inter Tight only. No global CSS/font/color changes, gradients, heavy shadows, fixed social rail, share/progress/related modules.
 - Gutters 16/24/32px; one H1; semantic list/article; sequential headings; visible focus; keyboard operation; ≥44px targets; reduced motion; dark-mode contrast.
 - Reserve media dimensions; lead eager, lower cards lazy. Card thumbnail may be decorative; detail cover uses authored alt.
 - Canonical origin `https://nexusforstartup.site`; article metadata includes title, excerpt, canonical, OG/Twitter, type, first publication and modified times.

@@ -15,7 +15,7 @@ import {
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, FloppyDisk as Save } from "@phosphor-icons/react";
 import { apiClient } from "@/lib/api-client";
 import type { Case } from "@/types";
 
@@ -76,11 +76,11 @@ export default function ProjectProfileForm({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["case", caseId] });
-      notifications.show({ color: "green", title: "Thành công", message: "Đã lưu hồ sơ dự án." });
+      notifications.show({ color: "green", title: "Thành công", message: "Đã lưu thông tin dự án." });
       router.push(`/dashboard/case/${caseId}?tab=overview`);
     },
     onError: () => {
-      notifications.show({ color: "red", title: "Lỗi", message: "Không thể lưu hồ sơ. Vui lòng kiểm tra lại thông tin." });
+      notifications.show({ color: "red", title: "Lỗi", message: "Không thể lưu thông tin dự án. Vui lòng kiểm tra lại thông tin." });
     },
   });
 
@@ -108,7 +108,7 @@ export default function ProjectProfileForm({
         </Group>
 
         <div>
-          <Text fw={700} size="xl">Hồ sơ dự án</Text>
+          <Text fw={700} size="xl">Thông tin dự án</Text>
           <Text size="sm" c="dimmed">
             Cung cấp thông tin nền tảng về đội ngũ và bối cảnh để AI đưa ra nhận xét sát thực tế nhất.
           </Text>
@@ -211,7 +211,7 @@ export default function ProjectProfileForm({
 
         <Group justify="flex-end">
           <Button type="submit" loading={saveMutation.isPending} leftSection={<Save size={16} />}>
-            Lưu hồ sơ dự án
+            Lưu thông tin dự án
           </Button>
         </Group>
       </Stack>

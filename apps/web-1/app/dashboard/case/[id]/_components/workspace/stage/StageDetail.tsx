@@ -1,28 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import { Stack, Tabs, Paper, Text } from "@mantine/core";
-import { FileEdit, FolderUp, Award } from "lucide-react";
+import { Stack, Paper, Text } from "@mantine/core";
+import FilterTabs from "../../ui/FilterTabs";
 import { findStageBySlug } from "@app/shared/stages";
 import StageHeader from "./StageHeader";
 import StageDraftView from "./StageDraftView";
 import StageFilesView from "./StageFilesView";
 import StageResultsView from "./StageResultsView";
 import StageGradingPanel from "./StageGradingPanel";
+import StageStartGuide from "./StageStartGuide";
 import AuditConfirmModal from "./AuditConfirmModal";
 import type { Cp2InputSource } from "@app/shared";
 import ServiceCheckoutModal from "../../billing/ServiceCheckoutModal";
 import { useTriggerAudit } from "../../../hooks/useTriggerAudit";
-import { useGuidedDocuments } from "../../../hooks/useGuidedDocuments";
+import { useGuidedDrafts } from "../../../hooks/useGuidedDrafts";
+import type { StageView } from "../stage-view";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
 import type { TemplateKey } from "@repo/validation";
 import type { Case, DocumentWorkspace, RoundHistoryEntry } from "@/types";
 
+const FOCUS_RETRY_FRAMES = 30;
+
 interface StageDetailProps {
   caseId: string;
   stageSlug: string;
-  view: "draft" | "files" | "results";
-  onViewChange: (view: "draft" | "files" | "results") => void;
+  view: StageView;
+  onViewChange: (view: StageView) => void;
   onBack: () => void;
   summary?: StageSummary;
   creditsRemaining: number;
@@ -52,7 +56,8 @@ export default function StageDetail({
   const { triggerAudit, isTriggering: isAuditPending } = useTriggerAudit(caseId);
 
   const templateKey = (stage?.templateKey ?? "cp1") as TemplateKey;
-  const { generateDocx, isGenerating } = useGuidedDocuments(caseId, templateKey);
+  // Single source of unsaved drafts: the editor edits them, the header menu syncs around them.
+  const draftsApi = useGuidedDrafts(caseId);
 
   if (!stage || !stage.available) {
     return (
@@ -80,16 +85,43 @@ export default function StageDetail({
       submission_type: args.submissionType,
     });
   };
+  const handleAnswerClick = () => {
+    onViewChange("draft");
+    // Coming from another tab the editor mounts a few frames later; wait for it, then focus the first answer box.
+    let framesLeft = FOCUS_RETRY_FRAMES;
+    const focusEditor = () => {
+      const box = document.querySelector<HTMLTextAreaElement>("textarea");
+      if (box) box.focus();
+      else if (framesLeft-- > 0) requestAnimationFrame(focusEditor);
+    };
+    requestAnimationFrame(focusEditor);
+  };
 
   return (
     <Stack gap="md">
       <StageHeader
+        caseId={caseId}
         stage={stage}
+        templateKey={templateKey}
+        view={view}
+        draftQuestionIds={Object.keys(draftsApi.drafts)}
         summary={summary}
         creditsRemaining={creditsRemaining}
         onBack={onBack}
         onAudit={handleAuditClick}
         onBuyCredits={() => setCheckoutOpen(true)}
+      />
+
+      <StageStartGuide
+        caseId={caseId}
+        stageCode={stage.code}
+        isCp2={stage.code === "CP2"}
+        summary={summary}
+        creditsRemaining={creditsRemaining}
+        onAnswer={handleAnswerClick}
+        onUpload={() => onViewChange("files")}
+        onBuyCredits={() => setCheckoutOpen(true)}
+        onAudit={handleAuditClick}
       />
 
       <StageGradingPanel
@@ -99,51 +131,43 @@ export default function StageDetail({
         onViewResults={() => onViewChange("results")}
       />
 
-      <Tabs value={view} onChange={(val) => onViewChange(val as "draft" | "files" | "results")} variant="pills" radius="md">
-        <Tabs.List justify="flex-start">
-          <Tabs.Tab value="draft" leftSection={<FileEdit size={16} />}>
-            Soạn thảo
-          </Tabs.Tab>
-          <Tabs.Tab value="files" leftSection={<FolderUp size={16} />}>
-            Tài liệu nộp ({summary?.file_count ?? 0})
-          </Tabs.Tab>
-          <Tabs.Tab value="results" leftSection={<Award size={16} />}>
-            Kết quả chấm
-          </Tabs.Tab>
-        </Tabs.List>
+      <FilterTabs
+        ariaLabel="Nội dung giai đoạn"
+        value={view}
+        onChange={onViewChange}
+        items={[
+          { value: "draft", label: "Soạn thảo" },
+          { value: "files", label: `Tài liệu (${summary?.file_count ?? 0})` },
+          { value: "results", label: "Kết quả chấm" },
+        ]}
+      />
 
-        <Tabs.Panel value="draft" pt="md">
-          <StageDraftView
-            caseId={caseId}
-            templateKey={templateKey}
-            onBack={onBack}
-          />
-        </Tabs.Panel>
+      {view === "draft" && (
+        <StageDraftView caseId={caseId} templateKey={templateKey} draftsApi={draftsApi} onBack={onBack} />
+      )}
 
-        <Tabs.Panel value="files" pt="md">
-          <StageFilesView
-            caseId={caseId}
-            checkpointCode={stage.code}
-            checkpointId={checkpointId}
-            fileCount={summary?.file_count ?? 0}
-            documentWorkspace={documentWorkspace}
-          />
-        </Tabs.Panel>
+      {view === "files" && (
+        <StageFilesView
+          caseId={caseId}
+          checkpointCode={stage.code}
+          fileCount={summary?.file_count ?? 0}
+          documentWorkspace={documentWorkspace}
+        />
+      )}
 
-        <Tabs.Panel value="results" pt="md">
-          <StageResultsView
-            caseId={caseId}
-            summary={summary}
-            roundHistory={roundHistory}
-            checkpointId={checkpointId}
-            projectName={caseData?.team_name || undefined}
-            caseCode={caseData?.case_code || undefined}
-            onGoDraft={() => onViewChange("draft")}
-            onGoFiles={() => onViewChange("files")}
-            onAudit={handleAuditClick}
-          />
-        </Tabs.Panel>
-      </Tabs>
+      {view === "results" && (
+        <StageResultsView
+          caseId={caseId}
+          summary={summary}
+          roundHistory={roundHistory}
+          checkpointId={checkpointId}
+          projectName={caseData?.team_name || undefined}
+          caseCode={caseData?.case_code || undefined}
+          onGoDraft={() => onViewChange("draft")}
+          onGoFiles={() => onViewChange("files")}
+          onAudit={handleAuditClick}
+        />
+      )}
 
       <AuditConfirmModal
         stage={stage}

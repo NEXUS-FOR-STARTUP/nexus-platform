@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup: Case detail redesign</title>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/views.css">
+</head>
+<body>
+<div class="topbar">NEXUS<span class="note">Mockup đề xuất UI. Dữ liệu hồ sơ, lịch sử và tài liệu là mẫu bịa; câu hỏi và gợi ý lấy từ catalog CP1 và CP2 thật.</span></div>
+<div class="layout">
+  <nav class="side" id="side" aria-label="Điều hướng hồ sơ">
+    <button class="ib side-x" id="side-x" aria-label="Đóng menu"><svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor" class="ic" aria-hidden="true"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></svg></button>
+    <a class="nav on" data-v="overview" id="n-overview"></a>
+    <a class="nav" data-v="journey" id="n-journey"></a>
+    <a class="nav" data-v="billing" id="n-billing"></a>
+    <a class="nav" data-v="timeline" id="n-timeline"></a>
+    <a class="nav" data-v="settings" id="n-settings"></a>
+    <div class="sp"></div>
+    <a class="nav" data-v="spec" id="n-spec"></a>
+  </nav>
+  <main class="main">
+    <section class="view on col" id="v-overview"></section>
+    <section class="view col" id="v-journey"></section>
+    <section class="view col" id="v-billing"></section>
+    <section class="view col narrow" id="v-timeline"></section>
+    <section class="view col narrow" id="v-settings"></section>
+    <section class="view col" id="v-spec"></section>
+  </main>
+</div>
+<div class="scrim" id="scrim"></div>
+<button class="burger" id="burger" aria-label="Mở menu" aria-expanded="false" aria-controls="side"><svg width="22" height="22" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM216,184H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z"/></svg></button>
+<script src="js/icons.js"></script>
+<script src="js/app.js"></script>
+<script src="js/data/history.js"></script>
+<script src="js/data/stage.js"></script>
+<script src="js/data/questions-cp1.js"></script>
+<script src="js/data/questions-cp2.js"></script>
+<script src="js/data/unlocks.js"></script>
+<script src="js/data/states.js"></script>
+<script src="js/data/stages.js"></script>
+<script>
+[["overview","dash","Tổng quan dự án"],["journey","compass","Hành trình"],["billing","card","Lượt chấm &amp; thanh toán"],["timeline","hist","Lịch sử hoạt động"],["settings","gear","Cài đặt"],["spec","type","Quy ước (tham khảo)"]]
+  .forEach(([v,i,t])=>{document.getElementById("n-"+v).innerHTML=ic(i)+t});
+</script>
+<script src="js/views/overview.js"></script>
+<script src="js/views/journey.js"></script>
+<script src="js/views/stage-draft.js"></script>
+<script src="js/views/stage-files.js"></script>
+<script src="js/views/stage-results.js"></script>
+<script src="js/views/grading.js"></script>
+<script src="js/views/audit.js"></script>
+<script src="js/views/upload.js"></script>
+<script src="js/views/billing.js"></script>
+<script src="js/views/timeline.js"></script>
+<script src="js/views/settings.js"></script>
+<script src="js/views/spec.js"></script>
+<script>initRouter();</script>
+</body>
+</html>

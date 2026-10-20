@@ -1,9 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Modal, Button, NumberInput, Stack, Text, Group } from "@mantine/core";
+import { Modal, NumberInput } from "@mantine/core";
 import { useCreateDeposit } from "../hooks/useWallet";
+import {
+  MIN_TOPUP_AMOUNT,
+  DEFAULT_TOPUP_AMOUNT,
+} from "./wallet-topup.constants";
+import { TopupPresetButtons } from "./TopupPresetButtons";
+import styles from "../wallet.module.css";
 
 interface Props {
   opened: boolean;
@@ -11,88 +17,123 @@ interface Props {
   initialAmount?: number;
 }
 
-const MIN_TOPUP_AMOUNT = 2000;
-const DEFAULT_TOPUP_AMOUNT = 50000;
+function extractErrorMessage(error: unknown): string {
+  if (
+    error &&
+    typeof error === "object" &&
+    "response" in error &&
+    error.response &&
+    typeof error.response === "object" &&
+    "data" in error.response &&
+    error.response.data &&
+    typeof error.response.data === "object" &&
+    "message" in error.response.data &&
+    typeof error.response.data.message === "string"
+  ) {
+    return error.response.data.message;
+  }
+  return "Đã xảy ra lỗi khi tạo yêu cầu nạp tiền.";
+}
 
-export function WalletTopupModal({ opened, onClose, initialAmount }: Props) {
+function WalletTopupForm({
+  onClose,
+  initialAmount,
+}: {
+  onClose: () => void;
+  initialAmount?: number;
+}) {
   const router = useRouter();
   const [amount, setAmount] = useState<number>(initialAmount ?? DEFAULT_TOPUP_AMOUNT);
-  // One stable idempotency key per modal-open: double-submits share it,
-  // backend dedups on deposits.idempotency_key.
-  const [topupKey, setTopupKey] = useState<string>(() => crypto.randomUUID());
+  const [topupKey] = useState<string>(() => crypto.randomUUID());
   const submittingRef = useRef(false);
   const createDeposit = useCreateDeposit();
-
-  useEffect(() => {
-    if (!opened) return;
-    setTopupKey(crypto.randomUUID());
-    setAmount(initialAmount ?? DEFAULT_TOPUP_AMOUNT);
-  }, [opened, initialAmount]);
 
   const handleCreate = () => {
     if (amount < MIN_TOPUP_AMOUNT) return;
     if (submittingRef.current || createDeposit.isPending) return;
     submittingRef.current = true;
-    createDeposit.mutate({ amount, idempotency_key: topupKey }, {
-      onSuccess: (result) => {
-        onClose();
-        router.push(`/dashboard/payment?pid=${result.depositId}`);
+    createDeposit.mutate(
+      { amount, idempotency_key: topupKey },
+      {
+        onSuccess: (result) => {
+          onClose();
+          router.push(`/dashboard/payment?pid=${result.depositId}`);
+        },
+        onSettled: () => {
+          submittingRef.current = false;
+        },
       },
-      onSettled: () => {
-        submittingRef.current = false;
-      },
-    });
+    );
   };
 
-  const handleCloseAndReset = () => {
-    submittingRef.current = false;
-    createDeposit.reset();
-    setAmount(DEFAULT_TOPUP_AMOUNT);
-    onClose();
-  };
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <p className="text-sm font-medium text-text-app mb-1">
+          Chọn nhanh mức nạp
+        </p>
+        <TopupPresetButtons
+          selectedAmount={amount}
+          onSelect={(val) => setAmount(val)}
+        />
+      </div>
 
+      <NumberInput
+        label="Số tiền nạp (VND)"
+        description="Tối thiểu 2,000 VND · Số tiền sẽ được ghi nhận vào ví để thanh toán dịch vụ."
+        value={amount}
+        onChange={(val) => setAmount(Number(val) || 0)}
+        min={MIN_TOPUP_AMOUNT}
+        step={1000}
+        thousandSeparator=","
+        allowDecimal={false}
+        allowNegative={false}
+        size="sm"
+      />
 
+      {createDeposit.isError && (
+        <p className="text-xs text-red-600">
+          {extractErrorMessage(createDeposit.error)}
+        </p>
+      )}
+
+      <div className="flex justify-end gap-2 pt-3 border-t border-border-app">
+        <button
+          type="button"
+          className={`${styles.btn} ${styles.btnQuiet} ${styles.btnSm}`}
+          onClick={onClose}
+        >
+          Hủy
+        </button>
+        <button
+          type="button"
+          className={`${styles.btn} ${styles.btnSm}`}
+          onClick={handleCreate}
+          disabled={amount < MIN_TOPUP_AMOUNT || createDeposit.isPending}
+        >
+          {createDeposit.isPending ? "Đang xử lý..." : "Tạo lệnh nạp tiền"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function WalletTopupModal({ opened, onClose, initialAmount }: Props) {
   return (
     <Modal
       opened={opened}
-      onClose={handleCloseAndReset}
-      title={<Text fw={700} size="sm">Nạp tiền vào ví</Text>}
+      onClose={onClose}
+      title={<span className="font-medium text-base text-text-app">Nạp tiền vào ví</span>}
       size="md"
       radius="md"
       centered
     >
-      <Stack gap="md">
-        <NumberInput
-          label="Số tiền (VND)"
-          description="Tối thiểu 2,000 VND · Gợi ý nạp 79,000 VND để mua gói 2 lượt đánh giá dự án."
-          value={amount}
-          onChange={(val) => setAmount(Number(val) || 0)}
-          min={MIN_TOPUP_AMOUNT}
-          step={1000}
-          thousandSeparator=","
-          allowDecimal={false}
-          allowNegative={false}
+      {opened && (
+        <WalletTopupForm
+          onClose={onClose}
+          initialAmount={initialAmount}
         />
-
-        <Group justify="flex-end">
-          <Button variant="default" onClick={handleCloseAndReset}>
-            Hủy
-          </Button>
-          <Button
-            onClick={handleCreate}
-            loading={createDeposit.isPending}
-            disabled={amount < MIN_TOPUP_AMOUNT || createDeposit.isPending}
-          >
-            Tạo mã nạp tiền
-          </Button>
-        </Group>
-
-        {createDeposit.isError && (
-          <Text c="red" size="xs">
-            {(createDeposit.error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Đã xảy ra lỗi."}
-          </Text>
-        )}
-      </Stack>
+      )}
     </Modal>
   );
 }

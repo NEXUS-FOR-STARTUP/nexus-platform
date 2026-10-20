@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Modal, Stack, Text, TextInput, Button, Group } from "@mantine/core";
-import { AlertTriangle, Trash2 } from "lucide-react";
+import { Trash as Trash2, Warning as TriangleAlert } from "@phosphor-icons/react";
 
 interface DeleteAccountModalProps {
   opened: boolean;
@@ -39,7 +39,7 @@ export function DeleteAccountModal({
       onClose={handleClose}
       title={
         <Group gap="xs">
-          <AlertTriangle className="w-5 h-5 text-red-500" />
+          <TriangleAlert className="w-5 h-5 text-red-500" aria-hidden />
           <Text fw={600} c="red" className="font-heading">
             Xóa tài khoản vĩnh viễn
           </Text>
@@ -49,7 +49,7 @@ export function DeleteAccountModal({
       size="md"
       radius="md"
     >
-      <Stack gap="md">
+      <Stack gap="lg">
         <Text size="sm" c="dimmed">
           Hành động này sẽ xóa vĩnh viễn tài khoản của bạn, hủy toàn bộ phiên làm việc trên các thiết bị và{" "}
           <strong className="text-red-500">không thể hoàn tác</strong>. Dữ liệu tài khoản của bạn sẽ bị ẩn danh hóa.
@@ -58,7 +58,7 @@ export function DeleteAccountModal({
         <TextInput
           label="Xác nhận thao tác"
           description={
-            <Text component="span" size="xs" c="dimmed">
+            <Text component="span" size="sm" c="dimmed">
               Vui lòng nhập <strong className="text-red-500">XOA</strong> để xác nhận.
             </Text>
           }
@@ -66,16 +66,17 @@ export function DeleteAccountModal({
           value={confirmText}
           onChange={(e) => setConfirmText(e.currentTarget.value)}
           disabled={loading}
-          size="sm"
+          size="md"
           autoFocus
         />
 
-        <Group justify="flex-end" gap="sm" mt="sm">
-          <Button variant="default" onClick={handleClose} disabled={loading}>
+        <Group justify="flex-end" gap="sm" mt="xs">
+          <Button variant="default" size="sm" onClick={handleClose} disabled={loading}>
             Hủy bỏ
           </Button>
           <Button
             color="red"
+            size="sm"
             leftSection={<Trash2 className="w-4 h-4" />}
             onClick={handleConfirm}
             disabled={!isConfirmed || loading}

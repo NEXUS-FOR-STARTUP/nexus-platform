@@ -38,10 +38,10 @@ export default function TermsPage() {
       version="2026-09-v3.0"
       tocItems={termsTOC}
     >
-      <div className="space-y-10">
+      <>
         <TermsSections1 />
         <TermsSections2 />
-      </div>
+      </>
     </PolicyDocumentLayout>
   );
 }

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Select, Textarea, Tooltip } from "@mantine/core";
-import { HelpCircle } from "lucide-react";
+import { Question as HelpCircle } from "@phosphor-icons/react";
 
 interface SupportNeedsStepProps {
   form: any;

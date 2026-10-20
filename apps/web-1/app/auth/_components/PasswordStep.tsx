@@ -1,6 +1,8 @@
 "use client";
 
-import { Button, PasswordInput, Stack, UnstyledButton } from "@mantine/core";
+import { PasswordInput } from "@mantine/core";
+import { AuthButton } from "./AuthButton";
+import s from "./auth.module.css";
 
 interface PasswordStepProps {
   password: string;
@@ -25,55 +27,33 @@ export function PasswordStep({
 
   return (
     <form
+      className={s.stack}
       onSubmit={(e) => {
         e.preventDefault();
         if (canSubmit) onSubmit();
       }}
     >
-      <Stack gap="md">
-        <PasswordInput
-          id="password"
-          value={password}
-          onChange={(e) => setPassword(e.currentTarget.value)}
-          label="Mật khẩu"
-          placeholder="Nhập mật khẩu (tối thiểu 8 ký tự)"
-          error={passwordError}
-          variant="default"
-          radius="md"
-          size="md"
-          autoComplete="current-password"
-          autoFocus
-          disabled={busy}
-          classNames={{
-            input: "border-border-app focus:border-brand",
-          }}
-        />
+      <PasswordInput
+        id="password"
+        value={password}
+        onChange={(e) => setPassword(e.currentTarget.value)}
+        label="Mật khẩu"
+        placeholder="Nhập mật khẩu (tối thiểu 8 ký tự)"
+        error={passwordError}
+        size="md"
+        autoComplete="current-password"
+        autoFocus
+        disabled={busy}
+        classNames={{ label: s.label, input: s.input, innerInput: s.input }}
+      />
 
-        <Button
-          type="submit"
-          fullWidth
-          radius="md"
-          size="md"
-          color="brand"
-          className="h-10 cursor-pointer font-semibold mt-2"
-          disabled={!canSubmit}
-          loading={busy}
-        >
-          Đăng nhập
-        </Button>
+      <AuthButton type="submit" disabled={!canSubmit} loading={busy}>
+        Đăng nhập
+      </AuthButton>
 
-        <div className="text-center">
-          <UnstyledButton
-            type="button"
-            disabled={busy}
-            onClick={onBack}
-            className="text-xs sm:text-sm font-normal text-text-muted hover:text-text-app cursor-pointer transition-colors"
-            style={{ color: "var(--mantine-color-dimmed)" }}
-          >
-            Quay lại
-          </UnstyledButton>
-        </div>
-      </Stack>
+      <button type="button" className={s.link} disabled={busy} onClick={onBack}>
+        Quay lại
+      </button>
     </form>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Popover, Text, UnstyledButton, Divider } from "@mantine/core";
-import { Database, Trash2 } from "lucide-react";
+import { Database, Trash as Trash2 } from "@phosphor-icons/react";
 
 export type PresetOption = {
   label: string;

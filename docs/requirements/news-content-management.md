@@ -66,7 +66,7 @@ Một bảng cơ sở dữ liệu duy nhất với trường phân loại `type:
    - Hàng thông tin: `Nexus Team · DD/MM/YYYY · x phút đọc`.
    - Ảnh bìa rộng (tỷ lệ 16:9, viền bo tròn 16px, shadow nhẹ).
    - Cột đọc trung tâm: **Độ rộng chuẩn 720px** (`max-w-[720px] mx-auto`), cỡ chữ 18px (text-lg), khoảng cách dòng thoáng (leading-relaxed), giúp mắt đọc không bị mỏi.
-   - Giữ nguyên hệ thống font `Google Sans Flex` và màu sắc `Sapphire Blue` của Nexus.
+   - Giữ nguyên hệ thống font `Inter Tight` và màu sắc `Sapphire Blue` của Nexus.
 
 ## 5. Quản trị Desktop-only (`/admin?tab=news`)
 

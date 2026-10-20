@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Download, ExternalLink, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import { DownloadSimple as Download, ArrowSquareOut as ExternalLink, FileText, CaretDown as ChevronDown, CaretUp as ChevronUp } from "@phosphor-icons/react";
 import { Button, SegmentedControl, Stack, Tooltip, LoadingOverlay } from "@mantine/core";
 import { isCp2ReportType } from "@repo/validation";
 import { useDownloadReportPdf } from "../hooks/useDownloadReportPdf";

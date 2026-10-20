@@ -1,0 +1,110 @@
+"use client";
+
+import { Accordion, Alert, Group, Radio, Stack, Text, Textarea } from "@mantine/core";
+import type { Cp2InputSource } from "@app/shared";
+
+export type Cp2Scope = "full" | "questionnaire";
+export type RunKind = "initial" | "resubmit";
+
+const SOURCE_LABEL: Record<Cp2InputSource, string> = { both: "Cả câu trả lời và tài liệu", answers: "Chỉ câu trả lời", files: "Chỉ tài liệu" };
+const SCOPE_LABEL: Record<Cp2Scope, string> = { full: "Đánh giá toàn diện", questionnaire: "Chỉ soát bảng hỏi" };
+const CHANGE_SUMMARY_MAX = 5000;
+const USER_NOTE_MAX = 2000;
+
+interface AuditStepOptionsProps {
+  isCp2: boolean;
+  scope: Cp2Scope;
+  source: Cp2InputSource;
+  submissionType: RunKind;
+  hasFiles: boolean;
+  sourceReady: (src: Cp2InputSource, sc: Cp2Scope) => boolean;
+  changeSummary: string;
+  userNote: string;
+  creditsRemaining: number;
+  onSourceChange: (value: Cp2InputSource) => void;
+  onScopeChange: (value: Cp2Scope) => void;
+  onKindChange: (value: RunKind) => void;
+  onChangeSummary: (value: string) => void;
+  onUserNote: (value: string) => void;
+}
+
+/** Step 2: how to grade (CP2 accordion of 4 choices) and the credit cost line. */
+export default function AuditStepOptions({
+  isCp2, scope, source, submissionType, hasFiles, sourceReady, changeSummary, userNote, creditsRemaining,
+  onSourceChange, onScopeChange, onKindChange, onChangeSummary, onUserNote,
+}: AuditStepOptionsProps) {
+  return (
+    <>
+      <Text fw={500}>Bước 2/2: chọn cách chấm và xác nhận</Text>
+      {isCp2 && (
+        <Accordion variant="separated" radius="md" defaultValue="source">
+          <Accordion.Item value="source">
+            <Accordion.Control>Chấm gì <Text span size="sm" c="dimmed">- {SOURCE_LABEL[source]}</Text></Accordion.Control>
+            <Accordion.Panel>
+              <Radio.Group value={source} onChange={(value) => onSourceChange(value as Cp2InputSource)}>
+                <Stack gap="xs">
+                  <Radio value="both" label="Cả câu trả lời và tài liệu" description="Đối chiếu lời trả lời với tệp bạn nộp" disabled={!sourceReady("both", scope)} />
+                  <Radio value="answers" label="Chỉ câu trả lời" description="Hợp khi chưa có tài liệu riêng" disabled={!sourceReady("answers", scope)} />
+                  <Radio value="files" label="Chỉ tài liệu" description="Hợp khi tài liệu đã chi tiết" disabled={!hasFiles} />
+                </Stack>
+              </Radio.Group>
+            </Accordion.Panel>
+          </Accordion.Item>
+
+          <Accordion.Item value="scope">
+            <Accordion.Control>Chấm tới đâu <Text span size="sm" c="dimmed">- {SCOPE_LABEL[scope]}</Text></Accordion.Control>
+            <Accordion.Panel>
+              <Radio.Group value={scope} onChange={(value) => onScopeChange(value as Cp2Scope)}>
+                <Stack gap="xs">
+                  <Radio value="full" label="Toàn diện (Đề xuất)" description="Bảng hỏi, logic khảo sát và bằng chứng" disabled={!sourceReady(source, "full")} />
+                  <Radio value="questionnaire" label="Chỉ soát bảng hỏi" description="Cấu trúc câu hỏi khảo sát" disabled={!sourceReady(source, "questionnaire")} />
+                </Stack>
+              </Radio.Group>
+            </Accordion.Panel>
+          </Accordion.Item>
+
+          <Accordion.Item value="kind">
+            <Accordion.Control>Lần chấm này <Text span size="sm" c="dimmed">- {submissionType === "resubmit" ? "Chấm lại" : "Chấm mới"}</Text></Accordion.Control>
+            <Accordion.Panel>
+              <Radio.Group value={submissionType} onChange={(value) => onKindChange(value as RunKind)}>
+                <Stack gap="xs">
+                  <Radio value="initial" label="Chấm mới từ đầu" description="Không đối chiếu bản cũ" />
+                  <Radio value="resubmit" label="Chấm lại sau khi sửa" description={scope === "full" ? "Đối chiếu với kết quả lần trước" : "Chỉ có ở chấm toàn diện"} disabled={scope !== "full"} />
+                </Stack>
+              </Radio.Group>
+              {submissionType === "resubmit" && (
+                <Textarea
+                  mt="sm"
+                  label="Bạn đã sửa gì"
+                  placeholder="Ví dụ: phỏng vấn thêm 3 chuyên gia, tính lại SOM"
+                  value={changeSummary}
+                  onChange={(e) => onChangeSummary(e.currentTarget.value)}
+                  minRows={2}
+                  maxLength={CHANGE_SUMMARY_MAX}
+                />
+              )}
+            </Accordion.Panel>
+          </Accordion.Item>
+
+          <Accordion.Item value="note">
+            <Accordion.Control>Ghi chú thêm <Text span size="sm" c="dimmed">- {userNote.trim() ? "đã viết" : "không bắt buộc"}</Text></Accordion.Control>
+            <Accordion.Panel>
+              <Textarea placeholder="Ví dụ: soi kỹ phần SOM giúp mình" value={userNote} onChange={(e) => onUserNote(e.currentTarget.value)} minRows={2} maxLength={USER_NOTE_MAX} />
+            </Accordion.Panel>
+          </Accordion.Item>
+        </Accordion>
+      )}
+
+      {isCp2 && source === "answers" && !hasFiles && (
+        <Alert color="yellow" title="Chấm khi thiếu tệp">
+          Vẫn chấm được theo lời nhóm mô tả, nhưng các tiêu chí thiếu bằng chứng sẽ bị đánh giá thấp.
+        </Alert>
+      )}
+
+      <Group justify="space-between">
+        <Text size="sm">Chi phí:</Text>
+        <Text size="sm" fw={500} c="blue">Tốn 1 lượt - còn lại {Math.max(creditsRemaining - 1, 0)} sau lần chấm này</Text>
+      </Group>
+    </>
+  );
+}

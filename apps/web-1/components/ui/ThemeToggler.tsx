@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { ActionIcon } from "@mantine/core";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon } from "@phosphor-icons/react";
 
 export default function ThemeToggler() {
   const [mounted, setMounted] = useState(false);

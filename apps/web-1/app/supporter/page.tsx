@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Pagination, Button } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
-import { AlertCircle, ClipboardList, RefreshCw } from "lucide-react";
+import { WarningCircle as AlertCircle, ClipboardText as ClipboardList, ArrowsClockwise as RefreshCw } from "@phosphor-icons/react";
 import { useCasesList } from "../dashboard/hooks/useCasesList";
 import CaseCard from "../dashboard/_components/CaseCard";
 import CaseListFilters, { SUPPORTER_STATUS_OPTIONS } from "../dashboard/_components/CaseListFilters";

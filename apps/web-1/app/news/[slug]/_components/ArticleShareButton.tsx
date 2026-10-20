@@ -1,7 +1,7 @@
 'use client';
 
 import { ActionIcon, Tooltip } from '@mantine/core';
-import { Share2, Check } from 'lucide-react';
+import { ShareNetwork as Share2, Check } from "@phosphor-icons/react";
 import { useArticleShare } from '../../hooks';
 
 export function ArticleShareButton({ title }: { title: string }) {

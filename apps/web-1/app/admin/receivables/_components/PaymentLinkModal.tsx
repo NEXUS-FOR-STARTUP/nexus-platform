@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Alert, Button, CopyButton, Modal, TextInput } from "@mantine/core";
-import { Check, Copy, ExternalLink, Link2 } from "lucide-react";
+import { Check, Copy, ArrowSquareOut as ExternalLink, Link as Link2 } from "@phosphor-icons/react";
 import type { AdminReceivable } from "@repo/validation";
 import { useCreateReceivablePaymentLink } from "../../hooks/useReceivableMutations";
 import { formatVnd } from "./format";

@@ -3,16 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getSettingsNav } from "./settings-nav";
+import classes from "../settings.module.css";
 
 export default function SettingsSidebar({
   basePath = "/dashboard/settings",
+  onItemClickAction,
 }: {
   basePath?: string;
+  onItemClickAction?: () => void;
 }) {
   const pathname = usePathname();
   const items = getSettingsNav(basePath);
+
   return (
-    <nav className="flex md:flex-col gap-1.5 overflow-x-auto md:overflow-visible pb-1 md:pb-0">
+    <nav aria-label="Cài đặt tài khoản" className="flex flex-col gap-1">
       {items.map((item) => {
         const active = pathname === item.href;
         const Icon = item.icon;
@@ -21,13 +25,10 @@ export default function SettingsSidebar({
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
-            className={`flex items-center gap-2.5 shrink-0 rounded-lg px-3 py-2 font-body text-sm transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
-              active
-                ? "bg-surface-soft text-brand font-semibold"
-                : "text-text-muted hover:text-text-app hover:bg-surface-soft/50"
-            }`}
+            className={`${classes.navItem} ${active ? classes.active : ""}`}
+            onClick={onItemClickAction}
           >
-            <Icon className="w-4 h-4" />
+            <Icon size={18} className={classes.navIcon} />
             <span>{item.label}</span>
           </Link>
         );

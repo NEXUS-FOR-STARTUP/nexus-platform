@@ -2,7 +2,7 @@
 
 import React from "react";
 import { TextInput, Text, Tooltip } from "@mantine/core";
-import { HelpCircle } from "lucide-react";
+import { Question as HelpCircle } from "@phosphor-icons/react";
 
 const SHORT_MAX = 100;
 const EMAIL_MAX = 254;

@@ -1,12 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
-import { Stack, Paper, Text, Button } from "@mantine/core";
-import { FileCheck } from "lucide-react";
-import { isCp2ReportType } from "@repo/validation";
+import { useMemo, useState } from "react";
+import { useMediaQuery } from "@mantine/hooks";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
-import type { RoundHistoryEntry, Report } from "@/types";
-import TabReportFindings from "../../TabReportFindings";
+import type { RoundHistoryEntry } from "@/types";
+import { formatDateShort } from "../../report.utils";
+import ResultPdfViewer, { ResultPdfActions } from "./ResultPdfViewer";
+import ResultsEmptyState from "./ResultsEmptyState";
+import ResultRunList from "./ResultRunList";
+import { toResultRuns } from "./result-runs";
+import s from "./stage-results.module.css";
 
 interface StageResultsViewProps {
   caseId: string;
@@ -19,6 +22,7 @@ interface StageResultsViewProps {
   onGoFiles?: () => void;
   onAudit?: () => void;
 }
+
 export default function StageResultsView({
   caseId,
   summary,
@@ -29,53 +33,48 @@ export default function StageResultsView({
   onGoFiles,
   onAudit,
 }: StageResultsViewProps) {
-  const stageRoundHistory = useMemo(() => {
-    if (!roundHistory || roundHistory.length === 0) return null;
-    // Ownership by checkpoint; never fall back to the full history, or another
-    // stage's results leak in while the checkpoint row is missing/loading.
-    if (checkpointId) {
-      return roundHistory.filter((round) => round.report?.checkpoint_id === checkpointId);
-    }
-    if (!summary?.checkpoint_code) return null;
-    const wantsCp2 = summary.checkpoint_code === "CP2";
-    return roundHistory.filter((round) => isCp2ReportType(round.report?.report_type) === wantsCp2);
-  }, [roundHistory, checkpointId, summary?.checkpoint_code]);
+  const isDesktop = useMediaQuery("(min-width: 48em)");
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  const runs = useMemo(
+    () => toResultRuns(roundHistory, checkpointId, summary?.checkpoint_code),
+    [roundHistory, checkpointId, summary?.checkpoint_code],
+  );
 
-  // Prefer the full Report object carried by round history so the PDF viewer
-  // and parsed metadata work exactly like the legacy report tab.
-  const report: Report | null = useMemo(() => {
-    if (stageRoundHistory && stageRoundHistory.length > 0) {
-      return stageRoundHistory[0].report;
-    }
-    return null;
-  }, [stageRoundHistory]);
-
-  if (!report && (!stageRoundHistory || stageRoundHistory.length === 0)) {
+  if (runs.length === 0) {
     return (
-      <Paper p="xl" withBorder radius="md" style={{ textAlign: "center" }}>
-        <Stack align="center" gap="md">
-          <FileCheck size={40} className="text-gray-400" />
-          <Stack gap={2}>
-            <Text fw={600} size="md">Chưa có kết quả chấm bài</Text>
-            <Text size="xs" c="dimmed">3 bước để có kết quả:</Text>
-          </Stack>
-          <Stack gap="xs" align="flex-start">
-            <Button variant="subtle" size="xs" onClick={onGoDraft}>1. Trả lời câu hỏi ở tab Soạn thảo</Button>
-            <Button variant="subtle" size="xs" onClick={onGoFiles}>2. Tải tài liệu ở tab Tài liệu</Button>
-            <Button variant="filled" size="xs" color="blue" onClick={onAudit}>3. Bấm Chấm bài</Button>
-          </Stack>
-        </Stack>
-      </Paper>
+      <ResultsEmptyState
+        answeredCount={summary?.answered_count ?? 0}
+        fileCount={summary?.file_count ?? 0}
+        onGoDraft={onGoDraft}
+        onGoFiles={onGoFiles}
+        onAudit={onAudit}
+      />
     );
   }
 
+  if (!isDesktop) {
+    return (
+      <div>
+        {runs.map((run, index) => (
+          <details key={run.id} className={s.fold} open={index === 0}>
+            <summary>
+              Lịch sử chấm
+              <span className={s.note}>{`${run.label}, ${formatDateShort(run.submittedAt)}`}</span>
+            </summary>
+            <div className={s.foldBody}>
+              <ResultPdfActions run={run} caseId={caseId} openLabel="Mở PDF" />
+            </div>
+          </details>
+        ))}
+      </div>
+    );
+  }
+
+  const selected = runs.find((run) => run.id === pickedId) ?? runs[0];
   return (
-    <TabReportFindings
-      report={report}
-      caseId={caseId}
-      projectName={projectName}
-      roundHistory={stageRoundHistory}
-      hideCheckpointFilter
-    />
+    <div className={s.layout}>
+      <ResultRunList runs={runs} selectedId={selected.id} onSelect={setPickedId} />
+      <ResultPdfViewer run={selected} caseId={caseId} projectName={projectName} />
+    </div>
   );
 }

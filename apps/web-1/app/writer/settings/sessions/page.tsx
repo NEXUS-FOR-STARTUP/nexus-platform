@@ -2,7 +2,7 @@
 
 import { useSession } from "@/lib/auth-client";
 import { Text } from "@mantine/core";
-import { Loader2 } from "lucide-react";
+import { CircleNotch as Loader2 } from "@phosphor-icons/react";
 import { SessionsList } from "../../../dashboard/settings/sessions/_components/SessionsList";
 
 export default function WriterSettingsSessionsPage() {

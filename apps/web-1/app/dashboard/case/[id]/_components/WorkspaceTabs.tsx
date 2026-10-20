@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { FileText, FileSpreadsheet, MessageCircle, History, Settings } from "lucide-react";
+import { FileText, FileXls as FileSpreadsheet, ChatCircle as MessageCircle, ClockCounterClockwise as History, Gear as Settings } from "@phosphor-icons/react";
 
 interface WorkspaceTabsProps {
   activeTab: "idea" | "report" | "discussion" | "timeline" | "settings";

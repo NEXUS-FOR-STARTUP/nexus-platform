@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Button, Center, Group, PinInput, Stack, Text, UnstyledButton } from "@mantine/core";
+import { Center, PinInput } from "@mantine/core";
 import { OTP_LENGTH } from "../hooks/use-email-otp-login";
+import { AuthButton } from "./AuthButton";
+import s from "./auth.module.css";
 
 interface EmailOtpStepProps {
   verifying: boolean;
@@ -36,63 +38,45 @@ export function EmailOtpStep({
   };
 
   return (
-    <Stack gap="sm">
+    <div className={s.stack}>
       <Center>
         <PinInput
           length={OTP_LENGTH}
           type="number"
+          gap={6}
           size="md"
-          radius="md"
           oneTimeCode
           autoFocus
           disabled={verifying}
           ariaLabel="Mã đăng nhập"
           onChange={setCode}
           onComplete={submit}
+          classNames={{ pinInput: s.pinCell, input: s.pin }}
         />
       </Center>
 
-      <Group justify="flex-end">
+      <div className={s.resendRow}>
         {cooldown > 0 ? (
-          <Text size="xs" c="dimmed">
-            Gửi lại ({cooldown}s)
-          </Text>
+          <span>Gửi lại ({cooldown}s)</span>
         ) : (
-          <UnstyledButton
+          <button
             type="button"
+            className={`${s.link} ${s.linkAccent}`}
             disabled={sending || verifying}
             onClick={onResend}
-            className="text-xs font-medium text-brand cursor-pointer disabled:opacity-50"
           >
             {sending ? "Đang gửi..." : "Gửi lại mã"}
-          </UnstyledButton>
+          </button>
         )}
-      </Group>
-
-      <Button
-        fullWidth
-        radius="md"
-        size="md"
-        color="brand"
-        className="h-10 cursor-pointer font-semibold"
-        loading={verifying}
-        disabled={code.length !== OTP_LENGTH}
-        onClick={() => submit(code)}
-      >
-        Tiếp tục
-      </Button>
-
-      <div className="text-center pt-1">
-        <UnstyledButton
-          type="button"
-          disabled={verifying}
-          onClick={onBack}
-          className="text-xs sm:text-sm font-normal text-text-muted hover:text-text-app cursor-pointer transition-colors"
-          style={{ color: "var(--mantine-color-dimmed)" }}
-        >
-          Quay lại
-        </UnstyledButton>
       </div>
-    </Stack>
+
+      <AuthButton loading={verifying} disabled={code.length !== OTP_LENGTH} onClick={() => submit(code)}>
+        Tiếp tục
+      </AuthButton>
+
+      <button type="button" className={s.link} disabled={verifying} onClick={onBack}>
+        Quay lại
+      </button>
+    </div>
   );
 }

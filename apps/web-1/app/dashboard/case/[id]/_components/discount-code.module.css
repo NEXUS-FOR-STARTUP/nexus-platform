@@ -1,0 +1,79 @@
+/* Discount code row: 40px input and button share one height, same radius and border as the rest of the case UI. */
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.field {
+  flex: 1;
+  min-width: 0;
+}
+
+.input {
+  width: 100%;
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--ui-radius);
+  background: var(--color-surface);
+  font: inherit;
+  font-size: var(--ui-text-body);
+  color: var(--color-text);
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.input:hover:not(:disabled) {
+  border-color: var(--color-text-muted);
+}
+
+.input:focus-visible {
+  outline: var(--ui-focus-ring);
+  outline-offset: var(--ui-focus-offset);
+  border-color: var(--color-brand);
+}
+
+.input:disabled {
+  background: var(--color-surface-soft);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+.invalid {
+  border-color: var(--color-danger-ink);
+}
+
+.error {
+  margin: 6px 0 0;
+  font-size: var(--ui-text-note);
+  color: var(--color-danger-ink);
+}
+
+.applied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 40px;
+  font-size: var(--ui-text-body);
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--color-text);
+}
+
+.tag b {
+  font-weight: var(--ui-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.off {
+  color: var(--color-success-ink);
+}

@@ -1,44 +1,46 @@
 "use client";
 
-
 import { useRouter, useSearchParams } from "next/navigation";
- import { Box, Group, Stack, Text } from "@mantine/core";
+import { List as Menu, X } from "@phosphor-icons/react";
 import { useDisclosure } from "@mantine/hooks";
 import JourneySidebar, { type WorkspaceTabKey } from "./JourneySidebar";
 import JourneyMobileNav from "./JourneyMobileNav";
+import WorkspaceMain from "./WorkspaceMain";
 import OverviewTab from "./OverviewTab";
 import JourneyTab from "./JourneyTab";
 import StageDetail from "./stage/StageDetail";
+import { parseStageView, type StageView } from "./stage-view";
 import BillingTab from "../billing/BillingTab";
 import ActivityTimeline from "../ActivityTimeline";
 import TabCaseSettings from "../TabCaseSettings";
 import { useStageSummaries } from "../../hooks/useStageSummaries";
 import { findStageBySlug } from "@app/shared/stages";
 import type { Case } from "@/types";
- import type { DocumentWorkspace, RoundHistoryEntry, TeamFitReport } from "@/types/case";
+import type { DocumentWorkspace, RoundHistoryEntry, TeamFitReport } from "@/types/case";
+import classes from "./workspace-layout.module.css";
 
- interface JourneyWorkspaceShellProps {
-   caseId: string;
-   caseData?: Case;
-   intakeSnapshot?: unknown;
-   teamFitReport?: TeamFitReport | null;
-   documentWorkspace?: DocumentWorkspace | null;
-   roundHistory?: RoundHistoryEntry[] | null;
- }
+interface JourneyWorkspaceShellProps {
+  caseId: string;
+  caseData?: Case;
+  intakeSnapshot?: unknown;
+  teamFitReport?: TeamFitReport | null;
+  documentWorkspace?: DocumentWorkspace | null;
+  roundHistory?: RoundHistoryEntry[] | null;
+}
 
- export default function JourneyWorkspaceShell({
-   caseId,
-   caseData,
-   intakeSnapshot,
-   teamFitReport,
-   documentWorkspace,
-   roundHistory,
- }: JourneyWorkspaceShellProps) {
+export default function JourneyWorkspaceShell({
+  caseId,
+  caseData,
+  intakeSnapshot,
+  teamFitReport,
+  documentWorkspace,
+  roundHistory,
+}: JourneyWorkspaceShellProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawTab = searchParams.get("tab") || "overview";
   const stageSlugParam = searchParams.get("stage") || "";
-  const viewParam = (searchParams.get("view") || "draft") as "draft" | "files" | "results";
+  const viewParam = parseStageView(searchParams.get("view"));
 
   const [mobileNavOpened, { toggle: toggleMobileNav, close: closeMobileNav }] = useDisclosure(false);
   const { data: stageSummariesData, isLoading: isStagesLoading } = useStageSummaries(caseId);
@@ -59,7 +61,7 @@ import type { Case } from "@/types";
     router.push(`/dashboard/case/${caseId}?tab=${key}`);
   };
 
-  const handleOpenStage = (slug: string, view: "draft" | "files" | "results" = "draft") => {
+  const handleOpenStage = (slug: string, view: StageView = "draft") => {
     router.push(`/dashboard/case/${caseId}?tab=journey&stage=${slug}&view=${view}`);
   };
 
@@ -67,7 +69,7 @@ import type { Case } from "@/types";
     router.push(`/dashboard/case/${caseId}?tab=journey`);
   };
 
-  const handleViewChange = (newView: "draft" | "files" | "results") => {
+  const handleViewChange = (newView: StageView) => {
     if (stageSlugParam) {
       router.push(`/dashboard/case/${caseId}?tab=journey&stage=${stageSlugParam}&view=${newView}`);
     }
@@ -79,8 +81,11 @@ import type { Case } from "@/types";
     : undefined;
   const stageCredits = currentStage?.serviceType ? caseData?.credit_balances?.[currentStage.serviceType] ?? 0 : 0;
 
+  const showStageDetail = activeTab === "journey" && Boolean(stageSlugParam && currentStage);
+  const width = showStageDetail ? "wide" : activeTab === "timeline" || activeTab === "settings" ? "narrow" : "col";
+
   return (
-    <Box className="w-full">
+    <div className={classes.layout}>
       <JourneyMobileNav
         opened={mobileNavOpened}
         onClose={closeMobileNav}
@@ -88,96 +93,70 @@ import type { Case } from "@/types";
         onTabChange={handleTabChange}
       />
 
-      <div className="flex gap-6">
-        <div className="hidden md:block">
-          <JourneySidebar activeTab={activeTab} onTabChange={handleTabChange} />
-        </div>
+      <div className={classes.sidebar}>
+        <JourneySidebar activeTab={activeTab} onTabChange={handleTabChange} />
+      </div>
 
-        <div className="flex-1 min-w-0 px-4 pb-4 pt-16 md:p-6 bg-surface-app">
-          <button
-            type="button"
-            onClick={toggleMobileNav}
-            aria-label="Mở menu dự án"
-            className="md:hidden fixed bottom-6 left-4 z-50 w-12 h-12 rounded-full border border-border-app bg-surface-app shadow-md hover:bg-surface-soft active:bg-surface-muted transition-colors items-center justify-center flex"
-          >
-            <div className="relative w-5 h-4 flex flex-col justify-between">
-              <span
-                className={`block h-0.5 bg-text-app rounded transition-transform duration-200 origin-center ${
-                  mobileNavOpened ? "rotate-45 translate-y-[7px]" : ""
-                }`}
-              />
-              <span
-                className={`block h-0.5 bg-text-app rounded transition-opacity duration-200 ${
-                  mobileNavOpened ? "opacity-0" : ""
-                }`}
-              />
-              <span
-                className={`block h-0.5 bg-text-app rounded transition-transform duration-200 origin-center ${
-                  mobileNavOpened ? "-rotate-45 -translate-y-[7px]" : ""
-                }`}
-              />
-            </div>
-          </button>
+      <button
+        type="button"
+        onClick={toggleMobileNav}
+        aria-label={mobileNavOpened ? "Đóng menu dự án" : "Mở menu dự án"}
+        aria-expanded={mobileNavOpened}
+        className={classes.fab}
+      >
+        {mobileNavOpened ? <X size={20} /> : <Menu size={20} />}
+      </button>
 
-          {activeTab === "overview" && (
-            <OverviewTab
+      <WorkspaceMain width={width}>
+        {activeTab === "overview" && (
+          <OverviewTab
+            caseId={caseId}
+            caseData={caseData}
+            stages={stageSummariesData?.stages}
+            roundHistory={roundHistory}
+            documentWorkspace={documentWorkspace}
+            intakeSnapshot={intakeSnapshot}
+            teamFitReport={teamFitReport}
+            onOpenStage={handleOpenStage}
+          />
+        )}
+
+        {activeTab === "journey" && (
+          showStageDetail ? (
+            <StageDetail
               caseId={caseId}
-              caseData={caseData}
-              stages={stageSummariesData?.stages}
-              roundHistory={roundHistory}
+              stageSlug={stageSlugParam}
+              view={viewParam}
+              onViewChange={handleViewChange}
+              onBack={handleBackToJourney}
+              summary={currentSummary}
+              creditsRemaining={stageCredits}
               documentWorkspace={documentWorkspace}
-              intakeSnapshot={intakeSnapshot}
-              teamFitReport={teamFitReport}
+              roundHistory={roundHistory}
+              caseData={caseData}
+            />
+          ) : (
+            <JourneyTab
+              stages={stageSummariesData?.stages}
+              balances={caseData?.credit_balances}
               onOpenStage={handleOpenStage}
             />
-          )}
+          )
+        )}
 
-          {activeTab === "journey" && (
-            stageSlugParam && currentStage ? (
-              <StageDetail
-                caseId={caseId}
-                stageSlug={stageSlugParam}
-                view={viewParam}
-                onViewChange={handleViewChange}
-                onBack={handleBackToJourney}
-                summary={currentSummary}
-                creditsRemaining={stageCredits}
-                documentWorkspace={documentWorkspace}
-                roundHistory={roundHistory}
-                caseData={caseData}
-              />
-            ) : (
-              <JourneyTab
-                stages={stageSummariesData?.stages}
-                balances={caseData?.credit_balances}
-                onOpenStage={handleOpenStage}
-              />
-            )
-          )}
+        {activeTab === "billing" && (
+          <BillingTab
+            caseId={caseId}
+            balances={caseData?.credit_balances}
+            creditLedger={caseData?.credit_ledger}
+            isLoading={isStagesLoading}
+          />
+        )}
 
-          {activeTab === "billing" && (
-            <BillingTab
-              caseId={caseId}
-              balances={caseData?.credit_balances}
-              creditLedger={caseData?.credit_ledger}
-              orders={caseData?.orders}
-              isLoading={isStagesLoading}
-            />
-          )}
+        {activeTab === "timeline" && <ActivityTimeline caseData={caseData!} />}
 
-          {activeTab === "timeline" && (
-            <Stack gap="xs">
-              <div>
-                <Text fw={700} size="xl">Lịch sử hoạt động</Text>
-                <Text size="sm" c="dimmed">Mọi thay đổi trạng thái, lần chấm và cập nhật của dự án theo thời gian.</Text>
-              </div>
-              <ActivityTimeline caseData={caseData!} />
-            </Stack>
-          )}
-
-          {activeTab === "settings" && <TabCaseSettings caseData={caseData!} intakeSnapshot={intakeSnapshot} />}
-        </div>
-      </div>
-    </Box>
+        {activeTab === "settings" && <TabCaseSettings caseData={caseData!} intakeSnapshot={intakeSnapshot} />}
+      </WorkspaceMain>
+    </div>
   );
 }

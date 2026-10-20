@@ -1,16 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import type { MouseEvent, ReactNode } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  Container,
-  Title,
-  Text,
-  Anchor,
-  Divider,
-} from "@mantine/core";
-import { ArrowLeft } from "lucide-react";
-import AppShell from "@/components/layout/AppShell";
+import { ArrowLeftIcon } from "@phosphor-icons/react";
+import LandingNav from "@/components/landing/LandingNav";
+import LandingFooter from "@/components/landing/LandingFooter";
+import base from "@/components/landing/landing.module.css";
+import s from "./policy.module.css";
 
 export interface TOCItem {
   id: string;
@@ -23,8 +20,12 @@ interface PolicyDocumentLayoutProps {
   effectiveDate: string;
   version: string;
   tocItems: TOCItem[];
-  children: React.ReactNode;
+  children: ReactNode;
 }
+
+const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "phungluuhoanglong@gmail.com";
+/** Matches `scroll-margin-top` in policy.module.css so the heading lands below the sticky bar. */
+const ACTIVE_OFFSET_PX = 120;
 
 export default function PolicyDocumentLayout({
   title,
@@ -34,124 +35,75 @@ export default function PolicyDocumentLayout({
   tocItems,
   children,
 }: PolicyDocumentLayoutProps) {
-  const [activeSection, setActiveSection] = useState<string>("");
+  const [activeId, setActiveId] = useState("");
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY + 120;
+    const update = () => {
+      const line = window.scrollY + ACTIVE_OFFSET_PX;
       for (let i = tocItems.length - 1; i >= 0; i--) {
-        const element = document.getElementById(tocItems[i].id);
-        if (element && element.offsetTop <= scrollPosition) {
-          setActiveSection(tocItems[i].id);
-          break;
+        const el = document.getElementById(tocItems[i].id);
+        if (el && el.offsetTop <= line) {
+          setActiveId(tocItems[i].id);
+          return;
         }
       }
+      setActiveId("");
     };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
   }, [tocItems]);
 
-  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+  const jump = (e: MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
-    const element = document.getElementById(id);
-    if (element) {
-      const offset = 80;
-      const bodyRect = document.body.getBoundingClientRect().top;
-      const elementRect = element.getBoundingClientRect().top;
-      const elementPosition = elementRect - bodyRect;
-      const offsetPosition = elementPosition - offset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth",
-      });
-      setActiveSection(id);
-    }
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setActiveId(id);
   };
 
   return (
-    <AppShell>
-      <div className="w-full bg-bg-app min-h-screen py-10 md:py-16 transition-colors duration-200">
-        <Container size="lg">
-          {/* ── Document Header ── */}
-          <div className="max-w-3xl mb-10 pb-8 border-b border-border-app">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-brand transition-colors no-underline font-body mb-6"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Quay lại trang chủ
-            </Link>
+    <div className={base.landing}>
+      <LandingNav />
+      <main className={s.page}>
+        <header className={s.head}>
+          <Link href="/" className={s.back}>
+            <ArrowLeftIcon size={18} aria-hidden="true" />
+            Về trang chủ
+          </Link>
+          <h1 className={s.title}>{title}</h1>
+          {subtitle && <p className={s.lead}>{subtitle}</p>}
+          <ul className={s.meta}>
+            <li>
+              Cập nhật lần cuối: <b>{effectiveDate}</b>
+            </li>
+            <li>
+              Phiên bản: <b>{version}</b>
+            </li>
+          </ul>
+        </header>
 
-            <Title
-              order={1}
-              className="font-display text-3xl md:text-4xl text-text-main font-bold tracking-tight mb-3"
-            >
-              {title}
-            </Title>
-
-            {subtitle && (
-              <Text size="md" className="font-body text-text-muted mb-4 leading-relaxed">
-                {subtitle}
-              </Text>
-            )}
-
-            <div className="flex flex-col gap-y-1 text-xs text-text-muted font-body">
-              <span>Cập nhật lần cuối: <strong>{effectiveDate}</strong></span>
-              <span>Phiên bản: <strong>{version}</strong></span>
-            </div>
-          </div>
-
-          {/* ── Document Body & Sticky Sidebar ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-12 lg:gap-16 items-start">
-            {/* Main Editorial Text */}
-            <article className="w-full max-w-3xl min-w-0 font-body text-text-main leading-relaxed text-[15px]">
-              {children}
-            </article>
-
-            {/* Clean Sticky Sidebar Navigation */}
-            <aside className="hidden lg:block sticky top-24 pl-4 border-l border-border-app">
-              <Text size="xs" fw={700} className="font-display uppercase tracking-wider text-text-muted mb-3">
-                Mục lục điều khoản
-              </Text>
-
-              <nav className="flex flex-col space-y-1.5 max-h-[calc(100vh-160px)] overflow-y-auto">
-                {tocItems.map((item) => {
-                  const isActive = activeSection === item.id;
-                  return (
-                    <Anchor
-                      key={item.id}
-                      href={`#${item.id}`}
-                      onClick={(e) => scrollToSection(e, item.id)}
-                      className={`text-xs py-1 transition-colors no-underline block ${
-                        isActive
-                          ? "text-brand font-semibold"
-                          : "text-text-muted hover:text-text-main font-normal"
-                      }`}
-                    >
-                      {item.title}
-                    </Anchor>
-                  );
-                })}
-              </nav>
-
-              <Divider my="md" color="var(--mantine-color-default-border)" />
-
-              <div className="text-xs text-text-muted font-body">
-                <p className="mb-1">Cần hỗ trợ về điều khoản?</p>
+        <div className={s.body}>
+          <article className={s.article}>{children}</article>
+          <aside className={s.toc} aria-label="Mục lục">
+            <h2 className={s.tocTitle}>Mục lục</h2>
+            <nav>
+              {tocItems.map((item) => (
                 <a
-                  href="mailto:phungluuhoanglong@gmail.com"
-                  className="text-brand font-medium hover:underline"
+                  key={item.id}
+                  href={`#${item.id}`}
+                  onClick={(e) => jump(e, item.id)}
+                  aria-current={activeId === item.id ? "true" : undefined}
                 >
-                  phungluuhoanglong@gmail.com
+                  {item.title}
                 </a>
-              </div>
-            </aside>
-          </div>
-        </Container>
-      </div>
-    </AppShell>
+              ))}
+            </nav>
+            <p className={s.help}>
+              Cần hỗ trợ? <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+            </p>
+          </aside>
+        </div>
+      </main>
+      <LandingFooter />
+    </div>
   );
 }

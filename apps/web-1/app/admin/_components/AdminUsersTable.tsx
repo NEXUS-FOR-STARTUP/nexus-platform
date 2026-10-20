@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Search, Ban, CheckCircle, UserPlus, Users, MoreVertical, X, RefreshCw, ShieldCheck } from "lucide-react";
+import { MagnifyingGlass as Search, Prohibit as Ban, CheckCircle, UserPlus, Users, DotsThreeVertical as MoreVertical, X, ArrowsClockwise as RefreshCw, ShieldCheck } from "@phosphor-icons/react";
 import { Table, Pagination, Badge, TextInput, Select, Group, Button, ActionIcon, Tooltip, Menu, Skeleton, Loader } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";

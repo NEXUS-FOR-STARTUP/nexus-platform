@@ -1,0 +1,71 @@
+/* Nav (glass), hero, mobile sticky CTA (glass). Glass is limited to these two bars. */
+.nav { position: sticky; top: 12px; z-index: 50; margin: 12px auto 0; max-width: var(--lp-wrap); padding: 0 24px; }
+.navIn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.6);
+  -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(223, 228, 235, 0.7);
+  border-radius: var(--lp-r-pill);
+  padding: 6px 14px 6px 24px;
+}
+.logo { height: 60px; width: auto; }
+.navMain { display: contents; }
+.navCta { display: contents; }
+
+.hero { position: relative; isolation: isolate; overflow: hidden; margin-top: -84px; padding: 180px 0 120px; }
+.heroBg { position: absolute; inset: 0; z-index: -1; }
+.heroBg video { width: 100%; height: 100%; object-fit: cover; }
+.heroBg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(255, 255, 255, 0.8) 44%, var(--color-surface) 100%); }
+
+.heroGrid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 64px; align-items: center; }
+.h1 {
+  font-weight: 500;
+  font-size: clamp(40px, 5.2vw, 68px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 24px 0 0;
+  text-wrap: balance;
+}
+.h1 em { font-style: normal; color: var(--lp-blue); white-space: nowrap; }
+.lead { color: var(--lp-muted); font-size: 18px; max-width: 54ch; margin: 24px 0 0; text-wrap: pretty; }
+.points { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 12px; max-width: 54ch; }
+.points li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; color: var(--lp-muted); font-size: 15px; }
+.points b { color: var(--lp-ink); font-weight: 600; }
+.points svg { margin-top: 3px; color: var(--lp-blue); }
+.ctaRow { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 36px; }
+
+.sticky { display: none; }
+
+@media (max-width: 980px) {
+  .hero { padding: 120px 0 80px; }
+  .heroGrid { grid-template-columns: 1fr; gap: 48px; }
+  .navCta { display: none; }
+}
+@media (max-width: 620px) {
+  .ctaRow a { width: 100%; }
+  .sticky {
+    display: block;
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    z-index: 60;
+    padding: 8px;
+    border-radius: var(--lp-r-pill);
+    background: rgba(255, 255, 255, 0.6);
+    -webkit-backdrop-filter: blur(25px);
+    backdrop-filter: blur(25px);
+    border: 1px solid rgba(223, 228, 235, 0.8);
+    transform: translateY(140%);
+    transition: transform 0.5s var(--lp-ease);
+  }
+  .stickyShow { transform: none; }
+  .sticky a { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sticky { transition: none; }
+}
