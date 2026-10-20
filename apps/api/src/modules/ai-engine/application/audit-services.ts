@@ -73,7 +73,7 @@ const cp1: AuditService = {
   },
   jobInputExtras: () => ({}),
   rerunInput: () => ({}),
-  sandbox: () => ({}),
+  sandbox: (plan) => ({ promptFiles: plan.prompts }),
   instruction: cp1Instruction,
   reportMdName: "input_clarification_audit.md",
   lifecycleUnit: true,

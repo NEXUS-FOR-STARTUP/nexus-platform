@@ -318,3 +318,8 @@ Mỗi bước một commit, chạy test API trước khi sang bước sau.
 - Dump VPS lấy lúc Oct 20 18:55 (lần đầu) và 19:46 (lần sau, có job `5196feab`); VPS thật có thể đã khác.
 - Chưa biết image API trên VPS là bản nào (compose chỉ ghi `lgdlong/nexus-api:latest`; dump không có digest hay log deploy). Chưa xác định được nhánh `fix/cp2-sandbox-schema-guard` đã deploy hay chưa.
 - `NX-252880` và `tedi_thi_truong_lan_dau_20261020194223.pdf` không có trong dump; chưa đối chiếu được với job `5196feab`.
+
+### D9 đã làm (2026-10-20)
+- `workflow_operator_rule_v1.md` đứng đầu danh sách prompt của cả 6 tổ hợp CP1 (`packages/shared/src/audit-checkpoints.ts`); hook `sandbox` CP1 trả `promptFiles: plan.prompts`; `cp1Instruction` bảo model đọc tệp đầu trước.
+- Trước: `system_prompt/` của CP1 chứa cả 11 file trong `data/system-prompts` (kể cả `cp2_*.md`, file lite). Sau: chỉ 3-5 file của đúng tổ hợp (smoke 6 tổ hợp: có `AGENTS.md`, `knowledge/` 2 file). `data/knowledge/AGENTS.md` chỉ tham chiếu `triad_framework_v1_1.md` và prompt được giao, không có file ngầm khác.
+- Chưa kiểm: chưa chạy job CP1 thật; chưa biết model CP1 đổi hành vi thế nào khi đọc thêm file này.

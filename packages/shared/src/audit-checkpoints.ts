@@ -33,9 +33,9 @@ export const AUDIT_CHECKPOINTS = {
     scopes: {
       full: {
         prompts: {
-          initial: ["triad_framework_v1_1.md", "input_clarification_gate_v4_1.md"],
-          resubmit: ["triad_framework_v1_1.md", "input_clarification_gate_v4_1.md", "input_clarification_gate_v4_1_resubmit.md"],
-          logic_check: ["triad_framework_v1_1.md", "input_clarification_gate_v4_1.md", "input_clarification_gate_v4_1_logic.md"],
+          initial: ["workflow_operator_rule_v1.md", "triad_framework_v1_1.md", "input_clarification_gate_v4_1.md"],
+          resubmit: ["workflow_operator_rule_v1.md", "triad_framework_v1_1.md", "input_clarification_gate_v4_1.md", "input_clarification_gate_v4_1_resubmit.md"],
+          logic_check: ["workflow_operator_rule_v1.md", "triad_framework_v1_1.md", "input_clarification_gate_v4_1.md", "input_clarification_gate_v4_1_logic.md"],
         },
         reportType: {
           initial: "input_clarification",
@@ -45,9 +45,9 @@ export const AUDIT_CHECKPOINTS = {
       },
       lite: {
         prompts: {
-          initial: ["triad_framework_v1_1.md", "input_clarification_gate_lite_v1_1.md", "input_clarification_gate_v4_1.md"],
-          resubmit: ["triad_framework_v1_1.md", "input_clarification_gate_lite_v1_1.md", "input_clarification_gate_v4_1_resubmit.md"],
-          logic_check: ["triad_framework_v1_1.md", "input_clarification_gate_lite_v1_1.md", "input_clarification_gate_v4_1_logic.md"],
+          initial: ["workflow_operator_rule_v1.md", "triad_framework_v1_1.md", "input_clarification_gate_lite_v1_1.md", "input_clarification_gate_v4_1.md"],
+          resubmit: ["workflow_operator_rule_v1.md", "triad_framework_v1_1.md", "input_clarification_gate_lite_v1_1.md", "input_clarification_gate_v4_1_resubmit.md"],
+          logic_check: ["workflow_operator_rule_v1.md", "triad_framework_v1_1.md", "input_clarification_gate_lite_v1_1.md", "input_clarification_gate_v4_1_logic.md"],
         },
         reportType: {
           initial: "input_clarification",

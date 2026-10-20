@@ -69,9 +69,11 @@ test("a failed download leaves no file behind", async () => {
   }
 });
 
-test("CP1 keeps its legacy sandbox (all prompts, knowledge DB); CP2 is restricted to its own prompts and validator", () => {
+test("CP1 sandbox gets exactly its own prompts (workflow rule first, no CP2 prompts) and the knowledge DB; CP2 is restricted to its own prompts and validator", () => {
   const cp1Plan = resolveAuditPlan("CP1", "full", "initial");
-  assert.deepEqual(getAuditService("CP1").sandbox(cp1Plan, "initial"), {});
+  assert.deepEqual(getAuditService("CP1").sandbox(cp1Plan, "initial").promptFiles, cp1Plan.prompts);
+  assert.equal(cp1Plan.prompts[0], "workflow_operator_rule_v1.md");
+  assert.ok(cp1Plan.prompts.every((f) => !f.startsWith("cp2_")));
   const cp1Instruction = getAuditService("CP1").instruction(cp1Plan, "initial");
   for (const file of cp1Plan.prompts) assert.ok(cp1Instruction.includes(`system_prompt/${file}`), file);
   assert.equal(getAuditService("CP1").reportMdName, "input_clarification_audit.md");

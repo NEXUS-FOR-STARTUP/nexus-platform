@@ -26,7 +26,7 @@ export function cp1Instruction(plan: AuditPlan, submissionType: string): string 
   const submissionInstructions = readCp1SubmissionPrompt(plan.prompts[plan.prompts.length - 1]);
   const promptFilesDesc = plan.prompts.map((fileName) => `system_prompt/${fileName}`).join(", ");
   return (
-    `Hãy đọc tệp AGENTS.md để nắm vững quy trình và tiêu chuẩn thẩm định 2 bước (Fixed Two-Step Workflow). Đọc kỹ các tài liệu chuẩn trong: ${promptFilesDesc}. Đọc toàn bộ tài liệu nhóm trong input/ (hỗ trợ đọc tài liệu .docx, .pdf, .md, .txt bao gồm cả các bản bóc tách văn bản .extracted.md), tra cứu đối chiếu kiến thức trong knowledge/ (startup_knowledge.db và startup_knowledge.json).` +
+    `Hãy đọc tệp AGENTS.md để nắm vững quy trình và tiêu chuẩn thẩm định 2 bước (Fixed Two-Step Workflow). Đọc kỹ các tài liệu chuẩn trong: ${promptFilesDesc}. Tệp đầu tiên (workflow_operator_rule_v1.md) quy định thứ tự, ranh giới, bàn giao và cách phục hồi của quy trình 2 bước: đọc nó trước. Đọc toàn bộ tài liệu nhóm trong input/ (hỗ trợ đọc tài liệu .docx, .pdf, .md, .txt bao gồm cả các bản bóc tách văn bản .extracted.md), tra cứu đối chiếu kiến thức trong knowledge/ (startup_knowledge.db và startup_knowledge.json).` +
     MANIFEST_HINT +
     (submissionInstructions
       ? `\n\n--- HƯỚNG DẪN BỔ SUNG (${submissionType}) ---\n${submissionInstructions}\n--- KẾT THÚC HƯỚNG DẪN ---\n\n`
