@@ -179,11 +179,15 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
       orderBy: { version_no: "desc" },
     });
     if (latestUnit) {
-      const existingReport = await prisma.report.findFirst({
-        where: { lifecycle_unit_id: latestUnit.id },
-        select: { id: true },
-      });
-      if (existingReport && submissionType === "initial") {
+      // Re-entry guard: this exact trigger already saved its report (status polling re-enters finalize).
+      // A report from an earlier trigger must not swallow this run's result.
+      const existingReport = triggerStartedAt
+        ? await prisma.report.findFirst({
+            where: { lifecycle_unit_id: latestUnit.id, metadata_json: { path: ["triggerStartedAt"], equals: triggerStartedAt } },
+            select: { id: true },
+          })
+        : null;
+      if (existingReport) {
         logger.info(
           { caseId, reportId: existingReport.id },
           "Report already finalized for this lifecycle unit, ensuring state and returning cleanly",
@@ -237,7 +241,7 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
   // Save report into Postgres. Dedupe by trigger identity (lifecycle_unit_id +
   // triggerStartedAt) for ALL submission types: BullMQ may fire `completed`
   // twice for the same job, so resubmit/logic_check must also be idempotent.
-  // Additional invariant: each lifecycle_unit has at most one `initial` report.
+  // A unit may hold several initial reports: with AUDIT_STAGE_INPUT_RULES the student re-grades from the stage page.
   // The check and the insert run in one transaction, with the case row locked
   // (SELECT FOR UPDATE) so concurrent finalizers for the same case serialize
   // instead of double-inserting. Code-level guard only — no unique constraint,
@@ -269,22 +273,6 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
             "Report already saved for this trigger identity, returning existing record",
           );
           return existingByTrigger;
-        }
-      }
-      // Per-type invariant: each unit has at most ONE initial report.
-      if (submissionType === "initial") {
-        const existingInitial = await tx.report.findFirst({
-          where: {
-            lifecycle_unit_id: lifecycleUnitId,
-            metadata_json: { path: ["submission_type"], equals: "initial" },
-          },
-        });
-        if (existingInitial) {
-          logger.info(
-            { caseId, reportId: existingInitial.id },
-            "Initial report already exists for this lifecycle unit, returning existing record",
-          );
-          return existingInitial;
         }
       }
     }

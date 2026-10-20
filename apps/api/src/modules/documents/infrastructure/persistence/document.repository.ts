@@ -367,6 +367,14 @@ export async function upsertReportArtifactDocumentRecord(
       validUserId = firstAdmin?.id || "";
     }
   }
+  // (lifecycle_unit_id, doc_type, seq) is unique: a unit that is graded again keeps its earlier report artifacts.
+  const lastSeq = lifecycleUnitId
+    ? (await client.documentRecord.aggregate({
+        where: { lifecycle_unit_id: lifecycleUnitId, doc_type: "assessment_report", id: { not: id } },
+        _max: { seq: true },
+      }))._max.seq
+    : null;
+  const seq = lastSeq === null || lastSeq === undefined ? 0 : lastSeq + 1;
 
   return await client.documentRecord.upsert({
     where: { id },
@@ -378,8 +386,8 @@ export async function upsertReportArtifactDocumentRecord(
       unit_code: unitCode,
       direction: "system",
       doc_type: "assessment_report",
-      seq: 0,
-      is_primary: true,
+      seq,
+      is_primary: seq === 0,
       source_kind: sourceKind,
       canonical_name: `report-${reportId}`,
       original_name: originalName,
