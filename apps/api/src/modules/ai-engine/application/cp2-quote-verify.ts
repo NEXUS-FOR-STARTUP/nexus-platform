@@ -24,6 +24,19 @@ export function normalizeQuoteText(text: string): string {
   return text.normalize("NFC").replace(/\s+/g, " ").trim();
 }
 
+/** Earlier-stage material lives under `input/context/` and the case `_library/`; it is background, never evidence. */
+const CONTEXT_SEGMENTS = new Set(["context", "_library"]);
+
+/** True when the cited source points into context material, however the path is spelled (`..`, `input/`, `\`, `%xx`, case). */
+export function isContextSource(source: string): boolean {
+  let decoded = source;
+  try {
+    decoded = decodeURIComponent(source);
+  } catch {
+    // malformed %-escape: judge the raw text
+  }
+  return decoded.normalize("NFC").replace(/\\/g, "/").toLowerCase().split("/").some((segment) => CONTEXT_SEGMENTS.has(segment.trim()));
+}
 function sourceBaseName(source: string): string {
   const parts = source.split(/[\\/]/);
   return normalizeQuoteText(parts[parts.length - 1] ?? "").toLowerCase();
@@ -43,6 +56,7 @@ export function verifyCp2Quotes(
   const judge = (source: string, quoteRaw: string): Verdict => {
     const quote = normalizeQuoteText(quoteRaw);
     if (quote === "") return "unverified";
+    if (isContextSource(source)) return "unverified";
     const base = sourceBaseName(source);
     const named = files.find((f) => f.name === base);
     if (named) {

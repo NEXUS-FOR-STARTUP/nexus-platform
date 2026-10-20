@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { AUDIT_CHECKPOINT_CODES } from "@app/shared";
+import { resolveAuditPlan } from "../../../modules/ai-engine/application/audit-registry.js";
 import { AppError } from "../../domain/app-error.js";
 import { getAuditService } from "../../../modules/ai-engine/application/audit-services.js";
 import { ensureLibraryFile, libraryFileName } from "../../../modules/ai-engine/application/case-library.js";
@@ -66,4 +67,19 @@ test("a failed download leaves no file behind", async () => {
     globalThis.fetch = realFetch;
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test("CP1 keeps its legacy sandbox (all prompts, knowledge DB); CP2 is restricted to its own prompts and validator", () => {
+  const cp1Plan = resolveAuditPlan("CP1", "full", "initial");
+  assert.deepEqual(getAuditService("CP1").sandbox(cp1Plan, "initial"), {});
+  const cp1Instruction = getAuditService("CP1").instruction(cp1Plan, "initial");
+  for (const file of cp1Plan.prompts) assert.ok(cp1Instruction.includes(`system_prompt/${file}`), file);
+  assert.equal(getAuditService("CP1").reportMdName, "input_clarification_audit.md");
+
+  const cp2Plan = resolveAuditPlan("CP2", "full", "initial");
+  const sandbox = getAuditService("CP2").sandbox(cp2Plan, "initial");
+  assert.deepEqual(sandbox.promptFiles, cp2Plan.prompts);
+  assert.equal(sandbox.includeKnowledge, false);
+  assert.equal(sandbox.tools?.length, 1);
+  assert.match(getAuditService("CP2").instruction(cp2Plan, "initial"), /role=context/);
 });

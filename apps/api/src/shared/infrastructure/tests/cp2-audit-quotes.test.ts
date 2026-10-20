@@ -121,3 +121,24 @@ test("input renderer: verbatim answers in catalog order, unanswered marked, self
   assert.match(checks, /Đã xác nhận/);
   assert.match(checks, /Chưa xác nhận/);
 });
+
+test("a quote cited from context material is never verified, whatever the path spelling", () => {
+  const submission = [{ name: "foo.md", text: "Sinh viên năm 3 mất 2 giờ" }];
+  const verify = (source: string) =>
+    verifyCp2Quotes({ checks: [{ id: "fr_problem_situation", evidence: [ev(source, "Sinh viên năm 3 mất 2 giờ")] }], crossIssues: [] }, [ANSWERS], submission);
+  for (const source of [
+    "context/foo.md",
+    "input/context/foo.md",
+    "./context/foo.md",
+    "CONTEXT\\foo.md",
+    "../../_library/ab12_foo.md",
+    "input/../../_library/ab12_foo.md",
+    "%5F%6Cibrary/ab12_foo.md",
+    "/jobs/c/j/input/context/cp1_answers.md",
+  ]) {
+    assert.deepEqual(verify(source), { unverified: ["fr_problem_situation"], unchecked: [] }, source);
+  }
+  for (const source of ["attachments/foo.md", "foo.md", "cp2_problem_need"]) {
+    assert.deepEqual(verify(source), { unverified: [], unchecked: [] }, source);
+  }
+});
