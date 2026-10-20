@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { ServicePackage } from "@/types";
 
-export function useAdminPackages() {
+export function useAdminPackages(enabled = true) {
   const queryClient = useQueryClient();
 
   const packagesQuery = useQuery<ServicePackage[]>({
@@ -12,6 +12,7 @@ export function useAdminPackages() {
       return response.data;
     },
     refetchInterval: 10000,
+    enabled,
   });
 
   const updatePackagePriceMutation = useMutation({

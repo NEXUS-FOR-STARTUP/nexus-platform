@@ -30,7 +30,7 @@ interface AdminCaseListResponse {
 
 const PAGE_SIZE = 20;
 
-export function useAdminCases(view: AdminCaseListView = "all") {
+export function useAdminCases(view: AdminCaseListView = "all", enabled = true) {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -63,6 +63,7 @@ export function useAdminCases(view: AdminCaseListView = "all") {
       return response.data;
     },
     refetchInterval: 10000,
+    enabled,
   });
 
   const supportersQuery = useQuery<User[]>({
@@ -72,6 +73,7 @@ export function useAdminCases(view: AdminCaseListView = "all") {
       return response.data;
     },
     refetchInterval: 10000,
+    enabled,
   });
 
   const invalidateCases = () => {

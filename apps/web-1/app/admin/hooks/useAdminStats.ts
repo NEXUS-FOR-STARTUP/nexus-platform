@@ -29,7 +29,7 @@ export interface AdminStatsResponse {
   period?: string;
 }
 
-export function useAdminStats(period: string = "30d") {
+export function useAdminStats(period: string = "30d", enabled = true) {
   return useQuery<AdminStatsResponse>({
     queryKey: ["admin-stats", period],
     queryFn: async () => {
@@ -39,5 +39,6 @@ export function useAdminStats(period: string = "30d") {
       return response.data;
     },
     refetchInterval: 10000,
+    enabled,
   });
 }
