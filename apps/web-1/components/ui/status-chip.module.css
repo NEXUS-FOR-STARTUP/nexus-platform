@@ -20,7 +20,7 @@
 
 .draft {
   background: var(--color-brand-soft);
-  color: var(--color-brand);
+  color: var(--color-brand-ink);
 }
 
 .ok {

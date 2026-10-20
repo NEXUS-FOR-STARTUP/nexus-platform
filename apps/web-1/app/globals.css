@@ -99,6 +99,7 @@
   --color-brand-subtle: #EAEFF8;
   --color-brand-mid: #9FB4DC; /* open stage that is not the next one (progress segment) */
   --color-on-brand: #FFFFFF; /* text on a solid brand field; contrast 9.4:1 */
+  --color-brand-ink: #0B409E; /* brand as small text on a brand-soft fill; dark mode lifts it */
 
   /* Warm accent: orange. Grading in progress, needs attention. Fill only: orange text on white is 2.9:1, use -ink for text. */
   --color-accent-warm: #F36F21;
@@ -158,20 +159,22 @@
 }
 
 [data-mantine-color-scheme="dark"] {
-  --color-bg: #090E1A; /* Midnight Slate */
-  --color-surface: #121B2E; /* Deep blue-gray card */
-  --color-surface-soft: #1B2640;
-  --color-surface-muted: #243257;
-  --color-border: #1E294B;
-  --color-border-strong: #2E3D6B;
-  --color-text: #F8FAFC;
-  --color-text-muted: #94A3B8;
-  --color-text-subtle: #64748B;
+  /* Dark pass: desaturated charcoal ground, elevation by lightness step, soft ink (~12:1, not pure white) to avoid glare. */
+  --color-bg: #14171F;
+  --color-surface: #1B1F29;
+  --color-surface-soft: #232834;
+  --color-surface-muted: #2D3340;
+  --color-border: #2A303C;
+  --color-border-strong: #3A4252;
+  --color-text: #D8DCE5;
+  --color-text-muted: #9AA3B2;
+  --color-text-subtle: #7C8696;
 
-  --color-brand: #3B82F6;
-  --color-brand-hover: #60A5FA;
-  --color-brand-soft: rgba(59, 130, 246, 0.16);
-  --color-brand-subtle: rgba(59, 130, 246, 0.08);
+  /* Mirrors Mantine navy shade 4 (providers.tsx primaryShade.dark) so custom and Mantine buttons match. */
+  --color-brand: #5F83C4;
+  --color-brand-hover: #7595D0;
+  --color-brand-soft: rgba(95, 131, 196, 0.18);
+  --color-brand-subtle: rgba(95, 131, 196, 0.09);
 
   /* Paid Audit CTA card - dark variant */
   --audit-cta-bg: rgba(13, 148, 136, 0.15);
@@ -180,18 +183,19 @@
 
   /* Status and accent soft colours for dark theme.
      Provisional: the dark pass is still open (AGENTS.md > DESIGN SYSTEM > Dark theme). Every new colour must exist here. */
-  --color-brand-mid: rgba(59, 130, 246, 0.45);
+  --color-brand-mid: rgba(95, 131, 196, 0.45);
   --color-on-brand: #FFFFFF;
-  --color-accent-warm-soft: rgba(243, 111, 33, 0.15);
+  --color-accent-warm-soft: rgba(243, 111, 33, 0.2);
   --color-accent-warm-ink: #FDBA74;
-  --color-success-soft: rgba(34, 173, 70, 0.15);
+  --color-success-soft: rgba(34, 173, 70, 0.2);
   --color-success-ink: #86EFAC;
-  --color-warning-soft: rgba(245, 158, 11, 0.15);
+  --color-warning-soft: rgba(245, 158, 11, 0.2);
   --color-warning-ink: #FCD34D;
-  --color-danger-soft: rgba(239, 68, 68, 0.15);
+  --color-danger-soft: rgba(239, 68, 68, 0.2);
   --color-danger-ink: #FCA5A5;
-  --color-info-soft: rgba(59, 130, 246, 0.15);
-  --color-text-disabled: #475569;
+  --color-info-soft: rgba(95, 131, 196, 0.2);
+  --color-brand-ink: #B4C8EE;
+  --color-text-disabled: #566070;
   --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.5);
 
   /* Shadows for dark mode */
@@ -209,6 +213,23 @@
   --mantine-color-dark-5: var(--color-surface-soft) !important;
   --mantine-color-dark-4: var(--color-surface-muted) !important;
   --mantine-color-dark-border: var(--color-border) !important;
+
+  /* Mantine light-variant (Badge, ThemeIcon, Button light) is a deep tint in dark by default and sinks into the card.
+     Pin it to soft fill + light ink tokens, same pairing as the status chips. */
+  --mantine-color-brand-light: var(--color-brand-soft) !important;
+  --mantine-color-brand-light-color: var(--color-brand-ink) !important;
+  --mantine-color-blue-light: var(--color-brand-soft) !important;
+  --mantine-color-blue-light-color: var(--color-brand-ink) !important;
+  --mantine-color-green-light: var(--color-success-soft) !important;
+  --mantine-color-green-light-color: var(--color-success-ink) !important;
+  --mantine-color-teal-light: var(--color-success-soft) !important;
+  --mantine-color-teal-light-color: var(--color-success-ink) !important;
+  --mantine-color-yellow-light: var(--color-warning-soft) !important;
+  --mantine-color-yellow-light-color: var(--color-warning-ink) !important;
+  --mantine-color-orange-light: var(--color-accent-warm-soft) !important;
+  --mantine-color-orange-light-color: var(--color-accent-warm-ink) !important;
+  --mantine-color-red-light: var(--color-danger-soft) !important;
+  --mantine-color-red-light-color: var(--color-danger-ink) !important;
 }
 
 /* Custom global styles */
