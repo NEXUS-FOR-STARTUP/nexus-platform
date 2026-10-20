@@ -26,7 +26,7 @@ export default function LandingJourney() {
           <span className={base.chip}>Hành trình</span>
           <h2 className={base.title}>Bốn giai đoạn, từng bước một</h2>
         </div>
-        <div className={s.stages}>
+        <div className={s.stages} data-stagger>
           {STAGES.map(({ title, text, Icon, numClass, soon }, i) => (
             <article key={title} className={`${s.stage} ${soon ? s.soon : ""}`}>
               <Icon size={24} className={s.stageIc} aria-hidden="true" />

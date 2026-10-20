@@ -69,3 +69,22 @@
 @media (prefers-reduced-motion: reduce) {
   .sticky { transition: none; }
 }
+
+/* Hero entrance: blocks rise in sequence on load. Pure CSS so it never waits for hydration (LCP) and the final state is the default. */
+.rise {
+  animation: hero-rise 0.7s var(--lp-ease) both;
+  animation-delay: calc(var(--rise-step, 0) * 90ms);
+}
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(20px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rise { animation: none; }
+}
+
+/* Scrolled: the bar gets more opaque so content passing under it stays legible. */
+.navScrolled .navIn { background: rgba(255, 255, 255, 0.88); border-color: var(--lp-line); }
+.navIn { transition: background-color 0.3s var(--lp-ease), border-color 0.3s var(--lp-ease); }
+@media (prefers-reduced-motion: reduce) {
+  .navIn { transition: none; }
+}

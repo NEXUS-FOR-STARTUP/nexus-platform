@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Loader, SimpleGrid } from "@mantine/core";
+import { SimpleGrid } from "@mantine/core";
+import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import {
   FILE_TEMPLATE_KEYS,
   FILE_TEMPLATE_REGISTRY,
@@ -17,6 +18,7 @@ import { useOpenCheckpoint } from "../../hooks/useOpenCheckpoint";
 import GuidedFileTemplateCard from "./GuidedFileTemplateCard";
 import GuidedTemplateCard from "./GuidedTemplateCard";
 
+const GALLERY_SKELETON_CARDS = 8;
 // CP3 và CP4 đã có đủ câu hỏi nhưng chưa mở cho người dùng. Bỏ khóa khỏi danh sách khi sẵn sàng mở.
 const COMING_SOON_TEMPLATES: readonly TemplateKey[] = ["cp3", "cp4"];
 // Template tài chính (P&L) cũng chưa mở. Bỏ khóa khỏi danh sách khi sẵn sàng mở.
@@ -45,14 +47,7 @@ export default function GuidedTemplateGallery({ caseId, onOpen }: GuidedTemplate
   const cp2Open = (documentWorkspace?.checkpoints ?? []).some((cp) => cp.checkpoint_code === CP2_CODE);
   const startCp2 = () => openCheckpoint(CP2_CODE, { onSuccess: () => onOpen(CP2_KEY) });
 
-  if (isLoading) {
-    return (
-      <div className="bg-surface-app border border-border-app rounded-xl p-12 flex flex-col items-center justify-center gap-3">
-        <Loader size="md" color="blue" />
-        <p className="text-sm text-text-muted">Đang tải biểu mẫu hướng dẫn...</p>
-      </div>
-    );
-  }
+  if (isLoading) return <LoadingSkeleton variant="card" count={GALLERY_SKELETON_CARDS} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 w-full" />;
 
   return (
     <div className="flex flex-col gap-5 w-full">

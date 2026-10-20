@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Check } from "@phosphor-icons/react/ssr";
-import { formatPrice } from "@/lib/pricing";
+import CountUp from "./CountUp";
 import base from "./landing.module.css";
 import s from "./landingSections.module.css";
 
@@ -25,7 +25,7 @@ export default function LandingPricing() {
         <div className={s.price}>
           <h3>Đánh giá Dự án Tự động</h3>
           <div className={s.amount}>
-            {formatPrice(AUDIT_PRICE_VND)}
+            <CountUp value={AUDIT_PRICE_VND} />
             <small>/ Bao gồm 2 lượt đánh giá</small>
           </div>
           <p>Phù hợp cho nhóm cần rà soát tài liệu, nhận diện điểm yếu và đánh giá lại sau khi chỉnh sửa.</p>

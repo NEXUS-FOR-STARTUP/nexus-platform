@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import DashboardShell from "@/components/layout/DashboardShell";
-import LoadingScreen from "@/components/ui/LoadingScreen";
+import DashboardShellSkeleton from "@/components/layout/DashboardShellSkeleton";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = useSession();
@@ -32,7 +32,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [session, isPending, pathname, router]);
 
   if (isPending) {
-    return <LoadingScreen message="Đang xác thực thông tin..." />;
+    return <DashboardShellSkeleton />;
   }
 
   if (!session) {

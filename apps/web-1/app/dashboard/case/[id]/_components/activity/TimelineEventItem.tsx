@@ -1,9 +1,9 @@
 import type { CaseEvent } from "@/types";
 import { getEventDetails } from "@/lib/event-details";
-import { formatEventTime, getEventCategory } from "./activity-groups";
+import { formatEventTime, getEventTone, type TimelineTone } from "./activity-groups";
 import classes from "./timeline.module.css";
 
-const ROLE_LABELS: Record<string, string> = { admin: "Admin", supporter: "Supporter" };
+const ROLE_LABELS: Record<string, string> = { admin: "Admin", supporter: "Supporter", system: "Hệ thống" };
 const REASON_EVENT_TYPES = new Set(["case_rejected", "vetoed"]);
 
 function reasonOf(event: CaseEvent): string | undefined {
@@ -13,13 +13,20 @@ function reasonOf(event: CaseEvent): string | undefined {
   return undefined;
 }
 
+const MARKER_BY_TONE: Record<TimelineTone, string> = {
+  ai: classes.markerAi,
+  ok: classes.markerOk,
+  doc: classes.markerDoc,
+  flow: classes.markerFlow,
+  alert: classes.markerAlert,
+  neutral: "",
+};
+
 export default function TimelineEventItem({ event }: { event: CaseEvent }) {
-  const { label, desc, icon: Icon } = getEventDetails(event.event_type);
-  const category = getEventCategory(event.event_type);
+  const { label, desc, icon: Icon } = getEventDetails(event.event_type, event.metadata_json);
   const reason = reasonOf(event);
 
-  const markerClass =
-    category === "grade" ? classes.markerGrade : category === "pay" ? classes.markerPay : "";
+  const markerClass = MARKER_BY_TONE[getEventTone(event.event_type)];
 
   return (
     <li className={classes.event}>
@@ -35,7 +42,7 @@ export default function TimelineEventItem({ event }: { event: CaseEvent }) {
           {desc}
           {reason && <> Lý do: {reason}</>}
         </p>
-        {event.actor && (
+        {event.actor && event.actor_role !== "system" && (
           <p className={classes.eventNote}>
             Thực hiện bởi {event.actor.name} ({ROLE_LABELS[event.actor.role] ?? "Sinh viên"})
           </p>

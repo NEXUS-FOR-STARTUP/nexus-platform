@@ -18,6 +18,7 @@ import { prisma } from "../../../db.js";
 import { emitEvent } from "../../../shared/infrastructure/event-bus.js";
 import { DOMAIN_EVENTS } from "../../../shared/domain/domain-events.js";
 import { ompQueue } from "../infrastructure/queue/omp-queue.js";
+import { recordCaseEvent } from "../../cases/infrastructure/persistence/case-event.repository.js";
 
 /**
  * Resolve the sandbox directory on disk for a job.
@@ -280,7 +281,9 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
         }
       }
     }
-    return saveOmpAuditReport(
+    // Fresh creation only: the event commits with the report, so a retry (which takes the dedupe
+    // returns above) can neither lose it nor write it twice, and a failed insert rolls the report back.
+    const created = await saveOmpAuditReport(
       {
         caseId,
         lifecycleUnitId,
@@ -290,6 +293,13 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
       },
       tx,
     );
+    await recordCaseEvent(tx, {
+      caseId,
+      eventType: "audit_completed",
+      reportId: created.id,
+      metadata: { checkpoint: checkpointCode, job_id: aiJobId ?? null, report_id: created.id },
+    });
+    return created;
   });
 
   // Sync artifact record so it appears in "Tài liệu" tab

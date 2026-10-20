@@ -1,8 +1,9 @@
 import type { prisma } from "../../../db.js";
 import { AppError } from "../../../shared/domain/app-error.js";
+import { recordCaseEvent } from "../../cases/infrastructure/persistence/case-event.repository.js";
 import { createCreditEntry, getCreditBalance, getServiceTypeId } from "../../cases/infrastructure/persistence/credit-ledger.repository.js";
 
-type LedgerTx = Pick<typeof prisma, "creditLedger" | "serviceType">;
+type LedgerTx = Pick<typeof prisma, "creditLedger" | "serviceType" | "caseEvent" | "case">;
 
 /**
  * Charge one audit credit of `serviceTypeCode`. Must run inside the trigger transaction so the
@@ -44,5 +45,10 @@ export async function grantAuditRefund(
     referenceId: args.caseId,
     idempotencyKey: args.idempotencyKey,
     metadataJson: { reason: args.reason },
+  });
+  await recordCaseEvent(tx, {
+    caseId: args.caseId,
+    eventType: "credit_refunded",
+    metadata: { credits: 1, reason: args.reason, service_type: args.serviceTypeCode, balance_after: balance + 1 },
   });
 }

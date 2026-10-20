@@ -4,6 +4,7 @@ import { generateGuidedDocumentDocx } from '../infrastructure/docx-generator.js'
 import { AppError } from '../../../shared/domain/app-error.js';
 import { TEMPLATE_REGISTRY, type TemplateKey } from '@repo/validation';
 import { ensureCheckpoint } from '../../cases/infrastructure/persistence/case.repository.js';
+import { recordCaseEvent } from '../../cases/infrastructure/persistence/case-event.repository.js';
 
 const FILENAME_TEAM_MAX_LENGTH = 40;
 const FILENAME_DOC_TYPE_MAX_LENGTH = 40;
@@ -134,6 +135,14 @@ export async function generateDocxUseCase(input: GenerateDocxInput) {
       seq,
       uploaded_by_auth_user_id: userId,
     },
+  });
+
+  await recordCaseEvent(prisma, {
+    caseId,
+    eventType: 'guided_docx_exported',
+    actorUserId: userId,
+    documentId: docRecord.id,
+    metadata: { file_name: filename, document_title: TEMPLATE_REGISTRY[templateKey].title },
   });
 
   return {

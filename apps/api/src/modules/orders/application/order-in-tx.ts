@@ -8,6 +8,7 @@ import {
   CP1_AUDIT_SERVICE_CODE,
   getCreditBalance,
 } from "../../cases/infrastructure/persistence/credit-ledger.repository.js";
+import { recordCaseEvent } from "../../cases/infrastructure/persistence/case-event.repository.js";
 import { applyPaidCreditCaseUpdate } from "./credit-audit-order.helpers.js";
 import { redeemDiscountInTx } from "./discount.helpers.js";
 import { FUNDED_BY_RECEIVABLE_KEY, assertLotsNotMixed, lockAndValidateCases } from "./funded-lot.guard.js";
@@ -138,6 +139,20 @@ export async function createOrderInTx(
           credits_granted: creditsGranted,
           ...(funded ? { [FUNDED_BY_RECEIVABLE_KEY]: funded.receivableId } : {}),
         },
+      },
+    });
+
+    await recordCaseEvent(tx, {
+      caseId,
+      eventType: "credits_purchased",
+      actorUserId: userId,
+      metadata: {
+        quantity: creditsGranted,
+        service_type: pkg.serviceTypeCode,
+        order_id: order.id,
+        amount_vnd: paidForPackage,
+        funded_by_receivable: !!funded,
+        new_balance: currentBalance + creditsGranted,
       },
     });
 

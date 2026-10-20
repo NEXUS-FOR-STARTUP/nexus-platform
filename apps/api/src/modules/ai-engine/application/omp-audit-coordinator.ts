@@ -40,6 +40,7 @@ import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-ty
 import { STAGE_DOC_EXCLUDED_TYPES } from "./stage-audit-input.js";
 import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
 import { countStageInputs } from "./stage-audit-input.js";
+import { recordCaseEvent } from "../../cases/infrastructure/persistence/case-event.repository.js";
 
 export { finalizeOmpAuditResult, getCaseAiAuditStatus };
 
@@ -61,12 +62,8 @@ export async function refundAuditCreditIfNoReport(caseId: string, reason: string
       admin_triggered?: boolean;
       skip_credit_check?: boolean;
       service_type?: string;
+      checkpoint?: string;
     } | null;
-
-    if (inputJson?.skip_credit_check === true || inputJson?.admin_triggered === true) {
-      logger.info({ caseId, reason }, "Skipping refund: this job was triggered by admin with credit check bypassed");
-      return false;
-    }
 
     const startedAt = inputJson?.startedAt ?? null;
     if (startedAt) {
@@ -78,6 +75,14 @@ export async function refundAuditCreditIfNoReport(caseId: string, reason: string
         return false;
       }
     }
+
+    await recordAuditEndedEvent(caseId, reason, startedAt, inputJson?.checkpoint ?? null);
+
+    if (inputJson?.skip_credit_check === true || inputJson?.admin_triggered === true) {
+      logger.info({ caseId, reason }, "Skipping refund: this job was triggered by admin with credit check bypassed");
+      return false;
+    }
+
     const refundKey = `audit-refund-${caseId}-${startedAt ?? "unknown"}`;
     // Refund the service type that was charged; jobs queued before CP2 carry none and were CP1.
     const chargedCode = inputJson?.service_type ?? CP1_AUDIT_SERVICE_CODE;
@@ -95,6 +100,35 @@ export async function refundAuditCreditIfNoReport(caseId: string, reason: string
     return false;
   }
 }
+
+/**
+ * Timeline entry for a trigger that ended without a report: cancelled by the user, or failed.
+ * Several failure paths can fire for one job (queue event, watchdog, heal), so only the first
+ * entry per trigger is kept. Recording never blocks the refund that follows.
+ */
+async function recordAuditEndedEvent(
+  caseId: string,
+  reason: string,
+  startedAt: string | null,
+  checkpoint: string | null,
+): Promise<void> {
+  const eventType = reason === "cancelled-by-user" ? "audit_cancelled" : "audit_failed";
+  try {
+    const duplicate = await prisma.caseEvent.findFirst({
+      where: {
+        case_id: caseId,
+        event_type: { in: ["audit_cancelled", "audit_failed"] },
+        ...(startedAt ? { created_at: { gte: new Date(startedAt) } } : {}),
+      },
+      select: { id: true },
+    });
+    if (duplicate) return;
+    await recordCaseEvent(prisma, { caseId, eventType, metadata: { reason, checkpoint } });
+  } catch (err: unknown) {
+    logger.warn({ caseId, reason, err }, "Failed to record audit end event");
+  }
+}
+
 /**
  * Rollback case audit stage on failure or cancellation:
  * - Has approved report → report_ready / report_ready_to_publish
@@ -457,6 +491,22 @@ export async function triggerOmpAuditForCase(
         { ...jobInput, attempt_no: attemptNo },
         tx
       );
+
+      // Admin retries already log ADMIN_RETRY_AI_JOB; this is the student-facing entry, written with the charge.
+      if (!adminTriggered) {
+        await recordCaseEvent(tx, {
+          caseId,
+          eventType: "audit_started",
+          metadata: {
+            checkpoint: checkpointCode,
+            submission_type: submissionType,
+            attempt_no: attemptNo,
+            job_id: newAiJob.id,
+            credit_charged: !skipCreditCheck,
+            service_type: plan.serviceType,
+          },
+        });
+      }
     });
   } catch (txErr) {
     // Expected 402/409 are routine, not infra failures — don't error-log them.

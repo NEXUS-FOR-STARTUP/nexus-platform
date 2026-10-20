@@ -36,7 +36,7 @@ export async function saveAnswersHandler(c: Context) {
   try {
     const rawBody = await readJsonBody(c);
     const parsed = BatchUpsertProjectAnswersInputSchema.parse(rawBody);
-    const result = await saveAnswersUseCase(caseId, parsed.answers);
+    const result = await saveAnswersUseCase(caseId, parsed.answers, access.session.user.id);
     return c.json(result);
   } catch (error: unknown) {
     return handleError(c, error);
@@ -63,7 +63,7 @@ export async function importProposalHandler(c: Context) {
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const result = await importProposalUseCase(buffer, file.name);
+    const result = await importProposalUseCase(buffer, file.name, { caseId, userId: access.session.user.id });
 
     return c.json(result);
   } catch (error: unknown) {

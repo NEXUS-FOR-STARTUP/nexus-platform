@@ -75,7 +75,7 @@ export default function StageHeader({
               {hasResult ? "Chấm lại" : "Chấm bài"}
             </Button>
           ) : (
-            <Button variant="quiet" onClick={onBuyCredits}>Mua lượt chấm</Button>
+            <Button onClick={onBuyCredits}>Mua lượt chấm</Button>
           )}
         </div>
       </div>

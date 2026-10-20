@@ -80,7 +80,7 @@ test("table integrity: every input/postProcess key has a function, every prompt 
 });
 
 interface Row { case_id: string; service_type_id: string; amount: number; type: string; idempotency_key: string }
-function fakeTx(rows: Row[]) {
+function fakeTx(rows: Row[], events: Array<{ data: Record<string, unknown> }> = []) {
   const types = [{ id: "st1", code: "cp1_audit" }, { id: "st2", code: "cp2_audit" }];
   return {
     creditLedger: {
@@ -94,6 +94,13 @@ function fakeTx(rows: Row[]) {
       },
     },
     serviceType: { findUnique: async ({ where }: { where: { code: string } }) => types.find((t) => t.code === where.code) ?? null },
+    case: { findUnique: async () => ({ owner_auth_user_id: "owner-1" }) },
+    caseEvent: {
+      create: async (args: { data: Record<string, unknown> }) => {
+        events.push(args);
+        return {};
+      },
+    },
   };
 }
 const seed = (id: string, amount: number): Row => ({ case_id: "c1", service_type_id: id, amount, type: "purchase", idempotency_key: `seed-${id}` });
@@ -101,15 +108,21 @@ const balance = (rows: Row[], id: string) => rows.filter((r) => r.service_type_i
 
 test("consuming a CP2 credit leaves the CP1 balance alone; refund goes back to CP2", async () => {
   const rows = [seed("st1", 2), seed("st2", 4)];
-  const tx = fakeTx(rows) as never;
+  const events: Array<{ data: Record<string, unknown> }> = [];
+  const tx = fakeTx(rows, events) as never;
   await consumeAuditCredit(tx, { caseId: "c1", serviceTypeCode: "cp2_audit", idempotencyKey: "t1" });
   assert.equal(balance(rows, "st2"), 3);
   assert.equal(balance(rows, "st1"), 2);
-  await grantAuditRefund(tx, { caseId: "c1", serviceTypeCode: "cp2_audit", idempotencyKey: "r1", reason: "test" });
+  await grantAuditRefund(tx, { caseId: "c1", serviceTypeCode: "cp2_audit", idempotencyKey: "r1", reason: "worker-failed" });
   assert.equal(balance(rows, "st2"), 4);
   assert.equal(balance(rows, "st1"), 2);
-  await assert.rejects(grantAuditRefund(tx, { caseId: "c1", serviceTypeCode: "cp2_audit", idempotencyKey: "r1", reason: "test" }), { code: "P2002" });
+  assert.equal(events.length, 1);
+  assert.equal(events[0]!.data.event_type, "credit_refunded");
+  assert.deepEqual(events[0]!.data.metadata_json, { credits: 1, reason: "worker-failed", service_type: "cp2_audit", balance_after: 4 });
+  // A replayed refund key must fail on the ledger insert and leave no second timeline entry.
+  await assert.rejects(grantAuditRefund(tx, { caseId: "c1", serviceTypeCode: "cp2_audit", idempotencyKey: "r1", reason: "worker-failed" }), { code: "P2002" });
   assert.equal(balance(rows, "st2"), 4);
+  assert.equal(events.length, 1);
 });
 
 test("no CP2 credits -> 402 even when CP1 credits remain", async () => {

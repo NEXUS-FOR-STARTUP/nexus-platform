@@ -43,6 +43,7 @@ function fakeDb(rows: LedgerRow[]) {
     (where.type === undefined || row.type === where.type);
   const wallet: Array<{ ownerId: string; amount: number; key: string }> = [];
   const db = {
+    caseEvent: { create: async () => ({}) },
     creditLedger: {
       aggregate: async ({ where }: { where: Record<string, unknown> }) => ({
         _sum: { amount: rows.filter((r) => matches(r, where)).reduce((s, r) => s + r.amount, 0) },

@@ -1,5 +1,6 @@
 import { prisma } from "../../../db.js";
 import { AppError } from "../../../shared/domain/app-error.js";
+import { recordCaseEvent } from "../infrastructure/persistence/case-event.repository.js";
 
 const CASE_CLOSED_STATUS = "cancelled";
 
@@ -21,6 +22,8 @@ export async function deleteStageDocumentUseCase(
       superseded_at: true,
       source_kind: true,
       doc_type: true,
+      original_name: true,
+      checkpoint: { select: { checkpoint_code: true } },
       case: { select: { owner_auth_user_id: true, internal_status: true } },
     },
   });
@@ -36,11 +39,22 @@ export async function deleteStageDocumentUseCase(
   if (record.source_kind === "generated") {
     throw new AppError(400, "DOCUMENT_DELETE_FORBIDDEN", "Không thể xóa báo cáo do hệ thống tạo.");
   }
-  const deleted = await prisma.documentRecord.updateMany({
-    where: { id: record.id, superseded_at: null },
-    data: { superseded_at: new Date() },
+  const deletedCount = await prisma.$transaction(async (tx) => {
+    const result = await tx.documentRecord.updateMany({
+      where: { id: record.id, superseded_at: null },
+      data: { superseded_at: new Date() },
+    });
+    if (result.count === 0) return 0;
+    await recordCaseEvent(tx, {
+      caseId,
+      eventType: "stage_document_deleted",
+      actorUserId: userId,
+      documentId: record.id,
+      metadata: { file_name: record.original_name, checkpoint_code: record.checkpoint?.checkpoint_code ?? null },
+    });
+    return result.count;
   });
-  if (deleted.count === 0) {
+  if (deletedCount === 0) {
     throw new AppError(404, "DOCUMENT_NOT_FOUND", "Không tìm thấy tài liệu cần xóa.");
   }
   return { deleted: true };

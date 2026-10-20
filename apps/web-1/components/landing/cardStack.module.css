@@ -285,3 +285,24 @@
     translate: none;
   }
 }
+
+/* Intro: the pile starts closed and opens once when scrolled into view (state from useCardStack `data-intro`). */
+.stack[data-js="true"][data-intro="pending"] .card {
+  --lp-stack-offset: 0px;
+}
+
+/* `rotate` composes with the inline `transform` used for drag/fly. */
+.stack[data-js="true"][data-intro="fan"] .card[data-top="true"]:not([data-dragging="true"]) {
+  animation: stack-nudge 0.9s var(--lp-ease, cubic-bezier(0.4, 0, 0.2, 1)) 0.5s 1;
+}
+
+@keyframes stack-nudge {
+  35% { rotate: -2.5deg; }
+  70% { rotate: 1deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stack[data-js="true"][data-intro] .card {
+    animation: none;
+  }
+}

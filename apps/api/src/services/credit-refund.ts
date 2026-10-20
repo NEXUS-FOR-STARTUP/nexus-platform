@@ -1,3 +1,4 @@
+import { recordCaseEvent } from '../modules/cases/infrastructure/persistence/case-event.repository.js'
 import type { Prisma } from '@prisma/client'
 import { walletService } from '../modules/wallet/application/wallet.service.js'
 import { AppError } from '../shared/domain/app-error.js'
@@ -203,6 +204,14 @@ async function refundServiceRemaining(
     },
   })
 
+  await recordCaseEvent(tx, {
+    caseId,
+    eventType: 'credit_refunded',
+    actorUserId: owner,
+    actorRole: 'system',
+    metadata: { credits: row.balance, refund_vnd: refundVnd, reason: 'case_closed', service_type: row.code },
+  })
+
   await settleReceivablesForRefundedCreditsInTx(tx, {
     caseId,
     serviceTypeId: row.service_type_id,
@@ -298,6 +307,13 @@ export async function refundCaseAllInTx(
         idempotency_key: refundIdempotencyKey(caseId, plan.row.code),
         metadata_json: { refund_vnd: plan.fifoVnd },
       },
+    })
+    await recordCaseEvent(tx, {
+      caseId,
+      eventType: 'credit_refunded',
+      actorUserId: ownerId,
+      actorRole: 'system',
+      metadata: { credits: plan.row.balance, refund_vnd: plan.fifoVnd, reason: 'case_closed', service_type: plan.row.code },
     })
     await settleReceivablesForRefundedCreditsInTx(tx, {
       caseId,

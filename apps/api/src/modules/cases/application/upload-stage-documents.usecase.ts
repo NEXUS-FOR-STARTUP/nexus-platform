@@ -5,6 +5,7 @@ import logger from "../../../shared/infrastructure/logger.js";
 import { findActiveDocumentTypeByCode } from "../../documents/infrastructure/persistence/document-type.repository.js";
 import { validatePostIntakeDocumentInputs } from "../../documents/application/validate-document-write.js";
 import { createStageUploadInTx, ensureCheckpoint } from "../infrastructure/persistence/case.repository.js";
+import { recordCaseEvent } from "../infrastructure/persistence/case-event.repository.js";
 
 const OPENED_CHECKPOINT_STATUS = "draft";
 const CASE_CLOSED_STATUS = "cancelled";
@@ -47,7 +48,18 @@ export async function uploadStageDocumentsUseCase(
 
   const unit = await prisma.$transaction(async (tx) => {
     const checkpoint = await ensureCheckpoint(tx, caseId, stage.code, OPENED_CHECKPOINT_STATUS);
-    return createStageUploadInTx(tx, { caseId, checkpointId: checkpoint.id, userId, documents });
+    const created = await createStageUploadInTx(tx, { caseId, checkpointId: checkpoint.id, userId, documents });
+    await recordCaseEvent(tx, {
+      caseId,
+      eventType: "stage_documents_uploaded",
+      actorUserId: userId,
+      metadata: {
+        checkpoint_code: stage.code,
+        file_count: documents.length,
+        file_names: documents.map((d) => d.original_name),
+      },
+    });
+    return created;
   });
 
   logger.info({ caseId, checkpoint_code: stage.code, file_count: documents.length, actorId: userId }, "stage documents uploaded");
