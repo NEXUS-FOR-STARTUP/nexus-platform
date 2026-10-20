@@ -156,6 +156,7 @@ export interface CaseEvent {
   payment_id?: string | null;
   meeting_id?: string | null;
   metadata_json?: unknown;
+  actor_role?: string | null;
   created_at: string;
   actor?: User;
   report?: Report | null;

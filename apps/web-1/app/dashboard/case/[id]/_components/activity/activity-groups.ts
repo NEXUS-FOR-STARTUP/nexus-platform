@@ -31,6 +31,37 @@ export function getEventCategory(eventType: string): "grade" | "pay" | "project"
   return "project";
 }
 
+export type TimelineTone = "ai" | "ok" | "doc" | "flow" | "alert" | "neutral";
+
+const ALERT_WORDS = ["failed", "cancelled", "canceled", "rejected", "vetoed", "expired", "overdue"];
+const OK_WORDS = ["completed", "complete", "approved", "accepted", "verified", "confirmed", "confirm"];
+const DOC_WORDS = ["document", "documents", "docx", "proposal", "answers", "uploaded"];
+const FLOW_WORDS = ["submitted", "resubmitted", "submit", "resubmit", "reopen", "revision", "request", "requested", "clarification", "intake"];
+
+/** Legacy transition codes are verbs ("T12_REJECT"), so keyword matching can't tell them from "T3_RESUBMIT_AFTER_REJECT". */
+const LEGACY_TONES: Record<string, TimelineTone> = {
+  T12_REJECT: "alert",
+  T13_VETO: "alert",
+  T15_CANCEL: "alert",
+  T5_ACCEPT: "ok",
+};
+
+/** Marker colour only; the filter tabs keep using getEventCategory. Problems win over the topic. */
+export function getEventTone(eventType: string): TimelineTone {
+  const legacy = LEGACY_TONES[eventType];
+  if (legacy) return legacy;
+  const words = eventType.toLowerCase().split("_");
+  const has = (list: string[]) => words.some((w) => list.includes(w));
+  if (has(ALERT_WORDS)) return "alert";
+  const category = getEventCategory(eventType);
+  if (category === "pay") return "ok";
+  if (category === "grade") return "ai";
+  if (has(OK_WORDS)) return "ok";
+  if (has(DOC_WORDS)) return "doc";
+  if (has(FLOW_WORDS)) return "flow";
+  return "neutral";
+}
+
 export const TIMELINE_TIMEZONE = "Asia/Ho_Chi_Minh";
 
 const dayKeyFmt = new Intl.DateTimeFormat("en-CA", {

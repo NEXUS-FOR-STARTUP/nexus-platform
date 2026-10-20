@@ -103,14 +103,29 @@
   color: var(--color-text-muted);
 }
 
-.markerGrade {
+.markerAi {
   background: var(--color-brand-soft);
-  color: var(--color-brand);
+  color: var(--color-brand-ink);
 }
 
-.markerPay {
+.markerOk {
   background: var(--color-success-soft);
   color: var(--color-success-ink);
+}
+
+.markerFlow {
+  background: var(--color-warning-soft);
+  color: var(--color-warning-ink);
+}
+
+.markerDoc {
+  background: var(--color-accent-warm-soft);
+  color: var(--color-accent-warm-ink);
+}
+
+.markerAlert {
+  background: var(--color-danger-soft);
+  color: var(--color-danger-ink);
 }
 
 .head {
