@@ -170,10 +170,18 @@ Sai sót của tôi: gộp hai việc khác nhau. CP1 đến CP4 thuộc cùng m
 - **Giai đoạn của từng tệp nói bằng manifest JSON:** thêm `stage` (`CP1`/`CP2`) và `role` (`submission`/`context`) vào mỗi mục của `input/attachments_manifest.json`.
 - **Một tín hiệu cấu trúc rẻ:** tệp giai đoạn trước nằm ở `input/context/`, bài nộp lần này ở chỗ cũ. Giữ vì chưa chứng minh được model luôn đọc manifest (mục "Chưa kiểm"); đường dẫn là tín hiệu dự phòng.
 - **Nguồn:** DB + Cloudinary, dựng lúc tạo job. Không lưu thư mục dự án dùng chung (sẽ thành nguồn sự thật thứ hai).
-- **CP2 `context/` gồm:** `intake_submission.md`, `cp1_answers.md` (render `renderStageAnswers("CP1")`), tệp tài liệu ở intake. **Không gồm báo cáo CP1** (đầu ra AI, dễ sai, dễ bị chép làm bằng chứng); thêm khi rubric CP2 cần đối chiếu.
+- **CP2 `context/` gồm (đề xuất, chưa chốt):** `cp1_answers.md` (render `renderStageAnswers("CP1")`) và tài liệu CP1 được chọn theo luật. **Không gồm** `intake_submission.md` (xem Đính chính) **và không gồm báo cáo CP1** (đầu ra AI, dễ sai, dễ bị chép làm bằng chứng); thêm khi rubric CP2 cần đối chiếu.
 - **Ép bằng code, không bằng lời dặn:** `evidence.source` bắt đầu bằng `context/` thì postprocess gắn cờ không hợp lệ (cần xác minh chỗ kiểm quote hiện tại khi cài).
 - **Cắt:** bản ghi phiên bản CP1 trong `input_json` (thư mục job đã lưu đúng thứ model thấy, miễn không xóa), dedupe/cache tải tệp, cây `cp1/ cp2/`, `sandboxPath` trong JobSpec.
 - **Làm được ngay, không chờ registry:** một hàm dựng context + một lời gọi trong `assembleCp2InputFiles`. Khi có registry thì chuyển thành khai báo `upstream`.
+
+**Đính chính (đã đo trên DB local, chưa thấy dữ liệu prod):**
+- **Không dùng intake làm nguồn ý tưởng.** `lifecycle_units` `v00.content` hiện là hồ sơ dự án: `team_context` (tên dự án, số nhóm, trường, lớp) và `contact` (họ tên, mã sinh viên, email, Zalo, Telegram); `idea`, `idea_context`, `support_needs`, `case_summary` **rỗng**. Cập nhật bởi `update-case-settings.usecase.ts`, không phải form ý tưởng. Route `/dashboard/intake` còn tồn tại nhưng không chứng minh form ý tưởng còn dùng.
+- **Dữ liệu cá nhân:** `assembleCp1InputFiles` vẫn ghi `intake_submission.md` (cả JSON, gồm email/Zalo/mã sinh viên) vào sandbox CP1 khi `intakeUnit.content` có. Chưa kiểm model CP1 có dùng không. Việc riêng với bài toán context.
+- **Nguồn ý tưởng hiện hành:** câu trả lời CP1 trong `project_answers` (`cp1_idea_name`, `cp1_main_problem`, `cp1_primary_customer`, `cp1_current_alternatives`, ...) và tài liệu CP1 tải lên (checkpoint CP1, `source_kind=cloudinary`).
+- **Chế độ chấm bằng tệp** (`input_source=files`, như job `5196feab`): `cp2_answers.md` chỉ là đoạn cố định; thông tin dự án nằm trong tệp tải lên. Văn bản một mình không thay được tài liệu.
+- **Cờ `AUDIT_STAGE_INPUT_RULES`:** local `true`; không thấy trong `.env.prod` và compose của dump VPS nên suy ra `false` trên prod (chưa xác nhận). Khi bật, `renderStageAnswers` cộng dồn câu trả lời mọi stage đến stage hiện tại (cỡ chặn bởi số câu hỏi template, chưa đo); khi tắt, CP2 chỉ nhận câu trả lời CP2.
+- **Chọn cách đưa tài liệu vào (chưa chốt, xem phương án 3-4 bàn với bạn):** copy toàn bộ làm đĩa/thời gian tải tăng theo CP; token chỉ giảm khi giảm số tệp model đọc. Hướng nghiêng về: manifest tham chiếu mọi tài liệu giai đoạn trước, API chỉ copy tập con theo luật (stage, loại, bản mới nhất, trần số tệp và byte đặt bằng biến môi trường).
 - Cô lập quyền đọc giữa các case là việc riêng (3.6), thiết kế này không dựa vào nó.
 
 **Ràng buộc để không hỏng chấm điểm:**
