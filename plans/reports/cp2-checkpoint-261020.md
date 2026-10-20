@@ -1,6 +1,6 @@
 # CP2 checkpoint — 2026-10-20
 
-Trạng thái: phân tích xong, code sửa nhỏ xong, chưa chạy job CP2 thật. Chưa commit.
+Trạng thái: phân tích xong, 3 việc nhỏ đã sửa và commit trên nhánh `fix/cp2-sandbox-schema-guard` (mục 9), lỗ hổng thư mục prompt đã vá, chưa chạy job CP2 thật. Chưa push.
 
 ## 1. Lỗi gốc (đã xác nhận bằng dữ liệu prod)
 
@@ -82,4 +82,34 @@ Không dùng `caveman-compress` lên `cp2_*.md`: prompt tiếng Việt, đầy �
 - Chưa mở code CP3/CP4. Số nhánh `CP1/CP2` là kết quả một lần grep, có thể còn sót ngoài `apps/api/src`.
 - Chưa chạy sandbox CP1 để xác nhận có chứa `cp2_*.md`.
 - Dump VPS lấy lúc Oct 20 18:55; VPS thật có thể đã khác.
-- Thay đổi code chưa commit: `omp-audit.service.ts`, `omp-audit-coordinator.ts`, `job-spec-builder.ts`, `cp2-audit-postprocess.ts`, `packages/validation/*`, file mới `cp2-agents-md.ts`, test, `src/cli/`, `tsup.cli.config.ts`.
+- Thay đổi code đã commit trên nhánh `fix/cp2-sandbox-schema-guard` (5 commit, xem mục 9). Chưa push, chưa merge.
+- Fix "thiếu prompt" đã vá lỗ hổng thiếu thư mục và có test (mục 9).
+
+## 9. Cập nhật sau checkpoint
+
+### Việc nhỏ đã sửa (mục 5 "Sửa nhỏ" #1, #2, #3)
+- `omp-audit.service.ts:133`: thiếu file prompt đã khai báo thì `throw` thay vì `warn`. Lỗi đi qua nhánh `dispatch-failure` của `triggerOmpAuditForCase`: job `failed`, hoàn 1 credit. Lưu ý credit bị trừ trước rồi mới hoàn, **không** phải chặn trước khi trừ. Các lần mirror sandbox phụ vẫn chỉ `warn`.
+- `omp-audit-finalizer.ts:117`: bọc `JSON.parse`, lỗi có ngữ cảnh `report.json is not valid JSON: …`. Vẫn đi nhánh `finalize-error` + hoàn credit.
+- `cp2_audit_core_v1.md:245`: bảo chạy lệnh kiểm tra trong `AGENTS.md`, bỏ `JSON.parse`. Bản mới đã copy vào dump VPS local, **chưa lên VPS thật**.
+- Kiểm: `tsc` API sạch, 11 test liên quan qua (`cp2-agents-md`, `cp2-audit-trigger`). Chưa có test mới cho hai nhánh lỗi; chưa chạy job thật.
+
+### Nhánh và commit
+Nhánh `fix/cp2-sandbox-schema-guard` (từ `dev`):
+
+| Commit | Nội dung |
+|---|---|
+| `c4f2968` | feat(validation): CLI kiểm báo cáo CP2 bundle zod, lỗi zod có `message` |
+| `bb8517a` | feat(ai-engine): sandbox CP2 có `AGENTS.md` + validator; thiếu file prompt thì job fail |
+| `c9c7b2d` | fix(ai-engine): finalizer báo `report.json` hỏng có ngữ cảnh |
+| `58be539` | docs(prompts): core CP2 dùng validator trong `AGENTS.md` |
+| `658f9f4` | docs(plans): báo cáo checkpoint này (bản đầu) |
+
+Commit `bb8517a` gộp cả hunk `throw` thiếu prompt cùng thay đổi sandbox vì chung file `omp-audit.service.ts`.
+
+### Lỗ hổng thư mục prompt (đã vá)
+`prepareSandbox` giờ `throw` khi có `promptFiles` rõ ràng mà thiếu thư mục `data/system-prompts` hoặc thiếu file liệt kê; CP1 (không giới hạn) giữ hành vi cũ. Test `prepare-sandbox-prompts.test.ts` (4 ca) dùng `APP_ROOT` thư mục tạm; 8/8 pass cùng `cp2-agents-md`, `tsc` API sạch.
+
+`apps/worker-omp/AGENTS.md`: cập nhật cây sandbox (thêm `AGENTS.md`, `knowledge/`, `tools/`) và ghi rõ worker không validate/sửa báo cáo.
+
+### Còn lại từ mục 5
+Đã xong: "Sửa nhỏ" #1, #2, #3, #7. Chưa làm: #4 lưu báo cáo lỗi, #5 siết zod (cần đọc code render trước), #6 cutover worker (chờ queue prod drain), toàn bộ nhóm kiến trúc.
