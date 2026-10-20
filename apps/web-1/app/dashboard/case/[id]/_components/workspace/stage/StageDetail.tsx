@@ -82,7 +82,7 @@ export default function StageDetail({
     await triggerAudit({
       ...(stage.code === "CP2"
         ? { checkpoint: "CP2" as const, scope: args.scope === "questionnaire" ? ("questionnaire" as const) : ("full" as const), input_source: args.inputSource, ...(args.changeSummary ? { change_summary: args.changeSummary } : {}), ...(args.userNote ? { user_note: args.userNote } : {}) }
-        : {}),
+        : args.changeSummary ? { checkpoint: "CP1" as const, change_summary: args.changeSummary } : {}),
       submission_type: args.submissionType,
     });
   };

@@ -4,6 +4,8 @@ import { QUESTION_REGISTRY, TEMPLATE_REGISTRY } from "@repo/validation";
 import { prisma } from "../../../db.js";
 
 export const STAGE_DOC_EXCLUDED_TYPES = ["assessment_report", "supporter_output", "supporter_attachment", "payment_proof"];
+/** Written as change_summary.md when a re-grade carries no note from the team. */
+export const NO_CHANGE_SUMMARY_TEXT = "(Nhóm không ghi tóm tắt thay đổi)";
 const SELF_CHECK_ID_FRAGMENT = "_selfcheck_";
 
 type AnswerMap = Readonly<Record<string, string | undefined>>;

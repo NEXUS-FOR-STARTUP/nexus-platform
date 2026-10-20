@@ -84,7 +84,9 @@ export default function AuditConfirmModal({
   })();
   const scope = scopeOverride ?? recommended?.scope ?? "full";
   const source = sourceOverride ?? recommended?.source ?? "answers";
-  const submissionType = submissionTypeOverride ?? (summary?.status === "has_result" ? "resubmit" : "initial");
+  const hasResult = summary?.status === "has_result";
+  // CP2 re-grades by default once a result exists. CP1's usual second run is the team adding a forgotten file, so it stays a fresh run unless picked.
+  const submissionType = submissionTypeOverride ?? (isCp2 && hasResult ? "resubmit" : "initial");
 
   // CP1 has no CP2-style readiness bar, but no stage is ever graded on nothing:
   // zero answers AND zero files is a dead end in both checkpoints.
@@ -100,13 +102,14 @@ export default function AuditConfirmModal({
   };
 
   const handleConfirm = () => {
-    // Questionnaire has no resubmit plan; a stale resubmit selection still grades as a fresh run.
-    const effectiveType = isCp2 && scope === "questionnaire" ? "initial" : submissionType;
+    // Questionnaire has no resubmit plan, and CP1 can only compare with a result that exists:
+    // a stale resubmit selection still grades as a fresh run.
+    const effectiveType = (isCp2 && scope === "questionnaire") || (!isCp2 && !hasResult) ? "initial" : submissionType;
     onConfirm({
       scope,
       inputSource: source,
-      submissionType: isCp2 ? effectiveType : "initial",
-      ...(isCp2 && effectiveType === "resubmit" && changeSummary.trim() ? { changeSummary: changeSummary.trim() } : {}),
+      submissionType: effectiveType,
+      ...(effectiveType === "resubmit" && changeSummary.trim() ? { changeSummary: changeSummary.trim() } : {}),
       ...(isCp2 && userNote.trim() ? { userNote: userNote.trim() } : {}),
     });
     handleClose();
@@ -147,6 +150,7 @@ export default function AuditConfirmModal({
               source={source}
               submissionType={submissionType}
               hasFiles={hasFiles}
+              canResubmit={hasResult}
               sourceReady={sourceReady}
               changeSummary={changeSummary}
               userNote={userNote}

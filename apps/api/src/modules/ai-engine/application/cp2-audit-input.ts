@@ -8,14 +8,13 @@ import type { OmpAuditInputFile } from "../omp-audit.service.js";
 import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
 import { buildAttachmentManifest, manifestEntry, uniqueSandboxName, type AttachmentManifestEntry } from "./attachment-manifest.js";
 import { loadStageContext } from "./case-library.js";
-import { findStageDocs, renderStageAnswers } from "./stage-audit-input.js";
+import { findStageDocs, NO_CHANGE_SUMMARY_TEXT, renderStageAnswers } from "./stage-audit-input.js";
 
 export const CP2_CHECKPOINT_CODE = "CP2";
 export const CP2_ANSWERS_FILE = "cp2_answers.md";
 export const CP2_SELF_CHECKS_FILE = "self_checks.md";
 export const CP2_ATTACHMENTS_DIR = "attachments";
 const UNANSWERED_TEXT = "(Nhóm chưa trả lời)";
-const NO_CHANGE_SUMMARY_TEXT = "(Nhóm không ghi tóm tắt thay đổi)";
 const ATTACHMENT_FETCH_TIMEOUT_MS = Number(process.env.OMP_INPUT_FETCH_TIMEOUT_MS ?? 30_000);
 /** Minimum bar before a CP2 trigger may burn a credit. Env-overridable, documented in README. */
 const CP2_MIN_ANSWERED = Number(process.env.CP2_MIN_ANSWERED ?? 5);

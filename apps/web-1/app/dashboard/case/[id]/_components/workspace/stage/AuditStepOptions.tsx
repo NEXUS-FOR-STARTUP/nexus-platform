@@ -17,6 +17,8 @@ interface AuditStepOptionsProps {
   source: Cp2InputSource;
   submissionType: RunKind;
   hasFiles: boolean;
+  /** CP1: a previous result exists to compare against. */
+  canResubmit: boolean;
   sourceReady: (src: Cp2InputSource, sc: Cp2Scope) => boolean;
   changeSummary: string;
   userNote: string;
@@ -30,9 +32,39 @@ interface AuditStepOptionsProps {
 
 /** Step 2: how to grade (CP2 accordion of 4 choices) and the credit cost line. */
 export default function AuditStepOptions({
-  isCp2, scope, source, submissionType, hasFiles, sourceReady, changeSummary, userNote, creditsRemaining,
+  isCp2, scope, source, submissionType, hasFiles, canResubmit, sourceReady, changeSummary, userNote, creditsRemaining,
   onSourceChange, onScopeChange, onKindChange, onChangeSummary, onUserNote,
 }: AuditStepOptionsProps) {
+  // CP2 re-grades only at full scope; CP1 only once a previous result exists to compare against.
+  const resubmitBlocked = isCp2 ? scope !== "full" : !canResubmit;
+  const resubmitHint = isCp2
+    ? scope === "full" ? "Đối chiếu với kết quả lần trước" : "Chỉ có ở chấm toàn diện"
+    : canResubmit ? "Đối chiếu với kết quả lần trước" : "Chưa có kết quả trước để đối chiếu";
+  const newRunHint = isCp2 ? "Không đối chiếu bản cũ" : "Đọc lại toàn bộ tài liệu hiện có, hợp khi lần trước thiếu tệp";
+  const kindItem = (
+    <Accordion.Item value="kind">
+      <Accordion.Control>Lần chấm này <Text span size="sm" c="dimmed">- {submissionType === "resubmit" ? "Chấm lại" : "Chấm mới"}</Text></Accordion.Control>
+      <Accordion.Panel>
+        <Radio.Group value={submissionType} onChange={(value) => onKindChange(value as RunKind)}>
+          <Stack gap="xs">
+            <Radio value="initial" label="Chấm mới từ đầu" description={newRunHint} />
+            <Radio value="resubmit" label="Chấm lại sau khi sửa" description={resubmitHint} disabled={resubmitBlocked} />
+          </Stack>
+        </Radio.Group>
+        {submissionType === "resubmit" && (
+          <Textarea
+            mt="sm"
+            label="Bạn đã sửa gì"
+            placeholder="Ví dụ: bổ sung phỏng vấn, đổi khách hàng mục tiêu"
+            value={changeSummary}
+            onChange={(e) => onChangeSummary(e.currentTarget.value)}
+            minRows={2}
+            maxLength={CHANGE_SUMMARY_MAX}
+          />
+        )}
+      </Accordion.Panel>
+    </Accordion.Item>
+  );
   return (
     <>
       <Text fw={500}>Bước 2/2: chọn cách chấm và xác nhận</Text>
@@ -63,28 +95,7 @@ export default function AuditStepOptions({
             </Accordion.Panel>
           </Accordion.Item>
 
-          <Accordion.Item value="kind">
-            <Accordion.Control>Lần chấm này <Text span size="sm" c="dimmed">- {submissionType === "resubmit" ? "Chấm lại" : "Chấm mới"}</Text></Accordion.Control>
-            <Accordion.Panel>
-              <Radio.Group value={submissionType} onChange={(value) => onKindChange(value as RunKind)}>
-                <Stack gap="xs">
-                  <Radio value="initial" label="Chấm mới từ đầu" description="Không đối chiếu bản cũ" />
-                  <Radio value="resubmit" label="Chấm lại sau khi sửa" description={scope === "full" ? "Đối chiếu với kết quả lần trước" : "Chỉ có ở chấm toàn diện"} disabled={scope !== "full"} />
-                </Stack>
-              </Radio.Group>
-              {submissionType === "resubmit" && (
-                <Textarea
-                  mt="sm"
-                  label="Bạn đã sửa gì"
-                  placeholder="Ví dụ: phỏng vấn thêm 3 chuyên gia, tính lại SOM"
-                  value={changeSummary}
-                  onChange={(e) => onChangeSummary(e.currentTarget.value)}
-                  minRows={2}
-                  maxLength={CHANGE_SUMMARY_MAX}
-                />
-              )}
-            </Accordion.Panel>
-          </Accordion.Item>
+          {kindItem}
 
           <Accordion.Item value="note">
             <Accordion.Control>Ghi chú thêm <Text span size="sm" c="dimmed">- {userNote.trim() ? "đã viết" : "không bắt buộc"}</Text></Accordion.Control>
@@ -92,6 +103,12 @@ export default function AuditStepOptions({
               <Textarea placeholder="Ví dụ: soi kỹ phần SOM giúp mình" value={userNote} onChange={(e) => onUserNote(e.currentTarget.value)} minRows={2} maxLength={USER_NOTE_MAX} />
             </Accordion.Panel>
           </Accordion.Item>
+        </Accordion>
+      )}
+
+      {!isCp2 && (
+        <Accordion variant="separated" radius="md" defaultValue="kind">
+          {kindItem}
         </Accordion>
       )}
 

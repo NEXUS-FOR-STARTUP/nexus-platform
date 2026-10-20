@@ -71,7 +71,7 @@ const cp1: AuditService = {
       throw new AppError(409, "AUDIT_IN_PROGRESS", "Báo cáo Ban đầu đã tồn tại. Vui lòng sử dụng Tạo lại (resubmit) nếu cần gửi tài liệu sửa đổi.");
     }
   },
-  jobInputExtras: () => ({}),
+  jobInputExtras: (opts) => (opts.change_summary?.trim() ? { change_summary: opts.change_summary.trim() } : {}),
   rerunInput: () => ({}),
   sandbox: (plan) => ({ promptFiles: plan.prompts }),
   instruction: cp1Instruction,

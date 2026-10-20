@@ -30,7 +30,7 @@ export type InputAssembler = (req: InputRequest) => Promise<AssembledInput>;
 
 /** Keys are the `input` / `postProcess` values of `AUDIT_CHECKPOINTS`; a test keeps them in lockstep. */
 export const INPUT_ASSEMBLERS: Record<string, InputAssembler> = {
-  cp1_intake: (req) => assembleCp1InputFiles(req.caseId, req.submissionType, req.lifecycleUnitId),
+  cp1_intake: (req) => assembleCp1InputFiles(req.caseId, req.submissionType, req.lifecycleUnitId, req.changeSummary),
   cp2_answers: (req) => assembleCp2InputFiles({ caseId: req.caseId, submissionType: req.submissionType, changeSummary: req.changeSummary, userNote: req.userNote, scope: req.scope, inputSource: req.inputSource, libraryDir: req.libraryDir }),
 };
 

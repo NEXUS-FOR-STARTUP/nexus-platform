@@ -6,7 +6,7 @@ import { findFirstIntakeUnit } from "../../cases/infrastructure/persistence/case
 import { findApprovedReports } from "../../reports/infrastructure/persistence/report.repository.js";
 import type { OmpAuditInputFile } from "../omp-audit.service.js";
 import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
-import { findStageDocs, renderStageAnswers, STAGE_DOC_EXCLUDED_TYPES } from "./stage-audit-input.js";
+import { findStageDocs, NO_CHANGE_SUMMARY_TEXT, renderStageAnswers, STAGE_DOC_EXCLUDED_TYPES } from "./stage-audit-input.js";
 import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-types.js";
 import type { DocumentRecord } from "@prisma/client";
 import { ATTACHMENT_MANIFEST_FILE, buildAttachmentManifest, manifestEntry, uniqueSandboxName, type AttachmentManifestEntry } from "./attachment-manifest.js";
@@ -59,13 +59,14 @@ export async function appendDocFiles(
  * Assemble input files scoped by submission type.
  *
  * - initial:    intake unit docs + intake_submission.md
- * - resubmit:   target unit docs + previous_report + change_summary (NO intake baseline, NO full history)
+ * - resubmit:   target unit docs (or, from the stage page, the stage's uploads) + previous_report + change_summary (NO intake baseline, NO full history)
  * - logic_check: latest unit docs (+ previous_report if available)
  */
 export async function assembleCp1InputFiles(
   caseId: string,
   submissionType: SubmissionType,
   lifecycleUnitId: string | null,
+  changeSummary?: string,
 ): Promise<{ inputFiles: OmpAuditInputFile[]; resolvedLifecycleUnitId: string | null }> {
   const inputFiles: OmpAuditInputFile[] = [];
   const entries: AttachmentManifestEntry[] = [];
@@ -130,12 +131,16 @@ ${JSON.stringify(team, null, 2)}
     resolvedUnitId = latestUnit?.id ?? null;
   }
 
-  if (submissionType === "resubmit" && !resolvedUnitId) {
+  // With stage input rules the student re-grades from the stage page: no revision upload, so no unit to resolve.
+  const stageResubmit = submissionType === "resubmit" && !resolvedUnitId && AUDIT_STAGE_INPUT_RULES;
+  if (submissionType === "resubmit" && !resolvedUnitId && !stageResubmit) {
     throw new AppError(409, "RESUBMIT_REQUIRES_UPLOAD", "Vui lòng upload tài liệu sửa đổi trước khi yêu cầu thẩm định lại.");
   }
 
-  // Fetch docs scoped to the lifecycle unit
-  if (resolvedUnitId) {
+  // Fetch docs: the lifecycle unit's, or (stage re-grade) what the team has uploaded to the stage now
+  if (stageResubmit) {
+    await appendDocFiles(await findStageDocs(caseId, "CP1"), inputFiles, entries, used);
+  } else if (resolvedUnitId) {
     const unitDocs = await prisma.documentRecord.findMany({
       where: { lifecycle_unit_id: resolvedUnitId, superseded_at: null, source_kind: { notIn: [...SUBMITTED_DOC_EXCLUDED_KINDS] }, doc_type: { notIn: STAGE_DOC_EXCLUDED_TYPES } },
       orderBy: [{ seq: "asc" }, { created_at: "asc" }],
@@ -146,6 +151,9 @@ ${JSON.stringify(team, null, 2)}
   // For resubmit: add previous report + change_summary
   if (submissionType === "resubmit") {
     const reports = await findApprovedReports(caseId);
+    if (stageResubmit && reports.length === 0) {
+      throw new AppError(409, "RESUBMIT_REQUIRES_PREVIOUS_REPORT", "Chưa có kết quả chấm trước đó để đối chiếu. Hãy chọn chấm mới.");
+    }
     if (reports.length > 0) {
       const latestReport = reports[0]; // desc order, first = latest
       if (latestReport.content_md) {
@@ -155,14 +163,16 @@ ${JSON.stringify(team, null, 2)}
         inputFiles.push({ name: "previous_report.json", content: JSON.stringify(latestReport.metadata_json, null, 2) });
       }
     }
-    // change_summary: stored in lifecycle_unit.content as JSON { change_summary, documents, remaining_blockers }
-    if (resolvedUnitId) {
+    if (stageResubmit) {
+      inputFiles.push({ name: "change_summary.md", content: changeSummary?.trim() || NO_CHANGE_SUMMARY_TEXT });
+    } else if (resolvedUnitId) {
+      // change_summary: stored in lifecycle_unit.content as JSON { change_summary, documents, remaining_blockers }
       const unit = await prisma.lifecycleUnit.findUnique({ where: { id: resolvedUnitId } });
       if (unit?.content) {
         try {
           const parsed = JSON.parse(unit.content);
-          const changeSummary = parsed.change_summary || parsed.reason || unit.content;
-          inputFiles.push({ name: "change_summary.md", content: changeSummary });
+          const unitChangeSummary = parsed.change_summary || parsed.reason || unit.content;
+          inputFiles.push({ name: "change_summary.md", content: unitChangeSummary });
         } catch {
           // Not JSON, use raw content
           inputFiles.push({ name: "change_summary.md", content: unit.content });
