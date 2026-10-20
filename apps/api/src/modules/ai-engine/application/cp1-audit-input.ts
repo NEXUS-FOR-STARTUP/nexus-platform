@@ -9,8 +9,29 @@ import type { OmpAuditInputFile } from "../omp-audit.service.js";
 import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
 import { renderStageAnswers } from "./stage-audit-input.js";
 import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-types.js";
+import type { DocumentRecord } from "@prisma/client";
+import { buildAttachmentManifest, manifestEntry, type AttachmentManifestEntry } from "./attachment-manifest.js";
 
 type SubmissionType = AuditSubmissionType;
+
+type DocFileSource = Pick<DocumentRecord, "id" | "download_url" | "original_name" | "canonical_name" | "extension" | "metadata_json">;
+
+/** Downloads each document into the sandbox input and records it in the manifest; an unreachable file is skipped, not fatal. */
+async function appendDocFiles(docs: readonly DocFileSource[], inputFiles: OmpAuditInputFile[], entries: AttachmentManifestEntry[]): Promise<void> {
+  for (const doc of docs) {
+    if (!doc.download_url) continue;
+    try {
+      const res = await fetch(doc.download_url);
+      if (!res.ok) continue;
+      const arrayBuf = await res.arrayBuffer();
+      const fileName = doc.original_name || doc.canonical_name || `document_${doc.id}.${doc.extension || "bin"}`;
+      inputFiles.push({ name: fileName, content: Buffer.from(arrayBuf) });
+      entries.push(manifestEntry(fileName, doc));
+    } catch (fetchErr) {
+      logger.warn({ docId: doc.id, fetchErr }, "Could not fetch document for audit input");
+    }
+  }
+}
 
 /**
  * Assemble input files scoped by submission type.
@@ -25,6 +46,7 @@ export async function assembleCp1InputFiles(
   lifecycleUnitId: string | null,
 ): Promise<{ inputFiles: OmpAuditInputFile[]; resolvedLifecycleUnitId: string | null }> {
   const inputFiles: OmpAuditInputFile[] = [];
+  const entries: AttachmentManifestEntry[] = [];
 
   if (submissionType === "initial") {
     // Initial → intake unit (v00) docs + intake_submission.md
@@ -67,20 +89,9 @@ ${JSON.stringify(team, null, 2)}
     // already in cp1_answers.md — feeding them back is a self-loop.
     const documents = await findDocumentRecordsByCaseId(caseId);
     const submitted = documents.filter((d) => !(SUBMITTED_DOC_EXCLUDED_KINDS as readonly string[]).includes(d.source_kind));
-    for (const doc of submitted) {
-      if (doc.download_url) {
-        try {
-          const res = await fetch(doc.download_url);
-          if (res.ok) {
-            const arrayBuf = await res.arrayBuffer();
-            const fileName = doc.original_name || doc.canonical_name || `document_${doc.id}.${doc.extension || "bin"}`;
-            inputFiles.push({ name: fileName, content: Buffer.from(arrayBuf) });
-          }
-        } catch (fetchErr) {
-          logger.warn({ docId: doc.id, fetchErr }, "Could not fetch document for audit input");
-        }
-      }
-    }
+    await appendDocFiles(submitted, inputFiles, entries);
+    const manifest = buildAttachmentManifest(entries);
+    if (manifest) inputFiles.push(manifest);
     return { inputFiles, resolvedLifecycleUnitId: intakeUnit?.id ?? null };
   }
 
@@ -106,20 +117,7 @@ ${JSON.stringify(team, null, 2)}
       where: { lifecycle_unit_id: resolvedUnitId, superseded_at: null, source_kind: { notIn: [...SUBMITTED_DOC_EXCLUDED_KINDS] } },
       orderBy: [{ seq: "asc" }, { created_at: "asc" }],
     });
-    for (const doc of unitDocs) {
-      if (doc.download_url) {
-        try {
-          const res = await fetch(doc.download_url);
-          if (res.ok) {
-            const arrayBuf = await res.arrayBuffer();
-            const fileName = doc.original_name || doc.canonical_name || `document_${doc.id}.${doc.extension || "bin"}`;
-            inputFiles.push({ name: fileName, content: Buffer.from(arrayBuf) });
-          }
-        } catch (fetchErr) {
-          logger.warn({ docId: doc.id, fetchErr }, "Could not fetch document for audit input");
-        }
-      }
-    }
+    await appendDocFiles(unitDocs, inputFiles, entries);
   }
 
   // For resubmit: add previous report + change_summary
@@ -161,5 +159,7 @@ ${JSON.stringify(team, null, 2)}
     }
   }
 
+  const manifest = buildAttachmentManifest(entries);
+  if (manifest) inputFiles.push(manifest);
   return { inputFiles, resolvedLifecycleUnitId: resolvedUnitId };
 }

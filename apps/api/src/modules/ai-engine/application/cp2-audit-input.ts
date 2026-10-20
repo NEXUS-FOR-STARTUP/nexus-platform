@@ -8,6 +8,7 @@ import { findLatestCp2FullReport } from "../../reports/infrastructure/persistenc
 import type { OmpAuditInputFile } from "../omp-audit.service.js";
 import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-types.js";
 import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
+import { buildAttachmentManifest, manifestEntry, type AttachmentManifestEntry } from "./attachment-manifest.js";
 import { STAGE_DOC_EXCLUDED_TYPES, renderStageAnswers } from "./stage-audit-input.js";
 
 export const CP2_CHECKPOINT_CODE = "CP2";
@@ -151,12 +152,12 @@ function safeFileName(name: string): string {
   return basename(name).replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_") || "attachment";
 }
 
-async function loadAttachments(caseId: string): Promise<OmpAuditInputFile[]> {
+async function loadAttachments(caseId: string): Promise<{ files: OmpAuditInputFile[]; entries: AttachmentManifestEntry[] }> {
   const checkpoint = await prisma.checkpoint.findUnique({
     where: { case_id_checkpoint_code: { case_id: caseId, checkpoint_code: CP2_CHECKPOINT_CODE } },
     select: { id: true },
   });
-  if (!checkpoint) return [];
+  if (!checkpoint) return { files: [], entries: [] };
   const docs = await prisma.documentRecord.findMany({
     where: {
       case_id: caseId,
@@ -168,6 +169,7 @@ async function loadAttachments(caseId: string): Promise<OmpAuditInputFile[]> {
     orderBy: [{ created_at: "asc" }],
   });
   const files: OmpAuditInputFile[] = [];
+  const entries: AttachmentManifestEntry[] = [];
   const used = new Set<string>();
   for (const doc of docs) {
     if (!doc.download_url) continue;
@@ -179,9 +181,11 @@ async function loadAttachments(caseId: string): Promise<OmpAuditInputFile[]> {
     let name = safeFileName(doc.original_name || doc.canonical_name || `document_${doc.id}.${doc.extension || "bin"}`);
     if (used.has(name.toLowerCase())) name = `${doc.seq}_${doc.id.slice(0, 8)}_${name}`;
     used.add(name.toLowerCase());
-    files.push({ name: `${CP2_ATTACHMENTS_DIR}/${name}`, content: Buffer.from(await res.arrayBuffer()) });
+    const fileName = `${CP2_ATTACHMENTS_DIR}/${name}`;
+    files.push({ name: fileName, content: Buffer.from(await res.arrayBuffer()) });
+    entries.push(manifestEntry(fileName, doc));
   }
-  return files;
+  return { files, entries };
 }
 
 export interface Cp2InputRequest {
@@ -205,8 +209,10 @@ export async function assembleCp2InputFiles(req: Cp2InputRequest): Promise<{ inp
   const source = req.inputSource;
   const rows = await prisma.projectAnswer.findMany({ where: { case_id: req.caseId }, select: { question_id: true, answer_text: true } });
   const answers = Object.fromEntries(rows.map((r) => [r.question_id, r.answer_text]));
-  const attachments = source === "answers" ? [] : await loadAttachments(req.caseId);
-  assertCp2InputSource(req.caseId, answers, req.scope ?? "full", source, attachments.length);
+  const loaded = source === "answers" ? { files: [], entries: [] } : await loadAttachments(req.caseId);
+  assertCp2InputSource(req.caseId, answers, req.scope ?? "full", source, loaded.files.length);
+  const manifest = buildAttachmentManifest(loaded.entries);
+  const attachments = manifest ? [...loaded.files, manifest] : loaded.files;
 
   const inputFiles: OmpAuditInputFile[] =
     source === "files"
