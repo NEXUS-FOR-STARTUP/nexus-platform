@@ -327,11 +327,21 @@ Mỗi bước một commit, chạy test API trước khi sang bước sau.
 ### Trạng thái triển khai (phía API, 2026-10-20)
 **Đã làm:** D3, D5–D9, D11–D20. Registry hook `audit-services.ts` (planScope, normalizeSubmissionType, optsIssues, preflight, jobInputExtras, rerunInput, sandbox, instruction, reportMdName, lifecycleUnit); `case-library.ts` (`_library` khóa theo URL, ghi nguyên tử, `context/<stage>_answers.md`); manifest có `stage`/`role`; `saveOmpAuditReport` bắt buộc `checkpointCode` + `reportType`; kiểm prompt lúc boot (`assertAuditPromptsPresent`); `isContextSource` chặn bằng chứng trích từ `context/` hoặc `_library/`.
 
-**Lệch có chủ ý so với bản thiết kế:**
-- Luật bằng chứng chặn theo đoạn đường dẫn (`context`, `_library`), không tra `role` trong manifest: kết quả giống nhau vì hai thư mục này chỉ chứa tài liệu context.
-- Thêm dịch vụ mới vẫn cần dòng trong `AUDIT_CHECKPOINTS` (giữ cho worker legacy, D7), assembler/post-processor trong `audit-registry.ts` và phía web; phía coordinator/finalizer/admin thì không sửa.
-- `TriggerOptsSchema` vẫn mặc định `checkpoint = CP1` cho body không có `checkpoint` (hợp đồng API với web); mọi nơi khác không còn mặc định.
-- Slot CP3/CP4: không có entry; mã ngoài `AUDIT_CHECKPOINTS` bị 400 ở `TriggerOptsSchema`, mã có trong bảng mà thiếu service bị 400 ở `getAuditService` (và `tsc` không cho thiếu).
+**Lệch có chủ ý so với bản thiết kế (mỗi mục: thiết kế nói gì, làm gì, vì sao, giới hạn):**
+
+1. **Luật bằng chứng (3.7: "tra manifest, chỉ nhận `role: submission`") → chặn theo đoạn đường dẫn.**
+   - *Làm:* `isContextSource` (`cp2-quote-verify.ts`) chuẩn hóa nguồn được trích (giải `%xx`, `\` thành `/`, bỏ hoa thường) rồi từ chối nếu có đoạn `context` hoặc `_library`, kiểm **trước** bước khớp tên tệp và bước "tìm quote ở bất kỳ submission nào". Có test cho 8 biến thể đường dẫn.
+   - *Vì sao không tra manifest:* (a) `verifyCp2Quotes` là hàm thuần chỉ nhận quote và văn bản; tra manifest buộc phải đọc và truyền manifest vào, rồi khớp đường dẫn người trích với `file` trong manifest, mà tên trong `_library` có tiền tố băm còn model hay trích tên gốc nên dễ không khớp. (b) Khi tra manifest mà không khớp thì rơi về nhánh "tìm ở bất kỳ đâu" (đúng lỗ hổng cần chặn); luật theo đường dẫn từ chối bất kể có khớp manifest hay không, nên an toàn theo hướng đóng. (c) Hai thư mục này chỉ chứa tài liệu `role: context`, nên hai cách cho cùng kết quả với bố cục hiện tại.
+   - *Giới hạn / khi nào đổi:* luật dựa vào quy ước bố cục thư mục. Nếu một giai đoạn sau đặt tài liệu context ngoài `context/` và `_library/`, phải chuyển sang tra `role` trong manifest. Tệp nộp của nhóm nằm phẳng trong `attachments/` (tên đã làm sạch bằng `basename`), nên không thể trùng đoạn `context`.
+
+2. **"Thêm dịch vụ mới chỉ một file" (D16) → chỉ đúng với coordinator, finalizer, admin.**
+   - *Làm:* thêm dịch vụ = (i) một hàng trong `AUDIT_CHECKPOINTS` (prompt, output, loại báo cáo, bước tiến trình), (ii) một entry trong `audit-services.ts`, (iii) khóa `INPUT_ASSEMBLERS` / `POST_PROCESSORS` trong `audit-registry.ts`, (iv) phía web. Coordinator, finalizer, `job-spec-builder`, `trigger-opts`, `admin-workers` không phải sửa.
+   - *Vì sao:* D7 giữ bảng `AUDIT_CHECKPOINTS` trong `@app/shared` vì worker legacy còn đọc (`apps/worker-omp/src/omp-runner.ts` dòng 95 và 107). Bỏ bảng khỏi `@app/shared` buộc sửa worker và build lại image, trái D8 ("worker không đổi", image lớn, build một lần). D16 và D7 mâu thuẫn một phần; tôi giữ D7/D8 vì chúng là ràng buộc cứng, còn "một file" là mục tiêu thuận tiện.
+   - *Bảo vệ:* `Record<AuditCheckpointCode, AuditService>` làm `tsc` báo lỗi khi bảng có mã mà thiếu service; test "table integrity" bắt thiếu khóa assembler/post-processor hoặc thiếu file prompt; boot guard bắt prompt chưa lên server.
+   - *Khi nào đổi:* sau cutover worker (`plans/261012-worker-jobspec/phase-03-cutover.md`) khi bỏ nhánh legacy, có thể chuyển bảng vào API và gộp (i) với (ii).
+
+3. `TriggerOptsSchema` vẫn mặc định `checkpoint = CP1` cho body không có `checkpoint`: đó là hợp đồng API với web (D20 giữ nguyên), không phải mặc định ngầm; mọi nơi khác không còn mặc định.
+4. Slot CP3/CP4: không có entry (D6). Mã ngoài `AUDIT_CHECKPOINTS` bị 400 ở `TriggerOptsSchema`; mã có trong bảng mà thiếu service bị 400 ở `getAuditService` (và `tsc` không cho thiếu).
 
 **Đã kiểm:** `tsc` API sạch; test vùng đổi pass (`audit-services`, `audit-service-flow`, `cp2-audit-quotes`, `cp2-audit-trigger`, `assessment-routing`, `attachment-manifest*`, `prepare-sandbox-prompts`). Smoke local lắp sandbox CP1/CP2 từ DB local (case có CP1 + CP2). DB local: 8/8 report CP1 có lifecycle unit thuộc checkpoint CP1 và 9/9 report `input_clarification` nằm ở checkpoint CP1, nên đổi sang `ensureCheckpoint("CP1")` không đổi nơi lưu với dữ liệu này.
 
