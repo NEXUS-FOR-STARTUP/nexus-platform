@@ -54,7 +54,7 @@ Hiện trạng CP3/CP4: chỉ có catalog câu hỏi sinh viên (`packages/valid
 - Danh mục hiện có (`DOCUMENT_CATEGORY_CODES`, `packages/validation/src/index.ts:597`): `idea_report`, `pitch_deck`, `market_research`, `financial_plan`, `other`. Modal giai đoạn và bước intake dùng chung danh sách này.
 - Assembler CP2 (`loadAttachments`, `cp2-audit-input.ts:154`) và CP1 (`cp1-audit-input.ts:68-83`, `109-122`) đã load sẵn từng `doc` row nhưng chỉ lấy `download_url` và tên file; `category` bị bỏ. Model phải đoán loại file từ tên và nội dung (job `5196feab`: rubric, đề bài, phỏng vấn, báo cáo nhóm).
 - Danh mục hiện không có loại rubric/đề bài/phỏng vấn: 4 file trên chỉ chọn được `idea_report` hoặc `other`.
-- Ghi chú: hai vòng lặp CP1 không dedupe tên file (hai file cùng tên ghi đè nhau); CP2 có dedupe. Chưa xác nhận là lỗi thật của CP1.
+- Ghi chú (đã xử lý): hai vòng lặp CP1 không dedupe tên file, hai file cùng tên ghi đè nhau, tên không làm sạch. Đã sửa bằng `uniqueSandboxName`, xem mục 6.
 
 ---
 
@@ -213,7 +213,8 @@ Mỗi bước một commit, chạy test API trước khi sang bước sau.
 **Phân loại file (mục 1.6): đã triển khai** trên nhánh `feat/attachment-manifest` (xếp trên `fix/cp2-sandbox-schema-guard`, chưa push), cả CP1 và CP2:
 - `lecturer_guidance`, `interview_survey` đã thêm vào `DOCUMENT_CATEGORY_CODES`.
 - Manifest `input/attachments_manifest.json` do `attachment-manifest.ts` tạo, ghi trong `assembleCp1InputFiles` và `assembleCp2InputFiles`; instruction CP1/CP2 bảo model đọc manifest trước và coi nhãn là tự khai (D14).
-- Test 3 ca (`attachment-manifest.test.ts`) + 98 test liên quan pass, `tsc` API và web sạch. **Chưa chạy job thật**: chưa biết model có đọc/dùng manifest không.
+- **Va chạm tên file đã sửa** (commit `e065888`): trước đó CP1 ghi upload bằng tên gốc nên upload tên `attachments_manifest.json` hoặc trùng file hệ thống (`intake_submission.md`, `cp1_answers.md`, `previous_report.*`, `change_summary.md`, `team_fit_report.md`) ghi đè nhau, hai upload cùng tên làm hai mục manifest trỏ cùng nội dung, và tên chứa `../` có thể thoát khỏi `input/`. Nay `uniqueSandboxName` làm sạch tên, so sánh không phân biệt hoa thường, thêm tiền tố `<id8>` khi trùng; CP1 giữ trước tên hệ thống + tên manifest (`reservedInputNames`). CP2 dùng cùng hàm (tên trùng nay là `<id8>_<tên>`, bỏ `seq`). Hành vi CP1 đổi: file người dùng trùng tên file hệ thống bị đổi tên thay vì ghi đè.
+- Test: `attachment-manifest.test.ts` (3 ca) + `attachment-manifest-sandbox.test.ts` (2 ca, chạy `appendDocFiles` CP1 → `prepareSandbox` thật vào thư mục tạm với `fetch` giả: trùng tên, trùng tên manifest, trùng tên file hệ thống, `../`). Test liên quan pass, `tsc` API và web sạch. Chưa có test cho `assembleCp1InputFiles`/`assembleCp2InputFiles` đầy đủ (gọi DB). **Chưa chạy job thật**: chưa biết model có đọc/dùng manifest không.
 - Còn mở: có lọc danh mục theo giai đoạn không (modal dùng chung, mã mới hiện cả ở CP1); `business_model_canvas` chờ rubric CP3; `missingCategories` trên UI sẽ liệt kê hai nhãn mới là "chưa có" ở mọi giai đoạn (chưa xem cách hiển thị).
 
 ### Chưa kiểm
