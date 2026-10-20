@@ -1,7 +1,9 @@
 "use client";
 
-import { Drawer, Stack, UnstyledButton, Group, Text } from "@mantine/core";
-import { WORKSPACE_NAV_ITEMS, type WorkspaceTabKey } from "./JourneySidebar";
+import { useEffect } from "react";
+import { Drawer } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
+import { WorkspaceNavLinks, type WorkspaceTabKey } from "./JourneySidebar";
 import classes from "./JourneySidebar.module.css";
 
 interface JourneyMobileNavProps {
@@ -11,42 +13,27 @@ interface JourneyMobileNavProps {
   onTabChange: (key: WorkspaceTabKey) => void;
 }
 
-export default function JourneyMobileNav({
-  opened,
-  onClose,
-  activeTab,
-  onTabChange,
-}: JourneyMobileNavProps) {
+// Phải khớp breakpoint trong workspace-layout.module.css.
+const DESKTOP_QUERY = "(min-width: 821px)";
+
+export default function JourneyMobileNav({ opened, onClose, activeTab, onTabChange }: JourneyMobileNavProps) {
+  const isDesktop = useMediaQuery(DESKTOP_QUERY, false, { getInitialValueInEffect: true });
+
+  // Phóng to cửa sổ khi ngăn kéo đang mở: sidebar cố định thay thế, nên đóng ngăn kéo.
+  useEffect(() => {
+    if (isDesktop && opened) onClose();
+  }, [isDesktop, opened, onClose]);
+
   const handleSelect = (key: WorkspaceTabKey) => {
     onTabChange(key);
     onClose();
   };
 
   return (
-    <Drawer
-      opened={opened}
-      onClose={onClose}
-      withCloseButton
-      size="xs"
-      classNames={{ header: classes.mobileDrawerHeader, body: classes.mobileDrawerBody, content: classes.mobileDrawerContent, close: classes.mobileDrawerClose }}
-    >
-      <Stack gap={4} py="sm" style={{ flex: 1 }}>
-        {WORKSPACE_NAV_ITEMS.map((item) => {
-          const isActive = activeTab === item.key;
-          return (
-            <UnstyledButton
-              key={item.key}
-              onClick={() => handleSelect(item.key)}
-              className={isActive ? classes.mobileNavButtonActive : classes.mobileNavButton}
-            >
-              <Group gap="sm">
-                {item.icon}
-                <Text size="md" fw={600}>{item.label}</Text>
-              </Group>
-            </UnstyledButton>
-          );
-        })}
-      </Stack>
+    <Drawer opened={opened} onClose={onClose} title="Menu dự án" size="min(320px, 85vw)">
+      <nav className={classes.drawerBody} aria-label="Điều hướng dự án">
+        <WorkspaceNavLinks activeTab={activeTab} onTabChange={handleSelect} />
+      </nav>
     </Drawer>
   );
 }

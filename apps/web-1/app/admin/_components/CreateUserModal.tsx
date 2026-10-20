@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { UserPlus, Mail, User, Info } from "lucide-react";
+import { UserPlus, Envelope as Mail, User, Info } from "@phosphor-icons/react";
 import { Modal, Button, TextInput, Select } from "@mantine/core";
 
 interface CreateUserModalProps {

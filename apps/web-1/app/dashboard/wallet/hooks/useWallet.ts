@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { notifications } from "@mantine/notifications";
+import type { WalletTransactionItem } from "../_components/wallet-transaction.types";
 
 export interface DepositResult {
   depositId: string;
@@ -15,8 +16,15 @@ export interface DepositResult {
   };
 }
 
+export interface WalletBalanceSummary {
+  balance: number;
+  total_deposited: number;
+  total_spent: number;
+  total_refunded: number;
+}
+
 export function useWalletBalance() {
-  return useQuery<{ balance: number }>({
+  return useQuery<WalletBalanceSummary>({
     queryKey: ["wallet", "balance"],
     queryFn: async () => {
       const response = await apiClient.get("/wallet/balance");
@@ -33,18 +41,7 @@ export function useWalletHistory(
   sortBy: "created_at" | "amount" = "created_at",
   sortOrder: "asc" | "desc" = "desc",
 ) {
-  return useQuery<{ transactions: Array<{
-    id: string;
-    wallet_id: string;
-    type: string;
-    amount: number;
-    balance_before: number;
-    balance_after: number;
-    source_type: string;
-    source_id: string | null;
-    source_description?: string;
-    created_at: string;
-  }>; total: number; page: number; limit: number }>({
+  return useQuery<{ transactions: WalletTransactionItem[]; total: number; page: number; limit: number }>({
     queryKey: ["wallet", "history", page, limit, type ?? "all", sortBy, sortOrder],
     queryFn: async () => {
       const params: Record<string, unknown> = { page, limit, sortBy, sortOrder };
@@ -72,7 +69,7 @@ export function useMyDeposits() {
   return useQuery<{ deposits: WalletDeposit[] }>({
     queryKey: ["deposits"],
     queryFn: async () => {
-      const response = await apiClient.get("/deposits", { params: { limit: 20, offset: 0 } });
+      const response = await apiClient.get("/deposits");
       return response.data;
     },
     refetchInterval: 30_000,
@@ -87,8 +84,8 @@ export function useCreateDeposit() {
     { response?: { data?: { message?: string } } },
     { amount: number; idempotency_key: string }
   >({
-    mutationFn: async (input) => {
-      const response = await apiClient.post("/deposits", input);
+    mutationFn: async ({ amount, idempotency_key }) => {
+      const response = await apiClient.post("/deposits", { amount, idempotency_key });
       return response.data;
     },
     onSuccess: () => {
@@ -96,9 +93,10 @@ export function useCreateDeposit() {
       queryClient.invalidateQueries({ queryKey: ["deposits"] });
     },
     onError: (error) => {
+      const message = error.response?.data?.message || "Không thể tạo mã nạp tiền. Vui lòng thử lại.";
       notifications.show({
-        title: "Tạo mã nạp tiền thất bại",
-        message: error?.response?.data?.message || "Vui lòng thử lại sau.",
+        title: "Lỗi",
+        message,
         color: "red",
       });
     },

@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
-import { Button, TextInput, Modal } from "@mantine/core";
+import { Trash as Trash2 } from "@phosphor-icons/react";
+import { isAxiosError } from "axios";
+import { Button, Modal, TextInput } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/navigation";
 import { useCaseDetails } from "../hooks/useCaseDetails";
+import { Button as DangerButton } from "./ui/Button";
+import s from "./settings-tab.module.css";
 
 interface CaseDeleteSectionProps {
   caseId: string;
@@ -26,14 +29,14 @@ export default function CaseDeleteSection({ caseId, stage }: CaseDeleteSectionPr
       setIsDeleteModalOpen(false);
       notifications.show({
         title: "Thành công",
-        message: "Đã xóa hồ sơ dự án.",
+        message: "Đã xóa dự án.",
         color: "green",
       });
       router.push("/dashboard");
-    } catch (err: any) {
+    } catch (err: unknown) {
       notifications.show({
         title: "Lỗi",
-        message: err?.response?.data?.error || "Gặp lỗi khi xóa hồ sơ dự án.",
+        message: (isAxiosError(err) && err.response?.data?.error) || "Gặp lỗi khi xóa dự án.",
         color: "red",
       });
       setIsDeleteModalOpen(false);
@@ -43,27 +46,15 @@ export default function CaseDeleteSection({ caseId, stage }: CaseDeleteSectionPr
   return (
     <>
       {stage === "submitted" && (
-          <div className="pt-6 border-t border-red-500/10 mt-6 space-y-4">
-            <div>
-              <h4 className="font-heading font-semibold text-sm text-red-500 flex items-center gap-2">
-                <Trash2 className="w-4.5 h-4.5" />
-                Vùng nguy hiểm
-              </h4>
-              <p className="text-text-muted text-xs mt-1">
-                Hồ sơ này chưa được admin duyệt. Bạn có thể xóa vĩnh viễn hồ sơ này. Hành động này không thể hoàn tác.
-              </p>
-            </div>
-            <div>
-              <Button
-                color="red"
-                variant="outline"
-                onClick={() => setIsDeleteModalOpen(true)}
-                className="font-semibold text-xs h-9 px-4 cursor-pointer hover:bg-red-50 hover:text-red-600 border-red-200 text-red-500 rounded-lg"
-              >
-                Xóa hồ sơ dự án
-              </Button>
-            </div>
-          </div>
+        <div className={s.danger}>
+          <h2 className={s.dangerTitle}>Xoá dự án</h2>
+          <p className={s.dangerLead}>
+            Dự án này chưa được admin duyệt. Bạn có thể xóa vĩnh viễn dự án này. Hành động này không thể hoàn tác.
+          </p>
+          <DangerButton variant="danger" onClick={() => setIsDeleteModalOpen(true)}>
+            Xoá dự án
+          </DangerButton>
+        </div>
       )}
 
       <Modal
@@ -75,7 +66,7 @@ export default function CaseDeleteSection({ caseId, stage }: CaseDeleteSectionPr
         title={
           <span className="font-heading font-semibold text-sm text-red-600 flex items-center gap-1.5">
             <Trash2 className="w-4.5 h-4.5" />
-            Xác nhận xóa hồ sơ dự án
+            Xác nhận xóa dự án
           </span>
         }
         centered
@@ -84,7 +75,7 @@ export default function CaseDeleteSection({ caseId, stage }: CaseDeleteSectionPr
       >
         <div className="space-y-4 font-body text-xs">
           <p className="text-text-app leading-relaxed">
-            Hành động này sẽ <strong className="text-red-600">xóa vĩnh viễn</strong> hồ sơ dự án này, bao gồm toàn bộ tài liệu đính kèm, các phiên bản và lịch sử trao đổi. <strong className="text-red-600">Dữ liệu đã xóa không thể khôi phục.</strong>
+            Hành động này sẽ <strong className="text-red-600">xóa vĩnh viễn</strong> dự án này, bao gồm toàn bộ tài liệu đính kèm, các phiên bản và lịch sử trao đổi. <strong className="text-red-600">Dữ liệu đã xóa không thể khôi phục.</strong>
           </p>
 
           <TextInput

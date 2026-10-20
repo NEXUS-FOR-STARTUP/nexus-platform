@@ -5,7 +5,7 @@ import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
 import { marked } from "marked";
-import { buildStandardReportPdfFilename, getCp2ScoreRows, isCp2ReportType } from "@repo/validation";
+import { buildStandardReportPdfFilename, getCp2ScoreRows, getReportStageFileSlug, isCp2ReportType } from "@repo/validation";
 import { localizeAndCleanMarkdown } from "./mdNormalizer.js";
 import { markdownToTypst } from "./mdToTypst.js";
 import { resolveTypstBinary } from "./typstRunner.js";
@@ -183,23 +183,21 @@ export function resolveReportType(opts?: {
 }
 
 /**
- * Tạo tên file PDF chuẩn hóa: {slug}_{submission_type}_{timestamp}_v{version}.pdf
+ * Tạo tên file PDF chuẩn hóa: {project}_{stage}_{submission_type}_{timestamp}.pdf
  * Ủy quyền trực tiếp cho buildStandardReportPdfFilename từ @repo/validation.
  */
 export function buildReportPdfFilename(opts: {
   projectName: string;
-  reportType?: string;
+  /** report.report_type — quyết định giai đoạn (ý tưởng / thị trường). */
+  reportType?: string | null;
   submissionType?: string | null;
-  markdown?: string;
   createdAt?: Date | string | null;
-  versionNo?: number | null;
 }): string {
   return buildStandardReportPdfFilename({
     projectName: opts.projectName,
+    stageSlug: getReportStageFileSlug(opts.reportType),
     submissionType: opts.submissionType,
     createdAt: opts.createdAt,
-    versionNo: opts.versionNo,
-    customTypeSlug: opts.reportType,
   });
 }
 

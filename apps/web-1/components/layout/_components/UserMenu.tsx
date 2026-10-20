@@ -7,20 +7,20 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Avatar, Popover } from "@mantine/core";
 import {
   CreditCard,
-  HandCoins,
-  Home,
-  LogOut,
+  Coins as HandCoins,
+  House as Home,
+  SignOut as LogOut,
   Newspaper,
-  Settings,
-  type LucideIcon,
-} from "lucide-react";
+  Gear as Settings,
+  type Icon,
+} from "@phosphor-icons/react";
 import { useWalletBalance } from "@/app/dashboard/wallet/hooks/useWallet";
 import { useReceivableSystemAccount } from "@/app/admin/hooks/useReceivableCaseOptions";
 
 type UserMenuOption = {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon: Icon;
 };
 
 export default function UserMenu() {
@@ -87,9 +87,9 @@ export default function UserMenu() {
       onChange={setOpened}
       position="bottom-end"
       offset={6}
-      width={260}
+      width={300}
       radius="md"
-      shadow="md"
+      shadow="none"
       closeOnEscape
       closeOnClickOutside
     >
@@ -112,7 +112,7 @@ export default function UserMenu() {
         </button>
       </Popover.Target>
 
-      <Popover.Dropdown className="font-body p-2">
+      <Popover.Dropdown className="font-body p-2" style={{ boxShadow: "var(--shadow-float)" }}>
         {/* User email */}
         <div className="px-2.5 pt-1.5 pb-2">
           <p className="text-base text-text-muted truncate" title={user.email}>
@@ -122,9 +122,9 @@ export default function UserMenu() {
 
         {/* Wallet balance block: Clear, high contrast, instantly readable */}
         {isStudent && walletData && (
-          <div className="mx-1 mb-2 px-3 py-2.5 rounded-lg bg-surface-soft flex items-center justify-between">
+          <div className="mx-1 mb-2 px-3 py-3 rounded-lg bg-brand-subtle flex items-center justify-between gap-3">
             <span className="text-base text-text-muted">Số dư</span>
-            <span className="text-base font-bold text-danger tabular-nums">
+            <span className="text-xl font-medium text-brand tabular-nums whitespace-nowrap">
               {walletBalance.toLocaleString("vi-VN")} VND
             </span>
           </div>

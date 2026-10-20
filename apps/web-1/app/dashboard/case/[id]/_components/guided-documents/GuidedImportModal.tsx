@@ -8,7 +8,7 @@ import {
   Checkbox,
   Badge,
 } from "@mantine/core";
-import { FileText, CheckCircle2 } from "lucide-react";
+import { FileText, CheckCircle as CheckCircle2 } from "@phosphor-icons/react";
 import { QUESTION_REGISTRY, type Question } from "@repo/validation";
 
 interface Proposal {

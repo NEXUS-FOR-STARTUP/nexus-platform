@@ -1,7 +1,7 @@
 # Quy chuẩn Quản lý & Trích xuất Wording (UX Copy System)
 
-> **Phạm vi áp dụng:** Thư mục `design-system/wording/`  
-> **Mục tiêu:** Cung cấp hệ thống dữ liệu nguồn khách quan (Factual UI Inventory & Context) phục vụ quá trình audit, chuẩn hóa thuật ngữ và tối ưu hóa UX Copy trên toàn hệ thống Nexus Platform.
+> **Phạm vi:** Thư mục `design-system/wording/`  
+> **Mục tiêu:** Cung cấp dữ liệu nguồn khách quan (Factual UI Inventory & Context) phục vụ audit, chuẩn hóa thuật ngữ, tối ưu UX Copy toàn hệ thống Nexus Platform.
 
 ---
 
@@ -47,25 +47,25 @@ design-system/wording/
 
 ## 2. Tiêu chuẩn cấu trúc 3 lớp cho mỗi Page (`pages/*.md`)
 
-Mọi file trích xuất trong thư mục `pages/` **BẮT BUỘC** phải tuân thủ đúng 3 lớp thông tin sau:
+Mọi file trong `pages/` **BẮT BUỘC** theo đúng 3 lớp:
 
 ### Lớp 1: Page Context (Ngữ cảnh trang & Luồng hành vi)
-Cung cấp bối cảnh thực tế của người dùng khi đứng ở màn hình này:
+Bối cảnh thực tế người dùng tại màn hình này:
 - **Header:** `# Page: [Tên trang]`, `Route: [Đường dẫn]`, `Access: [Public | Authenticated | Supporter | Admin]`
 - **User:**
-  - *Primary user:* Đối tượng chính của trang (căn cứ theo tài liệu sản phẩm hoặc route).
-  - *Typical state:* Trạng thái công việc/tâm lý thường thấy (nếu là giả định, ghi rõ `[Assumption / Cần xác minh]`).
-  - *Knowledge level:* Mức độ hiểu biết về sản phẩm tại thời điểm này.
-- **User goals:** Người dùng muốn biết/làm gì trên màn hình này.
-- **Business/Product goals:** Mục tiêu chuyển đổi hoặc định vị sản phẩm tại trang này.
-- **Primary action:** Hành động chính hệ thống hướng người dùng tới.
-- **Secondary actions:** Các hành động phụ.
-- **Entry:** Người dùng có thể đến trang này từ các nguồn nào (`[Assumption / Cần xác minh]` nếu chưa có số liệu tracking).
-- **Exit / next step:** Đường dẫn tiếp theo khi người dùng hoàn thành hành động trên trang.
-- **Product facts / constraints:** Các sự thật kỹ thuật đã xác minh từ mã nguồn (trạng thái gói, tính năng đã/chưa hoạt động, điều kiện tài liệu).
+  - *Primary user:* Đối tượng chính (theo tài liệu sản phẩm hoặc route).
+  - *Typical state:* Trạng thái công việc/tâm lý thường thấy (giả định → ghi `[Assumption / Cần xác minh]`).
+  - *Knowledge level:* Mức hiểu biết sản phẩm lúc này.
+- **User goals:** Người dùng muốn biết/làm gì.
+- **Business/Product goals:** Mục tiêu chuyển đổi/định vị sản phẩm tại trang.
+- **Primary action:** Hành động chính hệ thống hướng tới.
+- **Secondary actions:** Hành động phụ.
+- **Entry:** Nguồn đến trang (`[Assumption / Cần xác minh]` nếu chưa có tracking).
+- **Exit / next step:** Đường đi tiếp sau khi hoàn thành hành động.
+- **Product facts / constraints:** Sự thật kỹ thuật đã xác minh từ code (trạng thái gói, tính năng đã/chưa hoạt động, điều kiện tài liệu).
 
 ### Lớp 2: Interactive Inventory (Bảng kiểm kê tương tác 6 cột)
-Bảng kiểm kê toàn bộ câu chữ hiển thị trên màn hình được chia theo từng Section trực quan:
+Bảng kiểm kê toàn bộ câu chữ hiển thị, chia theo Section trực quan:
 
 ```markdown
 | ID | Component / Vị trí | Type | Current wording | Action / Destination | State |
@@ -77,44 +77,44 @@ Bảng kiểm kê toàn bộ câu chữ hiển thị trên màn hình được c
 ```
 
 #### Quy chuẩn các cột:
-1. **`ID`**: Key định danh dạng dot-notation (ví dụ: `hero.title`, `pricing.basic.cta`).
-2. **`Component / Vị trí`**: Tên component Mantine/React/HTML và vị trí phân cấp trực quan.
+1. **`ID`**: Key dot-notation (vd: `hero.title`, `pricing.basic.cta`).
+2. **`Component / Vị trí`**: Tên component Mantine/React/HTML + vị trí phân cấp trực quan.
 3. **`Type`**: Phân loại chức năng UX của câu chữ:
    - `Heading`, `Description`, `CTA`, `Navigation`, `Label`, `Placeholder`, `Helper`
    - `Error`, `Empty state`, `Toast`, `Badge`, `Item`, `Modal`, `Alt text`, `Aria-label`
-4. **`Current wording`**: Nguyên văn chuỗi chữ đang hiển thị trong code.
-5. **`Action / Destination`**: Kết quả tương tác khi click/chạm (URL chuyển hướng, modal mở ra, toast kích hoạt, form submit...).
+4. **`Current wording`**: Nguyên văn chuỗi trong code.
+5. **`Action / Destination`**: Kết quả khi click/chạm (URL chuyển hướng, modal mở, toast kích hoạt, form submit...).
 6. **`State`**: Trạng thái hiển thị khách quan (`default`, `disabled`, `loading`, `error`, `public link`, `authenticated only`...).
 
-> ⛔ **NGUYÊN TẮC FACTUAL:** Không tự ý thêm các cột nhận xét chủ quan, cột đề xuất viết lại (`Suggested wording`), hay cột phán xét lỗi (`Problem / Severity`) vào bảng Inventory ở bước trích xuất. Bảng này phải phản ánh **thực tế khách quan 100% của UI và tương tác**.
+> ⛔ **NGUYÊN TẮC FACTUAL:** Không thêm cột nhận xét chủ quan, cột đề xuất viết lại (`Suggested wording`), cột phán xét lỗi (`Problem / Severity`) vào Inventory ở bước trích xuất. Bảng phản ánh **thực tế khách quan 100% của UI + tương tác**.
 
 ### Lớp 3: Page Notes (Ghi chú ngữ cảnh, biến thể thuật ngữ & điểm chưa rõ)
-Ghi nhận các sự thật ngữ cảnh bổ trợ giúp quá trình audit sau này không bị hiểu sai mental model:
-- **Biến thể thuật ngữ xuất hiện trên trang:** Liệt kê các cách gọi khác nhau cho cùng một khái niệm (ví dụ: `Supporter` vs `Mentor` vs `chuyên gia`).
-- **Hiện trạng kỹ thuật quan sát được:** Ví dụ nút bấm có handler gì, dẫn đi đâu, form có gọi API backend hay chỉ bật toast client-side.
-- **Điểm chưa xác minh (Unknowns / Questions):** Những câu hỏi về product logic cần Product Owner/Team làm rõ trước khi audit.
+Ghi sự thật ngữ cảnh bổ trợ để audit sau không hiểu sai mental model:
+- **Biến thể thuật ngữ trên trang:** Liệt kê các cách gọi khác nhau cho cùng khái niệm (vd: `Supporter` vs `Mentor` vs `chuyên gia`).
+- **Hiện trạng kỹ thuật quan sát được:** Vd nút có handler gì, dẫn đi đâu, form gọi API backend hay chỉ bật toast client-side.
+- **Điểm chưa xác minh (Unknowns / Questions):** Câu hỏi product logic cần Product Owner/Team làm rõ trước audit.
 
 ---
 
 ## 3. Quy trình trích xuất chuẩn cho Agent (Extraction SOP)
 
-1. **Khảo sát mã nguồn qua CodeGraph:** 
-   - **BẮT BUỘC:** Sử dụng `codegraph_explore` MCP (hoặc `codegraph explore` CLI) trước khi đọc file hoặc grep để nắm cấu trúc symbol, component tree và call-graph của trang.
-   - Đọc component cha (`page.tsx`), layout wrapper (`AppShell.tsx` hoặc `DashboardShell.tsx`) và toàn bộ subcomponents liên quan.
-   - Kiểm tra các file schema/validation để lấy trọn vẹn error message và placeholder.
-   - Kiểm tra các hàm `notifications.show`, modal dialogs hoặc conditional renders.
-2. **Lập Page Context (Lớp 1):** Xác định đúng user state, user goal, entry/exit và các product facts đã kiểm chứng từ code. Ghi nhãn `[Assumption / Cần xác minh]` cho các giả định chưa có source.
+1. **Khảo sát code qua CodeGraph:** 
+   - **BẮT BUỘC:** Dùng `codegraph_explore` MCP (hoặc `codegraph explore` CLI) trước khi đọc file/grep để nắm symbol, component tree, call-graph của trang.
+   - Đọc component cha (`page.tsx`), layout wrapper (`AppShell.tsx` hoặc `DashboardShell.tsx`) + mọi subcomponent liên quan.
+   - Kiểm tra schema/validation để lấy trọn error message + placeholder.
+   - Kiểm tra `notifications.show`, modal dialogs, conditional renders.
+2. **Lập Page Context (Lớp 1):** Xác định đúng user state, user goal, entry/exit, product facts đã kiểm chứng từ code. Giả định chưa có source ghi `[Assumption / Cần xác minh]`.
 3. **Trích xuất Inventory (Lớp 2):** 
-   - Điền đầy đủ 6 cột cho từng phần tử.
-   - Không bỏ sót: `alt text` của ảnh, `aria-label` của icon button, `placeholder`, `helperText`, `validation error`, `toast notification`.
-4. **Ghi chú Page Notes (Lớp 3):** Ghi lại hiện trạng thuật ngữ, code behavior và unknowns.
-5. **Đặt tên file:** Lưu vào `design-system/wording/pages/[tên-màn-hình].md`.
+   - Điền đủ 6 cột mỗi phần tử.
+   - Không bỏ sót: `alt text` ảnh, `aria-label` icon button, `placeholder`, `helperText`, `validation error`, `toast notification`.
+4. **Ghi Page Notes (Lớp 3):** Ghi hiện trạng thuật ngữ, code behavior, unknowns.
+5. **Đặt tên file:** Lưu `design-system/wording/pages/[tên-màn-hình].md`.
 
 ---
 
 ## 4. Quy ước ảnh chụp màn hình (`screenshots/`)
 
-- Khi dev server hoạt động (`http://localhost:3001`), chụp ảnh màn hình bằng browser tự động và lưu vào `screenshots/` theo định dạng:
+- Dev server chạy (`http://localhost:3001`) → chụp bằng browser tự động, lưu `screenshots/` theo định dạng:
   - `[page-id]-desktop.png` (viewport 1440x900)
-  - `[page-id]-mobile.png` (viewport 375x812 - nếu giao diện mobile có cấu trúc khác biệt đáng kể)
-- Ảnh chụp màn hình giúp đối soát độ dài của text, điểm ngắt dòng (line-wrap), sự cạnh tranh thị giác giữa các CTA và nhịp đọc của người dùng.
+  - `[page-id]-mobile.png` (viewport 375x812 - nếu mobile có cấu trúc khác đáng kể)
+- Ảnh giúp đối soát độ dài text, điểm ngắt dòng (line-wrap), cạnh tranh thị giác giữa CTA, nhịp đọc người dùng.

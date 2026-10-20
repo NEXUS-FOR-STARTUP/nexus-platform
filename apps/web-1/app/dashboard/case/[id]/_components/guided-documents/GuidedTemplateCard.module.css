@@ -3,7 +3,7 @@
   width: 100%;
   padding: var(--mantine-spacing-sm);
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--mantine-radius-md);
+  border-radius: var(--ui-radius);
   background-color: var(--color-surface-app);
   transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
 }
@@ -20,14 +20,14 @@
 }
 
 .card:focus-visible {
-  outline: 2px solid var(--color-brand);
+  outline: var(--ui-focus-ring);
   outline-offset: 3px;
 }
 
 .thumb {
   position: relative;
   overflow: hidden;
-  border-radius: var(--mantine-radius-sm);
+  border-radius: var(--ui-radius-sm);
   background-color: var(--color-surface-soft);
 }
 
@@ -40,7 +40,7 @@
   background-color: color-mix(in srgb, var(--color-surface-app) 70%, transparent);
   color: var(--color-text-app);
   font-size: var(--mantine-font-size-lg);
-  font-weight: 700;
+  font-weight: var(--ui-weight-medium);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }

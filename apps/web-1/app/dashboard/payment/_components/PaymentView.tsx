@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { LucideIcon } from "lucide-react";
+import { type Icon } from "@phosphor-icons/react";
 import { PaymentBankInfo } from "./PaymentBankInfo";
 import { PaymentDepositMeta } from "./PaymentDepositMeta";
 
@@ -17,7 +17,7 @@ interface PaymentViewProps {
   title: string;
   statusLabel: string;
   statusColor: string;
-  StatusIcon: LucideIcon;
+  StatusIcon: Icon;
   explanation: string;
   /** Optional block between explanation and meta (e.g. amount summary). */
   summary?: ReactNode;

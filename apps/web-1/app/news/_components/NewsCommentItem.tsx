@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Avatar, Text, Group, Button, Badge, Modal, Menu, ActionIcon } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { MoreVertical, Trash2, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { DotsThreeVertical as MoreVertical, Trash as Trash2, ThumbsUp, ThumbsDown } from "@phosphor-icons/react";
 import { useSession } from '@/lib/auth-client';
 import type { NewsCommentItem as CommentType, NewsCommentReplyItem, NewsReactionType } from '@repo/validation';
 import { NewsCommentForm } from './NewsCommentForm';
@@ -133,7 +133,7 @@ export function NewsCommentItem({
         const rest = comment.content.slice(mention.length);
         return (
           <span>
-            <span className="text-blue-600 font-medium hover:underline cursor-pointer mr-1">
+            <span className="text-brand font-medium hover:underline cursor-pointer mr-1">
               {mention}
             </span>
             <span>{rest}</span>
@@ -146,7 +146,7 @@ export function NewsCommentItem({
     if (genericMatch && comment.content.startsWith('@')) {
       return (
         <span>
-          <span className="text-blue-600 font-medium hover:underline cursor-pointer mr-1">
+          <span className="text-brand font-medium hover:underline cursor-pointer mr-1">
             {genericMatch[1]}
           </span>
           <span>{genericMatch[2]}</span>
@@ -158,7 +158,7 @@ export function NewsCommentItem({
   };
 
   return (
-    <div className={`space-y-3 ${isReply ? 'mt-3 pl-3 sm:pl-4 border-l-2 border-stone-200' : 'pb-4 border-b border-stone-100'}`}>
+    <div className={`space-y-3 ${isReply ? 'mt-3 pl-3 sm:pl-4' : 'pb-4'}`}>
       <div className="flex items-start gap-3">
         <Avatar
           src={comment.user.avatar_url}
@@ -173,7 +173,7 @@ export function NewsCommentItem({
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 mb-1">
             <div className="flex items-center gap-2 flex-wrap min-w-0">
-              <Text size="sm" fw={600} className="text-stone-900 truncate">
+              <Text size="sm" fw={600} className="text-text-app truncate">
                 {comment.user.name}
               </Text>
 
@@ -200,7 +200,7 @@ export function NewsCommentItem({
                     variant="subtle"
                     color="gray"
                     size="xs"
-                    className="text-stone-400 hover:text-stone-700"
+                    className="text-text-muted hover:text-text-app"
                     aria-label="Tùy chọn bình luận"
                   >
                     <MoreVertical size={14} />
@@ -219,7 +219,7 @@ export function NewsCommentItem({
             )}
           </div>
 
-          <div className="text-sm text-stone-700 whitespace-pre-wrap break-words">
+          <div className="text-sm text-text-app whitespace-pre-wrap break-words">
             {renderFormattedContent()}
           </div>
 
@@ -230,19 +230,14 @@ export function NewsCommentItem({
                 type="button"
                 onClick={() => handleReaction('LIKE')}
                 disabled={isReacting}
-                className={`inline-flex items-center gap-1.5 text-xs py-1 px-2 rounded-full transition-colors hover:bg-stone-100 ${
+                className={`inline-flex items-center gap-1.5 text-xs py-1 px-2 rounded-full transition-colors hover:bg-surface-soft ${
                   isLiked
-                    ? 'text-emerald-600 font-semibold'
-                    : 'text-stone-500 hover:text-stone-800'
+                    ? 'text-success font-semibold'
+                    : 'text-text-muted hover:text-text-app'
                 }`}
                 title="Thích bình luận"
               >
-                <ThumbsUp
-                  size={13}
-                  className={`stroke-[1.75] transition-colors ${
-                    isLiked ? 'fill-emerald-600 text-emerald-600' : 'fill-transparent'
-                  }`}
-                />
+                <ThumbsUp size={13} weight={isLiked ? 'fill' : 'regular'} />
                 {comment.likes > 0 && <span>{comment.likes}</span>}
               </button>
 
@@ -251,19 +246,14 @@ export function NewsCommentItem({
                 type="button"
                 onClick={() => handleReaction('DISLIKE')}
                 disabled={isReacting}
-                className={`inline-flex items-center gap-1.5 text-xs py-1 px-2 rounded-full transition-colors hover:bg-stone-100 ${
+                className={`inline-flex items-center gap-1.5 text-xs py-1 px-2 rounded-full transition-colors hover:bg-surface-soft ${
                   isDisliked
-                    ? 'text-rose-600 font-semibold'
-                    : 'text-stone-500 hover:text-stone-800'
+                    ? 'text-danger font-semibold'
+                    : 'text-text-muted hover:text-text-app'
                 }`}
                 title="Không thích bình luận"
               >
-                <ThumbsDown
-                  size={13}
-                  className={`stroke-[1.75] transition-colors ${
-                    isDisliked ? 'fill-rose-600 text-rose-600' : 'fill-transparent'
-                  }`}
-                />
+                <ThumbsDown size={13} weight={isDisliked ? 'fill' : 'regular'} />
                 {comment.dislikes > 0 && <span>{comment.dislikes}</span>}
               </button>
 
@@ -275,7 +265,7 @@ export function NewsCommentItem({
                     setReplyTargetUser(comment.user.name);
                     setShowReplyForm(!showReplyForm);
                   }}
-                  className="inline-flex items-center text-xs font-semibold text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-full px-2.5 py-1 transition-colors"
+                  className="inline-flex items-center text-xs font-semibold text-text-muted hover:text-text-app hover:bg-surface-soft rounded-full px-2.5 py-1 transition-colors"
                 >
                   <span>Trả lời</span>
                 </button>
@@ -286,7 +276,7 @@ export function NewsCommentItem({
                 <button
                   type="button"
                   onClick={() => onReplyToUser(comment.user.name)}
-                  className="inline-flex items-center text-xs font-semibold text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-full px-2.5 py-1 transition-colors"
+                  className="inline-flex items-center text-xs font-semibold text-text-muted hover:text-text-app hover:bg-surface-soft rounded-full px-2.5 py-1 transition-colors"
                 >
                   <span>Trả lời</span>
                 </button>

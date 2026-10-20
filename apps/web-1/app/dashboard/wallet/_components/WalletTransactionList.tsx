@@ -1,130 +1,137 @@
 "use client";
 
 import { useState } from "react";
-import { Paper, Center, Text, Pagination, Skeleton, Button, Stack, Divider } from "@mantine/core";
+import { Skeleton } from "@mantine/core";
+import { CaretDown } from "@phosphor-icons/react";
 import { useWalletHistory } from "../hooks/useWallet";
-import {
-  WalletTransactionItem,
-  SortField,
-  SortState,
-} from "./wallet-transaction.types";
-import { WalletTransactionFilters } from "./WalletTransactionFilters";
-import { WalletTransactionTable } from "./WalletTransactionTable";
-import { WalletTransactionCardList } from "./WalletTransactionCardList";
+import { formatVndAmount } from "@/lib/pricing";
+import type { QuickFilterTab, SortState } from "./wallet-transaction.types";
+import { formatDateTime } from "./wallet-transaction.types";
+import { describeWalletRow } from "./wallet-row";
+import { WalletHistoryFilters } from "./WalletHistoryFilters";
+import { WalletTransactionDetail } from "./WalletTransactionDetail";
+import { WalletHistoryPagination } from "./WalletHistoryPagination";
+import styles from "../wallet.module.css";
+
+const LIMIT = 10;
 
 export function WalletTransactionList() {
   const [page, setPage] = useState(1);
-  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<QuickFilterTab>("all");
   const [sort, setSort] = useState<SortState>({ field: "created_at", order: "desc" });
 
-  const effectiveType = selectedType;
-  const limit = 10;
+  const effectiveType = selectedType === "all" ? null : selectedType;
   const { data, isLoading, isFetching, isError, refetch } = useWalletHistory(
     page,
-    limit,
+    LIMIT,
     effectiveType,
     sort.field,
     sort.order,
   );
 
-  const handleTypeChange = (value: string | null) => {
-    setSelectedType(value);
+  const handleTypeChange = (type: QuickFilterTab) => {
+    setSelectedType(type);
     setPage(1);
   };
 
-  const handleSort = (field: SortField) => {
-    setSort((prev) =>
-      prev.field === field
-        ? { field, order: prev.order === "asc" ? "desc" : "asc" }
-        : { field, order: "desc" },
-    );
+  const handleSortChange = (newSort: SortState) => {
+    setSort(newSort);
     setPage(1);
   };
 
-  const transactions = (data?.transactions ?? []) as WalletTransactionItem[];
+  const transactions = data?.transactions ?? [];
   const total = data?.total ?? 0;
-  const totalPages = Math.ceil(total / limit);
 
   return (
-    <Paper withBorder radius="md" className="bg-surface-app overflow-hidden">
-      <WalletTransactionFilters
+    <div>
+      <WalletHistoryFilters
         selectedType={selectedType}
         onTypeChange={handleTypeChange}
+        sort={sort}
+        onSortChange={handleSortChange}
         isFetching={isFetching}
         onRefresh={() => refetch()}
       />
 
       {isLoading ? (
-        <div className="p-4 space-y-3">
+        <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} height={38} radius="sm" />
+            <Skeleton key={i} height={52} radius="sm" />
           ))}
         </div>
       ) : isError ? (
-        <Center p="xl">
-          <Stack align="center" gap="sm">
-            <Text className="text-text-app text-base">
-              Không thể tải lịch sử giao dịch.
-            </Text>
-            <Button size="sm" variant="default" onClick={() => refetch()} className="text-base">
-              Thử lại
-            </Button>
-          </Stack>
-        </Center>
-      ) : total === 0 ? (
-        <Center p="xl">
-          <Stack align="center" gap="sm" ta="center">
-            <Text fw={500} className="text-text-app text-base">
-              {effectiveType ? "Không có giao dịch phù hợp" : "Chưa có giao dịch nào"}
-            </Text>
-            <Text c="dimmed" className="text-base">
-              {effectiveType
-                ? "Thử chuyển bộ lọc để tìm kiếm các giao dịch khác."
-                : "Các biến động số dư ví sẽ được ghi nhận tại đây."}
-            </Text>
-            {effectiveType && (
-              <Button size="sm" variant="subtle" color="gray" onClick={() => handleTypeChange(null)} className="text-base">
-                Xem tất cả giao dịch
-              </Button>
-            )}
-          </Stack>
-        </Center>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+          <p className="text-sm font-medium text-red-700">
+            Không thể tải lịch sử giao dịch. Vui lòng thử lại sau.
+          </p>
+          <button
+            type="button"
+            className={`${styles.btn} ${styles.btnQuiet} ${styles.btnSm} mt-3`}
+            onClick={() => refetch()}
+          >
+            Thử lại
+          </button>
+        </div>
+      ) : transactions.length === 0 ? (
+        <div className="rounded-lg border border-border-app bg-surface-app p-10 text-center">
+          <p className="text-sm font-medium text-text-app">
+            Chưa có giao dịch nào
+          </p>
+          <p className="text-xs text-text-muted mt-1">
+            {selectedType !== "all"
+              ? "Không có giao dịch phù hợp với bộ lọc đã chọn."
+              : "Các biến động số dư ví khi nạp tiền hoặc thanh toán dịch vụ sẽ hiển thị tại đây."}
+          </p>
+        </div>
       ) : (
         <>
-          {/* Desktop Table */}
-          <div className="hidden md:block">
-            <WalletTransactionTable
-              transactions={transactions}
-              sort={sort}
-              onSort={handleSort}
-            />
-          </div>
+          <div className={styles.rows}>
+            {transactions.map((tx) => {
+              const { title, subtitle, typeTone, typeLabel } = describeWalletRow(tx);
+              const { date, time } = formatDateTime(tx.created_at);
+              const isPositive = tx.amount > 0;
+              const chipClass =
+                typeTone === "ok"
+                  ? styles.chipGreen
+                  : typeTone === "error"
+                    ? styles.chipRed
+                    : typeTone === "draft"
+                      ? styles.chipBlue
+                      : typeTone === "warn"
+                        ? styles.chipOrange
+                        : "";
 
-          {/* Mobile Card List */}
-          <div className="md:hidden">
-            <WalletTransactionCardList
-              transactions={transactions}
-            />
+              return (
+                <details key={tx.id} className={styles.tx}>
+                  <summary className={styles.txRow}>
+                    <span className={styles.dt}>
+                      {date} <span className="opacity-75">{time}</span>
+                    </span>
+                    <div className={styles.tt}>
+                      <div className={styles.titleText}>{title}</div>
+                      {subtitle && <div className={styles.subtitleText}>{subtitle}</div>}
+                    </div>
+                    <span className={`${styles.amt} ${isPositive ? styles.amtPlus : styles.amtMinus}`}>
+                      {formatVndAmount(tx.amount, { signed: true })}
+                    </span>
+                    <span className={`${styles.chip} ${chipClass}`}>{typeLabel}</span>
+                    <span className={styles.cv}>
+                      <CaretDown size={16} className={styles.txChevron} />
+                    </span>
+                  </summary>
+                  <WalletTransactionDetail transaction={tx} />
+                </details>
+              );
+            })}
           </div>
-
-          {/* Footer Pagination & Count */}
-          <Divider />
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-surface-app">
-            <Text c="dimmed" className="text-base">
-              Hiển thị {transactions.length} trên tổng số {total.toLocaleString("vi-VN")} giao dịch
-            </Text>
-            {totalPages > 1 && (
-              <Pagination
-                total={totalPages}
-                value={page}
-                onChange={setPage}
-                size="md"
-                radius="sm"
-              />
-            )}
-          </div>
+          <WalletHistoryPagination
+            page={page}
+            total={total}
+            limit={LIMIT}
+            onChange={setPage}
+          />
         </>
       )}
-    </Paper>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isCp2ReportType } from "./catalogs/cp2-report-display.js";
 
 // ---------------------------------------------------------------------------
 // Team role tracks — shared code ↔ label map (FE + BE)
@@ -1036,23 +1037,23 @@ export function getSubmissionTypeFileSlug(submissionType?: string | null): strin
 
 export interface BuildReportPdfFilenameOptions {
   projectName: string;
+  /** Stage the report belongs to; resolved from the report type via `getReportStageFileSlug`. */
+  stageSlug: string;
   submissionType?: string | null;
   createdAt?: Date | string | null;
-  versionNo?: number | null;
-  customTypeSlug?: string;
 }
 
+/** CP2 report types belong to the market stage; every other report is the idea stage (CP1). */
+export function getReportStageFileSlug(reportType?: string | null): string {
+  return isCp2ReportType(reportType) ? "thi_truong" : "y_tuong";
+}
+
+/** Format: {project}_{stage}_{submission_type}_{timestamp}.pdf — timestamp already disambiguates rounds. */
 export function buildStandardReportPdfFilename(opts: BuildReportPdfFilenameOptions): string {
   const slug = makeDownloadSlug(opts.projectName);
-  const typeSlug = opts.customTypeSlug
-    ? makeDownloadSlug(opts.customTypeSlug)
-    : getSubmissionTypeFileSlug(opts.submissionType);
+  const typeSlug = getSubmissionTypeFileSlug(opts.submissionType);
   const timestamp = formatReportTimestamp(opts.createdAt);
-  const versionSuffix =
-    opts.versionNo != null && !isNaN(opts.versionNo)
-      ? `_v${String(opts.versionNo).padStart(2, "0")}`
-      : "";
-  return `${slug}_${typeSlug}_${timestamp}${versionSuffix}.pdf`;
+  return `${slug}_${makeDownloadSlug(opts.stageSlug)}_${typeSlug}_${timestamp}.pdf`;
 }
 
 // ---------------------------------------------------------------------------

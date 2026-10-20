@@ -1,7 +1,7 @@
 "use client";
 
 import { ActionIcon, Badge, Menu, Table, Tooltip } from "@mantine/core";
-import { AlertTriangle, Banknote, Link2, MoreHorizontal, Ban } from "lucide-react";
+import { Warning as AlertTriangle, Money as Banknote, Link as Link2, DotsThree as MoreHorizontal, Prohibit as Ban } from "@phosphor-icons/react";
 import { RECEIVABLE_STATUS_LABELS, type AdminReceivable, type ReceivableStatus } from "@repo/validation";
 import { formatDateTime, formatVnd } from "./format";
 

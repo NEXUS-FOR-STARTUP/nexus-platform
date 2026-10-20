@@ -1,8 +1,6 @@
 import type { TeamFitSavedResult } from "@repo/validation";
-import { PACKAGE_KEYS, formatPrice } from "@/lib/pricing";
-import { usePackagePrice } from "@/lib/usePackagePrice";
 import { TeamFitReportCard } from "./TeamFitReportCard";
-import { AlertTriangle, Check } from "lucide-react";
+import { Warning as AlertTriangle, Check } from "@phosphor-icons/react/ssr";
 import { Button, Group, Text } from "@mantine/core";
 
 interface TeamFitResultStepProps {
@@ -12,9 +10,7 @@ interface TeamFitResultStepProps {
   onReset: () => void;
   onSave?: () => void;
   onXemCase?: () => void;
-  onUpgrade?: () => void;
   isSaving?: boolean;
-  isUpgrading?: boolean;
   hasSaved?: boolean;
 }
 
@@ -25,15 +21,9 @@ export default function TeamFitResultStep({
   onReset,
   onSave,
   onXemCase,
-  onUpgrade,
   isSaving = false,
-  isUpgrading = false,
   hasSaved = false,
 }: TeamFitResultStepProps) {
-  const { data: auditPkg } = usePackagePrice(PACKAGE_KEYS.AI_AUDIT);
-  const auditPriceLabel = formatPrice(auditPkg?.price ?? 79000);
-
-  // Loading state
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
@@ -45,7 +35,6 @@ export default function TeamFitResultStep({
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="flex flex-col items-center gap-4 py-10 text-center">
@@ -60,75 +49,45 @@ export default function TeamFitResultStep({
     );
   }
 
-  // Ready / idle state (no result yet)
   if (!result) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
         <Text size="sm" c="dimmed">
-          Nhấn &quot;Kiểm tra sơ bộ&quot; để hệ thống đếm chỉ số nhóm, nhận định đội ngũ và nêu những câu nhóm chưa trả lời được
+          Bấm &quot;Kiểm tra sơ bộ&quot; để xem kết quả.
         </Text>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       <TeamFitReportCard report={result} />
 
-
-      {/* Buttons row */}
-      <Group justify="center" gap="sm">
-        <Button variant="outline" color="red" onClick={onReset}>
+      <Group justify="space-between" gap="sm">
+        <Button variant="default" onClick={onReset}>
           Kiểm tra lại
         </Button>
 
         {hasSaved ? (
-          <>
+          <Group gap="sm">
             <Button
-              variant="filled"
+              variant="light"
               color="green"
               disabled
               rightSection={<Check className="h-4 w-4" />}
             >
-              Đã lưu vào dự án
+              Đã tạo
             </Button>
-            <Button
-              variant="filled"
-              color="brand"
-              onClick={onXemCase}
-            >
-              Xem dự án →
+            <Button color="brand" onClick={onXemCase}>
+              Xem dự án
             </Button>
-          </>
+          </Group>
         ) : (
-          <Button
-            variant="filled"
-            color="brand"
-            onClick={onSave}
-            loading={isSaving}
-          >
-            Lưu kết quả & Tạo dự án
+          <Button color="brand" onClick={onSave} loading={isSaving}>
+            Tạo dự án
           </Button>
         )}
       </Group>
-
-      {/* Upsell banner */}
-      <div className="mt-6 p-4 bg-brand/10 border border-brand/20 rounded-lg">
-        <Text size="sm" fw={600} mb="xs">
-          Cần đánh giá kỹ hơn từ tài liệu của dự án?
-        </Text>
-        <Text size="xs" c="dimmed" mb="sm">
-          Tải lên slide hoặc đề cương hoàn chỉnh để nhận báo cáo phản biện chi tiết qua 5 nhóm tiêu chí. Gói {auditPriceLabel} bao gồm 2 lượt đánh giá.
-        </Text>
-        <Button
-          size="sm"
-          color="brand"
-          onClick={onUpgrade}
-          loading={isUpgrading}
-        >
-          Đánh giá dự án
-        </Button>
-      </div>
     </div>
   );
 }

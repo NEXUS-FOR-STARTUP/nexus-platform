@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Modal, Button } from "@mantine/core";
-import { CheckCircle, Loader2 } from "lucide-react";
+import { CheckCircle, CircleNotch as Loader2 } from "@phosphor-icons/react";
 
 interface ApproveCaseModalProps {
   caseId: string | null;

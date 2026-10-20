@@ -9,8 +9,8 @@ walletRoutes.use('*', requireAuth)
 
 walletRoutes.get('/balance', async (c) => {
   const user = c.get('user')
-  const balance = await walletService.getBalance(user.id)
-  return c.json({ balance })
+  const summary = await walletService.getSummary(user.id)
+  return c.json(summary)
 })
 
 const VALID_TYPES = ['deposit', 'withdrawal', 'refund', 'adjustment', 'migration', 'service_payment']

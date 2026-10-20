@@ -1,7 +1,7 @@
 "use client";
 
 import { Select, TextInput } from "@mantine/core";
-import { Search } from "lucide-react";
+import { MagnifyingGlass as Search } from "@phosphor-icons/react";
 
 export const SUPPORTER_STATUS_OPTIONS = [
   { value: "assigned", label: "Đã phân công" },
@@ -28,8 +28,8 @@ export const STUDENT_STAGE_OPTIONS = [
 export const STUDENT_SORT_OPTIONS = [
   { value: "created_at_desc", label: "Mới nhất" },
   { value: "created_at_asc", label: "Cũ nhất" },
-  { value: "case_code_asc", label: "Mã hồ sơ (A-Z)" },
-  { value: "case_code_desc", label: "Mã hồ sơ (Z-A)" },
+  { value: "case_code_asc", label: "Mã dự án (A-Z)" },
+  { value: "case_code_desc", label: "Mã dự án (Z-A)" },
   { value: "team_name_asc", label: "Tên nhóm (A-Z)" },
   { value: "team_name_desc", label: "Tên nhóm (Z-A)" },
 ];
@@ -57,11 +57,12 @@ export default function CaseListFilters({
     <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 w-full">
       <TextInput
         label="Tìm kiếm"
-        placeholder="Tìm theo mã hồ sơ hoặc tên nhóm..."
+        placeholder="Tìm theo mã dự án hoặc tên nhóm..."
         leftSection={<Search className="w-4 h-4 text-text-muted" />}
         value={search}
         onChange={(event) => onSearchChange(event.currentTarget.value)}
-        radius="md"
+        radius={12}
+        size="md"
         className="flex-1 w-full"
       />
       <div className="grid grid-cols-2 gap-2 sm:gap-3 w-full sm:w-auto shrink-0">
@@ -72,7 +73,8 @@ export default function CaseListFilters({
           value={stage}
           onChange={onStageChange}
           clearable
-          radius="md"
+          radius={12}
+          size="md"
           className="w-full sm:w-[208px]"
         />
         <Select
@@ -81,7 +83,8 @@ export default function CaseListFilters({
           value={sortValue}
           onChange={(value) => onSortChange(value || "created_at_desc")}
           allowDeselect={false}
-          radius="md"
+          radius={12}
+          size="md"
           className="w-full sm:w-[192px]"
         />
       </div>

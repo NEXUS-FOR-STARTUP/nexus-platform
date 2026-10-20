@@ -12,6 +12,40 @@ export interface ParseResult {
   }>;
 }
 
+const HTML_BLOCK_END_TAG_PATTERN = /<\/(?:p|h[1-6]|li|tr)>/gi;
+const HTML_TAG_PATTERN = /<[^>]+>/g;
+const HTML_LINE_BREAK_PATTERN = /<br\s*\/?>/gi;
+const HTML_ENTITY_PATTERN = /&(#x?[0-9a-f]+|amp|lt|gt|quot|apos|nbsp);/gi;
+
+const HTML_ENTITY_MAP: Record<string, string> = {
+  amp: '&',
+  apos: "'",
+  gt: '>',
+  lt: '<',
+  nbsp: ' ',
+  quot: '"',
+};
+
+function decodeHtmlEntity(_: string, value: string): string {
+  const normalized = value.toLowerCase();
+  if (normalized in HTML_ENTITY_MAP) return HTML_ENTITY_MAP[normalized];
+  if (normalized.startsWith('#x')) {
+    return String.fromCodePoint(Number.parseInt(normalized.slice(2), 16));
+  }
+  return String.fromCodePoint(Number.parseInt(normalized.slice(1), 10));
+}
+
+function htmlToPlainText(html: string): string {
+  return html
+    .replace(HTML_LINE_BREAK_PATTERN, '\n')
+    .replace(HTML_BLOCK_END_TAG_PATTERN, '\n\n')
+    .replace(HTML_TAG_PATTERN, '')
+    .replace(HTML_ENTITY_PATTERN, decodeHtmlEntity)
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+
 export async function extractTextFromBuffer(
   buffer: Buffer,
   filename: string,
@@ -19,8 +53,8 @@ export async function extractTextFromBuffer(
   const ext = path.extname(filename).toLowerCase();
 
   if (ext === '.docx') {
-    const result = await mammoth.extractRawText({ buffer });
-    return result.value || '';
+    const result = await mammoth.convertToHtml({ buffer });
+    return htmlToPlainText(result.value);
   }
 
   if (ext === '.pdf') {

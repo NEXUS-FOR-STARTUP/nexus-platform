@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Title, Text, Stack, Skeleton } from '@mantine/core';
-import { MessageSquare } from 'lucide-react';
+import { Chat as MessageSquare } from "@phosphor-icons/react";
 import { useNewsComments } from '../hooks/useNewsComments';
 import { NewsCommentForm } from './NewsCommentForm';
 import { NewsCommentItem } from './NewsCommentItem';
@@ -15,10 +15,10 @@ export function NewsCommentList({ idOrSlug }: NewsCommentListProps) {
   const { comments, total, isLoading, createComment, deleteComment, reactComment } = useNewsComments(idOrSlug);
 
   return (
-    <div className="mt-10 pt-8 border-t border-stone-200">
+    <div className="mt-10 pt-8">
       <div className="flex items-center gap-2 mb-6">
-        <MessageSquare size={22} className="text-stone-700" />
-        <Title order={3} className="text-xl font-bold text-stone-900">
+        <MessageSquare size={22} className="text-text-app" />
+        <Title order={3} className="text-xl font-bold text-text-app">
           Bình luận {total > 0 ? `(${total})` : ''}
         </Title>
       </div>
@@ -38,7 +38,7 @@ export function NewsCommentList({ idOrSlug }: NewsCommentListProps) {
           <Skeleton height={60} radius="md" />
         </Stack>
       ) : comments.length === 0 ? (
-        <div className="text-center py-8 text-stone-400">
+        <div className="text-center py-8 text-text-subtle">
           <Text size="sm">Chưa có bình luận nào. Hãy là người đầu tiên để lại ý kiến!</Text>
         </div>
       ) : (

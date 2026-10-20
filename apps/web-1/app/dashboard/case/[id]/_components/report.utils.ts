@@ -1,4 +1,4 @@
-import { buildStandardReportPdfFilename } from "@repo/validation";
+import { buildStandardReportPdfFilename, getReportStageFileSlug } from "@repo/validation";
 export interface RichReportData {
   projectName?: string;
   overallScore?: number;
@@ -48,15 +48,15 @@ export function makeDownloadSlug(name: string): string {
 
 export function getReportPdfFilename(
   projectName: string,
+  reportType: string | null | undefined,
   createdAt?: string | Date | null,
   submissionType?: string | null,
-  versionNo?: number | null,
 ): string {
   return buildStandardReportPdfFilename({
     projectName,
+    stageSlug: getReportStageFileSlug(reportType),
     createdAt,
     submissionType,
-    versionNo,
   });
 }
 

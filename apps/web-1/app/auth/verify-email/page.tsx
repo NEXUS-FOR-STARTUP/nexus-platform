@@ -6,25 +6,31 @@
  * Kept for backward-compatibility with direct URL links.
  */
 
-import React, { Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertCircle, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
-import { Anchor, Box, Button, Center, Group, Loader, PinInput, Text, Title } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
+import { Center, PinInput } from "@mantine/core";
+import { CheckCircleIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { authClient } from "@/lib/auth-client";
 import { translateAuthError } from "@/lib/auth-errors";
-import AuthShell from "@/components/layout/AuthShell";
+import AuthShell, { AuthLoading } from "@/components/layout/AuthShell";
+import { AuthButton } from "../_components/AuthButton";
+import s from "../_components/auth.module.css";
 
 const OTP_LENGTH = 6;
 const RESEND_COOLDOWN_SECONDS = 60;
+const REDIRECT_DELAY_MS = 1500;
 const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
+
+function safeReturnUrl(raw: string | null): string {
+  return raw && raw.startsWith("/") && !raw.startsWith("//") && !raw.startsWith("/\\") ? raw : "/dashboard";
+}
 
 function VerifyEmailForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = (searchParams.get("email") ?? "").trim();
-  const returnUrl = searchParams.get("returnUrl") ?? "/dashboard";
+  const returnUrl = safeReturnUrl(searchParams.get("returnUrl"));
+  const loginHref = `/auth?tab=login&returnUrl=${encodeURIComponent(returnUrl)}`;
 
   const [otp, setOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
@@ -37,7 +43,7 @@ function VerifyEmailForm() {
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
-    const id = setInterval(() => setResendCooldown((s) => (s <= 1 ? 0 : s - 1)), 1000);
+    const id = setInterval(() => setResendCooldown((v) => (v <= 1 ? 0 : v - 1)), 1000);
     return () => clearInterval(id);
   }, [resendCooldown]);
 
@@ -51,12 +57,7 @@ function VerifyEmailForm() {
       });
       if (resendError) {
         if (resendError.status === 409) {
-          notifications.show({
-            title: "Email đã được xác minh",
-            message: "Tài khoản này đã được kích hoạt. Vui lòng đăng nhập.",
-            color: "blue",
-          });
-          router.push(`/auth?tab=login&returnUrl=${encodeURIComponent(returnUrl)}`);
+          router.push(loginHref);
           return;
         }
         if (resendError.status === 429) {
@@ -69,17 +70,12 @@ function VerifyEmailForm() {
       }
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
       setOtp("");
-      notifications.show({
-        title: "Đã gửi lại mã",
-        message: `Mã xác minh mới đã được gửi tới ${email}`,
-        color: "blue",
-      });
     } catch {
       setError("Đã xảy ra lỗi khi gửi lại mã. Vui lòng thử lại sau.");
     } finally {
       setIsResending(false);
     }
-  }, [email, returnUrl, router]);
+  }, [email, loginHref, router]);
 
   const handleVerify = useCallback(async () => {
     setError(null);
@@ -95,125 +91,97 @@ function VerifyEmailForm() {
         return;
       }
       setSuccess(true);
-      window.setTimeout(() => {
-        router.push(`/auth?tab=login&returnUrl=${encodeURIComponent(returnUrl)}`);
-      }, 1500);
+      window.setTimeout(() => router.push(loginHref), REDIRECT_DELAY_MS);
     } catch {
       setError("Đã xảy ra lỗi khi xác minh. Vui lòng thử lại sau.");
     } finally {
       setIsVerifying(false);
     }
-  }, [email, otp, returnUrl, router]);
+  }, [email, loginHref, otp, router]);
 
   if (!emailValid) {
     return (
-      <div className="space-y-4 font-body text-xs text-text-app">
-        <Title ta="center" order={2} className="font-heading font-bold text-text-app text-lg">
-          Xác minh email
-        </Title>
-        <div className="flex items-start gap-2 p-3 bg-danger-soft border border-danger/20 text-danger rounded-lg text-xs">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+      <div className={s.stack}>
+        <div className={s.head}>
+          <h1 className={s.title}>Xác minh email</h1>
+        </div>
+        <div className={s.error} role="alert">
+          <WarningCircleIcon size={20} aria-hidden="true" />
           <span>Liên kết xác minh không hợp lệ. Vui lòng quay lại trang đăng ký.</span>
         </div>
-        <Group justify="center" mt="lg">
-          <Button component={Link} href="/auth" color="brand" radius="md" className="font-semibold cursor-pointer">
-            Quay lại đăng ký
-          </Button>
-        </Group>
+        <AuthButton onClick={() => router.push("/auth")}>Quay lại đăng ký</AuthButton>
+      </div>
+    );
+  }
+
+  if (success) {
+    return (
+      <div className={s.stack}>
+        <div className={s.head}>
+          <h1 className={s.title}>Email đã được xác minh</h1>
+          <p className={s.sub}>Đang chuyển đến trang đăng nhập...</p>
+        </div>
+        <AuthButton icon={<CheckCircleIcon size={18} aria-hidden="true" />} onClick={() => router.push(loginHref)}>
+          Đi tới đăng nhập
+        </AuthButton>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 font-body text-xs text-text-app">
-      <Title ta="center" order={2} className="font-heading font-bold text-text-app text-lg">
-        Kiểm tra email của bạn
-      </Title>
-      <Text c="dimmed" fz="sm" ta="center" mt={5}>
-        Chúng tôi đã gửi mã xác minh 6 chữ số đến <span className="font-semibold text-text-app">{email}</span>
-      </Text>
+    <div className={s.stack}>
+      <div className={s.head}>
+        <h1 className={s.title}>Kiểm tra email của bạn</h1>
+        <p className={s.sub}>
+          Chúng tôi đã gửi mã 6 chữ số đến <b>{email}</b>.
+        </p>
+      </div>
 
       {error && (
-        <div className="flex items-start gap-2 p-3 bg-danger-soft border border-danger/20 text-danger rounded-lg text-xs">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+        <div className={s.error} role="alert">
+          <WarningCircleIcon size={20} aria-hidden="true" />
           <span>{error}</span>
         </div>
       )}
 
-      {success && (
-        <div className="flex items-start gap-2 p-3 bg-success-soft border border-success/20 text-success rounded-lg text-xs">
-          <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
-          <span>Email của bạn đã được xác minh thành công. Đang chuyển đến trang đăng nhập...</span>
-        </div>
-      )}
+      <Center>
+        <PinInput
+          length={OTP_LENGTH}
+          type="number"
+          gap={6}
+          size="md"
+          oneTimeCode
+          autoFocus
+          value={otp}
+          onChange={setOtp}
+          disabled={isVerifying}
+          ariaLabel="Mã xác minh"
+          classNames={{ pinInput: s.pinCell, input: s.pin }}
+        />
+      </Center>
 
-      {!success && (
-        <>
-          <Center my="sm">
-            <PinInput
-              length={OTP_LENGTH}
-              value={otp}
-              onChange={setOtp}
-              type="number"
-              size="lg"
-              radius="md"
-              oneTimeCode
-              autoFocus
-              disabled={isVerifying}
-              ariaLabel="Mã xác minh"
-            />
-          </Center>
-
-          {/* Resend prompt nhạt / subtle */}
-          <div className="flex items-center justify-center gap-1.5 text-xs text-text-muted">
-            <span>Không nhận được mã?</span>
-            <Button
-              variant="subtle"
-              color="brand"
-              size="compact-xs"
-              className="font-semibold cursor-pointer text-xs"
-              onClick={handleResend}
-              disabled={isResending || resendCooldown > 0}
-              leftSection={isResending ? <Loader2 className="w-3 h-3 animate-spin" /> : undefined}
-            >
-              {resendCooldown > 0 ? `Gửi lại sau ${resendCooldown}s` : "Gửi lại mã"}
-            </Button>
-          </div>
-
-          <Group justify="space-between" mt="lg">
-            <Anchor component={Link} href="/auth" c="dimmed" size="sm" className="font-semibold">
-              <Center inline>
-                <ArrowLeft size={14} className="mr-1.5" />
-                <Box>Quay lại đăng ký</Box>
-              </Center>
-            </Anchor>
-            <Button
-              color="brand"
-              radius="md"
-              className="font-semibold cursor-pointer"
-              onClick={handleVerify}
-              disabled={isVerifying || otp.length !== OTP_LENGTH}
-              leftSection={isVerifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : undefined}
-            >
-              Xác minh email
-            </Button>
-          </Group>
-        </>
-      )}
-
-      {success && (
-        <Group justify="center" mt="lg">
-          <Button
-            component={Link}
-            href={`/auth?tab=login&returnUrl=${encodeURIComponent(returnUrl)}`}
-            color="brand"
-            radius="md"
-            className="font-semibold cursor-pointer"
+      <div className={s.resendRow}>
+        {resendCooldown > 0 ? (
+          <span>Gửi lại ({resendCooldown}s)</span>
+        ) : (
+          <button
+            type="button"
+            className={`${s.link} ${s.linkAccent}`}
+            disabled={isResending || isVerifying}
+            onClick={handleResend}
           >
-            Đi tới đăng nhập
-          </Button>
-        </Group>
-      )}
+            {isResending ? "Đang gửi..." : "Gửi lại mã"}
+          </button>
+        )}
+      </div>
+
+      <AuthButton loading={isVerifying} disabled={otp.length !== OTP_LENGTH} onClick={handleVerify}>
+        Xác minh email
+      </AuthButton>
+
+      <button type="button" className={s.link} disabled={isVerifying} onClick={() => router.push("/auth")}>
+        Quay lại đăng ký
+      </button>
     </div>
   );
 }
@@ -221,7 +189,7 @@ function VerifyEmailForm() {
 export default function VerifyEmailPage() {
   return (
     <AuthShell>
-      <Suspense fallback={<div className="py-12 flex flex-col items-center justify-center min-h-[300px] gap-4"><Loader color="blue" size="lg" type="dots" /></div>}>
+      <Suspense fallback={<AuthLoading label="Đang tải..." />}>
         <VerifyEmailForm />
       </Suspense>
     </AuthShell>

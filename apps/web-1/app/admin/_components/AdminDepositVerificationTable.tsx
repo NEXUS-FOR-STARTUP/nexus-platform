@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Check, X, FileText, Image as ImageIcon, ExternalLink, AlertCircle, MoreVertical, Search } from "lucide-react";
+import { Check, X, FileText, Image as ImageIcon, ArrowSquareOut as ExternalLink, WarningCircle as AlertCircle, DotsThreeVertical as MoreVertical, MagnifyingGlass as Search } from "@phosphor-icons/react/ssr";
 import { Table, ActionIcon, Menu, Pagination, Badge, TextInput, Select, Group } from "@mantine/core";
 import { formatPrice } from "@/lib/pricing";
 import type { Deposit } from "@/types/payment";

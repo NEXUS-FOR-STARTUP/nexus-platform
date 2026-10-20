@@ -44,10 +44,10 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
 
   return (
     <Link href={`${hrefPrefix}/${item.id}`} className="block group">
-      <Card p="lg" radius="md" withBorder className="bg-surface-app group-hover:border-brand shadow-sm hover:shadow-md transition-all duration-200">
+      <Card p="lg" radius="lg" withBorder className="bg-surface-app group-hover:border-brand transition-colors duration-200">
         <div className="mb-4 space-y-2.5">
           {/* Row 1: case code */}
-          <span className="block text-xs font-semibold text-text-subtle uppercase font-body tracking-wider">
+          <span className="block text-sm font-medium text-text-subtle font-body">
             {item.case_code}
           </span>
           {/* Row 2: team name */}
@@ -72,7 +72,7 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
           </div>
         </div>
 
-        <div className="flex flex-col gap-2.5 pt-4 border-t border-border-app text-xs font-body text-text-muted">
+        <div className="flex flex-col gap-2 pt-4 border-t border-border-app text-[length:var(--app-text-meta)] font-body text-text-muted">
           <div>
             <span>{item.package?.name || "Gói dịch vụ"}</span>
           </div>
@@ -82,7 +82,7 @@ export default function CaseCard({ item, hrefPrefix = "/dashboard/case" }: CaseC
           <div className="min-h-[20px]">
             {item.school ? (
               <>
-                <span className="truncate">{item.school} {item.course_context ? `(${item.course_context})` : ""}</span>
+                <span className="truncate">{item.course_context ? `${item.school} - ${item.course_context}` : item.school}</span>
               </>
             ) : (
               <span className="invisible">placeholder</span>

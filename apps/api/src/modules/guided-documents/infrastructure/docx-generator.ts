@@ -181,17 +181,20 @@ export async function generateGuidedDocumentDocx(
       if (answer) {
         const answerParagraphs = answer.split(/\r?\n\r?\n+/);
         for (const ap of answerParagraphs) {
+          const lines = ap.trim().split(/\r?\n/);
           children.push(
             new Paragraph({
               spacing: { after: 120 },
               indent: { left: 360 }, // 0.25 inch
-              children: [
-                new TextRun({
-                  text: ap.trim(),
-                  size: 22,
-                  color: '1A202C',
-                }),
-              ],
+              children: lines.map(
+                (line, lineIndex) =>
+                  new TextRun({
+                    text: line,
+                    break: lineIndex > 0 ? 1 : undefined,
+                    size: 22,
+                    color: '1A202C',
+                  }),
+              ),
             }),
           );
         }

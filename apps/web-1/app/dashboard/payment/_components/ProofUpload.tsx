@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@mantine/core";
-import { Upload } from "lucide-react";
+import { UploadSimple as Upload } from "@phosphor-icons/react";
 import { validatePaymentProof } from "@/lib/pricing";
 import { WALLET_COPY } from "@/lib/deposit-display";
 import { useUploadPaymentProof } from "../hooks/usePayment";

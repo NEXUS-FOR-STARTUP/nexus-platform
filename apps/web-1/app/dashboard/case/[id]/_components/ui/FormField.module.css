@@ -1,0 +1,37 @@
+/* design-system/mockups/case-detail: base.css (input rule) + views.css (.field, .ferr, aria-invalid). */
+.field {
+  margin-bottom: 16px;
+}
+
+.label {
+  display: block;
+  font-size: 14px;
+  font-weight: var(--ui-weight-medium);
+  margin-bottom: 6px;
+}
+
+.input {
+  width: 100%;
+  font: inherit;
+  font-size: 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--ui-radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.input:focus-visible {
+  outline: var(--ui-focus-ring);
+  outline-offset: 1px;
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.error {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--color-danger);
+}

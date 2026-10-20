@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Modal, Text } from "@mantine/core";
-import { ExternalLink } from "lucide-react";
+import { ArrowSquareOut as ExternalLink } from "@phosphor-icons/react";
 import { WALLET_COPY } from "@/lib/deposit-display";
 import { getProofUrl } from "../hooks/usePayment";
 

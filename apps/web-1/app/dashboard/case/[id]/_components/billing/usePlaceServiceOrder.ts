@@ -34,7 +34,8 @@ export function usePlaceServiceOrder(caseId: string) {
       queryClient.invalidateQueries({ queryKey: ["wallet"] });
       resetSession();
     },
-    onError: (err) => {
+    onError: (err, input) => {
+      console.error("[place-service-order] failed", { caseId, packageId: input.packageId, quantity: input.quantity }, err);
       if (isAxiosError(err)) {
         const data = err.response?.data;
         if (
@@ -60,5 +61,8 @@ export function usePlaceServiceOrder(caseId: string) {
     },
   });
 
-  return { placeOrder: mutation.mutateAsync, isPending: mutation.isPending, resetSession };
+  /** Errors are surfaced by onError above; callers only react to success. */
+  const placeOrder = (input: PlaceOrderInput, onSuccess: () => void) => mutation.mutate(input, { onSuccess });
+
+  return { placeOrder, isPending: mutation.isPending, resetSession };
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { Modal, Stack, Text, Button, Group } from "@mantine/core";
-import { AlertTriangle, LogOut } from "lucide-react";
+import { Warning as AlertTriangle, SignOut as LogOut } from "@phosphor-icons/react";
 
 interface RevokeOthersModalProps {
   opened: boolean;
@@ -52,11 +52,12 @@ export function RevokeOthersModal({
         </Text>
 
         <Group justify="flex-end" gap="sm" mt="sm">
-          <Button variant="default" onClick={handleClose} disabled={loading}>
+          <Button variant="default" size="sm" onClick={handleClose} disabled={loading}>
             Hủy bỏ
           </Button>
           <Button
             color="red"
+            size="sm"
             leftSection={<LogOut className="w-4 h-4" />}
             onClick={handleConfirm}
             loading={loading}

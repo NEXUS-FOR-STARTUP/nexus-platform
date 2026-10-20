@@ -1,0 +1,15 @@
+/* Full-page status screens (404, runtime error): soft landing ground, one left-aligned column, no icon badge. */
+.root { flex: 1; display: grid; place-items: center; min-height: 100vh; padding: 72px 24px; background: var(--lp-bg-soft); font-family: var(--font-inter-tight), system-ui, sans-serif; }
+.col { width: 100%; max-width: 520px; }
+.logo { display: block; height: 40px; width: auto; margin-bottom: 56px; }
+.code { margin: 0 0 12px; font-size: 16px; font-weight: 500; color: var(--lp-blue-dark); }
+.title { margin: 0; font-weight: 500; font-size: clamp(32px, 4vw, 44px); line-height: 1.15; letter-spacing: -0.02em; text-wrap: balance; }
+.text { margin: 20px 0 0; font-size: 18px; line-height: 1.6; color: var(--lp-muted); text-wrap: pretty; }
+.digest { margin: 20px 0 0; font-size: 15px; color: var(--lp-muted); }
+.digest code { font-family: inherit; font-weight: 500; color: var(--lp-ink); overflow-wrap: anywhere; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 40px; }
+
+@media (max-width: 480px) {
+  .root { padding: 40px 20px; }
+  .actions > * { width: 100%; }
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { Anchor, Button, Table, Text, Group } from "@mantine/core";
-import { Download, Trash2 } from "lucide-react";
+import { DownloadSimple as Download, Trash as Trash2 } from "@phosphor-icons/react";
 import {
   DocumentRow,
   WorkspaceTab,

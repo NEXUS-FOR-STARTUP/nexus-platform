@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Alert, Button, Pagination, Select, TextInput } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
-import { ArrowLeft, Plus, Search } from "lucide-react";
+import { ArrowLeft, Plus, MagnifyingGlass as Search } from "@phosphor-icons/react";
 import {
   RECEIVABLE_STATUSES,
   RECEIVABLE_STATUS_LABELS,

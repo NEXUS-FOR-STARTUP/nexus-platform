@@ -21,7 +21,7 @@ import AdminExportMenu from "./_components/AdminExportMenu";
 import { useAdminStats } from "./hooks/useAdminStats";
 import { useAdminWorkerStats } from "./hooks/useAdminWorkers";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Settings, BarChart3, FolderKanban, Activity, Users, Clock, Bot, Newspaper } from "lucide-react";
+import { Shield, CreditCard, UserCheck, CheckCircle, FileText, Gear as Settings, ChartBar as BarChart3, Kanban as FolderKanban, Pulse as Activity, Users, Clock, Robot as Bot, Newspaper } from "@phosphor-icons/react";
 import { Tooltip, UnstyledButton, Title, Text, Badge, Divider } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import classes from "../../components/layout/DoubleNavbar.module.css";

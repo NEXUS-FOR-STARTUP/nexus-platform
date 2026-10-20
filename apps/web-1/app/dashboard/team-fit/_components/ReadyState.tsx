@@ -1,4 +1,4 @@
-import { Sparkles } from 'lucide-react';
+import { Sparkle as Sparkles } from "@phosphor-icons/react/ssr";
 
 interface ReadyStateProps {
   onEvaluate?: () => void;

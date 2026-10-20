@@ -211,12 +211,8 @@ export async function downloadCaseReportPdfHandler(c: Context) {
       where: { id: caseId },
       select: { team_name: true, case_code: true },
     });
-    // Prioritize actual project name (e.g. WAYVEE) over student team group name (e.g. Nexus)
-    const projectName =
-      (parsed && typeof parsed["projectName"] === "string" && parsed["projectName"].trim().length > 0 && parsed["projectName"]) ||
-      caseRecord?.team_name ||
-      caseRecord?.case_code ||
-      "Dự án khởi nghiệp";
+    // case.team_name is the user-entered project name; AI-extracted names drift between rounds (e.g. tiboo vs tedi).
+    const projectName = caseRecord?.team_name || caseRecord?.case_code || "Dự án khởi nghiệp";
 
     const reportType = resolveReportType({
       reportType: cp2ReportType || (parsed && typeof parsed["reportType"] === "string" && parsed["reportType"]) || undefined,
@@ -277,9 +273,9 @@ export async function downloadCaseReportPdfHandler(c: Context) {
 
     const filename = buildReportPdfFilename({
       projectName,
+      reportType: report.report_type,
       submissionType,
       createdAt: report.created_at,
-      versionNo: reportVersionNo,
     });
     const safeFilename = filename.replace(/["\r\n\\]/g, "");
 
@@ -439,11 +435,7 @@ export async function downloadReportPdfByIdHandler(c: Context) {
       where: { id: caseId },
       select: { team_name: true, case_code: true },
     });
-    const projectName =
-      (parsed && typeof parsed["projectName"] === "string" && parsed["projectName"].trim().length > 0 && parsed["projectName"]) ||
-      caseRecord?.team_name ||
-      caseRecord?.case_code ||
-      "Dự án khởi nghiệp";
+    const projectName = caseRecord?.team_name || caseRecord?.case_code || "Dự án khởi nghiệp";
 
     const reportType = resolveReportType({
       reportType: cp2ReportType || (parsed && typeof parsed["reportType"] === "string" && parsed["reportType"]) || undefined,
@@ -494,9 +486,9 @@ export async function downloadReportPdfByIdHandler(c: Context) {
 
     const filename = buildReportPdfFilename({
       projectName,
+      reportType: report.report_type,
       submissionType,
       createdAt: report.created_at,
-      versionNo,
     });
     const safeFilename = filename.replace(/["\r\n\\]/g, "");
 

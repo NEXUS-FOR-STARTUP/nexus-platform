@@ -32,7 +32,7 @@ export function ArticleHeader({
           variant="light"
           size="lg"
           radius="sm"
-          className="font-bold tracking-wider uppercase mb-5 px-3.5 py-1.5 !text-xs sm:!text-sm bg-blue-50 text-[#288ad6] hover:bg-blue-100 !border-0 cursor-pointer transition-colors"
+          className="font-medium mb-5 px-3.5 py-1.5 !text-sm bg-brand-subtle text-brand hover:bg-brand-soft !border-0 cursor-pointer transition-colors"
         >
           {getNewsCategoryName(category)}
         </Badge>
@@ -62,7 +62,7 @@ export function ArticleHeader({
             {authorInitials}
           </Avatar>
           <div className="flex flex-col">
-            <span className="text-sm font-bold text-text-app hover:text-[#288ad6] transition-colors">
+            <span className="text-sm font-medium text-text-app hover:text-brand transition-colors">
               {authorName}
             </span>
             <span className="text-xs text-text-muted">

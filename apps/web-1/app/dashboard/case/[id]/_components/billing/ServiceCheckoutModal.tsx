@@ -1,13 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Modal, Button, NumberInput, Stack, Text, Group, Paper, Select, Divider } from "@mantine/core";
+import { useState } from "react";
+import { Modal, Select } from "@mantine/core";
+import { MinusIcon, PlusIcon } from "@phosphor-icons/react";
 import { notifications } from "@mantine/notifications";
 import { useWalletBalance } from "@/app/dashboard/wallet/hooks/useWallet";
 import { useServiceCatalog, filterPackagesByService } from "@/hooks/useServiceCatalog";
 import { useShortageDepositRedirect } from "../use-shortage-deposit-redirect";
 import { usePlaceServiceOrder } from "./usePlaceServiceOrder";
+import { formatVndAmount } from "@/lib/pricing";
 import DiscountCodeInput from "../DiscountCodeInput";
+import { Button } from "../ui/Button";
+import s from "./service-checkout.module.css";
 import { MAX_TEAM_MEMBERS, type DiscountCodeCheckResult } from "@repo/validation";
 
 interface ServiceCheckoutModalProps {
@@ -20,7 +24,8 @@ interface ServiceCheckoutModalProps {
 }
 
 const MIN_TOPUP_AMOUNT = 2000;
-const formatVnd = (amount: number): string => `${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })} VND`;
+const MIN_PACKAGES = 1;
+const MAX_PACKAGES = 50;
 /** Giá/thành viên luôn tính theo nhóm đủ người, độc lập với số thành viên đã khai. */
 const PRICING_TEAM_SIZE = MAX_TEAM_MEMBERS;
 
@@ -34,19 +39,14 @@ export default function ServiceCheckoutModal({
 }: ServiceCheckoutModalProps) {
   const { data: allPackages, isLoading: isCatalogLoading } = useServiceCatalog();
   const availablePackages = filterPackagesByService(allPackages, serviceCode);
-  const [selectedPackageId, setSelectedPackageId] = useState<string>("");
-  const [quantity, setQuantity] = useState<number>(1);
+  const [pickedPackageId, setPickedPackageId] = useState<string>("");
+  const selectedPackageId = pickedPackageId || availablePackages[0]?.id || "";
+  const [quantity, setQuantity] = useState<number>(MIN_PACKAGES);
   const [discount, setDiscount] = useState<DiscountCodeCheckResult | null>(null);
-
-  useEffect(() => {
-    if (availablePackages.length > 0 && !selectedPackageId) {
-      setSelectedPackageId(availablePackages[0]!.id);
-    }
-  }, [availablePackages, selectedPackageId]);
 
   const handleSelectPackage = (newId: string | null) => {
     if (newId && newId !== selectedPackageId) {
-      setSelectedPackageId(newId);
+      setPickedPackageId(newId);
       setDiscount(null);
     }
   };
@@ -75,8 +75,7 @@ export default function ServiceCheckoutModal({
   const handlePay = async () => {
     if (!selectedPackageId) return;
     if (hasSufficientBalance) {
-      try {
-        await placeOrder({ packageId: selectedPackageId, quantity, discountCode: discount?.code });
+      placeOrder({ packageId: selectedPackageId, quantity, discountCode: discount?.code }, () => {
         notifications.show({
           color: "green",
           title: "Thành công",
@@ -84,9 +83,7 @@ export default function ServiceCheckoutModal({
         });
         onPurchased?.();
         handleClose();
-      } catch {
-        // handled in hook
-      }
+      });
     } else {
       const suggested = Math.max(shortage, MIN_TOPUP_AMOUNT);
       await startShortageDeposit({
@@ -98,98 +95,97 @@ export default function ServiceCheckoutModal({
     }
   };
 
+  const clampQuantity = (n: number) => Math.min(Math.max(n, MIN_PACKAGES), MAX_PACKAGES);
+
   return (
-    <Modal opened={opened} onClose={handleClose} title={`Mua lượt chấm - ${stageName}`} centered size="md">
+    <Modal
+      opened={opened}
+      onClose={handleClose}
+      title={`Mua lượt chấm - ${stageName}`}
+      centered
+      size={480}
+      radius="md"
+      padding="xl"
+      classNames={{ title: s.title }}
+    >
       {isCatalogLoading ? (
-        <Text c="dimmed" size="sm">Đang tải gói dịch vụ...</Text>
+        <p className={s.empty}>Đang tải gói dịch vụ...</p>
       ) : availablePackages.length === 0 ? (
-        <Stack py="md">
-          <Text c="dimmed" size="sm">Dịch vụ này hiện chưa mở bán gói. Vui lòng quay lại sau.</Text>
-          <Button variant="default" onClick={handleClose}>Đóng</Button>
-        </Stack>
+        <div className={s.empty}>
+          <p>Dịch vụ này hiện chưa mở bán gói. Vui lòng quay lại sau.</p>
+          <Button variant="quiet" onClick={handleClose}>Đóng</Button>
+        </div>
       ) : (
-        <Stack gap="md">
+        <div className={s.body}>
           {availablePackages.length > 1 && (
             <Select
               label="Chọn gói"
               value={selectedPackageId}
               onChange={handleSelectPackage}
-              data={availablePackages.map((p) => ({ value: p.id, label: `${p.credits_granted ?? 0} lượt chấm (${formatVnd(p.price)})` }))}
+              allowDeselect={false}
+              data={availablePackages.map((p) => ({ value: p.id, label: `${p.credits_granted ?? 0} lượt chấm (${formatVndAmount(p.price)})` }))}
             />
           )}
 
-          <Paper p="md" radius="md" bg="var(--mantine-color-teal-0)">
-            <Stack gap={4}>
-              <Group justify="space-between" align="center">
-                <Text size="sm" fw={600}>{`Gói chấm ${stageName}`}</Text>
-                {creditsPerPackage > 0 && (
-                  <Text size="xs" c="dimmed">{`${creditsPerPackage} lượt chấm / gói`}</Text>
-                )}
-              </Group>
-              {perMemberPrice !== null && (
-                <Group gap={6} align="baseline">
-                  <Text fw={800} fz={30} c="teal.8" lh={1.1}>{formatVnd(perMemberPrice)}</Text>
-                  <Text size="sm" c="dimmed">/ thành viên</Text>
-                </Group>
-              )}
-              <Text size="xs" c="dimmed">
-                {`Tổng ${formatVnd(totalAmount)} chia đều cho nhóm ${PRICING_TEAM_SIZE} người`}
-              </Text>
-            </Stack>
-          </Paper>
+          <div className={s.summary}>
+            <div className={s.pack}>
+              <b>{`Gói chấm ${stageName}`}</b>
+              {creditsPerPackage > 0 && <span>{`${creditsPerPackage} lượt chấm / gói`}</span>}
+            </div>
+            {perMemberPrice !== null ? (
+              <>
+                <p className={s.price}>
+                  {formatVndAmount(perMemberPrice)}
+                  <span className={s.unit}> / thành viên</span>
+                </p>
+                <p className={s.split}>
+                  {`Tổng ${formatVndAmount(totalAmount)} chia đều cho nhóm ${PRICING_TEAM_SIZE} người`}
+                </p>
+              </>
+            ) : (
+              <p className={s.price}>{formatVndAmount(totalAmount)}</p>
+            )}
+          </div>
 
-          <Group justify="space-between" align="center" wrap="nowrap">
-            <Text size="sm" fw={600}>Số gói muốn mua</Text>
-            <NumberInput
-              aria-label="Số gói muốn mua"
-              w={120}
-              value={quantity}
-              onChange={(val) => setQuantity(typeof val === "number" && val >= 1 ? Math.min(val, 50) : 1)}
-              min={1}
-              max={50}
-              allowDecimal={false}
-            />
-          </Group>
+          <div className={s.qty}>
+            <span className={s.qtyLabel} id="checkout-qty-label">Số gói muốn mua</span>
+            <div className={s.stepper} role="group" aria-labelledby="checkout-qty-label">
+              <button type="button" className={s.step} aria-label="Giảm số gói" disabled={quantity <= MIN_PACKAGES} onClick={() => setQuantity(clampQuantity(quantity - 1))}>
+                <MinusIcon size={16} aria-hidden="true" />
+              </button>
+              <output className={s.qtyValue} aria-live="polite">{quantity}</output>
+              <button type="button" className={s.step} aria-label="Tăng số gói" disabled={quantity >= MAX_PACKAGES} onClick={() => setQuantity(clampQuantity(quantity + 1))}>
+                <PlusIcon size={16} aria-hidden="true" />
+              </button>
+            </div>
+          </div>
 
-          <DiscountCodeInput
-            packageId={selectedPackageId}
-            applied={discount}
-            onChange={setDiscount}
-          />
+          <DiscountCodeInput packageId={selectedPackageId} applied={discount} onChange={setDiscount} />
 
-          <Stack gap="xs">
+          <dl className={s.receipt}>
             {creditsPerPackage > 0 && (
-              <Group justify="space-between">
-                <Text size="sm" c="dimmed">Bạn nhận được</Text>
-                <Text size="sm" fw={500}>{`${totalCredits} lượt chấm`}</Text>
-              </Group>
+              <div className={s.row}>
+                <dt>Bạn nhận được</dt>
+                <dd>{`${totalCredits} lượt chấm`}</dd>
+              </div>
             )}
-            <Group justify="space-between">
-              <Text size="sm" c="dimmed">Số dư ví</Text>
-              <Text size="sm">{formatVnd(walletBalance)}</Text>
-            </Group>
-            <Divider />
-            <Group justify="space-between" align="baseline">
-              <Text fw={600}>Tổng thanh toán</Text>
-              <Text fw={700} fz="xl">{formatVnd(totalAmount)}</Text>
-            </Group>
-            {!hasSufficientBalance && (
-              <Text size="xs" c="red" fw={500} ta="right">Ví thiếu {formatVnd(shortage)}</Text>
-            )}
-          </Stack>
+            <div className={s.row}>
+              <dt>Số dư ví</dt>
+              <dd>{formatVndAmount(walletBalance)}</dd>
+            </div>
+            <div className={`${s.row} ${s.total}`}>
+              <dt>Tổng thanh toán</dt>
+              <dd>{formatVndAmount(totalAmount)}</dd>
+            </div>
+          </dl>
+          {!hasSufficientBalance && <p className={s.short}>Ví thiếu {formatVndAmount(shortage)}</p>}
 
-          <Button
-            fullWidth
-            size="md"
-            color="orange"
-            loading={isOrderPending || isShortagePending}
-            onClick={handlePay}
-          >
+          <Button fullWidth size="lg" loading={isOrderPending || isShortagePending} onClick={handlePay}>
             {hasSufficientBalance
-              ? `Thanh toán ${formatVnd(totalAmount)} bằng ví`
-              : `Nạp ${formatVnd(Math.max(shortage, MIN_TOPUP_AMOUNT))} & mua`}
+              ? `Thanh toán ${formatVndAmount(totalAmount)} bằng ví`
+              : `Nạp ${formatVndAmount(Math.max(shortage, MIN_TOPUP_AMOUNT))} & mua`}
           </Button>
-        </Stack>
+        </div>
       )}
     </Modal>
   );

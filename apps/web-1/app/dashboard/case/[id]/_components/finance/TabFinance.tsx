@@ -5,7 +5,7 @@
 import React, { useState } from "react";
 import { Alert, Button, Loader, Text, Textarea, TextInput } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { CheckCircle2, Download, Info, Save } from "lucide-react";
+import { DownloadSimple as Download, FloppyDisk as Save } from "@phosphor-icons/react";
 import {
   FINANCE_MAX_PERIODS,
   checkFinancePlan,
@@ -85,7 +85,7 @@ function FinanceEditor({ initial, isSaving, onSave }: FinanceEditorProps) {
 
   return (
     <div className="space-y-4">
-      <Alert variant="light" color="blue" icon={<Info className="w-4 h-4" />}>
+      <Alert variant="light" color="blue">
         Bạn tự điền toàn bộ số, kể cả các dòng tổng và biên lợi nhuận theo công thức ghi dưới tên dòng. Nút Kiểm tra chỉ
         báo ô nào chưa khớp công thức, không cho biết số đúng và không đánh giá số liệu có hợp lý với thực tế hay không.
         Hoàn tiền nhập là số âm; phần giả định và công sức không trả lương (sweat equity) ghi ở ô ghi chú bên dưới.
@@ -140,11 +140,11 @@ function FinanceEditor({ initial, isSaving, onSave }: FinanceEditorProps) {
 
       {issues !== null &&
         (issues.length === 0 ? (
-          <Alert color="teal" icon={<CheckCircle2 className="w-4 h-4" />}>
+          <Alert color="teal">
             Không có ô nào lệch công thức.
           </Alert>
         ) : (
-          <Alert color="orange" icon={<Info className="w-4 h-4" />}>
+          <Alert color="orange">
             {issues.length} ô chưa khớp công thức hoặc còn trống, xem các ô báo đỏ. Một ô sai ở trên có thể kéo theo các ô
             tính từ nó ở bên dưới.
           </Alert>

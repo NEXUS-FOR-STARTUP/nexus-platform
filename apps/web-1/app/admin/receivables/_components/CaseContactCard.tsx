@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Alert, Button, Loader } from "@mantine/core";
-import { AlertTriangle } from "lucide-react";
 import { isCaseContactComplete } from "@repo/validation";
 import { useReceivableCaseContact } from "../../hooks/useReceivableCaseOptions";
 
@@ -32,7 +31,7 @@ export default function CaseContactCard({ caseId }: { caseId: string }) {
         </dl>
       </div>
       {!isCaseContactComplete(contact) ? (
-        <Alert color="red" icon={<AlertTriangle className="h-4 w-4" />} title="Dự án chưa có đủ thông tin liên hệ của khách">
+        <Alert color="red" title="Dự án chưa có đủ thông tin liên hệ của khách">
           <Button component={Link} href={`/dashboard/case/${caseId}?tab=settings`} size="xs" variant="light" color="red" mt={4}>
             Cập nhật hồ sơ dự án
           </Button>

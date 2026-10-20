@@ -27,7 +27,7 @@ import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadMod
 import StudentDocumentUploadModal from "./_components/StudentDocumentUploadModal";
 import StatusGuidanceCard from "./_components/StatusGuidanceCard";
 import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
-import { Button } from "@mantine/core";
+import { Button } from "./_components/ui/Button";
 import type { Report, RoundHistoryEntry } from "@/types/case";
 import { useTriggerAudit } from "./hooks/useTriggerAudit";
 import JourneyWorkspaceShell from "./_components/workspace/JourneyWorkspaceShell";
@@ -108,7 +108,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     return (
       <div className="w-full p-4">
         <div className="p-4 bg-danger-soft border border-danger/10 text-danger rounded-xl font-body text-sm">
-          Không thể tải dữ liệu không gian làm việc của hồ sơ. Vui lòng thử lại sau.
+          Không thể tải dữ liệu không gian làm việc của dự án. Vui lòng thử lại sau.
         </div>
       </div>
     );
@@ -137,7 +137,6 @@ export default function CaseWorkspacePage({ params }: PageProps) {
     isOwner,
     isAssignedSupporter: false,
   });
-  const canSubmitRevision = filteredTransitions.includes("T9_SUBMIT_REVISION");
   const canEditIntake = filteredTransitions.includes("T16_EDIT_INTAKE");
   const canOpenIntake = [
     "T2_SUBMIT_INTAKE",
@@ -239,9 +238,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
                 {canEditIntake && (
                   <Button
                     size="sm"
-                    variant="outline"
-                    color="brand"
-                    className="w-full sm:w-auto font-semibold cursor-pointer h-9 sm:h-8.5 text-xs sm:bg-brand sm:text-white sm:border-transparent sm:hover:bg-brand-hover"
+                    variant="quiet"
                     onClick={() => router.push(`/dashboard/intake?caseId=${id}`)}
                   >
                     Cập nhật thông tin
@@ -285,6 +282,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
             <TabReportFindings
               report={(latestReport as Report) || null}
               caseId={caseData.id}
+              projectName={caseData.team_name || undefined}
               roundHistory={(roundHistory as RoundHistoryEntry[]) || null}
             />
           )}
@@ -296,7 +294,6 @@ export default function CaseWorkspacePage({ params }: PageProps) {
               creditBalance={creditBalance}
               creditBalances={creditBalances}
               creditLedger={creditLedger}
-              orders={caseData.orders}
               packageName={packageName}
               pricePerCredit={pricePerCredit && pricePerCredit > 0 ? pricePerCredit : undefined}
               onBuyCredits={canBuyCredits ? () => setCreditBuyOpened(true) : undefined}

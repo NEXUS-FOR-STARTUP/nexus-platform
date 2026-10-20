@@ -38,10 +38,10 @@ export default function FairUsePolicyPage() {
       version="2026-09-v3.0"
       tocItems={fairUseTOC}
     >
-      <div className="space-y-10">
+      <>
         <FairUseSections1 />
         <FairUseSections2 />
-      </div>
+      </>
     </PolicyDocumentLayout>
   );
 }

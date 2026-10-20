@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import * as mammoth from 'mammoth';
 import { generateGuidedDocumentDocx } from '../../../modules/guided-documents/infrastructure/docx-generator.js';
 import { extractTextFromBuffer, parseAndMatchDocument } from '../../../modules/guided-documents/infrastructure/document-parser.js';
 
@@ -18,6 +19,25 @@ test('Guided Documents — generates valid docx buffer from answers', async () =
   // Check ZIP/DOCX header (PK\x03\x04)
   assert.equal(buffer[0], 0x50);
   assert.equal(buffer[1], 0x4b);
+});
+
+test('Guided Documents — preserves single newlines in answers', async () => {
+  const buffer = await generateGuidedDocumentDocx({
+    templateKey: 'cp1',
+    caseTitle: 'Nexus EduTech',
+    answersMap: {
+      cp1_team_name: 'Dòng 1\nDòng 2',
+      cp1_idea_name: 'Đoạn 1\r\n\r\nĐoạn 2',
+    },
+  });
+
+  const { value: html } = await mammoth.convertToHtml({ buffer });
+  const extracted = await extractTextFromBuffer(buffer, 'guided.docx');
+
+  assert.match(html, /<p>Dòng 1<br \/>Dòng 2<\/p>/);
+  assert.match(html, /<p>Đoạn 1<\/p><p>Đoạn 2<\/p>/);
+  assert.match(extracted, /Dòng 1\nDòng 2/);
+  assert.match(extracted, /Đoạn 1\n\nĐoạn 2/);
 });
 
 test('Guided Documents — extracts text and matches questions from text/md buffer', async () => {

@@ -3,7 +3,7 @@
 import React from 'react';
 import { Group, Button, Text, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ThumbsUp, ThumbsDown } from "@phosphor-icons/react";
 import { useSession } from '@/lib/auth-client';
 import { useNewsReactions } from '../hooks/useNewsReactions';
 
@@ -32,7 +32,7 @@ export function NewsReactionPanel({ idOrSlug }: NewsReactionPanelProps) {
   const isDisliked = summary.user_reaction === 'DISLIKE';
 
   return (
-    <Group gap="sm" align="center" className="my-6 py-4 border-y border-stone-200">
+    <Group gap="sm" align="center" className="my-6 px-4 py-3 rounded-lg bg-surface-soft">
       <Text size="sm" fw={500} c="dimmed">
         Bạn thấy bài viết này thế nào?
       </Text>
@@ -46,17 +46,12 @@ export function NewsReactionPanel({ idOrSlug }: NewsReactionPanelProps) {
           radius="xl"
           variant="default"
           leftSection={
-            <ThumbsUp
-              size={16}
-              className={`text-emerald-500 stroke-[2] transition-colors ${
-                isLiked ? 'fill-emerald-500' : 'fill-transparent'
-              }`}
-            />
+            <ThumbsUp size={16} weight={isLiked ? 'fill' : 'regular'} className="text-success" />
           }
           onClick={() => handleReaction('LIKE')}
           disabled={isPending}
         >
-          <span className={isLiked ? 'font-semibold text-stone-900' : 'text-stone-700'}>
+          <span className={isLiked ? 'font-semibold text-text-app' : 'text-text-app'}>
             {summary.likes > 0 ? summary.likes : 'Thích'}
           </span>
         </Button>
@@ -71,17 +66,12 @@ export function NewsReactionPanel({ idOrSlug }: NewsReactionPanelProps) {
           radius="xl"
           variant="default"
           leftSection={
-            <ThumbsDown
-              size={16}
-              className={`text-rose-500 stroke-[2] transition-colors ${
-                isDisliked ? 'fill-rose-500' : 'fill-transparent'
-              }`}
-            />
+            <ThumbsDown size={16} weight={isDisliked ? 'fill' : 'regular'} className="text-danger" />
           }
           onClick={() => handleReaction('DISLIKE')}
           disabled={isPending}
         >
-          <span className={isDisliked ? 'font-semibold text-stone-900' : 'text-stone-700'}>
+          <span className={isDisliked ? 'font-semibold text-text-app' : 'text-text-app'}>
             {summary.dislikes > 0 ? summary.dislikes : 'Không thích'}
           </span>
         </Button>

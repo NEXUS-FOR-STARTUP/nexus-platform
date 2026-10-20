@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Modal, Button, Badge, Loader } from "@mantine/core";
-import { FileText } from "lucide-react";
+import { FileText } from "@phosphor-icons/react";
 import { useAdminCaseDetail } from "../hooks/useAdminCases";
 import { statusThemeMap } from "@/types";
 import { filterTransitions } from "@/_types/transitions";

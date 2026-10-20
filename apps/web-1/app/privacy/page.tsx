@@ -42,10 +42,10 @@ export default function PrivacyPage() {
       version="2026-09-v3.0"
       tocItems={privacyTOC}
     >
-      <div className="space-y-10">
+      <>
         <PrivacySections1 />
         <PrivacySections2 />
-      </div>
+      </>
     </PolicyDocumentLayout>
   );
 }

@@ -3,15 +3,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { notifications } from "@mantine/notifications";
+import { extractApiErrorMessage } from "./extract-api-error";
 
-function extractErrorMessage(error: any, defaultMsg: string): string {
-  if (error?.response?.data?.message) {
-    return error.response.data.message;
-  }
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-  return defaultMsg;
+function extractErrorMessage(error: unknown, defaultMsg: string): string {
+  return extractApiErrorMessage(error) || defaultMsg;
 }
 
 export function useSessionMutations() {
@@ -31,7 +26,7 @@ export function useSessionMutations() {
         color: "teal",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: "Lỗi",
         message: extractErrorMessage(error, "Không thể đăng xuất thiết bị này. Vui lòng thử lại."),
@@ -58,7 +53,7 @@ export function useSessionMutations() {
         color: "teal",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: "Lỗi",
         message: extractErrorMessage(error, "Không thể đăng xuất các thiết bị khác. Vui lòng thử lại."),

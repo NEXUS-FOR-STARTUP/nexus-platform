@@ -7,6 +7,7 @@ import {
   createTransaction,
   updateWalletBalance,
   getWalletBalance as repoGetBalance,
+  getWalletSummary as repoGetSummary,
   getTransactionHistory,
 } from '../infrastructure/persistence/wallet.repository.js'
 import { InsufficientBalanceError } from '../domain/wallet.types.js'
@@ -14,6 +15,15 @@ import { InsufficientBalanceError } from '../domain/wallet.types.js'
 export class WalletService {
   async getBalance(userId: string): Promise<number> {
     return repoGetBalance(userId)
+  }
+
+  async getSummary(userId: string): Promise<{
+    balance: number
+    total_deposited: number
+    total_spent: number
+    total_refunded: number
+  }> {
+    return repoGetSummary(userId)
   }
 
   async deposit(

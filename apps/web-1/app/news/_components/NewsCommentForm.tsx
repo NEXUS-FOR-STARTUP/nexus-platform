@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Textarea, Button, Group, Text, Paper, Avatar } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { MessageSquare, X } from 'lucide-react';
+import { Chat as MessageSquare, X } from "@phosphor-icons/react";
 import Link from 'next/link';
 import { useSession } from '@/lib/auth-client';
 
@@ -52,8 +52,8 @@ export function NewsCommentForm({
 
   if (!session?.user) {
     return (
-      <Paper p="md" radius="md" withBorder className="bg-stone-50 text-center py-6">
-        <MessageSquare className="mx-auto text-stone-400 mb-2" size={28} />
+      <Paper p="md" radius="md" withBorder className="bg-surface-soft text-center py-6">
+        <MessageSquare className="mx-auto text-text-subtle mb-2" size={28} />
         <Text size="sm" fw={500} c="dimmed" mb="xs">
           Vui lòng đăng nhập để tham gia thảo luận và để lại bình luận.
         </Text>
@@ -119,7 +119,7 @@ export function NewsCommentForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       {replyToName && (
-        <Group justify="space-between" className="bg-blue-50/70 px-3 py-1.5 rounded-md text-xs text-blue-700">
+        <Group justify="space-between" className="bg-brand-subtle px-3 py-1.5 rounded-md text-xs text-brand">
           <span>
             Đang phản hồi <strong>@{replyToName}</strong>
           </span>
@@ -127,7 +127,7 @@ export function NewsCommentForm({
             <button
               type="button"
               onClick={onCancelReply}
-              className="text-stone-500 hover:text-stone-800 flex items-center gap-1 cursor-pointer"
+              className="text-text-muted hover:text-text-app flex items-center gap-1 cursor-pointer"
             >
               <X size={14} /> Hủy
             </button>

@@ -52,7 +52,7 @@ export function useFulfillCreditAfterDeposit(deposit?: DepositDetail) {
 
         notifications.show({
           title: "Mua credit thành công",
-          message: `Đã mua thành công ${intent.quantity} lượt kiểm tra cho hồ sơ. Đang chuyển về hồ sơ trong 5 giây...`,
+          message: `Đã mua thành công ${intent.quantity} lượt kiểm tra cho dự án. Đang chuyển về dự án trong 5 giây...`,
           color: "teal",
           autoClose: 5000,
         });
@@ -75,7 +75,7 @@ export function useFulfillCreditAfterDeposit(deposit?: DepositDetail) {
           title: "Hoàn tất mua credit thất bại",
           message:
             errorData?.message ||
-            "Tiền đã vào ví nhưng chưa thể tự động mua lượt. Vui lòng vào hồ sơ để mua lại.",
+            "Tiền đã vào ví nhưng chưa thể tự động mua lượt. Vui lòng vào dự án để mua lại.",
           color: "red",
         });
       }

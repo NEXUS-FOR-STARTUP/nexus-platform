@@ -1,12 +1,13 @@
 "use client";
 
 import { useDisclosure } from "@mantine/hooks";
-import { Button, Group, Paper, Skeleton, Stack, Text } from "@mantine/core";
-import { AlertCircle, LogOut, RefreshCw, Shield } from "lucide-react";
+import { Alert, Skeleton, Text } from "@mantine/core";
+import { WarningCircle as AlertCircle, SignOut as LogOut, ArrowsClockwise as RefreshCw } from "@phosphor-icons/react";
 import { useActiveSessionsQuery } from "../../hooks/useSessionQueries";
 import { useSessionMutations } from "../../hooks/useSessionMutations";
 import { SessionItem } from "./SessionItem";
 import { RevokeOthersModal } from "./RevokeOthersModal";
+import classes from "../sessions.module.css";
 
 export function SessionsList() {
   const { data: sessions, isLoading, isError, refetch } = useActiveSessionsQuery();
@@ -31,79 +32,61 @@ export function SessionsList() {
   };
 
   return (
-    <Paper
-      p="xl"
-      radius="md"
-      className="bg-surface-app border border-border-app"
-    >
-      <Stack gap="lg">
-        {/* Header */}
-        <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
-          <Stack gap={4}>
-            <Group gap="xs" align="center">
-              <Shield className="w-5 h-5 text-brand" />
-              <Text fw={600} size="lg" className="font-heading text-text-primary">
-                Thiết bị & Phiên đăng nhập
-              </Text>
-            </Group>
-            <Text size="sm" c="dimmed">
-              Quản lý và thu hồi quyền truy cập của các thiết bị đang đăng nhập tài khoản này.
-            </Text>
-          </Stack>
+    <div className={classes.colNarrow}>
+      <div className={classes.card}>
+        <div className={classes.cardHead}>
+          <div>
+            <h2 className={classes.title}>Phiên đang hoạt động</h2>
+            <p className={classes.note}>
+              Nếu phát hiện thiết bị lạ, hãy đăng xuất ngay và đổi mật khẩu.
+            </p>
+          </div>
 
           {otherSessionsCount > 0 && (
-            <Button
-              color="red"
-              variant="light"
-              size="sm"
-              leftSection={<LogOut className="w-4 h-4" />}
+            <button
+              type="button"
+              className={classes.btnQuiet}
               onClick={openRevokeOthers}
               disabled={revokeOtherSessions.isPending}
             >
-              Đăng xuất tất cả thiết bị khác
-            </Button>
+              <LogOut size={16} />
+              <span>Đăng xuất khỏi thiết bị khác</span>
+            </button>
           )}
-        </Group>
+        </div>
 
-        {/* Loading State */}
         {isLoading && (
-          <Stack gap="sm">
-            <Skeleton height={72} radius="md" />
-            <Skeleton height={72} radius="md" />
-            <Skeleton height={72} radius="md" />
-          </Stack>
+          <div className={classes.sessionList}>
+            <Skeleton className={classes.skeletonRow} />
+            <Skeleton className={classes.skeletonRow} />
+            <Skeleton className={classes.skeletonRow} />
+          </div>
         )}
 
-        {/* Error State */}
         {isError && (
-          <Paper p="md" radius="sm" className="bg-red-500/10 border border-red-500/20">
-            <Group justify="space-between" align="center">
-              <Group gap="xs">
-                <AlertCircle className="w-5 h-5 text-red-500" />
-                <Text size="sm" c="red">
-                  Không thể tải danh sách phiên đăng nhập. Vui lòng thử lại.
-                </Text>
-              </Group>
-              <Button
-                variant="subtle"
-                color="red"
-                size="xs"
-                leftSection={<RefreshCw className="w-3.5 h-3.5" />}
+          <Alert color="red" variant="light" icon={<AlertCircle size={20} />} className="mb-4">
+            <div className="flex justify-between items-center w-full">
+              <Text size="sm">
+                Không thể tải danh sách phiên đăng nhập. Vui lòng thử lại.
+              </Text>
+              <button
+                type="button"
+                className={classes.btnQuiet}
                 onClick={() => void refetch()}
               >
-                Tải lại
-              </Button>
-            </Group>
-          </Paper>
+                <RefreshCw size={14} />
+                <span>Tải lại</span>
+              </button>
+            </div>
+          </Alert>
         )}
 
-        {/* Sessions List */}
         {!isLoading && !isError && sessions && (
-          <Stack gap="sm">
+          <div className={classes.sessionList}>
             {sessions.length === 0 ? (
-              <Text size="sm" c="dimmed" ta="center" py="md">
+              <p className={classes.note} style={{ textAlign: "center", padding: "16px" }}>
                 Không tìm thấy phiên đăng nhập nào.
-              </Text>
+              </p>
             ) : (
               sessions.map((session) => (
                 <SessionItem
@@ -116,9 +99,9 @@ export function SessionsList() {
                 />
               ))
             )}
-          </Stack>
+          </div>
         )}
-      </Stack>
+      </div>
 
       <RevokeOthersModal
         opened={revokeOthersOpened}
@@ -127,6 +110,6 @@ export function SessionsList() {
         loading={revokeOtherSessions.isPending}
         otherSessionsCount={otherSessionsCount}
       />
-    </Paper>
+    </div>
   );
 }

@@ -1,7 +1,9 @@
 "use client";
 
-import { Modal, Stack, Text, Button, Group } from "@mantine/core";
-import { UserPlus } from "lucide-react";
+import { Modal } from "@mantine/core";
+import base from "@/components/landing/landing.module.css";
+import { AuthButton } from "./AuthButton";
+import s from "./auth.module.css";
 
 interface RegisterConfirmModalProps {
   opened: boolean;
@@ -27,36 +29,26 @@ export function RegisterConfirmModal({
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={
-        <Group gap="xs">
-          <UserPlus className="w-5 h-5 text-brand" />
-          <Text fw={600} className="font-heading text-text-app">
-            Chưa đăng ký
-          </Text>
-        </Group>
-      }
+      title={<span className={`${base.landing} ${s.modalTitle}`}>Chưa có tài khoản</span>}
       centered
-      size="sm"
+      size="md"
       radius="md"
+      padding="xl"
     >
-      <Stack gap="md">
-        <Text size="sm" c="dimmed">
-          Email {email} của bạn chưa đăng ký thành viên Nexus. Bạn có muốn đăng ký ngay không?
-        </Text>
-        <Group justify="flex-end" gap="sm" mt="sm">
-          <Button variant="default" onClick={handleClose} disabled={loading}>
+      {/* The modal renders in a portal outside the landing wrapper, so it re-declares the tokens. */}
+      <div className={`${base.landing} ${s.stack}`}>
+        <p className={s.modalText}>
+          Email {email} chưa đăng ký tài khoản Nexus. Bạn có muốn đăng ký ngay không?
+        </p>
+        <div className={s.modalActions}>
+          <AuthButton variant="ghost" onClick={handleClose} disabled={loading}>
             Hủy
-          </Button>
-          <Button
-            color="brand"
-            onClick={onConfirm}
-            loading={loading}
-            disabled={loading}
-          >
-            Xác nhận
-          </Button>
-        </Group>
-      </Stack>
+          </AuthButton>
+          <AuthButton onClick={onConfirm} loading={loading}>
+            Đăng ký
+          </AuthButton>
+        </div>
+      </div>
     </Modal>
   );
 }

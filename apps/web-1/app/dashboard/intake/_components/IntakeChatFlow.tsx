@@ -4,7 +4,7 @@ import React from "react";
 import { useStore } from "@tanstack/react-form";
 import { IntakeStep, IntakeData } from "../_types/intake.types";
 import { Button, Modal } from "@mantine/core";
-import { Bot } from "lucide-react";
+import { Robot as Bot } from "@phosphor-icons/react";
 import { BOUNDARY_RULE_IDS } from "./Steps/BoundaryStep";
 // Import step components
 import SituationStep from "./Steps/SituationStep";

@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-`apps/worker-omp` is a dedicated AI evaluation daemon built with Bun and BullMQ. It processes long-running AI assessment jobs decoupled from the HTTP API, executes evaluation logic in sandboxed file structures, and provides realtime streaming telemetry via Redis Pub/Sub.
+`apps/worker-omp` = dedicated AI evaluation daemon (Bun + BullMQ). Process long-running AI assessment jobs decoupled from HTTP API, run evaluation logic in sandboxed file structures, stream realtime telemetry via Redis Pub/Sub.
 
 ## STRUCTURE
 
@@ -21,9 +21,9 @@ src/
 | Task | Location | Notes |
 |------|----------|-------|
 | Daemon Entry | `src/index.ts` | Worker instance for `omp-queue`, concurrency=2 |
-| Job Execution | `src/omp-runner.ts` | Orchestrates the multi-stage evaluation pipeline |
-| Job Cancellation | `src/process-registry.ts` | Subscribes to Redis `job-cancellation` channel |
-| Sandbox & Logs | `src/storage.ts` | Manages `storage/jobs/` and dual-publishes logs |
+| Job Execution | `src/omp-runner.ts` | Orchestrates multi-stage evaluation pipeline |
+| Job Cancellation | `src/process-registry.ts` | Subscribes Redis `job-cancellation` channel |
+| Sandbox & Logs | `src/storage.ts` | Manages `storage/jobs/`, dual-publishes logs |
 | Leak Prevention | `src/prompt-leak-guard.ts` | Sanitizes internal system prompts before streaming |
 
 ## QUEUE CONTRACT (BullMQ)
@@ -31,29 +31,29 @@ src/
 - **Queue Name**: `omp-queue`
 - **Job ID Format**: `omp-${caseId}--${aiJobId}` (fallback `omp-${caseId}`)
 - **Concurrency**: 2 concurrent evaluation jobs per worker instance
-- **Lock Duration**: 600,000ms (10 minutes, with 10-minute stalled interval)
+- **Lock Duration**: 600,000ms (10 minutes, 10-minute stalled interval)
 - **Max Stalled Count**: 1 (prevents runaway re-executions)
 
 ## JOB SPEC CONTRACT (worker = dumb engine)
 
-Since 2026-10-12 the API sends a self-contained JobSpec (`specVersion: 1`):
+Since 2026-10-12 API sends self-contained JobSpec (`specVersion: 1`):
 `instruction`, `requiredOutputs`, `optionalOutputs`, `milestones` (file → log
-message). The worker resolves NOTHING domain-specific on this path: no prompt
-selection, no checkpoint table, no output parsing (the API finalizer reads
+message). Worker resolves NOTHING domain-specific on this path: no prompt
+selection, no checkpoint table, no output parsing (API finalizer reads
 report files from disk).
 
-- Adding or editing a service (new checkpoint, new output file, new wording) =
-  **deploy API only**. Do NOT rebuild the worker image.
-- Rebuild the worker ONLY when the engine itself changes: OMP CLI flags, sandbox
+- Add/edit service (new checkpoint, new output file, new wording) =
+  **deploy API only**. Do NOT rebuild worker image.
+- Rebuild worker ONLY when engine itself changes: OMP CLI flags, sandbox
   isolation, resource tracker, cancellation protocol, Redis/log transport.
-- Legacy fields (`checkpoint`, `scope`, `promptMode`, `submissionType`) remain in
-  `omp-runner.ts` ONLY as a fallback for payloads queued before the cutover;
-  they are deleted once the prod queue drains (plan
+- Legacy fields (`checkpoint`, `scope`, `promptMode`, `submissionType`) stay in
+  `omp-runner.ts` ONLY as fallback for payloads queued before cutover;
+  deleted once prod queue drains (plan
   `plans/261012-worker-jobspec/phase-03-cutover.md`).
 
 ## SANDBOX ENVIRONMENT
 
-Every evaluation job runs in an isolated directory structure:
+Every evaluation job runs in isolated directory structure:
 ```
 storage/jobs/${caseId}/${jobId}/
 ├── input/             # Intake form data, uploaded pitch decks, documents
@@ -64,21 +64,21 @@ storage/jobs/${caseId}/${jobId}/
 
 ## REALTIME LOGGING & TELEMETRY
 
-Logs emitted during evaluation are filtered through `prompt-leak-guard.ts` to redact system prompts and internal API keys, then published via Redis Pub/Sub:
-1. **Admin Channel (`job:logs:${jobId}`)**: Consumed by the Admin Console Worker Terminal (`WorkerJobTerminal.tsx`).
-2. **Student Channel (`job:logs:${caseId}`)**: Forwarded to the client via Server-Sent Events (SSE) on the Case Workspace.
+Evaluation logs filtered through `prompt-leak-guard.ts` to redact system prompts + internal API keys, then published via Redis Pub/Sub:
+1. **Admin Channel (`job:logs:${jobId}`)**: Consumed by Admin Console Worker Terminal (`WorkerJobTerminal.tsx`).
+2. **Student Channel (`job:logs:${caseId}`)**: Forwarded to client via Server-Sent Events (SSE) on Case Workspace.
 
 ## JOB CANCELLATION
 
-- The worker subscribes to the Redis Pub/Sub channel `job-cancellation`.
-- When an admin triggers job cancellation from the Admin Panel, a message `{ "jobId": "..." }` is published.
-- `process-registry.ts` intercepts this message, terminates any running child processes, clears temp files, and marks the job aborted.
+- Worker subscribes Redis Pub/Sub channel `job-cancellation`.
+- Admin triggers cancel from Admin Panel → message `{ "jobId": "..." }` published.
+- `process-registry.ts` intercepts, terminates running child processes, clears temp files, marks job aborted.
 
 ## CRITICAL ARCHITECTURAL BOUNDARY
 
-- **Worker-OMP responsibility**: Execute analysis, call LLM providers, and generate `output/report.json`.
-- **API responsibility**: Fetch `report.json`, parse critique data, and compile it into final PDF documents using Typst (`apps/api/src/modules/reports/infrastructure/pdf/`).
-- **NEVER** introduce Typst or PDF generation libraries into `apps/worker-omp`.
+- **Worker-OMP responsibility**: run analysis, call LLM providers, generate `output/report.json`.
+- **API responsibility**: fetch `report.json`, parse critique data, compile final PDF via Typst (`apps/api/src/modules/reports/infrastructure/pdf/`).
+- **NEVER** add Typst or PDF generation libraries to `apps/worker-omp`.
 
 ## COMMANDS
 

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Textarea } from "@mantine/core";
-import { XCircle, Loader2 } from "lucide-react";
+import { XCircle, CircleNotch as Loader2 } from "@phosphor-icons/react";
 
 interface RejectCaseModalProps {
   caseId: string | null;

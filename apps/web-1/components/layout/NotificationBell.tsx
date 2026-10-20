@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { ActionIcon, Badge, Menu, ScrollArea, Text } from "@mantine/core";
-import { Bell } from "lucide-react";
+import { Bell } from "@phosphor-icons/react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/vi";

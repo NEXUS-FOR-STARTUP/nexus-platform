@@ -232,7 +232,7 @@ export function useIntakeForm(options: UseIntakeFormOptions = {}) {
     removeDocument,
     isSubmitting: submitMutation.isPending,
     error: submitMutation.error
-      ? (submitMutation.error as any).response?.data?.message || "Đã xảy ra lỗi khi tạo hồ sơ."
+      ? (submitMutation.error as any).response?.data?.message || "Đã xảy ra lỗi khi tạo dự án."
       : null,
   };
 }

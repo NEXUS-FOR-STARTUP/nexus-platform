@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ServicePackage } from "@/types";
 import { Table, NumberInput, Card, Stack, Text, Badge, Switch, Menu, ActionIcon } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { MoreVertical, Save } from "lucide-react";
+import { DotsThreeVertical as MoreVertical, FloppyDisk as Save } from "@phosphor-icons/react/ssr";
 import { formatPrice } from "@/lib/pricing";
 
 interface AdminPackagesSettingsProps {

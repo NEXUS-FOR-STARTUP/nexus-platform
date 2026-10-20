@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, AlertCircle } from "lucide-react";
+import { X, WarningCircle as AlertCircle } from "@phosphor-icons/react/ssr";
 import { Modal, Button, Textarea } from "@mantine/core";
 
 interface RejectionReasonModalProps {

@@ -1,0 +1,147 @@
+/* Mockup button styling ported 1:1 from design-system/mockups/case-detail/css/base.css */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: var(--ui-radius);
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: var(--ui-weight-regular);
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease, color 0.15s ease;
+  text-decoration: none;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+/* Variants */
+.primary {
+  background: var(--color-brand);
+  color: var(--color-on-brand);
+  border-color: transparent;
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--color-brand-hover);
+}
+
+.quiet {
+  background: var(--color-surface);
+  color: var(--color-text-app);
+  border-color: var(--color-border-strong);
+}
+
+.quiet:hover:not(:disabled) {
+  background: var(--color-surface-soft);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--color-text-app);
+  border-color: transparent;
+}
+
+.ghost:hover:not(:disabled) {
+  background: var(--color-surface-soft);
+}
+
+.danger {
+  background: var(--color-danger);
+  color: var(--color-on-brand);
+  border-color: transparent;
+}
+
+.danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-danger) 85%, black);
+}
+
+.dangerQuiet {
+  background: var(--color-danger-soft);
+  color: var(--color-danger-ink);
+  border-color: transparent;
+}
+
+.dangerQuiet:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-danger) 25%, var(--color-surface));
+}
+
+/* Sizes */
+/* The mockup has one button size (40px); sm and md are intentionally identical. */
+.sm,
+.md {
+  height: 40px;
+  padding: 0 20px;
+  font-size: 16px;
+  border-radius: var(--ui-radius);
+}
+
+.lg {
+  height: 48px;
+  padding: 0 24px;
+  font-size: 16px;
+  border-radius: var(--ui-radius);
+}
+
+/* Disabled */
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  border-color: transparent;
+  cursor: not-allowed;
+  transform: none;
+  pointer-events: none;
+}
+
+/* Icon Button (.ib from mockup) */
+.ib {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--ui-radius);
+  background: var(--color-surface);
+  cursor: pointer;
+  color: var(--color-text-app);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.ib:hover:not(:disabled) {
+  background: var(--color-surface-soft);
+}
+
+.ib:disabled {
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  border-color: transparent;
+}
+
+.spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

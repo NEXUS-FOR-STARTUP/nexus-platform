@@ -1,0 +1,33 @@
+/* Mantine v9 Tabs, variant="default": `list::before` is the 1px track; override only the parts below. */
+.list {
+  gap: 1.75rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tab {
+  padding: 0.75rem 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--ui-text-body);
+  font-weight: var(--ui-weight-regular);
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+}
+
+.tab:hover {
+  background: transparent;
+  color: var(--color-text);
+}
+
+.tab[data-active] {
+  color: var(--color-text);
+  font-weight: var(--ui-weight-medium);
+  border-bottom-color: var(--color-brand);
+}
+
+.tab:focus-visible {
+  outline: var(--ui-focus-ring);
+  outline-offset: var(--ui-focus-offset);
+}

@@ -3,7 +3,7 @@
 
 import React from "react";
 import { ActionIcon, Button, ScrollArea, Table, Text, TextInput } from "@mantine/core";
-import { Plus, X } from "lucide-react";
+import { Plus, X } from "@phosphor-icons/react";
 import { FINANCE_MAX_PERIODS, FINANCE_ROWS, type FinanceIssue } from "@repo/validation";
 import type { CellTexts, InvalidCell } from "./finance-cells";
 

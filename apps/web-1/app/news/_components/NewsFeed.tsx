@@ -1,7 +1,7 @@
 'use client';
 
 import { TextInput, Button, ActionIcon, Badge, Text, Container } from '@mantine/core';
-import { Search, X, SlidersHorizontal } from 'lucide-react';
+import { MagnifyingGlass as Search, X, SlidersHorizontal } from "@phosphor-icons/react";
 import { NewsCard } from './NewsCard';
 import { FeaturedCard } from './FeaturedCard';
 import { NewsFilterModal } from './NewsFilterModal';
@@ -92,6 +92,28 @@ export function NewsFeed({ data, currentType, currentCategory, currentTag, curre
             Bộ lọc{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
           </Button>
 
+          {/* Mobile Filter Button: sits with the search so it never wraps onto its own row */}
+          <Button
+            type="button"
+            hiddenFrom="sm"
+            variant={activeFilterCount > 0 ? 'light' : 'default'}
+            color={activeFilterCount > 0 ? 'brand' : 'gray'}
+            radius="md"
+            onClick={handleOpenFilter}
+            aria-label="Bộ lọc"
+            size="lg"
+            className={`h-12 ${
+              activeFilterCount > 0 ? 'px-3' : 'w-12 p-0'
+            } text-sm font-medium shadow-none whitespace-nowrap border-border-app text-text-app hover:bg-surface-soft shrink-0 flex items-center justify-center`}
+          >
+            <SlidersHorizontal size={18} />
+            {activeFilterCount > 0 && (
+              <span className="ml-1.5 text-xs font-semibold text-brand">
+                {activeFilterCount}
+              </span>
+            )}
+          </Button>
+
           {/* Mobile Search Button */}
           <Button
             type="submit"
@@ -119,7 +141,7 @@ export function NewsFeed({ data, currentType, currentCategory, currentTag, curre
         </form>
 
         {/* Row 2: Active Filter Tags & Mobile Filter Button */}
-        <div className="flex items-center justify-between gap-2 flex-wrap mt-3">
+        <div className="flex items-center justify-between gap-2 flex-wrap mt-3 empty:hidden">
           {/* Active Filter Tags */}
           {currentSearch || currentType || currentCategory || currentTag ? (
             <div className="flex items-center gap-2 flex-wrap text-sm text-text-muted">
@@ -202,31 +224,7 @@ export function NewsFeed({ data, currentType, currentCategory, currentTag, curre
                 Xóa tất cả
               </button>
             </div>
-          ) : (
-            <div className="hidden sm:block" />
-          )}
-
-          {/* Mobile Filter Button (Bottom Right) */}
-          <Button
-            type="button"
-            hiddenFrom="sm"
-            variant={activeFilterCount > 0 ? 'light' : 'default'}
-            color={activeFilterCount > 0 ? 'brand' : 'gray'}
-            radius="md"
-            onClick={handleOpenFilter}
-            aria-label="Bộ lọc"
-            size="lg"
-            className={`ml-auto h-12 ${
-              activeFilterCount > 0 ? 'px-3' : 'w-12 p-0'
-            } text-sm font-medium shadow-none whitespace-nowrap border-border-app text-text-app hover:bg-surface-soft shrink-0 flex items-center justify-center`}
-          >
-            <SlidersHorizontal size={18} />
-            {activeFilterCount > 0 && (
-              <span className="ml-1.5 text-xs font-semibold text-brand">
-                {activeFilterCount}
-              </span>
-            )}
-          </Button>
+          ) : null}
         </div>
 
         {/* Filter Modal */}

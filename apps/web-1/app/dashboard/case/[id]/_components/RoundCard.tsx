@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Download, ExternalLink, FileText, ChevronDown, ChevronUp } from "lucide-react";
-import { Button, Badge, LoadingOverlay } from "@mantine/core";
+import { DownloadSimple as Download, ArrowSquareOut as ExternalLink, FileText, CaretDown as ChevronDown, CaretUp as ChevronUp } from "@phosphor-icons/react";
+import { Badge, LoadingOverlay } from "@mantine/core";
+import { Button } from "./ui/Button";
 import { useDownloadReportPdfById } from "../hooks/useDownloadReportPdf";
 import type { RoundHistoryEntry } from "@/types/case";
 import {
-  type RichReportData,
   SUBMISSION_TYPE_LABELS,
   CP2_REPORT_TYPE_LABELS,
   SUBMISSION_TYPE_COLORS,
@@ -17,44 +17,29 @@ import {
 interface RoundCardProps {
   round: RoundHistoryEntry;
   caseId: string;
+  projectName?: string;
   defaultExpanded?: boolean;
 }
 
-export default function RoundCard({ round, caseId, defaultExpanded = false }: RoundCardProps) {
+export default function RoundCard({ round, caseId, projectName: caseProjectName, defaultExpanded = false }: RoundCardProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [pdfLoading, setPdfLoading] = useState(true);
 
-  const parsedReport = useMemo<RichReportData | null>(() => {
-    if (!round.report) return null;
-    const r = round.report;
-    if (r.metadata_json && typeof r.metadata_json === "object") {
-      return r.metadata_json as unknown as RichReportData;
-    }
-    if (!r.content_md) return null;
-    try {
-      const data = JSON.parse(r.content_md) as unknown;
-      if (data && typeof data === "object") return data as RichReportData;
-    } catch {
-      // plain markdown
-    }
-    return null;
-  }, [round.report]);
-
-  const projectName = parsedReport?.projectName || "Dự án khởi nghiệp";
+  const projectName = caseProjectName || "Dự án khởi nghiệp";
   const reportFilename = useMemo(
     () =>
       getReportPdfFilename(
         projectName,
+        round.report?.report_type,
         round.report?.created_at || round.submitted_at,
         round.submission_type,
-        round.version_no,
       ),
     [
       projectName,
+      round.report?.report_type,
       round.report?.created_at,
       round.submitted_at,
       round.submission_type,
-      round.version_no,
     ],
   );
 
@@ -96,24 +81,20 @@ export default function RoundCard({ round, caseId, defaultExpanded = false }: Ro
           {isExpanded && (
             <div className="hidden sm:flex items-center gap-2.5">
               <Button
-                component="a"
                 href={pdfViewUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                variant="default"
+                external
+                variant="quiet"
                 size="sm"
                 leftSection={<ExternalLink size={15} />}
-                className="font-medium"
               >
                 Mở xem toàn màn hình
               </Button>
               <Button
-                leftSection={<Download size={15} />}
-                color="brand"
+                variant="primary"
                 size="sm"
+                leftSection={<Download size={15} />}
                 loading={isDownloadingPdf}
                 onClick={handleDownload}
-                className="font-semibold cursor-pointer"
               >
                 Tải báo cáo (PDF)
               </Button>
@@ -122,12 +103,10 @@ export default function RoundCard({ round, caseId, defaultExpanded = false }: Ro
 
           {/* Prominent Expand / Collapse toggle button at the far right */}
           <Button
-            variant={isExpanded ? "default" : "light"}
-            color={isExpanded ? "gray" : "brand"}
-            size="md"
+            variant={isExpanded ? "quiet" : "primary"}
+            size="sm"
             onClick={() => setIsExpanded(!isExpanded)}
-            rightSection={isExpanded ? <ChevronUp className="w-4 h-4 sm:w-4.5 sm:h-4.5" /> : <ChevronDown className="w-4 h-4 sm:w-4.5 sm:h-4.5" />}
-            className="h-8 sm:h-10 font-bold text-xs sm:text-sm cursor-pointer border border-border-app px-2.5 sm:px-4 shadow-sm"
+            rightSection={isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           >
             {isExpanded ? "Thu gọn" : "Xem báo cáo"}
           </Button>
@@ -141,24 +120,22 @@ export default function RoundCard({ round, caseId, defaultExpanded = false }: Ro
           onClick={(e) => e.stopPropagation()}
         >
           <Button
-            component="a"
             href={pdfViewUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="default"
-            size="xs"
+            external
+            variant="quiet"
+            size="sm"
             leftSection={<ExternalLink size={14} />}
-            className="flex-1 font-medium h-9 text-xs"
+            className="flex-1"
           >
             Toàn màn hình
           </Button>
           <Button
+            variant="primary"
+            size="sm"
             leftSection={<Download size={14} />}
-            color="brand"
-            size="xs"
             loading={isDownloadingPdf}
             onClick={handleDownload}
-            className="flex-1 font-semibold cursor-pointer h-9 text-xs"
+            className="flex-1"
           >
             Tải PDF
           </Button>
@@ -180,12 +157,10 @@ export default function RoundCard({ round, caseId, defaultExpanded = false }: Ro
               </div>
               <div className="flex items-center justify-end px-4 py-2 bg-surface-soft/40 border-t border-border-app">
                 <Button
-                  variant="subtle"
-                  color="gray"
-                  size="xs"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setIsExpanded(false)}
                   leftSection={<ChevronUp size={14} />}
-                  className="font-medium cursor-pointer hover:bg-surface-soft"
                 >
                   Thu gọn báo cáo
                 </Button>

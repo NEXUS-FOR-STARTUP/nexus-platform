@@ -1,7 +1,7 @@
 "use client";
 
 import { Alert, Text, Textarea, Tooltip } from "@mantine/core";
-import { HelpCircle, Info } from "lucide-react";
+import { Question as HelpCircle } from "@phosphor-icons/react";
 
 const BLOCKER_MAX = 20000;
 
@@ -31,7 +31,6 @@ export default function SituationStep({ form, values }: SituationStepProps) {
         color="blue"
         radius="md"
         title="Lưu ý quan trọng"
-        icon={<Info className="w-4 h-4" />}
       >
         Không cần viết lại proposal. Chỉ nói ngắn gọn nút thắt hiện tại: giảng viên chê gì, đội đang bí gì, hoặc cần Supporter phản biện phần nào ngay bây giờ.
       </Alert>

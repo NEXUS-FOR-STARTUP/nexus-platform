@@ -104,8 +104,8 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
     features: {
       items: [
         "Chấm bảng hỏi phỏng vấn trước khi đi phỏng vấn thật",
-        "Chấm toàn bộ Checkpoint 2 theo rubric, kèm trích dẫn từ bài nộp",
-        "2 lượt dùng chung cho bảng hỏi và Checkpoint 2",
+        "Chấm toàn bộ bài nộp vòng Thị trường theo rubric, kèm trích dẫn từ bài nộp",
+        "2 lượt dùng chung cho bảng hỏi và bài nộp vòng Thị trường",
       ],
       sla_hours: 0,
       mode: "ai_automated",

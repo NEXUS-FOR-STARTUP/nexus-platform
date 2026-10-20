@@ -104,7 +104,7 @@ export default function DocumentWorkspace({
       <div className="bg-surface-app border border-border-app rounded-xl p-8 text-center">
         <p className="text-base font-medium text-text-app">Chưa có tài liệu</p>
         <p className="text-base text-text-muted mt-1">
-          Hồ sơ này chưa có tài liệu nào được tải lên hoặc liên kết.
+          Dự án này chưa có tài liệu nào được tải lên hoặc liên kết.
         </p>
       </div>
     );

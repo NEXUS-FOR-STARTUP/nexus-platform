@@ -21,7 +21,7 @@ import SupporterRequestInfoModal from "./_components/SupporterRequestInfoModal";
 import { useSupporterActions } from "../../hooks/useSupporterActions";
 import { Button } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { Play, HelpCircle, RefreshCw, Clock } from "lucide-react";
+import { Play, Question as HelpCircle, ArrowsClockwise as RefreshCw, Clock } from "@phosphor-icons/react";
 
 interface PageProps {
   params: Promise<{ id: string }>;

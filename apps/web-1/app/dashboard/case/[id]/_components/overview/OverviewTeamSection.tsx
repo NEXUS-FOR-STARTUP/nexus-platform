@@ -1,95 +1,40 @@
 "use client";
 
-interface OverviewTeamSectionProps {
-  groupName: string;
-  groupNo?: string;
-  schoolName: string;
-  courseContext: string;
-  contactName: string;
-  studentCode: string;
-  teamRole: string;
-  contactEmail: string;
-  contactPhone: string;
-  contactTelegram?: string;
-}
+import type { OverviewData } from "./caseOverviewData";
+import OverviewCard from "./OverviewCard";
+import OverviewField from "./OverviewField";
 
-export default function OverviewTeamSection({
-  groupName,
-  groupNo,
-  schoolName,
-  courseContext,
-  contactName,
-  studentCode,
-  teamRole,
-  contactEmail,
-  contactPhone,
-  contactTelegram,
-}: OverviewTeamSectionProps) {
+const GRID = "grid grid-cols-1 sm:grid-cols-2 gap-4";
+
+export default function OverviewTeamSection({ data: d }: { data: OverviewData }) {
+  const hasProject = Boolean(d.groupName || d.groupNo || d.schoolName || d.courseContext);
+  const hasContact = Boolean(d.contactName || d.studentCode || d.contactEmail || d.contactPhone || d.contactTelegram);
+  if (!hasProject && !hasContact) return null;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-      {/* Dự án & Đội ngũ */}
-      <div className="bg-surface-app border border-border-app rounded-xl p-5 space-y-4">
-        <div className="pb-2.5 border-b border-border-app/60">
-          <h3 className="font-heading text-base font-semibold text-text-app tracking-tight">
-            Dự án & Đội ngũ
-          </h3>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <span className="text-text-muted text-xs font-medium block mb-0.5">Tên đề tài:</span>
-            <p className="font-normal text-text-app mt-0.5 text-sm leading-relaxed">{groupName}</p>
+      {hasProject && (
+        <OverviewCard title="Dự án & Đội ngũ">
+          <div className={GRID}>
+            <OverviewField label="Tên đề tài" value={d.groupName} />
+            <OverviewField label="Nhóm số" value={d.groupNo} />
+            <OverviewField label="Trường" value={d.schoolName} />
+            <OverviewField label="Môn học" value={d.courseContext} />
           </div>
-          <div>
-            <span className="text-text-muted text-xs font-medium block mb-0.5">Nhóm số:</span>
-            <p className="font-normal text-text-app mt-0.5 text-sm leading-relaxed">{groupNo || "Chưa cập nhật"}</p>
+        </OverviewCard>
+      )}
+      {hasContact && (
+        <OverviewCard title="Người đại diện liên hệ">
+          <div className={GRID}>
+            <OverviewField label="Họ và tên" value={d.contactName} />
+            <OverviewField label="Mã số sinh viên" value={d.studentCode} />
+            <OverviewField label="Email" value={d.contactEmail} />
+            <OverviewField label="Số điện thoại / Zalo" value={d.contactPhone} />
+            <OverviewField label="Vai trò" value={d.teamRole} />
+            <OverviewField label="Telegram" value={d.contactTelegram} />
           </div>
-          <div>
-            <span className="text-text-muted text-xs font-medium block mb-0.5">Trường:</span>
-            <p className="font-normal text-text-app mt-0.5 text-sm leading-relaxed">{schoolName}</p>
-          </div>
-          <div>
-            <span className="text-text-muted text-xs font-medium block mb-0.5">Môn học:</span>
-            <p className="font-normal text-text-app mt-0.5 text-sm leading-relaxed">{courseContext}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Người đại diện liên hệ */}
-      <div className="bg-surface-app border border-border-app rounded-xl p-5 space-y-4">
-        <div className="pb-2.5 border-b border-border-app/60">
-          <h3 className="font-heading text-base font-semibold text-text-app tracking-tight">
-            Người đại diện liên hệ
-          </h3>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <span className="text-text-muted text-xs font-medium block mb-0.5">Họ và tên:</span>
-            <p className="font-normal text-text-app mt-0.5 text-sm leading-relaxed">{contactName}</p>
-          </div>
-          <div>
-            <span className="text-text-muted text-xs font-medium block mb-0.5">Mã số sinh viên:</span>
-            <p className="font-normal text-text-app mt-0.5 text-sm leading-relaxed">{studentCode}</p>
-          </div>
-          <div>
-            <span className="text-text-muted text-xs font-medium block mb-0.5">Email:</span>
-            <p className="font-normal text-text-app mt-0.5 text-sm leading-relaxed truncate">{contactEmail}</p>
-          </div>
-          <div>
-            <span className="text-text-muted text-xs font-medium block mb-0.5">Số điện thoại / Zalo:</span>
-            <p className="font-normal text-text-app mt-0.5 text-sm leading-relaxed">{contactPhone}</p>
-          </div>
-          <div>
-            <span className="text-text-muted text-xs font-medium block mb-0.5">Vai trò:</span>
-            <p className="font-normal text-text-app mt-0.5 text-sm leading-relaxed">{teamRole}</p>
-          </div>
-          <div>
-            <span className="text-text-muted text-xs font-medium block mb-0.5">Telegram:</span>
-            <p className="font-normal text-text-app mt-0.5 text-sm leading-relaxed">{contactTelegram || "Chưa cập nhật"}</p>
-          </div>
-        </div>
-      </div>
+        </OverviewCard>
+      )}
     </div>
   );
 }

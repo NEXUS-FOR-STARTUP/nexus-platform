@@ -1,47 +1,34 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
-import { Download, ExternalLink, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import { useState, useEffect } from "react";
+import { DownloadSimple as Download, ArrowSquareOut as ExternalLink, FileText, CaretDown as ChevronDown, CaretUp as ChevronUp } from "@phosphor-icons/react";
 import { Button, SegmentedControl, Stack, Tooltip, LoadingOverlay } from "@mantine/core";
 import { isCp2ReportType } from "@repo/validation";
 import { useDownloadReportPdf } from "../hooks/useDownloadReportPdf";
 import type { RoundHistoryEntry } from "@/types/case";
 import RoundCard from "./RoundCard";
-import { type RichReportData, getReportPdfFilename } from "./report.utils";
+import { getReportPdfFilename } from "./report.utils";
 
 interface TabReportFindingsProps {
   report: {
     content_md: string;
     metadata_json?: Record<string, unknown> | null;
     created_at?: string | Date | null;
+    report_type?: string | null;
   } | null;
   caseId?: string;
+  projectName?: string;
   roundHistory?: RoundHistoryEntry[] | null;
   hideCheckpointFilter?: boolean;
 }
 
-export default function TabReportFindings({ report, caseId, roundHistory, hideCheckpointFilter = false }: TabReportFindingsProps) {
+export default function TabReportFindings({ report, caseId, projectName: caseProjectName, roundHistory, hideCheckpointFilter = false }: TabReportFindingsProps) {
   const [pdfLoading, setPdfLoading] = useState(true);
   const [isSingleExpanded, setIsSingleExpanded] = useState(true);
   const [checkpointFilter, setCheckpointFilter] = useState<"CP1" | "CP2">("CP1");
 
-  const parsedReport = useMemo<RichReportData | null>(() => {
-    if (report?.metadata_json && typeof report.metadata_json === "object") {
-      return report.metadata_json as unknown as RichReportData;
-    }
-    if (!report?.content_md) return null;
-    try {
-      const data = JSON.parse(report.content_md) as unknown;
-      if (data && typeof data === "object") {
-        return data as RichReportData;
-      }
-    } catch {
-      // Content is plain markdown
-    }
-    return null;
-  }, [report]);
-  const projectName = parsedReport?.projectName || "Dự án khởi nghiệp";
-  const reportFilename = getReportPdfFilename(projectName, report?.created_at);
+  const projectName = caseProjectName || "Dự án khởi nghiệp";
+  const reportFilename = getReportPdfFilename(projectName, report?.report_type, report?.created_at);
   const pdfViewUrl = caseId ? `/api/cases/${caseId}/report/${reportFilename}?view=inline` : "";
 
   const { mutate: downloadPdf, isPending: isDownloadingPdf } = useDownloadReportPdf(caseId || "");
@@ -107,6 +94,7 @@ export default function TabReportFindings({ report, caseId, roundHistory, hideCh
               key={round.report_id}
               round={round}
               caseId={caseId || ""}
+              projectName={projectName}
               defaultExpanded={index === 0}
             />
           ))}
