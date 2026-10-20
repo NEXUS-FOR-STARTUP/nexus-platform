@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { AUDIT_CHECKPOINT_CODES, CP2_INPUT_SOURCES } from "@app/shared";
+import { getAuditService } from "./audit-services.js";
 
 const SubmissionTypeSchema = z.enum(["initial", "resubmit", "logic_check"]);
 const CHANGE_SUMMARY_MAX_CHARS = 5000;
@@ -26,16 +27,10 @@ export const TriggerOptsSchema = z
     force_supersede: z.boolean().optional(),
   })
   .superRefine((opts, ctx) => {
-    if (opts.checkpoint === "CP2") {
-      if (opts.scope === undefined) ctx.addIssue({ code: "custom", path: ["scope"], message: "scope is required for CP2" });
-      if (opts.submission_type === "logic_check") {
-        ctx.addIssue({ code: "custom", path: ["submission_type"], message: "logic_check is not available for CP2" });
-      }
-    } else if (opts.scope !== undefined) {
-      ctx.addIssue({ code: "custom", path: ["scope"], message: "scope is only accepted for CP2" });
-    }
-    if (opts.checkpoint !== "CP2" && opts.input_source !== undefined) {
-      ctx.addIssue({ code: "custom", path: ["input_source"], message: "input_source is only accepted for CP2" });
+    for (const issue of getAuditService(opts.checkpoint).optsIssues(opts)) {
+      ctx.addIssue({ code: "custom", path: [issue.path], message: issue.message });
     }
   });
 
+export type TriggerOptsInput = z.input<typeof TriggerOptsSchema>;
+export type TriggerOpts = z.output<typeof TriggerOptsSchema>;

@@ -54,3 +54,13 @@ export async function countStageInputs(caseId: string, code: StageCode): Promise
     : 0;
   return { answers, files };
 }
+
+/** Live, student-submitted files filed under a stage, oldest first (the set `countStageInputs` counts). */
+export async function findStageDocs(caseId: string, code: StageCode) {
+  const checkpoint = await prisma.checkpoint.findUnique({ where: { case_id_checkpoint_code: { case_id: caseId, checkpoint_code: code } }, select: { id: true } });
+  if (!checkpoint) return [];
+  return await prisma.documentRecord.findMany({
+    where: { case_id: caseId, checkpoint_id: checkpoint.id, superseded_at: null, source_kind: { notIn: [...SUBMITTED_DOC_EXCLUDED_KINDS] }, doc_type: { notIn: STAGE_DOC_EXCLUDED_TYPES } },
+    orderBy: [{ created_at: "asc" }],
+  });
+}

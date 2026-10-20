@@ -5,10 +5,10 @@ import { AppError } from "../../../shared/domain/app-error.js";
 import logger from "../../../shared/infrastructure/logger.js";
 import { findLatestCp2FullReport } from "../../reports/infrastructure/persistence/report.repository.js";
 import type { OmpAuditInputFile } from "../omp-audit.service.js";
-import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-types.js";
 import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
 import { buildAttachmentManifest, manifestEntry, uniqueSandboxName, type AttachmentManifestEntry } from "./attachment-manifest.js";
-import { STAGE_DOC_EXCLUDED_TYPES, renderStageAnswers } from "./stage-audit-input.js";
+import { loadStageContext } from "./case-library.js";
+import { findStageDocs, renderStageAnswers } from "./stage-audit-input.js";
 
 export const CP2_CHECKPOINT_CODE = "CP2";
 export const CP2_ANSWERS_FILE = "cp2_answers.md";
@@ -148,25 +148,10 @@ export function renderSelfChecks(answers: AnswerMap): string {
 }
 
 async function loadAttachments(caseId: string): Promise<{ files: OmpAuditInputFile[]; entries: AttachmentManifestEntry[] }> {
-  const checkpoint = await prisma.checkpoint.findUnique({
-    where: { case_id_checkpoint_code: { case_id: caseId, checkpoint_code: CP2_CHECKPOINT_CODE } },
-    select: { id: true },
-  });
-  if (!checkpoint) return { files: [], entries: [] };
-  const docs = await prisma.documentRecord.findMany({
-    where: {
-      case_id: caseId,
-      checkpoint_id: checkpoint.id,
-      superseded_at: null,
-      source_kind: { notIn: [...SUBMITTED_DOC_EXCLUDED_KINDS] },
-      doc_type: { notIn: STAGE_DOC_EXCLUDED_TYPES },
-    },
-    orderBy: [{ created_at: "asc" }],
-  });
   const files: OmpAuditInputFile[] = [];
   const entries: AttachmentManifestEntry[] = [];
   const used = new Set<string>();
-  for (const doc of docs) {
+  for (const doc of await findStageDocs(caseId, CP2_CHECKPOINT_CODE)) {
     if (!doc.download_url) continue;
     const res = await fetch(doc.download_url, { signal: AbortSignal.timeout(ATTACHMENT_FETCH_TIMEOUT_MS) });
     if (!res.ok) {
@@ -176,7 +161,7 @@ async function loadAttachments(caseId: string): Promise<{ files: OmpAuditInputFi
     const name = uniqueSandboxName(doc.original_name || doc.canonical_name || `document_${doc.id}.${doc.extension || "bin"}`, doc.id, used);
     const fileName = `${CP2_ATTACHMENTS_DIR}/${name}`;
     files.push({ name: fileName, content: Buffer.from(await res.arrayBuffer()) });
-    entries.push(manifestEntry(fileName, doc));
+    entries.push(manifestEntry(fileName, doc, CP2_CHECKPOINT_CODE));
   }
   return { files, entries };
 }
@@ -191,22 +176,24 @@ export interface Cp2InputRequest {
   scope?: string;
   /** Which student inputs the grader reads. Undefined = legacy (answers + opportunistic attachments). */
   inputSource?: Cp2InputSource;
+  /** Case library folder; CP1 files the run reads as context are stored there. */
+  libraryDir: string;
 }
 
 /** Stand-in for cp2_answers.md when grading on files only; keeps the "missing question = unanswered" rule from firing. */
 const FILES_ONLY_ANSWERS_TEXT =
   "# Tài liệu CP2 của nhóm\n\nNhóm chọn chấm chỉ bằng tệp đính kèm trong `input/attachments/`. Nhóm không dùng mẫu câu hỏi ở lần chấm này: không coi câu hỏi vắng mặt là chưa trả lời, hãy lấy bằng chứng từ các tệp.\n";
 
-/** CP2 sandbox input by chosen source (answers, files, or both), plus the previous report on resubmit. */
-export async function assembleCp2InputFiles(req: Cp2InputRequest): Promise<{ inputFiles: OmpAuditInputFile[]; resolvedLifecycleUnitId: null }> {
+/** CP2 sandbox input by chosen source (answers, files, or both), plus the previous report on resubmit and CP1 as context. */
+export async function assembleCp2InputFiles(req: Cp2InputRequest): Promise<{ inputFiles: OmpAuditInputFile[]; resolvedLifecycleUnitId: null; libraryNames: string[] }> {
   const source = req.inputSource;
   const rows = await prisma.projectAnswer.findMany({ where: { case_id: req.caseId }, select: { question_id: true, answer_text: true } });
   const answers = Object.fromEntries(rows.map((r) => [r.question_id, r.answer_text]));
   const loaded = source === "answers" ? { files: [], entries: [] } : await loadAttachments(req.caseId);
   assertCp2InputSource(req.caseId, answers, req.scope ?? "full", source, loaded.files.length);
-  const manifest = buildAttachmentManifest(loaded.entries);
-  const attachments = manifest ? [...loaded.files, manifest] : loaded.files;
-
+  const cp1 = await loadStageContext(req.caseId, "CP1", req.libraryDir);
+  const manifest = buildAttachmentManifest([...loaded.entries, ...cp1.entries]);
+  const attachments = manifest ? [...loaded.files, ...cp1.files, manifest] : loaded.files;
   const inputFiles: OmpAuditInputFile[] =
     source === "files"
       ? [{ name: CP2_ANSWERS_FILE, content: FILES_ONLY_ANSWERS_TEXT }, ...attachments]
@@ -222,7 +209,7 @@ export async function assembleCp2InputFiles(req: Cp2InputRequest): Promise<{ inp
       // Race: report deleted between the pre-charge guard and assembly (credit already
       // taken). Grade as initial instead of failing + refunding the trigger.
       logger.warn({ caseId: req.caseId }, "CP2 resubmit lost its previous report before assembly; grading as initial");
-      return { inputFiles, resolvedLifecycleUnitId: null };
+      return { inputFiles, resolvedLifecycleUnitId: null, libraryNames: cp1.libraryNames };
     }
     const meta = { ...((previous.metadata_json ?? {}) as Record<string, unknown>) };
     for (const key of PROVENANCE_KEYS) delete meta[key];
@@ -234,5 +221,5 @@ export async function assembleCp2InputFiles(req: Cp2InputRequest): Promise<{ inp
   }
   const note = req.userNote?.trim();
   if (note) inputFiles.push({ name: "user_note.md", content: `# Ghi chú của nhóm cho lần chấm này\n\n${note}` });
-  return { inputFiles, resolvedLifecycleUnitId: null };
+  return { inputFiles, resolvedLifecycleUnitId: null, libraryNames: cp1.libraryNames };
 }

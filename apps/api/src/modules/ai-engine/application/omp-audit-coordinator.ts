@@ -5,7 +5,7 @@ import { z } from "zod";
 import logger from "../../../shared/infrastructure/logger.js";
 import { prisma } from "../../../db.js";
 import { AppError } from "../../../shared/domain/app-error.js";
-import { findFirstIntakeUnit, ensureCheckpoint } from "../../cases/infrastructure/persistence/case.repository.js";
+import { findFirstIntakeUnit } from "../../cases/infrastructure/persistence/case.repository.js";
 import { CP1_AUDIT_SERVICE_CODE } from "../../cases/infrastructure/persistence/credit-ledger.repository.js";
 import {
   dispatchOmpJob,
@@ -30,22 +30,17 @@ import { jobStore } from "../infrastructure/persistence/job-store.repository.js"
 import { prepareSandbox, resolveRepoRoot, type SandboxOptions } from "../omp-audit.service.js";
 import { finalizeOmpAuditResult } from "./omp-audit-finalizer.js";
 import { getCaseAiAuditStatus } from "./omp-audit-status.js";
-import { findLatestCp2FullReport } from "../../reports/infrastructure/persistence/report.repository.js";
 import { INPUT_ASSEMBLERS, resolveAuditPlan } from "./audit-registry.js";
-import { buildCp2AgentsMd, cp2ValidatorSource } from "./cp2-agents-md.js";
 import { buildOmpJobSpec } from "./job-spec-builder.js";
-import { CP2_CHECKPOINT_CODE, assertCp2InputSource } from "./cp2-audit-input.js";
+import { LIBRARY_DIR, copyLibraryFiles } from "./case-library.js";
+import { getAuditService } from "./audit-services.js";
 import { consumeAuditCredit, grantAuditRefund } from "./audit-credit.js";
 import { TriggerOptsSchema } from "./trigger-opts.js";
-import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-types.js";
-import { STAGE_DOC_EXCLUDED_TYPES } from "./stage-audit-input.js";
 import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
 import { countStageInputs } from "./stage-audit-input.js";
 import { recordCaseEvent } from "../../cases/infrastructure/persistence/case-event.repository.js";
 
 export { finalizeOmpAuditResult, getCaseAiAuditStatus };
-
-const CP2_OPENED_STATUS = "draft";
 
 let queueEventsInitialized = false;
 
@@ -283,16 +278,14 @@ export async function triggerOmpAuditForCase(
     admin_triggered: adminTriggered = false,
     force_supersede: forceSupersede = false,
   } = parsed.data;
-  // The team chooses initial vs resubmit in the modal. A resubmit with no previous full
-  // report falls back to initial BEFORE plan resolution so coordinator, worker
-  // (prompt files) and finalizer (report type) all see the same value.
-  let submissionType = initialSubmissionType;
-  if (checkpointCode === "CP2" && submissionType === "resubmit" && !(await findLatestCp2FullReport(caseId))) {
-    submissionType = "initial";
-    logger.info({ caseId }, "CP2 resubmit without a previous full report; grading as initial");
+  // Resolved BEFORE the plan so coordinator, worker (prompt files) and finalizer (report type) see one value.
+  const service = getAuditService(checkpointCode);
+  const submissionType = (await service.normalizeSubmissionType?.(caseId, initialSubmissionType)) ?? initialSubmissionType;
+  if (submissionType !== initialSubmissionType) {
+    logger.info({ caseId, checkpointCode, requested: initialSubmissionType, submissionType }, "Submission type normalized before grading");
   }
   const resolvedModel = model?.trim() || process.env.OMP_MODEL || "opencode-go/deepseek-v4-pro";
-  const plan = resolveAuditPlan(checkpointCode, checkpointCode === "CP1" ? promptMode : (scope as string), submissionType);
+  const plan = resolveAuditPlan(checkpointCode, service.planScope(parsed.data), submissionType);
   // 2. Validate lifecycle_unit belongs to case (if provided)
   if (lifecycleUnitId) {
     const unit = await prisma.lifecycleUnit.findUnique({ where: { id: lifecycleUnitId } });
@@ -364,53 +357,11 @@ export async function triggerOmpAuditForCase(
     }
   }
 
-  // 4b. Initial report already exists for intake unit → reject upfront.
-  // Report has no submission_type column; saveOmpAuditReport always writes
-  // report_type 'input_clarification', so query by that invariant.
-  // If the first initial FAILED (no report saved), the guard finds nothing
-  // and the trigger proceeds — P2002 skipCharge below handles free retry.
-  // Under AUDIT_STAGE_INPUT_RULES the student re-grades from the stage page with the same "initial"
-  // input (current answers + files), so a prior report no longer blocks it.
-  if (checkpointCode === "CP1" && submissionType === "initial" && !AUDIT_STAGE_INPUT_RULES) {
-    const intakeUnit = await findFirstIntakeUnit(caseId);
-    if (intakeUnit) {
-      const existingInitial = await prisma.report.findFirst({
-        where: {
-          lifecycle_unit_id: intakeUnit.id,
-          report_type: "input_clarification",
-          created_at: { lt: new Date() },
-        },
-        orderBy: { created_at: "asc" },
-      });
-      if (existingInitial && !forceSupersede && !adminTriggered) {
-        throw new AppError(409, "AUDIT_IN_PROGRESS", "Báo cáo Ban đầu đã tồn tại. Vui lòng sử dụng Tạo lại (resubmit) nếu cần gửi tài liệu sửa đổi.");
-      }
-    }
-  }
-
-  // 4c. CP2: the checkpoint row must exist (files and reports hang off it) and a resubmit needs a
-  // full report to compare with. Checked before charging so a rejected trigger costs nothing.
-  if (checkpointCode === "CP2") {
-    await ensureCheckpoint(prisma, caseId, CP2_CHECKPOINT_CODE, CP2_OPENED_STATUS);
-    // Quality bar BEFORE charging: junk answers get a clean 400, not a
-    // failed job + refund cycle. The assembler re-checks post-charge (TOCTOU).
-    const gateRows = await prisma.projectAnswer.findMany({ where: { case_id: caseId }, select: { question_id: true, answer_text: true } });
-    const gateAnswers = Object.fromEntries(gateRows.map((r) => [r.question_id, r.answer_text]));
-    const gateCheckpoint = await prisma.checkpoint.findUnique({
-      where: { case_id_checkpoint_code: { case_id: caseId, checkpoint_code: CP2_CHECKPOINT_CODE } },
-      select: { id: true },
-    });
-    const gateFiles = gateCheckpoint
-      ? await prisma.documentRecord.count({
-          where: { case_id: caseId, checkpoint_id: gateCheckpoint.id, superseded_at: null, source_kind: { notIn: [...SUBMITTED_DOC_EXCLUDED_KINDS] }, doc_type: { notIn: STAGE_DOC_EXCLUDED_TYPES } },
-        })
-      : 0;
-    assertCp2InputSource(caseId, gateAnswers, plan.scope, inputSource, gateFiles);
-  }
+  // 4b. Service guards run before charging, so a rejected trigger costs nothing.
+  await service.preflight({ caseId, plan, submissionType, inputSource, override: forceSupersede || adminTriggered });
 
   // 4d. Stage input rule: a stage is graded on template answers or files, never on nothing.
-  // Checked before charging so a rejected trigger costs nothing.
-  if (AUDIT_STAGE_INPUT_RULES && !skipCreditCheck && (checkpointCode === "CP1" || checkpointCode === "CP2")) {
+  if (AUDIT_STAGE_INPUT_RULES && !skipCreditCheck) {
     const inputs = await countStageInputs(caseId, checkpointCode);
     if (inputs.answers === 0 && inputs.files === 0) {
       throw new AppError(409, "STAGE_INPUT_REQUIRED", "Trả lời ít nhất một câu trong mẫu hoặc tải tài liệu của giai đoạn này lên trước khi chấm.", { checkpoint_code: checkpointCode });
@@ -437,15 +388,10 @@ export async function triggerOmpAuditForCase(
     admin_triggered: adminTriggered,
     checkpoint: checkpointCode,
     scope: plan.scope,
-    ...(checkpointCode === "CP2" ? { input_source: inputSource } : {}),
-    ...(checkpointCode === "CP2" && changeSummary?.trim() ? { change_summary: changeSummary.trim() } : {}),
-    ...(checkpointCode === "CP2" && userNote?.trim() ? { user_note: userNote.trim() } : {}),
+    ...service.jobInputExtras(parsed.data),
     service_type: plan.serviceType,
   };
-  const sandboxOpts: SandboxOptions =
-    checkpointCode === "CP1"
-      ? {}
-      : { promptFiles: plan.prompts, includeKnowledge: false, agentsMd: buildCp2AgentsMd(plan.scope, submissionType), tools: [cp2ValidatorSource()] };
+  const sandboxOpts: SandboxOptions = service.sandbox(plan, submissionType);
   let newAiJob!: AiJob;
 
   try {
@@ -525,6 +471,7 @@ export async function triggerOmpAuditForCase(
 
     // 8. Cleanup old sandbox input/output before writing new files
     const projectRoot = resolveRepoRoot();
+    const libraryDir = resolve(projectRoot, "storage", "jobs", caseId, LIBRARY_DIR);
     const jobDir = resolve(projectRoot, "storage", "jobs", caseId, newAiJob.id);
     cleanDirectory(resolve(jobDir, "input"));
     cleanDirectory(resolve(jobDir, "output"));
@@ -542,7 +489,7 @@ export async function triggerOmpAuditForCase(
       cleanDirectory(resolve(sandboxStorage, "jobs", newAiJob.id, "output"));
     }
     // 9. Assemble input files through the registry (checkpoint decides the assembler)
-    const { inputFiles, resolvedLifecycleUnitId } = await INPUT_ASSEMBLERS[plan.input]({
+    const { inputFiles, resolvedLifecycleUnitId, libraryNames = [] } = await INPUT_ASSEMBLERS[plan.input]({
       caseId,
       submissionType,
       lifecycleUnitId: lifecycleUnitId ?? null,
@@ -550,6 +497,7 @@ export async function triggerOmpAuditForCase(
       userNote,
       scope: plan.scope,
       inputSource,
+      libraryDir,
     });
 
     // 9b. Persist resolved unit into aiJob.input_json so the guard (phase-01)
@@ -582,6 +530,7 @@ export async function triggerOmpAuditForCase(
     }
 
     if (existsSync(sandboxStorage)) {
+      copyLibraryFiles(libraryDir, resolve(sandboxStorage, "jobs", caseId, LIBRARY_DIR), libraryNames);
       try {
         prepareSandbox(resolve(sandboxStorage, "jobs", caseId, newAiJob.id), inputFiles, sandboxOpts);
       } catch (err) {

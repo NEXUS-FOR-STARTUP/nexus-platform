@@ -49,7 +49,7 @@ export async function appendDocFiles(
       const arrayBuf = await res.arrayBuffer();
       const fileName = uniqueSandboxName(doc.original_name || doc.canonical_name || `document_${doc.id}.${doc.extension || "bin"}`, doc.id, used);
       inputFiles.push({ name: fileName, content: Buffer.from(arrayBuf) });
-      entries.push(manifestEntry(fileName, doc));
+      entries.push(manifestEntry(fileName, doc, "CP1"));
     } catch (fetchErr) {
       logger.warn({ docId: doc.id, fetchErr }, "Could not fetch document for audit input");
     }

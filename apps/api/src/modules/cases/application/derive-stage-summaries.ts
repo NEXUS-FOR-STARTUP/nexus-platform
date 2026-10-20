@@ -3,6 +3,7 @@ import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-ty
 import { prisma } from "../../../db.js";
 import { STAGE_DOC_EXCLUDED_TYPES } from "../../ai-engine/application/stage-audit-input.js";
 import { evaluateCp2FullAnswers, evaluateCp2QuestionnaireAnswers } from "../../ai-engine/application/cp2-audit-input.js";
+import { runningCheckpointCode } from "../../ai-engine/infrastructure/persistence/ai-job.repository.js";
 
 const ACTIVE_JOB_STATUSES = ["queued", "processing"];
 const AUDIT_JOB_TYPE = "omp_audit";
@@ -24,12 +25,6 @@ export interface StageSummary {
 export interface StageSummariesResult {
   stages: StageSummary[];
   active_audit: { checkpoint_code: string } | null;
-}
-
-/** Jobs created before CP2 carry no checkpoint in input_json; they are CP1 jobs. */
-function jobCheckpoint(inputJson: unknown): string {
-  const checkpoint = (inputJson as { checkpoint?: unknown } | null)?.checkpoint;
-  return typeof checkpoint === "string" ? checkpoint : "CP1";
 }
 
 export function pickStageStatus(input: { grading: boolean; hasReport: boolean; fileCount: number; answeredCount: number }): StageStatus {
@@ -80,7 +75,7 @@ export async function deriveStageSummaries(caseId: string): Promise<StageSummari
   const cp2QuestionnaireReady = (checkpointId: string | undefined): boolean =>
     checkpointId !== undefined &&
     evaluateCp2QuestionnaireAnswers(answerMap, (fileCountById.get(checkpointId) ?? 0) > 0).ok;
-  const grading = activeJob ? jobCheckpoint(activeJob.input_json) : null;
+  const grading = activeJob ? runningCheckpointCode(activeJob.input_json) : null;
 
   const stages = STAGES.map((stage): StageSummary => {
     const checkpointId = idByCode.get(stage.code);
