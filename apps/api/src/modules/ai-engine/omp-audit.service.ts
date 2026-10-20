@@ -123,14 +123,17 @@ export function prepareSandbox(jobDir: string, inputFiles: OmpAuditInputFile[], 
     }
   }
 
-  // 2. Copy System Prompts: only the files the job's prompt list names, or all when unrestricted (CP1)
+  // 2. Copy System Prompts: only the files the job's prompt list names, or all when unrestricted (CP1).
+  // An explicit list with a missing source dir or file fails the job: grading without its prompts is invalid.
   const promptsSourceDir = resolve(projectRoot, "data/system-prompts");
-  if (existsSync(promptsSourceDir)) {
+  if (!existsSync(promptsSourceDir)) {
+    if (opts.promptFiles?.length) throw new Error(`Prompt directory missing: ${promptsSourceDir}`);
+  } else {
     const promptFiles = opts.promptFiles ?? readdirSync(promptsSourceDir);
     for (const file of promptFiles) {
       const src = resolve(promptsSourceDir, file);
-      if (existsSync(src)) safeCopyFileSync(src, resolve(promptDir, file));
-      else throw new Error(`Prompt file missing in data/system-prompts: ${file}`);
+      if (!existsSync(src)) throw new Error(`Prompt file missing in data/system-prompts: ${file}`);
+      safeCopyFileSync(src, resolve(promptDir, file));
     }
   }
 
