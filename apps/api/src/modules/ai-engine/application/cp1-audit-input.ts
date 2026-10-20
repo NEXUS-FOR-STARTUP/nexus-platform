@@ -12,6 +12,9 @@ import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-ty
 import type { DocumentRecord } from "@prisma/client";
 import { ATTACHMENT_MANIFEST_FILE, buildAttachmentManifest, manifestEntry, uniqueSandboxName, type AttachmentManifestEntry } from "./attachment-manifest.js";
 
+/** doc_type of a saved report's PDF artifact; never team evidence. */
+const REPORT_DOC_TYPE = "assessment_report";
+
 type SubmissionType = AuditSubmissionType;
 
 type DocFileSource = Pick<DocumentRecord, "id" | "download_url" | "original_name" | "canonical_name" | "extension" | "metadata_json">;
@@ -110,9 +113,12 @@ ${JSON.stringify(team, null, 2)}
     }
 
     // Guided docx exports are system output derived from the same answers
-    // already in cp1_answers.md — feeding them back is a self-loop.
+    // already in cp1_answers.md — feeding them back is a self-loop. Report PDFs
+    // (earlier CP1/CP2 verdicts, uploaded to Cloudinary so not `generated`) are the same loop.
     const documents = await findDocumentRecordsByCaseId(caseId);
-    const submitted = documents.filter((d) => !(SUBMITTED_DOC_EXCLUDED_KINDS as readonly string[]).includes(d.source_kind));
+    const submitted = documents.filter(
+      (d) => !(SUBMITTED_DOC_EXCLUDED_KINDS as readonly string[]).includes(d.source_kind) && d.doc_type !== REPORT_DOC_TYPE,
+    );
     await appendDocFiles(submitted, inputFiles, entries, used);
     const manifest = buildAttachmentManifest(entries);
     if (manifest) inputFiles.push(manifest);
@@ -138,7 +144,7 @@ ${JSON.stringify(team, null, 2)}
   // Fetch docs scoped to the lifecycle unit
   if (resolvedUnitId) {
     const unitDocs = await prisma.documentRecord.findMany({
-      where: { lifecycle_unit_id: resolvedUnitId, superseded_at: null, source_kind: { notIn: [...SUBMITTED_DOC_EXCLUDED_KINDS] } },
+      where: { lifecycle_unit_id: resolvedUnitId, superseded_at: null, source_kind: { notIn: [...SUBMITTED_DOC_EXCLUDED_KINDS] }, doc_type: { not: REPORT_DOC_TYPE } },
       orderBy: [{ seq: "asc" }, { created_at: "asc" }],
     });
     await appendDocFiles(unitDocs, inputFiles, entries, used);
