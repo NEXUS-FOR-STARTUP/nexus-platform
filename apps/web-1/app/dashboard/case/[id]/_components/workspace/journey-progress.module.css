@@ -56,3 +56,22 @@
   overflow: hidden;
   clip-path: inset(50%);
 }
+
+/* Segments fill left to right once when the bar mounts; staggered by position (--i). */
+.seg {
+  transform-origin: left center;
+  animation: seg-fill 0.5s ease-out both;
+  animation-delay: calc(var(--i, 0) * 80ms);
+}
+
+@keyframes seg-fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seg {
+    animation: none;
+  }
+}

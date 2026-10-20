@@ -2,19 +2,13 @@
 
 import { useSession } from "@/lib/auth-client";
 import { Text } from "@mantine/core";
-import { CircleNotch as Loader2 } from "@phosphor-icons/react";
+import SettingsSkeleton from "../_components/SettingsSkeleton";
 import ChangePasswordForm from "./_components/ChangePasswordForm";
 
 export default function SettingsPasswordPage() {
   const { data: sessionData, isPending } = useSession();
 
-  if (isPending) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-brand" />
-      </div>
-    );
-  }
+  if (isPending) return <SettingsSkeleton />;
 
   if (!sessionData?.user) {
     return (

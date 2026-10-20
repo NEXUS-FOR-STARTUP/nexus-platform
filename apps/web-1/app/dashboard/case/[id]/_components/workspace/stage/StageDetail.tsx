@@ -16,6 +16,7 @@ import ServiceCheckoutModal from "../../billing/ServiceCheckoutModal";
 import { useTriggerAudit } from "../../../hooks/useTriggerAudit";
 import { useGuidedDrafts } from "../../../hooks/useGuidedDrafts";
 import type { StageView } from "../stage-view";
+import classes from "../workspace-layout.module.css";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
 import type { TemplateKey } from "@repo/validation";
 import type { Case, DocumentWorkspace, RoundHistoryEntry } from "@/types";
@@ -142,32 +143,34 @@ export default function StageDetail({
         ]}
       />
 
-      {view === "draft" && (
-        <StageDraftView caseId={caseId} templateKey={templateKey} draftsApi={draftsApi} onBack={onBack} />
-      )}
+      <div key={view} className={classes.enter}>
+        {view === "draft" && (
+          <StageDraftView caseId={caseId} templateKey={templateKey} draftsApi={draftsApi} onBack={onBack} />
+        )}
 
-      {view === "files" && (
-        <StageFilesView
-          caseId={caseId}
-          checkpointCode={stage.code}
-          fileCount={summary?.file_count ?? 0}
-          documentWorkspace={documentWorkspace}
-        />
-      )}
+        {view === "files" && (
+          <StageFilesView
+            caseId={caseId}
+            checkpointCode={stage.code}
+            fileCount={summary?.file_count ?? 0}
+            documentWorkspace={documentWorkspace}
+          />
+        )}
 
-      {view === "results" && (
-        <StageResultsView
-          caseId={caseId}
-          summary={summary}
-          roundHistory={roundHistory}
-          checkpointId={checkpointId}
-          projectName={caseData?.team_name || undefined}
-          caseCode={caseData?.case_code || undefined}
-          onGoDraft={() => onViewChange("draft")}
-          onGoFiles={() => onViewChange("files")}
-          onAudit={handleAuditClick}
-        />
-      )}
+        {view === "results" && (
+          <StageResultsView
+            caseId={caseId}
+            summary={summary}
+            roundHistory={roundHistory}
+            checkpointId={checkpointId}
+            projectName={caseData?.team_name || undefined}
+            caseCode={caseData?.case_code || undefined}
+            onGoDraft={() => onViewChange("draft")}
+            onGoFiles={() => onViewChange("files")}
+            onAudit={handleAuditClick}
+          />
+        )}
+      </div>
 
       <AuditConfirmModal
         stage={stage}

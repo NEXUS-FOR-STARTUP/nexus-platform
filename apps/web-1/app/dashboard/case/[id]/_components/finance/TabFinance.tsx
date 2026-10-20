@@ -3,7 +3,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Alert, Button, Loader, Text, Textarea, TextInput } from "@mantine/core";
+import { Alert, Button, Text, Textarea, TextInput } from "@mantine/core";
+import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
 import { notifications } from "@mantine/notifications";
 import { DownloadSimple as Download, FloppyDisk as Save } from "@phosphor-icons/react";
 import {
@@ -17,6 +18,8 @@ import { useFinancePlan } from "../../hooks/useFinancePlan";
 import FinanceTable from "./FinanceTable";
 import { downloadFinanceXlsx } from "./export-finance-xlsx";
 import { defaultPeriods, toPlan, toTexts, type CellTexts, type InvalidCell } from "./finance-cells";
+
+const FINANCE_SKELETON_ROWS = 5;
 
 interface FinanceEditorProps {
   initial: FinancePlan;
@@ -168,13 +171,7 @@ function FinanceEditor({ initial, isSaving, onSave }: FinanceEditorProps) {
 export default function TabFinance({ caseId }: { caseId: string }) {
   const { plan, isLoading, isSaving, savePlan } = useFinancePlan(caseId);
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader size="sm" />
-      </div>
-    );
-  }
+  if (isLoading) return <LoadingSkeleton variant="table-row" count={FINANCE_SKELETON_ROWS} />;
 
   const initial: FinancePlan = plan ?? emptyFinancePlan(defaultPeriods());
   return <FinanceEditor initial={initial} isSaving={isSaving} onSave={savePlan} />;

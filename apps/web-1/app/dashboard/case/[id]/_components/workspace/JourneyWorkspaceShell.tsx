@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { List as Menu, X } from "@phosphor-icons/react";
 import { useDisclosure } from "@mantine/hooks";
@@ -8,16 +9,19 @@ import JourneyMobileNav from "./JourneyMobileNav";
 import WorkspaceMain from "./WorkspaceMain";
 import OverviewTab from "./OverviewTab";
 import JourneyTab from "./JourneyTab";
-import StageDetail from "./stage/StageDetail";
+import { StageDetailSkeleton, TabPanelSkeleton } from "./PanelSkeletons";
 import { parseStageView, type StageView } from "./stage-view";
-import BillingTab from "../billing/BillingTab";
-import ActivityTimeline from "../ActivityTimeline";
-import TabCaseSettings from "../TabCaseSettings";
 import { useStageSummaries } from "../../hooks/useStageSummaries";
 import { findStageBySlug } from "@app/shared/stages";
 import type { Case } from "@/types";
 import type { DocumentWorkspace, RoundHistoryEntry, TeamFitReport } from "@/types/case";
 import classes from "./workspace-layout.module.css";
+
+// Overview is the landing tab and stays in the main chunk; the rest download when first opened.
+const StageDetail = dynamic(() => import("./stage/StageDetail"), { loading: () => <StageDetailSkeleton /> });
+const BillingTab = dynamic(() => import("../billing/BillingTab"), { loading: () => <TabPanelSkeleton /> });
+const ActivityTimeline = dynamic(() => import("../ActivityTimeline"), { loading: () => <TabPanelSkeleton /> });
+const TabCaseSettings = dynamic(() => import("../TabCaseSettings"), { loading: () => <TabPanelSkeleton /> });
 
 interface JourneyWorkspaceShellProps {
   caseId: string;
@@ -107,7 +111,7 @@ export default function JourneyWorkspaceShell({
         {mobileNavOpened ? <X size={20} /> : <Menu size={20} />}
       </button>
 
-      <WorkspaceMain width={width}>
+      <WorkspaceMain width={width} enterKey={`${activeTab}:${stageSlugParam}`}>
         {activeTab === "overview" && (
           <OverviewTab
             caseId={caseId}

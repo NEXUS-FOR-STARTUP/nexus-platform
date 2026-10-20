@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ActionIcon, Badge, Menu, ScrollArea, Text } from "@mantine/core";
+import { ActionIcon, Menu, ScrollArea, Text } from "@mantine/core";
 import { Bell } from "@phosphor-icons/react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -31,20 +31,16 @@ export default function NotificationBell() {
             variant="subtle"
             radius="xl"
             size="lg"
-            aria-label="Thông báo"
+            aria-label={unreadCount > 0 ? `Thông báo, ${unreadCount} chưa đọc` : "Thông báo"}
             className="hover:bg-surface-soft"
           >
             <Bell className="w-5 h-5" />
           </ActionIcon>
           {unreadCount > 0 && (
-            <Badge
-              size="xs"
-              color="red"
-              circle
-              style={{ position: "absolute", top: 0, right: 0 }}
-            >
-              {unreadCount > 99 ? "99+" : unreadCount}
-            </Badge>
+            <span
+              aria-hidden="true"
+              className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-danger ring-2 ring-surface-app pointer-events-none"
+            />
           )}
         </div>
       </Menu.Target>

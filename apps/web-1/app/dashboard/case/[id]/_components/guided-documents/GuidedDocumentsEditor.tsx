@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Loader } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { CaretLeftIcon } from "@phosphor-icons/react";
 import { QUESTION_REGISTRY, type Question, type TemplateKey } from "@repo/validation";
@@ -17,6 +16,7 @@ import GuidedTOC from "./GuidedTOC";
 import GuidedQuestionCard from "./GuidedQuestionCard";
 import GuidedHintPanel from "./GuidedHintPanel";
 import s from "./guided-editor.module.css";
+import GuidedEditorSkeleton from "./GuidedEditorSkeleton";
 
 interface GuidedDocumentsEditorProps {
   caseId: string;
@@ -94,14 +94,7 @@ export default function GuidedDocumentsEditor({
     await saveAnswers(answers);
   };
 
-  if (isLoading) {
-    return (
-      <div className="bg-surface-app border border-border-app rounded-xl p-12 flex flex-col items-center justify-center gap-3">
-        <Loader size="md" color="blue" />
-        <p className="text-sm text-text-muted">Đang tải biểu mẫu hướng dẫn...</p>
-      </div>
-    );
-  }
+  if (isLoading) return <GuidedEditorSkeleton />;
 
   const currentId = current?.question_id ?? "";
 

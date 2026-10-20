@@ -387,3 +387,8 @@ button:disabled,
   --ui-focus-ring: 2px solid var(--color-brand);
   --ui-focus-offset: 2px;
 }
+
+/* Mantine's dark skeleton (dark-4 = surface-muted) is almost the same tone as our cards; lift it one step so loading shapes stay visible. */
+[data-mantine-color-scheme="dark"] .mantine-Skeleton-root[data-visible]::after {
+  background-color: var(--color-border-strong);
+}

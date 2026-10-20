@@ -70,3 +70,21 @@
     display: flex;
   }
 }
+
+/* Content enters once when a tab, stage or view is opened. Transform + opacity only, short enough to never delay reading. */
+.enter {
+  animation: workspace-enter 0.16s ease-out both;
+}
+
+@keyframes workspace-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter {
+    animation: none;
+  }
+}

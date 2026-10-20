@@ -26,7 +26,7 @@ import GuidedDocumentsWorkspace from "./_components/guided-documents/GuidedDocum
 import ExternalFeedbackUploadModal from "./_components/ExternalFeedbackUploadModal";
 import StudentDocumentUploadModal from "./_components/StudentDocumentUploadModal";
 import StatusGuidanceCard from "./_components/StatusGuidanceCard";
-import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
+import WorkspaceSkeleton from "./_components/workspace/WorkspaceSkeleton";
 import { Button } from "./_components/ui/Button";
 import type { Report, RoundHistoryEntry } from "@/types/case";
 import { useTriggerAudit } from "./hooks/useTriggerAudit";
@@ -95,14 +95,7 @@ export default function CaseWorkspacePage({ params }: PageProps) {
       setCreditBuyOpened(true);
     }
   }, [checkoutParam, canBuyCredits, caseData]);
-  if (isLoading) {
-    return (
-      <div className="space-y-6 w-full pb-12">
-        <LoadingSkeleton variant="text-block" count={1} />
-        <LoadingSkeleton variant="card" count={2} />
-      </div>
-    );
-  }
+  if (isLoading) return <WorkspaceSkeleton />;
 
   if (error || !caseData) {
     return (

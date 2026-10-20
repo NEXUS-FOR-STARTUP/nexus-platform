@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { StageSummary } from "../../hooks/useStageSummaries";
 import { buildStageSteps, STAGE_STATE_LABEL } from "./stage-state";
 import s from "./journey-progress.module.css";
@@ -12,9 +13,9 @@ export default function JourneyProgress({ stages }: JourneyProgressProps) {
 
   return (
     <ol className={s.bar} aria-label="Tiến độ hành trình">
-      {steps.map((step) => (
+      {steps.map((step, i) => (
         <li key={step.code} className={s.step}>
-          <span className={`${s.seg} ${s[step.state]}`} aria-hidden />
+          <span className={`${s.seg} ${s[step.state]}`} style={{ "--i": i } as CSSProperties} aria-hidden />
           <span className={s.name}>
             {step.name}
             <span className={s.sr}> — {STAGE_STATE_LABEL[step.state]}</span>

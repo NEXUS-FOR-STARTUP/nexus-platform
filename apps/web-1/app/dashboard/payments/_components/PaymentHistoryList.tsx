@@ -1,6 +1,9 @@
 import type { PaymentHistoryItem, PaymentHistoryStatus } from "@/types";
 import { formatPrice } from "@/lib/pricing";
-import { Alert, Badge, Card, Center, Loader, Paper, Stack, Text, Group } from "@mantine/core";
+import { Alert, Badge, Card, Group, Paper, Stack, Text } from "@mantine/core";
+import LoadingSkeleton from "@/components/ui/LoadingSkeleton";
+
+const HISTORY_SKELETON_ROWS = 4;
 
 interface PaymentHistoryListProps {
   payments?: PaymentHistoryItem[];
@@ -43,20 +46,7 @@ function resolveErrorMessage(error: unknown) {
 export default function PaymentHistoryList({ payments, items, isLoading = false, error = null }: PaymentHistoryListProps) {
   const historyItems = payments ?? items ?? [];
 
-  if (isLoading) {
-    return (
-      <Paper withBorder radius="md" p="xl" className="bg-surface-app">
-        <Center>
-          <Stack gap="sm" align="center">
-            <Loader color="blue" size="md" />
-            <Text size="sm" c="dimmed">
-              Đang tải lịch sử thanh toán...
-            </Text>
-          </Stack>
-        </Center>
-      </Paper>
-    );
-  }
+  if (isLoading) return <LoadingSkeleton variant="table-row" count={HISTORY_SKELETON_ROWS} />;
 
   if (error) {
     return (
