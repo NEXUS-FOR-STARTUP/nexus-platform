@@ -242,4 +242,4 @@ Giá trị không có trong tài liệu để `null` hoặc mảng rỗng. `ques
 - `actionPlan`: tối đa 5 việc, xếp theo mức quan trọng, mỗi việc bắt đầu bằng động từ.
 - `reaudit`: chỉ có ở lần chấm lại; loại khác bỏ trường này.
 - Không thêm `overallScore`, `verdict`, `categoryScores`. Hệ thống tự tính.
-- JSON phải hợp lệ. Kiểm tra bằng `bun -e "JSON.parse(require('fs').readFileSync('output/report.json','utf8'))"` trước khi kết thúc.
+- JSON phải hợp lệ. Chạy lệnh kiểm tra trong `AGENTS.md` (nó kiểm cả cấu trúc, không chỉ cú pháp JSON) cho tới khi báo OK mới kết thúc.
