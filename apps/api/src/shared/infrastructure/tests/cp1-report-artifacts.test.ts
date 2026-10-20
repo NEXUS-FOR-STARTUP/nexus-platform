@@ -31,23 +31,55 @@ const doc = (id: string, name: string, doc_type: string, source_kind: string) =>
   source_kind,
 });
 
-test("CP1 initial input keeps the team's uploads and drops saved report PDFs, even though they are not `generated`", async () => {
+type DocWhere = { checkpoint_id?: string; source_kind?: { notIn: string[] }; doc_type?: { notIn?: string[]; not?: string } };
+
+// Applies the same filters the database would, so the result depends on the query, not on a canned list.
+function dbFilter<T extends { checkpoint_id?: string; doc_type: string; source_kind: string }>(rows: T[], where: DocWhere) {
+  return rows.filter(
+    (d) =>
+      (where.checkpoint_id === undefined || d.checkpoint_id === where.checkpoint_id) &&
+      !where.source_kind?.notIn.includes(d.source_kind) &&
+      !where.doc_type?.notIn?.includes(d.doc_type) &&
+      d.doc_type !== where.doc_type?.not,
+  );
+}
+
+test("CP1 first grading reads only the team's CP1 uploads: no grading output, no generated exports, no CP2 uploads", async () => {
+  const rows = [
+    { ...doc("d1", "Paper.docx", "intake_document", "cloudinary"), checkpoint_id: "cp1" },
+    { ...doc("d2", "tiboo_y_tuong_lan_dau_20261013001720.pdf", "assessment_report", "cloudinary"), checkpoint_id: "cp1" },
+    { ...doc("d3", "export.docx", "guided_cp1", "system_generated"), checkpoint_id: "cp1" },
+    { ...doc("d4", "CP2 Rubric.pdf", "intake_document", "cloudinary"), checkpoint_id: "cp2" },
+    { ...doc("d5", "tedi_cp2_full.pdf", "assessment_report", "cloudinary"), checkpoint_id: "cp2" },
+  ];
   swap(prisma.lifecycleUnit, "findFirst", async () => ({ id: "v00", content: "intake" }));
   swap(prisma.teamFitReport, "findUnique", async () => null);
   swap(prisma.projectAnswer, "findMany", async () => []);
-  swap(prisma.documentRecord, "findMany", async () => [
-    doc("d1", "Paper.docx", "intake_document", "cloudinary"),
-    doc("d2", "tiboo_y_tuong_lan_dau_20261013001720.pdf", "assessment_report", "cloudinary"),
-    doc("d3", "export.docx", "intake_document", "generated"),
-  ]);
+  swap(prisma.checkpoint, "findUnique", async () => ({ id: "cp1" }));
+  swap(prisma.documentRecord, "findMany", async (args: { where: DocWhere }) => dbFilter(rows, args.where));
   globalThis.fetch = (async () => new Response("x")) as typeof fetch;
 
   const { inputFiles } = await assembleCp1InputFiles("case-1", "initial", null);
-  const names = inputFiles.map((f) => f.name);
+  const names = inputFiles.map((f) => f.name).filter((n) => n !== "attachments_manifest.json");
 
-  assert.ok(names.includes("Paper.docx"));
-  assert.equal(names.some((n) => n.includes("tiboo_y_tuong")), false);
-  assert.equal(names.includes("export.docx"), false);
+  assert.deepEqual(names, ["intake_submission.md", "Paper.docx"]);
+});
+
+test("CP1 re-grading with no new upload reads the same files, never its earlier verdicts", async () => {
+  const rows = [
+    { ...doc("d1", "Paper.docx", "intake_document", "cloudinary"), checkpoint_id: "cp1" },
+    { ...doc("d2", "first_run.pdf", "assessment_report", "cloudinary"), checkpoint_id: "cp1" },
+    { ...doc("d3", "second_run.pdf", "assessment_report", "cloudinary"), checkpoint_id: "cp1" },
+  ];
+  swap(prisma.lifecycleUnit, "findFirst", async () => ({ id: "v00", content: "intake" }));
+  swap(prisma.teamFitReport, "findUnique", async () => null);
+  swap(prisma.projectAnswer, "findMany", async () => []);
+  swap(prisma.checkpoint, "findUnique", async () => ({ id: "cp1" }));
+  swap(prisma.documentRecord, "findMany", async (args: { where: DocWhere }) => dbFilter(rows, args.where));
+  globalThis.fetch = (async () => new Response("x")) as typeof fetch;
+
+  const { inputFiles } = await assembleCp1InputFiles("case-1", "initial", null);
+  assert.deepEqual(inputFiles.map((f) => f.name).filter((n) => n.endsWith(".pdf")), []);
 });
 
 test("CP1 logic_check input and manifest drop saved report PDFs of the unit", async () => {
@@ -56,10 +88,7 @@ test("CP1 logic_check input and manifest drop saved report PDFs of the unit", as
     doc("d2", "tiboo_y_tuong_lan_dau_20261013001720.pdf", "assessment_report", "cloudinary"),
   ];
   swap(prisma.lifecycleUnit, "findFirst", async () => ({ id: "v01" }));
-  // Honours the `doc_type: { not }` filter the way the database does, so the result depends on the query, not on a canned list.
-  swap(prisma.documentRecord, "findMany", async (args: { where: { doc_type?: { not?: string } } }) =>
-    unitDocs.filter((d) => d.doc_type !== args.where.doc_type?.not),
-  );
+  swap(prisma.documentRecord, "findMany", async (args: { where: DocWhere }) => dbFilter(unitDocs, args.where));
   swap(prisma.report, "findMany", async () => []);
   globalThis.fetch = (async () => new Response("x")) as typeof fetch;
 

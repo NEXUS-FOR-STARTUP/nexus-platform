@@ -3,17 +3,13 @@ import logger from "../../../shared/infrastructure/logger.js";
 import { prisma } from "../../../db.js";
 import { AppError } from "../../../shared/domain/app-error.js";
 import { findFirstIntakeUnit } from "../../cases/infrastructure/persistence/case.repository.js";
-import { findDocumentRecordsByCaseId } from "../../documents/infrastructure/persistence/document.repository.js";
 import { findApprovedReports } from "../../reports/infrastructure/persistence/report.repository.js";
 import type { OmpAuditInputFile } from "../omp-audit.service.js";
 import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
-import { renderStageAnswers } from "./stage-audit-input.js";
+import { findStageDocs, renderStageAnswers, STAGE_DOC_EXCLUDED_TYPES } from "./stage-audit-input.js";
 import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-types.js";
 import type { DocumentRecord } from "@prisma/client";
 import { ATTACHMENT_MANIFEST_FILE, buildAttachmentManifest, manifestEntry, uniqueSandboxName, type AttachmentManifestEntry } from "./attachment-manifest.js";
-
-/** doc_type of a saved report's PDF artifact; never team evidence. */
-const REPORT_DOC_TYPE = "assessment_report";
 
 type SubmissionType = AuditSubmissionType;
 
@@ -112,13 +108,10 @@ ${JSON.stringify(team, null, 2)}
       if (stageAnswers.answered > 0) inputFiles.push({ name: "cp1_answers.md", content: stageAnswers.markdown });
     }
 
-    // Guided docx exports are system output derived from the same answers
-    // already in cp1_answers.md — feeding them back is a self-loop. Report PDFs
-    // (earlier CP1/CP2 verdicts, uploaded to Cloudinary so not `generated`) are the same loop.
-    const documents = await findDocumentRecordsByCaseId(caseId);
-    const submitted = documents.filter(
-      (d) => !(SUBMITTED_DOC_EXCLUDED_KINDS as readonly string[]).includes(d.source_kind) && d.doc_type !== REPORT_DOC_TYPE,
-    );
+    // Only what the team uploaded to this stage. Grading output (report PDFs, guided exports, supporter files)
+    // is generated for the team, never input: feeding it back is a self-loop, and CP2 uploads are not CP1 evidence.
+    // A second initial run is the team re-grading after adding files, so it reads the same uploads, not the earlier verdicts.
+    const submitted = await findStageDocs(caseId, "CP1");
     await appendDocFiles(submitted, inputFiles, entries, used);
     const manifest = buildAttachmentManifest(entries);
     if (manifest) inputFiles.push(manifest);
@@ -144,7 +137,7 @@ ${JSON.stringify(team, null, 2)}
   // Fetch docs scoped to the lifecycle unit
   if (resolvedUnitId) {
     const unitDocs = await prisma.documentRecord.findMany({
-      where: { lifecycle_unit_id: resolvedUnitId, superseded_at: null, source_kind: { notIn: [...SUBMITTED_DOC_EXCLUDED_KINDS] }, doc_type: { not: REPORT_DOC_TYPE } },
+      where: { lifecycle_unit_id: resolvedUnitId, superseded_at: null, source_kind: { notIn: [...SUBMITTED_DOC_EXCLUDED_KINDS] }, doc_type: { notIn: STAGE_DOC_EXCLUDED_TYPES } },
       orderBy: [{ seq: "asc" }, { created_at: "asc" }],
     });
     await appendDocFiles(unitDocs, inputFiles, entries, used);
