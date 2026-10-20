@@ -114,7 +114,12 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
   }
   const reportJsonRaw = readFileSync(reportJsonPath, "utf-8");
   const reportMd = readFileSync(reportMdPath, "utf-8");
-  let reportJson = JSON.parse(reportJsonRaw) as Record<string, any>;
+  let reportJson: Record<string, any>;
+  try {
+    reportJson = JSON.parse(reportJsonRaw) as Record<string, any>;
+  } catch (err: unknown) {
+    throw new Error(`report.json is not valid JSON: ${err instanceof Error ? err.message : String(err)}`);
+  }
 
   // Compile Typst PDF
   const caseRecord = await findCaseDetailForPdf(caseId);
