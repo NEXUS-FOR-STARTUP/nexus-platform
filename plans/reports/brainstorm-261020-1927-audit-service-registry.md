@@ -256,25 +256,25 @@ Mỗi bước một commit, chạy test API trước khi sang bước sau.
 
 ### 4.2 Rủi ro
 - CP1 đang chạy mượt. Đổi sandbox/instruction CP1 là thay đổi hành vi thật (model được bảo đọc thêm `workflow_operator_rule_v1.md`). Cần so sánh trước/sau + smoke một job CP1 thật.
-- Chuyển CP1 sang `promptFiles` rõ ràng có thể làm mất file model cần ngầm. Mới xác nhận `workflow_operator_rule_v1.md`; chưa mở `data/knowledge/AGENTS.md` để chắc không còn file khác.
-- D3: job cũ thiếu `checkpoint` trong `input_json` lỗi thay vì chạy CP1. Cần kiểm job đang chờ trong queue + dữ liệu `ai_jobs` cũ trước khi bật.
+- (Đã xử lý) Chuyển CP1 sang `promptFiles` rõ ràng: đã mở `data/knowledge/AGENTS.md`, chỉ tham chiếu `triad_framework_v1_1.md` và prompt được giao; không còn file ngầm khác (xem "D9 đã làm"). Còn lại: chưa biết model CP1 đổi hành vi thế nào (cần job thật).
+- (Đã xử lý) D3: job cũ thiếu `checkpoint` trong `input_json` không còn lỗi mà được coi là CP1 qua một hàm duy nhất `runningCheckpointCode` (D17), dùng ở finalizer, `derive-stage-summaries`, `admin-workers`. Chưa kiểm dữ liệu `ai_jobs` cũ và job đang chờ trong queue trên prod.
 - Hook finalizer động đến lưu báo cáo + PDF; sai ở đây ảnh hưởng dữ liệu đã lưu.
 - Model có thể bỏ qua lệnh validator (cách B) → finalizer vẫn 422 + hoàn credit.
 
 ---
 
-## 5. Success metrics & validation criteria (đề xuất, chưa đo)
+## 5. Success metrics & validation criteria (trạng thái đo 2026-10-20)
 
-| Tiêu chí | Cách kiểm |
-|---|---|
-| Không còn `=== "CPn"` / `?? "CP1"` ở coordinator, finalizer, job-spec-builder, trigger-opts, admin-workers ngoài file dịch vụ | grep + review |
-| Sandbox CP1 chứa đúng `plan.prompts` (+ knowledge, `AGENTS.md`), không có `cp2_*.md` | test đặc tả so danh sách file trước/sau |
-| Sandbox CP2 có `system_prompt/` đủ file, `AGENTS.md`, `tools/validate-cp2-report.mjs`; validator chạy được trong container API | smoke 1 job CP2 thật |
-| API không start khi thiếu prompt của dịch vụ đã đăng ký | test khởi động với thư mục prompt thiếu file |
-| Mã checkpoint chưa đăng ký (CP3/CP4) → 400, không rơi về CP1 | test trigger |
-| Thêm dịch vụ mới = một file dịch vụ + prompt, không sửa coordinator/finalizer | review khi có CP3 |
-| Diff `apps/worker-omp` bằng 0 | `git diff` |
-| Test API hiện có (CP1 + CP2) vẫn pass sau từng bước | `tsx --test` + `tsc --noEmit` |
+| Tiêu chí | Cách kiểm | Trạng thái |
+|---|---|---|
+| Không còn `=== "CPn"` / `?? "CP1"` ở coordinator, finalizer, job-spec-builder, trigger-opts, admin-workers ngoài file dịch vụ | grep | **Đạt**: grep 5 file không còn kết quả. Còn `stage.code === "CP2"` ở `derive-stage-summaries.ts:89-90` (trạng thái sẵn sàng cho web, giữ nguyên) |
+| Sandbox CP1 chứa đúng `plan.prompts` (+ knowledge, `AGENTS.md`), không có `cp2_*.md` | test + so danh sách trước/sau | **Đạt**: test `audit-services.test.ts`; baseline trước 11 file, sau 3-5 file |
+| Sandbox CP2 có `system_prompt/` đủ file, `AGENTS.md`, `tools/validate-cp2-report.mjs`; validator chạy được trong container API | smoke 1 job CP2 thật | **Một phần**: sandbox dựng đúng (smoke local), validator chạy được trong image API (đã kiểm); chưa có job CP2 thật qua worker mới |
+| API không start khi thiếu prompt của dịch vụ đã đăng ký | test khởi động | **Đạt**: test boot guard (`assertAuditPromptsPresent`) |
+| Mã checkpoint chưa đăng ký (CP3/CP4) → 400, không rơi về CP1 | test trigger | **Đạt**: test `TriggerOptsSchema` + `getAuditService` |
+| Thêm dịch vụ mới = một file dịch vụ + prompt, không sửa coordinator/finalizer | review khi có CP3 | **Chưa đo** (cần CP3); thực tế còn thêm hàng `AUDIT_CHECKPOINTS` + khóa registry (xem "Lệch có chủ ý") |
+| Diff `apps/worker-omp` bằng 0 | `git diff` | **Đạt về mã**: `git diff fa09978 HEAD -- apps/worker-omp` chỉ còn `AGENTS.md` (tài liệu), không có file `src` |
+| Test API hiện có (CP1 + CP2) vẫn pass sau từng bước | `tsx --test` + `tsc --noEmit` | **Một phần**: `tsc` sạch, test vùng đổi pass; chưa chạy toàn bộ test API (theo ý bạn) |
 
 ---
 
@@ -287,7 +287,7 @@ Mỗi bước một commit, chạy test API trước khi sang bước sau.
 - Chạy lại đúng input của `3cf8c8f1` (hoặc nhiều job) để đo tỷ lệ đúng schema khi có prompt.
 - Chấm lại `3cf8c8f1` để có kết quả hợp lệ. Đọc `report.md` của `9313b3dc` rồi mới quyết.
 
-**Kiến trúc:** triển khai 6 bước ở 4.1 khi bạn cho phép.
+**Kiến trúc:** phía API đã triển khai (xem "Trạng thái triển khai" ở cuối). Còn lại: web CP3/CP4 (D20, cần tên vòng), rubric/prompt CP3/CP4 (bạn viết), job thật qua worker mới.
 
 **Việc nhỏ chưa làm:**
 - Lưu báo cáo lỗi + danh sách lỗi vào kết quả job (hiện chỉ log `path/code`).
@@ -309,11 +309,11 @@ Mỗi bước một commit, chạy test API trước khi sang bước sau.
 - **Kiểm local (không đụng prod, không qua worker/Redis/DB):** sandbox dựng bằng đúng code API (`prepareSandbox`, `buildCp2AgentsMd`, validator, manifest) từ input job `5196feab`, rồi chạy CLI `omp` trực tiếp với `OMP_MODEL` local. 1 job, `omp` thoát 0. **Đã chứng minh:** `report.json` có `schema: cp2_full_v1`, `checks` mảng 30 tiêu chí, không `guidance_warning`, và validator tôi chạy lại bên ngoài trả `OK`. **Chưa chứng minh:** model có đọc manifest và có tự chạy validator hay không. Chỉ có số lần chuỗi `validate-cp2-report`, `attachments_manifest`, `AGENTS.md` xuất hiện trong log JSON (grep), mà chuỗi đó cũng nằm trong instruction, nội dung `AGENTS.md` và output công cụ, nên không phải số lần thực thi; không đếm được lại vì sandbox và log đã xóa. Image API build local: `validate-cp2-report.mjs` có trong `packages/validation/dist` và `createRequire` resolve đúng. Giới hạn: 1 lần chạy, nhãn danh mục trong manifest do tôi gán tay theo tên file (không qua modal/DB); chưa chạy đường trigger → coordinator → worker → finalizer; worker local là image cũ (trước `fa09978`, không có JobSpec), chưa dùng.
 - Lỗi tìm được khi smoke: `tsup` chính có `clean: true` nên mọi lần build/watch `@repo/validation` xóa `validate-cp2-report.mjs`, sandbox CP2 `throw` "Sandbox tool missing". Đã sửa: `onSuccess` trong `tsup.config.ts` dựng lại CLI sau mỗi lần build, `build` chỉ còn `tsup`.
 - Chưa biết tỷ lệ model đúng schema qua nhiều job (mới 2 job đúng: `5196feab` trên prod, 1 job local).
-- Số nhánh `CP1/CP2` từ grep chỉ trong `apps/api/src`; chưa soi `apps/web-1`, phần còn lại của `derive-stage-summaries.ts`, `ai-audit-order.listener.ts`.
-- Chưa đọc: coordinator dòng 600-776 (dispatch, nhánh lỗi sau dispatch), nội dung `saveOmpAuditReport`, `renderStageAnswers`, `ai-job.repository:158`, `derive-stage-summaries`, `admin-workers:533`. Chưa xác nhận ai đọc `input_source`, `change_summary`, `user_note` từ `input_json` ngoài assembler.
-- Chưa đọc `document-groups.ts` (nhóm tài liệu theo nhãn): chưa biết nhãn mới có sinh nhóm mới trên UI không. Chưa quyết modal giai đoạn có lọc danh mục theo giai đoạn không (hiện dùng chung một danh sách, mã mới sẽ hiện cả ở CP1 intake).
+- Đã soi `apps/web-1` và các file API còn lại (xem "Khảo sát web-1 và API còn lại" ở cuối). `ai-audit-order.listener.ts` không có nhánh `CP1|CP2`.
+- Đã đọc nốt: `saveOmpAuditReport`, `ai-job.repository`, `derive-stage-summaries`, `admin-workers:533`. Người đọc `input_source`, `change_summary`, `user_note` từ `input_json`: chỉ `audit-services.ts` (ghi + `rerunInput`), coordinator (nhận), assembler CP2 và `omp-audit-status.ts` (hiển thị lại). Không có người đọc ngoài các chỗ này.
+- `document-groups.ts` đã đọc: nhãn mới không sinh nhóm mới; `missingCategories` chỉ ra dòng gợi ý "Có thể thêm: ..." (không phải "thiếu") nên hai nhãn mới xuất hiện ở mọi giai đoạn không gây hiểu lầm. Modal tải lên và bước intake dùng chung `DOCUMENT_CATEGORY_CODES`, nên hai mã mới hiện ở cả CP1 intake; chưa quyết có lọc theo giai đoạn không.
 - Lợi ích "bớt suy luận phân loại file" chưa đo: không có log suy luận của model. Job `5196feab` cho thấy model đã không trích quote từ rubric/đề bài (39 quote từ báo cáo, 4 từ phỏng vấn, 0 từ 2 file tiêu chuẩn) nên chưa có bằng chứng model từng nhầm.
-- Chưa chạy sandbox CP1 thật để xác nhận hiện chứa `cp2_*.md`.
+- (Đã làm, xem "Trạng thái triển khai") sandbox CP1 trước đây chứa cả `cp2_*.md`: đã dựng lại bằng code cũ, 11 file gồm 4 file `cp2_*`.
 - Chưa đo token thật của prompt CP2.
 - Dump VPS lấy lúc Oct 20 18:55 (lần đầu) và 19:46 (lần sau, có job `5196feab`); VPS thật có thể đã khác.
 - Chưa biết image API trên VPS là bản nào (compose chỉ ghi `lgdlong/nexus-api:latest`; dump không có digest hay log deploy). Chưa xác định được nhánh `fix/cp2-sandbox-schema-guard` đã deploy hay chưa.
@@ -350,3 +350,18 @@ Mỗi bước một commit, chạy test API trước khi sang bước sau.
 **Test `preflight` CP1** (nhánh 409): `audit-service-flow.test.ts`, chạy hai tiến trình với `AUDIT_STAGE_INPUT_RULES=false` (report đã có -> 409; override, resubmit, chưa có report, chưa có intake unit -> qua) và `=true` (không chặn, không truy vấn report). Cả hai pass.
 
 **Chưa kiểm:** chưa chạy job `omp` thật trên code mới (cần build lại worker: image local trước JobSpec); chưa chạy toàn bộ test API theo yêu cầu.
+
+### Khảo sát web-1 và API còn lại (2026-10-20, chỉ đọc, không sửa)
+Mục đích: biết web phải đổi những gì khi mở CP3/CP4 (D20). Web không generic theo registry; mọi nhánh dưới đây gắn cứng `CP1|CP2`.
+
+| Nhóm | File | Gắn cứng | Khi mở CP3/CP4 |
+|---|---|---|---|
+| Gửi chấm | `StageDetail.tsx:83`, `useTriggerAudit.ts:13`, `useCp2Audit.ts:16`, `StageGradingPanel.tsx:15,85,111-113` | kiểu `"CP1"\|"CP2"`; payload CP2 (`scope`, `input_source`, `change_summary`, `user_note`) chỉ dựng khi `stage.code === "CP2"` | Mở rộng kiểu + dựng payload theo dịch vụ; tên `scope`/`input_source` của CP3/CP4 do rubric quyết |
+| Mở checkpoint | `useOpenCheckpoint.ts:14` (`code: "CP2"`), `GuidedTemplateGallery.tsx:27-48,65` (`CP2_CODE`, `needsStart`) | chỉ CP2 có bước "Bắt đầu" | Tổng quát hóa kiểu `code`; quyết CP3/CP4 có bước mở riêng không |
+| Xác nhận chấm | `AuditConfirmModal.tsx:48` (`isCp2`), `Cp2PackageCard.tsx`, `CreditQuantityModal.tsx:47` (`PACKAGE_KEYS.CP2_AUDIT`), `lib/pricing.ts:6` | gói/giá CP2 | Cần `PACKAGE_KEYS` và gói mới cho CP3/CP4 |
+| Sẵn sàng | `useCp2Readiness.ts:5,16`, `Cp2SelfCheck.tsx`, `GuidedDocumentsEditor.tsx:135` (`templateKey === "cp2"`), `answer-quality.ts` | readiness/tự kiểm CP2 | Mỗi CP mới cần luật readiness riêng (phụ thuộc rubric) |
+| Lịch sử vòng | `TabReportFindings.tsx:28,70-85` (bộ lọc `"CP1"\|"CP2"`, nhãn "Vòng Ý tưởng/Thị trường"), `result-runs.ts:29` (`isCp2ReportType`), `report.utils.ts:17` (`CP2_REPORT_TYPE_LABELS`), `RoundCard.tsx`, `OverviewRecentReports.tsx` | bộ lọc 2 giá trị, nhãn theo loại báo cáo CP2 | Cần tên vòng CP3/CP4 và loại báo cáo mới |
+| Điều hướng | `useNextActions.ts:57-60` (`start-cp1`), `StageFilesView.tsx:60` (cảnh báo riêng tư CP2) | rải rác | Rà lại từng chỗ |
+| API | `derive-stage-summaries.ts:89-90` (`answers_ready_*` theo `stage.code === "CP2"`) | trạng thái sẵn sàng cho web | Chuyển vào dịch vụ khi CP3/CP4 có luật sẵn sàng |
+
+Kết luận: không phát hiện chỗ web bị hỏng bởi thay đổi API lần này (API vẫn nhận body không có `checkpoint` là CP1; mọi trường CP2 giữ nguyên tên). Phần web cho CP3/CP4 là một đợt làm riêng, phụ thuộc tên vòng và rubric từ bạn. Luật UI "cấm CP1/CP2 trên giao diện" (`apps/web-1/AGENTS.md:168`) vẫn áp dụng cho tên vòng mới.
