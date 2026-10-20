@@ -210,9 +210,12 @@ storage/jobs/<caseId>/
     context/cp1_answers.md         ← câu trả lời CP trước (copy, vài KB; người dùng sửa được nên cần bản chụp mỗi job)
     attachments_manifest.json      ← mỗi tệp: stage, role, path (tài liệu CP trước: ../_library/…), tên gốc, loại, kích thước
 ```
-- **Khóa = `download_url` (có `/v<phiên bản>/`):** đo 47/47 tài liệu `cloudinary` và 29/29 `system_generated` trong DB local đều có phiên bản trong URL. Thay tệp tại chỗ trong DB (`upsertDocumentRecord` update cùng `id`, đặt lại `superseded_at: null`) làm URL đổi, nên ra tệp mới trong thư viện. `docId` **không** bất biến nên không dùng làm khóa.
-- **Giới hạn đã biết:** không phát hiện Cloudinary bị ghi đè mà DB không cập nhật; không có cột băm nội dung (A bỏ: trình duyệt upload thẳng Cloudinary, API không cầm nội dung lúc upload, và băm lưu sẵn cũng không bắt được ghi đè ngoài DB). Thư viện giữ **bản chụp lúc nộp**.
-- **Chưa xác minh:** URL có phiên bản cũ còn phục vụ đúng nội dung cũ sau khi ghi đè bản mới (chưa gọi thử Cloudinary); có luồng ghi đè ngoài DB hay không.
+- **Khóa = `download_url` (có `/v<phiên bản>/`), dùng làm định danh cache, không phải bản chụp đảm bảo:** đo 47/47 tài liệu `cloudinary` và 29/29 `system_generated` trong DB local đều có phiên bản trong URL. Thay tệp tại chỗ trong DB (`upsertDocumentRecord` update cùng `id`, đặt lại `superseded_at: null`) làm URL đổi, nên ra tệp mới trong thư viện. `docId` **không** bất biến nên không dùng làm khóa.
+- **Giới hạn đã biết:**
+  - URL có phiên bản **không bảo đảm tải lại đúng bytes cũ**. Theo tài liệu Cloudinary ("Replacing existing assets", tham số upload `backup`), bản bị thay chỉ được giữ khi bật backup; nếu không, URL cũ có thể chỉ trả từ bộ đệm CDN. Khi bản `_library` cục bộ mất, tải lại có thể ra nội dung khác hoặc lỗi.
+  - Không phát hiện Cloudinary bị ghi đè mà DB không cập nhật. Không có cột băm nội dung (A bỏ: trình duyệt upload thẳng Cloudinary, API không cầm nội dung lúc upload, và băm lưu sẵn cũng không bắt được ghi đè ngoài DB).
+  - Hệ quả: `_library` là **bản duy nhất đáng tin của nội dung lúc API tải về**, không phải thứ dựng lại được từ Cloudinary. Mất `_library` thì không bảo đảm tái hiện đúng những gì model đã đọc.
+- **Chưa xác minh:** Cloudinary của dự án có bật backup không, và cache CDN giữ URL phiên bản cũ bao lâu (chưa gọi thử); có luồng ghi đè ngoài DB hay không.
 - **Tài liệu giai đoạn trước:** liệt kê hết trong manifest (chỉ metadata), không có luật chọn tập con; token chỉ tăng khi model mở tệp. CP3, CP4 chỉ thêm dòng manifest.
 - **Không dùng intake** (`v00` chỉ là hồ sơ dự án và liên hệ cá nhân, ý tưởng rỗng; xem 3.5).
 - **Ép "context không phải bằng chứng" bằng code:** chuẩn hóa đường dẫn nguồn (giải `..`, `input/`, đường dẫn tuyệt đối, `\`, hoa thường, `%xx`), nhận ra cả `context/` lẫn `_library/`, tra theo manifest, chỉ chấp nhận mục `role: submission`; test cho các biến thể này.
