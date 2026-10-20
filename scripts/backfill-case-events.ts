@@ -1,5 +1,6 @@
 /**
- * Backfill case_events for activity that happened before the timeline writers shipped (2026-10-20 09:18 UTC).
+ * Backfill case_events for activity that happened before the timeline writers went live.
+ * Only rows older than BACKFILL_CUTOFF are touched (default = start of the API container running the new writers).
  * Rebuilds events from credit_ledgers, reports and document_records, keeping the original created_at.
  *
  *   bun scripts/backfill-case-events.ts            # dry run, READONLY_DATABASE_URL, prints what would be inserted
@@ -12,10 +13,18 @@
 import 'dotenv/config'
 import { randomUUID } from 'node:crypto'
 import pg from 'pg'
+import { filterBackfillRows, type ExistingEvent } from '../apps/api/src/shared/domain/backfill-case-events.logic.ts'
 
 const APPLY = process.argv.includes('--apply')
 const DOCUMENT_GROUP_WINDOW_SECONDS = 5
 const LEGACY_MATCH_WINDOW_SECONDS = 120
+/** Start of the nexus-api container that first ran the timeline writers (docker inspect State.StartedAt). */
+const DEFAULT_CUTOFF = '2026-10-20T09:24:41Z'
+const cutoff = new Date(process.env.BACKFILL_CUTOFF ?? DEFAULT_CUTOFF)
+if (Number.isNaN(cutoff.getTime())) {
+  console.error('BACKFILL_CUTOFF must be an ISO timestamp')
+  process.exit(1)
+}
 const SAMPLE_ROWS = 15
 
 const connectionString = APPLY ? process.env.BACKFILL_DATABASE_URL : process.env.READONLY_DATABASE_URL
@@ -63,6 +72,8 @@ select * from (
          jsonb_build_object('checkpoint', cp.checkpoint_code, 'report_id', r.id),
          'report:' || r.id
   from reports r join cases c on c.id = r.case_id join checkpoints cp on cp.id = r.checkpoint_id
+  -- same shape saveOmpAuditReport writes; drafts and manually authored reports are not audit completions
+  where r.created_by = 'omp_worker' and r.status = 'APPROVED'
   union all
   select d.case_id, 'stage_documents_uploaded', d.uploaded_by_auth_user_id, 'user', null, min(d.created_at),
          jsonb_build_object('checkpoint_code', cp.checkpoint_code, 'file_count', count(*),
@@ -74,22 +85,21 @@ select * from (
   group by d.case_id, d.checkpoint_id, d.uploaded_by_auth_user_id, cp.checkpoint_code,
            floor(extract(epoch from d.created_at) / $1)::bigint
 ) cand
-where not exists (select 1 from case_events e where e.metadata_json->>'backfill_key' = cand.backfill_key)
-  -- legacy writers (before Aug 2026) already logged purchases and credit use for the same moment
-  and not exists (
-    select 1 from case_events e
-    where e.case_id = cand.case_id
-      and e.event_type = case cand.event_type when 'audit_started' then 'credit_used' else cand.event_type end
-      and abs(extract(epoch from e.created_at - cand.created_at)) <= $2)
+where created_at < $2
 order by created_at`
 
 async function main() {
   const client = new pg.Client({ connectionString })
   await client.connect()
   try {
-    const { rows } = await client.query<EventRow>(CANDIDATES_SQL, [DOCUMENT_GROUP_WINDOW_SECONDS, LEGACY_MATCH_WINDOW_SECONDS])
+    const { rows: candidates } = await client.query<EventRow>(CANDIDATES_SQL, [DOCUMENT_GROUP_WINDOW_SECONDS, cutoff])
+    const { rows: existing } = await client.query<ExistingEvent>(
+      `select case_id, event_type, created_at, metadata_json->>'backfill_key' backfill_key from case_events where case_id = any($1)`,
+      [[...new Set(candidates.map((c) => c.case_id))]],
+    )
+    const rows = filterBackfillRows(candidates, existing, cutoff, LEGACY_MATCH_WINDOW_SECONDS)
     const byType = rows.reduce<Record<string, number>>((acc, r) => ((acc[r.event_type] = (acc[r.event_type] ?? 0) + 1), acc), {})
-    console.log(`${APPLY ? 'APPLY' : 'DRY RUN'}: ${rows.length} events to insert`, byType)
+    console.log(`${APPLY ? 'APPLY' : 'DRY RUN'} (cutoff ${cutoff.toISOString()}): ${rows.length} events to insert`, byType)
     console.table(rows.slice(0, SAMPLE_ROWS).map((r) => ({ type: r.event_type, at: r.created_at.toISOString(), key: r.backfill_key })))
     if (!APPLY || rows.length === 0) return
 
