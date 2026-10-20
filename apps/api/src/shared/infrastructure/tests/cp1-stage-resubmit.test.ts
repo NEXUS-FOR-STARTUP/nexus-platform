@@ -34,10 +34,15 @@ const upload = (id: string, name: string) => ({
   source_kind: "cloudinary",
 });
 
-function stubCase(reports: Array<{ content_md: string; metadata_json: unknown }>) {
+type StubReport = { content_md: string; metadata_json: unknown; status?: string };
+
+function stubCase(reports: StubReport[]) {
   swap(prisma.checkpoint, "findUnique", async () => ({ id: "cp1" }));
   swap(prisma.documentRecord, "findMany", async () => [upload("d1", "Paper.docx"), upload("d2", "Added later.docx")]);
-  swap(prisma.report, "findMany", async () => reports);
+  // Honours a `status` filter like the database, so a query that only looks at APPROVED reports would miss a draft.
+  swap(prisma.report, "findMany", async (args: { where: { status?: string } }) =>
+    reports.filter((r) => args.where.status === undefined || r.status === args.where.status),
+  );
   globalThis.fetch = (async () => new Response("x")) as typeof fetch;
 }
 
@@ -51,6 +56,14 @@ test("CP1 re-grade from the stage page reads the stage's uploads, the previous r
   assert.ok(byName.has("Paper.docx") && byName.has("Added later.docx"));
   assert.equal(byName.get("previous_report.md"), "# previous verdict");
   assert.equal(byName.get("change_summary.md"), "Bổ sung phỏng vấn");
+});
+
+test("CP1 re-grade uses a completed-but-unapproved previous report: the UI offers it, so the assembler must too", { skip: !AUDIT_STAGE_INPUT_RULES }, async () => {
+  stubCase([{ content_md: "# unapproved verdict", metadata_json: null, status: "draft" }]);
+
+  const { inputFiles } = await assembleCp1InputFiles("case-1", "resubmit", null, "sửa");
+
+  assert.equal(inputFiles.find((f) => f.name === "previous_report.md")?.content, "# unapproved verdict");
 });
 
 test("CP1 re-grade without a note still tells the grader nothing was explained", { skip: !AUDIT_STAGE_INPUT_RULES }, async () => {

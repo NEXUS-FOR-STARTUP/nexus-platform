@@ -55,6 +55,13 @@ export async function appendDocFiles(
   }
 }
 
+/** Newest first: every report filed under the case's CP1 checkpoint, the same set the stage summary reads. */
+async function findLatestCp1Reports(caseId: string) {
+  const checkpoint = await prisma.checkpoint.findUnique({ where: { case_id_checkpoint_code: { case_id: caseId, checkpoint_code: "CP1" } }, select: { id: true } });
+  if (!checkpoint) return [];
+  return await prisma.report.findMany({ where: { case_id: caseId, checkpoint_id: checkpoint.id }, orderBy: { created_at: "desc" }, take: 1 });
+}
+
 /**
  * Assemble input files scoped by submission type.
  *
@@ -150,7 +157,9 @@ ${JSON.stringify(team, null, 2)}
 
   // For resubmit: add previous report + change_summary
   if (submissionType === "resubmit") {
-    const reports = await findApprovedReports(caseId);
+    // The stage page enables "re-grade" from the stage's latest report whatever its status
+    // (deriveStageSummaries), so the baseline must be picked the same way, not only among APPROVED ones.
+    const reports = stageResubmit ? await findLatestCp1Reports(caseId) : await findApprovedReports(caseId);
     if (stageResubmit && reports.length === 0) {
       throw new AppError(409, "RESUBMIT_REQUIRES_PREVIOUS_REPORT", "Chưa có kết quả chấm trước đó để đối chiếu. Hãy chọn chấm mới.");
     }
