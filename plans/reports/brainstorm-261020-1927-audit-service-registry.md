@@ -109,7 +109,7 @@ Hiện trạng CP3/CP4: chỉ có catalog câu hỏi sinh viên (`packages/valid
 | D12 | Phân loại file người dùng chọn (lưu ở `document_records.metadata_json.category`, không phải `doc_type`) được đưa vào job qua manifest **JSON** `input/attachments_manifest.json` (tên trong sandbox đã dedupe, `category`, nhãn tiếng Việt, tên gốc, định dạng). Không đổi tên file theo loại | Bạn chọn JSON; đổi tên làm hỏng đối chiếu quote trong `evidence.source` |
 | D13 | Thêm hai danh mục: `lecturer_guidance` ("Hướng dẫn / yêu cầu từ giảng viên", gộp rubric + đề bài) và `interview_survey` ("Phỏng vấn / khảo sát khách hàng"). `business_model_canvas` chờ rubric CP3 | Bạn chọn; CP2 có nhóm bằng chứng riêng cho phỏng vấn/khảo sát |
 | D14 | Nhãn là người dùng tự khai: instruction ghi rõ file `lecturer_guidance` chỉ là tài liệu tham chiếu, không ghi đè prompt chấm | Chống gài nhãn để lái điểm |
-| D15 | CP sau nhận dữ liệu CP trước qua `input/context/` do API dựng từ DB, nói rõ bằng `stage`/`role` trong manifest JSON; không phân cấp thư mục theo CP; context không phải bằng chứng, ép bằng postprocess (xem 3.5) | Bạn chỉ ra CP2 cần ý tưởng CP1; cắt phân cấp vì manifest đủ nói giai đoạn |
+| D15 | CP sau nhận dữ liệu CP trước: câu trả lời copy vào `input/context/`; tài liệu nằm trong `storage/jobs/<caseId>/_library/` khóa theo `download_url`, manifest JSON (`stage`, `role`, `path`) dẫn agent tới; context không phải bằng chứng, ép bằng postprocess (xem 3.5, 3.7) | Bạn chỉ ra CP2 cần ý tưởng CP1; chọn thư viện chung thay vì copy để không nhân đôi đĩa và thời gian tải theo CP |
 
 ### 3.2 Thiết kế: hook rút từ các nhánh `if` thật
 
@@ -199,6 +199,25 @@ Sai sót của tôi: gộp hai việc khác nhau. CP1 đến CP4 thuộc cùng m
 - Worker chạy `omp --cwd <jobDir> --approval-mode yolo`: `--cwd` chỉ đặt thư mục làm việc, không giới hạn quyền.
 - **Chưa kiểm trên prod** (không truy cập VPS); suy ra từ compose prod giống nhau (`./storage` rw, `./data:ro`, `/root/.omp`, không có `user:`).
 - Hệ quả: cô lập giữa nhóm chỉ là quy ước; tệp người dùng tải lên có thể chứa chỉ dẫn độc hại đọc/ghi case khác hoặc `auth.json`. Cách sửa nằm ở container (user không root, mount chỉ thư mục job, tách `auth.json`), đụng worker/compose, **không nằm trong phạm vi các thiết kế ở trên**. Cần bạn quyết có làm không và có kiểm trên VPS không.
+
+### 3.7 Thiết kế chốt: thư viện tài liệu theo case (bạn chọn; chưa code)
+Quyết định của bạn: CP2 cần **cả tài liệu CP1 và câu trả lời CP1** (hệ thống cho chấm khi chỉ có một trong hai, nên phía còn lại có thể trống); **không copy tài liệu**, dùng một chỗ lưu chung để agent tự tìm đọc khi cần; **khóa theo `download_url`**; chức năng trước, bảo mật cô lập tính sau.
+```
+storage/jobs/<caseId>/
+  _library/<băm URL>_<tên>        ← mỗi tài liệu một bản, API tải nếu chưa có
+  <jobId>/input/
+    attachments/…                  ← bài nộp lần này (copy như cũ)
+    context/cp1_answers.md         ← câu trả lời CP trước (copy, vài KB; người dùng sửa được nên cần bản chụp mỗi job)
+    attachments_manifest.json      ← mỗi tệp: stage, role, path (tài liệu CP trước: ../_library/…), tên gốc, loại, kích thước
+```
+- **Khóa = `download_url` (có `/v<phiên bản>/`):** đo 47/47 tài liệu `cloudinary` và 29/29 `system_generated` trong DB local đều có phiên bản trong URL. Thay tệp tại chỗ trong DB (`upsertDocumentRecord` update cùng `id`, đặt lại `superseded_at: null`) làm URL đổi, nên ra tệp mới trong thư viện. `docId` **không** bất biến nên không dùng làm khóa.
+- **Giới hạn đã biết:** không phát hiện Cloudinary bị ghi đè mà DB không cập nhật; không có cột băm nội dung (A bỏ: trình duyệt upload thẳng Cloudinary, API không cầm nội dung lúc upload, và băm lưu sẵn cũng không bắt được ghi đè ngoài DB). Thư viện giữ **bản chụp lúc nộp**.
+- **Chưa xác minh:** URL có phiên bản cũ còn phục vụ đúng nội dung cũ sau khi ghi đè bản mới (chưa gọi thử Cloudinary); có luồng ghi đè ngoài DB hay không.
+- **Tài liệu giai đoạn trước:** liệt kê hết trong manifest (chỉ metadata), không có luật chọn tập con; token chỉ tăng khi model mở tệp. CP3, CP4 chỉ thêm dòng manifest.
+- **Không dùng intake** (`v00` chỉ là hồ sơ dự án và liên hệ cá nhân, ý tưởng rỗng; xem 3.5).
+- **Ép "context không phải bằng chứng" bằng code:** chuẩn hóa đường dẫn nguồn (giải `..`, `input/`, đường dẫn tuyệt đối, `\`, hoa thường, `%xx`), nhận ra cả `context/` lẫn `_library/`, tra theo manifest, chỉ chấp nhận mục `role: submission`; test cho các biến thể này.
+- **Giữ nguyên:** không sửa worker, compose, đường dẫn job `jobs/<caseId>/<jobId>`. Ghi tệp thư viện nguyên tử (tệp tạm rồi đổi tên) vì hai job cùng case có thể cùng tải. Tải hỏng một tài liệu context thì bỏ qua và ghi cảnh báo, không làm hỏng lần chấm.
+- **Đánh đổi chấp nhận:** job không còn tự đủ để tái hiện (phụ thuộc `_library`, không được xóa cùng sandbox job); agent đang ghi được vào `_library` (xem 3.6, tính sau); `../_library` chỉ đúng với cấu trúc lồng `jobs/<caseId>/<jobId>` (bản phẳng `jobs/<jobId>` dành cho worker cũ không có).
 
 ---
 
