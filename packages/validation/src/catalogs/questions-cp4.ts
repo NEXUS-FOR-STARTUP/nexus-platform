@@ -94,11 +94,11 @@ export const CP4_QUESTIONS = {
     id: "cp4_fund_path",
     text: "Dự án lấy vốn từ nguồn nào và vì sao?",
     explanation:
-      "Nhóm nào cũng có nguồn vốn, không riêng nhóm gọi vốn ngoài. Cần nêu:\n" +
+      "Nhóm nào cũng có nguồn vốn, không riêng nhóm nhận vốn từ bên ngoài. Cần nêu:\n" +
       "- Nguồn chính: tự đầu tư, tái đầu tư từ doanh thu, vốn góp của nhóm sáng lập, nhà đầu tư thiên thần hoặc quỹ\n" +
       "- Vì sao nguồn này hợp với mô hình và tốc độ tăng trưởng\n" +
-      "Không đạt: \"Gọi vốn nhà đầu tư.\"\n" +
-      "Đạt: \"Vốn góp của nhóm 50 triệu rồi tái đầu tư doanh thu. Không gọi vốn ngoài vì mô hình tăng trưởng vừa phải, " +
+      "Không đạt: \"Nhận vốn từ nhà đầu tư.\"\n" +
+      "Đạt: \"Vốn góp của nhóm 50 triệu rồi tái đầu tư doanh thu. Không nhận vốn ngoài vì mô hình tăng trưởng vừa phải, " +
       "cần nhiều thời gian để có bằng chứng khách trả tiền.\"",
     suggested_actions: ["Lựa chọn khớp với tốc độ tăng trưởng trong bảng P&L."],
   },
