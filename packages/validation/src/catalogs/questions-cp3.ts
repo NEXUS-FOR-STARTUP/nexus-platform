@@ -142,7 +142,7 @@ export const CP3_QUESTIONS = {
     text: "Điểm mạnh nội tại của nhóm là gì?",
     explanation:
       "Điểm mạnh là thứ nhóm đang có, kèm số liệu chứng minh. Cần nêu:\n" +
-      "- Mỗi điểm mạnh một dòng, đánh mã S1, S2, S3\n" +
+      "- Mỗi điểm mạnh một dòng (nên đánh mã S1, S2... để ghép ở phần chiến lược, không bắt buộc)\n" +
       "- Mỗi điểm có số liệu hoặc ví dụ kiểm chứng được\n" +
       "Không đạt: \"Nhóm làm việc chăm chỉ.\"\n" +
       "Đạt: \"S1: 20 trong 25 sinh viên dùng thử nói tìm chỗ nhanh hơn trước (khảo sát tháng 10).\"",
@@ -154,7 +154,7 @@ export const CP3_QUESTIONS = {
     text: "Điểm yếu nội tại của nhóm là gì?",
     explanation:
       "Điểm yếu là hạn chế thật của nhóm, không phải điểm mạnh nói lại. Cần nêu:\n" +
-      "- Mỗi điểm yếu một dòng, đánh mã W1, W2, W3\n" +
+      "- Mỗi điểm yếu một dòng (nên đánh mã W1, W2... để ghép ở phần chiến lược, không bắt buộc)\n" +
       "- Mỗi điểm có số liệu hoặc ví dụ cụ thể\n" +
       "Không đạt: \"Nhóm quá cầu toàn.\"\n" +
       "Đạt: \"W1: chưa có thành viên làm kinh doanh, 3 cuộc đàm phán với quán đều do nhóm kỹ thuật làm và chưa chốt được.\"",
@@ -166,7 +166,7 @@ export const CP3_QUESTIONS = {
     text: "Cơ hội bên ngoài nào đang có lợi cho dự án?",
     explanation:
       "Cơ hội là yếu tố bên ngoài nhóm, như nhu cầu thị trường, xu hướng, khoảng trống đối thủ chưa lấp. Cần nêu:\n" +
-      "- Mỗi cơ hội một dòng, đánh mã O1, O2, O3\n" +
+      "- Mỗi cơ hội một dòng (nên đánh mã O1, O2... để ghép ở phần chiến lược, không bắt buộc)\n" +
       "- Mỗi cơ hội có số liệu và nguồn (khảo sát, báo cáo, ngày)\n" +
       "Không đạt: \"Thị trường học nhóm đang phát triển.\"\n" +
       "Đạt: \"O1: 18 trong 25 sinh viên khảo sát học nhóm ít nhất hai lần mỗi tuần (khảo sát của nhóm, tháng 10).\"",
@@ -178,7 +178,7 @@ export const CP3_QUESTIONS = {
     text: "Thách thức bên ngoài nào có thể làm dự án thất bại?",
     explanation:
       "Thách thức là yếu tố bên ngoài bất lợi, nên có đối thủ hoặc giải pháp thay thế. Cần nêu:\n" +
-      "- Mỗi thách thức một dòng, đánh mã T1, T2, T3\n" +
+      "- Mỗi thách thức một dòng (nên đánh mã T1, T2... để ghép ở phần chiến lược, không bắt buộc)\n" +
       "- Mỗi thách thức có số liệu hoặc ví dụ cụ thể\n" +
       "Không đạt: \"Có nhiều đối thủ.\"\n" +
       "Đạt: \"T1: ứng dụng đặt bàn lớn như Google Maps đã cho xem giờ đông, khách có thể không cần thêm ứng dụng mới.\"",
@@ -191,19 +191,19 @@ export const CP3_QUESTIONS = {
     id: "cp3_strategy_so",
     text: "Nhóm dùng điểm mạnh nào để tận dụng cơ hội nào?",
     explanation:
-      "Ghép điểm mạnh với cơ hội thành hành động. Mỗi chiến lược viết theo dạng \"S? + O? → hành động\", làm được trong thời gian dự án.\n" +
+      "Ghép điểm mạnh với cơ hội thành hành động. Nói rõ dùng điểm mạnh và cơ hội nào (bằng mã như \"S1 + O1\" hoặc bằng tên), rồi nêu hành động làm được trong thời gian dự án.\n" +
       "Không đạt: \"Phát huy điểm mạnh để nắm bắt cơ hội.\"\n" +
       "Đạt: \"S1 + O1: dùng kết quả 20/25 sinh viên thích để thuyết phục thêm 5 quán ký thỏa thuận thử nghiệm trong tháng 12.\"",
-    suggested_actions: ["Mỗi chiến lược ghi rõ mã S và O đã dùng."],
+    suggested_actions: ["Người đọc truy được điểm mạnh và cơ hội mà chiến lược dựa vào."],
   },
 
   cp3_strategy_st: {
     id: "cp3_strategy_st",
     text: "Nhóm dùng điểm mạnh nào để đối phó thách thức nào?",
     explanation:
-      "Ghép điểm mạnh với thách thức để giảm tác động xấu. Dạng \"S? + T? → hành động\".\n" +
+      "Ghép điểm mạnh với thách thức để giảm tác động xấu. Nói rõ dùng điểm mạnh và thách thức nào (bằng mã hoặc bằng tên), rồi nêu hành động.\n" +
       "Không đạt: \"Dùng điểm mạnh để vượt qua đối thủ.\"\n" +
-      "Đạt: \"S1 + T1: nhấn mạnh tính năng giữ bàn mà Google Maps không có, dùng làm nội dung chính của bài đăng tuần 1.\"",
+      "Đạt: \"S1 + T1: dùng kết quả 20/25 sinh viên nói tìm chỗ nhanh hơn để đăng bài so sánh trực tiếp với cách xem giờ đông trên Google Maps, trong tuần 1.\"",
     suggested_actions: ["Hành động cụ thể, không chỉ nói chung chung về cạnh tranh."],
   },
 
@@ -211,7 +211,7 @@ export const CP3_QUESTIONS = {
     id: "cp3_strategy_wo",
     text: "Nhóm khắc phục điểm yếu nào để nắm bắt cơ hội nào?",
     explanation:
-      "Ghép điểm yếu với cơ hội: nhóm cần sửa gì để đủ sức nắm cơ hội. Dạng \"W? + O? → hành động\".\n" +
+      "Ghép điểm yếu với cơ hội: nhóm cần sửa gì để đủ sức nắm cơ hội. Nói rõ điểm yếu và cơ hội nào (bằng mã hoặc bằng tên), rồi nêu hành động.\n" +
       "Không đạt: \"Cải thiện điểm yếu để nắm cơ hội.\"\n" +
       "Đạt: \"W1 + O1: mời một bạn khoa Kinh doanh vào nhóm đàm phán với quán, chốt 3 quán đầu tiên trong tháng 12.\"",
     suggested_actions: ["Hành động sửa được điểm yếu đã nêu, không chỉ nhắc lại nó."],
@@ -221,7 +221,7 @@ export const CP3_QUESTIONS = {
     id: "cp3_strategy_wt",
     text: "Nhóm giảm điểm yếu nào để tránh thách thức nào?",
     explanation:
-      "Ghép điểm yếu với thách thức để giảm rủi ro lớn nhất. Dạng \"W? + T? → hành động\". " +
+      "Ghép điểm yếu với thách thức để giảm rủi ro lớn nhất. Nói rõ điểm yếu và thách thức nào (bằng mã hoặc bằng tên), rồi nêu hành động. " +
       "Nếu nhóm chọn bỏ một hướng, nêu rõ lý do.\n" +
       "Không đạt: \"Cố gắng hơn để không thua đối thủ.\"\n" +
       "Đạt: \"W1 + T1: chưa đủ người đàm phán nên chỉ làm một khu vực quanh một trường, tránh đối đầu trực tiếp với ứng dụng lớn.\"",
