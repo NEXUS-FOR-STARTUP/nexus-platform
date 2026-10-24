@@ -20,10 +20,6 @@
   justify-self: start;
 }
 
-.locked {
-  color: var(--color-text-muted);
-}
-
 .name {
   display: flex;
   align-items: center;
@@ -65,11 +61,6 @@
 .tileTodo {
   background: var(--color-brand-soft);
   color: var(--color-brand);
-}
-
-.tileLocked {
-  background: var(--color-surface-soft);
-  color: var(--color-text-muted);
 }
 
 .note {

@@ -64,6 +64,7 @@ root/
 - TanStack Form for form state.
 - Phosphor Icons (@phosphor-icons/react) for icons (not Mantine icons).
 - Test: Node built-in runner (`node:test` + `node:assert`), only in apps/api.
+- **Test scope: chỉ chạy test của phần đã đổi, KHÔNG chạy cả bộ.** `bun run --filter nexus-platform-api test` (cả bộ) đang treo (>290s), chưa tìm ra test gây treo. Chạy từng file: `cd apps/api && timeout 40 npx tsx --test src/shared/infrastructure/tests/<file>.test.ts`. Validation: `cd packages/validation && bun run build && bun run test` (API đọc `dist` của validation, phải build lại trước). Kiểu: `npx tsc --noEmit` trong package đã đổi.
 - CI/CD: see `docs/ci-guide.md`.
 - Docker build: see `docs/docker-build-push-guide.md`.
 - Shared validation: see `docs/shared-validation-convention.md` for zod/entity rules.
@@ -111,7 +112,7 @@ bun run build                  # prisma generate → tsc (API) + next build (Web
 bun run lint                   # ESLint zero-warnings (Web + UI)
 bun run check-types            # tsc --noEmit all workspaces
 bun run prisma:generate        # Root Prisma schema → client
-bun run --filter nexus-platform-api test # API test suite (tsx --test)
+bun run --filter nexus-platform-api test # API test suite (tsx --test) — ĐANG TREO, không chạy cả bộ; xem "Test scope" ở CONVENTIONS
 bun run format                 # Prettier (not in CI pipeline)
 ```
 ## DOCKER BUILD & DEPLOY
@@ -149,7 +150,7 @@ DATABASE_URL trỏ host remote VPS, IP production (hoặc domain ngoài localhos
   - [orchestration-protocol.md](.agents/rules/orchestration-protocol.md): Subagent delegation + parallel execution — **includes DB Safety Protocol**.
   - [primary-workflow.md](.agents/rules/primary-workflow.md): Planning, implementation, testing, code quality, integration, visual explanations — **includes DB Migration Safety Gate**.
 - Apps/api: 112 endpoints (108 module routes + 4 system) across 15 modules (`admin, ai-engine, auth, cases, deposits, documents, notifications, orders, packages, payments, profile, realtime, reports, supporter, wallet`). Clean Architecture (domain/application/infrastructure/http). Event bus (`shared/domain/domain-events.ts`, 14 event types) + 2 Outbox Relays (`DomainEventOutbox` 5s tick crash recovery, `NotificationOutbox` 2s tick). BullMQ `omp-queue` producer for AI jobs.
-- Apps/web-1: 37 custom hooks across route groups. Auth server-side guard via Next.js 16 `proxy.ts` (with `MAINTENANCE_MODE`). Case workspace 5 tabs (`overview, journey, billing, timeline, settings`) with URL sync `?tab=journey&stage=<slug>&view=<draft|files|results>`. Supporter flow frozen (unmounted 2026-10-11). Zalo community link externalized via `NEXT_PUBLIC_ZALO_GROUP_URL`. Student workspace mobile-responsive; Admin strictly Desktop-only (`DesktopOnlyNotice.tsx` < 1024px). Canonical UX wording reference: `design-system/wording/`. Vietnamese-first UI; never show CP1/CP2 in user-facing UI.
+- Apps/web-1: 37 custom hooks across route groups. Auth server-side guard via Next.js 16 `proxy.ts` (with `MAINTENANCE_MODE`). Case workspace 5 tabs (`overview, journey, billing, timeline, settings`) with URL sync `?tab=journey&stage=<slug>&view=<draft|files|results>`. Journey has 5 stages (`packages/shared/src/stages.ts`): CP1-CP3 graded; CP4 "Tài chính" and PITCH "PITCH DECK" have `serviceType: null` (docx only, no grading/upload UI). Supporter flow frozen (unmounted 2026-10-11). Zalo community link externalized via `NEXT_PUBLIC_ZALO_GROUP_URL`. Student workspace mobile-responsive; Admin strictly Desktop-only (`DesktopOnlyNotice.tsx` < 1024px). Canonical UX wording reference: `design-system/wording/`. Vietnamese-first UI; never show CP1-CP4/PITCH in user-facing UI.
 - Apps/worker-omp: Dedicated BullMQ worker daemon on Bun. Consumes `omp-queue`, isolates runs in `storage/jobs/${caseId}/${jobId}/`, dual-publishes logs to Redis (`job:logs:${jobId}` + `job:logs:${caseId}`), listens `job-cancellation`. Typst PDF generation in `apps/api`, not worker.
 - Packages/validation: Zod v4, shared schemas for IdeaInput, TeamMemberInput, TeamFitInput.
 - Packages/shared: Shared worker telemetry, CPU/RAM/disk metrics (`@app/shared`).

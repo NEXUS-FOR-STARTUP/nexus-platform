@@ -98,6 +98,17 @@ describe("buildSyncProposals", () => {
     assert.equal(solution?.answer_text, idea.solution, "falls back to Team-Fit when CP1 has no answer");
   });
 
+  it("fills the Pitch deck revenue from CP4 first, then CP3, then CP1", () => {
+    const answers = { cp4_bm_revenue_streams: "A", cp3_bmc_revenue_streams: "B", cp1_revenue_model: "C" };
+    const pick = (a: Record<string, string>) =>
+      buildSyncProposals("pitch", baseSources({ answers: a })).proposals.find((p) => p.question_id === "pitch_bm_revenue")
+        ?.answer_text;
+    assert.equal(pick(answers), "A");
+    assert.equal(pick({ cp3_bmc_revenue_streams: "B", cp1_revenue_model: "C" }), "B");
+    assert.equal(pick({ cp1_revenue_model: "C" }), "C");
+    assert.equal(pick({}), undefined);
+  });
+
   it("returns nothing when no source has data or the template has no rules", () => {
     assert.deepEqual(buildSyncProposals("cp1", baseSources()), { proposals: [], skipped_filled: 0 });
     assert.deepEqual(buildSyncProposals("nope", baseSources({ projectName: "X" })), {

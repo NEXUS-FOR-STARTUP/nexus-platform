@@ -23,11 +23,19 @@ function writeDrafts(caseId: string, drafts: Drafts): void {
   }
 }
 
+/** Unsaved drafts plus the actions that edit them; passed as one prop to the editor and stage views. */
+export interface GuidedDraftsApi {
+  drafts: Record<string, string>;
+  setDraft: (questionId: string, value: string) => void;
+  clearDraft: (questionId: string) => void;
+  clearDrafts: (questionIds: readonly string[]) => void;
+}
+
 /**
  * Bản nháp chưa lưu của từng câu hỏi. Nằm ở sessionStorage nên sống qua việc đổi câu,
  * đổi tab, reload; mất khi đóng tab.
  */
-export function useGuidedDrafts(caseId: string) {
+export function useGuidedDrafts(caseId: string): GuidedDraftsApi {
   const [drafts, setDrafts] = useState<Drafts>(() => readDrafts(caseId));
 
   const setDraft = useCallback(

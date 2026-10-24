@@ -32,15 +32,15 @@ export async function generateDocxUseCase(input: GenerateDocxInput) {
   }
 
   // Never fall back to another checkpoint: a CP2 docx must land on CP2. Cases created
-  // without intake have no checkpoint yet, so ensure the target and (only when the
-  // case has no active checkpoint) point current_checkpoint at it so submit-intake
-  // reuses the row.
+  // without intake have no checkpoint yet, so ensure the target. Only CP1 may become
+  // current_checkpoint: submit-intake and revisions read it as the CP1 working
+  // checkpoint, so pointing it at CP2+ would make intake reuse the wrong row.
   const targetCode = templateKey.toUpperCase();
   const checkpoint =
     caseRecord.checkpoints.find((cp) => cp.checkpoint_code === targetCode) ||
     (await prisma.$transaction(async (tx) => {
       const ensured = await ensureCheckpoint(tx, caseId, targetCode);
-      if (!caseRecord.current_checkpoint) {
+      if (targetCode === 'CP1' && !caseRecord.current_checkpoint) {
         await tx.case.update({
           where: { id: caseId },
           data: { current_checkpoint: targetCode },

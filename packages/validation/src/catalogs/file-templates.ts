@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 // File templates — documents the team downloads and fills in by hand outside
 // the app (for example the lecturer's Excel sheet). Unlike the question
-// templates (cp1..cp4) there are no questions, no saved answers and no DOCX:
+// templates (cp1..cp4, pitch) there are no questions, no saved answers and no DOCX:
 // only a file plus the instructions shown with it.
 // ---------------------------------------------------------------------------
 
@@ -50,7 +50,7 @@ const financeInstructions = [
 export const financeTemplate: FileTemplate = {
   template_key: "finance",
   title: "Bảng tài chính (P&L)",
-  description: "File Excel mẫu để nhóm tự lập bảng lãi lỗ dự báo cho CP4.",
+  description: "File Excel mẫu để nhóm tự lập bảng lãi lỗ dự báo.",
   file_url: "/templates/finance-template.xlsx",
   file_name: "FINANCE TEMPLATE.xlsx",
   instructions: financeInstructions,

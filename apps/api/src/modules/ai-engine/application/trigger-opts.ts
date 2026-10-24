@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { AUDIT_CHECKPOINT_CODES, CP2_INPUT_SOURCES } from "@app/shared";
+import { getAuditService } from "./audit-services.js";
 
 const SubmissionTypeSchema = z.enum(["initial", "resubmit", "logic_check"]);
 const CHANGE_SUMMARY_MAX_CHARS = 5000;
@@ -10,13 +11,13 @@ export const TriggerOptsSchema = z
   .object({
     submission_type: SubmissionTypeSchema.default("initial"),
     checkpoint: z.enum(AUDIT_CHECKPOINT_CODES).default("CP1"),
-    /** CP2 only. CP1 scope is `prompt_mode`, chosen by admin. */
+    /** CP2 only (CP3 has a single scope; if sent it must be `full`). CP1 scope is `prompt_mode`, chosen by admin. */
     scope: z.enum(["questionnaire", "full"]).optional(),
-    /** CP2 only: which student inputs the grader reads. Omitted = legacy (answers + opportunistic attachments). */
+    /** CP2 and CP3: which student inputs the grader reads. Omitted = legacy (answers + opportunistic attachments). */
     input_source: z.enum(CP2_INPUT_SOURCES).optional(),
-    /** CP2 resubmit only: what the team changed since the previous full report. */
+    /** CP2 and CP3 resubmit only: what the team changed since the previous report. */
     change_summary: z.string().max(CHANGE_SUMMARY_MAX_CHARS).optional(),
-    /** CP2 only: free note from the team (e.g. which part to focus on). Passed to the grader as input. */
+    /** CP2 and CP3: free note from the team (e.g. which part to focus on). Passed to the grader as input. */
     user_note: z.string().max(USER_NOTE_MAX_CHARS).optional(),
     lifecycle_unit_id: z.string().uuid().optional(),
     model: z.string().optional(),
@@ -26,16 +27,10 @@ export const TriggerOptsSchema = z
     force_supersede: z.boolean().optional(),
   })
   .superRefine((opts, ctx) => {
-    if (opts.checkpoint === "CP2") {
-      if (opts.scope === undefined) ctx.addIssue({ code: "custom", path: ["scope"], message: "scope is required for CP2" });
-      if (opts.submission_type === "logic_check") {
-        ctx.addIssue({ code: "custom", path: ["submission_type"], message: "logic_check is not available for CP2" });
-      }
-    } else if (opts.scope !== undefined) {
-      ctx.addIssue({ code: "custom", path: ["scope"], message: "scope is only accepted for CP2" });
-    }
-    if (opts.checkpoint !== "CP2" && opts.input_source !== undefined) {
-      ctx.addIssue({ code: "custom", path: ["input_source"], message: "input_source is only accepted for CP2" });
+    for (const issue of getAuditService(opts.checkpoint).optsIssues(opts)) {
+      ctx.addIssue({ code: "custom", path: [issue.path], message: issue.message });
     }
   });
 
+export type TriggerOptsInput = z.input<typeof TriggerOptsSchema>;
+export type TriggerOpts = z.output<typeof TriggerOptsSchema>;

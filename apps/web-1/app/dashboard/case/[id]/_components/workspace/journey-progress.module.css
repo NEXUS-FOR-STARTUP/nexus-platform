@@ -37,10 +37,6 @@
   background: var(--color-brand-mid);
 }
 
-.locked {
-  background: var(--color-surface-muted);
-}
-
 .name {
   overflow: hidden;
   font-size: var(--ui-text-note);

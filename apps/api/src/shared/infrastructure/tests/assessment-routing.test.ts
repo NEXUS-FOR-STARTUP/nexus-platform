@@ -1,163 +1,52 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { prisma } from "../../../db.js";
+import { findApprovedReports, saveOmpAuditReport } from "../../../modules/reports/infrastructure/persistence/report.repository.js";
+
+type Db = Parameters<typeof saveOmpAuditReport>[1];
 
 /**
- * P5 — assessment routing.
- *
- * DB-free test of `saveOmpAuditReport` checkpoint resolution. The bug under fix
- * routed every OMP audit report to the OLDEST checkpoint (CP1) via
- * `checkpoint.findFirst({ orderBy: { created_at: "asc" } })`. These tests pin
- * the corrected priority: lifecycle unit's own checkpoint > case
- * `current_checkpoint` > highest `latest_version_no` > create CP1.
+ * `saveOmpAuditReport` files the report under the checkpoint the caller names. It must not guess one
+ * (the old lookup sent every report to the oldest checkpoint, then to CP1 by default).
  */
-test("P5 assessment routing — saveOmpAuditReport routes to the correct checkpoint", async (t) => {
-  const { saveOmpAuditReport } = await import(
-    "../../../modules/reports/infrastructure/persistence/report.repository.js"
-  );
-  type Db = Parameters<typeof saveOmpAuditReport>[1];
-
-  type FakeCheckpoint = { id: string; checkpoint_code: string; latest_version_no: number };
-  type FakeUnit = { id: string; case_id: string; checkpoint_id: string };
-
-  const buildDb = (overrides: {
-    unit?: FakeUnit | null;
-    unitCaseId?: string;
-    currentCheckpoint?: string | null;
-    checkpoints?: FakeCheckpoint[];
-    onCreate?: (data: Record<string, unknown>) => FakeCheckpoint;
-  }) => {
-    const createdReports: Array<Record<string, unknown>> = [];
-    const db = {
-      lifecycleUnit: {
-        findUnique: async (args: { where: { id: string } }) => {
-          const unit = overrides.unit ?? null;
-          if (!unit) return null;
-          return { id: unit.id, case_id: overrides.unitCaseId ?? "case-1", checkpoint_id: unit.checkpoint_id };
-        },
+test("saveOmpAuditReport files the report under the caller's checkpoint and type", async () => {
+  const upserts: string[] = [];
+  const created: Array<Record<string, unknown>> = [];
+  const db = {
+    checkpoint: {
+      upsert: async (args: { where: { case_id_checkpoint_code: { checkpoint_code: string } } }) => {
+        const code = args.where.case_id_checkpoint_code.checkpoint_code;
+        upserts.push(code);
+        return { id: `cp-${code}` };
       },
-      case: {
-        findUnique: async () =>
-          overrides.currentCheckpoint === undefined
-            ? { current_checkpoint: "CP1" }
-            : { current_checkpoint: overrides.currentCheckpoint },
-      },
-      checkpoint: {
-        findUnique: async (args: { where: { id: string } }) =>
-          (overrides.checkpoints ?? []).find((cp) => cp.id === args.where.id) ?? null,
-        findFirst: async (args: {
-          where: Record<string, unknown>;
-          orderBy?: unknown;
-        }) => {
-          const code = args.where?.checkpoint_code as string | undefined;
-          if (code) {
-            return (overrides.checkpoints ?? []).find((cp) => cp.checkpoint_code === code) ?? null;
-          }
-          // latest_version_no fallback
-          const list = overrides.checkpoints ?? [];
-          if (list.length === 0) return null;
-          return [...list].sort(
-            (a, b) => b.latest_version_no - a.latest_version_no,
-          )[0] ?? null;
-        },
-        upsert: async (args: { create: Record<string, unknown> }) =>
-          overrides.onCreate
-            ? overrides.onCreate(args.create)
-            : { id: "cp-created", checkpoint_code: "CP1", latest_version_no: 1 },
-      },
-      report: {
-        create: async (args: { data: Record<string, unknown> }) => {
-          createdReports.push(args.data);
-          return args.data;
-        },
-      },
-    };
-    return { db: db as unknown as Db, createdReports };
-  };
+    },
+    report: { create: async (args: { data: Record<string, unknown> }) => (created.push(args.data), args.data) },
+  } as unknown as Db;
 
-  await t.test("routes to the lifecycle unit's own checkpoint, not the oldest", async () => {
-    const { db, createdReports } = buildDb({
-      unit: { id: "unit-2", case_id: "case-1", checkpoint_id: "cp-2" },
-      unitCaseId: "case-1",
-      checkpoints: [
-        { id: "cp-1", checkpoint_code: "CP1", latest_version_no: 1 },
-        { id: "cp-2", checkpoint_code: "CP2", latest_version_no: 2 },
-      ],
-    });
+  await saveOmpAuditReport({ caseId: "c", lifecycleUnitId: "u1", contentMd: "md", checkpointCode: "CP1", reportType: "input_clarification" }, db);
+  await saveOmpAuditReport({ caseId: "c", contentMd: "md", checkpointCode: "CP2", reportType: "cp2_full" }, db);
+  await saveOmpAuditReport({ caseId: "c", contentMd: "md", checkpointCode: "CP3", reportType: "cp3_full" }, db);
 
-    await saveOmpAuditReport(
-      { caseId: "case-1", lifecycleUnitId: "unit-2", contentMd: "md", metadataJson: { a: 1 } },
-      db,
-    );
+  assert.deepEqual(upserts, ["CP1", "CP2", "CP3"]);
+  assert.deepEqual(created.map((r) => [r.checkpoint_id, r.report_type, r.lifecycle_unit_id]), [
+    ["cp-CP1", "input_clarification", "u1"],
+    ["cp-CP2", "cp2_full", null],
+    ["cp-CP3", "cp3_full", null],
+  ]);
+});
 
-    assert.strictEqual(createdReports.length, 1);
-    assert.strictEqual(createdReports[0].checkpoint_id, "cp-2");
-    assert.strictEqual(createdReports[0].lifecycle_unit_id, "unit-2");
-    assert.strictEqual(createdReports[0].report_type, "input_clarification");
-  });
-
-  await t.test("falls back to case.current_checkpoint when no lifecycle unit", async () => {
-    const { db, createdReports } = buildDb({
-      unit: null,
-      currentCheckpoint: "CP2",
-      checkpoints: [
-        { id: "cp-1", checkpoint_code: "CP1", latest_version_no: 1 },
-        { id: "cp-2", checkpoint_code: "CP2", latest_version_no: 2 },
-      ],
-    });
-
-    await saveOmpAuditReport({ caseId: "case-1", lifecycleUnitId: null, contentMd: "md" }, db);
-
-    assert.strictEqual(createdReports[0].checkpoint_id, "cp-2");
-    assert.strictEqual(createdReports[0].lifecycle_unit_id, null);
-  });
-
-  await t.test("falls back to highest latest_version_no when current_checkpoint does not match", async () => {
-    const { db, createdReports } = buildDb({
-      unit: null,
-      currentCheckpoint: "CP9",
-      checkpoints: [
-        { id: "cp-1", checkpoint_code: "CP1", latest_version_no: 3 },
-        { id: "cp-2", checkpoint_code: "CP2", latest_version_no: 5 },
-      ],
-    });
-
-    await saveOmpAuditReport({ caseId: "case-1", lifecycleUnitId: null, contentMd: "md" }, db);
-
-    assert.strictEqual(createdReports[0].checkpoint_id, "cp-2");
-  });
-
-  await t.test("ignores a lifecycle unit that belongs to another case", async () => {
-    const { db, createdReports } = buildDb({
-      unit: { id: "unit-x", case_id: "other-case", checkpoint_id: "cp-x" },
-      unitCaseId: "other-case",
-      currentCheckpoint: "CP1",
-      checkpoints: [
-        { id: "cp-1", checkpoint_code: "CP1", latest_version_no: 1 },
-      ],
-    });
-
-    await saveOmpAuditReport(
-      { caseId: "case-1", lifecycleUnitId: "unit-x", contentMd: "md" },
-      db,
-    );
-
-    assert.strictEqual(createdReports[0].checkpoint_id, "cp-1");
-  });
-
-  await t.test("creates CP1 when no checkpoint exists (backward compatible)", async () => {
-    const { db, createdReports } = buildDb({
-      unit: null,
-      currentCheckpoint: null,
-      checkpoints: [],
-      onCreate: (data) => ({
-        id: "cp-created",
-        checkpoint_code: String(data.checkpoint_code),
-        latest_version_no: Number(data.latest_version_no),
-      }),
-    });
-
-    await saveOmpAuditReport({ caseId: "case-1", lifecycleUnitId: null, contentMd: "md" }, db);
-
-    assert.strictEqual(createdReports[0].checkpoint_id, "cp-created");
-  });
+/** A CP1 resubmit must never take a CP2 or CP3 report as its baseline. */
+test("findApprovedReports excludes every scored report type", async () => {
+  const original = Reflect.get(prisma.report, "findMany");
+  let where: { report_type: { notIn: string[] } } | undefined;
+  Reflect.set(prisma.report, "findMany", async (args: { where: { report_type: { notIn: string[] } } }) => ((where = args.where), []));
+  try {
+    await findApprovedReports("case-1");
+  } finally {
+    Reflect.set(prisma.report, "findMany", original);
+  }
+  for (const type of ["cp2_questionnaire", "cp2_full", "cp2_full_resubmit", "cp3_full", "cp3_full_resubmit"]) {
+    assert.ok(where?.report_type.notIn.includes(type), type);
+  }
+  assert.equal(where?.report_type.notIn.includes("input_clarification"), false);
 });

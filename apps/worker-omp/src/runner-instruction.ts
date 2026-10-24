@@ -25,10 +25,16 @@ const CP2_INSTRUCTION = ({ promptFiles }: RunnerPromptInput): string => {
   return `Đọc lần lượt các tệp hướng dẫn: ${promptFilesDesc}. Tệp đầu là nguyên tắc chung, tệp sau là hướng dẫn riêng. Đọc toàn bộ tài liệu trong input/. Làm đúng bốn bước trong mục 4 của tệp nguyên tắc chung: ghi output/cp2_evidence.json, tính lại mọi phép tính bằng shell, quyết định từng tiêu chí, rồi ghi output/report.md và output/report.json. Kiểm tra report.json hợp lệ trước khi kết thúc.`;
 };
 
-/** One builder per checkpoint; the instruction never embeds user content (only prompt files and input/). */
+/**
+ * One builder per checkpoint; the instruction never embeds user content (only prompt files and input/).
+ * CP3 only runs from a JobSpec (the API sends the instruction), never from this legacy table.
+ */
 const INSTRUCTIONS: Record<AuditCheckpointCode, (input: RunnerPromptInput) => string> = {
   CP1: CP1_INSTRUCTION,
   CP2: CP2_INSTRUCTION,
+  CP3: () => {
+    throw new Error("CP3 chỉ chạy qua JobSpec; payload cũ không có instruction.");
+  },
 };
 
 export function buildRunnerPrompt(input: RunnerPromptInput): string {

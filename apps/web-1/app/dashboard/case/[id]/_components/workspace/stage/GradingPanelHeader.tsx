@@ -64,7 +64,7 @@ export default function GradingPanelHeader({
             </Button>
           </Tooltip>
         )}
-        {has("view") && <Button color="green" onClick={onViewResults}>Xem kết quả</Button>}
+        {has("view") && <Button color="green.8" autoContrast={false} c="white" onClick={onViewResults}>Xem kết quả</Button>}
         {has("close") && (
           <ActionIcon variant="subtle" color="gray" size="lg" aria-label="Đóng" onClick={onClose}>
             <X size={16} />

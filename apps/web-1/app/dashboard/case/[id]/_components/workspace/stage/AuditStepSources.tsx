@@ -3,9 +3,10 @@
 import { Alert, Group, Stack, Text, ThemeIcon } from "@mantine/core";
 import { Button } from "../../ui/Button";
 import { Check, Minus } from "@phosphor-icons/react";
+import type { AuditStageUi } from "@/lib/audit-stage-ui";
 
 interface AuditStepSourcesProps {
-  isCp2: boolean;
+  ui: AuditStageUi;
   answeredCount: number;
   fileCount: number;
   hasAnswers: boolean;
@@ -30,7 +31,7 @@ function SourceRow({ ok, title, hint }: { ok: boolean; title: string; hint?: str
 }
 
 /** Step 1: what the team has to grade (answers / files), plus the dead-end alert when it has neither. */
-export default function AuditStepSources({ isCp2, answeredCount, fileCount, hasAnswers, hasFiles, blocked, missingMandatoryCount, onGoFiles }: AuditStepSourcesProps) {
+export default function AuditStepSources({ ui, answeredCount, fileCount, hasAnswers, hasFiles, blocked, missingMandatoryCount, onGoFiles }: AuditStepSourcesProps) {
   return (
     <>
       <Text fw={500}>Bước 1/2: bạn đang có gì để chấm?</Text>
@@ -38,12 +39,12 @@ export default function AuditStepSources({ isCp2, answeredCount, fileCount, hasA
         <SourceRow
           ok={hasAnswers}
           title={`Câu trả lời: ${answeredCount} câu`}
-          hint={isCp2 ? "Không bắt buộc nếu bạn chấm bằng tài liệu. Nếu dùng, cần đủ số câu có nội dung thật, mỗi câu viết thành câu hoàn chỉnh" : undefined}
+          hint={ui.answersHint}
         />
         <SourceRow
           ok={hasFiles}
           title={`Tài liệu đính kèm: ${fileCount} tệp`}
-          hint={isCp2 ? "Không bắt buộc nếu bạn chấm bằng câu trả lời. Khảo sát .xlsx, ghi chép phỏng vấn .docx/.pdf" : "Không bắt buộc nếu bạn đã trả lời câu hỏi ở tab Soạn thảo"}
+          hint={ui.filesHint}
         />
       </Stack>
 
@@ -53,7 +54,7 @@ export default function AuditStepSources({ isCp2, answeredCount, fileCount, hasA
 
       {blocked && (
         <Alert color="red" title="Chưa có gì để chấm">
-          {isCp2
+          {ui.sourceBased
             ? `Bạn cần một trong hai: tải tài liệu lên ở tab Tài liệu, hoặc trả lời đủ câu ở tab Soạn thảo (${answeredCount} câu hiện có nội dung nhưng quá ngắn hoặc chưa đủ số câu).`
             : "Chưa có câu trả lời nào và chưa có tệp nào. Trả lời ít nhất một câu ở tab Soạn thảo hoặc tải một tệp lên ở tab Tài liệu trước khi chấm."}
         </Alert>

@@ -1,8 +1,8 @@
-import { existsSync, readFileSync } from "node:fs";
-import { basename, resolve } from "node:path";
+import { basename } from "node:path";
+import type { AuditSubmissionType } from "@app/shared";
 import { AppError } from "../../../shared/domain/app-error.js";
-import { resolveRepoRoot } from "../omp-audit.service.js";
 import type { AuditPlan } from "./audit-registry.js";
+import { getAuditService } from "./audit-services.js";
 
 /**
  * Self-contained execution contract for the OMP worker. The API resolves every
@@ -28,42 +28,16 @@ const MILESTONE_MESSAGE_BY_FILE: Record<string, string> = {
   "triad_handoff_packet.md": "📦 Cột mốc 1 - Hoàn thành xây dựng ma trận Vấn đề - Giải pháp - Khách hàng",
   "input_clarification_audit.md": "📦 Cột mốc 2 - Hoàn thành phản biện chuyên sâu các giả định và tiêu chí khởi nghiệp",
   "cp2_evidence.json": "📦 Cột mốc 1 - Hoàn thành trích xuất bằng chứng từ tài liệu nhóm",
+  "cp3_evidence.json": "📦 Cột mốc 1 - Hoàn thành trích xuất bằng chứng từ tài liệu nhóm",
   "report.md": "📦 Cột mốc 2 - Hoàn thành viết báo cáo thẩm định",
   "report.json": "📦 Cột mốc 3 - Hoàn thành tổng hợp điểm số và hoàn tất báo cáo thẩm định",
 };
-
-/** Read the CP1 submission-specific prompt (last file of the list) to inline into the instruction. */
-function readCp1SubmissionPrompt(fileName: string): string {
-  const promptFilePath = resolve(resolveRepoRoot(), "data", "system-prompts", fileName);
-  if (!existsSync(promptFilePath)) return "";
-  try {
-    return readFileSync(promptFilePath, "utf-8").trim();
-  } catch {
-    return "";
-  }
-}
-
-function cp1Instruction(plan: AuditPlan, submissionType: string, submissionInstructions: string): string {
-  const promptFilesDesc = plan.prompts.map((fileName) => `system_prompt/${fileName}`).join(", ");
-  return (
-    `Hãy đọc tệp AGENTS.md để nắm vững quy trình và tiêu chuẩn thẩm định 2 bước (Fixed Two-Step Workflow). Đọc kỹ các tài liệu chuẩn trong: ${promptFilesDesc}. Đọc toàn bộ tài liệu nhóm trong input/ (hỗ trợ đọc tài liệu .docx, .pdf, .md, .txt bao gồm cả các bản bóc tách văn bản .extracted.md), tra cứu đối chiếu kiến thức trong knowledge/ (startup_knowledge.db và startup_knowledge.json).` +
-    (submissionInstructions
-      ? `\n\n--- HƯỚNG DẪN BỔ SUNG (${submissionType}) ---\n${submissionInstructions}\n--- KẾT THÚC HƯỚNG DẪN ---\n\n`
-      : "") +
-    ` Sau đó thực hiện chuẩn xác Step 1 xuất output/triad_handoff_packet.md, rồi Step 2 xuất output/input_clarification_audit.md và output/report.json theo đúng cấu trúc quy định.`
-  );
-}
-
-function cp2Instruction(plan: AuditPlan): string {
-  const promptFilesDesc = plan.prompts.map((fileName) => `system_prompt/${fileName}`).join(", ");
-  return `Đọc lần lượt các tệp hướng dẫn: ${promptFilesDesc}. Tệp đầu là nguyên tắc chung, tệp sau là hướng dẫn riêng. Đọc toàn bộ tài liệu trong input/. Làm đúng bốn bước trong mục 4 của tệp nguyên tắc chung: ghi output/cp2_evidence.json, tính lại mọi phép tính bằng shell, quyết định từng tiêu chí, rồi ghi output/report.md và output/report.json. Kiểm tra report.json hợp lệ trước khi kết thúc.`;
-}
 
 /**
  * Build the worker JobSpec from a resolved audit plan. Fails fast (400) on an
  * invalid output contract so a broken registry entry can never reach the queue.
  */
-export function buildOmpJobSpec(plan: AuditPlan, submissionType: string): OmpJobSpec {
+export function buildOmpJobSpec(plan: AuditPlan, submissionType: AuditSubmissionType): OmpJobSpec {
   // Output names must be plain basenames: no traversal, no absolute paths, no nesting.
   for (const name of [...plan.outputs.required, ...plan.outputs.optional]) {
     if (name.length === 0 || name !== basename(name) || name.includes("\0")) {
@@ -71,10 +45,7 @@ export function buildOmpJobSpec(plan: AuditPlan, submissionType: string): OmpJob
     }
   }
 
-  const submissionInstructions =
-    plan.checkpoint === "CP1" ? readCp1SubmissionPrompt(plan.prompts[plan.prompts.length - 1]) : "";
-  const instruction =
-    plan.checkpoint === "CP1" ? cp1Instruction(plan, submissionType, submissionInstructions) : cp2Instruction(plan);
+  const instruction = getAuditService(plan.checkpoint).instruction(plan, submissionType);
 
   const milestones: Record<string, string> = {};
   for (const name of [...plan.outputs.required, ...plan.outputs.optional]) {

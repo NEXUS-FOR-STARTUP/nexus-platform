@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Collapse, Paper } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
 import { useQueryClient } from "@tanstack/react-query";
+import type { AuditCheckpointCode } from "@app/shared";
+import { isSourceBasedStage } from "@/lib/audit-stage-ui";
 import { useCaseAiStatus } from "../../../hooks/useCaseAiStatus";
 import { useTriggerAudit, type SubmissionType } from "../../../hooks/useTriggerAudit";
 import GradingPanelHeader from "./GradingPanelHeader";
@@ -12,7 +14,7 @@ import GradingSteps from "./GradingSteps";
 
 interface StageGradingPanelProps {
   caseId: string;
-  checkpoint: "CP1" | "CP2";
+  checkpoint: AuditCheckpointCode;
   /** Submission type for "Chạy lại" (retry after a failed run reuses the previous run's type; the API falls back to initial when there is no previous report). The note is carried from the last run's status. */
   submissionType: SubmissionType;
   onViewResults: () => void;
@@ -82,7 +84,7 @@ export default function StageGradingPanel({ caseId, checkpoint, submissionType, 
   const elapsed = isActive && !Number.isNaN(startMs) ? Math.max(0, Math.floor((now - startMs) / 1000)) : null;
   const sourceLabel = data.inputSource !== undefined ? SOURCE_LABEL[data.inputSource] ?? data.inputSource : LEGACY_SOURCE_LABEL;
   const scopeLabel = data.scope !== undefined ? SCOPE_LABEL[data.scope] ?? data.scope : null;
-  const readsWhat = checkpoint === "CP2" ? `Đang đọc: ${sourceLabel}${scopeLabel ? ` / ${scopeLabel}` : ""}` : null;
+  const readsWhat = isSourceBasedStage(checkpoint) ? `Đang đọc: ${sourceLabel}${scopeLabel ? ` / ${scopeLabel}` : ""}` : null;
 
   const headline: Record<string, string> = {
     queued: "Đang xếp hàng, sắp bắt đầu chấm",
@@ -108,9 +110,9 @@ export default function StageGradingPanel({ caseId, checkpoint, submissionType, 
   const handleRetry = () =>
     triggerAudit({
       submission_type: retryScope === "questionnaire" ? "initial" : submissionType,
-      ...(checkpoint === "CP2"
+      ...(isSourceBasedStage(checkpoint)
         ? {
-            checkpoint: "CP2" as const,
+            checkpoint,
             scope: retryScope,
             ...(data.inputSource === "answers" || data.inputSource === "files" || data.inputSource === "both"
               ? { input_source: data.inputSource }
@@ -118,7 +120,10 @@ export default function StageGradingPanel({ caseId, checkpoint, submissionType, 
             ...(typeof data.userNote === "string" && data.userNote.trim() ? { user_note: data.userNote } : {}),
             ...(typeof data.changeSummary === "string" && data.changeSummary.trim() ? { change_summary: data.changeSummary } : {}),
           }
-        : {}),
+        : {
+            ...(typeof data.userNote === "string" && data.userNote.trim() ? { user_note: data.userNote } : {}),
+            ...(typeof data.changeSummary === "string" && data.changeSummary.trim() ? { change_summary: data.changeSummary } : {}),
+          }),
     });
 
   const handleViewResults = () => {

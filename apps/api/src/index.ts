@@ -29,6 +29,7 @@ import { startRelay } from './modules/notifications/application/notification-rel
 import { startOutboxRelay, stopOutboxRelay } from "./shared/infrastructure/outbox-relay.js";
 import { startAutoDoneSweep, stopAutoDoneSweep } from "./modules/cases/application/auto-done-sweep.js";
 import { initAiAuditOrderListener } from "./modules/ai-engine/application/ai-audit-order.listener.js";
+import { assertAuditPromptsPresent } from "./modules/ai-engine/application/audit-registry.js";
 import { prisma } from './db.js'
 import { AppError } from './shared/domain/app-error.js'
 import logger from './shared/infrastructure/logger.js'
@@ -206,6 +207,7 @@ interface BunRuntime {
 declare const Bun: BunRuntime | undefined;
 
 if (process.env.NODE_ENV !== 'test') {
+  assertAuditPromptsPresent();
   registerNotificationListener();
   initAiAuditOrderListener();
   startRelay();

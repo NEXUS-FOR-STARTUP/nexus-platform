@@ -3,6 +3,9 @@ import { CP1_QUESTIONS } from "./questions-cp1.js";
 import { CP2_QUESTIONS } from "./questions-cp2.js";
 import { CP3_QUESTIONS } from "./questions-cp3.js";
 import { CP4_QUESTIONS } from "./questions-cp4.js";
+import { PITCH_QUESTIONS } from "./questions-pitch.js";
+import { PITCH_PLAN_QUESTIONS } from "./questions-pitch-plan.js";
+import { PITCH_APPENDIX_QUESTIONS } from "./questions-pitch-appendix.js";
 
 // ---------------------------------------------------------------------------
 // Canonical question registry (plan section 5). One entry per stable question
@@ -21,6 +24,9 @@ export const QUESTION_REGISTRY = {
   ...CP2_QUESTIONS,
   ...CP3_QUESTIONS,
   ...CP4_QUESTIONS,
+  ...PITCH_QUESTIONS,
+  ...PITCH_PLAN_QUESTIONS,
+  ...PITCH_APPENDIX_QUESTIONS,
 } satisfies Record<string, Question>;
 
 export type QuestionId = keyof typeof QUESTION_REGISTRY;

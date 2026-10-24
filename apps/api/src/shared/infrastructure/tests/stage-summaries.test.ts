@@ -19,7 +19,7 @@ test("answer counting skips empty answers and self-checks, groups by stage prefi
     { question_id: "cp1_problem", answer_text: "x" },
     { question_id: "cp2_a", answer_text: "  " },
     { question_id: "cp2_b", answer_text: "ok" },
-    { question_id: "cp2_selfcheck_survey", answer_text: "true" },
+    { question_id: "cp2_selfcheck_interviews", answer_text: "true" },
   ]);
   assert.equal(counts.get("CP1"), 1);
   assert.equal(counts.get("CP2") ?? 0, 1);

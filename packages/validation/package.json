@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
+    "exceljs": "4.4.0",
     "tsup": "^8.5.1",
     "typescript": "5.9.2"
   }

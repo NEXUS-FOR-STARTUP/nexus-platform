@@ -45,7 +45,7 @@ function extractErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback;
 }
 
-export function useAdminWorkerStats() {
+export function useAdminWorkerStats(enabled = true) {
   return useQuery<AdminWorkerStats>({
     queryKey: ["admin-worker-stats"],
     queryFn: async () => (await apiClient.get<AdminWorkerStats>("/admin/workers/stats")).data,
@@ -53,6 +53,7 @@ export function useAdminWorkerStats() {
       const d = q.state.data;
       return d && (d.activeCount > 0 || d.stuckCount > 0) ? 5000 : 15000;
     },
+    enabled,
   });
 }
 

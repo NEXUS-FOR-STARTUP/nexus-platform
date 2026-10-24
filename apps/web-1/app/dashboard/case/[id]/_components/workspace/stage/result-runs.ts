@@ -1,4 +1,4 @@
-import { isCp2ReportType } from "@repo/validation";
+import { reportStageCode } from "@/lib/audit-stage-ui";
 import type { Report, RoundHistoryEntry } from "@/types";
 
 export interface ResultRun {
@@ -26,8 +26,7 @@ export function toResultRuns(
   if (checkpointId) {
     owned = rounds.filter((r) => r.report?.checkpoint_id === checkpointId);
   } else if (checkpointCode) {
-    const wantsCp2 = checkpointCode === "CP2";
-    owned = rounds.filter((r) => isCp2ReportType(r.report?.report_type) === wantsCp2);
+    owned = rounds.filter((r) => reportStageCode(r.report?.report_type) === checkpointCode);
   } else {
     return [];
   }

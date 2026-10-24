@@ -19,6 +19,11 @@ describe('computeProgressSteps', () => {
     assert.deepEqual(states('CP2', ['cp2_evidence.json', 'report.md'], { running: true }), ['done', 'done', 'done', 'active'])
   })
 
+  it('CP3 tracks its own evidence file, and CP2 evidence does not advance a CP3 job', () => {
+    assert.deepEqual(states('CP3', ['cp3_evidence.json'], { running: true }), ['done', 'done', 'active', 'pending'])
+    assert.deepEqual(states('CP3', ['cp2_evidence.json'], { running: true }), ['done', 'active', 'pending', 'pending'])
+  })
+
   it('an optional file the agent skipped does not leave a gap', () => {
     // CP1 triad_handoff_packet.md is optional; a later file present means the triad step is done too.
     assert.deepEqual(states('CP1', ['input_clarification_audit.md'], { running: true }), ['done', 'done', 'done', 'active'])
