@@ -116,6 +116,7 @@ describe("Catalog validation (@repo/validation)", () => {
       "cp2_porters_five_forces",
       "cp2_debate_defense",
       "cp2_debate_attack",
+      "cp2_mvp_demo",
     ]) {
       assert.equal(ids.has(removed), false, removed);
     }

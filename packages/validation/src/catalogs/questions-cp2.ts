@@ -234,21 +234,6 @@ export const CP2_QUESTIONS = {
     ],
   },
 
-  cp2_mvp_demo: {
-    id: "cp2_mvp_demo",
-    text: "Demo MVP gồm những gì và chứng minh được điều gì?",
-    explanation:
-      "Trình bày bản demo hiện có. Cần nêu:\n" +
-      "- Mục tiêu MVP: kiểm chứng giả định nào\n" +
-      "- Cấu trúc MVP: các thành phần và công cụ đang dùng\n" +
-      "- Quy trình demo theo từng bước, từ lúc khách hàng gửi yêu cầu đến lúc nhận kết quả\n" +
-      "- Minh chứng sẽ trình diễn: ảnh chụp, video, form, báo cáo mẫu, ví dụ trước và sau\n" +
-      "- MVP đã chứng minh được gì, và chưa chứng minh được gì",
-    suggested_actions: [
-      "Mỗi minh chứng liệt kê là thứ có thể mở ra cho người chấm xem.",
-    ],
-  },
-
   cp2_iteration_refinement: {
     id: "cp2_iteration_refinement",
     text: "Nhóm đã tinh chỉnh sản phẩm từ phản hồi khách hàng như thế nào?",

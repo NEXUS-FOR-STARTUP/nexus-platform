@@ -50,11 +50,10 @@ export const cp2: Template = {
       ],
     },
     {
-      id: "mvp_demo",
-      title: "Trình diễn MVP và tinh chỉnh",
+      id: "phan_hoi_dieu_chinh",
+      title: "Phản hồi và điều chỉnh",
       unlock_requires: ["cp2_solution"],
       questions: [
-        { question_id: "cp2_mvp_demo", classification: "required" },
         { question_id: "cp2_iteration_refinement", classification: "required" },
         { question_id: "cp2_surprises_pivot", classification: "required" },
       ],
@@ -62,7 +61,7 @@ export const cp2: Template = {
     {
       id: "pmf_4p",
       title: "Product-Market Fit và 4P",
-      unlock_requires: ["cp2_mvp_demo"],
+      unlock_requires: ["cp2_iteration_refinement"],
       questions: [
         { question_id: "cp2_pmf_signals", classification: "required" },
         { question_id: "cp2_marketing_4p", classification: "required" },
