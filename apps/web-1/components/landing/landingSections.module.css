@@ -18,11 +18,7 @@
 .n1 { background: #dfeaff; }
 .n2 { background: #ffe9d6; }
 .n3 { background: #def5e8; }
-.n4 { background: #ececf2; color: #6a7080; }
-.soon { background: transparent; border-style: dashed; }
-.soon h3 { color: #4b5160; }
-.soon .stageIc { color: #a0a5b3; }
-.tag { display: inline-block; margin-top: 12px; font-size: 13px; color: #4b5160; background: #ececf2; border-radius: var(--lp-r-pill); padding: 4px 14px; }
+.n4 { background: #f1e6ff; }
 
 .price { max-width: 520px; margin: 0 auto; background: var(--color-surface); border: 1px solid var(--lp-line); border-radius: var(--lp-r-md); padding: 40px; }
 .price h3 { margin: 0 0 12px; font-size: 22px; font-weight: 600; }

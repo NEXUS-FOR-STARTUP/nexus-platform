@@ -9,6 +9,7 @@ import StageDraftView from "./StageDraftView";
 import StageFilesView from "./StageFilesView";
 import StageResultsView from "./StageResultsView";
 import StageGradingPanel from "./StageGradingPanel";
+import StageDraftOnly from "./StageDraftOnly";
 import StageStartGuide from "./StageStartGuide";
 import AuditConfirmModal from "./AuditConfirmModal";
 import type { AuditCheckpointCode, Cp2InputSource } from "@app/shared";
@@ -70,6 +71,10 @@ export default function StageDetail({
         </Text>
       </Paper>
     );
+  }
+
+  if (!stage.serviceType) {
+    return <StageDraftOnly caseId={caseId} stage={stage} summary={summary} draftsApi={draftsApi} onBack={onBack} />;
   }
 
   const handleAuditClick = () => {

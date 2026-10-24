@@ -24,7 +24,7 @@ export default function JourneyTab({ stages, balances, onOpenStage }: JourneyTab
 
   return (
     <div className={s.page}>
-      <PageHead title="Hành trình" note={`${STAGES.length} giai đoạn từ ý tưởng đến gọi vốn.`} />
+      <PageHead title="Hành trình" note={`${STAGES.length} giai đoạn từ ý tưởng đến bài pitch.`} />
       <div className={s.group}>
         <JourneyProgress stages={stages} />
         <div className={r.rows}>
@@ -35,8 +35,10 @@ export default function JourneyTab({ stages, balances, onOpenStage }: JourneyTab
             const note = [
               STAGE_DESCRIPTIONS[stage.slug],
               `${summary?.answered_count ?? 0}/${stageQuestionTotal(stage.templateKey)} câu`,
-              `${summary?.file_count ?? 0} tài liệu`,
-              credits > 0 ? `còn ${credits} lượt chấm` : "hết lượt chấm",
+              // Stages without a grading service take no uploads and have no credits.
+              ...(stage.serviceType
+                ? [`${summary?.file_count ?? 0} tài liệu`, credits > 0 ? `còn ${credits} lượt chấm` : "hết lượt chấm"]
+                : []),
             ].join(" · ");
             return (
               <StageRow

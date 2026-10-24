@@ -21,10 +21,6 @@ import GuidedFileTemplateCard from "./GuidedFileTemplateCard";
 import GuidedTemplateCard from "./GuidedTemplateCard";
 
 const GALLERY_SKELETON_CARDS = 8;
-// CP4 đã có đủ câu hỏi nhưng chưa mở cho người dùng. Bỏ khóa khỏi danh sách khi sẵn sàng mở.
-const COMING_SOON_TEMPLATES: readonly TemplateKey[] = ["cp4"];
-// Template tài chính (P&L) cũng chưa mở. Bỏ khóa khỏi danh sách khi sẵn sàng mở.
-const COMING_SOON_FILE_TEMPLATES: readonly FileTemplateKey[] = ["finance"];
 
 /** Checkpoints a student opens on demand (the template card starts the stage); CP1 is always open. */
 const OPENABLE_TEMPLATES = { cp2: "CP2", cp3: "CP3" } as const satisfies Partial<Record<TemplateKey, AuditCheckpointCode>>;
@@ -74,7 +70,6 @@ export default function GuidedTemplateGallery({ caseId, onOpen }: GuidedTemplate
               onOpen={startCode !== undefined ? () => openCheckpoint(startCode, { onSuccess: () => onOpen(key) }) : () => onOpen(key)}
               startLabel={startCode !== undefined ? AUDIT_STAGE_UI[startCode].openLabel : undefined}
               starting={startCode !== undefined && isOpening}
-              comingSoon={COMING_SOON_TEMPLATES.includes(key)}
             />
           );
         })}
@@ -83,7 +78,6 @@ export default function GuidedTemplateGallery({ caseId, onOpen }: GuidedTemplate
             key={key}
             template={FILE_TEMPLATE_REGISTRY[key]}
             onOpen={() => onOpen(key)}
-            comingSoon={COMING_SOON_FILE_TEMPLATES.includes(key)}
           />
         ))}
       </SimpleGrid>

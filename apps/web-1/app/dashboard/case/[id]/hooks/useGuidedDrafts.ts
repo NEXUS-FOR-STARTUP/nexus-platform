@@ -71,3 +71,6 @@ export function useGuidedDrafts(caseId: string) {
 
   return { drafts, setDraft, clearDraft, clearDrafts };
 }
+
+/** Value returned by `useGuidedDrafts`, shared by components that receive the drafts as a prop. */
+export type GuidedDraftsApi = ReturnType<typeof useGuidedDrafts>;

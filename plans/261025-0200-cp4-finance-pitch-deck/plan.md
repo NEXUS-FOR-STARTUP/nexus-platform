@@ -1,7 +1,7 @@
 ---
 title: "Mở CP4 Tài chính và Pitch deck (docx, chưa chấm AI)"
 description: "Tách template cp4 thành cp4 (tài chính, 9 câu) và pitch (Pitch deck, 27 câu theo 10 mục demo pitching); thêm stage PITCH; stage không có dịch vụ chấm dùng được mà không hiện nút chấm/mua."
-status: pending
+status: in-progress
 priority: P1
 effort: ~14h (ước lượng, chưa đo)
 tags: [validation, shared, web-1, guided-documents, cp4, pitch]
@@ -32,12 +32,12 @@ Nguồn quyết định: `plans/reports/brainstorm-261025-cp4-finance-pitch-deck
 
 | # | Phase (giả định và rủi ro trong file) | Ước lượng | Phụ thuộc | Trạng thái |
 |---|---|---|---|---|
-| 1 | [Template Pitch deck (thêm mới, chưa mở)](./phase-01-pitch-catalog.md) | 6h | không | pending |
-| 2 | [Thu gọn CP4 thành Tài chính](./phase-02-cp4-finance-trim.md) | 2h | 1 | pending |
-| 3 | [Mở stage: stage không chấm trên web](./phase-03-open-stages-web.md) | 4h | 2 | pending |
-| 4 | [Verify, smoke, tài liệu, checklist deploy](./phase-04-verify-docs.md) | 2h | 3 | pending |
+| 1 | [Template Pitch deck](./phase-01-pitch-catalog.md) | 6h | không | done |
+| 2 | [Thu gọn CP4 thành Tài chính](./phase-02-cp4-finance-trim.md) | 2h | 1 | done |
+| 3 | [Mở stage: stage không chấm trên web](./phase-03-open-stages-web.md) | 4h | 2 | done (chưa smoke UI đăng nhập) |
+| 4 | [Verify, smoke, tài liệu, checklist deploy](./phase-04-verify-docs.md) | 2h | 3 | còn: smoke UI, kiểm DB prod |
 
-Thứ tự để mỗi commit đều xanh: phase 1 chỉ thêm (cp4 cũ còn nguyên, `PITCH` còn `available: false`); phase 2 mới xóa 18 câu khỏi cp4; phase 3 mới bật `available: true`, nên không có lúc người dùng thấy stage chưa dùng được.
+Phase 1-3 làm gộp trong một commit vì user yêu cầu mở CP4 và Pitch deck cùng lúc (stage `PITCH` mở ngay, không qua bước khóa). Lệch so với plan: bỏ rule `pitch_problem_solution` (sao cả đoạn vấn đề vào ô elevator 60 giây không có ích); thêm cổng tải tài liệu theo `serviceType` ở API; đặt tên phase Pitch deck không đánh số (generator đã thêm "Phần n:"); template CP4 tên "Kế hoạch tài chính", stage tên "Tài chính".
 
 ## Phạm vi
 

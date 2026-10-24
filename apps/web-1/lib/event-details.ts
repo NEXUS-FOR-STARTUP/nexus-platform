@@ -1,4 +1,5 @@
 import { type Icon } from "@phosphor-icons/react";
+import { findStageByCode } from "@app/shared/stages";
 import { FolderPlus, UploadSimple as Upload, CheckCircle, XCircle, NotePencil as FileEdit, FileText as FileCheck, Question as HelpCircle, Circle, UserCheck, Chat as MessageSquare, Trash as Trash2, Coins, ArrowUpRight, ArrowCounterClockwise as RotateCcw, PlayCircle, WarningCircle, Prohibit, ArrowUUpLeft, GearSix, FileArrowDown, FolderOpen, FileArrowUp } from "@phosphor-icons/react/ssr";
 
 export interface EventDetails {
@@ -10,7 +11,6 @@ export interface EventDetails {
 
 type EventMetadata = Record<string, unknown>;
 
-const CHECKPOINT_LABELS: Record<string, string> = { CP1: "Ý tưởng", CP2: "Thị trường", CP3: "Mô hình kinh doanh" };
 const AUDIT_FAIL_REASONS: Record<string, string> = {
   "worker-failed": "Hệ thống chấm gặp lỗi",
   "finalize-no-output": "Hệ thống chấm không trả kết quả",
@@ -28,7 +28,7 @@ const str = (v: unknown): string | undefined => (typeof v === "string" && v.trim
 const num = (v: unknown): number | undefined => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
 const stage = (meta: EventMetadata) => {
   const code = str(meta.checkpoint) ?? str(meta.checkpoint_code);
-  return code ? (CHECKPOINT_LABELS[code] ?? code) : undefined;
+  return code ? (findStageByCode(code)?.name ?? code) : undefined;
 };
 const vnd = (n: number) => `${n.toLocaleString("vi-VN")}đ`;
 

@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { cp1, cp2, cp3, cp4, validateCatalog, CATALOG_VERSION, type Template } from "../index.js";
+import { cp1, cp2, cp3, cp4, pitch, TEMPLATE_REGISTRY, validateCatalog, CATALOG_VERSION, type Template } from "../index.js";
 import { validateFurtherReading } from "../catalogs/validate-catalog.js";
 import { CP2_QUESTIONS } from "../catalogs/questions-cp2.js";
 
@@ -19,6 +19,23 @@ describe("Catalog validation (@repo/validation)", () => {
 
   it("validates the CP4 template", () => {
     assert.doesNotThrow(() => validateCatalog(cp4));
+  });
+
+  it("validates the Pitch deck template", () => {
+    assert.doesNotThrow(() => validateCatalog(pitch));
+  });
+
+  it("keeps every question in exactly one template, under that template's prefix", () => {
+    const owner = new Map<string, string>();
+    for (const [key, template] of Object.entries(TEMPLATE_REGISTRY)) {
+      for (const phase of template.phases) {
+        for (const { question_id } of phase.questions) {
+          assert.ok(question_id.startsWith(`${key}_`), `${question_id} not under ${key}_`);
+          assert.equal(owner.get(question_id), undefined, `${question_id} in ${owner.get(question_id)} and ${key}`);
+          owner.set(question_id, key);
+        }
+      }
+    }
   });
 
   it("rejects a template with a dependency cycle", () => {
