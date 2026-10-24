@@ -42,3 +42,15 @@ Chỉ thêm, không xóa gì: `cp4` giữ nguyên 27 câu `cp4_*` trong phase n�
 ## Acceptance
 
 `TEMPLATE_REGISTRY` có `pitch` với đúng 27 câu hợp lệ; `validateCatalog` không ném; `sync-rules` và `stage-summaries` xanh; `cp4` chưa đổi; stage `PITCH` còn `available: false`; mọi câu theo chuẩn CP3 và không chứa chữ cấm.
+
+## Giả định (user chưa chốt; đổi trong phase này)
+
+- **A1** Viết lại cả 36 câu (9 cp4 + 27 pitch) theo chuẩn CP3. Nếu muốn nhanh: câu cũ chỉ sửa chữ cấm, câu mới (9) viết đủ chuẩn; giảm ~4h cho cả hai phase 1 và 2.
+- **A5** `classification` như bảng ở trên: mục 1-10 required trừ `responsible_ai_legal`, `team_gap`, `mvp_demo` (recommended); phụ lục A, B recommended; Q&A supplemental.
+- **A6** Phụ lục A/B/C đánh số theo generator ("PHẦN 11-13: PHỤ LỤC A-C"); không sửa `docx-generator.ts`.
+
+## Rủi ro
+
+1. `sync-rules` chỉ sao nguyên văn nguồn đầu không rỗng: elevator và `pitch_finance_summary` là nhóm tự viết, không hứa tự tổng hợp. Giảm: hướng dẫn trong câu hỏi trỏ tên mục nguồn.
+2. Câu `required` chưa trả lời khóa câu kế trong cùng phase (`useGuidedDocuments.ts:152-159`). Giảm: phase nhỏ, nhóm tuỳ chọn để `supplemental`.
+3. Nhãn tiêu chí và nội dung Q&A dựa trên tài liệu Summer26, rubric chưa xác định chính thức. Giảm: ghi "gợi ý" trong câu, nội dung ở file dữ liệu để Fall26 sửa nhanh.

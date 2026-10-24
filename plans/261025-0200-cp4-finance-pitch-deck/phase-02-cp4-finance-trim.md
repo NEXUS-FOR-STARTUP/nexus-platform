@@ -20,3 +20,13 @@ Xóa 18 câu đã chuyển sang `pitch_*` khỏi `cp4`, viết lại 9 câu còn
 ## Acceptance
 
 `cp4` có đúng 9 câu / 3 phase, không còn id cũ ở bất kỳ file nào; không câu nào trong cp4 chứa "tab Tài chính", "gọi vốn", "syllabus", "Checkpoint"; mọi test liên quan xanh.
+
+## Giả định (user chưa chốt)
+
+- **A1** Cùng chuẩn viết lại như phase 1: cả 9 câu theo chuẩn CP3 (phương án nhanh: chỉ sửa chữ cấm).
+- **A5** `classification`: cp4 `bm_*` và `op_*` required; `fund_*` supplemental.
+
+## Rủi ro
+
+1. Đổi tiền tố `cp4_` thành `pitch_` mồ côi câu trả lời nếu có dữ liệu. Giảm: local đã kiểm 0/155 và phải kiểm lại trước khi xóa; prod phải kiểm ở phase 4 mục D trước deploy, nếu > 0 thì dừng.
+2. Xóa 8 rule `sync-rules` của cp4 làm vỡ test cũ nhắc chúng. Giảm: cập nhật test trong cùng commit.

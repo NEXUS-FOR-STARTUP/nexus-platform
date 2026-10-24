@@ -41,3 +41,8 @@ Chưa thể chứng minh bằng smoke: hành vi trên DB prod; đường upload 
 ## E. Điều kiện đóng plan
 
 Phần A xanh; B1-B7 quan sát được (ghi "chưa" cho ca nào không chạy được, kèm lý do); C xong; D (2) có kết quả prod. Nếu đóng khi chưa smoke UI thì ghi nhận ngày và ca còn thiếu ở cuối file này.
+
+## Rủi ro
+
+1. Mọi kết luận về DB hiện từ DB local; prod chưa kiểm. Giảm: mục D(2) bắt buộc trước deploy, kết quả ghi vào "Ghi nhận đóng".
+2. Smoke UI cần tài khoản local và `bun run dev`; nếu không dựng được thì ghi "chưa" cho ca tương ứng, không tuyên bố đã kiểm.

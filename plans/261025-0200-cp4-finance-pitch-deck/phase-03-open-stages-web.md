@@ -25,3 +25,18 @@
 ## Acceptance
 
 Trên trình duyệt, "Tài chính" và "Pitch deck" mở được, chỉ có Soạn thảo, không có nút chấm/mua, không chữ "hết lượt chấm", không chữ CP/PITCH; `?view=results` và `?view=files` rơi về Soạn thảo; thẻ số dư và timeline không có hàng thừa/mã thô; `tsc` sạch cho web và API.
+
+## Giả định (user chưa chốt)
+
+- **A2** Đổi slug `goi-von-tai-chinh` thành `tai-chinh` (CP4 đang khóa, chưa có URL sống).
+- **A3** Stage không chấm ẩn tab "Tài liệu" và "Kết quả chấm", ép `?view=` về soạn thảo (Nexus chỉ nhận docx ở hai stage này).
+- **A4** Landing chỉ đổi thẻ 4 thành thẻ thật, giữ 4 cột; thẻ thứ 5 để sau (CSS landing đang nợ hex).
+- **A7** Tiến độ vẫn đếm cả câu tuỳ chọn (cp4 x/9, pitch x/27); loại chúng cần sửa 3 chỗ web và 1 chỗ API, ngoài phạm vi.
+- **A8** Stage không chấm không có trạng thái "xong": `nextCode` (`stage-state.ts:32`) treo ở CP4 sau khi CP1-3 xong; chấp nhận.
+
+## Rủi ro
+
+1. Nút "Chấm bài" ở `ResultsEmptyState` gọi `triggerAudit` không kèm checkpoint (mặc định CP1): bấm ở stage không chấm có thể chấm nhầm CP1. Giảm: ẩn tab kết quả, dùng `activeView`; test tay bằng `?view=results`.
+2. `StageDetail.tsx:136` vỡ type khi CP4/PITCH `available: true`. Giảm: thu hẹp bằng `stage.serviceType !== null`, chạy `tsc`.
+3. `StageDetail.tsx` đã 204 dòng (vượt giới hạn 200). Giảm: chỉ thêm điều kiện ngắn, không thêm file nếu không cần.
+4. Đổi `CHECKPOINT_LABELS` sang `findStageByCode(...).name` có thể đổi nhẹ chữ nhãn CP1-CP3 trên timeline. Giảm: kiểm bằng smoke ca 6 phase 4; nếu lệch thì chỉ thêm CP4/PITCH vào bảng.
