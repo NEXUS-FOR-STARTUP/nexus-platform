@@ -96,8 +96,8 @@ export const PITCH_QUESTIONS = {
       "- SAM tính từ nhóm khách nhóm thật sự tiếp cận được\n" +
       "- Dự án mở rộng sang khu vực, nhóm khách hay sản phẩm nào tiếp theo\n" +
       "Không đạt: \"Thị trường 10 nghìn tỷ.\"\n" +
-      "Đạt: \"SAM: 60.000 sinh viên quanh 3 trường ở Thủ Đức, mỗi người đặt 4 lượt mỗi tháng. " +
-      "SOM năm đầu: 5%. Mở rộng sang các khu đại học khác ở thành phố.\"",
+      "Đạt: \"SAM: 60.000 sinh viên quanh 3 trường ở Thủ Đức, mỗi người đặt 2 lượt mỗi tháng. " +
+      "SOM năm đầu: 1%, tức 600 người. Mở rộng sang các khu đại học khác ở thành phố.\"",
     suggested_actions: ["Mỗi con số có nguồn hoặc phép tính, khớp với doanh thu ở mục Mô hình kinh doanh."],
   },
 
@@ -157,7 +157,7 @@ export const PITCH_QUESTIONS = {
       "- Mục tiêu số khách trong 3 tháng đầu\n" +
       "Không đạt: \"Quảng cáo Facebook và TikTok.\"\n" +
       "Đạt: \"Đăng trong hội nhóm của từng trường, tặng một lượt giữ bàn khi giới thiệu bạn. " +
-      "Đặt và thanh toán trong ứng dụng. Mục tiêu 1.500 người dùng trong 3 tháng.\"",
+      "Đặt và thanh toán trong ứng dụng. Mục tiêu 600 người dùng trong năm đầu.\"",
     suggested_actions: ["Giá ở đây khớp với dòng doanh thu đã nêu."],
   },
 
@@ -172,8 +172,8 @@ export const PITCH_QUESTIONS = {
       "- Khi nào hòa vốn\n" +
       "- Khoản lỗ lũy kế lớn nhất và vì sao chịu được\n" +
       "Không đạt: \"Dự án có lãi sau một thời gian.\"\n" +
-      "Đạt: \"Doanh thu năm một 180 triệu, chi phí 210 triệu, lỗ 30 triệu. Hòa vốn ở tháng 14, lỗ lũy kế lớn nhất 42 triệu, " +
-      "trang trải bằng vốn góp 50 triệu của nhóm.\"",
+      "Đạt: \"Doanh thu năm một 138 triệu, chi phí 180 triệu, lỗ 42 triệu. Lợi nhuận dương từ tháng 13, hòa vốn lũy kế ở tháng 26, " +
+      "lỗ lũy kế lớn nhất 42 triệu, trang trải bằng vốn góp 50 triệu của nhóm.\"",
     suggested_actions: ["Các con số khớp với file Excel P&L."],
   },
 
@@ -312,7 +312,7 @@ export const PITCH_QUESTIONS = {
       "- Người phụ trách\n" +
       "- Chỉ số đo được\n" +
       "Không đạt: \"Phát triển dần theo thời gian.\"\n" +
-      "Đạt: \"Quý này: ký thêm 3 quán, đạt 500 người dùng, Bình phụ trách. Quý sau: mở thu phí gói thành viên, đạt 100 người trả tiền.\"",
+      "Đạt: \"Quý này: ký thêm 3 quán, đạt 150 người dùng, Bình phụ trách. Quý sau: mở thu phí gói thành viên, đạt 100 người trả tiền.\"",
     suggested_actions: ["Mỗi giai đoạn có một chỉ số đo được."],
   },
 
@@ -393,7 +393,7 @@ export const PITCH_QUESTIONS = {
       "- Nguồn vốn\n" +
       "- Dòng tiền âm kéo dài bao nhiêu tháng\n" +
       "Không đạt: \"Cần thêm vốn để phát triển nhanh.\"\n" +
-      "Đạt: \"Nhóm góp 50 triệu, đủ cho khoản lỗ lũy kế lớn nhất 42 triệu. Dòng tiền âm 14 tháng, sau đó tự chạy bằng doanh thu.\"",
+      "Đạt: \"Nhóm góp 50 triệu, đủ cho khoản lỗ lũy kế lớn nhất 42 triệu. Dòng tiền âm 12 tháng, sau đó tự chạy bằng doanh thu.\"",
     suggested_actions: ["Con số khớp với file Excel P&L."],
   },
 } satisfies Record<string, Question>;

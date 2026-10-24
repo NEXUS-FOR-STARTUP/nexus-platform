@@ -37,7 +37,7 @@ export const CP4_QUESTIONS = {
       "Số lấy từ file Excel P&L, bạn đọc rồi viết lại bằng lời.\n" +
       "Không đạt: \"Chi phí thấp, lãi cao.\"\n" +
       "Đạt: \"Phục vụ khoảng 1.500 đồng mỗi lượt. Có một khách mới tốn 20.000 đồng khuyến mãi. " +
-      "Mỗi khách mang về khoảng 35.000 đồng mỗi tháng nên hoàn vốn sau khoảng một tháng.\"",
+      "Mỗi khách mang về khoảng 19.000 đồng mỗi tháng (2 lượt) nên hoàn vốn sau khoảng một tháng.\"",
     suggested_actions: ["Có so sánh chi phí có được khách với doanh thu mỗi khách."],
   },
 
@@ -53,8 +53,8 @@ export const CP4_QUESTIONS = {
       "- Căn cứ mỗi giả định (quy mô thị trường, khảo sát hoặc dữ liệu thử nghiệm)\n" +
       "- Công sức không trả lương của thành viên, ghi chú rõ\n" +
       "Không đạt: \"Tăng trưởng 20% mỗi tháng.\"\n" +
-      "Đạt: \"Năm một đạt 5% của 60.000 sinh viên, mỗi người 4 lượt mỗi tháng, hoa hồng 9.600 đồng mỗi lượt. " +
-      "Chi phí cố định 12 triệu mỗi tháng. Bốn thành viên không nhận lương trong năm đầu.\"",
+      "Đạt: \"Năm một đạt 1% của 60.000 sinh viên (600 người), mỗi người 2 lượt mỗi tháng, hoa hồng 9.600 đồng mỗi lượt. " +
+      "Chi phí 15 triệu mỗi tháng. Bốn thành viên không nhận lương trong năm đầu.\"",
     suggested_actions: ["Mỗi giả định có căn cứ, khớp với quy mô thị trường đã nêu."],
   },
 
@@ -68,7 +68,7 @@ export const CP4_QUESTIONS = {
       "- Mức lỗ lũy kế lớn nhất\n" +
       "- Một câu giải thích vì sao\n" +
       "Không đạt: \"Dự án sẽ hòa vốn sớm.\"\n" +
-      "Đạt: \"Lợi nhuận hoạt động dương từ tháng 9, lũy kế dương từ tháng 14, lỗ lũy kế lớn nhất 42 triệu ở tháng 8. " +
+      "Đạt: \"Lợi nhuận hoạt động dương từ tháng 13, lũy kế dương từ tháng 26, lỗ lũy kế lớn nhất 42 triệu ở tháng 12. " +
       "Vì chi phí máy chủ tăng chậm hơn số lượt giữ bàn.\"",
     suggested_actions: ["Các con số khớp với bảng P&L, lệch thì xem lại cả hai."],
   },
@@ -83,7 +83,7 @@ export const CP4_QUESTIONS = {
       "- Công sức không trả lương của thành viên được tính thế nào\n" +
       "- Kế hoạch nếu doanh thu thấp hơn dự kiến\n" +
       "Không đạt: \"Nhóm sẽ cố gắng tiết kiệm.\"\n" +
-      "Đạt: \"Nhóm góp 50 triệu, đủ 14 tháng. Hoãn thuê người đến khi có 100 khách trả tiền. " +
+      "Đạt: \"Nhóm góp 50 triệu, đủ đến khi dự án có lãi hoạt động ở tháng 13. Hoãn thuê người đến khi có 100 khách trả tiền. " +
       "Nếu doanh thu chỉ bằng một nửa dự kiến, nhóm cắt tiếp thị và kéo dài thêm 5 tháng.\"",
     suggested_actions: ["Có một kịch bản xấu và hành động cụ thể cho kịch bản đó."],
   },
@@ -126,7 +126,7 @@ export const CP4_QUESTIONS = {
       "- Tỷ lệ phần trăm từng hạng mục\n" +
       "- Kết quả mong đợi của từng hạng mục\n" +
       "Không đạt: \"Dùng để phát triển sản phẩm và marketing.\"\n" +
-      "Đạt: \"50% sản phẩm để hoàn thiện đồng bộ bàn trống. 30% tiếp thị để có 1.500 người dùng. 20% vận hành và dự phòng.\"",
+      "Đạt: \"50% sản phẩm để hoàn thiện đồng bộ bàn trống. 30% tiếp thị để có 600 người dùng. 20% vận hành và dự phòng.\"",
     suggested_actions: ["Tổng các tỷ lệ bằng 100%."],
   },
 
