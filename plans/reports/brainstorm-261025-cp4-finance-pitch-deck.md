@@ -97,7 +97,7 @@ CP1 -> CP2 -> CP3 -> CP4 Tài chính -> Pitch deck. `sync-rules` sao nguyên vă
 - `packages/shared/src/stages.ts`: CP4 `available: true`, thêm stage `PITCH`.
 - `GuidedTemplateGallery.tsx`: bỏ `cp4` và `finance` khỏi `COMING_SOON_*`. Không thêm cp4/pitch vào `OPENABLE_TEMPLATES` (kiểu `AuditCheckpointCode`, không có audit CP4/PITCH; checkpoint tạo lười khi xuất docx).
 - Web, stage không có `serviceType` (CP4, PITCH) mà `available: true`: `JourneyTab.tsx:39` và `StageHeader.tsx:44` hiện chữ "hết lượt chấm" (sai nghĩa), `StageBalanceCards.tsx:21` hiện thẻ số dư cho stage không mua được. Cần lọc `serviceType !== null` hoặc ẩn dòng này.
-- `generate-docx.usecase.ts:43`: chỉ đặt `current_checkpoint` khi `targetCode === "CP1"` (xem 7, mục 4).
+- `generate-docx.usecase.ts`: đã sửa trước đợt CP4 (xem 7.4), không còn là việc của đợt này.
 - Test: `catalog-validation.test.ts`, các test dùng `TEMPLATE_KEYS`, `stage-summaries.test.ts`.
 - Không đụng: `pl-validator`, `audit-checkpoints.ts`, worker, prompt chấm.
 
@@ -115,7 +115,7 @@ CP1 -> CP2 -> CP3 -> CP4 Tài chính -> Pitch deck. `sync-rules` sao nguyên vă
 1. `checkpoints.checkpoint_code` là `String`, unique `(case_id, checkpoint_code)`, không enum. Mã `PITCH`/`CP4` ghi được. `derive-stage-summaries` duyệt `STAGES` nên thêm stage tự có dòng tóm tắt; câu trả lời đếm theo tiền tố `<templateKey>_` nên `pitch_*` được đếm đúng.
 2. DB `READONLY_DATABASE_URL` (container `nexus-db`, postgres 18.4, cổng 5432 trên máy này): 0 câu `cp4_*` trên 155 câu; checkpoints: CP1=16, CP2=4, không CP3. Đổi tên `cp4_` -> `pitch_` an toàn trên DB này. DB production không truy cập được từ máy này, nên chưa chứng minh prod cũng 0. Trước khi deploy phải chạy `select count(*) from project_answers where question_id like 'cp4\_%'` trên prod bằng guest account theo `docs/db-query-guide.md`.
 3. `sync-rules` (`buildSyncProposals`): mỗi rule chỉ sao nguyên văn nguồn đầu tiên không rỗng, không ghép, không tóm tắt. `answers` là map mọi câu đã lưu của case nên tham chiếu được bất kỳ `question_id`, kể cả cùng template. Đây chỉ chứng minh sao chép nguyên văn được; chưa chứng minh tổng hợp được. Hệ quả: doanh thu ở Pitch deck cần câu riêng `pitch_bm_revenue`; elevator pitch và `pitch_finance_summary` là nội dung nhóm tự biên tập.
-4. `generate-docx.usecase.ts:42-47` đặt `case.current_checkpoint = <mã template>` khi case chưa có, và `submit-intake.usecase.ts:51-56` dùng `current_checkpoint` đó làm checkpoint CP1. Nên docx xuất đầu tiên là CP2/CP3/CP4/PITCH sẽ làm intake CP1 tái dùng nhầm hàng checkpoint. Rủi ro có sẵn với CP2/CP3, thêm CP4/PITCH sẽ mở rộng. Sửa: chỉ đặt `current_checkpoint` khi mã là CP1.
+4. ĐÃ SỬA (commit riêng): `generate-docx.usecase.ts` đặt `case.current_checkpoint = <mã template>` khi case chưa có, và `submit-intake.usecase.ts:51-56` dùng giá trị đó làm checkpoint CP1, nên docx đầu tiên của case là CP2/CP3/CP4/PITCH làm intake CP1 tái dùng nhầm hàng. Nay chỉ CP1 mới đặt `current_checkpoint`. Test hồi quy trong `cp2-checkpoint-lifecycle.test.ts`: fail trước sửa (cp2), pass sau sửa. DB local: 14 case `CP1`, 19 case `null`, 0 case bị đặt sai nên không cần dọn dữ liệu local; prod chưa kiểm.
 5. ĐÃ SỬA (commit riêng): `OpenCheckpointParamsSchema` chỉ nhận `'CP2'` nên `POST /cases/:id/checkpoints/CP3/open` trả 400 và nút bắt đầu CP3 trong gallery báo lỗi. Đổi thành `z.enum(['CP2','CP3'])`, thêm test hồi quy `open-checkpoint-params.test.ts`. Chưa chạy luồng CP3 end-to-end qua HTTP và UI, chỉ chứng minh schema nhận CP3 và `openCheckpointUseCase` không phụ thuộc mã.
 6. Docx sinh theo cặp câu hỏi và trả lời nên đầu ra vẫn dạng Q&A (đã lo ở lần brainstorm trước).
 7. Hướng dẫn demo pitching là Summer26. Fall26 có thể đổi cấu trúc. Nội dung nằm trong file dữ liệu, sửa ít chỗ.
@@ -132,4 +132,4 @@ CP1 -> CP2 -> CP3 -> CP4 Tài chính -> Pitch deck. `sync-rules` sao nguyên vă
 
 ## 9. Việc tiếp theo
 
-- User duyệt báo cáo -> `/ck:plan` với báo cáo này làm ngữ cảnh. Các mục kiểm 7.1-7.5 đã xong; còn lại trước khi deploy: kiểm DB prod (7.2). Plan phase đầu: sửa `current_checkpoint` (7.4), rồi tách template.
+- User duyệt báo cáo -> `/ck:plan` với báo cáo này làm ngữ cảnh. Các mục kiểm 7.1-7.5 đã xong và hai lỗi có sẵn (7.4, 7.5) đã sửa riêng. Còn lại trước khi deploy: kiểm DB prod cho `cp4_*` (7.2) và `current_checkpoint` khác `CP1` (7.4). Plan chỉ còn việc của đợt CP4: tách template, stage Pitch deck, ẩn chữ "hết lượt chấm".
