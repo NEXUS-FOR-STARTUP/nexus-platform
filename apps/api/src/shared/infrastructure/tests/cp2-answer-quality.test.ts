@@ -13,11 +13,11 @@ const CP2_IDS: string[] = TEMPLATE_REGISTRY.cp2.phases.flatMap((phase) => phase.
 
 const pad = (text: string, words: number): string => Array(words).fill(text).join(' ')
 describe('evaluateCp2FullAnswers', () => {
-  it('rejects thin junk answers (26 one-word answers fail)', () => {
+  it('rejects thin junk answers (every question one word)', () => {
     const answers: Record<string, string> = {}
-    for (const id of CP2_IDS.slice(0, 26)) answers[id] = 'adawd'
+    for (const id of CP2_IDS) answers[id] = 'adawd'
     const result = evaluateCp2FullAnswers(answers)
-    assert.equal(result.answered, 26)
+    assert.equal(result.answered, CP2_IDS.length)
     assert.ok(result.avgWords < 10)
     assert.equal(result.ok, false)
   })

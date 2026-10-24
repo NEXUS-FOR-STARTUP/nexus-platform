@@ -1,7 +1,7 @@
 import type { Question } from "./types.js";
 
 // ---------------------------------------------------------------------------
-// CP2 questions — Startup Checkpoint 2 (market research + debate).
+// CP2 questions — Startup Checkpoint 2 (market research).
 // Same wording convention as questions.ts: purpose line → what to cover → example.
 // ---------------------------------------------------------------------------
 
@@ -191,22 +191,6 @@ export const CP2_QUESTIONS = {
     ],
   },
 
-  cp2_porters_five_forces: {
-    id: "cp2_porters_five_forces",
-    text: "Phân tích Porter's Five Forces cho thị trường của nhóm",
-    explanation:
-      "Tham khảo, không dùng để chấm điểm. Phân tích 5 lực lượng, mỗi lực 1 đến 2 câu kèm bằng chứng:\n" +
-      "- Rivalry: mức cạnh tranh giữa các đối thủ hiện có\n" +
-      "- New entrants: mức dễ dàng cho người mới tham gia\n" +
-      "- Substitution: sản phẩm hoặc cách làm thay thế\n" +
-      "- Buyer power: quyền lực của người mua\n" +
-      "- Supplier power: quyền lực của nhà cung cấp\n" +
-      "Kết luận bằng vị trí phòng thủ của nhóm: nhóm bảo vệ lợi thế bằng cách nào.",
-    suggested_actions: [
-      "Có đủ 5 lực và một đoạn kết luận về vị trí phòng thủ.",
-    ],
-  },
-
   cp2_competitive_analysis: {
     id: "cp2_competitive_analysis",
     text: "Phân tích cạnh tranh của nhóm",
@@ -314,90 +298,6 @@ export const CP2_QUESTIONS = {
       "- Promotion, truyền thông: thông điệp chính và các hoạt động tiếp cận khách hàng",
     suggested_actions: [
       "Giá có căn cứ từ dữ liệu khách hàng, không chỉ là con số tự đặt.",
-    ],
-  },
-
-  cp2_ai_disclosure: {
-    id: "cp2_ai_disclosure",
-    text: "Tuyên bố sử dụng AI của nhóm",
-    explanation:
-      "Tham khảo, không dùng để chấm điểm. Viết một đoạn nêu rõ nhóm đã dùng AI để làm gì, " +
-      "ví dụ gợi ý ý tưởng, sửa câu chữ, phân tích dữ liệu, và liệt kê các prompt đã dùng. " +
-      "Nếu nhóm không dùng AI, ghi rõ điều đó.",
-    suggested_actions: [
-      "Mỗi mục đích dùng AI đi kèm prompt tương ứng.",
-    ],
-    further_reading: [
-      {
-        url: "https://nexusforstartup.site/news/lam-sao-de-viet-tot-hon-trong-thoi-dai-ai-slop-bk5t",
-        title: "Làm sao để viết tốt hơn trong thời đại AI slop?",
-      },
-    ],
-  },
-
-  cp2_harvard_referencing: {
-    id: "cp2_harvard_referencing",
-    text: "Danh mục tài liệu tham khảo theo chuẩn Harvard",
-    explanation:
-      "Tham khảo, không dùng để chấm điểm. Nên trích dẫn số liệu và nguồn bên ngoài trong bài và liệt kê ở danh mục cuối bài theo chuẩn Harvard.\n" +
-      "Ví dụ: \"Tác giả, năm. Tên bài. Available at: đường dẫn. Accessed: ngày truy cập.\"",
-    suggested_actions: [
-      "Mỗi con số thị trường trong bài có một trích dẫn tương ứng ở danh mục.",
-    ],
-  },
-
-  cp2_appendix: {
-    id: "cp2_appendix",
-    text: "Phụ lục của nhóm gồm những gì?",
-    explanation:
-      "Phụ lục giúp người đọc đối chiếu khi nhóm có tài liệu, có thể gồm:\n" +
-      "- Hồ sơ tóm tắt của chuyên gia đã phỏng vấn\n" +
-      "- Bảng hỏi và dữ liệu khảo sát đã ẩn thông tin cá nhân\n\n" +
-      "Nếu nhóm trao đổi bằng lời hoặc chưa có tệp, hãy trình bày rõ người đã hỏi, cách thực hiện, điều học được và số liệu trong phần thân bài. " +
-      "Nexus không bắt buộc tải lên ghi âm, thông tin liên hệ hay dữ liệu khảo sát gốc để được chấm.",
-    suggested_actions: [
-      "Phần thân bài có chỗ tham chiếu đến phụ lục, ví dụ \"xem Phụ lục A\".",
-    ],
-  },
-
-  cp2_format: {
-    id: "cp2_format",
-    text: "Nhóm đã tuân thủ định dạng báo cáo chưa?",
-    explanation:
-      "BẮT BUỘC. Xác nhận báo cáo đạt các yêu cầu sau:\n" +
-      "- Cỡ chữ nội dung 12pt, tiêu đề từ 12pt đến 16pt\n" +
-      "- Font Arial hoặc Times New Roman\n" +
-      "- Giãn dòng đôi, lề 2,5 cm\n" +
-      "- Độ dài từ 5 đến 25 trang",
-    suggested_actions: [
-      "Mở file cuối cùng và đối chiếu từng yêu cầu trước khi nộp.",
-    ],
-  },
-
-  cp2_debate_defense: {
-    id: "cp2_debate_defense",
-    text: "Nhóm chuẩn bị phòng thủ như thế nào?",
-    explanation:
-      "Phần này chuẩn bị cho điểm trả lời phản biện. Liệt kê các câu hỏi khó nhất nhóm có thể gặp, " +
-      "ví dụ khách hàng quá hẹp? SOM có căn cứ không? Vì sao khách không dùng cách miễn phí? " +
-      "Mỗi câu kèm câu trả lời dùng dữ liệu phỏng vấn sâu hoặc khảo sát làm \"tấm khiên\", " +
-      "ví dụ \"15/25 người phỏng vấn cho biết...\".",
-    suggested_actions: [
-      "Mỗi câu trả lời trích được một con số hoặc một trích dẫn từ dữ liệu của nhóm.",
-    ],
-  },
-
-  cp2_debate_attack: {
-    id: "cp2_debate_attack",
-    text: "Nhóm chuẩn bị tấn công như thế nào?",
-    explanation:
-      "Phần này chuẩn bị cho điểm đặt câu hỏi phản biện cho nhóm đối diện. Hướng nên soi:\n" +
-      "- SOM: có rơi vào lỗi \"chiếm 1% thị trường tỷ đô\", tức nêu tỷ lệ nhỏ nhưng không có căn cứ, không?\n" +
-      "- Đối thủ vô hình: nhóm kia đã tính đến thói quen \"không làm gì\" chưa?\n" +
-      "- Retention: nếu sản phẩm dễ sao chép, vì sao khách hàng ở lại?\n" +
-      "Viết 3 đến 5 câu hỏi ngắn, mỗi câu hỏi một ý.",
-    suggested_actions: [
-      "Mỗi câu hỏi có thể đọc thành lời trong dưới 20 giây.",
     ],
   },
 } satisfies Record<string, Question>;

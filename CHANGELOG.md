@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed (2026-10-25) — Bỏ các câu hỏi CP2 không còn chấm
+- Template CP2 bỏ 7 câu và 2 nhóm: tuyên bố dùng AI, tài liệu tham khảo Harvard, phụ lục, định dạng báo cáo (cỡ chữ, font, số trang), Porter's Five Forces, chuẩn bị phòng thủ và chuẩn bị tấn công (nhóm `cross_cutting`, `debate_prep`). Tiêu đề đổi thành "Nghiên cứu thị trường". Câu trả lời cũ của các id này vẫn nằm trong `project_answers`, không hiển thị và không gửi cho AI.
+
 ### Added (2026-10-24) — Dịch vụ chấm vòng Mô hình kinh doanh (CP3) + rubric CP2 theo chuẩn Fall26
 - Dịch vụ `cp3_audit`: chấm Business Model Canvas (9 ô), SWOT có số liệu, chiến lược S-O/S-T/W-O/W-T và kết luận; 24 tiêu chí, 7 nhóm, 3 cổng (BMC đủ, SWOT đủ, SWOT có số liệu), thang 100. Một scope `full`, đầu vào `answers|files|both`, chấm mới và chấm lại. **Không chấm MVP và giao diện** (luật cứng trong prompt, kể cả khi tệp tải lên có nêu), không chấm hình thức, tài liệu CP1/CP2 chỉ là bối cảnh (`crossIssues` MINOR). Tái dùng scorer, zod schema và validator CLI của CP2 (thêm `cp3_full_v1`, `cp3_full_resubmit_v1`; CP3 không cho `not_applicable`).
 - Prompt mới `cp3_audit_core_v1.md`, `cp3_full_review_v1.md`, `cp3_full_resubmit_v1.md`; mã `CP3_ANSWERS_TOO_THIN`, `CP3_FILES_REQUIRED`, `CP3_REPORT_INVALID`. Biến môi trường `CP3_MIN_ANSWERED`, `CP3_MIN_AVG_WORDS` (mặc định 5 và 10).

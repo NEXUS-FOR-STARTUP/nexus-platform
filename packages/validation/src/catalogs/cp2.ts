@@ -1,17 +1,16 @@
 import type { Template } from "./types.js";
 
 // ---------------------------------------------------------------------------
-// CP2 template — Startup Checkpoint 2 (market research + paired debate).
-// Authored from plan section 9 only (the reconciled rubric: 5 phases + cross-cutting
-// items + debate prep). No rubric content is invented here.
-// Audit gate: 2 direct interviews (expert or target customer). Survey, AI disclosure,
-// Harvard, appendix and Porter's five forces are no longer graded, so they are "recommended".
+// CP2 template — Startup Checkpoint 2 (market research), Fall26 standard.
+// Audit gate: 2 direct interviews (expert or target customer). Survey is optional.
+// Not asked: AI disclosure, Harvard references, appendix, report format, Porter's
+// five forces, debate prep — none are graded, so none are in the template.
 // ---------------------------------------------------------------------------
 
 export const cp2: Template = {
   template_key: "cp2",
-  title: "Nghiên cứu thị trường và chuẩn bị debate",
-  description: "Nghiên cứu thị trường, khách hàng và chuẩn bị debate.",
+  title: "Nghiên cứu thị trường",
+  description: "Nghiên cứu thị trường và khách hàng.",
   cover_image: "/cp2.png",
   phases: [
     {
@@ -45,7 +44,6 @@ export const cp2: Template = {
       unlock_requires: ["cp2_research_objectives"],
       questions: [
         { question_id: "cp2_tam_sam_som", classification: "required" },
-        { question_id: "cp2_porters_five_forces", classification: "recommended" },
         { question_id: "cp2_competitive_analysis", classification: "required" },
         { question_id: "cp2_invisible_competitors", classification: "required" },
         { question_id: "cp2_competitor_criteria_table", classification: "supplemental" },
@@ -68,26 +66,6 @@ export const cp2: Template = {
       questions: [
         { question_id: "cp2_pmf_signals", classification: "required" },
         { question_id: "cp2_marketing_4p", classification: "required" },
-      ],
-    },
-    {
-      id: "cross_cutting",
-      title: "Yêu cầu bắt buộc của báo cáo",
-      unlock_requires: [],
-      questions: [
-        { question_id: "cp2_ai_disclosure", classification: "recommended" },
-        { question_id: "cp2_harvard_referencing", classification: "recommended" },
-        { question_id: "cp2_appendix", classification: "recommended" },
-        { question_id: "cp2_format", classification: "required" },
-      ],
-    },
-    {
-      id: "debate_prep",
-      title: "Chuẩn bị phản biện",
-      unlock_requires: ["cp2_expert_interviews"],
-      questions: [
-        { question_id: "cp2_debate_defense", classification: "recommended" },
-        { question_id: "cp2_debate_attack", classification: "recommended" },
       ],
     },
   ],
