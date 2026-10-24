@@ -34,9 +34,9 @@ function checks(ids: string[], status: Cp2CheckStatus, overrides: Record<string,
 }
 
 describe("prompt id table <-> constants", () => {
-  it("full review prompt lists exactly the 30 ids", () => {
+  it("full review prompt lists exactly the 25 ids", () => {
     const ids = promptIds("cp2_full_review_v1.md");
-    assert.equal(ids.length, 30);
+    assert.equal(ids.length, 25);
     assert.deepEqual([...ids].sort(), [...FULL_IDS].sort());
   });
   it("questionnaire prompt lists exactly the 12 ids", () => {
@@ -49,8 +49,11 @@ describe("prompt id table <-> constants", () => {
     assert.equal(Object.values(CP2_QUESTIONNAIRE_GROUP_WEIGHTS).reduce((a, b) => a + b, 0), 100);
   });
   it("tiers match the plan", () => {
-    assert.deepEqual(gates.sort(), ["fr_ai_disclosure", "fr_expert_gate", "fr_survey_gate"]);
-    assert.equal(cores.length, 7);
+    assert.deepEqual(gates, ["fr_interview_gate"]);
+    assert.equal(cores.length, 8);
+    const qCores = Object.values(CP2_QUESTIONNAIRE_CHECKS).filter((c) => c.tier === "core");
+    assert.equal(qCores.length, 4);
+    assert.equal(Object.values(CP2_QUESTIONNAIRE_CHECKS).some((c) => c.tier === "gate"), false);
   });
 });
 
@@ -62,23 +65,27 @@ describe("scoreCp2Report (full)", () => {
     assert.equal(s.categoryScores.evidence, 100);
   });
   it("one gate fail, rest pass -> capped 49 blocked", () => {
-    const s = scoreCp2Report("cp2_full_v1", checks(FULL_IDS, "pass", { fr_expert_gate: "fail" }));
+    const s = scoreCp2Report("cp2_full_v1", checks(FULL_IDS, "pass", { fr_interview_gate: "fail" }));
     assert.equal(s.overallScore, 49);
     assert.equal(s.verdict, CP2_VERDICTS.full.blocked);
   });
   it("gate missing counts as fail", () => {
-    const s = scoreCp2Report("cp2_full_v1", checks(FULL_IDS, "pass", { fr_survey_gate: "missing" }));
+    const s = scoreCp2Report("cp2_full_v1", checks(FULL_IDS, "pass", { fr_interview_gate: "missing" }));
     assert.ok(s.overallScore <= 49);
   });
   it("one gate partial, rest pass -> capped 74 needs work", () => {
-    const s = scoreCp2Report("cp2_full_v1", checks(FULL_IDS, "pass", { fr_survey_gate: "partial" }));
+    const s = scoreCp2Report("cp2_full_v1", checks(FULL_IDS, "pass", { fr_interview_gate: "partial" }));
     assert.equal(s.overallScore, 74);
     assert.equal(s.verdict, CP2_VERDICTS.full.needs_work);
   });
-  it("gate partial + gate fail -> <= 49", () => {
-    const s = scoreCp2Report("cp2_full_v1", checks(FULL_IDS, "pass", { fr_survey_gate: "partial", fr_expert_gate: "fail" }));
-    assert.ok(s.overallScore <= 49);
-    assert.equal(s.verdict, CP2_VERDICTS.full.blocked);
+  it("only expert interviews, survey not_applicable -> not capped for the missing kind", () => {
+    const s = scoreCp2Report("cp2_full_v1", checks(FULL_IDS, "pass", { fr_survey_minimum: "not_applicable", fr_survey_design: "not_applicable", fr_survey_sampling: "not_applicable" }));
+    assert.equal(s.overallScore, 100);
+    assert.equal(s.verdict, CP2_VERDICTS.full.ready);
+  });
+  it("one interview only -> gate fail caps at 49 even when everything else passes", () => {
+    const s = scoreCp2Report("cp2_full_v1", checks(FULL_IDS, "pass", { fr_interview_gate: "fail", fr_survey_minimum: "not_applicable" }));
+    assert.equal(s.overallScore, 49);
   });
   it("core missing, rest pass -> capped 74 needs work", () => {
     const s = scoreCp2Report("cp2_full_v1", checks(FULL_IDS, "pass", { fr_som_bottom_up: "missing" }));
@@ -86,9 +93,9 @@ describe("scoreCp2Report (full)", () => {
     assert.equal(s.verdict, CP2_VERDICTS.full.needs_work);
   });
   it("not_applicable leaves the denominator", () => {
-    const s = scoreCp2Report("cp2_full_v1", checks(FULL_IDS, "pass", { fr_harvard: "not_applicable", fr_appendix: "not_applicable" }));
+    const s = scoreCp2Report("cp2_full_v1", checks(FULL_IDS, "pass", { fr_survey_minimum: "not_applicable", fr_survey_design: "not_applicable" }));
     assert.equal(s.overallScore, 100);
-    assert.equal(s.categoryScores.compliance, 100);
+    assert.equal(s.categoryScores.evidence, 100);
   });
   it("partial is worth half a pass and normal weighs 1 vs core 2", () => {
     const ids = ["fr_problem_situation", "fr_segment_narrow"]; // customer: normal + core
@@ -113,9 +120,14 @@ describe("scoreCp2Report (questionnaire)", () => {
     assert.equal(s.overallScore, 100);
     assert.equal(s.verdict, CP2_VERDICTS.questionnaire.ready);
   });
-  it("gate fail -> blocked, core fail -> needs work", () => {
-    assert.equal(scoreCp2Report("cp2_questionnaire_v1", checks(ids, "pass", { qr_survey_minimum: "fail" })).verdict, CP2_VERDICTS.questionnaire.blocked);
+  it("core fail -> needs work, wide failure -> blocked, no gate in this report kind", () => {
     assert.equal(scoreCp2Report("cp2_questionnaire_v1", checks(ids, "pass", { qr_past_behavior: "fail" })).verdict, CP2_VERDICTS.questionnaire.needs_work);
+    assert.equal(scoreCp2Report("cp2_questionnaire_v1", checks(ids, "fail")).verdict, CP2_VERDICTS.questionnaire.blocked);
+  });
+  it("survey group not_applicable when the team runs no survey: group is omitted", () => {
+    const s = scoreCp2Report("cp2_questionnaire_v1", checks(ids, "pass", { qr_survey_minimum: "not_applicable", qr_wording: "not_applicable", qr_scales: "not_applicable", qr_options: "not_applicable" }));
+    assert.equal(s.overallScore, 100);
+    assert.equal("survey" in s.categoryScores, false);
   });
 });
 

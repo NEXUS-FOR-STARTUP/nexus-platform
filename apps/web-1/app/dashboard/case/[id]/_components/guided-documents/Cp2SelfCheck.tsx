@@ -5,9 +5,7 @@ import s from "./guided-editor.module.css";
 
 /** Rubric pass conditions the paid CP2 audit reads, keyed by the question that evidences each one. */
 export const CP2_SELF_CHECK_BY_QUESTION: Readonly<Record<string, Cp2SelfCheckId>> = {
-  cp2_expert_interviews: "cp2_selfcheck_experts",
-  cp2_survey: "cp2_selfcheck_survey",
-  cp2_ai_disclosure: "cp2_selfcheck_ai_disclosure",
+  cp2_expert_interviews: "cp2_selfcheck_interviews",
 };
 
 interface Cp2SelfCheckProps {

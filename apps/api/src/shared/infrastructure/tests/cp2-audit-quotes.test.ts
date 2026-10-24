@@ -40,11 +40,11 @@ test("quote not in the source goes to unverified, once per check", () => {
 
 test("xlsx quote is unchecked, never unverified", () => {
   const res = verifyCp2Quotes(
-    { checks: [{ id: "fr_survey_gate", evidence: [ev("input/attachments/survey.xlsx", "123 phản hồi")] }], crossIssues: [] },
+    { checks: [{ id: "fr_survey_minimum", evidence: [ev("input/attachments/survey.xlsx", "123 phản hồi")] }], crossIssues: [] },
     [ANSWERS],
     [{ name: "survey.xlsx", text: null }],
   );
-  assert.deepEqual(res, { unverified: [], unchecked: ["fr_survey_gate"] });
+  assert.deepEqual(res, { unverified: [], unchecked: ["fr_survey_minimum"] });
 });
 
 test("docx quote verifies against the text extracted by document-parser", async () => {
@@ -52,17 +52,17 @@ test("docx quote verifies against the text extracted by document-parser", async 
   const buffer = await Packer.toBuffer(doc);
   const text = await extractTextFromBuffer(buffer, "interviews.docx");
   const good = verifyCp2Quotes(
-    { checks: [{ id: "fr_interview_scale_method", evidence: [ev("interviews.docx", "phỏng vấn 25 người dùng thật")] }], crossIssues: [] },
+    { checks: [{ id: "fr_interview_method", evidence: [ev("interviews.docx", "phỏng vấn 25 người dùng thật")] }], crossIssues: [] },
     [ANSWERS],
     [{ name: "interviews.docx", text }],
   );
   assert.deepEqual(good.unverified, []);
   const bad = verifyCp2Quotes(
-    { checks: [{ id: "fr_interview_scale_method", evidence: [ev("interviews.docx", "phỏng vấn 40 người")] }], crossIssues: [] },
+    { checks: [{ id: "fr_interview_method", evidence: [ev("interviews.docx", "phỏng vấn 40 người")] }], crossIssues: [] },
     [ANSWERS],
     [{ name: "interviews.docx", text }],
   );
-  assert.deepEqual(bad.unverified, ["fr_interview_scale_method"]);
+  assert.deepEqual(bad.unverified, ["fr_interview_method"]);
 });
 
 function fullReport(quote: string) {
@@ -71,7 +71,7 @@ function fullReport(quote: string) {
     projectName: "Demo",
     checks: Object.keys(CP2_SCHEMAS.cp2_full_v1.checks).map((id) => ({
       id,
-      status: id === "fr_expert_gate" ? "fail" : "pass",
+      status: id === "fr_interview_gate" ? "fail" : "pass",
       evidence: [ev("cp2_problem_need", quote)],
       note: "",
     })),
@@ -111,15 +111,15 @@ test("postProcess: invalid report rejects with 422 and no content in the error",
 });
 
 test("input renderer: verbatim answers in catalog order, unanswered marked, self-checks labelled self-declared", () => {
-  const md = renderCp2Answers({ cp2_problem_need: "Nguyên văn\ncủa nhóm", cp2_selfcheck_survey: "true" });
+  const md = renderCp2Answers({ cp2_problem_need: "Nguyên văn\ncủa nhóm", cp2_selfcheck_interviews: "true" });
   assert.match(md, /## \[cp2_problem_need\] .+\n\nNguyên văn\ncủa nhóm/);
   assert.match(md, /\(Nhóm chưa trả lời\)/);
   assert.ok(md.indexOf("[cp2_problem_need]") < md.indexOf("[cp2_solution]"));
   assert.ok(!md.includes("cp2_selfcheck"));
-  const checks = renderSelfChecks({ cp2_selfcheck_survey: "true" });
-  assert.match(checks, /nhóm tự khai/);
-  assert.match(checks, /Đã xác nhận/);
-  assert.match(checks, /Chưa xác nhận/);
+  const ticked = renderSelfChecks({ cp2_selfcheck_interviews: "true" });
+  assert.match(ticked, /nhóm tự khai/);
+  assert.match(ticked, /Đã xác nhận/);
+  assert.match(renderSelfChecks({}), /Chưa xác nhận/);
 });
 
 test("a quote cited from context material is never verified, whatever the path spelling", () => {

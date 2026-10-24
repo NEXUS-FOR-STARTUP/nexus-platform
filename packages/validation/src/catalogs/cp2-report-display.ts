@@ -12,6 +12,7 @@ const FULL_GROUP_LABELS: ReadonlyArray<readonly [string, string]> = [
   ["customer", "Khách hàng và vấn đề"],
   ["product", "Sản phẩm và PMF"],
   ["competition", "Cạnh tranh"],
+  // Not scored since the Fall26 rubric, but reports saved earlier still carry categoryScores.compliance.
   ["compliance", "Yêu cầu bắt buộc"],
 ];
 

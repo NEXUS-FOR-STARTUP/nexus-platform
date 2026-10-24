@@ -7,9 +7,7 @@ import type { Template } from "./types.js";
  * and sync rules never see them. Self-declared only: the CP2 audit is what verifies.
  */
 export const CP2_SELF_CHECKS = [
-  { id: "cp2_selfcheck_experts", label: "Đã phỏng vấn ít nhất 2 chuyên gia có từ 6 tháng kinh nghiệm" },
-  { id: "cp2_selfcheck_survey", label: "Khảo sát có ít nhất 100 phản hồi, từ 7 câu hỏi, gồm ít nhất 2 loại câu hỏi" },
-  { id: "cp2_selfcheck_ai_disclosure", label: "Đã ghi rõ phần có dùng AI trong báo cáo" },
+  { id: "cp2_selfcheck_interviews", label: "Đã có ít nhất 2 cuộc phỏng vấn trực tiếp (chuyên gia hoặc khách hàng mục tiêu), mỗi cuộc có người được hỏi và lý do phù hợp" },
 ] as const;
 
 export type Cp2SelfCheckId = (typeof CP2_SELF_CHECKS)[number]["id"];

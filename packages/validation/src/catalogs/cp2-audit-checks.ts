@@ -5,7 +5,7 @@
  * `scoreCp2Report` computes scores and verdicts from these constants.
  */
 export type Cp2Tier = "gate" | "core" | "normal";
-export type Cp2FullGroup = "evidence" | "market" | "customer" | "product" | "competition" | "compliance";
+export type Cp2FullGroup = "evidence" | "market" | "customer" | "product" | "competition";
 export type Cp2QuestionnaireGroup = "alignment" | "interview" | "survey" | "ethics";
 
 export interface Cp2CheckDef<G extends string> {
@@ -20,12 +20,12 @@ export const CP2_FULL_CHECKS = {
   fr_vpc_grounded: { group: "customer", tier: "normal", label: "Hồ sơ khách hàng dẫn từ dữ liệu" },
   fr_value_map_fit: { group: "customer", tier: "normal", label: "Bản đồ giá trị khớp hồ sơ khách hàng" },
   fr_research_questions: { group: "evidence", tier: "normal", label: "Câu hỏi nghiên cứu" },
-  fr_interview_scale_method: { group: "evidence", tier: "core", label: "Quy mô và phương pháp phỏng vấn" },
+  fr_interview_method: { group: "evidence", tier: "core", label: "Phương pháp phỏng vấn" },
   fr_interview_quality: { group: "evidence", tier: "core", label: "Chất lượng phỏng vấn" },
   fr_insight_traceable: { group: "evidence", tier: "normal", label: "Insight truy được về dữ liệu" },
-  fr_expert_gate: { group: "evidence", tier: "gate", label: "Phỏng vấn chuyên gia đạt mức tối thiểu" },
-  fr_expert_learning: { group: "evidence", tier: "normal", label: "Điều học được từ chuyên gia" },
-  fr_survey_gate: { group: "evidence", tier: "gate", label: "Khảo sát đạt mức tối thiểu" },
+  fr_interview_gate: { group: "evidence", tier: "gate", label: "Phỏng vấn trực tiếp đạt mức tối thiểu" },
+  fr_interview_learning: { group: "evidence", tier: "core", label: "Điều học được từ phỏng vấn" },
+  fr_survey_minimum: { group: "evidence", tier: "normal", label: "Mức tối thiểu của khảo sát (nếu có)" },
   fr_survey_design: { group: "evidence", tier: "normal", label: "Thiết kế khảo sát" },
   fr_survey_sampling: { group: "evidence", tier: "normal", label: "Mẫu khảo sát và giới hạn kết luận" },
   fr_hypothesis_validation: { group: "evidence", tier: "core", label: "Kiểm chứng giả thuyết ban đầu" },
@@ -34,17 +34,12 @@ export const CP2_FULL_CHECKS = {
   fr_som_rates: { group: "market", tier: "core", label: "Tỷ lệ chuyển đổi có căn cứ" },
   fr_calc_consistency: { group: "market", tier: "core", label: "Phép tính nhất quán" },
   fr_no_example_copy: { group: "market", tier: "normal", label: "Không chép số liệu ví dụ" },
-  fr_five_forces: { group: "competition", tier: "normal", label: "Năm lực cạnh tranh" },
   fr_competitor_framework: { group: "competition", tier: "normal", label: "Bốn nhóm đối thủ" },
   fr_invisible_competitors: { group: "competition", tier: "normal", label: "Đối thủ vô hình" },
-  fr_mvp_evidence: { group: "product", tier: "normal", label: "MVP và minh chứng" },
   fr_iteration_traceable: { group: "product", tier: "normal", label: "Tinh chỉnh theo phản hồi" },
   fr_pivot_honest: { group: "product", tier: "normal", label: "Bất ngờ và quyết định pivot" },
   fr_pmf_signals: { group: "product", tier: "normal", label: "Tín hiệu PMF" },
   fr_4p_grounded: { group: "product", tier: "normal", label: "4P có căn cứ" },
-  fr_ai_disclosure: { group: "compliance", tier: "gate", label: "Công bố dùng AI" },
-  fr_harvard: { group: "compliance", tier: "normal", label: "Trích dẫn Harvard" },
-  fr_appendix: { group: "compliance", tier: "normal", label: "Phụ lục" },
 } as const satisfies Record<string, Cp2CheckDef<Cp2FullGroup>>;
 
 export const CP2_QUESTIONNAIRE_CHECKS = {
@@ -54,8 +49,8 @@ export const CP2_QUESTIONNAIRE_CHECKS = {
   qr_past_behavior: { group: "interview", tier: "core", label: "Phỏng vấn hỏi hành vi đã xảy ra" },
   qr_no_pitch_no_lead: { group: "interview", tier: "core", label: "Không dẫn dắt, không chào hàng" },
   qr_commitment_probe: { group: "interview", tier: "normal", label: "Có bước kiểm tra cam kết" },
-  qr_expert_plan: { group: "interview", tier: "normal", label: "Kế hoạch phỏng vấn chuyên gia" },
-  qr_survey_minimum: { group: "survey", tier: "gate", label: "Mức tối thiểu của rubric khảo sát" },
+  qr_interview_plan: { group: "interview", tier: "core", label: "Kế hoạch phỏng vấn trực tiếp" },
+  qr_survey_minimum: { group: "survey", tier: "normal", label: "Mức tối thiểu của khảo sát (nếu có)" },
   qr_wording: { group: "survey", tier: "normal", label: "Câu chữ khảo sát" },
   qr_scales: { group: "survey", tier: "normal", label: "Thang đo" },
   qr_options: { group: "survey", tier: "normal", label: "Phương án lựa chọn" },
@@ -64,11 +59,10 @@ export const CP2_QUESTIONNAIRE_CHECKS = {
 
 export const CP2_FULL_GROUP_WEIGHTS: Record<Cp2FullGroup, number> = {
   evidence: 30,
-  market: 20,
-  customer: 15,
+  market: 30,
+  customer: 10,
   product: 15,
-  competition: 10,
-  compliance: 10,
+  competition: 15,
 };
 
 export const CP2_QUESTIONNAIRE_GROUP_WEIGHTS: Record<Cp2QuestionnaireGroup, number> = {
