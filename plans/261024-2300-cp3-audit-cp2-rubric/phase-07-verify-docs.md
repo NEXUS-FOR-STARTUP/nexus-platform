@@ -5,7 +5,7 @@ Quy ước: viết xong code rồi mới chạy test (như plan registry); khôn
 ## A. Tự động
 
 1. `bun run check-types`, `bun run lint`.
-2. Test validation (catalog CP2 mới, CP3, đồng bộ prompt) và `bun run --filter nexus-platform-api test` (đủ bộ cũ CP1/CP2; test CP3 mới ở phase 4–5).
+2. Test validation (catalog CP2 mới, CP3, đồng bộ prompt) và **chỉ các file test API của phần đã đổi** (từng file, `timeout 40 npx tsx --test <file>`). Không chạy cả bộ `bun run --filter nexus-platform-api test`: bộ đó đang treo (known issue ngoài phạm vi plan này, xem `AGENTS.md` mục Test scope).
 3. Test hồi quy rò: `findApprovedReports` không trả `cp3_*`; sandbox CP1 giữ nguyên danh sách tệp (so với mốc chụp ở plan registry bước 1).
 
 ## B. Smoke bằng job thật (DB local + worker local + `omp`)

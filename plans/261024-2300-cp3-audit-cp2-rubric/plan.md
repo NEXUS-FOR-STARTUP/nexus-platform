@@ -56,8 +56,10 @@ Nguồn quyết định và bằng chứng: `docs/research/brainstorm-2026-10-24
 | 4 | [API: dịch vụ CP3](./phase-04-cp3-api.md) | 10h | 2, 3 | Code xong; tsc sạch; test file liên quan xanh |
 | 5 | [DB + gói bán](./phase-05-db-package.md) | 2h | 4 | Migration + seed viết xong; **chưa chạy lên DB nào** |
 | 6 | [Web](./phase-06-web.md) | 12h | 4, 5 | Code xong; tsc sạch; **chưa duyệt bằng trình duyệt** |
-| 7 | [Verify + tài liệu](./phase-07-verify-docs.md) | 6h | tất cả | **Chưa đóng**: smoke ca 1-10, hiệu chỉnh ngưỡng SWOT, bộ test API đầy đủ (đang treo), lint web còn 2 lỗi có sẵn |
+| 7 | [Verify + tài liệu](./phase-07-verify-docs.md) | 6h | tất cả | **Chưa đóng**: smoke ca 1-10, hiệu chỉnh ngưỡng SWOT, 2 lỗi lint web có sẵn. Test chỉ chạy phần đã đổi (xem dưới) |
 
+
+**Ngoài phạm vi (known issue, không chặn plan này):** bộ test API đầy đủ đang treo (>290s), chưa tìm ra test gây treo. Theo `AGENTS.md` (mục Test scope), chỉ chạy test của phần đã đổi, nên không chạy cả bộ và không tính là việc phải làm để đóng plan.
 Phase 1 làm trước vì sửa chung `cp2-audit-checks.ts` với phase 2 và vì cách viết tiêu chí "trung lập theo loại người được hỏi" CP3 dùng lại. Phase 5 chạy song song được với phase 6 sau khi phase 4 xong chỉ ở phần viết mã; **deploy** thì phase 5 (DB) phải lên trước phase 6 (xem mục Triển khai).
 
 ## Phạm vi
