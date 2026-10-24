@@ -18,7 +18,7 @@ interface StageBalanceCardsProps {
 export default function StageBalanceCards({ caseId, balances }: StageBalanceCardsProps) {
   const { data: allPackages } = useServiceCatalog();
   const [selectedStage, setSelectedStage] = useState<StageDefinition | null>(null);
-  const openStages = STAGES.filter((stage) => stage.available && stage.serviceType);
+  const openStages = STAGES.filter((stage) => stage.serviceType);
   const ungradedCount = STAGES.length - openStages.length;
 
   return (

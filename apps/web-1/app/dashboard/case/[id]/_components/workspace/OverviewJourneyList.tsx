@@ -16,7 +16,6 @@ interface OverviewJourneyListProps {
 
 export default function OverviewJourneyList({ stages, onOpenStage }: OverviewJourneyListProps) {
   const summaryByCode = new Map(stages?.map((st) => [st.checkpoint_code, st]));
-  const locked = STAGES.filter((st) => !st.available);
 
   return (
     <section className={s.section}>
@@ -25,7 +24,7 @@ export default function OverviewJourneyList({ stages, onOpenStage }: OverviewJou
         <JourneyProgress stages={stages} />
       </div>
       <div className={r.rows}>
-        {STAGES.filter((st) => st.available).map((stage) => {
+        {STAGES.map((stage) => {
           const summary = summaryByCode.get(stage.code);
           const status = summary?.status ?? "not_started";
           return (
@@ -38,7 +37,6 @@ export default function OverviewJourneyList({ stages, onOpenStage }: OverviewJou
             />
           );
         })}
-        {locked.length > 0 && <StageRow locked name="Sẽ mở sau" note={locked.map((st) => st.name).join(", ")} />}
       </div>
     </section>
   );

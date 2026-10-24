@@ -19,7 +19,7 @@ export function buildNextActions(stages: StageSummary[] | undefined): NextAction
 
   for (const s of stages) {
     const stage = findStageByCode(s.checkpoint_code);
-    if (!stage || !stage.available) continue;
+    if (!stage) continue;
 
     if (s.status === "grading") {
       actions.push({
@@ -49,7 +49,9 @@ export function buildNextActions(stages: StageSummary[] | undefined): NextAction
         stageCode: s.checkpoint_code,
         stageSlug: stage.slug,
         title: `Tiếp tục hoàn thiện ${stage.name}`,
-        description: `Đã trả lời ${s.answered_count} câu và tải lên ${s.file_count} tài liệu.`,
+        description: stage.serviceType
+          ? `Đã trả lời ${s.answered_count} câu và tải lên ${s.file_count} tài liệu.`
+          : `Đã trả lời ${s.answered_count} câu.`,
         cta: "Soạn thảo tiếp",
         view: "draft",
         priority: 3,

@@ -10,6 +10,7 @@ import StageFilesView from "./StageFilesView";
 import StageResultsView from "./StageResultsView";
 import StageGradingPanel from "./StageGradingPanel";
 import StageDraftOnly from "./StageDraftOnly";
+import { focusFirstAnswer } from "./focus-first-answer";
 import StageStartGuide from "./StageStartGuide";
 import AuditConfirmModal from "./AuditConfirmModal";
 import type { AuditCheckpointCode, Cp2InputSource } from "@app/shared";
@@ -22,8 +23,6 @@ import classes from "../workspace-layout.module.css";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
 import type { TemplateKey } from "@repo/validation";
 import type { Case, DocumentWorkspace, RoundHistoryEntry } from "@/types";
-
-const FOCUS_RETRY_FRAMES = 30;
 
 interface StageDetailProps {
   caseId: string;
@@ -62,12 +61,12 @@ export default function StageDetail({
   // Single source of unsaved drafts: the editor edits them, the header menu syncs around them.
   const draftsApi = useGuidedDrafts(caseId);
 
-  if (!stage || !stage.available) {
+  if (!stage) {
     return (
       <Paper p="xl" withBorder radius="md" style={{ textAlign: "center" }}>
-        <Text fw={600} size="md">Giai đoạn này sắp ra mắt</Text>
+        <Text fw={600} size="md">Không tìm thấy giai đoạn này</Text>
         <Text size="xs" c="dimmed" mt="xs">
-          Nội dung đang được hoàn thiện. Vui lòng quay lại Hành trình để tiếp tục các giai đoạn khả dụng.
+          Vui lòng quay lại Hành trình và chọn một giai đoạn.
         </Text>
       </Paper>
     );
@@ -100,14 +99,7 @@ export default function StageDetail({
   };
   const handleAnswerClick = () => {
     onViewChange("draft");
-    // Coming from another tab the editor mounts a few frames later; wait for it, then focus the first answer box.
-    let framesLeft = FOCUS_RETRY_FRAMES;
-    const focusEditor = () => {
-      const box = document.querySelector<HTMLTextAreaElement>("textarea");
-      if (box) box.focus();
-      else if (framesLeft-- > 0) requestAnimationFrame(focusEditor);
-    };
-    requestAnimationFrame(focusEditor);
+    focusFirstAnswer();
   };
 
   return (
@@ -194,16 +186,14 @@ export default function StageDetail({
         isLoading={isAuditPending}
       />
 
-      {stage.serviceType && (
-        <ServiceCheckoutModal
-          caseId={caseId}
-          serviceCode={stage.serviceType}
-          stageName={stage.name}
-          opened={checkoutOpen}
-          onClose={() => setCheckoutOpen(false)}
-          onPurchased={() => setAuditConfirmOpen(true)}
-        />
-      )}
+      <ServiceCheckoutModal
+        caseId={caseId}
+        serviceCode={stage.serviceType}
+        stageName={stage.name}
+        opened={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
+        onPurchased={() => setAuditConfirmOpen(true)}
+      />
     </Stack>
   );
 }

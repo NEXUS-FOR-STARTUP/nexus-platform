@@ -46,7 +46,7 @@ export default function AuditConfirmModal({
   isLoading = false,
   onGoFiles,
 }: AuditConfirmModalProps) {
-  // A stage without a grading service never opens this modal (StageDetail gates on `available`), so the fallback is unreachable.
+  // A stage without a grading service never opens this modal (StageDetail gates on `serviceType`), so the fallback is unreachable.
   const ui = getAuditStageUi(stage.code) ?? AUDIT_STAGE_UI.CP1;
   const sourceBased = ui.sourceBased;
   // No effect syncs these: the defaults are derived below and a manual pick is

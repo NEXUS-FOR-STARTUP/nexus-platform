@@ -11,8 +11,6 @@ import { stageQuestionTotal } from "./stage-status";
 import s from "./overview.module.css";
 import r from "./stage-rows.module.css";
 
-const LOCKED_NOTE = "Mở sau khi hoàn thành các giai đoạn trước.";
-
 interface JourneyTabProps {
   stages?: StageSummary[];
   balances?: CreditBalances | null;
@@ -29,7 +27,6 @@ export default function JourneyTab({ stages, balances, onOpenStage }: JourneyTab
         <JourneyProgress stages={stages} />
         <div className={r.rows}>
           {STAGES.map((stage) => {
-            if (!stage.available) return <StageRow key={stage.code} locked name={stage.name} note={LOCKED_NOTE} />;
             const summary = summaryByCode.get(stage.code);
             const credits = stage.serviceType ? balances?.[stage.serviceType] ?? 0 : 0;
             const note = [

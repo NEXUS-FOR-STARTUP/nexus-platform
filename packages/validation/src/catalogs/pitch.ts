@@ -10,7 +10,7 @@ import type { Template } from "./types.js";
 
 export const pitch: Template = {
   template_key: "pitch",
-  title: "Pitch deck",
+  title: "PITCH DECK",
   description: "Nội dung bài pitch 10 mục, elevator pitch 60 giây và chuẩn bị hỏi đáp.",
   phases: [
     {
