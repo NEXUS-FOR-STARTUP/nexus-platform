@@ -1597,9 +1597,9 @@ export const ProjectAnswerSchema = z.object({
 });
 export type ProjectAnswerEntity = z.infer<typeof ProjectAnswerSchema>;
 
-// Only CP2 can be opened on demand; CP1 is created with the case.
+// CP2 and CP3 can be opened on demand; CP1 is created with the case.
 export const OpenCheckpointParamsSchema = z.object({
-  code: z.literal('CP2'),
+  code: z.enum(['CP2', 'CP3']),
 });
 export type OpenCheckpointParams = z.infer<typeof OpenCheckpointParamsSchema>;
 export * from "./discount.js";
