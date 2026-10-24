@@ -18,7 +18,10 @@ export const PL_ISSUE_CODES = {
   CELL_ERROR: "PL_CELL_ERROR",
   TOTAL_NOT_FORMULA: "PL_TOTAL_NOT_FORMULA",
   INTEREST_BAD_REFERENCE: "PL_INTEREST_BAD_REFERENCE",
+  INTEREST_BAD_OPERATION: "PL_INTEREST_BAD_OPERATION",
+  NO_PERIOD_COLUMNS: "PL_NO_PERIOD_COLUMNS",
   TAX_NOT_FORMULA: "PL_TAX_NOT_FORMULA",
+  TAX_BAD_OPERATION: "PL_TAX_BAD_OPERATION",
   TAX_BAD_REFERENCE: "PL_TAX_BAD_REFERENCE",
   BLANK_INPUT: "PL_BLANK_INPUT",
   NEGATIVE_INPUT: "PL_NEGATIVE_INPUT",
@@ -101,6 +104,10 @@ export function validatePlSheet(grid: PlGrid): PlIssue[] {
   }
   const periodCols: number[] = [];
   if (headerRow >= 0) for (let c = FIRST_PERIOD_COL; !isBlank(grid[headerRow]?.[c]); c++) periodCols.push(c);
+  // Without period columns every cell rule below is skipped, so an unreadable header must fail loudly, not pass clean.
+  if (periodCols.length === 0) {
+    issues.push({ code: PL_ISSUE_CODES.NO_PERIOD_COLUMNS, severity: "error", row_label: "Header", cell: null, message: "Không tìm thấy dòng tiêu đề kỳ (Q1, Học kỳ...) phía trên dòng doanh thu, nên chưa kiểm tra được số liệu." });
+  }
 
   const add = (code: PlIssueCode, severity: PlIssue["severity"], r: number, c: number, message: string): void => {
     issues.push({ code, severity, row_label: rawLabel(r), cell: addr(r, c), message });
@@ -111,6 +118,15 @@ export function validatePlSheet(grid: PlGrid): PlIssue[] {
     const refs = refsOf(f);
     return refs.every((x) => x.col === colName(c)) && wanted.every((w) => w !== undefined && refs.some((x) => x.row === w + 1));
   };
+  const compact = (f: string): string => f.replace(/[\s$]/g, "").toUpperCase();
+  const isProductOf = (f: string, c: number, a: number, b: number): boolean => {
+    const x = compact(f).replace(/^\((.*)\)$/, "$1");
+    const A = `${colName(c)}${a + 1}`;
+    const B = `${colName(c)}${b + 1}`;
+    return x === `${A}*${B}` || x === `${B}*${A}`;
+  };
+  // Tax must scale EBT by a rate and be guarded so a loss produces 0, not a negative tax.
+  const isGuardedRate = (f: string): boolean => compact(f).includes("*") && /(^|[^A-Z])(IF|MAX)\(/.test(compact(f));
 
   for (const c of periodCols) {
     for (let r = headerRow + 1; r < grid.length; r++) {
@@ -128,12 +144,15 @@ export function validatePlSheet(grid: PlGrid): PlIssue[] {
       const f = grid[rows.interest]?.[c]?.formula;
       if (!f || !refsAll(f, c, [rows.loan, rows.rate]) || refsOf(f).some((x) => x.row === rows.interest! + 1)) {
         add(PL_ISSUE_CODES.INTEREST_BAD_REFERENCE, "error", rows.interest, c, `Ô ${addr(rows.interest, c)} phải nhân đúng Loan và Interest rate của cùng cột.`);
+      } else if (!isProductOf(f, c, rows.loan as number, rows.rate as number)) {
+        add(PL_ISSUE_CODES.INTEREST_BAD_OPERATION, "error", rows.interest, c, `Ô ${addr(rows.interest, c)} phải là Loan × Interest rate, không phải phép tính khác.`);
       }
     }
     if (rows.tax !== undefined) {
       const f = grid[rows.tax]?.[c]?.formula;
       if (!f) add(PL_ISSUE_CODES.TAX_NOT_FORMULA, "error", rows.tax, c, `Ô thuế ${addr(rows.tax, c)} phải là công thức dựa trên EBT.`);
       else if (!refsAll(f, c, [rows.ebt])) add(PL_ISSUE_CODES.TAX_BAD_REFERENCE, "error", rows.tax, c, `Công thức thuế ${addr(rows.tax, c)} phải tham chiếu EBT của cùng cột.`);
+      else if (!isGuardedRate(f)) add(PL_ISSUE_CODES.TAX_BAD_OPERATION, "error", rows.tax, c, `Công thức thuế ${addr(rows.tax, c)} phải nhân EBT với thuế suất và trả 0 khi lỗ (ví dụ IF(EBT>0,EBT*20%,0)).`);
     }
     for (const r of inputRows) {
       const cell = grid[r]?.[c];

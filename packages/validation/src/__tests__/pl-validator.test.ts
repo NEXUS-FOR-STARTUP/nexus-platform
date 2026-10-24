@@ -101,4 +101,33 @@ describe("validatePlSheet", () => {
     const missing = validatePlSheet(g).filter((i) => i.code === PL_ISSUE_CODES.MISSING_ROW).map((i) => i.row_label).sort();
     assert.deepEqual(missing, ["Cost of Goods Sold", "EBT"]);
   });
+
+  it("fails loudly when no period header can be found instead of passing clean", () => {
+    const noHeader = buildGrid(1, 2).filter((r) => r[0]?.value !== "Unit");
+    assert.deepEqual(codes(noHeader).filter((c) => c.startsWith(PL_ISSUE_CODES.NO_PERIOD_COLUMNS)), [`${PL_ISSUE_CODES.NO_PERIOD_COLUMNS}@null`]);
+    assert.ok(validatePlSheet([]).some((i) => i.code === PL_ISSUE_CODES.NO_PERIOD_COLUMNS && i.severity === "error"));
+  });
+
+  it("rejects interest and tax formulas that reference the right cells with the wrong operation", () => {
+    const g = buildGrid(1, 3);
+    const rowOf = (label: string): number => g.findIndex((r) => r[0]?.value === label) + 1;
+    const [loan, rate, ebt] = [rowOf("Loan (Outstanding debt)"), rowOf("Interest rate (%/Quarter)"), rowOf("Earnings Before Taxes (EBT)")];
+    set(g, "Interest Expense", 1, fx(`B${loan}+B${rate}`));
+    set(g, "Corporate Taxes (20%)", 1, fx(`B${ebt}`));
+    set(g, "Corporate Taxes (20%)", 2, fx(`C${ebt}*20%`)); // no guard: a loss would give a negative tax
+    assert.deepEqual(codes(g).sort(), [
+      `${PL_ISSUE_CODES.INTEREST_BAD_OPERATION}@B${rowOf("Interest Expense")}`,
+      `${PL_ISSUE_CODES.TAX_BAD_OPERATION}@B${rowOf("Corporate Taxes (20%)")}`,
+      `${PL_ISSUE_CODES.TAX_BAD_OPERATION}@C${rowOf("Corporate Taxes (20%)")}`,
+    ].sort());
+  });
+
+  it("accepts equivalent spellings of the correct interest and tax formulas", () => {
+    const g = buildGrid(1, 2);
+    const rowOf = (label: string): number => g.findIndex((r) => r[0]?.value === label) + 1;
+    const [loan, rate, ebt] = [rowOf("Loan (Outstanding debt)"), rowOf("Interest rate (%/Quarter)"), rowOf("Earnings Before Taxes (EBT)")];
+    set(g, "Interest Expense", 1, fx(`$B$${rate} * B${loan}`));
+    set(g, "Corporate Taxes (20%)", 2, fx(`MAX(0,C${ebt})*0.2`));
+    assert.deepEqual(codes(g), []);
+  });
 });
