@@ -133,7 +133,7 @@ export const CP2_QUESTIONS = {
       "- Phương pháp và công cụ sử dụng\n" +
       "- Bảng hỏi: ít nhất 7 câu và ít nhất 2 loại câu hỏi, ví dụ trắc nghiệm, thang đo mức độ, câu hỏi mở\n" +
       "- Cách tuyển người trả lời và ưu đãi nếu có\n" +
-      "- Ẩn danh: form có phần thông tin nhân khẩu học và email\n" +
+      "- Thông tin cá nhân: nếu form thu email hoặc họ tên thì nêu cách bảo mật và việc xin đồng ý; nếu không thu thì ghi rõ là ẩn danh\n" +
       "- Lưu trữ dữ liệu và đồng thuận có hiểu biết của người trả lời\n" +
       "- Phương pháp chọn mẫu và tỷ lệ phản hồi\n" +
       "- Phân tích kết quả và kết luận",
@@ -147,14 +147,14 @@ export const CP2_QUESTIONS = {
     id: "cp2_question_bank",
     text: "Bộ câu hỏi phỏng vấn khách hàng, phỏng vấn chuyên gia và khảo sát",
     explanation:
-      "Ghi lại bản nháp bộ câu hỏi nhóm dùng, chia làm 3 phần:\n" +
-      "- Phần 1: câu hỏi phỏng vấn khách hàng\n" +
-      "- Phần 2: câu hỏi phỏng vấn chuyên gia\n" +
-      "- Phần 3: bảng hỏi khảo sát; với mỗi câu ghi loại câu như trắc nghiệm, thang đo, câu hỏi mở, và các phương án trả lời\n" +
+      "Ghi lại bản nháp bộ câu hỏi nhóm dùng. Chỉ ghi phần nhóm thật sự làm, ít nhất một phần; phần nào không làm thì bỏ qua:\n" +
+      "- Câu hỏi phỏng vấn khách hàng mục tiêu, nếu có phỏng vấn khách hàng\n" +
+      "- Câu hỏi phỏng vấn chuyên gia, nếu có phỏng vấn chuyên gia\n" +
+      "- Bảng hỏi khảo sát, nếu có khảo sát; với mỗi câu ghi loại câu như trắc nghiệm, thang đo, câu hỏi mở, và các phương án trả lời\n" +
       "Với mỗi câu, chỉ ra câu phục vụ câu hỏi nghiên cứu nào ở mục mục tiêu nghiên cứu. Nexus dùng phần này để góp ý bảng hỏi trước khi nhóm đi hỏi thật.",
     suggested_actions: [
       "Mỗi câu có ghi câu hỏi nghiên cứu mà nó phục vụ.",
-      "Mỗi câu khảo sát có ghi loại câu và đủ phương án trả lời.",
+      "Nếu có khảo sát, mỗi câu khảo sát ghi loại câu và đủ phương án trả lời.",
     ],
   },
 
