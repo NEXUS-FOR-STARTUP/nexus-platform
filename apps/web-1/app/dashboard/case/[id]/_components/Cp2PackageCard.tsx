@@ -17,13 +17,17 @@ export default function Cp2PackageCard({ caseId }: Cp2PackageCardProps) {
   return (
     <div className="bg-surface-app border border-border-app rounded-xl p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
-        <span className="font-semibold text-sm text-text-app">{pkg?.name ?? "Gói chấm vòng Thị trường"}</span>
+        <span className="font-semibold text-sm text-text-app">{pkg?.name}</span>
         {pkg && <span className="font-semibold text-sm text-brand tabular-nums">{formatPrice(pkg.price)}</span>}
       </div>
-      <p className="text-xs text-text-muted">2 lượt chấm: bảng hỏi phỏng vấn hoặc chấm toàn bộ vòng Thị trường</p>
-      <p className="text-xs text-text-muted">Chưa tới 40,000 VND/lượt</p>
+      {pkg?.credits_granted ? (
+        <>
+          <p className="text-xs text-text-muted">{`${pkg.credits_granted} lượt chấm: bảng hỏi phỏng vấn hoặc chấm toàn bộ vòng Thị trường`}</p>
+          <p className="text-xs text-text-muted">{`${formatPrice(Math.floor(pkg.price / pkg.credits_granted))}/lượt`}</p>
+        </>
+      ) : null}
       <RainbowBuyButton fullWidth size="lg" disabled={!pkg} onClick={() => setOpened(true)}>
-        Mua gói chấm vòng Thị trường
+        {pkg ? `Mua ${pkg.name}` : "Mua gói"}
       </RainbowBuyButton>
       <CreditQuantityModal
         caseId={caseId}

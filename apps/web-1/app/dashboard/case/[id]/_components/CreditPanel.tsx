@@ -6,6 +6,8 @@ import CreditBalanceCard from "./CreditBalanceCard";
 import CreditHistorySection from "./billing/credit-history/CreditHistorySection";
 import type { CreditEntryType } from "./credit-history.types";
 import type { CreditBalances } from "@/lib/credit-balances";
+import { formatPrice, PACKAGE_KEYS } from "@/lib/pricing";
+import { usePackagePrice } from "@/lib/usePackagePrice";
 
 interface CreditPanelProps {
   creditBalance: number | null | undefined;
@@ -33,6 +35,7 @@ export default function CreditPanel({
   onBuyCredits,
 }: CreditPanelProps) {
   const balance = creditBalance ?? 0;
+  const { data: pkg } = usePackagePrice(PACKAGE_KEYS.AI_AUDIT);
 
   if (creditBalance === undefined || creditBalance === null) {
     return (
@@ -43,7 +46,7 @@ export default function CreditPanel({
               Quản lý lượt đánh giá
             </h2>
             <p className="text-xs text-text-muted mt-1 max-w-lg">
-              Mua gói đánh giá để phân tích tài liệu và nhận báo cáo chi tiết. Gói 79,000 VND bao gồm 2 lượt đánh giá dự án.
+              Mua gói đánh giá để phân tích tài liệu và nhận báo cáo chi tiết. {pkg?.credits_granted ? `Gói ${formatPrice(pkg.price)} bao gồm ${pkg.credits_granted} lượt đánh giá dự án.` : null}
             </p>
           </div>
           {onBuyCredits && (

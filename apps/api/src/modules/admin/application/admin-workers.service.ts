@@ -18,6 +18,8 @@ import {
   rollbackCaseStageOnFailure,
 } from "../../ai-engine/application/omp-audit-coordinator.js";
 import { resolveRepoRoot } from "../../ai-engine/omp-audit.service.js";
+import { getAuditService } from "../../ai-engine/application/audit-services.js";
+import { runningCheckpointCode } from "../../ai-engine/infrastructure/persistence/ai-job.repository.js";
 import type {
   AdminWorkerStatsResponse,
   AdminWorkerJobListQuery,
@@ -528,13 +530,10 @@ export async function retryAdminWorkerJob(
     orderBy: { created_at: "desc" },
     select: { input_json: true },
   });
-  const lastInput = (lastJob?.input_json ?? {}) as { checkpoint?: string; scope?: string; input_source?: "answers" | "files" | "both"; submission_type?: string };
-  const cp2Rerun =
-    lastInput.checkpoint === "CP2"
-      ? { checkpoint: "CP2" as const, scope: lastInput.scope as "questionnaire" | "full", input_source: lastInput.input_source, submission_type: lastInput.submission_type as "initial" | "resubmit" }
-      : {};
+  const lastInput = (lastJob?.input_json ?? {}) as Record<string, unknown>;
+  const rerun = getAuditService(runningCheckpointCode(lastInput)).rerunInput(lastInput);
   await triggerOmpAuditForCase(caseId, {
-    ...cp2Rerun,
+    ...rerun,
     model: body.model,
     prompt_mode: body.promptMode,
     skip_credit_check: true,

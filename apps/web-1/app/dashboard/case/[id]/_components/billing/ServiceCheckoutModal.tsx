@@ -129,7 +129,7 @@ export default function ServiceCheckoutModal({
 
           <div className={s.summary}>
             <div className={s.pack}>
-              <b>{`Gói chấm ${stageName}`}</b>
+              <b>{selectedPkg?.name ?? `Gói chấm ${stageName}`}</b>
               {creditsPerPackage > 0 && <span>{`${creditsPerPackage} lượt chấm / gói`}</span>}
             </div>
             {perMemberPrice !== null ? (

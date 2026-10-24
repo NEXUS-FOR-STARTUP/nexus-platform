@@ -14,7 +14,7 @@ interface Stage {
 const STAGES: Stage[] = [
   { title: "Ý tưởng", text: "Làm rõ ý tưởng, đối tượng khách hàng và giá trị cốt lõi.", Icon: Lightbulb, numClass: s.n1 },
   { title: "Thị trường", text: "Phân tích thị trường, đối thủ và xác thực nhu cầu.", Icon: ChartLine, numClass: s.n2 },
-  { title: "Sản phẩm & mô hình", text: "Định hình sản phẩm, mô hình vận hành và lộ trình phát triển.", Icon: Layers, numClass: s.n3 },
+  { title: "Mô hình kinh doanh", text: "Hoàn thiện mô hình kinh doanh, SWOT và chiến lược.", Icon: Layers, numClass: s.n3 },
   { title: "Gọi vốn & tài chính", Icon: Landmark, numClass: s.n4, soon: true },
 ];
 

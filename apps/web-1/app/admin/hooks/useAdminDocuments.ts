@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 
-export function useAdminDocuments() {
+export function useAdminDocuments(enabled = true) {
   const queryClient = useQueryClient();
 
   const documentsQuery = useQuery<any[]>({
@@ -11,6 +11,7 @@ export function useAdminDocuments() {
       return response.data;
     },
     refetchInterval: 10000,
+    enabled,
   });
 
   const deleteDocumentMutation = useMutation({

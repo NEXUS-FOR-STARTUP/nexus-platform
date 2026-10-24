@@ -9,19 +9,28 @@
 
 ## 1. Mục đích
 
-Nhóm đã phỏng vấn, khảo sát và viết tài liệu CP2. Đánh giá tài liệu theo rubric CP2 với trọng tâm: bằng chứng sơ cấp thật, giả thuyết ban đầu đã được kiểm chứng tới đâu, quy mô thị trường tính đúng phương pháp và đúng phép tính. Mục tiêu là để nhóm biết hội đồng sẽ chất vấn chỗ nào và cần làm gì trước khi bảo vệ.
+Nhóm đã phỏng vấn trực tiếp (và khảo sát nếu có) rồi viết tài liệu CP2. Đánh giá tài liệu theo rubric CP2 với trọng tâm: bằng chứng sơ cấp thật, giả thuyết ban đầu đã được kiểm chứng tới đâu, quy mô thị trường tính đúng phương pháp và đúng phép tính. Mục tiêu là để nhóm biết hội đồng sẽ chất vấn chỗ nào và cần làm gì trước khi bảo vệ.
 
-Nếu có `input/user_note.md`: đó là ghi chú của nhóm cho lần chấm này (ví dụ muốn chú tâm vào phần nào). Ưu tiên soi kỹ phần họ nêu, nhưng vẫn chấm đủ 30 tiêu chí, không bỏ tiêu chí nào vì ghi chú.
+Nếu có `input/user_note.md`: đó là ghi chú của nhóm cho lần chấm này (ví dụ muốn chú tâm vào phần nào). Ưu tiên soi kỹ phần họ nêu, nhưng vẫn chấm đủ 25 tiêu chí, không bỏ tiêu chí nào vì ghi chú.
 
 ## 2. Danh sách tiêu chí
 
-Phải trả đúng 30 id sau trong `checks`. Cột "Nguồn" là `question_id` chính cần đọc; vẫn đọc các phần khác khi cần đối chiếu. `not_applicable` không dùng trong loại chấm này. Cột "Mức" cố định theo bảng, không tự đặt:
+Phải trả đúng 25 id sau trong `checks`. Cột "Nguồn" là `question_id` chính cần đọc; vẫn đọc các phần khác khi cần đối chiếu. `not_applicable` chỉ dùng cho tiêu chí có ghi rõ "được phép `not_applicable`" ở cột Đạt; tiêu chí khác không dùng. Cột "Mức" cố định theo bảng, không tự đặt:
 
 | Mức | id |
 | --- | --- |
-| Bắt buộc (gate fail/missing → điểm tổng trần 49) | `fr_expert_gate`, `fr_survey_gate`, `fr_ai_disclosure` |
-| Cốt lõi (core fail/missing → điểm tổng trần 74) | `fr_segment_narrow`, `fr_interview_scale_method`, `fr_interview_quality`, `fr_hypothesis_validation`, `fr_som_bottom_up`, `fr_som_rates`, `fr_calc_consistency` |
-| Hoàn thiện (còn lại) | 20 id còn lại |
+| Bắt buộc (gate fail/missing → điểm tổng trần 49) | `fr_interview_gate` |
+| Cốt lõi (core fail/missing → điểm tổng trần 74) | `fr_segment_narrow`, `fr_interview_method`, `fr_interview_quality`, `fr_interview_learning`, `fr_hypothesis_validation`, `fr_som_bottom_up`, `fr_som_rates`, `fr_calc_consistency` |
+| Hoàn thiện (còn lại) | 16 id còn lại |
+
+### Phỏng vấn trực tiếp: hai loại người được hỏi
+
+Rubric chấp nhận hai loại phỏng vấn trực tiếp, loại nào cũng được, nhóm không buộc phải có cả hai:
+
+- **Khách hàng mục tiêu**: nhóm người đúng Persona mà **chính dự án** nêu ở hồ sơ khách hàng.
+- **Chuyên gia**: người có kinh nghiệm trong lĩnh vực **của chính dự án**.
+
+Lấy Persona và lĩnh vực từ tài liệu của nhóm, rồi đối chiếu từng người được phỏng vấn. Không mặc định ai là khách hàng hay chuyên gia. Ghi cờ ở `crossIssues` (mức MAJOR) khi người được phỏng vấn lệch với Persona hoặc lĩnh vực của chính dự án (ví dụ phỏng vấn bạn cùng lớp cho một dự án không dành cho họ). Mỗi tiêu chí phỏng vấn chỉ chấm loại mà nhóm thực sự có: không trừ điểm vì thiếu loại còn lại. Tiêu chí điều kiện theo loại ghi rõ ở dòng của nó.
 
 `crossIssues` mức BLOCKER xếp vào Bắt buộc, mức MAJOR xếp vào Cốt lõi.
 
@@ -39,14 +48,14 @@ Phải trả đúng 30 id sau trong `checks`. Cột "Nguồn" là `question_id` 
 | id | Nguồn | Đạt | Một phần | Chưa đạt |
 | --- | --- | --- | --- | --- |
 | `fr_research_questions` | cp2_research_objectives | 3–5 câu hỏi nghiên cứu cụ thể, mỗi câu gắn nguồn dữ liệu, và phần kết quả trả lời từng câu | Có câu hỏi nhưng kết quả không trả lời đủ | Không có hoặc chỉ là mục tiêu chung |
-| `fr_interview_scale_method` | cp2_customer_discovery_process | Có phỏng vấn khách hàng mục tiêu thật, từ 10 người mỗi nhóm đối tượng chính; nêu cách chọn người, thời lượng, cách tổng hợp, giới hạn mẫu | 5–9 người mỗi nhóm, hoặc thiếu mô tả phương pháp | Dưới 5 người, không phỏng vấn, hoặc chỉ có khảo sát |
-| `fr_interview_quality` | cp2_customer_discovery_process | Câu hỏi và insight dựa trên hành vi đã xảy ra (lần gần nhất, đã làm gì, tốn gì); không dựa vào lời khen hay ý định tương lai | Lẫn cả hai loại | Chủ yếu là ý kiến, lời khen, câu giả định |
+| `fr_interview_method` | cp2_customer_discovery_process; cp2_expert_interviews | Với từng loại đã phỏng vấn, nêu cách chọn người, thời lượng, cách tổng hợp, giới hạn mẫu. Không đòi số người tối thiểu (mức tối thiểu đã chấm ở `fr_interview_gate`) | Có mô tả cho một loại nhưng thiếu cho loại còn lại nhóm đã làm, hoặc thiếu một trong bốn yếu tố | Không mô tả phương pháp, hoặc không có phỏng vấn trực tiếp |
+| `fr_interview_quality` | cp2_customer_discovery_process; cp2_expert_interviews | Chấm theo loại nhóm thực sự có. Khách hàng: câu hỏi và insight dựa trên hành vi đã xảy ra (lần gần nhất, đã làm gì, tốn gì), không dẫn dắt, không chào hàng, không dựa vào lời khen hay ý định tương lai. Chuyên gia: hỏi góc nhìn thị trường, điều cần tránh, kinh nghiệm với khách hàng mục tiêu; không chào hàng | Lẫn câu tốt và câu yếu, hoặc chỉ đạt ở một loại khi nhóm làm cả hai | Chủ yếu là ý kiến, lời khen, câu giả định, câu dẫn dắt hoặc chào hàng |
 | `fr_insight_traceable` | cp2_customer_discovery_process | Mỗi insight có tỷ lệ dạng x/N và trích lời; có bảng chủ đề, bằng chứng, quan sát, insight hoặc tương đương | Có số nhưng thiếu trích lời, hoặc ngược lại | Insight không truy được về dữ liệu |
-| `fr_expert_gate` | cp2_expert_interviews | Từ 2 chuyên gia; mỗi người có chức danh hoặc đơn vị và ghi rõ từ 6 tháng kinh nghiệm | Đủ 2 người nhưng có người không ghi số tháng hoặc năm kinh nghiệm (thiếu thông tin, không phải dưới mức) | Dưới 2 chuyên gia, hoặc có người ghi dưới 6 tháng kinh nghiệm |
-| `fr_expert_learning` | cp2_expert_interviews | Mỗi chuyên gia có điều học được cụ thể về thị trường, điều cần tránh, kinh nghiệm với khách hàng mục tiêu; tài liệu nói nhóm đã đổi gì nhờ đó | Có điều học được nhưng chung chung hoặc không thấy được dùng | Không có điều học được |
-| `fr_survey_gate` | cp2_survey; tệp dữ liệu nếu có (không bắt buộc) | Nhóm ghi rõ từ 100 phản hồi, từ 7 câu hỏi, từ 2 loại câu hỏi | Chưa xác định được vì nhóm ghi không rõ (ví dụ "khoảng 100", không nêu loại câu hỏi); hoặc tệp nhóm đính kèm mâu thuẫn với số nhóm ghi | Số nhóm ghi dưới mức ở bất kỳ điều kiện nào (ví dụ 85 phản hồi, 6 câu, chỉ 1 loại câu), hoặc không có khảo sát |
-| `fr_survey_design` | cp2_survey, phụ lục | Câu hỏi không mắc lỗi câu chữ, thang đo, phương án theo mục 5.2 của tệp core | 1–2 lỗi | Từ 3 lỗi, hoặc không trình bày bảng hỏi để kiểm tra |
-| `fr_survey_sampling` | cp2_survey | Nêu đối tượng có thuộc khách hàng mục tiêu, cách tuyển, tỷ lệ phản hồi, giới hạn mẫu; kết luận không vượt sai số và không suy rộng ngoài nhóm đã hỏi | Thiếu một phần | Kết luận cho cả thị trường từ mẫu tiện lợi, hoặc không mô tả mẫu |
+| `fr_interview_gate` | cp2_expert_interviews; cp2_customer_discovery_process | Từ 2 cuộc phỏng vấn trực tiếp (chuyên gia hoặc khách hàng mục tiêu, loại nào cũng được); mỗi cuộc có người được hỏi (chức danh, đơn vị hoặc đúng Persona của dự án) và lý do người đó phù hợp | Đủ 2 cuộc nhưng có cuộc thiếu thông tin người được hỏi hoặc thiếu lý do phù hợp (thiếu thông tin, không phải dưới mức); hoặc người được hỏi chưa rõ có đúng Persona hoặc lĩnh vực của dự án | Dưới 2 cuộc phỏng vấn trực tiếp, hoặc mọi người được hỏi đều không thuộc Persona hay lĩnh vực của dự án |
+| `fr_interview_learning` | cp2_expert_interviews; cp2_customer_discovery_process | Mỗi cuộc có điều học được cụ thể (chuyên gia: thị trường, điều cần tránh, kinh nghiệm với khách hàng mục tiêu; khách hàng: hành vi và nỗi đau thật); tài liệu nói nhóm đã đổi gì nhờ đó | Có điều học được nhưng chung chung hoặc không thấy được dùng | Không có điều học được |
+| `fr_survey_minimum` | cp2_survey; tệp dữ liệu nếu có (không bắt buộc) | Được phép `not_applicable` khi nhóm không làm khảo sát. Nếu có khảo sát: nhóm ghi rõ từ 100 phản hồi, từ 7 câu hỏi, từ 2 loại câu hỏi | Có khảo sát nhưng dưới mức hoặc chưa xác định được (ví dụ "khoảng 100", dưới 100 phản hồi, không nêu loại câu hỏi); ghi trong `note` giới hạn kết luận của mẫu nhỏ; hoặc tệp đính kèm mâu thuẫn với số nhóm ghi | Không dùng cho tiêu chí này (dưới mức chỉ là `partial`) |
+| `fr_survey_design` | cp2_survey, phụ lục | Được phép `not_applicable` khi nhóm không làm khảo sát. Có khảo sát: câu hỏi không mắc lỗi câu chữ, thang đo, phương án theo mục 5.2 của tệp core | 1–2 lỗi | Từ 3 lỗi, hoặc không trình bày bảng hỏi để kiểm tra |
+| `fr_survey_sampling` | cp2_survey | Được phép `not_applicable` khi nhóm không làm khảo sát. Có khảo sát: nêu đối tượng có thuộc khách hàng mục tiêu, cách tuyển, tỷ lệ phản hồi, giới hạn mẫu; kết luận không vượt sai số và không suy rộng ngoài nhóm đã hỏi | Thiếu một phần | Kết luận cho cả thị trường từ mẫu tiện lợi, hoặc không mô tả mẫu |
 | `fr_hypothesis_validation` | cp2_customer_discovery_process, cp2_surprises_pivot, cp2_iteration_refinement | Nói rõ giả thuyết ban đầu nào về khách hàng và nỗi đau được xác nhận, giả thuyết nào sai, kèm số liệu; persona hoặc pain đã điều chỉnh tương ứng | Có so sánh trước sau nhưng thiếu số liệu, hoặc chỉ nói "đã xác nhận" | Không có đối chiếu giả thuyết với dữ liệu |
 
 Không có tệp dữ liệu thì chấm theo số nhóm ghi, không trừ điểm. Nếu nhóm có đính kèm tệp và số phản hồi đếm từ tệp khác số nhóm ghi, hoặc một tỷ lệ đếm lại lệch quá 1 điểm %, thêm một mục `crossIssues` mức `MAJOR`, nêu cả hai con số và tên tệp. Không suy đoán lý do lệch.
@@ -65,29 +74,17 @@ Không có tệp dữ liệu thì chấm theo số nhóm ghi, không trừ đi�
 
 | id | Nguồn | Đạt | Một phần | Chưa đạt |
 | --- | --- | --- | --- | --- |
-| `fr_five_forces` | cp2_porters_five_forces | Đủ 5 lực, mỗi lực có bằng chứng, có kết luận nhóm bảo vệ lợi thế bằng cách nào | Đủ 5 lực nhưng thiếu bằng chứng hoặc thiếu kết luận | Thiếu lực |
 | `fr_competitor_framework` | cp2_competitive_analysis | Đủ bốn nhóm đối thủ trực tiếp, gián tiếp, thay thế, người mới; mỗi nhóm có ví dụ cụ thể và so sánh; có hành động nhóm sẽ làm khác đi | Thiếu nhóm hoặc thiếu hành động | Chỉ liệt kê tên, không so sánh |
 | `fr_invisible_competitors` | cp2_invisible_competitors | Nêu thói quen không làm gì, tự xoay xở, dùng đồ miễn phí; mỗi cái có cách xử lý cụ thể | Có nhưng thiếu cách xử lý | Không có |
 
-### Nhóm E — MVP, tinh chỉnh, PMF, 4P
+### Nhóm E — Tinh chỉnh, PMF, 4P
 
 | id | Nguồn | Đạt | Một phần | Chưa đạt |
 | --- | --- | --- | --- | --- |
-| `fr_mvp_evidence` | cp2_mvp_demo | Nêu MVP kiểm chứng giả định nào, cấu trúc, quy trình demo, minh chứng mở ra xem được, đã và chưa chứng minh được gì | Thiếu giả định cần kiểm chứng hoặc thiếu phần chưa chứng minh được | Chỉ mô tả tính năng |
 | `fr_iteration_traceable` | cp2_iteration_refinement | Mỗi thay đổi có dạng trước đây nghĩ gì, khách hàng phản hồi gì, đã đổi gì | Có thay đổi nhưng không gắn phản hồi cụ thể | Không có tinh chỉnh |
 | `fr_pivot_honest` | cp2_surprises_pivot | Có bất ngờ kèm bằng chứng và quyết định pivot hoặc không pivot có lý do; giải pháp và MVP đổi theo dữ liệu | Có nêu nhưng thiếu bằng chứng | Không có |
 | `fr_pmf_signals` | cp2_pmf_signals | Tín hiệu có số kèm cỡ mẫu; ưu tiên hành vi (đăng ký, trả tiền, quay lại, giới thiệu); mẫu nhỏ gọi là tín hiệu ban đầu | Chỉ có mức hài lòng hoặc lời khen có số | Khẳng định đạt PMF không có số, hoặc không có |
 | `fr_4p_grounded` | cp2_marketing_4p | Giá có căn cứ từ dữ liệu khách hàng (chi tiêu hiện tại, mức sẵn sàng trả có kiểm chứng); kênh ở Place và Promotion khớp kênh dùng để tính SOM | Một trong hai | Giá tự đặt và kênh không khớp |
-
-### Nhóm F — Yêu cầu bắt buộc của báo cáo
-
-| id | Nguồn | Đạt | Một phần | Chưa đạt |
-| --- | --- | --- | --- | --- |
-| `fr_ai_disclosure` | cp2_ai_disclosure | Có đoạn công bố dùng AI: mục đích và prompt đã dùng, hoặc ghi rõ không dùng AI | Có đoạn nhưng thiếu prompt | Không có |
-| `fr_harvard` | cp2_harvard_referencing | Mọi số liệu bên ngoài có trích dẫn trong bài và danh mục theo chuẩn Harvard | Có danh mục nhưng thiếu cho một số con số | Không có |
-| `fr_appendix` | cp2_appendix | Nhóm nêu phụ lục gồm hồ sơ chuyên gia và dữ liệu khảo sát gốc, thân bài có tham chiếu tới phụ lục. Chấm theo mô tả của nhóm, không đòi tải tệp lên Nexus | Nêu một trong hai, hoặc thiếu tham chiếu | Không có |
-
-Tiêu chí định dạng trình bày (cỡ chữ, font, giãn dòng, số trang) không chấm trong loại này vì đầu vào là câu trả lời template, không phải tệp bài nộp cuối.
 
 ## 3. Kiểm tra phép tính
 
@@ -109,12 +106,10 @@ Nếu SOM thiếu số người tiếp cận hoặc tỷ lệ, ghi một phần 
 2. ...
 3. ...
 
-## 2. Ba yêu cầu bắt buộc của rubric
+## 2. Yêu cầu bắt buộc của rubric
 | Yêu cầu | Tình trạng | Căn cứ |
 | --- | --- | --- |
-| Từ 2 chuyên gia, mỗi người từ 6 tháng kinh nghiệm | | |
-| Khảo sát từ 100 phản hồi, từ 7 câu, từ 2 loại câu hỏi | | |
-| Công bố dùng AI | | |
+| Từ 2 cuộc phỏng vấn trực tiếp (chuyên gia hoặc khách hàng mục tiêu), mỗi cuộc có người được hỏi và lý do phù hợp | | |
 
 ## 3. Lỗi cần sửa
 ### [Tên lỗi] — Mức: Bắt buộc / Cốt lõi / Hoàn thiện (lấy từ bảng mục 2, không tự đặt)
@@ -137,7 +132,7 @@ Nếu SOM thiếu số người tiếp cận hoặc tỷ lệ, ghi một phần 
 Quy tắc mục 3:
 
 - Chỉ đưa tiêu chí `fail` hoặc `missing`, tiêu chí `partial` ở nhóm B và C, và `crossIssues` mức BLOCKER hoặc MAJOR.
-- Tối đa 7 lỗi, xếp theo Mức: Bắt buộc trước, rồi Cốt lõi, rồi Hoàn thiện. Trong cùng Mức xếp theo thứ tự: ba yêu cầu bắt buộc, nhóm B, nhóm C, mâu thuẫn giữa các phần, nhóm A, E, D, F.
+- Tối đa 7 lỗi, xếp theo Mức: Bắt buộc trước, rồi Cốt lõi, rồi Hoàn thiện. Trong cùng Mức xếp theo thứ tự: yêu cầu bắt buộc, nhóm B, nhóm C, mâu thuẫn giữa các phần, nhóm A, E, D.
 - Lỗi còn lại đưa vào mục 6.
 
 Cột "Tình trạng" ở mục 2 ghi một trong: Đạt, Thiếu, Chưa rõ. Không ghi điểm, không ghi kết luận chung.
@@ -145,6 +140,6 @@ Cột "Tình trạng" ở mục 2 ghi một trong: Đạt, Thiếu, Chưa rõ. K
 ## 6. Kiểm tra hình thức (làm trước khi chấm nội dung)
 
 - Paper vượt giới hạn trang của giảng viên? Nếu vượt, ghi rõ số trang hiện tại và giới hạn.
-- Phụ lục còn ghi chú dở dang hoặc thiếu dữ liệu thô dùng để chứng minh phân tích? Liệt kê mục thiếu.
+- Phần dữ liệu thô hoặc ghi chú dở dang nằm ngay trong bài nhóm nộp? Liệt kê mục thiếu. Không đòi phụ lục riêng, không chấm Harvard hay công bố dùng AI.
 - Persona hoặc chân dung khách hàng có thuộc tính không thu thập trong khảo sát/phỏng vấn? Nêu thuộc tính và nguồn thiếu.
 - Số liệu tác động dạng phần trăm (tăng chuyển đổi, tăng tin tưởng...) có nguồn chứng minh không? Không có thì yêu cầu xóa hoặc ghi là mục tiêu giả định.

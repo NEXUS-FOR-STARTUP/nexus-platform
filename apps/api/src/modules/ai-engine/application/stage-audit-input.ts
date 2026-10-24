@@ -4,6 +4,8 @@ import { QUESTION_REGISTRY, TEMPLATE_REGISTRY } from "@repo/validation";
 import { prisma } from "../../../db.js";
 
 export const STAGE_DOC_EXCLUDED_TYPES = ["assessment_report", "supporter_output", "supporter_attachment", "payment_proof"];
+/** Written as change_summary.md when a re-grade carries no note from the team. */
+export const NO_CHANGE_SUMMARY_TEXT = "(Nhóm không ghi tóm tắt thay đổi)";
 const SELF_CHECK_ID_FRAGMENT = "_selfcheck_";
 
 type AnswerMap = Readonly<Record<string, string | undefined>>;
@@ -22,10 +24,13 @@ function templateKeysUpTo(code: StageCode): Array<keyof typeof TEMPLATE_REGISTRY
 /**
  * Answers of the stage and earlier stages, template order, empty answers and
  * self-checks skipped. Text is copied verbatim so quotes stay substring-checkable.
+ * `ownOnly` renders only the stage's own template (context files: the earlier stage
+ * is rendered by its own call, so accumulating would repeat its answers).
  */
-export function renderStageAnswers(code: StageCode, answers: AnswerMap): { markdown: string; answered: number } {
+export function renderStageAnswers(code: StageCode, answers: AnswerMap, opts: { ownOnly?: boolean } = {}): { markdown: string; answered: number } {
   const sections: string[] = [];
-  for (const key of templateKeysUpTo(code)) {
+  const keys = opts.ownOnly ? [STAGES.find((s) => s.code === code)?.templateKey].filter((k): k is keyof typeof TEMPLATE_REGISTRY => k !== undefined) : templateKeysUpTo(code);
+  for (const key of keys) {
     for (const phase of TEMPLATE_REGISTRY[key].phases) {
       for (const question of phase.questions) {
         const answer = answers[question.question_id];
@@ -53,4 +58,14 @@ export async function countStageInputs(caseId: string, code: StageCode): Promise
       })
     : 0;
   return { answers, files };
+}
+
+/** Live, student-submitted files filed under a stage, oldest first (the set `countStageInputs` counts). */
+export async function findStageDocs(caseId: string, code: StageCode) {
+  const checkpoint = await prisma.checkpoint.findUnique({ where: { case_id_checkpoint_code: { case_id: caseId, checkpoint_code: code } }, select: { id: true } });
+  if (!checkpoint) return [];
+  return await prisma.documentRecord.findMany({
+    where: { case_id: caseId, checkpoint_id: checkpoint.id, superseded_at: null, source_kind: { notIn: [...SUBMITTED_DOC_EXCLUDED_KINDS] }, doc_type: { notIn: STAGE_DOC_EXCLUDED_TYPES } },
+    orderBy: [{ created_at: "asc" }],
+  });
 }

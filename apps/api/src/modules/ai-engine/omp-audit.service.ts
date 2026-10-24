@@ -80,6 +80,10 @@ export interface SandboxOptions {
   promptFiles?: readonly string[];
   /** false skips the CP1 knowledge DB and AGENTS.md. */
   includeKnowledge?: boolean;
+  /** Service-specific AGENTS.md content written to the sandbox root; omp loads it as system context. */
+  agentsMd?: string;
+  /** Files copied into `<jobDir>/tools/` (e.g. a validator the model runs); a missing source fails the job early. */
+  tools?: ReadonlyArray<{ name: string; src: string }>;
 }
 
 /**
@@ -97,6 +101,12 @@ export function prepareSandbox(jobDir: string, inputFiles: OmpAuditInputFile[], 
     mkdirSync(dir, { recursive: true })
   );
 
+  if (opts.agentsMd) writeFileSync(resolve(jobDir, "AGENTS.md"), opts.agentsMd, "utf-8");
+  for (const tool of opts.tools ?? []) {
+    if (!existsSync(tool.src)) throw new Error(`Sandbox tool missing: ${tool.name}`);
+    mkdirSync(resolve(jobDir, "tools"), { recursive: true });
+    safeCopyFileSync(tool.src, resolve(jobDir, "tools", tool.name));
+  }
   // 1. Copy SQLite database and AGENTS.md (CP1 only: CP2 jobs get neither the knowledge DB nor CP1 rules)
   if (opts.includeKnowledge !== false) {
     const masterDb = resolve(projectRoot, "data/knowledge/startup_knowledge.db");
@@ -113,14 +123,17 @@ export function prepareSandbox(jobDir: string, inputFiles: OmpAuditInputFile[], 
     }
   }
 
-  // 2. Copy System Prompts: only the files the job's prompt list names, or all when unrestricted (CP1)
+  // 2. Copy System Prompts: only the files the job's prompt list names, or all when unrestricted (CP1).
+  // An explicit list with a missing source dir or file fails the job: grading without its prompts is invalid.
   const promptsSourceDir = resolve(projectRoot, "data/system-prompts");
-  if (existsSync(promptsSourceDir)) {
+  if (!existsSync(promptsSourceDir)) {
+    if (opts.promptFiles?.length) throw new Error(`Prompt directory missing: ${promptsSourceDir}`);
+  } else {
     const promptFiles = opts.promptFiles ?? readdirSync(promptsSourceDir);
     for (const file of promptFiles) {
       const src = resolve(promptsSourceDir, file);
-      if (existsSync(src)) safeCopyFileSync(src, resolve(promptDir, file));
-      else logger.warn({ file }, "Prompt file listed for job is missing in data/system-prompts");
+      if (!existsSync(src)) throw new Error(`Prompt file missing in data/system-prompts: ${file}`);
+      safeCopyFileSync(src, resolve(promptDir, file));
     }
   }
 

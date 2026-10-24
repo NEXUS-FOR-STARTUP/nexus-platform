@@ -3,6 +3,8 @@
 import React from "react";
 import { WarningCircle as AlertCircle, Coins } from "@phosphor-icons/react";
 import { Button } from "./ui/Button";
+import { formatPrice, PACKAGE_KEYS } from "@/lib/pricing";
+import { usePackagePrice } from "@/lib/usePackagePrice";
 
 interface UnpaidAlertBannerProps {
   creditBalance?: number | null;
@@ -10,6 +12,7 @@ interface UnpaidAlertBannerProps {
 }
 
 export default function UnpaidAlertBanner({ creditBalance, onBuyCredits }: UnpaidAlertBannerProps) {
+  const { data: pkg } = usePackagePrice(PACKAGE_KEYS.AI_AUDIT);
   const hasCredits = (creditBalance ?? 0) > 0;
   if (hasCredits) return null;
 
@@ -20,7 +23,7 @@ export default function UnpaidAlertBanner({ creditBalance, onBuyCredits }: Unpai
         <div className="space-y-0.5">
           <h4 className="font-heading font-semibold text-sm text-text-app">Chưa có lượt đánh giá</h4>
           <p className="font-body text-xs text-text-muted leading-relaxed">
-            Dự án chưa có lượt đánh giá. Nhóm cần mua gói đánh giá (79,000 VND / 2 lượt) để bắt đầu phân tích tài liệu.
+            Dự án chưa có lượt đánh giá. Nhóm cần mua gói đánh giá{pkg?.credits_granted ? ` (${formatPrice(pkg.price)} / ${pkg.credits_granted} lượt)` : ""} để bắt đầu phân tích tài liệu.
           </p>
         </div>
       </div>

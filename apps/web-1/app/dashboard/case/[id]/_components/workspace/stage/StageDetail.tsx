@@ -11,7 +11,8 @@ import StageResultsView from "./StageResultsView";
 import StageGradingPanel from "./StageGradingPanel";
 import StageStartGuide from "./StageStartGuide";
 import AuditConfirmModal from "./AuditConfirmModal";
-import type { Cp2InputSource } from "@app/shared";
+import type { AuditCheckpointCode, Cp2InputSource } from "@app/shared";
+import { isSourceBasedStage } from "@/lib/audit-stage-ui";
 import ServiceCheckoutModal from "../../billing/ServiceCheckoutModal";
 import { useTriggerAudit } from "../../../hooks/useTriggerAudit";
 import { useGuidedDrafts } from "../../../hooks/useGuidedDrafts";
@@ -79,10 +80,16 @@ export default function StageDetail({
     }
   };
   const handleConfirmAudit = async (args: { scope: string; inputSource: Cp2InputSource; submissionType: "initial" | "resubmit"; changeSummary?: string; userNote?: string }) => {
+    const note = {
+      ...(args.changeSummary ? { change_summary: args.changeSummary } : {}),
+      ...(args.userNote ? { user_note: args.userNote } : {}),
+    };
     await triggerAudit({
-      ...(stage.code === "CP2"
-        ? { checkpoint: "CP2" as const, scope: args.scope === "questionnaire" ? ("questionnaire" as const) : ("full" as const), input_source: args.inputSource, ...(args.changeSummary ? { change_summary: args.changeSummary } : {}), ...(args.userNote ? { user_note: args.userNote } : {}) }
-        : {}),
+      ...(isSourceBasedStage(stage.code)
+        ? { checkpoint: stage.code as AuditCheckpointCode, scope: args.scope === "questionnaire" ? ("questionnaire" as const) : ("full" as const), input_source: args.inputSource, ...note }
+        : Object.keys(note).length > 0
+          ? { checkpoint: "CP1" as const, ...note }
+          : {}),
       submission_type: args.submissionType,
     });
   };
@@ -116,7 +123,6 @@ export default function StageDetail({
       <StageStartGuide
         caseId={caseId}
         stageCode={stage.code}
-        isCp2={stage.code === "CP2"}
         summary={summary}
         creditsRemaining={creditsRemaining}
         onAnswer={handleAnswerClick}

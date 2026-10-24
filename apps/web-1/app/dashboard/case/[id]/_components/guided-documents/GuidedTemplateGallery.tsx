@@ -13,19 +13,21 @@ import {
   type TemplateKey,
 } from "@repo/validation";
 import { useGuidedAnswers } from "../../hooks/useGuidedAnswers";
+import type { AuditCheckpointCode } from "@app/shared";
+import { AUDIT_STAGE_UI } from "@/lib/audit-stage-ui";
 import { useCaseDetails } from "../../hooks/useCaseDetails";
 import { useOpenCheckpoint } from "../../hooks/useOpenCheckpoint";
 import GuidedFileTemplateCard from "./GuidedFileTemplateCard";
 import GuidedTemplateCard from "./GuidedTemplateCard";
 
 const GALLERY_SKELETON_CARDS = 8;
-// CP3 và CP4 đã có đủ câu hỏi nhưng chưa mở cho người dùng. Bỏ khóa khỏi danh sách khi sẵn sàng mở.
-const COMING_SOON_TEMPLATES: readonly TemplateKey[] = ["cp3", "cp4"];
+// CP4 đã có đủ câu hỏi nhưng chưa mở cho người dùng. Bỏ khóa khỏi danh sách khi sẵn sàng mở.
+const COMING_SOON_TEMPLATES: readonly TemplateKey[] = ["cp4"];
 // Template tài chính (P&L) cũng chưa mở. Bỏ khóa khỏi danh sách khi sẵn sàng mở.
 const COMING_SOON_FILE_TEMPLATES: readonly FileTemplateKey[] = ["finance"];
 
-const CP2_KEY: TemplateKey = "cp2";
-const CP2_CODE = "CP2";
+/** Checkpoints a student opens on demand (the template card starts the stage); CP1 is always open. */
+const OPENABLE_TEMPLATES = { cp2: "CP2", cp3: "CP3" } as const satisfies Partial<Record<TemplateKey, AuditCheckpointCode>>;
 
 interface GuidedTemplateGalleryProps {
   caseId: string;
@@ -44,8 +46,7 @@ export default function GuidedTemplateGallery({ caseId, onOpen }: GuidedTemplate
   const { answersMap, isLoading } = useGuidedAnswers(caseId);
   const { documentWorkspace } = useCaseDetails(caseId);
   const { openCheckpoint, isOpening } = useOpenCheckpoint(caseId);
-  const cp2Open = (documentWorkspace?.checkpoints ?? []).some((cp) => cp.checkpoint_code === CP2_CODE);
-  const startCp2 = () => openCheckpoint(CP2_CODE, { onSuccess: () => onOpen(CP2_KEY) });
+  const openCodes = new Set((documentWorkspace?.checkpoints ?? []).map((cp) => cp.checkpoint_code));
 
   if (isLoading) return <LoadingSkeleton variant="card" count={GALLERY_SKELETON_CARDS} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 w-full" />;
 
@@ -62,16 +63,17 @@ export default function GuidedTemplateGallery({ caseId, onOpen }: GuidedTemplate
         {TEMPLATE_KEYS.map((key) => {
           const template = TEMPLATE_REGISTRY[key];
           const { answered, total } = countProgress(template, answersMap);
-          const needsStart = key === CP2_KEY && !cp2Open;
+          const openCode = key in OPENABLE_TEMPLATES ? OPENABLE_TEMPLATES[key as keyof typeof OPENABLE_TEMPLATES] : undefined;
+          const startCode = openCode !== undefined && !openCodes.has(openCode) ? openCode : undefined;
           return (
             <GuidedTemplateCard
               key={key}
               template={template}
               answered={answered}
               total={total}
-              onOpen={needsStart ? startCp2 : () => onOpen(key)}
-              startLabel={needsStart ? "Bắt đầu vòng Thị trường" : undefined}
-              starting={needsStart && isOpening}
+              onOpen={startCode !== undefined ? () => openCheckpoint(startCode, { onSuccess: () => onOpen(key) }) : () => onOpen(key)}
+              startLabel={startCode !== undefined ? AUDIT_STAGE_UI[startCode].openLabel : undefined}
+              starting={startCode !== undefined && isOpening}
               comingSoon={COMING_SOON_TEMPLATES.includes(key)}
             />
           );

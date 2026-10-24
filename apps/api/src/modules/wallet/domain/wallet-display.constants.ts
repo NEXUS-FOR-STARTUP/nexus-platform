@@ -10,13 +10,17 @@ export const SOURCE_DESCRIPTIONS: Record<string, string> = {
   adjustment: "Điều chỉnh số dư",
   order: "Thanh toán đơn hàng",
   refund: "Hoàn tiền",
+  case_refund: "Hoàn tiền vào ví",
+  admin_veto: "Hoàn tiền do hồ sơ bị từ chối",
   withdrawal: "Rút tiền",
 }
 
-export function describeTransaction(sourceType: string | null, amount: number): string {
-  const label = sourceType && SOURCE_DESCRIPTIONS[sourceType]
-    ? SOURCE_DESCRIPTIONS[sourceType]
-    : sourceType ?? "Không xác định"
+/** `detail` (what the money was spent on / returned for) replaces the generic label when known. */
+export function describeTransaction(sourceType: string | null, amount: number, detail?: string): string {
+  const label = detail
+    ?? (sourceType && SOURCE_DESCRIPTIONS[sourceType]
+      ? SOURCE_DESCRIPTIONS[sourceType]
+      : sourceType ?? "Không xác định")
   const sign = amount > 0 ? "+" : ""
   return `${label} (${sign}${amount.toLocaleString("vi-VN")} VND)`
 }

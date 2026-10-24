@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (2026-10-24) — Dịch vụ chấm vòng Mô hình kinh doanh (CP3) + rubric CP2 theo chuẩn Fall26
+- Dịch vụ `cp3_audit`: chấm Business Model Canvas (9 ô), SWOT có số liệu, chiến lược S-O/S-T/W-O/W-T và kết luận; 24 tiêu chí, 7 nhóm, 3 cổng (BMC đủ, SWOT đủ, SWOT có số liệu), thang 100. Một scope `full`, đầu vào `answers|files|both`, chấm mới và chấm lại. **Không chấm MVP và giao diện** (luật cứng trong prompt, kể cả khi tệp tải lên có nêu), không chấm hình thức, tài liệu CP1/CP2 chỉ là bối cảnh (`crossIssues` MINOR). Tái dùng scorer, zod schema và validator CLI của CP2 (thêm `cp3_full_v1`, `cp3_full_resubmit_v1`; CP3 không cho `not_applicable`).
+- Prompt mới `cp3_audit_core_v1.md`, `cp3_full_review_v1.md`, `cp3_full_resubmit_v1.md`; mã `CP3_ANSWERS_TOO_THIN`, `CP3_FILES_REQUIRED`, `CP3_REPORT_INVALID`. Biến môi trường `CP3_MIN_ANSWERED`, `CP3_MIN_AVG_WORDS` (mặc định 5 và 10).
+- Migration cộng thêm `20261024230000_cp3_service_type` (chỉ `INSERT … ON CONFLICT DO NOTHING` dòng `service_types.cp3_audit`). Seed gói `pkg_cp3_audit` 79,000 VND, 2 lượt: chạy tay `prisma/seeds/seed-active-packages.ts` trên VPS (không tự chạy khi deploy). Tắt bán: `is_active=false`.
+- Sửa chung: `findApprovedReports` loại cả báo cáo CP3 khỏi mốc chấm lại CP1; `renderStageAnswers`/`loadStageContext` có tuỳ chọn `ownAnswersOnly`; `verifyCp2Quotes` nhận `questionSource`; danh mục tệp mới `business_model_canvas`.
+- Web: một bảng `AUDIT_STAGE_UI` (`apps/web-1/lib/audit-stage-ui.ts`) thay các nhánh `isCp2`; mở vòng Mô hình kinh doanh (`stages.ts` `available: true`, slug `san-pham-mo-hinh` giữ nguyên để không vỡ đường dẫn), ghi chú phạm vi chấm ở modal xác nhận và gói bán.
+
+### Removed (2026-10-25) — Phần MVP/UX khỏi template CP3
+- Bỏ phase `mvp_ux_ui` (7 câu: `cp3_mvp_problem_pitch`, `cp3_mvp_demo_script`, `cp3_user_persona`, `cp3_user_flow`, `cp3_wireframe`, `cp3_mockup`, `cp3_ux_logic`) khỏi template, câu hỏi, DOCX và sync-rules. Lý do: MVP là sản phẩm phi tài liệu (màn hình, Figma, localhost), không chuyển thành văn bản và không chấm được. Template CP3 còn 20 câu (BMC 9, SWOT + chiến lược 8, kết luận 3), tất cả đều được chấm.
+- Đổi tên vòng thành "Mô hình kinh doanh" (landing, nhãn báo cáo, nhãn sự kiện, modal, tên dịch vụ và gói). Mất: `CP3_UNGRADED_*`, thông báo "không chấm" trên từng câu.
+- `cp4_pmf_mvp_demo` chỉ còn tự điền từ `cp2_mvp_demo` (không còn từ CP3).
+- Dữ liệu: câu trả lời MVP đã lưu của người dùng vẫn nằm trong `project_answers` (không xóa vì quy tắc an toàn DB); không còn hiển thị, không tính tiến độ, không vào DOCX hay báo cáo.
+- Worker: không đổi hành vi; chỉ thêm khóa `CP3` (ném lỗi, chỉ chạy qua JobSpec) để `check-types` xanh. Không cần build lại image.
+
+### Changed (2026-10-24) — Rubric CP2 theo chuẩn Fall26 (cô Hanhlh5)
+- Bỏ 5 tiêu chí `fr_ai_disclosure`, `fr_harvard`, `fr_appendix`, `fr_mvp_evidence`, `fr_five_forces` (full còn 25 tiêu chí); cổng duy nhất `fr_interview_gate`: từ 2 cuộc phỏng vấn trực tiếp, chuyên gia hoặc khách hàng mục tiêu đều tính, định nghĩa theo từng dự án. Khảo sát thành tùy chọn (`not_applicable` khi không làm). Trọng số 30/30/10/15/15; tự kiểm CP2 chỉ còn `cp2_selfcheck_interviews`.
+- Chấm lại: prompt ghép id cũ sang id mới; báo cáo cũ vẫn hiển thị nhóm `compliance`. **Deploy lúc hàng đợi `omp-queue` trống** (job đang chạy với id cũ sẽ bị từ chối 422 và hoàn lượt).
+
+### Changed (2026-10-21) — Tên và giá gói lấy từ DB
+- Migration dữ liệu `20261021100000_rename_audit_package_names`: đổi tên `pkg_ai_audit` "Basic AI Audit" → "Gói chấm Ý tưởng" và `pkg_cp2_audit` "Gói chấm Checkpoint 2" → "Gói chấm Thị trường". Chỉ đổi cột `name`, không đổi id; điều kiện `WHERE name = <tên cũ>` nên chạy lại an toàn.
+- API: thông báo chặn chat gói AI lấy tên gói từ DB (`buildChatAiTierMessage`). Web: bỏ tên gói, giá, số lượt và giá/lượt viết cứng, lấy từ `GET /packages/:id`.
+
 ### Added (2026-10-16) — Làm trước, thu tiền sau (khoản ứng nợ)
 - Bảng mới `receivables`, `receivable_payments`, `receivable_adjustments` (chỉ cộng thêm; 3 migration cộng thêm `20261016160000`, `20261016180000`, `20261016190000`; xem `docs/pay-later-runbook.md`). Còn nợ/trạng thái tính từ dữ liệu, không lưu cột.
 - `POST/GET /api/admin/receivables`, `/:id/payments`, `/:id/write-off`, `/:id/payment-link`; `GET /api/public/receivables/:token` (không đăng nhập, giới hạn tần suất, token chỉ lưu dạng hash SHA-256).

@@ -19,9 +19,11 @@ process.env.NODE_ENV = 'test';
 
 const CP1_ID = 'st-cp1';
 const CP2_ID = 'st-cp2';
+const CP3_ID = 'st-cp3';
 const SERVICE_TYPES = [
   { id: CP1_ID, code: 'cp1_audit' },
   { id: CP2_ID, code: 'cp2_audit' },
+  { id: CP3_ID, code: 'cp3_audit' },
 ];
 
 interface LedgerRow {
@@ -109,6 +111,20 @@ test('balance: consume CP2 does not touch CP1 balance', async () => {
   assert.equal(await getCreditBalance(db as never, 'case-1', CP1_ID), 2);
   assert.equal(await getCreditBalance(db as never, 'case-1', CP2_ID), 3);
   assert.deepEqual(await getCreditBalances(db as never, 'case-1'), { cp1_audit: 2, cp2_audit: 3 });
+});
+
+test('CP3 credits are their own balance and refund independently of CP1 and CP2', async () => {
+  const rows: LedgerRow[] = [purchase(CP2_ID, 2, 39500), purchase(CP3_ID, 2, 39500), { case_id: 'case-1', service_type_id: CP3_ID, amount: -1, type: 'consumption' }];
+  const { db, wallet } = fakeDb(rows);
+
+  assert.deepEqual(await getCreditBalances(db as never, 'case-1'), { cp2_audit: 2, cp3_audit: 1 });
+
+  await withWalletSpy(wallet, () => refundRemainingCreditInTx(db as never, 'case-1', 'user-1'));
+
+  const byKey = Object.fromEntries(wallet.map((w) => [w.key, w.amount]));
+  assert.equal(byKey['refund-credit-case-1-cp3_audit'], 39500); // 1 unused x 39.500
+  assert.equal(byKey['refund-credit-case-1-cp2_audit'], 79000);
+  assert.equal(await getCreditBalance(db as never, 'case-1', CP3_ID), 0);
 });
 
 test('refund: two service types are refunded independently', async () => {

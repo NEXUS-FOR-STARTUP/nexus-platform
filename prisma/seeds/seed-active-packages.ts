@@ -46,6 +46,7 @@ interface ServiceTypeDef {
 const SERVICE_TYPES: ServiceTypeDef[] = [
   { code: "cp1_audit", name: "Chấm bài Ý tưởng", description: "Lượt chấm AI cho ý tưởng giai đoạn Ý tưởng" },
   { code: "cp2_audit", name: "Chấm bài Thị trường", description: "Lượt chấm AI cho bảng hỏi phỏng vấn giai đoạn Thị trường" },
+  { code: "cp3_audit", name: "Chấm bài Mô hình kinh doanh", description: "Lượt chấm AI cho mô hình kinh doanh và SWOT" },
 ];
 
 const ACTIVE_PACKAGES: ActivePackageDef[] = [
@@ -80,7 +81,7 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
   },
   {
     id: "pkg_ai_audit",
-    name: "Basic AI Audit",
+    name: "Gói chấm Ý tưởng",
     price: 79000,
     features: {
       items: [
@@ -113,6 +114,24 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
     },
     is_active: true,
     service_type_code: "cp2_audit",
+    credits_granted: 2,
+  },
+  {
+    id: "pkg_cp3_audit",
+    name: "Gói chấm Mô hình kinh doanh",
+    price: 79000,
+    features: {
+      items: [
+        "Chấm Mô hình kinh doanh, SWOT, chiến lược và kết luận theo rubric, kèm trích dẫn từ bài nộp",
+        "2 lượt chấm, có thể chấm lại sau khi sửa bài",
+        "Không chấm demo MVP và giao diện",
+      ],
+      sla_hours: 0,
+      mode: "ai_automated",
+      auto_delivery: true,
+    },
+    is_active: true,
+    service_type_code: "cp3_audit",
     credits_granted: 2,
   },
   {

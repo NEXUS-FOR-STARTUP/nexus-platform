@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { DownloadSimple as Download, ArrowSquareOut as ExternalLink, FileText, CaretDown as ChevronDown, CaretUp as ChevronUp } from "@phosphor-icons/react";
 import { Button, SegmentedControl, Stack, Tooltip, LoadingOverlay } from "@mantine/core";
-import { isCp2ReportType } from "@repo/validation";
+import type { AuditCheckpointCode } from "@app/shared";
+import { STAGE_ROUND_LABELS, reportStageCode } from "@/lib/audit-stage-ui";
 import { useDownloadReportPdf } from "../hooks/useDownloadReportPdf";
 import type { RoundHistoryEntry } from "@/types/case";
 import RoundCard from "./RoundCard";
@@ -25,7 +26,7 @@ interface TabReportFindingsProps {
 export default function TabReportFindings({ report, caseId, projectName: caseProjectName, roundHistory, hideCheckpointFilter = false }: TabReportFindingsProps) {
   const [pdfLoading, setPdfLoading] = useState(true);
   const [isSingleExpanded, setIsSingleExpanded] = useState(true);
-  const [checkpointFilter, setCheckpointFilter] = useState<"CP1" | "CP2">("CP1");
+  const [checkpointFilter, setCheckpointFilter] = useState<AuditCheckpointCode>("CP1");
 
   const projectName = caseProjectName || "Dự án khởi nghiệp";
   const reportFilename = getReportPdfFilename(projectName, report?.report_type, report?.created_at);
@@ -64,11 +65,13 @@ export default function TabReportFindings({ report, caseId, projectName: casePro
 
   // Has round history - render round list with first round expanded and others collapsed
   if (roundHistory && roundHistory.length > 0) {
-    const cp2Rounds = roundHistory.filter((round) => isCp2ReportType(round.report?.report_type));
-    const cp1Rounds = roundHistory.filter((round) => !isCp2ReportType(round.report?.report_type));
-    const showCheckpointFilter = !hideCheckpointFilter && cp2Rounds.length > 0;
-    const activeCheckpoint = showCheckpointFilter && (checkpointFilter === "CP2" || cp1Rounds.length === 0) ? "CP2" : "CP1";
-    const visibleRounds = hideCheckpointFilter ? roundHistory : (activeCheckpoint === "CP2" ? cp2Rounds : cp1Rounds);
+    const roundsByStage: Record<AuditCheckpointCode, RoundHistoryEntry[]> = { CP1: [], CP2: [], CP3: [] };
+    for (const round of roundHistory) roundsByStage[reportStageCode(round.report?.report_type)].push(round);
+    // CP1 is always offered; a later stage only once it has a round.
+    const filterCodes = (Object.keys(roundsByStage) as AuditCheckpointCode[]).filter((code) => code === "CP1" || roundsByStage[code].length > 0);
+    const showCheckpointFilter = !hideCheckpointFilter && filterCodes.length > 1;
+    const activeCheckpoint = filterCodes.includes(checkpointFilter) && roundsByStage[checkpointFilter].length > 0 ? checkpointFilter : (filterCodes.find((code) => roundsByStage[code].length > 0) ?? "CP1");
+    const visibleRounds = hideCheckpointFilter ? roundHistory : roundsByStage[activeCheckpoint];
     return (
       <Stack gap="md" className="animate-fade-in font-body pb-8">
         <div className="flex items-center justify-between gap-2">
@@ -79,11 +82,8 @@ export default function TabReportFindings({ report, caseId, projectName: casePro
             <SegmentedControl
               size="xs"
               value={activeCheckpoint}
-              onChange={(value) => setCheckpointFilter(value as "CP1" | "CP2")}
-              data={[
-                { label: "Vòng Ý tưởng", value: "CP1" },
-                { label: "Vòng Thị trường", value: "CP2" },
-              ]}
+              onChange={(value) => setCheckpointFilter(value as AuditCheckpointCode)}
+              data={filterCodes.map((code) => ({ label: STAGE_ROUND_LABELS[code], value: code }))}
             />
           )}
         </div>

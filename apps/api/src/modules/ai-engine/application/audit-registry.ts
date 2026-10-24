@@ -1,9 +1,13 @@
-import { getAuditScopeEntry, type AuditCheckpointCode, type Cp2InputSource, type AuditScopeEntry, type AuditSubmissionType } from "@app/shared";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
+import { AUDIT_CHECKPOINTS, getAuditScopeEntry, type AuditCheckpointCode, type Cp2InputSource, type AuditScopeEntry, type AuditSubmissionType } from "@app/shared";
 import { AppError } from "../../../shared/domain/app-error.js";
-import type { OmpAuditInputFile } from "../omp-audit.service.js";
+import { resolveRepoRoot, type OmpAuditInputFile } from "../omp-audit.service.js";
 import { assembleCp1InputFiles } from "./cp1-audit-input.js";
 import { assembleCp2InputFiles } from "./cp2-audit-input.js";
+import { assembleCp3InputFiles } from "./cp3-audit-input.js";
 import { postProcessCp1Legacy, postProcessCp2Scored, type PostProcessor } from "./cp2-audit-postprocess.js";
+import { postProcessCp3Scored } from "./cp3-audit-postprocess.js";
 
 export interface InputRequest {
   caseId: string;
@@ -13,19 +17,30 @@ export interface InputRequest {
   userNote?: string;
   scope?: string;
   inputSource?: Cp2InputSource;
+  /** Case library folder (`storage/jobs/<caseId>/_library`) where earlier-stage context files live. */
+  libraryDir: string;
 }
 
-export type InputAssembler = (req: InputRequest) => Promise<{ inputFiles: OmpAuditInputFile[]; resolvedLifecycleUnitId: string | null }>;
+export interface AssembledInput {
+  inputFiles: OmpAuditInputFile[];
+  resolvedLifecycleUnitId: string | null;
+  /** Library files this run references; the coordinator mirrors them next to a mirrored sandbox. */
+  libraryNames?: string[];
+}
+
+export type InputAssembler = (req: InputRequest) => Promise<AssembledInput>;
 
 /** Keys are the `input` / `postProcess` values of `AUDIT_CHECKPOINTS`; a test keeps them in lockstep. */
 export const INPUT_ASSEMBLERS: Record<string, InputAssembler> = {
-  cp1_intake: (req) => assembleCp1InputFiles(req.caseId, req.submissionType, req.lifecycleUnitId),
-  cp2_answers: (req) => assembleCp2InputFiles({ caseId: req.caseId, submissionType: req.submissionType, changeSummary: req.changeSummary, userNote: req.userNote, scope: req.scope, inputSource: req.inputSource }),
+  cp1_intake: (req) => assembleCp1InputFiles(req.caseId, req.submissionType, req.lifecycleUnitId, req.changeSummary, req.userNote),
+  cp2_answers: (req) => assembleCp2InputFiles({ caseId: req.caseId, submissionType: req.submissionType, changeSummary: req.changeSummary, userNote: req.userNote, scope: req.scope, inputSource: req.inputSource, libraryDir: req.libraryDir }),
+  cp3_answers: (req) => assembleCp3InputFiles({ caseId: req.caseId, submissionType: req.submissionType, changeSummary: req.changeSummary, userNote: req.userNote, inputSource: req.inputSource, libraryDir: req.libraryDir }),
 };
 
 export const POST_PROCESSORS: Record<string, PostProcessor> = {
   cp1_legacy: postProcessCp1Legacy,
   cp2_scored: postProcessCp2Scored,
+  cp3_scored: postProcessCp3Scored,
 };
 
 export interface AuditPlan extends AuditScopeEntry {
@@ -40,4 +55,21 @@ export function resolveAuditPlan(checkpoint: AuditCheckpointCode, scope: string,
     throw new AppError(400, "INVALID_AUDIT_COMBINATION", "Tổ hợp checkpoint, phạm vi và loại thẩm định không được hỗ trợ.");
   }
   return { ...entry, checkpoint, scope };
+}
+
+/**
+ * Boot-time guard: every prompt a registered service can ask for must exist on disk. A deploy that
+ * forgot to ship them fails here instead of failing a paid grading run later.
+ */
+export function assertAuditPromptsPresent(): void {
+  const dir = resolve(resolveRepoRoot(), "data", "system-prompts");
+  const missing = new Set<string>();
+  for (const service of Object.values(AUDIT_CHECKPOINTS)) {
+    for (const scope of Object.values(service.scopes)) {
+      for (const prompts of Object.values(scope.prompts) as ReadonlyArray<readonly string[]>) {
+        for (const file of prompts) if (!existsSync(resolve(dir, file))) missing.add(file);
+      }
+    }
+  }
+  if (missing.size > 0) throw new Error(`Audit prompt files missing in ${dir}: ${[...missing].join(", ")}`);
 }

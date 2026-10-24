@@ -69,7 +69,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 0,
+            // 30s: tab switches and remounts reuse cache; mutations still invalidate explicitly.
+            staleTime: 30_000,
+            // Admin/AI endpoints fail loudly; one retry covers transient network blips only.
+            retry: 1,
             refetchOnWindowFocus: false,
           },
         },

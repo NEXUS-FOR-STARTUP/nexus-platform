@@ -11,7 +11,7 @@
 
 Nhóm đã sửa tài liệu sau lần chấm trước. Cho nhóm biết lỗi cũ đã sửa tới đâu, có lỗi mới không, còn gì phải làm trước khi bảo vệ.
 
-Dùng nguyên danh sách 30 tiêu chí, quy tắc trạng thái và mục kiểm tra phép tính của `cp2_full_review_v1`. Chấm lại toàn bộ 30 tiêu chí trên bản mới, không chép trạng thái cũ.
+Dùng nguyên danh sách 25 tiêu chí, quy tắc trạng thái và mục kiểm tra phép tính của `cp2_full_review_v1`. Chấm lại toàn bộ 25 tiêu chí trên bản mới, không chép trạng thái cũ.
 
 ## 2. Đầu vào thêm
 
@@ -24,6 +24,8 @@ Nếu thiếu `previous_report.json`: chấm như lần đầu theo `cp2_full_re
 Nếu có `input/user_note.md`: đó là ghi chú của nhóm cho lần chấm này (ví dụ muốn chú tâm vào phần nào). Ưu tiên soi kỹ phần họ nêu trong mục 3, nhưng vẫn đối chiếu đủ các lỗi cũ, không bỏ lỗi nào vì ghi chú.
 
 ## 3. Đối chiếu lỗi cũ
+
+`previous_report.json` của lần chấm trước có thể còn dùng id của rubric cũ. Ghép id cũ sang id mới trước khi đối chiếu: `fr_expert_gate` → `fr_interview_gate`; `fr_expert_learning` → `fr_interview_learning`; `fr_interview_scale_method` → `fr_interview_method`; `fr_survey_gate` → `fr_survey_minimum`. Id đã bỏ khỏi rubric (`fr_ai_disclosure`, `fr_harvard`, `fr_appendix`, `fr_mvp_evidence`, `fr_five_forces`) thì bỏ qua: không đưa vào `reaudit`, không coi là lỗi còn tồn tại. Chỉ ghi id mới vào `reaudit`.
 
 Với mỗi tiêu chí lần trước không phải `pass`:
 

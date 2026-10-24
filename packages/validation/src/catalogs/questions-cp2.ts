@@ -108,17 +108,18 @@ export const CP2_QUESTIONS = {
     id: "cp2_expert_interviews",
     text: "Nhóm đã phỏng vấn chuyên gia nào và học được gì?",
     explanation:
-      "Mục quan trọng khi chấm điểm. Phải phỏng vấn ít nhất 2 chuyên gia, mỗi người có từ 6 tháng kinh nghiệm trở lên.\n" +
-      "Với mỗi chuyên gia, nêu:\n" +
-      "- Hồ sơ: họ tên, chức danh, đơn vị, số năm kinh nghiệm, thông tin liên hệ\n" +
+      "Mục quan trọng khi chấm điểm: cần ít nhất 2 cuộc phỏng vấn trực tiếp, chuyên gia hoặc khách hàng mục tiêu đều được. " +
+      "Nếu nhóm chỉ phỏng vấn khách hàng mục tiêu, ghi rõ điều đó ở đây và trình bày chi tiết ở mục Khám phá khách hàng.\n" +
+      "Với mỗi chuyên gia đã phỏng vấn, nêu:\n" +
+      "- Hồ sơ: họ tên, chức danh, đơn vị và lý do người này phù hợp với lĩnh vực của dự án\n" +
       "- Learning points, tức điều học được:\n" +
       "  + Market view: góc nhìn của chuyên gia về thị trường\n" +
       "  + Beware-of: điều chuyên gia cảnh báo cần tránh\n" +
       "  + Experience with target customers: kinh nghiệm của chuyên gia với nhóm khách hàng mục tiêu\n" +
       "  + Các điểm khác đáng chú ý",
     suggested_actions: [
-      "Có đủ ≥2 chuyên gia, mỗi người ghi rõ số năm kinh nghiệm.",
-      "Hồ sơ và liên hệ đầy đủ để người chấm có thể kiểm tra.",
+      "Có đủ ít nhất 2 cuộc phỏng vấn trực tiếp; mỗi cuộc nêu người được hỏi và lý do phù hợp.",
+      "Mỗi cuộc có điều học được cụ thể và nhóm đã đổi gì nhờ đó.",
     ],
   },
 
@@ -126,8 +127,8 @@ export const CP2_QUESTIONS = {
     id: "cp2_survey",
     text: "Nhóm đã khảo sát như thế nào và kết quả ra sao?",
     explanation:
-      "Mục quan trọng khi chấm điểm. Khảo sát phải có ít nhất 100 người trả lời. Phỏng vấn trực tiếp khách hàng và chuyên gia " +
-      "có giá trị hơn khảo sát Google Form, nên ưu tiên nói chuyện trực tiếp. Cần nêu đủ:\n" +
+      "TÙY CHỌN. Nếu nhóm có làm khảo sát thì nên có ít nhất 100 người trả lời. Phỏng vấn trực tiếp khách hàng và chuyên gia " +
+      "có giá trị hơn khảo sát Google Form, nên ưu tiên nói chuyện trực tiếp. Nếu có khảo sát, cần nêu đủ:\n" +
       "- Mục tiêu và đối tượng khảo sát\n" +
       "- Phương pháp và công cụ sử dụng\n" +
       "- Bảng hỏi: ít nhất 7 câu và ít nhất 2 loại câu hỏi, ví dụ trắc nghiệm, thang đo mức độ, câu hỏi mở\n" +
@@ -137,7 +138,7 @@ export const CP2_QUESTIONS = {
       "- Phương pháp chọn mẫu và tỷ lệ phản hồi\n" +
       "- Phân tích kết quả và kết luận",
     suggested_actions: [
-      "Đếm lại: số người trả lời ≥100, số câu hỏi ≥7, có ≥2 loại câu hỏi.",
+      "Nếu có khảo sát: đếm lại số người trả lời ≥100, số câu hỏi ≥7, có ≥2 loại câu hỏi.",
       "Mỗi gạch đầu dòng trong phần \"Cần nêu đủ\" đều có câu trả lời riêng.",
     ],
   },
@@ -194,7 +195,7 @@ export const CP2_QUESTIONS = {
     id: "cp2_porters_five_forces",
     text: "Phân tích Porter's Five Forces cho thị trường của nhóm",
     explanation:
-      "Phân tích 5 lực lượng, mỗi lực 1 đến 2 câu kèm bằng chứng:\n" +
+      "Tham khảo, không dùng để chấm điểm. Phân tích 5 lực lượng, mỗi lực 1 đến 2 câu kèm bằng chứng:\n" +
       "- Rivalry: mức cạnh tranh giữa các đối thủ hiện có\n" +
       "- New entrants: mức dễ dàng cho người mới tham gia\n" +
       "- Substitution: sản phẩm hoặc cách làm thay thế\n" +
@@ -241,7 +242,7 @@ export const CP2_QUESTIONS = {
     id: "cp2_competitor_criteria_table",
     text: "Bảng tiêu chí so sánh đối thủ",
     explanation:
-      "KHÔNG BẮT BUỘC, nhưng cần nếu muốn đạt điểm tối đa. Lập bảng so sánh theo các tiêu chí, " +
+      "KHÔNG BẮT BUỘC, nhưng giúp bài vững hơn. Lập bảng so sánh theo các tiêu chí, " +
       "khoảng 9 đối thủ cùng startup của nhóm.\n" +
       "Chọn tiêu chí khách hàng thật sự quan tâm, ví dụ giá, tốc độ, độ phù hợp với bối cảnh.",
     suggested_actions: [
@@ -320,7 +321,7 @@ export const CP2_QUESTIONS = {
     id: "cp2_ai_disclosure",
     text: "Tuyên bố sử dụng AI của nhóm",
     explanation:
-      "Mục quan trọng khi chấm điểm. Viết một đoạn nêu rõ nhóm đã dùng AI để làm gì, " +
+      "Tham khảo, không dùng để chấm điểm. Viết một đoạn nêu rõ nhóm đã dùng AI để làm gì, " +
       "ví dụ gợi ý ý tưởng, sửa câu chữ, phân tích dữ liệu, và liệt kê các prompt đã dùng. " +
       "Nếu nhóm không dùng AI, ghi rõ điều đó.",
     suggested_actions: [
@@ -338,7 +339,7 @@ export const CP2_QUESTIONS = {
     id: "cp2_harvard_referencing",
     text: "Danh mục tài liệu tham khảo theo chuẩn Harvard",
     explanation:
-      "BẮT BUỘC. Mọi số liệu và nguồn bên ngoài phải được trích dẫn trong bài và liệt kê ở danh mục cuối bài theo chuẩn Harvard.\n" +
+      "Tham khảo, không dùng để chấm điểm. Nên trích dẫn số liệu và nguồn bên ngoài trong bài và liệt kê ở danh mục cuối bài theo chuẩn Harvard.\n" +
       "Ví dụ: \"Tác giả, năm. Tên bài. Available at: đường dẫn. Accessed: ngày truy cập.\"",
     suggested_actions: [
       "Mỗi con số thị trường trong bài có một trích dẫn tương ứng ở danh mục.",

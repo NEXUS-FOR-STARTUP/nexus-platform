@@ -3,9 +3,9 @@ import type { Template } from "./types.js";
 // ---------------------------------------------------------------------------
 // CP2 template — Startup Checkpoint 2 (market research + paired debate).
 // Authored from plan section 9 only (the reconciled rubric: 5 phases + cross-cutting
-// mandatory items + debate prep). No rubric content is invented here.
-// Auto-fail items (2 expert interviews ≥6 months, survey ≥100 respondents, AI
-// disclosure statement) are classification "required".
+// items + debate prep). No rubric content is invented here.
+// Audit gate: 2 direct interviews (expert or target customer). Survey, AI disclosure,
+// Harvard, appendix and Porter's five forces are no longer graded, so they are "recommended".
 // ---------------------------------------------------------------------------
 
 export const cp2: Template = {
@@ -34,7 +34,7 @@ export const cp2: Template = {
         { question_id: "cp2_research_objectives", classification: "required" },
         { question_id: "cp2_customer_discovery_process", classification: "required" },
         { question_id: "cp2_expert_interviews", classification: "required" },
-        { question_id: "cp2_survey", classification: "required" },
+        { question_id: "cp2_survey", classification: "recommended" },
         { question_id: "cp2_question_bank", classification: "recommended" },
         { question_id: "cp2_pain_point_interviews", classification: "supplemental" },
       ],
@@ -45,7 +45,7 @@ export const cp2: Template = {
       unlock_requires: ["cp2_research_objectives"],
       questions: [
         { question_id: "cp2_tam_sam_som", classification: "required" },
-        { question_id: "cp2_porters_five_forces", classification: "required" },
+        { question_id: "cp2_porters_five_forces", classification: "recommended" },
         { question_id: "cp2_competitive_analysis", classification: "required" },
         { question_id: "cp2_invisible_competitors", classification: "required" },
         { question_id: "cp2_competitor_criteria_table", classification: "supplemental" },
@@ -75,9 +75,9 @@ export const cp2: Template = {
       title: "Yêu cầu bắt buộc của báo cáo",
       unlock_requires: [],
       questions: [
-        { question_id: "cp2_ai_disclosure", classification: "required" },
-        { question_id: "cp2_harvard_referencing", classification: "required" },
-        { question_id: "cp2_appendix", classification: "required" },
+        { question_id: "cp2_ai_disclosure", classification: "recommended" },
+        { question_id: "cp2_harvard_referencing", classification: "recommended" },
+        { question_id: "cp2_appendix", classification: "recommended" },
         { question_id: "cp2_format", classification: "required" },
       ],
     },

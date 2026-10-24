@@ -6,7 +6,7 @@
 export const STAGES = [
   { code: "CP1", slug: "y-tuong", name: "Ý tưởng", serviceType: "cp1_audit", templateKey: "cp1", available: true },
   { code: "CP2", slug: "thi-truong", name: "Thị trường", serviceType: "cp2_audit", templateKey: "cp2", available: true },
-  { code: "CP3", slug: "san-pham-mo-hinh", name: "Sản phẩm & mô hình", serviceType: null, templateKey: "cp3", available: false },
+  { code: "CP3", slug: "san-pham-mo-hinh", name: "Mô hình kinh doanh", serviceType: "cp3_audit", templateKey: "cp3", available: true },
   { code: "CP4", slug: "goi-von-tai-chinh", name: "Gọi vốn & tài chính", serviceType: null, templateKey: "cp4", available: false },
 ] as const;
 

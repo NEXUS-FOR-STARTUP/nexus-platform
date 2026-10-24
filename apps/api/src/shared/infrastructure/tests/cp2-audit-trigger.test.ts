@@ -22,7 +22,7 @@ test("no checkpoint in body -> CP1 exactly as before (service, report type, prom
   const plan = resolveAuditPlan(opts.checkpoint, opts.prompt_mode ?? "full", opts.submission_type);
   assert.equal(plan.serviceType, "cp1_audit");
   assert.equal(plan.reportType, "input_clarification");
-  assert.deepEqual([...plan.prompts], ["triad_framework_v1_1.md", "input_clarification_gate_v4_1.md"]);
+  assert.deepEqual([...plan.prompts], ["workflow_operator_rule_v1.md", "triad_framework_v1_1.md", "input_clarification_gate_v4_1.md"]);
   const resubmit = resolveAuditPlan("CP1", "full", "resubmit");
   assert.equal(resubmit.prompts[resubmit.prompts.length - 1], "input_clarification_gate_v4_1_resubmit.md");
   const lite = resolveAuditPlan("CP1", "lite", "initial");
@@ -34,7 +34,7 @@ test("CP2 body rules: scope required, logic_check refused, CP1 refuses scope", (
   assert.equal(TriggerOptsSchema.safeParse({ checkpoint: "CP2", scope: "full", submission_type: "logic_check" }).success, false);
   assert.equal(TriggerOptsSchema.safeParse({ scope: "full" }).success, false);
   assert.equal(TriggerOptsSchema.safeParse({ checkpoint: "CP2", scope: "questionnaire" }).success, true);
-  assert.equal(TriggerOptsSchema.safeParse({ checkpoint: "CP3" }).success, false);
+  assert.equal(TriggerOptsSchema.safeParse({ checkpoint: "CP9" }).success, false);
 });
 
 test("CP2 plan: own service type, report types and prompts; never CP1 triad or gate prompts", () => {
