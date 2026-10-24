@@ -16,7 +16,7 @@ export const cp3: Template = {
   phases: [
     {
       id: "business_model_canvas",
-      title: "Mô hình kinh doanh (Business Model Canvas)",
+      title: "Mô hình kinh doanh",
       unlock_requires: [],
       questions: [
         { question_id: "cp3_bmc_customer_segments", classification: "required" },
