@@ -2,249 +2,272 @@ import type { Question } from "./types.js";
 
 // ---------------------------------------------------------------------------
 // CP3 questions — Startup Checkpoint 3 (Business Model Canvas, SWOT, conclusion).
-// Source: the lecturer's BMC/SWOT guide (rubric), 101_13_Nexus_CP3 (SWOT + conclusion
-// structure) and 101_155_RootAccess_CP3 (BMC structure).
-// Same wording convention as questions.ts: purpose line → what to cover → example.
+// Source: the lecturer's BMC/SWOT guide (rubric). Same wording convention as
+// questions.ts: one-line purpose → "Cần nêu" bullets → one "Không đạt" / "Đạt" pair.
+// Examples use one running project (study-group booking) as illustration only.
 // ---------------------------------------------------------------------------
 
 export const CP3_QUESTIONS = {
-  // ── Phần 1 — Business Model Canvas (9 ô) ─────────────────────────────────
+  // ── Mô hình kinh doanh ────────────────────────────────────────────────────
 
   cp3_bmc_customer_segments: {
     id: "cp3_bmc_customer_segments",
-    text: "Khách hàng mục tiêu ưu tiên của nhóm là ai?",
+    text: "Nhóm giải quyết nhu cầu gì, cho ai, ở đâu?",
     explanation:
-      "Chọn khách hàng mục tiêu ưu tiên, không chọn phân khúc quá rộng. Nêu:\n" +
-      "- Nhóm khách hàng ưu tiên (nhân khẩu học, hành vi, nhu cầu)\n" +
-      "- Nhóm khởi đầu (beachhead) để nhóm tập trung trước\n" +
-      "Không đạt: \"tất cả sinh viên\". Đạt: \"sinh viên năm 2 đến 4 đang làm Startup Proposal học kỳ này\".",
-    suggested_actions: [
-      "Phân khúc đủ hẹp để nhóm biết đi gặp ai tuần này.",
-    ],
+      "Chọn một nhóm khách hàng đủ hẹp để nhóm biết đi gặp ai. Cần nêu:\n" +
+      "- Khách hàng là ai (đặc điểm cụ thể)\n" +
+      "- Họ ở đâu\n" +
+      "- Quy mô khoảng bao nhiêu người\n" +
+      "Không đạt: \"Sinh viên.\"\n" +
+      "Đạt: \"Sinh viên năm 2 đến 3 quanh ba trường đại học ở Thủ Đức, hay học nhóm 3 đến 6 người. " +
+      "Khoảng 60.000 sinh viên, nhóm nhắm 5% trong năm đầu.\"",
+    suggested_actions: ["Có ít nhất hai trong ba ý: ai, ở đâu, quy mô."],
   },
 
   cp3_bmc_value_proposition: {
     id: "cp3_bmc_value_proposition",
     text: "Sản phẩm mang lại lợi ích độc đáo gì cho khách hàng?",
     explanation:
-      "Nêu lợi ích khiến nhóm khác biệt và khó bắt chước: tiết kiệm thời gian, giá rẻ hơn, tiện lợi hơn... Cần:\n" +
-      "- Một câu USP rõ ràng\n" +
-      "- So với cách khách hàng đang dùng, hơn ở điểm nào\n" +
-      "- Giá trị này đáp ứng đúng nỗi đau ở phân khúc khách hàng bên trên",
-    suggested_actions: [
-      "Đối thủ đọc USP này vẫn thấy khó sao chép trong một học kỳ.",
-    ],
+      "Nêu điều khiến khách chọn nhóm thay vì cách họ đang dùng. Cần nêu:\n" +
+      "- Lợi ích chính, viết trong một hai câu\n" +
+      "- Hơn cách khách đang dùng ở điểm nào\n" +
+      "- Vì sao đối thủ khó sao chép\n" +
+      "Không đạt: \"Tiện lợi, nhanh, giá tốt.\"\n" +
+      "Đạt: \"Xem bàn trống và ổ điện của các quán quanh trường rồi giữ bàn trong 10 phút, thay vì nhắn hỏi từng quán. " +
+      "Khó sao chép vì nhóm đã ký thỏa thuận chia sẻ dữ liệu bàn với 5 quán.\"",
+    suggested_actions: ["Có một đối tượng để so sánh (cách khách đang làm hoặc một đối thủ)."],
   },
 
   cp3_bmc_channels: {
     id: "cp3_bmc_channels",
-    text: "Nhóm tiếp cận và bán hàng cho khách hàng bằng cách nào?",
+    text: "Nhóm quảng bá và bán hàng qua những kênh nào?",
     explanation:
-      "Nêu các kênh giao giá trị và tiếp cận khách hàng: website, ứng dụng di động, mạng xã hội, truyền miệng, cộng đồng... " +
-      "Chia kênh trực tiếp và kênh gián tiếp nếu có, và ghi kênh nào là kênh chính ở giai đoạn đầu.",
-    suggested_actions: [
-      "Mỗi kênh có lý do: khách hàng ở phân khúc đã chọn thật sự có mặt ở kênh đó.",
-    ],
+      "Tách hai loại kênh. Cần nêu:\n" +
+      "- Kênh truyền thông: khách biết đến nhóm ở đâu\n" +
+      "- Kênh bán hàng: khách mua hoặc dùng ở đâu\n" +
+      "- Vì sao khách của nhóm có mặt ở kênh đó\n" +
+      "Không đạt: \"Facebook, TikTok.\"\n" +
+      "Đạt: \"Truyền thông: hội nhóm Facebook của từng trường, vì sinh viên hỏi chỗ học ở đó hằng ngày. " +
+      "Bán hàng: đặt và thanh toán ngay trong ứng dụng.\"",
+    suggested_actions: ["Có cả kênh truyền thông lẫn kênh bán hàng."],
   },
 
   cp3_bmc_customer_relationships: {
     id: "cp3_bmc_customer_relationships",
-    text: "Nhóm thu hút và giữ chân khách hàng như thế nào?",
+    text: "Nhóm thu hút và giữ chân khách hàng bằng cách nào?",
     explanation:
-      "Nêu cách nhóm thu hút và giữ khách: cộng đồng, hỗ trợ trực tuyến, tự phục vụ, thẻ thành viên, chương trình giới thiệu... " +
-      "Giải thích vì sao cách này hợp với hành vi sử dụng của khách hàng.",
-    suggested_actions: [
-      "Nêu được điều khiến khách hàng quay lại lần hai.",
-    ],
+      "Trả lời cả hai việc. Cần nêu:\n" +
+      "- Cách thu hút khách dùng lần đầu\n" +
+      "- Điều khiến khách quay lại hoặc ở lại\n" +
+      "Không đạt: \"Chăm sóc khách hàng tốt.\"\n" +
+      "Đạt: \"Thu hút: tặng một lượt giữ bàn miễn phí khi giới thiệu bạn. " +
+      "Giữ chân: tích điểm mỗi lần đặt, đủ 10 lần được giữ bàn ưu tiên.\"",
+    suggested_actions: ["Cách giữ chân là một việc làm cụ thể, không chỉ là mục tiêu."],
   },
 
   cp3_bmc_revenue_streams: {
     id: "cp3_bmc_revenue_streams",
-    text: "Dự án kiếm tiền bằng cách nào?",
+    text: "Dự án thu tiền từ đâu và với mức giá bao nhiêu?",
     explanation:
-      "Nêu hình thức thu tiền: bán sản phẩm, thu phí dịch vụ, hoa hồng, đăng ký gói, mua credit... Cần:\n" +
-      "- Mức giá hoặc gói giá và đơn vị tính\n" +
-      "- Vì sao chọn hình thức này và loại bỏ hình thức nào\n" +
-      "- Mức giá là giá thử nghiệm hay đã chốt",
-    suggested_actions: [
-      "Có ít nhất một con số về mức giá và một căn cứ cho mức giá đó.",
-    ],
+      "Nêu từng nguồn thu và cách tính tiền. Cần nêu:\n" +
+      "- Nguồn thu chính (bán hàng, phí dịch vụ, hoa hồng, gói đăng ký...)\n" +
+      "- Đơn vị tính (theo lần, tháng, gói) và mức giá\n" +
+      "- Mức giá là giá thử nghiệm hay đã chốt, và dựa vào đâu\n" +
+      "Không đạt: \"Bán ứng dụng cho sinh viên.\"\n" +
+      "Đạt: \"Thu hoa hồng 8% mỗi lượt đặt bàn của quán đối tác, khoảng 9.600 đồng mỗi lượt, " +
+      "và gói thành viên 29.000 đồng mỗi tháng. Giá thử nghiệm, dựa trên khảo sát 25 sinh viên nói trả được 20 đến 40 nghìn mỗi tháng.\"",
+    suggested_actions: ["Mỗi nguồn thu có đơn vị tính và con số giá."],
   },
 
   cp3_bmc_key_resources: {
     id: "cp3_bmc_key_resources",
-    text: "Nhóm cần những nguồn lực gì để vận hành?",
+    text: "Nhóm cần những nguồn lực chính nào?",
     explanation:
-      "Liệt kê nguồn lực cần có theo nhóm: tri thức, con người, hạ tầng công nghệ, tài chính, máy móc... " +
-      "Chỉ ra nguồn lực nào quan trọng nhất và vì sao khó bị sao chép.",
-    suggested_actions: [
-      "Mỗi nguồn lực gắn với một hoạt động chính ở ô kế tiếp.",
-    ],
+      "Liệt kê nguồn lực thật sự cần để chạy các hoạt động chính. Cần nêu:\n" +
+      "- Nhân lực\n" +
+      "- Tài chính, và vốn đến từ đâu (tự có, vay, góp vốn)\n" +
+      "- Công nghệ, thiết bị, mặt bằng nếu có\n" +
+      "Không đạt: \"Con người và tiền.\"\n" +
+      "Đạt: \"Nhân lực: 4 thành viên, 2 người lập trình. Tài chính: 40 triệu, trong đó 60% vốn tự có, 40% vay gia đình. " +
+      "Công nghệ: máy chủ đám mây và cổng thanh toán.\"",
+    suggested_actions: ["Mỗi nguồn lực phục vụ một hoạt động ở câu sau."],
   },
 
   cp3_bmc_key_activities: {
     id: "cp3_bmc_key_activities",
-    text: "Những việc quan trọng nhất nhóm phải làm là gì?",
+    text: "Nhóm làm những việc chính nào, và làm như thế nào?",
     explanation:
-      "Nêu các hoạt động quyết định mô hình chạy được: phát triển sản phẩm, marketing, chăm sóc khách hàng, vận hành, cập nhật nội dung... " +
-      "Ưu tiên hoạt động tạo ra giá trị cho khách hàng và hoạt động tạo ra doanh thu.",
-    suggested_actions: [
-      "Mỗi hoạt động trả lời được: nếu bỏ nó thì giá trị nào mất đi?",
-    ],
+      "Nêu những việc quyết định mô hình chạy được. Cần nêu:\n" +
+      "- Việc tạo ra giá trị cho khách\n" +
+      "- Việc tạo ra doanh thu\n" +
+      "- Cách làm cụ thể (ai làm, bao lâu một lần)\n" +
+      "Không đạt: \"Phát triển sản phẩm, marketing.\"\n" +
+      "Đạt: \"Cập nhật bàn trống của 5 quán mỗi ngày qua ứng dụng quán. " +
+      "Đăng bài trong hội nhóm trường mỗi tuần. Chốt thêm quán đối tác mỗi tháng.\"",
+    suggested_actions: ["Có việc tạo ra doanh thu, không chỉ việc làm sản phẩm."],
   },
 
   cp3_bmc_key_partners: {
     id: "cp3_bmc_key_partners",
-    text: "Ai sẽ hỗ trợ nhóm?",
+    text: "Ai là nhà cung cấp, đối tác và cố vấn chính của nhóm?",
     explanation:
-      "Nêu nhà cung cấp, đơn vị vận chuyển, nền tảng công nghệ, chuyên gia cố vấn, cộng đồng... Với mỗi đối tác ghi:\n" +
-      "- Họ cung cấp gì cho nhóm\n" +
-      "- Mức độ phụ thuộc và khả năng thay thế\n" +
-      "Nếu nhóm chủ động chỉ có ít đối tác, nói rõ lý do.",
-    suggested_actions: [
-      "Có phương án thay thế nếu một đối tác quan trọng ngừng hỗ trợ.",
-    ],
+      "Với mỗi đối tác, nêu ngắn gọn:\n" +
+      "- Họ giúp nhóm điều gì\n" +
+      "- Nhóm phụ thuộc họ đến mức nào, và nếu mất thì thay bằng gì\n" +
+      "Nếu nhóm tự làm gần hết, nói rõ như vậy.\n" +
+      "Không đạt: \"Các quán cà phê và nhà tài trợ.\"\n" +
+      "Đạt: \"5 quán đối tác cung cấp dữ liệu bàn, phụ thuộc cao, dự phòng là nhập tay. " +
+      "Một giảng viên cố vấn góp ý mô hình giá, phụ thuộc thấp.\"",
+    suggested_actions: ["Đối tác nào nhóm phụ thuộc nhiều nhất thì có phương án thay thế."],
   },
 
   cp3_bmc_cost_structure: {
     id: "cp3_bmc_cost_structure",
-    text: "Chi phí đầu tư ban đầu và chi phí vận hành gồm những gì?",
+    text: "Chi phí đầu tư ban đầu và chi phí vận hành chính gồm những khoản nào?",
     explanation:
-      "Liệt kê các khoản chi: đầu tư ban đầu và chi phí vận hành (marketing, nhân sự, hạ tầng, máy móc, API...). Chia:\n" +
-      "- Chi phí cố định\n" +
-      "- Chi phí biến đổi (tăng theo số khách hàng)\n" +
-      "Kèm con số ước tính cho các khoản lớn nhất.",
-    suggested_actions: [
-      "Chi phí và doanh thu ở ô 5 có thể đặt cạnh nhau để thấy mô hình có lãi hay không.",
-      "Chín ô BMC liên kết với nhau, không mâu thuẫn (ví dụ kênh ở ô 3 phù hợp phân khúc ở ô 1).",
-    ],
+      "Tách hai nhóm và gọi tên từng khoản. Cần nêu:\n" +
+      "- Chi phí đầu tư ban đầu\n" +
+      "- Chi phí vận hành định kỳ (cố định hoặc tăng theo số khách)\n" +
+      "- Con số ước tính cho các khoản lớn nhất\n" +
+      "Không đạt: \"Chi phí marketing và nhân sự.\"\n" +
+      "Đạt: \"Ban đầu: 15 triệu làm ứng dụng. Mỗi tháng: máy chủ 1,5 triệu, quảng cáo 3 triệu, " +
+      "phí cổng thanh toán 2% mỗi giao dịch.\"",
+    suggested_actions: ["Khoản chi nào cũng gắn với một hoạt động ở câu trước."],
   },
 
-  // ── Phần 2 — SWOT và chiến lược ──────────────────────────────────────────
+  // ── Phân tích SWOT ────────────────────────────────────────────────────────
 
   cp3_swot_strengths: {
     id: "cp3_swot_strengths",
-    text: "Lợi thế nội tại của nhóm là gì?",
+    text: "Điểm mạnh nội tại của nhóm là gì?",
     explanation:
-      "Nêu lợi thế nội tại và USP của nhóm. Mỗi điểm mạnh phải có dữ liệu định lượng đi kèm để chứng minh, " +
-      "ví dụ \"9/9 nhóm dùng thử đều sửa được ít nhất một lỗi logic lớn\".\n" +
-      "Đánh mã S1, S2, S3 để dùng ở phần chiến lược.",
-    suggested_actions: [
-      "Mỗi điểm mạnh có một con số hoặc bằng chứng cụ thể.",
-    ],
+      "Điểm mạnh là thứ nhóm đang có, kèm số liệu chứng minh. Cần nêu:\n" +
+      "- Mỗi điểm mạnh một dòng, đánh mã S1, S2, S3\n" +
+      "- Mỗi điểm có số liệu hoặc ví dụ kiểm chứng được\n" +
+      "Không đạt: \"Nhóm làm việc chăm chỉ.\"\n" +
+      "Đạt: \"S1: 20 trong 25 sinh viên dùng thử nói tìm chỗ nhanh hơn trước (khảo sát tháng 10).\"",
+    suggested_actions: ["Mỗi điểm mạnh có một con số hoặc ví dụ có nguồn."],
   },
 
   cp3_swot_weaknesses: {
     id: "cp3_swot_weaknesses",
-    text: "Nhóm còn hạn chế gì từ bên trong?",
+    text: "Điểm yếu nội tại của nhóm là gì?",
     explanation:
-      "Nêu các hạn chế nội tại về nhân sự, năng lực, thương hiệu, quy trình, nguồn lực... Mỗi điểm yếu có dữ liệu hoặc ví dụ cụ thể. " +
-      "Đánh mã W1, W2, W3.",
-    suggested_actions: [
-      "Điểm yếu nêu thật, không viết điểm mạnh trá hình (\"làm việc quá chăm chỉ\").",
-    ],
+      "Điểm yếu là hạn chế thật của nhóm, không phải điểm mạnh nói lại. Cần nêu:\n" +
+      "- Mỗi điểm yếu một dòng, đánh mã W1, W2, W3\n" +
+      "- Mỗi điểm có số liệu hoặc ví dụ cụ thể\n" +
+      "Không đạt: \"Nhóm quá cầu toàn.\"\n" +
+      "Đạt: \"W1: chưa có thành viên làm kinh doanh, 3 cuộc đàm phán với quán đều do nhóm kỹ thuật làm và chưa chốt được.\"",
+    suggested_actions: ["Điểm yếu nào cũng là điều nhóm thật sự gặp, không né tránh."],
   },
 
   cp3_swot_opportunities: {
     id: "cp3_swot_opportunities",
-    text: "Nhu cầu thị trường và xu hướng nào đang có lợi cho nhóm?",
+    text: "Cơ hội bên ngoài nào đang có lợi cho dự án?",
     explanation:
-      "Nêu các yếu tố bên ngoài thuận lợi: nhu cầu thị trường, xu hướng, khoảng trống mà đối thủ chưa lấp. " +
-      "Mỗi cơ hội có dữ liệu định lượng (kết quả khảo sát, quy mô thị trường). Đánh mã O1, O2, O3.",
-    suggested_actions: [
-      "Mỗi cơ hội có nguồn dữ liệu có thể kiểm chứng.",
-    ],
+      "Cơ hội là yếu tố bên ngoài nhóm, như nhu cầu thị trường, xu hướng, khoảng trống đối thủ chưa lấp. Cần nêu:\n" +
+      "- Mỗi cơ hội một dòng, đánh mã O1, O2, O3\n" +
+      "- Mỗi cơ hội có số liệu và nguồn (khảo sát, báo cáo, ngày)\n" +
+      "Không đạt: \"Thị trường học nhóm đang phát triển.\"\n" +
+      "Đạt: \"O1: 18 trong 25 sinh viên khảo sát học nhóm ít nhất hai lần mỗi tuần (khảo sát của nhóm, tháng 10).\"",
+    suggested_actions: ["Mỗi cơ hội ghi rõ lấy số liệu từ đâu."],
   },
 
   cp3_swot_threats: {
     id: "cp3_swot_threats",
-    text: "Đối thủ, rủi ro pháp lý và thị trường nào đe dọa dự án?",
+    text: "Thách thức bên ngoài nào có thể làm dự án thất bại?",
     explanation:
-      "Nêu các yếu tố bên ngoài bất lợi: đối thủ cạnh tranh, công nghệ thay đổi, rủi ro pháp luật, mùa vụ, hành vi khách hàng. " +
-      "Mỗi thách thức có dữ liệu hoặc ví dụ cụ thể. Đánh mã T1, T2, T3.",
-    suggested_actions: [
-      "Có ít nhất một thách thức đến từ đối thủ hoặc giải pháp thay thế đã phân tích ở CP2.",
-    ],
+      "Thách thức là yếu tố bên ngoài bất lợi, nên có đối thủ hoặc giải pháp thay thế. Cần nêu:\n" +
+      "- Mỗi thách thức một dòng, đánh mã T1, T2, T3\n" +
+      "- Mỗi thách thức có số liệu hoặc ví dụ cụ thể\n" +
+      "Không đạt: \"Có nhiều đối thủ.\"\n" +
+      "Đạt: \"T1: ứng dụng đặt bàn lớn như Google Maps đã cho xem giờ đông, khách có thể không cần thêm ứng dụng mới.\"",
+    suggested_actions: ["Có ít nhất một đối thủ hoặc giải pháp thay thế được gọi tên."],
   },
+
+  // ── Chiến lược từ SWOT ────────────────────────────────────────────────────
 
   cp3_strategy_so: {
     id: "cp3_strategy_so",
-    text: "Nhóm dùng điểm mạnh nào để khai thác cơ hội nào?",
+    text: "Nhóm dùng điểm mạnh nào để tận dụng cơ hội nào?",
     explanation:
-      "Ghép điểm mạnh với cơ hội thành hành động cụ thể. Mỗi chiến lược ghi theo dạng: " +
-      "\"S? + O? → hành động\" (ví dụ \"S1 + O3 → dùng kết quả điểm số của 9 nhóm làm bằng chứng để thu hút nhóm mới\").",
-    suggested_actions: [
-      "Mỗi chiến lược nêu rõ mã S và O được ghép.",
-    ],
+      "Ghép điểm mạnh với cơ hội thành hành động. Mỗi chiến lược viết theo dạng \"S? + O? → hành động\", làm được trong thời gian dự án.\n" +
+      "Không đạt: \"Phát huy điểm mạnh để nắm bắt cơ hội.\"\n" +
+      "Đạt: \"S1 + O1: dùng kết quả 20/25 sinh viên thích để thuyết phục thêm 5 quán ký thỏa thuận thử nghiệm trong tháng 12.\"",
+    suggested_actions: ["Mỗi chiến lược ghi rõ mã S và O đã dùng."],
   },
 
   cp3_strategy_st: {
     id: "cp3_strategy_st",
     text: "Nhóm dùng điểm mạnh nào để đối phó thách thức nào?",
     explanation:
-      "Ghép điểm mạnh với thách thức để giảm tác động xấu. Dạng \"S? + T? → hành động\". " +
-      "Hành động phải cụ thể và làm được trong thời gian của dự án.",
-    suggested_actions: [
-      "Mỗi chiến lược nêu rõ mã S và T được ghép.",
-    ],
+      "Ghép điểm mạnh với thách thức để giảm tác động xấu. Dạng \"S? + T? → hành động\".\n" +
+      "Không đạt: \"Dùng điểm mạnh để vượt qua đối thủ.\"\n" +
+      "Đạt: \"S1 + T1: nhấn mạnh tính năng giữ bàn mà Google Maps không có, dùng làm nội dung chính của bài đăng tuần 1.\"",
+    suggested_actions: ["Hành động cụ thể, không chỉ nói chung chung về cạnh tranh."],
   },
 
   cp3_strategy_wo: {
     id: "cp3_strategy_wo",
     text: "Nhóm khắc phục điểm yếu nào để nắm bắt cơ hội nào?",
     explanation:
-      "Ghép điểm yếu với cơ hội: nhóm cần sửa điều gì để đủ năng lực nắm bắt cơ hội. Dạng \"W? + O? → hành động\".",
-    suggested_actions: [
-      "Mỗi chiến lược nêu rõ mã W và O được ghép.",
-    ],
+      "Ghép điểm yếu với cơ hội: nhóm cần sửa gì để đủ sức nắm cơ hội. Dạng \"W? + O? → hành động\".\n" +
+      "Không đạt: \"Cải thiện điểm yếu để nắm cơ hội.\"\n" +
+      "Đạt: \"W1 + O1: mời một bạn khoa Kinh doanh vào nhóm đàm phán với quán, chốt 3 quán đầu tiên trong tháng 12.\"",
+    suggested_actions: ["Hành động sửa được điểm yếu đã nêu, không chỉ nhắc lại nó."],
   },
 
   cp3_strategy_wt: {
     id: "cp3_strategy_wt",
-    text: "Nhóm cải thiện điểm yếu nào để tránh bị tổn thương bởi thách thức nào?",
+    text: "Nhóm giảm điểm yếu nào để tránh thách thức nào?",
     explanation:
       "Ghép điểm yếu với thách thức để giảm rủi ro lớn nhất. Dạng \"W? + T? → hành động\". " +
-      "Nếu nhóm quyết định rút lui khỏi một hướng, nêu rõ lý do.",
-    suggested_actions: [
-      "Mỗi chiến lược nêu rõ mã W và T được ghép.",
-    ],
+      "Nếu nhóm chọn bỏ một hướng, nêu rõ lý do.\n" +
+      "Không đạt: \"Cố gắng hơn để không thua đối thủ.\"\n" +
+      "Đạt: \"W1 + T1: chưa đủ người đàm phán nên chỉ làm một khu vực quanh một trường, tránh đối đầu trực tiếp với ứng dụng lớn.\"",
+    suggested_actions: ["Rủi ro được giảm bằng việc làm cụ thể, có thể bao gồm bỏ một hướng."],
   },
 
-  // ── Phần 3 — Kết luận ────────────────────────────────────────────────────
+  // ── Kết luận ──────────────────────────────────────────────────────────────
 
   cp3_key_findings: {
     id: "cp3_key_findings",
     text: "Phát hiện chính của nhóm là gì?",
     explanation:
-      "Tóm tắt trong một đoạn: vấn đề khách hàng gặp, vì sao các giải pháp hiện có chưa đủ, " +
-      "và kết quả thử nghiệm thực tế chứng minh được điều gì.",
-    suggested_actions: [
-      "Có ít nhất một kết quả định lượng từ thử nghiệm thực tế.",
-    ],
+      "Tóm tắt trong một đoạn ngắn, khớp với các phần trên. Cần nêu:\n" +
+      "- Vấn đề khách hàng đang gặp\n" +
+      "- Vì sao các giải pháp hiện có chưa đủ\n" +
+      "- Dữ liệu thực tế chứng minh được điều gì\n" +
+      "Không đạt: \"Dự án có tiềm năng lớn.\"\n" +
+      "Đạt: \"Sinh viên mất 30 đến 60 phút tìm chỗ học nhóm; nhắn tin hỏi từng quán không biết còn bàn. " +
+      "Thử nghiệm với 25 sinh viên: 20 người nói tìm chỗ nhanh hơn.\"",
+    suggested_actions: ["Mọi ý đều lấy lại từ phần BMC hoặc SWOT, không thêm ý mới."],
   },
 
   cp3_business_feasibility: {
     id: "cp3_business_feasibility",
-    text: "Vì sao dự án khả thi về mặt kinh doanh?",
+    text: "Vì sao nhóm tin dự án khả thi về mặt kinh doanh?",
     explanation:
-      "Nêu 2 đến 3 lý do khả thi, mỗi lý do kèm bằng chứng: nhu cầu thị trường, chi phí đầu tư, tín hiệu khách hàng sẵn sàng trả tiền. " +
-      "Nêu thêm điều kiện còn cần kiểm chứng để mô hình bền vững.",
-    suggested_actions: [
-      "Có một điểm hạn chế được nêu thẳng, không chỉ toàn lý do tích cực.",
-    ],
+      "Nêu hai đến ba lý do, mỗi lý do kèm bằng chứng. Cần nêu:\n" +
+      "- Lý do và bằng chứng (nhu cầu, chi phí, khách sẵn sàng trả tiền)\n" +
+      "- Điều còn chưa chắc, nhóm sẽ kiểm chứng thế nào\n" +
+      "Không đạt: \"Dự án khả thi vì thị trường lớn.\"\n" +
+      "Đạt: \"Khách sẵn sàng trả: 18 trong 25 sinh viên nói trả được 29.000 đồng mỗi tháng. " +
+      "Chưa chắc: quán có chịu chia sẻ dữ liệu lâu dài, sẽ thử với 5 quán trong 2 tháng.\"",
+    suggested_actions: ["Có nói điều chưa chắc, không chỉ nói điều tốt."],
   },
 
   cp3_future_development: {
     id: "cp3_future_development",
-    text: "Kế hoạch phát triển ngắn, trung và dài hạn của nhóm là gì?",
+    text: "Nhóm sẽ làm gì tiếp theo trong ngắn hạn, trung hạn và dài hạn?",
     explanation:
-      "Chia ba mốc:\n" +
-      "- Ngắn hạn: việc nhóm hoàn thiện ngay sau checkpoint\n" +
-      "- Trung hạn: mở rộng tính năng, phân khúc hoặc dịch vụ\n" +
-      "- Dài hạn: tầm nhìn sản phẩm\n" +
-      "Mỗi mốc gắn với kết quả mong đợi.",
-    suggested_actions: [
-      "Mốc ngắn hạn có thể thực hiện trong học kỳ này.",
-    ],
+      "Chia ba mốc, mỗi mốc có kết quả mong đợi đo được. Cần nêu:\n" +
+      "- Ngắn hạn: việc làm ngay sau checkpoint này\n" +
+      "- Trung hạn: mở rộng tính năng, khu vực hoặc dịch vụ\n" +
+      "- Dài hạn: tầm nhìn của sản phẩm\n" +
+      "Không đạt: \"Phát triển thêm nhiều tính năng.\"\n" +
+      "Đạt: \"Ngắn hạn: ký thêm 5 quán trong tháng 12. Trung hạn: mở rộng sang 3 trường, đạt 1.000 lượt đặt mỗi tháng. " +
+      "Dài hạn: thành ứng dụng đặt chỗ học nhóm toàn TP.HCM.\"",
+    suggested_actions: ["Mốc ngắn hạn làm được ngay trong học kỳ này."],
   },
 } satisfies Record<string, Question>;
