@@ -2,7 +2,7 @@
 
 import type { ReactNode, Ref } from "react";
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
-import { QUESTION_REGISTRY, type Classification, type Question } from "@repo/validation";
+import { CP3_UNGRADED_QUESTION_IDS, QUESTION_REGISTRY, type Classification, type Question } from "@repo/validation";
 import { Button } from "../ui/Button";
 import { countWords, isThinAnswer, THIN_ANSWER_WORDS } from "./answer-quality";
 import s from "./guided-editor.module.css";
@@ -60,6 +60,9 @@ export default function GuidedQuestionCard({
       <p className={s.meta}>
         Câu {questionPosition} trên {questionTotal} · {CLASSIFICATION_LABEL[classification]}
       </p>
+      {CP3_UNGRADED_QUESTION_IDS.includes(questionId) && (
+        <p className={s.meta}>Phần này bạn vẫn điền để hoàn thiện hồ sơ. Hệ thống không chấm phần sản phẩm thử và giao diện.</p>
+      )}
 
       <textarea
         className={s.answer}

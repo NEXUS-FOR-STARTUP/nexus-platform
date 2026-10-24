@@ -8,7 +8,7 @@ import { useDownloadReportPdfById } from "../hooks/useDownloadReportPdf";
 import type { RoundHistoryEntry } from "@/types/case";
 import {
   SUBMISSION_TYPE_LABELS,
-  CP2_REPORT_TYPE_LABELS,
+  SCORED_REPORT_TYPE_LABELS,
   SUBMISSION_TYPE_COLORS,
   getReportPdfFilename,
   formatDateShort,
@@ -55,7 +55,7 @@ export default function RoundCard({ round, caseId, projectName: caseProjectName,
 
   const submissionType = round.submission_type || "initial";
   const typeLabel =
-    CP2_REPORT_TYPE_LABELS[round.report?.report_type ?? ""] ?? SUBMISSION_TYPE_LABELS[submissionType] ?? "Báo cáo";
+    SCORED_REPORT_TYPE_LABELS[round.report?.report_type ?? ""] ?? SUBMISSION_TYPE_LABELS[submissionType] ?? "Báo cáo";
   const typeColor = SUBMISSION_TYPE_COLORS[submissionType] || "gray";
   const displayVersion = typeof round.version_no === "number" ? round.version_no + 1 : 1;
   return (

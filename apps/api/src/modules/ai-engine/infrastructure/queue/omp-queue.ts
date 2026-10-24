@@ -3,7 +3,11 @@ import { Redis } from "ioredis";
 import { existsSync, constants } from "node:fs";
 import { access, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
+import type { AuditCheckpointCode } from "@app/shared";
 import logger from "../../../../shared/infrastructure/logger.js";
+
+/** Evidence file each scored service writes first (milestone 1); progress reads whichever exists. */
+const EVIDENCE_FILES = ["cp2_evidence.json", "cp3_evidence.json"] as const;
 
 const REDIS_HOST = process.env.REDIS_HOST || "127.0.0.1";
 const REDIS_PORT = Number(process.env.REDIS_PORT || 6379);
@@ -81,8 +85,8 @@ export interface OmpJobPayload {
   promptMode?: "full" | "lite";
   submissionType?: "initial" | "resubmit" | "logic_check";
   /** Defaults to CP1 when absent (jobs queued before CP2 existed). */
-  checkpoint?: "CP1" | "CP2";
-  /** Prompt scope inside the checkpoint: CP1 = prompt mode, CP2 = questionnaire | full. */
+  checkpoint?: AuditCheckpointCode;
+  /** Prompt scope inside the checkpoint: CP1 = prompt mode, CP2 = questionnaire | full, CP3 = full. */
   scope?: string;
 }
 
@@ -214,7 +218,9 @@ export async function getJobMilestones(jobId: string, aiJobId?: string): Promise
     })(),
     (async () => {
       for (const dir of candidateDirs) {
-        if (await pathExists(resolve(dir, "output/cp2_evidence.json"))) return true;
+        for (const name of EVIDENCE_FILES) {
+          if (await pathExists(resolve(dir, "output", name))) return true;
+        }
       }
       return false;
     })(),

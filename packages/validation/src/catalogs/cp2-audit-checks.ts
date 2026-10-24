@@ -4,6 +4,7 @@
  * (a test keeps them in sync). The model decides each criterion's status;
  * `scoreCp2Report` computes scores and verdicts from these constants.
  */
+import { CP3_FULL_CHECKS, CP3_FULL_GROUP_WEIGHTS } from "./cp3-audit-checks.js";
 export type Cp2Tier = "gate" | "core" | "normal";
 export type Cp2FullGroup = "evidence" | "market" | "customer" | "product" | "competition";
 export type Cp2QuestionnaireGroup = "alignment" | "interview" | "survey" | "ethics";
@@ -76,24 +77,44 @@ export const CP2_QUESTIONNAIRE_GROUP_WEIGHTS: Record<Cp2QuestionnaireGroup, numb
 export const CP2_VERDICTS = {
   full: { ready: "SẴN SÀNG BẢO VỆ", needs_work: "CẦN BỔ SUNG", blocked: "CHƯA ĐỦ YÊU CẦU BẮT BUỘC" },
   questionnaire: { ready: "SẴN SÀNG ĐI KHẢO SÁT", needs_work: "CẦN SỬA TRƯỚC KHI PHÁT", blocked: "CHƯA NÊN PHÁT" },
+  business_model: { ready: "SẴN SÀNG TRÌNH BÀY", needs_work: "CẦN BỔ SUNG", blocked: "CHƯA ĐỦ YÊU CẦU BẮT BUỘC" },
 } as const;
 
-/** `schema` value written by the model in report.json -> how it is checked and scored. */
+/**
+ * `schema` value written by the model in report.json -> how it is checked and scored.
+ * Shared by every scored audit service (CP2, CP3): the name is historical, the table is generic.
+ */
 export const CP2_SCHEMAS = {
   cp2_questionnaire_v1: {
     kind: "questionnaire",
+    allowNotApplicable: true,
     checks: CP2_QUESTIONNAIRE_CHECKS as Record<string, Cp2CheckDef<string>>,
     weights: CP2_QUESTIONNAIRE_GROUP_WEIGHTS as Record<string, number>,
   },
   cp2_full_v1: {
     kind: "full",
+    allowNotApplicable: true,
     checks: CP2_FULL_CHECKS as Record<string, Cp2CheckDef<string>>,
     weights: CP2_FULL_GROUP_WEIGHTS as Record<string, number>,
   },
   cp2_full_resubmit_v1: {
     kind: "full",
+    allowNotApplicable: true,
     checks: CP2_FULL_CHECKS as Record<string, Cp2CheckDef<string>>,
     weights: CP2_FULL_GROUP_WEIGHTS as Record<string, number>,
+  },
+  cp3_full_v1: {
+    kind: "business_model",
+    // A criterion that could be skipped would let the model dodge a gate, so CP3 never allows it.
+    allowNotApplicable: false,
+    checks: CP3_FULL_CHECKS as Record<string, Cp2CheckDef<string>>,
+    weights: CP3_FULL_GROUP_WEIGHTS as Record<string, number>,
+  },
+  cp3_full_resubmit_v1: {
+    kind: "business_model",
+    allowNotApplicable: false,
+    checks: CP3_FULL_CHECKS as Record<string, Cp2CheckDef<string>>,
+    weights: CP3_FULL_GROUP_WEIGHTS as Record<string, number>,
   },
 } as const;
 

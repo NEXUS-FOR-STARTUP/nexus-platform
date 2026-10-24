@@ -5,7 +5,9 @@ import { AppError } from "../../../shared/domain/app-error.js";
 import { resolveRepoRoot, type OmpAuditInputFile } from "../omp-audit.service.js";
 import { assembleCp1InputFiles } from "./cp1-audit-input.js";
 import { assembleCp2InputFiles } from "./cp2-audit-input.js";
+import { assembleCp3InputFiles } from "./cp3-audit-input.js";
 import { postProcessCp1Legacy, postProcessCp2Scored, type PostProcessor } from "./cp2-audit-postprocess.js";
+import { postProcessCp3Scored } from "./cp3-audit-postprocess.js";
 
 export interface InputRequest {
   caseId: string;
@@ -32,11 +34,13 @@ export type InputAssembler = (req: InputRequest) => Promise<AssembledInput>;
 export const INPUT_ASSEMBLERS: Record<string, InputAssembler> = {
   cp1_intake: (req) => assembleCp1InputFiles(req.caseId, req.submissionType, req.lifecycleUnitId, req.changeSummary, req.userNote),
   cp2_answers: (req) => assembleCp2InputFiles({ caseId: req.caseId, submissionType: req.submissionType, changeSummary: req.changeSummary, userNote: req.userNote, scope: req.scope, inputSource: req.inputSource, libraryDir: req.libraryDir }),
+  cp3_answers: (req) => assembleCp3InputFiles({ caseId: req.caseId, submissionType: req.submissionType, changeSummary: req.changeSummary, userNote: req.userNote, inputSource: req.inputSource, libraryDir: req.libraryDir }),
 };
 
 export const POST_PROCESSORS: Record<string, PostProcessor> = {
   cp1_legacy: postProcessCp1Legacy,
   cp2_scored: postProcessCp2Scored,
+  cp3_scored: postProcessCp3Scored,
 };
 
 export interface AuditPlan extends AuditScopeEntry {

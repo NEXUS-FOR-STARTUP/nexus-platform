@@ -7,6 +7,7 @@ import { isAxiosError } from "axios";
 import { UploadSimpleIcon } from "@phosphor-icons/react";
 import type { StageCode } from "@app/shared/stages";
 import type { DocumentWorkspace } from "@/types";
+import { getAuditStageUi } from "@/lib/audit-stage-ui";
 import { useStageDocumentDelete } from "../../../hooks/useStageDocumentDelete";
 import { buildExternalFeedbackRows, buildSupportFlowRows } from "../../documents/document-workspace.types";
 import { Button } from "../../ui/Button";
@@ -46,6 +47,7 @@ export default function StageFilesView({ caseId, checkpointCode, fileCount, docu
     });
   };
 
+  const privacyNotice = getAuditStageUi(checkpointCode)?.privacyNotice ?? null;
   const { groups, missing } = useMemo(() => {
     const checkpoint = documentWorkspace?.checkpoints.find((cp) => cp.checkpoint_code === checkpointCode);
     if (!checkpoint) return { groups: [] as DocumentGroup[], missing: [] as string[] };
@@ -57,9 +59,9 @@ export default function StageFilesView({ caseId, checkpointCode, fileCount, docu
 
   return (
     <div>
-      {checkpointCode === "CP2" && (
+      {privacyNotice && (
         <Notice kind="info" title="Lưu ý quyền riêng tư">
-          Nếu tải lên tệp khảo sát hoặc ghi chép phỏng vấn, vui lòng xóa hoặc ẩn các thông tin cá nhân (email, số điện thoại, tên người trả lời).
+          {privacyNotice}
         </Notice>
       )}
 

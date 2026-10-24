@@ -114,8 +114,50 @@ test("boot guard: names every missing prompt, passes when all are shipped", () =
   }
 });
 
-test("a checkpoint without a service (CP3) is rejected at the trigger boundary, not defaulted to CP1", () => {
-  assert.equal(TriggerOptsSchema.safeParse({ checkpoint: "CP3" }).success, false);
+test("an unknown checkpoint is rejected at the trigger boundary, not defaulted to CP1", () => {
+  assert.equal(TriggerOptsSchema.safeParse({ checkpoint: "CP9" }).success, false);
+});
+
+test("CP3 resubmit without a previous report is graded as initial; other types are untouched", async () => {
+  const normalize = getAuditService("CP3").normalizeSubmissionType!;
+  swap(prisma.report, "findFirst", async () => null);
+  assert.equal(await normalize("case-1", "resubmit"), "initial");
+  assert.equal(await normalize("case-1", "initial"), "initial");
+  swap(prisma.report, "findFirst", async () => ({ id: "r1" }));
+  assert.equal(await normalize("case-1", "resubmit"), "resubmit");
+});
+
+test("CP3 preflight rejects thin answers before any credit is charged, and a files source without files", async () => {
+  swap(prisma.checkpoint, "upsert", async () => ({ id: "cp-3" }));
+  swap(prisma.checkpoint, "findUnique", async () => ({ id: "cp-3" }));
+  swap(prisma.projectAnswer, "findMany", async () => []);
+  swap(prisma.documentRecord, "count", async () => 0);
+  const plan = resolveAuditPlan("CP3", "full", "initial");
+  await assert.rejects(
+    getAuditService("CP3").preflight({ caseId: "case-1", plan, submissionType: "initial", inputSource: "answers", override: false }),
+    (err) => err instanceof AppError && err.status === 400 && err.code === "CP3_ANSWERS_TOO_THIN",
+  );
+  await assert.rejects(
+    getAuditService("CP3").preflight({ caseId: "case-1", plan, submissionType: "initial", inputSource: "files", override: false }),
+    (err) => err instanceof AppError && err.status === 400 && err.code === "CP3_FILES_REQUIRED",
+  );
+});
+
+test("CP3 context loads each earlier stage on its own: CP1 answers are not repeated inside the CP2 file", async () => {
+  const cp2QuestionId = TEMPLATE_REGISTRY.cp2.phases[0].questions[0].question_id;
+  stubStage(
+    [
+      { question_id: cp1QuestionId, answer_text: "Câu trả lời CP1" },
+      { question_id: cp2QuestionId, answer_text: "Câu trả lời CP2" },
+    ],
+    [],
+  );
+  const ctx = await loadStageContext("case-1", "CP2", tmp("lib-"), { ownAnswersOnly: true });
+  const text = String(ctx.files[0].content);
+  assert.match(text, /Câu trả lời CP2/);
+  assert.doesNotMatch(text, /Câu trả lời CP1/);
+  const accumulated = await loadStageContext("case-1", "CP2", tmp("lib-"));
+  assert.match(String(accumulated.files[0].content), /Câu trả lời CP1/);
 });
 
 // AUDIT_STAGE_INPUT_RULES is read once at import, so each mode runs in its own process:

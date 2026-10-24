@@ -44,3 +44,8 @@ export function cp2Instruction(plan: AuditPlan): string {
   const promptFilesDesc = plan.prompts.map((fileName) => `system_prompt/${fileName}`).join(", ");
   return `Đọc AGENTS.md (khóa cấu trúc report.json và lệnh kiểm tra), rồi đọc lần lượt các tệp hướng dẫn: ${promptFilesDesc}. Tệp đầu là nguyên tắc chung, tệp sau là hướng dẫn riêng. Đọc toàn bộ tài liệu trong input/.${MANIFEST_HINT}${CONTEXT_HINT} Làm đúng bốn bước trong mục 4 của tệp nguyên tắc chung: ghi output/cp2_evidence.json, tính lại mọi phép tính bằng shell, quyết định từng tiêu chí, rồi ghi output/report.md và output/report.json. Chạy lệnh kiểm tra trong AGENTS.md cho tới khi báo OK mới kết thúc.`;
 }
+
+export function cp3Instruction(plan: AuditPlan): string {
+  const promptFilesDesc = plan.prompts.map((fileName) => `system_prompt/${fileName}`).join(", ");
+  return `Đọc AGENTS.md (khóa cấu trúc report.json và lệnh kiểm tra), rồi đọc lần lượt các tệp hướng dẫn: ${promptFilesDesc}. Tệp đầu là nguyên tắc chung, tệp sau là hướng dẫn riêng. Đọc toàn bộ tài liệu trong input/.${MANIFEST_HINT}${CONTEXT_HINT} Làm đúng các bước trong mục 5 của tệp nguyên tắc chung: ghi output/cp3_evidence.json, tính lại mọi phép tính bằng shell, quyết định từng tiêu chí, rồi ghi output/report.md và output/report.json. Chạy lệnh kiểm tra trong AGENTS.md cho tới khi báo OK mới kết thúc.`;
+}

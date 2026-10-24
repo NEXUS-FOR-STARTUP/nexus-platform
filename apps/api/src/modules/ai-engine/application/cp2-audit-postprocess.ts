@@ -34,7 +34,7 @@ function readOptional(path: string): string | null {
   return existsSync(path) ? readFileSync(path, "utf-8") : null;
 }
 
-async function loadAttachmentSources(inputDir: string, caseId: string): Promise<QuoteSource[]> {
+export async function loadAttachmentSources(inputDir: string, caseId: string): Promise<QuoteSource[]> {
   const dir = resolve(inputDir, CP2_ATTACHMENTS_DIR);
   if (!existsSync(dir)) return [];
   const sources: QuoteSource[] = [];

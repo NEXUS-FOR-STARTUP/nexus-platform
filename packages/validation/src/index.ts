@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { isCp2ReportType } from "./catalogs/cp2-report-display.js";
+import { isCp3ReportType } from "./catalogs/cp3-report-display.js";
 
 // ---------------------------------------------------------------------------
 // Team role tracks — shared code ↔ label map (FE + BE)
@@ -600,6 +601,7 @@ export const DOCUMENT_CATEGORY_CODES = [
   "market_research",
   "financial_plan",
   "interview_survey",
+  "business_model_canvas",
   "lecturer_guidance",
   "other",
 ] as const;
@@ -612,6 +614,7 @@ export const DOCUMENT_CATEGORY_LABELS: Record<DocumentCategoryCode, string> = {
   market_research: "Nghiên cứu thị trường",
   financial_plan: "Kế hoạch tài chính",
   interview_survey: "Phỏng vấn / khảo sát khách hàng",
+  business_model_canvas: "Mô hình kinh doanh / SWOT",
   lecturer_guidance: "Hướng dẫn / yêu cầu từ giảng viên",
   other: "Tài liệu bổ sung",
 };
@@ -1049,6 +1052,7 @@ export interface BuildReportPdfFilenameOptions {
 
 /** CP2 report types belong to the market stage; every other report is the idea stage (CP1). */
 export function getReportStageFileSlug(reportType?: string | null): string {
+  if (isCp3ReportType(reportType)) return "san_pham_mo_hinh";
   return isCp2ReportType(reportType) ? "thi_truong" : "y_tuong";
 }
 

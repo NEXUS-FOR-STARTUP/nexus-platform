@@ -10,7 +10,6 @@ import s from "./stage-start-guide.module.css";
 interface StageStartGuideProps {
   caseId: string;
   stageCode: string;
-  isCp2: boolean;
   summary?: StageSummary;
   creditsRemaining: number;
   onAnswer: () => void;
@@ -41,7 +40,6 @@ function StepIcon({ state }: { state: StepState }) {
 export default function StageStartGuide({
   caseId,
   stageCode,
-  isCp2,
   summary,
   creditsRemaining,
   onAnswer,
@@ -49,7 +47,7 @@ export default function StageStartGuide({
   onBuyCredits,
   onAudit,
 }: StageStartGuideProps) {
-  const ready = hasStageInput(isCp2, summary);
+  const ready = hasStageInput(stageCode, summary);
   const hasCredits = creditsRemaining > 0;
   const phase: Phase = !ready ? "input" : hasCredits ? "grade" : "buy";
 

@@ -17,7 +17,7 @@ export interface QuoteVerification {
   unchecked: string[];
 }
 
-const QUESTION_SOURCE = /^(cp2_[a-z0-9_]+|cp2_answers\.md|self_checks\.md)$/i;
+const CP2_QUESTION_SOURCE = /^(cp2_[a-z0-9_]+|cp2_answers\.md|self_checks\.md)$/i;
 
 /** NFC + collapsed whitespace on both sides, so line breaks and spacing never cause a false mismatch. */
 export function normalizeQuoteText(text: string): string {
@@ -44,10 +44,12 @@ function sourceBaseName(source: string): string {
 
 type Verdict = "ok" | "unverified" | "unchecked";
 
+/** `questionSource`: which source names are the service's own question ids / answers file (default: CP2). */
 export function verifyCp2Quotes(
   report: QuoteEvidenceInput,
   internalTexts: readonly string[],
   attachments: readonly QuoteSource[],
+  questionSource: RegExp = CP2_QUESTION_SOURCE,
 ): QuoteVerification {
   const internal = internalTexts.map(normalizeQuoteText);
   const files = attachments.map((a) => ({ name: a.name.toLowerCase(), text: a.text === null ? null : normalizeQuoteText(a.text) }));
@@ -65,7 +67,7 @@ export function verifyCp2Quotes(
     }
     if (internal.some((t) => t.includes(quote)) || files.some((f) => f.text?.includes(quote))) return "ok";
     // Source is not a question id or known file name: the quote may sit in a file we cannot read.
-    if (!QUESTION_SOURCE.test(base) && hasUnreadable) return "unchecked";
+    if (!questionSource.test(base) && hasUnreadable) return "unchecked";
     return "unverified";
   };
 

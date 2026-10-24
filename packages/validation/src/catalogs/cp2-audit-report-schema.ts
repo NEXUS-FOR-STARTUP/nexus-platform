@@ -41,6 +41,9 @@ export const Cp2ReportSchema = ReportShape.superRefine((report, ctx) => {
       ctx.addIssue({ code: "custom", path: ["checks", index, "id"], message: "duplicate check id" });
     }
     seen.add(check.id);
+    if (check.status === "not_applicable" && !CP2_SCHEMAS[report.schema].allowNotApplicable) {
+      ctx.addIssue({ code: "custom", path: ["checks", index, "status"], message: "not_applicable is not allowed for this schema" });
+    }
     if (!NO_EVIDENCE_NEEDED.includes(check.status) && check.evidence.length === 0) {
       ctx.addIssue({ code: "custom", path: ["checks", index, "evidence"], message: "evidence required for this status" });
     }

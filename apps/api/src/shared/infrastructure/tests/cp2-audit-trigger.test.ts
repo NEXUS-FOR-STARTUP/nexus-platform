@@ -34,7 +34,7 @@ test("CP2 body rules: scope required, logic_check refused, CP1 refuses scope", (
   assert.equal(TriggerOptsSchema.safeParse({ checkpoint: "CP2", scope: "full", submission_type: "logic_check" }).success, false);
   assert.equal(TriggerOptsSchema.safeParse({ scope: "full" }).success, false);
   assert.equal(TriggerOptsSchema.safeParse({ checkpoint: "CP2", scope: "questionnaire" }).success, true);
-  assert.equal(TriggerOptsSchema.safeParse({ checkpoint: "CP3" }).success, false);
+  assert.equal(TriggerOptsSchema.safeParse({ checkpoint: "CP9" }).success, false);
 });
 
 test("CP2 plan: own service type, report types and prompts; never CP1 triad or gate prompts", () => {

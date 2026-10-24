@@ -230,3 +230,14 @@ Phép thử kiểm duyệt (dùng làm test hồi quy sau này): (a) chỉ 2 men
 - Nhánh `files`: chạy bài **gốc** không chuyển định dạng: CP3 `101_13_Nexus_CP3.md`, `101_155_RootAccess_CP3.pdf`; CP2 `13_Nexus_CP2.pdf`. Đây cũng kiểm chứng agent trong sandbox thật sự đọc được md/pdf (chưa kiểm). Quan sát: trích dẫn có được kiểm (`unchecked` hay `verified`), không chấm MVP, không đòi mã S1/W1 hay số trang.
 - Nhánh `answers` và `both`: tạo fixture câu trả lời riêng, chỉ để test hai nhánh này; không dùng fixture đã chuẩn hóa làm bằng chứng cho luồng tải tệp.
 - Test đơn vị: ba phép thử ở 13.7 trên ít nhất hai dự án khác nhau; thang điểm và trần 49/74 của CP3 theo `cp2-audit.test.ts`.
+
+## 14. Kết quả verify sau khi code (2026-10-24, chưa chạy job thật)
+
+**Đã chạy và xanh:** `tsc` validation, API, web; test validation 100/100; 12 file test API liên quan (CP2, CP3, ledger, quote, routing, progress, manifest); CLI validator `validate-cp2-report.mjs` với báo cáo CP3 hợp lệ (OK), có `not_applicable` (bị từ chối), sai schema (bị từ chối); `eslint` cho các tệp web đã sửa (còn 2 lỗi `set-state-in-effect` có sẵn ở `TabReportFindings.tsx:39` và `StageStartGuide.tsx:57`, không do thay đổi này).
+
+**Chưa chạy (ghi trung thực):**
+- Smoke bằng job thật (ca 1-10 của phase 7): cần DB local, Redis, worker và model. Ca 8-9 (CP2 hồi quy, phỏng vấn trung lập) và hiệu chỉnh `SWOT_QUANT_PASS_RATIO`/`SWOT_QUANT_PARTIAL_RATIO` trên hai bài mẫu CP3 chưa làm.
+- Chất lượng prompt CP3 trên bài thật; agent có đọc được PDF dạng ảnh trong sandbox hay không; chi phí token CP3 so với CP2.
+- Toàn bộ bộ test API (`bun run test`) treo quá 290 giây ở máy này, chưa tìm test gây treo; chỉ chạy các file liên quan.
+- Image worker trên VPS có đọc `specVersion` hay chưa; duyệt giao diện bằng trình duyệt.
+- Plan `plans/261020-2030-audit-service-registry/plan.md` vẫn ghi `pending`: chưa đổi vì chưa xác nhận mọi bước đã giao.

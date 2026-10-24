@@ -24,10 +24,13 @@ function templateKeysUpTo(code: StageCode): Array<keyof typeof TEMPLATE_REGISTRY
 /**
  * Answers of the stage and earlier stages, template order, empty answers and
  * self-checks skipped. Text is copied verbatim so quotes stay substring-checkable.
+ * `ownOnly` renders only the stage's own template (context files: the earlier stage
+ * is rendered by its own call, so accumulating would repeat its answers).
  */
-export function renderStageAnswers(code: StageCode, answers: AnswerMap): { markdown: string; answered: number } {
+export function renderStageAnswers(code: StageCode, answers: AnswerMap, opts: { ownOnly?: boolean } = {}): { markdown: string; answered: number } {
   const sections: string[] = [];
-  for (const key of templateKeysUpTo(code)) {
+  const keys = opts.ownOnly ? [STAGES.find((s) => s.code === code)?.templateKey].filter((k): k is keyof typeof TEMPLATE_REGISTRY => k !== undefined) : templateKeysUpTo(code);
+  for (const key of keys) {
     for (const phase of TEMPLATE_REGISTRY[key].phases) {
       for (const question of phase.questions) {
         const answer = answers[question.question_id];

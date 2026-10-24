@@ -1,6 +1,13 @@
-/** Mirrors the API default `CP2_MIN_AVG_WORDS`; the server remains the authority at grading time. */
+import { CP3_UNGRADED_QUESTION_IDS } from "@repo/validation";
+
+/** Mirrors the API defaults `CP2_MIN_AVG_WORDS` / `CP3_MIN_AVG_WORDS`; the server remains the authority at grading time. */
 export const THIN_ANSWER_WORDS = 10;
-const THIN_WARNING_PREFIX = "cp2_";
+const THIN_WARNING_PREFIXES = ["cp2_", "cp3_"];
+
+/** True for answers the audit reads: the CP2 and CP3 templates, except the CP3 product/UX phase, which is never graded. */
+export function isGradedQuestion(questionId: string): boolean {
+  return THIN_WARNING_PREFIXES.some((prefix) => questionId.startsWith(prefix)) && !CP3_UNGRADED_QUESTION_IDS.includes(questionId);
+}
 
 export function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
@@ -8,7 +15,7 @@ export function countWords(text: string): number {
 
 /** Has content but too thin to grade on - the same bar GuidedQuestionCard warns about. */
 export function isThinAnswer(questionId: string, raw: string | undefined): boolean {
-  if (!questionId.startsWith(THIN_WARNING_PREFIX)) return false;
+  if (!isGradedQuestion(questionId)) return false;
   const words = countWords(raw ?? "");
   return words > 0 && words < THIN_ANSWER_WORDS;
 }

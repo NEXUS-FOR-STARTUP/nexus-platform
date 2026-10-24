@@ -65,12 +65,13 @@ export interface StageContext {
  * Earlier-stage material for a later stage's run: the stage's answers copied into `input/context/`, its
  * files referenced in the library (not copied per job). An empty side is simply absent. A file that cannot
  * be downloaded is skipped with a warning; context must never fail a paid run.
+ * `ownAnswersOnly`: render only this stage's own answers, so several stages can be loaded without repeating each other.
  */
-export async function loadStageContext(caseId: string, stage: StageCode, libraryDir: string): Promise<StageContext> {
+export async function loadStageContext(caseId: string, stage: StageCode, libraryDir: string, opts: { ownAnswersOnly?: boolean } = {}): Promise<StageContext> {
   const context: StageContext = { files: [], entries: [], libraryNames: [] };
 
   const rows = await prisma.projectAnswer.findMany({ where: { case_id: caseId }, select: { question_id: true, answer_text: true } });
-  const { markdown, answered } = renderStageAnswers(stage, Object.fromEntries(rows.map((r) => [r.question_id, r.answer_text])));
+  const { markdown, answered } = renderStageAnswers(stage, Object.fromEntries(rows.map((r) => [r.question_id, r.answer_text])), { ownOnly: opts.ownAnswersOnly });
   if (answered > 0) {
     const fileName = `${CONTEXT_DIR}/${stage.toLowerCase()}_answers.md`;
     context.files.push({ name: fileName, content: markdown });

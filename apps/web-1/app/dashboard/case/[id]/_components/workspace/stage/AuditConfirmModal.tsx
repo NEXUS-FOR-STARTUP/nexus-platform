@@ -5,10 +5,12 @@ import { Button } from "../../ui/Button";
 import { useState } from "react";
 import type { StageDefinition } from "@app/shared/stages";
 import type { Cp2InputSource } from "@app/shared";
+import { AUDIT_STAGE_UI, getAuditStageUi } from "@/lib/audit-stage-ui";
+import type { AuditScope } from "@/lib/audit-stage-ui";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
 import AuditStepSources from "./AuditStepSources";
 import { hasStageInput } from "./stage-input";
-import AuditStepOptions, { type Cp2Scope, type RunKind } from "./AuditStepOptions";
+import AuditStepOptions, { type RunKind } from "./AuditStepOptions";
 
 interface AuditConfirmModalProps {
   stage: StageDefinition;
@@ -24,7 +26,6 @@ interface AuditConfirmModalProps {
 }
 
 const SOURCE_PRIORITY: readonly Cp2InputSource[] = ["both", "answers", "files"];
-const SCOPE_PRIORITY: readonly Cp2Scope[] = ["full", "questionnaire"];
 
 /**
  * Single grading entry point. Step 1 = what the team has (answers / files).
@@ -45,10 +46,12 @@ export default function AuditConfirmModal({
   isLoading = false,
   onGoFiles,
 }: AuditConfirmModalProps) {
-  const isCp2 = stage.code === "CP2";
+  // A stage without a grading service never opens this modal (StageDetail gates on `available`), so the fallback is unreachable.
+  const ui = getAuditStageUi(stage.code) ?? AUDIT_STAGE_UI.CP1;
+  const sourceBased = ui.sourceBased;
   // No effect syncs these: the defaults are derived below and a manual pick is
   // remembered as an override, so readiness changing under it can't reset it.
-  const [scopeOverride, setScopeOverride] = useState<Cp2Scope | null>(null);
+  const [scopeOverride, setScopeOverride] = useState<AuditScope | null>(null);
   const [sourceOverride, setSourceOverride] = useState<Cp2InputSource | null>(null);
   const [submissionTypeOverride, setSubmissionTypeOverride] = useState<RunKind | null>(null);
   const [changeSummary, setChangeSummary] = useState("");
@@ -61,13 +64,13 @@ export default function AuditConfirmModal({
   const readyQuestionnaire = summary?.answers_ready_questionnaire ?? false;
   const hasFiles = fileCount > 0;
 
-  const answersReadyFor = (sc: Cp2Scope) => (sc === "questionnaire" ? readyQuestionnaire : readyFull);
-  const sourceReady = (src: Cp2InputSource, sc: Cp2Scope) => {
+  const answersReadyFor = (sc: AuditScope) => (sc === "questionnaire" ? readyQuestionnaire : readyFull);
+  const sourceReady = (src: Cp2InputSource, sc: AuditScope) => {
     if (src === "files") return hasFiles;
     if (src === "answers") return answersReadyFor(sc);
     return hasFiles && answersReadyFor(sc);
   };
-  const handleScopeChange = (next: Cp2Scope) => {
+  const handleScopeChange = (next: AuditScope) => {
     setScopeOverride(next);
     if (next === "questionnaire") setSubmissionTypeOverride("initial");
   };
@@ -75,24 +78,24 @@ export default function AuditConfirmModal({
   // Derived defaults (no effect): the richest option the current input supports,
   // and "resubmit" once a result exists. A manual pick always wins.
   const recommended = (() => {
-    if (!isCp2) return null;
+    if (!sourceBased) return null;
     for (const src of SOURCE_PRIORITY) {
-      const sc = SCOPE_PRIORITY.find((candidate) => sourceReady(src, candidate));
+      const sc = ui.scopes.find((candidate) => sourceReady(src, candidate));
       if (sc) return { source: src, scope: sc };
     }
     return null;
   })();
-  const scope = scopeOverride ?? recommended?.scope ?? "full";
+  const scope = scopeOverride ?? recommended?.scope ?? ui.scopes[0];
   const source = sourceOverride ?? recommended?.source ?? "answers";
   const hasResult = summary?.status === "has_result";
-  // CP2 re-grades by default once a result exists. CP1's usual second run is the team adding a forgotten file, so it stays a fresh run unless picked.
-  const submissionType = submissionTypeOverride ?? (isCp2 && hasResult ? "resubmit" : "initial");
+  // Source-based stages re-grade by default once a result exists. CP1's usual second run is the team adding a forgotten file, so it stays a fresh run unless picked.
+  const submissionType = submissionTypeOverride ?? (sourceBased && hasResult ? "resubmit" : "initial");
 
-  // CP1 has no CP2-style readiness bar, but no stage is ever graded on nothing:
-  // zero answers AND zero files is a dead end in both checkpoints.
-  const hasAnswers = isCp2 ? readyFull || readyQuestionnaire : answeredCount > 0;
-  const blocked = !hasStageInput(isCp2, summary);
-  const canConfirm = !blocked && (!isCp2 || sourceReady(source, scope));
+  // CP1 has no readiness bar, but no stage is ever graded on nothing:
+  // zero answers AND zero files is a dead end in every checkpoint.
+  const hasAnswers = sourceBased ? readyFull || (ui.scopes.includes("questionnaire") && readyQuestionnaire) : answeredCount > 0;
+  const blocked = !hasStageInput(stage.code, summary);
+  const canConfirm = !blocked && (!sourceBased || sourceReady(source, scope));
 
   const handleClose = () => {
     setStep(1);
@@ -104,7 +107,7 @@ export default function AuditConfirmModal({
   const handleConfirm = () => {
     // Questionnaire has no resubmit plan, and CP1 can only compare with a result that exists:
     // a stale resubmit selection still grades as a fresh run.
-    const effectiveType = (isCp2 && scope === "questionnaire") || (!isCp2 && !hasResult) ? "initial" : submissionType;
+    const effectiveType = (sourceBased && scope === "questionnaire") || (!sourceBased && !hasResult) ? "initial" : submissionType;
     onConfirm({
       scope,
       inputSource: source,
@@ -126,7 +129,7 @@ export default function AuditConfirmModal({
         {step === 1 && (
           <>
             <AuditStepSources
-              isCp2={isCp2}
+              ui={ui}
               answeredCount={answeredCount}
               fileCount={fileCount}
               hasAnswers={hasAnswers}
@@ -145,7 +148,7 @@ export default function AuditConfirmModal({
         {step === 2 && (
           <>
             <AuditStepOptions
-              isCp2={isCp2}
+              ui={ui}
               scope={scope}
               source={source}
               submissionType={submissionType}

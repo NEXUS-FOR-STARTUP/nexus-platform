@@ -4,10 +4,14 @@ export const PACKAGE_KEYS = {
   FREE: "pkg_tf_free",
   AI_AUDIT: "pkg_ai_audit",
   CP2_AUDIT: "pkg_cp2_audit",
+  CP3_AUDIT: "pkg_cp3_audit",
   SUPPORTER_AUDIT: "pkg_supporter_audit",
 } as const;
 
 export type PackageKey = (typeof PACKAGE_KEYS)[keyof typeof PACKAGE_KEYS];
+
+/** Per-stage grading packages sell a fixed bundle of credits (quantity is always 1). */
+export const GRADING_PACKAGE_IDS: readonly string[] = [PACKAGE_KEYS.AI_AUDIT, PACKAGE_KEYS.CP2_AUDIT, PACKAGE_KEYS.CP3_AUDIT];
 
 export function isCaseFree(caseData?: {
   package_id?: string | null;

@@ -95,12 +95,36 @@ export const AUDIT_CHECKPOINTS = {
       optional: [],
     },
   },
+  CP3: {
+    serviceType: "cp3_audit",
+    input: "cp3_answers",
+    postProcess: "cp3_scored",
+    scopes: {
+      full: {
+        prompts: {
+          initial: ["cp3_audit_core_v1.md", "cp3_full_review_v1.md"],
+          resubmit: ["cp3_audit_core_v1.md", "cp3_full_review_v1.md", "cp3_full_resubmit_v1.md"],
+        },
+        reportType: { initial: "cp3_full", resubmit: "cp3_full_resubmit" },
+      },
+    },
+    progressSteps: [
+      { id: "read", label: "Đọc tài liệu của nhóm", doneWhenFile: null },
+      { id: "evidence", label: "Trích bằng chứng", doneWhenFile: "cp3_evidence.json" },
+      { id: "write", label: "Viết báo cáo thẩm định", doneWhenFile: "report.md" },
+      { id: "score", label: "Tổng hợp điểm", doneWhenFile: "report.json" },
+    ],
+    outputs: {
+      required: ["report.json", "report.md", "cp3_evidence.json"],
+      optional: [],
+    },
+  },
 } as const;
 
 export type AuditCheckpointCode = keyof typeof AUDIT_CHECKPOINTS;
 export const AUDIT_CHECKPOINT_CODES = Object.keys(AUDIT_CHECKPOINTS) as [AuditCheckpointCode, ...AuditCheckpointCode[]];
 export type AuditSubmissionType = "initial" | "resubmit" | "logic_check";
 
-/** CP2 only: which student inputs the grader reads. `both` requires answers AND files to pass their gates. */
+/** CP2 and CP3: which student inputs the grader reads. `both` requires answers AND files to pass their gates. */
 export const CP2_INPUT_SOURCES = ["answers", "files", "both"] as const;
 export type Cp2InputSource = (typeof CP2_INPUT_SOURCES)[number];

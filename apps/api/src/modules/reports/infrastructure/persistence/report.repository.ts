@@ -1,4 +1,4 @@
-import { CP2_REPORT_TYPES } from "@repo/validation";
+import { CP3_REPORT_TYPES, SCORED_REPORT_TYPES } from "@repo/validation";
 import { prisma } from "../../../../db.js";
 import type { Prisma } from "@prisma/client";
 import { upsertReportArtifactDocumentRecord } from "../../../documents/infrastructure/persistence/document.repository.js";
@@ -129,10 +129,10 @@ export async function findLatestApprovedReport(caseId: string) {
   });
 }
 
-/** CP1 baseline lookup: CP2 reports belong to another checkpoint and must never feed a CP1 resubmit. */
+/** CP1 baseline lookup: reports of the scored services (CP2, CP3) belong to other checkpoints and must never feed a CP1 resubmit. */
 export async function findApprovedReports(caseId: string) {
   return await prisma.report.findMany({
-    where: { case_id: caseId, status: "APPROVED", report_type: { notIn: [...CP2_REPORT_TYPES] } },
+    where: { case_id: caseId, status: "APPROVED", report_type: { notIn: [...SCORED_REPORT_TYPES] } },
     orderBy: { created_at: "desc" },
   });
 }
@@ -177,6 +177,14 @@ export async function saveOmpAuditReport(
 export async function findLatestCp2FullReport(caseId: string) {
   return await prisma.report.findFirst({
     where: { case_id: caseId, report_type: { in: ["cp2_full", "cp2_full_resubmit"] } },
+    orderBy: { created_at: "desc" },
+  });
+}
+
+/** Latest CP3 report (first or resubmit): the baseline a CP3 resubmit compares against. */
+export async function findLatestCp3FullReport(caseId: string) {
+  return await prisma.report.findFirst({
+    where: { case_id: caseId, report_type: { in: [...CP3_REPORT_TYPES] } },
     orderBy: { created_at: "desc" },
   });
 }

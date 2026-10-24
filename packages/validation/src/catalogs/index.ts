@@ -43,3 +43,5 @@ export * from "./cp2-report-display.js";
 export * from "./cp2-audit-checks.js";
 export * from "./cp2-audit-report-schema.js";
 export * from "./cp2-audit-score.js";
+export * from "./cp3-audit-checks.js";
+export * from "./cp3-report-display.js";

@@ -12,7 +12,7 @@ import { TriggerOptsSchema } from "../../../modules/ai-engine/application/trigge
 
 test("every checkpoint in the lookup table has a service; unknown codes are a 400, never CP1", () => {
   for (const code of AUDIT_CHECKPOINT_CODES) assert.ok(getAuditService(code));
-  for (const code of ["CP3", "", "constructor"]) {
+  for (const code of ["CP9", "", "constructor"]) {
     assert.throws(() => getAuditService(code), (err) => err instanceof AppError && err.status === 400);
   }
 });

@@ -5,7 +5,7 @@ import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
 import { marked } from "marked";
-import { buildStandardReportPdfFilename, getCp2ScoreRows, getReportStageFileSlug, isCp2ReportType } from "@repo/validation";
+import { buildStandardReportPdfFilename, getReportStageFileSlug, getScoreRows, isScoredReportType } from "@repo/validation";
 import { localizeAndCleanMarkdown } from "./mdNormalizer.js";
 import { markdownToTypst } from "./mdToTypst.js";
 import { resolveTypstBinary } from "./typstRunner.js";
@@ -68,7 +68,7 @@ export interface GeneratePdfOptions {
     createdAt: string;
     overallScore: number;
     verdict: string;
-    /** CP1: the five legacy keys. CP2: group keys of report.json (see getCp2ScoreRows). */
+    /** CP1: the five legacy keys. Scored services (CP2, CP3): group keys of report.json (see getScoreRows). */
     categoryScores: Record<string, number>;
     reportType?: string;
   };
@@ -244,9 +244,9 @@ export async function generateReportPdfBuffer(opts: GeneratePdfOptions): Promise
     }
   }
 
-  // CP2 reports are free-form audit markdown: the 13-item CP1 normalizer would rewrite their headings.
-  const cp2ReportType = isCp2ReportType(opts.meta.reportType) ? opts.meta.reportType : null;
-  const cleanMd = cp2ReportType ? markdownToUse : localizeAndCleanMarkdown(markdownToUse);
+  // Scored reports (CP2, CP3) are free-form audit markdown: the 13-item CP1 normalizer would rewrite their headings.
+  const scoredReportType = isScoredReportType(opts.meta.reportType) ? opts.meta.reportType : null;
+  const cleanMd = scoredReportType ? markdownToUse : localizeAndCleanMarkdown(markdownToUse);
   const bodyTypst = markdownToTypst(cleanMd);
   const filledTypst = templateRaw.replace("{{BODY_CONTENT}}", bodyTypst);
 
@@ -265,10 +265,10 @@ export async function generateReportPdfBuffer(opts: GeneratePdfOptions): Promise
     agent_name: agent,
     created_at: formatReportDateTime(opts.meta.createdAt),
     overall_score: opts.meta.overallScore,
-    // CP2 verdict is computed in code and stored in report.json; show it verbatim.
-    verdict: cp2ReportType ? opts.meta.verdict : formatVerdictDisplay(opts.meta.verdict, opts.meta.overallScore),
+    // Scored verdicts are computed in code and stored in report.json; show them verbatim.
+    verdict: scoredReportType ? opts.meta.verdict : formatVerdictDisplay(opts.meta.verdict, opts.meta.overallScore),
     scores: opts.meta.categoryScores,
-    ...(cp2ReportType ? { score_rows: getCp2ScoreRows(cp2ReportType, opts.meta.categoryScores) } : {}),
+    ...(scoredReportType ? { score_rows: getScoreRows(scoredReportType, opts.meta.categoryScores) } : {}),
   }), "utf-8");
 
   writeFileSync(tempTyp, filledTypst, "utf-8");
