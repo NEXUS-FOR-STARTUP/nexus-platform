@@ -53,7 +53,7 @@ describe("prompt id table <-> constants", () => {
     assert.equal(cores.length, 8);
     const qCores = Object.values(CP2_QUESTIONNAIRE_CHECKS).filter((c) => c.tier === "core");
     assert.equal(qCores.length, 4);
-    assert.equal(Object.values(CP2_QUESTIONNAIRE_CHECKS).some((c) => c.tier === "gate"), false);
+    assert.equal(Object.values(CP2_QUESTIONNAIRE_CHECKS).some((c) => (c.tier as string) === "gate"), false);
   });
 });
 
@@ -184,6 +184,7 @@ describe("validateCp2Report", () => {
     r.checks[0].evidence = [];
     const res = validateCp2Report(r, allowed);
     assert.equal(res.ok, false);
-    if (!res.ok) assert.ok(res.issues.every((i) => Object.keys(i).sort().join() === "code,path"));
+    // zod messages are static texts (no input echoed), so `message` is allowed next to code and path.
+    if (!res.ok) assert.ok(res.issues.every((i) => Object.keys(i).sort().join() === "code,message,path"));
   });
 });
