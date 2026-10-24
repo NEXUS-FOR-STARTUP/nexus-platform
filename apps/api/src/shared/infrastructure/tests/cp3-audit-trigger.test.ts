@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { CP3_GRADED_QUESTION_IDS, CP3_UNGRADED_QUESTION_IDS, TEMPLATE_REGISTRY } from "@repo/validation";
+import { CP3_GRADED_QUESTION_IDS, TEMPLATE_REGISTRY } from "@repo/validation";
 import { AppError } from "../../../shared/domain/app-error.js";
 import { TriggerOptsSchema } from "../../../modules/ai-engine/application/trigger-opts.js";
 import { INPUT_ASSEMBLERS, POST_PROCESSORS, resolveAuditPlan } from "../../../modules/ai-engine/application/audit-registry.js";
@@ -50,12 +50,10 @@ test("cp3_answers.md carries only graded questions and no earlier-stage answers"
   const template = TEMPLATE_REGISTRY.cp3.phases.flatMap((p) => p.questions.map((q) => q.question_id));
   const md = renderCp3Answers({ ...answered(template, "Nội dung nhóm"), cp1_anything: "Của giai đoạn Ý tưởng" });
   for (const id of CP3_GRADED_QUESTION_IDS) assert.ok(md.includes(`## [${id}]`), id);
-  for (const id of CP3_UNGRADED_QUESTION_IDS) assert.equal(md.includes(`[${id}]`), false, id);
   assert.equal(md.includes("Của giai đoạn Ý tưởng"), false);
 });
 
-test("answer bar counts graded questions only", () => {
-  assert.equal(evaluateCp3Answers(answered(CP3_UNGRADED_QUESTION_IDS, words(30))).ok, false);
+test("answer bar counts the template questions", () => {
   assert.equal(evaluateCp3Answers(answered(CP3_GRADED_QUESTION_IDS, words(30))).ok, true);
   assert.equal(evaluateCp3Answers(answered(CP3_GRADED_QUESTION_IDS.slice(0, 2), words(30))).ok, false);
   assert.equal(evaluateCp3Answers(answered(CP3_GRADED_QUESTION_IDS, "ngắn")).ok, false);

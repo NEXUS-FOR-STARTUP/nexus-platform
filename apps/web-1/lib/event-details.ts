@@ -10,7 +10,7 @@ export interface EventDetails {
 
 type EventMetadata = Record<string, unknown>;
 
-const CHECKPOINT_LABELS: Record<string, string> = { CP1: "Ý tưởng", CP2: "Thị trường", CP3: "Sản phẩm & mô hình" };
+const CHECKPOINT_LABELS: Record<string, string> = { CP1: "Ý tưởng", CP2: "Thị trường", CP3: "Mô hình kinh doanh" };
 const AUDIT_FAIL_REASONS: Record<string, string> = {
   "worker-failed": "Hệ thống chấm gặp lỗi",
   "finalize-no-output": "Hệ thống chấm không trả kết quả",

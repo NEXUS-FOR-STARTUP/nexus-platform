@@ -11,7 +11,6 @@ import {
   CP3_FULL_IDS,
   CP3_GRADED_QUESTION_IDS,
   CP3_REPORT_TYPES,
-  CP3_UNGRADED_QUESTION_IDS,
   TEMPLATE_REGISTRY,
   getScoreRows,
   isScoredReportType,
@@ -61,13 +60,11 @@ describe("CP3 catalog", () => {
     assert.equal(promptIds("cp3_full_review_v1.md").length, 24);
   });
 
-  it("graded questions exclude the MVP/UX phase and stay inside the template", () => {
+  it("graded questions are exactly the template's questions and no MVP/UX question remains", () => {
     const all = TEMPLATE_REGISTRY.cp3.phases.flatMap((p) => p.questions.map((q) => q.question_id));
-    assert.equal(CP3_GRADED_QUESTION_IDS.length + CP3_UNGRADED_QUESTION_IDS.length, all.length);
-    assert.equal(CP3_UNGRADED_QUESTION_IDS.length, 7);
-    assert.ok(CP3_UNGRADED_QUESTION_IDS.every((id) => id.startsWith("cp3_") && /mvp|persona|flow|wireframe|mockup|ux/.test(id)));
-    assert.ok(CP3_GRADED_QUESTION_IDS.every((id) => !CP3_UNGRADED_QUESTION_IDS.includes(id)));
+    assert.deepEqual([...CP3_GRADED_QUESTION_IDS], all);
     assert.equal(CP3_GRADED_QUESTION_IDS.length, 20);
+    assert.equal(all.some((id) => /mvp|persona|flow|wireframe|mockup|ux/.test(id)), false);
   });
 });
 

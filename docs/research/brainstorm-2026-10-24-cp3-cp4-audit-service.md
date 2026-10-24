@@ -241,3 +241,13 @@ Phép thử kiểm duyệt (dùng làm test hồi quy sau này): (a) chỉ 2 men
 - Toàn bộ bộ test API (`bun run test`) treo quá 290 giây ở máy này, chưa tìm test gây treo; chỉ chạy các file liên quan.
 - Image worker trên VPS có đọc `specVersion` hay chưa; duyệt giao diện bằng trình duyệt.
 - Plan `plans/261020-2030-audit-service-registry/plan.md` vẫn ghi `pending`: chưa đổi vì chưa xác nhận mọi bước đã giao.
+
+## 15. Quyết định (user chốt 2026-10-25): bỏ hẳn phần MVP/UX khỏi CP3
+
+MVP là sản phẩm phi tài liệu (màn hình, Figma, localhost); wireframe, mockup không chuyển thành văn bản và không có tiêu chí chấm. Chọn phương án C: bỏ cả phase `mvp_ux_ui` (7 câu) khỏi template, câu hỏi, DOCX, sync-rules và test; template còn 20 câu, đều được chấm. Các mục 7, 13.3 và 14 viết trước quyết định này (nhắc "7 câu MVP không chấm", "27 câu") là lịch sử, không còn đúng.
+
+- Vòng đổi tên "Mô hình kinh doanh" (slug `san-pham-mo-hinh` giữ để không vỡ đường dẫn).
+- Luật cứng trong prompt "không chấm MVP và giao diện" vẫn giữ: tệp tải lên có thể chứa MVP.
+- **Rủi ro phải nói rõ với người bán/dùng:** PDF chính thức của CP3 tính MVP 120/150 điểm, nên "SẴN SÀNG" của dịch vụ chỉ nói về BMC và SWOT, không phải điểm toàn CP3. Ghi chú này đã nằm ở modal xác nhận và gói bán.
+- `cp4_pmf_mvp_demo` (CP4, chưa mở) chỉ còn tự điền từ `cp2_mvp_demo`. Câu hỏi MVP ở CP4 chưa xem xét, ngoài phạm vi.
+- Migration `20261024230000_cp3_service_type` đã sửa tên tại chỗ vì chưa deploy ở đâu; nếu ai đã áp dụng cục bộ thì tên `service_types.cp3_audit` còn cũ (`ON CONFLICT DO NOTHING` không cập nhật).

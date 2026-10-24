@@ -58,9 +58,6 @@ export const SYNC_RULES: Record<string, SyncRule[]> = {
     { target: "cp2_solution", from: [ans("cp1_solution_description"), idea("solution")] },
   ],
   cp3: [
-    { target: "cp3_mvp_problem_pitch", from: [ans("cp2_problem_need"), ans("cp1_main_problem"), idea("problem")] },
-    { target: "cp3_mvp_demo_script", from: [ans("cp2_mvp_demo")] },
-    { target: "cp3_user_persona", from: [ans("cp1_customer_story")] },
     {
       target: "cp3_bmc_customer_segments",
       from: [ans("cp1_primary_customer"), idea("targetCustomer")],
@@ -75,7 +72,7 @@ export const SYNC_RULES: Record<string, SyncRule[]> = {
     { target: "cp4_pmf_customer_validation", from: [ans("cp2_pmf_signals")] },
     { target: "cp4_pmf_competitors", from: [ans("cp2_competitive_analysis")] },
     { target: "cp4_pmf_usp", from: [ans("cp3_bmc_value_proposition")] },
-    { target: "cp4_pmf_mvp_demo", from: [ans("cp3_mvp_demo_script"), ans("cp2_mvp_demo")] },
+    { target: "cp4_pmf_mvp_demo", from: [ans("cp2_mvp_demo")] },
     { target: "cp4_bm_revenue_streams", from: [ans("cp3_bmc_revenue_streams"), ans("cp1_revenue_model")] },
     { target: "cp4_op_marketing_4p", from: [ans("cp2_marketing_4p")] },
   ],

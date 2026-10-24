@@ -1,115 +1,14 @@
 import type { Question } from "./types.js";
 
 // ---------------------------------------------------------------------------
-// CP3 questions — Startup Checkpoint 3 (MVP + UX/UI, Business Model Canvas, SWOT).
-// Source: "HƯỚNG DẪN MVP_BMC_SWOT" (rubric), 101_13_Nexus_CP3 (SWOT + conclusion
-// structure) and 101_155_RootAccess_CP3 (UX/UI and BMC structure).
+// CP3 questions — Startup Checkpoint 3 (Business Model Canvas, SWOT, conclusion).
+// Source: the lecturer's BMC/SWOT guide (rubric), 101_13_Nexus_CP3 (SWOT + conclusion
+// structure) and 101_155_RootAccess_CP3 (BMC structure).
 // Same wording convention as questions.ts: purpose line → what to cover → example.
 // ---------------------------------------------------------------------------
 
 export const CP3_QUESTIONS = {
-  // ── Phần 1 — MVP và trải nghiệm người dùng (UX/UI) ───────────────────────
-
-  cp3_mvp_problem_pitch: {
-    id: "cp3_mvp_problem_pitch",
-    text: "Vấn đề cốt lõi mà MVP giải quyết là gì?",
-    explanation:
-      "Đây là phần mở đầu trước khi demo. Nêu ngắn gọn (3 đến 5 câu):\n" +
-      "- Ai đang gặp vấn đề và \"nỗi đau\" cụ thể là gì\n" +
-      "- Vì sao MVP này là cách giải quyết phù hợp\n" +
-      "- Tính năng cốt lõi duy nhất mà phần demo sẽ chứng minh\n" +
-      "MVP phải chứng minh sản phẩm giải quyết đúng nỗi đau, không phải ý tưởng trên giấy.",
-    suggested_actions: [
-      "Người nghe hiểu vấn đề sau 30 giây, chưa cần nhìn sản phẩm.",
-    ],
-  },
-
-  cp3_mvp_demo_script: {
-    id: "cp3_mvp_demo_script",
-    text: "Kịch bản demo 5 đến 6 phút: người dùng thao tác trên MVP như thế nào?",
-    explanation:
-      "Liệt kê từng bước người dùng thao tác để giải quyết vấn đề, theo thứ tự trình diễn:\n" +
-      "- Bước nào mở đầu, bước nào chứng minh tính năng cốt lõi\n" +
-      "- Ai trình bày từng bước (nếu nhiều người)\n" +
-      "- Dữ liệu mẫu dùng khi demo\n" +
-      "Chỉ demo tính năng cốt lõi, không trình bày mọi tính năng.",
-    suggested_actions: [
-      "Đọc thử kịch bản: tổng thời gian nằm trong 5 đến 6 phút.",
-      "Có phương án dự phòng nếu mạng hoặc sản phẩm lỗi khi demo.",
-    ],
-  },
-
-  cp3_user_persona: {
-    id: "cp3_user_persona",
-    text: "User Persona: người dùng chính của sản phẩm là ai?",
-    explanation:
-      "Mô tả một nhân vật đại diện, dựa trên khách hàng thật nhóm đã gặp. Gồm:\n" +
-      "- Tên, tuổi, nghề nghiệp, bối cảnh\n" +
-      "- Mục tiêu họ muốn đạt\n" +
-      "- Khó khăn hiện tại\n" +
-      "- Nhu cầu đối với sản phẩm\n" +
-      "Không đủ: \"sinh viên 18 đến 25 tuổi\". Đủ: một nhân vật có tên, tình huống và mục tiêu riêng.",
-    suggested_actions: [
-      "Mỗi khó khăn trong persona đều được một tính năng của MVP giải quyết.",
-    ],
-  },
-
-  cp3_user_flow: {
-    id: "cp3_user_flow",
-    text: "User Flow: người dùng đi qua những bước nào khi dùng sản phẩm?",
-    explanation:
-      "Trình bày hành trình từ lúc mở sản phẩm đến lúc đạt mục tiêu, ví dụ: truy cập, đăng ký/đăng nhập, " +
-      "dùng tính năng chính, thanh toán (nếu có). Mỗi bước ghi rõ người dùng làm gì và hệ thống phản hồi gì.\n" +
-      "Có thể kèm sơ đồ; ở đây viết các bước bằng chữ và ghi đường dẫn tới sơ đồ nếu có.",
-    suggested_actions: [
-      "Luồng có điểm bắt đầu, điểm kết thúc và nhánh khi hết credit hoặc lỗi (nếu áp dụng).",
-    ],
-  },
-
-  cp3_wireframe: {
-    id: "cp3_wireframe",
-    text: "Wireframe: bố cục các màn hình chính được phác thảo như thế nào?",
-    explanation:
-      "Wireframe là bản phác thảo bố cục, chưa cần màu sắc. Với mỗi màn hình chính nêu:\n" +
-      "- Tên màn hình và mục đích\n" +
-      "- Các khối nội dung theo thứ tự từ trên xuống\n" +
-      "- Hành động chính của người dùng trên màn hình đó\n" +
-      "Ghi thêm đường dẫn tới file thiết kế (Figma hoặc tương đương) nếu có.",
-    suggested_actions: [
-      "Mỗi màn hình có đúng một hành động chính nổi bật.",
-    ],
-  },
-
-  cp3_mockup: {
-    id: "cp3_mockup",
-    text: "Mockup / giao diện hoàn chỉnh: màu sắc, font chữ, icon và bố cục được chọn ra sao?",
-    explanation:
-      "Mockup là giao diện hoàn chỉnh có màu sắc, icon rõ ràng. Nêu:\n" +
-      "- Bảng màu và lý do chọn (phù hợp lĩnh vực, nhận diện thương hiệu)\n" +
-      "- Font chữ và kiểu icon\n" +
-      "- Phong cách bố cục chung\n" +
-      "- Các màn hình chính: trang chủ, trang chức năng chính, trang thanh toán/tương tác",
-    suggested_actions: [
-      "Mỗi lựa chọn thiết kế đi kèm một lý do, không chỉ mô tả.",
-    ],
-  },
-
-  cp3_ux_logic: {
-    id: "cp3_ux_logic",
-    text: "UX Logic: vì sao nhóm thiết kế như vậy?",
-    explanation:
-      "Giải thích được lý do đằng sau các quyết định thiết kế để chứng minh sự thuận tiện cho người dùng. " +
-      "Với mỗi quyết định quan trọng, trả lời \"vì sao\":\n" +
-      "- Vì sao đặt thanh điều hướng ở vị trí đó\n" +
-      "- Vì sao nút hành động chính nằm ở chỗ đó\n" +
-      "- Vì sao chia luồng thành các bước như vậy\n" +
-      "Không đạt: \"nút này màu xanh cho đẹp\". Đạt: \"nút nằm cạnh nội dung vì đây là thao tác dùng nhiều nhất\".",
-    suggested_actions: [
-      "Có ít nhất 3 quyết định thiết kế, mỗi quyết định gắn với một hành vi người dùng.",
-    ],
-  },
-
-  // ── Phần 2 — Business Model Canvas (9 ô) ─────────────────────────────────
+  // ── Phần 1 — Business Model Canvas (9 ô) ─────────────────────────────────
 
   cp3_bmc_customer_segments: {
     id: "cp3_bmc_customer_segments",
@@ -221,7 +120,7 @@ export const CP3_QUESTIONS = {
     ],
   },
 
-  // ── Phần 3 — SWOT và chiến lược ──────────────────────────────────────────
+  // ── Phần 2 — SWOT và chiến lược ──────────────────────────────────────────
 
   cp3_swot_strengths: {
     id: "cp3_swot_strengths",
@@ -311,7 +210,7 @@ export const CP3_QUESTIONS = {
     ],
   },
 
-  // ── Phần 4 — Kết luận ────────────────────────────────────────────────────
+  // ── Phần 3 — Kết luận ────────────────────────────────────────────────────
 
   cp3_key_findings: {
     id: "cp3_key_findings",

@@ -57,9 +57,9 @@ export const AUDIT_STAGE_UI: Record<AuditCheckpointCode, AuditStageUi> = {
     answersHint: "Không bắt buộc nếu bạn chấm bằng tài liệu. Nếu dùng, cần đủ số câu có nội dung thật, mỗi câu viết thành câu hoàn chỉnh",
     filesHint: "Không bắt buộc nếu bạn chấm bằng câu trả lời. Mô hình kinh doanh và SWOT dạng .docx, .pdf, .pptx",
     privacyNotice: "Nếu tải lên tệp có thông tin cá nhân (email, số điện thoại, tên người liên hệ), vui lòng xóa hoặc ẩn trước.",
-    scopeNote: "Chấm: Mô hình kinh doanh, SWOT, chiến lược và kết luận. Không chấm: sản phẩm thử và giao diện.",
-    openErrorTitle: "Không thể bắt đầu vòng Sản phẩm & mô hình",
-    openLabel: "Bắt đầu vòng Sản phẩm & mô hình",
+    scopeNote: "Chỉ chấm: Mô hình kinh doanh, SWOT, chiến lược và kết luận. Demo MVP và giao diện không thuộc phạm vi chấm.",
+    openErrorTitle: "Không thể bắt đầu vòng Mô hình kinh doanh",
+    openLabel: "Bắt đầu vòng Mô hình kinh doanh",
     notePlaceholder: "Ví dụ: soi kỹ phần SWOT giúp mình",
     changePlaceholder: "Ví dụ: bổ sung số liệu cho SWOT, sửa phần chi phí",
   },
@@ -85,5 +85,5 @@ export function reportStageCode(reportType: string | null | undefined): AuditChe
 export const STAGE_ROUND_LABELS: Record<AuditCheckpointCode, string> = {
   CP1: "Vòng Ý tưởng",
   CP2: "Vòng Thị trường",
-  CP3: "Vòng Sản phẩm & mô hình",
+  CP3: "Vòng Mô hình kinh doanh",
 };

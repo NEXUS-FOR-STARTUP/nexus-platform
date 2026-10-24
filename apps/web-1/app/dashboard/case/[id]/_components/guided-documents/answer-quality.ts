@@ -1,12 +1,10 @@
-import { CP3_UNGRADED_QUESTION_IDS } from "@repo/validation";
-
 /** Mirrors the API defaults `CP2_MIN_AVG_WORDS` / `CP3_MIN_AVG_WORDS`; the server remains the authority at grading time. */
 export const THIN_ANSWER_WORDS = 10;
 const THIN_WARNING_PREFIXES = ["cp2_", "cp3_"];
 
-/** True for answers the audit reads: the CP2 and CP3 templates, except the CP3 product/UX phase, which is never graded. */
+/** True for answers the audit reads: every CP2 and CP3 template question. */
 export function isGradedQuestion(questionId: string): boolean {
-  return THIN_WARNING_PREFIXES.some((prefix) => questionId.startsWith(prefix)) && !CP3_UNGRADED_QUESTION_IDS.includes(questionId);
+  return THIN_WARNING_PREFIXES.some((prefix) => questionId.startsWith(prefix));
 }
 
 export function countWords(text: string): number {

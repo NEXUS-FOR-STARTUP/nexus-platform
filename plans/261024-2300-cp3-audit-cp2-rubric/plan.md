@@ -42,7 +42,8 @@ Nguồn quyết định và bằng chứng: `docs/research/brainstorm-2026-10-24
 | A6 | Bảng 24 tiêu chí CP3, ba cổng chặn, trọng số 7 nhóm (xem `phase-02`) | 2, 3 |
 | A7 | Trọng số CP2 mới 30/30/10/15/15 (evidence/market/customer/product/competition), là phân bổ lại có chủ ý, không phải chuẩn hóa thang cô (27,78/27,78/11,11/16,67/16,67) | 1 |
 | A8 | `qr_interview_plan` (questionnaire scope) là `core`, không phải gate (**user đã chốt**: phỏng vấn trực tiếp là core vì là syllabus của môn và được nhấn mạnh ở tài liệu market research; áp cho cả `fr_interview_method`, `fr_interview_quality`, `fr_interview_learning`) | 1 |
-| A9 | Tên vòng trên giao diện dùng tên có sẵn trong `stages.ts`: "Sản phẩm & mô hình"; UI không bao giờ hiện "CP3" | 6 |
+| A9 | Tên vòng trên giao diện: "Mô hình kinh doanh" (đổi từ "Sản phẩm & mô hình" sau quyết định bỏ MVP, mục 15 của brainstorm); slug giữ `san-pham-mo-hinh`; UI không bao giờ hiện "CP3" | 6 |
+| A11 | **Template CP3 không còn phase MVP/UX** (7 câu bị bỏ, còn 20 câu, tất cả đều chấm; user chốt 2026-10-25). Các phase file nhắc "không chấm 7 câu MVP", `CP3_UNGRADED_*` hay tên "Sản phẩm & mô hình" là lịch sử; code hiện hành là chuẩn | 2, 3, 4, 6 |
 | A10 | Báo cáo CP3 dùng persistence như CP2: `lifecycleUnit: false`, mỗi lần chấm một báo cáo | 4 |
 
 ## Phases

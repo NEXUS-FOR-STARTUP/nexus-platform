@@ -5,7 +5,7 @@ import { cp3 } from "./cp3.js";
  * CP3 audit criteria (Business Model Canvas + SWOT). The ids mirror the table in
  * `data/system-prompts/cp3_full_review_v1.md` (a test keeps them in sync). The model decides each
  * criterion's status; `scoreCp2Report` computes scores and the verdict from these constants.
- * The MVP/UX phase of the template is never graded (see CP3_UNGRADED_PHASE_IDS).
+ * The template holds only graded questions, so every question id feeds the audit.
  */
 export type Cp3FullGroup =
   | "customer_value"
@@ -57,15 +57,7 @@ export const CP3_FULL_GROUP_WEIGHTS: Record<Cp3FullGroup, number> = {
   conclusion: 10,
 };
 
-/** Template phases the audit never grades: product demo and UX/UI design. */
-export const CP3_UNGRADED_PHASE_IDS: readonly string[] = ["mvp_ux_ui"];
-
-/** Question ids of the CP3 template that the audit reads and grades, derived from the template. */
-export const CP3_GRADED_QUESTION_IDS: readonly string[] = cp3.phases
-  .filter((phase) => !CP3_UNGRADED_PHASE_IDS.includes(phase.id))
-  .flatMap((phase) => phase.questions.map((q) => q.question_id));
-
-/** Question ids of the ungraded MVP/UX phase (kept out of `cp3_answers.md`). */
-export const CP3_UNGRADED_QUESTION_IDS: readonly string[] = cp3.phases
-  .filter((phase) => CP3_UNGRADED_PHASE_IDS.includes(phase.id))
-  .flatMap((phase) => phase.questions.map((q) => q.question_id));
+/** Question ids of the CP3 template that the audit reads and grades (the whole template). */
+export const CP3_GRADED_QUESTION_IDS: readonly string[] = cp3.phases.flatMap((phase) =>
+  phase.questions.map((q) => q.question_id),
+);
