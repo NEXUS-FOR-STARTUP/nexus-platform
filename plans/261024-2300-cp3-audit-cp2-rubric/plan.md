@@ -1,7 +1,7 @@
 ---
 title: "Mở dịch vụ chấm CP3 (BMC + SWOT) và cập nhật rubric CP2 theo chuẩn cô Hanhlh5"
 description: "Thêm dịch vụ cp3_audit (single scope full, answers|files|both, initial + resubmit, thang 100, không chấm MVP) bằng cách nhân bản khung CP2 đã có; đồng thời sửa rubric CP2: bỏ AI/Harvard/phụ lục/MVP/Porter, gộp cổng phỏng vấn trung lập theo loại người được hỏi, khảo sát thành tùy chọn."
-status: in-progress
+status: completed
 priority: P1
 effort: ~50h (ước lượng, chưa đo)
 tags: [ai-engine, validation, prompts, web-1, prisma, cp2, cp3]
@@ -56,7 +56,7 @@ Nguồn quyết định và bằng chứng: `docs/research/brainstorm-2026-10-24
 | 4 | [API: dịch vụ CP3](./phase-04-cp3-api.md) | 10h | 2, 3 | Code xong; tsc sạch; test file liên quan xanh |
 | 5 | [DB + gói bán](./phase-05-db-package.md) | 2h | 4 | Migration + seed viết xong; **chưa chạy lên DB nào** |
 | 6 | [Web](./phase-06-web.md) | 12h | 4, 5 | Code xong; tsc sạch; **chưa duyệt bằng trình duyệt** |
-| 7 | [Verify + tài liệu](./phase-07-verify-docs.md) | 6h | tất cả | **Chưa đóng**: smoke ca 1-10, hiệu chỉnh ngưỡng SWOT, 2 lỗi lint web có sẵn. Test chỉ chạy phần đã đổi (xem dưới) |
+| 7 | [Verify + tài liệu](./phase-07-verify-docs.md) | 6h | tất cả | **Đóng theo chỉ đạo của user (2026-10-25), smoke chưa chạy**: ca 1-10, hiệu chỉnh ngưỡng SWOT chưa làm; 2 lỗi lint web có sẵn không sửa. Test chỉ chạy phần đã đổi (xem dưới) |
 
 
 **Ngoài phạm vi (known issue, không chặn plan này):** bộ test API đầy đủ đang treo (>290s), chưa tìm ra test gây treo. Theo `AGENTS.md` (mục Test scope), chỉ chạy test của phần đã đổi, nên không chạy cả bộ và không tính là việc phải làm để đóng plan.

@@ -40,3 +40,5 @@ Chưa thể chứng minh bằng smoke: mô hình có luôn dùng validator và m
 ## D. Điều kiện đóng plan
 
 Mọi acceptance của phase 1–6 đạt; ca smoke 1–10 chạy và ghi kết quả; danh sách "chưa chứng minh" được ghi trung thực; checklist vận hành phase 5 giao cho người vận hành; không còn `TODO`/`FIXME`.
+
+**Ghi nhận đóng (2026-10-25):** user chỉ đạo đóng plan khi ca smoke 1–10 chưa chạy, nên điều kiện trên **không đạt đủ** và được miễn theo quyết định của user, không phải do đã kiểm. Chưa chứng minh: chất lượng prompt CP3 và CP2 mới trên job thật, ngưỡng SWOT 0,7/0,4, hồi quy CP2 và CP1, hiển thị giao diện, migration/seed trên DB, image worker VPS đọc `specVersion`. Cần chạy lại các ca này trước khi tin kết quả chấm CP3 ở môi trường thật.
