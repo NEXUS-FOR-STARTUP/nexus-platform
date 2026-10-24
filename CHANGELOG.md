@@ -7,11 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added (2026-10-25) — Mở vòng Tài chính và Pitch deck (chỉ tài liệu, chưa chấm AI)
-- Template `cp4` tách làm hai. **Tài chính** (`cp4`, 9 câu, 3 nhóm): doanh thu và giá, giả định P&L, điểm hòa vốn, kế hoạch sinh tồn; nhóm "Nguồn vốn" tuỳ chọn. **Pitch deck** (`pitch`, stage mới `PITCH`, 27 câu, 13 nhóm): 10 mục của bài pitch demo, phụ lục A elevator pitch 60 giây, phụ lục B bổ sung cho bài nộp, phụ lục C chuẩn bị hỏi đáp. Nhóm tự dựng slide; Nexus chỉ cung cấp nội dung theo từng mục. Nhãn tiêu chí chấm chỉ là gợi ý, không phải điểm.
-- Điền sẵn (`sync-rules`): chỉ sao nguyên văn nguồn đầu không rỗng, không tóm tắt. Doanh thu ở Pitch deck điền từ `cp4_bm_revenue_streams`, rồi CP3, rồi CP1; nhóm tự viết elevator pitch và tóm tắt tài chính.
+### Added (2026-10-25) — Mở vòng Tài chính và PITCH DECK (chỉ tài liệu, chưa chấm AI)
+- Template `cp4` tách làm hai. **Tài chính** (`cp4`, 9 câu, 3 nhóm): doanh thu và giá, giả định P&L, điểm hòa vốn, kế hoạch sinh tồn; nhóm "Nguồn vốn" tuỳ chọn. **PITCH DECK** (`pitch`, stage mới `PITCH`, 27 câu, 13 nhóm): 10 mục của bài pitch demo, phụ lục A elevator pitch 60 giây, phụ lục B bổ sung cho bài nộp, phụ lục C chuẩn bị hỏi đáp. Nhóm tự dựng slide; Nexus chỉ cung cấp nội dung theo từng mục. Nhãn tiêu chí chấm chỉ là gợi ý, không phải điểm.
+- Điền sẵn (`sync-rules`): chỉ sao nguyên văn nguồn đầu không rỗng, không tóm tắt. Doanh thu ở PITCH DECK điền từ `cp4_bm_revenue_streams`, rồi CP3, rồi CP1; nhóm tự viết elevator pitch và tóm tắt tài chính.
 - Câu hỏi viết lại theo chuẩn CP3 (câu ngắn, "Cần nêu", một cặp Không đạt/Đạt); bỏ chữ "tab Tài chính", "gọi vốn" (thành "nguồn vốn"), "syllabus". Mở thẻ Excel P&L; bỏ cơ chế "Coming soon" ở gallery (không còn nơi dùng).
-- Đổi: stage CP4 slug `tai-chinh`, tên "Tài chính" (slug cũ `goi-von-tai-chinh` chưa từng mở nên không có đường dẫn sống). Stage không có dịch vụ chấm (`serviceType: null`) chỉ còn Soạn thảo: ẩn nút chấm/mua, tab Tài liệu và Kết quả, thẻ số dư; API từ chối tải tài liệu lên các stage này.
+- Đổi: stage CP4 slug `tai-chinh`, tên "Tài chính" (slug cũ `goi-von-tai-chinh` chưa từng mở nên không có đường dẫn sống). Stage không có dịch vụ chấm (`serviceType: null`) chỉ còn Soạn thảo: ẩn nút chấm/mua, tab Tài liệu và Kết quả, thẻ số dư; API từ chối tải tài liệu lên các stage này. Bỏ cờ `available` của `STAGES` (mọi giai đoạn đã mở) cùng trạng thái "Sắp ra mắt" ở hành trình, thanh tiến độ và hàng giai đoạn; gợi ý việc tiếp theo của giai đoạn không chấm không còn nhắc tải tài liệu.
 - **Mã câu trả lời đổi**: 18 câu `cp4_*` thành `pitch_*` (ba câu elevator `cp4_pitch_*` thành `pitch_who`, `pitch_problem_solution`, `pitch_call_to_action`). DB local 0/155 câu `cp4_*`. **Trước khi deploy phải chạy trên prod** `select count(*) from project_answers where question_id like 'cp4\_%'` (guest, chỉ SELECT); nếu > 0 thì dừng, cần di dời id riêng.
 - Không migration DB (`checkpoint_code`, `question_id`, `doc_type` đều là `String`).
 

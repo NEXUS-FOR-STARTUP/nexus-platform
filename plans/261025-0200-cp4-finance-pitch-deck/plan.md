@@ -24,7 +24,7 @@ Nguồn quyết định: `plans/reports/brainstorm-261025-cp4-finance-pitch-deck
 | D3 | Elevator pitch 60 giây là phụ lục A của Pitch deck, nhóm tự biên tập, hệ thống không tự tóm tắt. |
 | D4 | CP4 mở tối thiểu chỉ phần tài chính; Pitch deck là tài liệu chính, tách riêng. |
 | D5 | Chưa chấm AI cho CP4/Pitch deck (chờ Fall26); không nối `pl-validator`. |
-| D6 | Tên hiển thị "Tài chính" và "Pitch deck" (UI cấm CP1-CP4). |
+| D6 | Tên hiển thị "Tài chính" và "PITCH DECK" (UI cấm CP1-CP4). |
 | D7 | Doanh thu và giá chỉ hỏi ở CP4; Pitch deck sao nguyên văn từ đó (rơi về CP3). |
 | D8 | Nhãn tiêu chí chỉ là gợi ý; rubric 5x20 chưa xác định chính thức. |
 
@@ -37,7 +37,7 @@ Nguồn quyết định: `plans/reports/brainstorm-261025-cp4-finance-pitch-deck
 | 3 | [Mở stage: stage không chấm trên web](./phase-03-open-stages-web.md) | 4h | 2 | done (chưa smoke UI đăng nhập) |
 | 4 | [Verify, smoke, tài liệu, checklist deploy](./phase-04-verify-docs.md) | 2h | 3 | còn: smoke UI, kiểm DB prod |
 
-Phase 1-3 làm gộp trong một commit vì user yêu cầu mở CP4 và Pitch deck cùng lúc (stage `PITCH` mở ngay, không qua bước khóa). Lệch so với plan: bỏ rule `pitch_problem_solution` (sao cả đoạn vấn đề vào ô elevator 60 giây không có ích); thêm cổng tải tài liệu theo `serviceType` ở API; đặt tên phase Pitch deck không đánh số (generator đã thêm "Phần n:"); template CP4 tên "Kế hoạch tài chính", stage tên "Tài chính".
+Phase 1-3 làm gộp trong một commit vì user yêu cầu mở CP4 và Pitch deck cùng lúc (stage `PITCH` mở ngay, không qua bước khóa). Lệch so với plan: bỏ rule `pitch_problem_solution` (sao cả đoạn vấn đề vào ô elevator 60 giây không có ích); thêm cổng tải tài liệu theo `serviceType` ở API; đặt tên phase Pitch deck không đánh số (generator đã thêm "Phần n:"); template CP4 tên "Kế hoạch tài chính", stage tên "Tài chính". Sau review: tên hiển thị đổi thành "PITCH DECK"; bỏ hẳn cờ `available` (thay cho giữ `LOCKED_NOTE`, phase 3 bước 11); tách `questions-pitch.ts` thành ba file dưới 200 dòng; ví dụ trong câu hỏi dùng một chuỗi số nhất quán.
 
 ## Phạm vi
 
