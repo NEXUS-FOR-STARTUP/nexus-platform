@@ -38,7 +38,7 @@ Không được:
 
 - `input/cp2_answers.md`: câu trả lời của nhóm. Nếu tệp này ghi nhóm chỉ chấm bằng tệp đính kèm thì đừng tính câu vắng mặt là chưa trả lời. Có thể mở đầu bằng các mục thuộc giai đoạn Ý tưởng. Câu hỏi không có trong tệp nghĩa là nhóm chưa trả lời. Mỗi mục bắt đầu bằng tiêu đề `## [question_id] Câu hỏi`. Dùng `question_id` này khi trích dẫn.
 - `input/attachments/`: tệp nhóm tải lên nếu có (dữ liệu khảo sát gốc, ghi chép phỏng vấn, bảng hỏi). Định dạng: `.xlsx`, `.docx`, `.pdf`, `.pptx`, `.md`, `.txt`. Dùng công cụ đọc tệp để mở; công cụ tự đổi `.xlsx` thành bảng và `.docx`/`.pdf` thành chữ. Tệp `.xlsx` dữ liệu khảo sát: mỗi dòng sau dòng tiêu đề là một phản hồi; một ô trả lời mở có thể nhiều dòng chữ nhưng vẫn là một phản hồi.
-- Thông tin cá nhân trong tệp (email, số điện thoại, họ tên người trả lời, mã số sinh viên): không chép vào `cp2_evidence.json`, không trích dẫn trong báo cáo. Nếu tệp có các cột này, ghi một lỗi nhẹ ở `crossIssues`: "Dữ liệu khảo sát còn thông tin cá nhân người trả lời; xóa trước khi đưa vào phụ lục".
+- Thông tin cá nhân trong tệp (email, số điện thoại, họ tên người trả lời, mã số sinh viên): không chép vào `cp2_evidence.json`, không trích dẫn trong báo cáo. Nếu tệp có các cột này, ghi một lỗi nhẹ ở `crossIssues`: "Dữ liệu khảo sát còn thông tin cá nhân người trả lời; xóa trước khi nộp".
 - `input/self_checks.md` nếu có: các ô nhóm tự tick. Đây là lời tự khai, không phải bằng chứng. Không chấm đạt chỉ vì nhóm đã tick.
 - `input/previous_report.json`, `input/previous_report.md`, `input/change_summary.md`: chỉ có ở lần chấm lại.
 
@@ -110,7 +110,7 @@ Quy tắc:
 - Dữ liệu xấu gồm: lời khen ("ý tưởng hay"), câu chung chung hoặc tương lai ("tôi thường", "tôi sẽ"), đề xuất tính năng. Insight dựa trên các loại này là insight yếu.
 - Tín hiệu thật là cam kết: người được hỏi bỏ thời gian, uy tín hoặc tiền (hẹn gặp lại, giới thiệu người khác, đăng ký dùng thử, đặt cọc).
 - Insight phải truy được về dữ liệu: có tỷ lệ dạng "x/N người", có trích lời.
-- Mục tiêu của CP2 là kiểm chứng giả thuyết ban đầu. Tài liệu tốt nói rõ giả thuyết nào về khách hàng, nỗi đau đã được xác nhận, giả thuyết nào sai, và giải pháp hoặc MVP đã đổi gì theo đó.
+- Mục tiêu của CP2 là kiểm chứng giả thuyết ban đầu. Tài liệu tốt nói rõ giả thuyết nào về khách hàng, nỗi đau đã được xác nhận, giả thuyết nào sai, và giải pháp đã đổi gì theo đó. Không chấm sản phẩm mẫu hay MVP: chỉ chấm phần điều chỉnh có dẫn từ phản hồi khách hàng.
 
 ### 5.2. Khảo sát
 
@@ -142,10 +142,9 @@ Lỗi cần bắt:
 - Với dịch vụ làm thủ công, SOM vượt năng lực phục vụ của nhóm (số người làm × số ca mỗi người mỗi kỳ). Năng lực là trần để đối chiếu, không phải cách tính chính.
 - Số liệu trùng ví dụ minh họa của bài hướng dẫn Nexus mà không liên quan sản phẩm của nhóm: 2.530.000 sinh viên; 49.000 đồng/tháng; 700.000 sinh viên TP.HCM; 20.000 người tiếp cận × 5% × 8%; 10 câu lạc bộ × 100 sinh viên × 30% × 10%; 110 khách; 64.680.000 đồng/năm; 1.487,64 tỷ; 411,6 tỷ. Trùng từ hai con số trở lên trong cùng phép tính là dấu hiệu chép ví dụ.
 
-### 5.4. Cạnh tranh, MVP, PMF
+### 5.4. Cạnh tranh và PMF
 
 - Đối thủ gồm cả cách khách hàng đang tự xoay xở, công cụ miễn phí và thói quen "không làm gì".
-- MVP ở CP2 có thể là bản phác thảo giao diện (Figma) hoặc dịch vụ làm tay; điều quan trọng là nó kiểm chứng giả định nào và đã chứng minh được gì.
 - Tín hiệu PMF tốt là hành vi: đăng ký, trả tiền, quay lại, giới thiệu. Mức hài lòng và lời khen là tín hiệu yếu. Mẫu nhỏ chỉ được gọi là tín hiệu ban đầu. Nếu nhóm đo câu "bạn sẽ thấy thế nào nếu không còn dùng được sản phẩm" trên người dùng thật, tỷ lệ "rất thất vọng" từ 40% trở lên là tín hiệu mạnh.
 
 ## 6. Giọng văn và độ dài

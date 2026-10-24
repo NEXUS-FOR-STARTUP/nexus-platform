@@ -54,7 +54,7 @@ Lấy Persona và lĩnh vực từ tài liệu của nhóm, rồi đối chiếu
 | `fr_interview_gate` | cp2_expert_interviews; cp2_customer_discovery_process | Từ 2 cuộc phỏng vấn trực tiếp (chuyên gia hoặc khách hàng mục tiêu, loại nào cũng được); mỗi cuộc có người được hỏi (chức danh, đơn vị hoặc đúng Persona của dự án) và lý do người đó phù hợp | Đủ 2 cuộc nhưng có cuộc thiếu thông tin người được hỏi hoặc thiếu lý do phù hợp (thiếu thông tin, không phải dưới mức); hoặc người được hỏi chưa rõ có đúng Persona hoặc lĩnh vực của dự án | Dưới 2 cuộc phỏng vấn trực tiếp, hoặc mọi người được hỏi đều không thuộc Persona hay lĩnh vực của dự án |
 | `fr_interview_learning` | cp2_expert_interviews; cp2_customer_discovery_process | Mỗi cuộc có điều học được cụ thể (chuyên gia: thị trường, điều cần tránh, kinh nghiệm với khách hàng mục tiêu; khách hàng: hành vi và nỗi đau thật); tài liệu nói nhóm đã đổi gì nhờ đó | Có điều học được nhưng chung chung hoặc không thấy được dùng | Không có điều học được |
 | `fr_survey_minimum` | cp2_survey; tệp dữ liệu nếu có (không bắt buộc) | Được phép `not_applicable` khi nhóm không làm khảo sát. Nếu có khảo sát: nhóm ghi rõ từ 100 phản hồi, từ 7 câu hỏi, từ 2 loại câu hỏi | Có khảo sát nhưng dưới mức hoặc chưa xác định được (ví dụ "khoảng 100", dưới 100 phản hồi, không nêu loại câu hỏi); ghi trong `note` giới hạn kết luận của mẫu nhỏ; hoặc tệp đính kèm mâu thuẫn với số nhóm ghi | Không dùng cho tiêu chí này (dưới mức chỉ là `partial`) |
-| `fr_survey_design` | cp2_survey, phụ lục | Được phép `not_applicable` khi nhóm không làm khảo sát. Có khảo sát: câu hỏi không mắc lỗi câu chữ, thang đo, phương án theo mục 5.2 của tệp core | 1–2 lỗi | Từ 3 lỗi, hoặc không trình bày bảng hỏi để kiểm tra |
+| `fr_survey_design` | cp2_survey, tệp đính kèm nếu có | Được phép `not_applicable` khi nhóm không làm khảo sát. Có khảo sát: câu hỏi không mắc lỗi câu chữ, thang đo, phương án theo mục 5.2 của tệp core | 1–2 lỗi | Từ 3 lỗi, hoặc không trình bày bảng hỏi để kiểm tra |
 | `fr_survey_sampling` | cp2_survey | Được phép `not_applicable` khi nhóm không làm khảo sát. Có khảo sát: nêu đối tượng có thuộc khách hàng mục tiêu, cách tuyển, tỷ lệ phản hồi, giới hạn mẫu; kết luận không vượt sai số và không suy rộng ngoài nhóm đã hỏi | Thiếu một phần | Kết luận cho cả thị trường từ mẫu tiện lợi, hoặc không mô tả mẫu |
 | `fr_hypothesis_validation` | cp2_customer_discovery_process, cp2_surprises_pivot, cp2_iteration_refinement | Nói rõ giả thuyết ban đầu nào về khách hàng và nỗi đau được xác nhận, giả thuyết nào sai, kèm số liệu; persona hoặc pain đã điều chỉnh tương ứng | Có so sánh trước sau nhưng thiếu số liệu, hoặc chỉ nói "đã xác nhận" | Không có đối chiếu giả thuyết với dữ liệu |
 
@@ -82,7 +82,7 @@ Không có tệp dữ liệu thì chấm theo số nhóm ghi, không trừ đi�
 | id | Nguồn | Đạt | Một phần | Chưa đạt |
 | --- | --- | --- | --- | --- |
 | `fr_iteration_traceable` | cp2_iteration_refinement | Mỗi thay đổi có dạng trước đây nghĩ gì, khách hàng phản hồi gì, đã đổi gì | Có thay đổi nhưng không gắn phản hồi cụ thể | Không có tinh chỉnh |
-| `fr_pivot_honest` | cp2_surprises_pivot | Có bất ngờ kèm bằng chứng và quyết định pivot hoặc không pivot có lý do; giải pháp và MVP đổi theo dữ liệu | Có nêu nhưng thiếu bằng chứng | Không có |
+| `fr_pivot_honest` | cp2_surprises_pivot | Có bất ngờ kèm bằng chứng và quyết định pivot hoặc không pivot có lý do; giải pháp đổi theo dữ liệu | Có nêu nhưng thiếu bằng chứng | Không có |
 | `fr_pmf_signals` | cp2_pmf_signals | Tín hiệu có số kèm cỡ mẫu; ưu tiên hành vi (đăng ký, trả tiền, quay lại, giới thiệu); mẫu nhỏ gọi là tín hiệu ban đầu | Chỉ có mức hài lòng hoặc lời khen có số | Khẳng định đạt PMF không có số, hoặc không có |
 | `fr_4p_grounded` | cp2_marketing_4p | Giá có căn cứ từ dữ liệu khách hàng (chi tiêu hiện tại, mức sẵn sàng trả có kiểm chứng); kênh ở Place và Promotion khớp kênh dùng để tính SOM | Một trong hai | Giá tự đặt và kênh không khớp |
 
@@ -139,7 +139,7 @@ Cột "Tình trạng" ở mục 2 ghi một trong: Đạt, Thiếu, Chưa rõ. K
 
 ## 6. Kiểm tra hình thức (làm trước khi chấm nội dung)
 
-- Paper vượt giới hạn trang của giảng viên? Nếu vượt, ghi rõ số trang hiện tại và giới hạn.
+- Bài vượt giới hạn độ dài giảng viên đã nêu? Nếu vượt, ghi rõ độ dài hiện tại và giới hạn.
 - Phần dữ liệu thô hoặc ghi chú dở dang nằm ngay trong bài nhóm nộp? Liệt kê mục thiếu. Không đòi phụ lục riêng, không chấm Harvard hay công bố dùng AI.
 - Persona hoặc chân dung khách hàng có thuộc tính không thu thập trong khảo sát/phỏng vấn? Nêu thuộc tính và nguồn thiếu.
 - Số liệu tác động dạng phần trăm (tăng chuyển đổi, tăng tin tưởng...) có nguồn chứng minh không? Không có thì yêu cầu xóa hoặc ghi là mục tiêu giả định.
