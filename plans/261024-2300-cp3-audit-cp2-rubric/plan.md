@@ -1,7 +1,7 @@
 ---
 title: "Mở dịch vụ chấm CP3 (BMC + SWOT) và cập nhật rubric CP2 theo chuẩn cô Hanhlh5"
 description: "Thêm dịch vụ cp3_audit (single scope full, answers|files|both, initial + resubmit, thang 100, không chấm MVP) bằng cách nhân bản khung CP2 đã có; đồng thời sửa rubric CP2: bỏ AI/Harvard/phụ lục/MVP/Porter, gộp cổng phỏng vấn trung lập theo loại người được hỏi, khảo sát thành tùy chọn."
-status: pending
+status: in-progress
 priority: P1
 effort: ~50h (ước lượng, chưa đo)
 tags: [ai-engine, validation, prompts, web-1, prisma, cp2, cp3]
@@ -48,15 +48,15 @@ Nguồn quyết định và bằng chứng: `docs/research/brainstorm-2026-10-24
 
 ## Phases
 
-| # | Phase | Ước lượng | Phụ thuộc |
-|---|---|---|---|
-| 1 | [Cập nhật rubric CP2](./phase-01-cp2-rubric-update.md) | 6h | — |
-| 2 | [Tầng validation CP3](./phase-02-cp3-validation.md) | 6h | 1 (cùng sửa bảng `CP2_SCHEMAS`) |
-| 3 | [Prompt CP3](./phase-03-cp3-prompts.md) | 8h | 2 |
-| 4 | [API: dịch vụ CP3](./phase-04-cp3-api.md) | 10h | 2, 3 |
-| 5 | [DB + gói bán](./phase-05-db-package.md) | 2h | 4 |
-| 6 | [Web](./phase-06-web.md) | 12h | 4, 5 |
-| 7 | [Verify + tài liệu](./phase-07-verify-docs.md) | 6h | tất cả |
+| # | Phase | Ước lượng | Phụ thuộc | Trạng thái |
+|---|---|---|---|---|
+| 1 | [Cập nhật rubric CP2](./phase-01-cp2-rubric-update.md) | 6h | — | Code xong; test đơn vị xanh; chưa smoke job thật (ca 8-9) |
+| 2 | [Tầng validation CP3](./phase-02-cp3-validation.md) | 6h | 1 (cùng sửa bảng `CP2_SCHEMAS`) | Xong; validation 100/100 |
+| 3 | [Prompt CP3](./phase-03-cp3-prompts.md) | 8h | 2 | Code xong; **chất lượng prompt chưa kiểm** bằng job thật |
+| 4 | [API: dịch vụ CP3](./phase-04-cp3-api.md) | 10h | 2, 3 | Code xong; tsc sạch; test file liên quan xanh |
+| 5 | [DB + gói bán](./phase-05-db-package.md) | 2h | 4 | Migration + seed viết xong; **chưa chạy lên DB nào** |
+| 6 | [Web](./phase-06-web.md) | 12h | 4, 5 | Code xong; tsc sạch; **chưa duyệt bằng trình duyệt** |
+| 7 | [Verify + tài liệu](./phase-07-verify-docs.md) | 6h | tất cả | **Chưa đóng**: smoke ca 1-10, hiệu chỉnh ngưỡng SWOT, bộ test API đầy đủ (đang treo), lint web còn 2 lỗi có sẵn |
 
 Phase 1 làm trước vì sửa chung `cp2-audit-checks.ts` với phase 2 và vì cách viết tiêu chí "trung lập theo loại người được hỏi" CP3 dùng lại. Phase 5 chạy song song được với phase 6 sau khi phase 4 xong chỉ ở phần viết mã; **deploy** thì phase 5 (DB) phải lên trước phase 6 (xem mục Triển khai).
 
