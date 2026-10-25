@@ -57,7 +57,6 @@ export const cp3: Template = {
       title: "Kết luận",
       unlock_requires: [],
       questions: [
-        { question_id: "cp3_key_findings", classification: "recommended" },
         { question_id: "cp3_business_feasibility", classification: "recommended" },
         { question_id: "cp3_future_development", classification: "recommended" },
       ],

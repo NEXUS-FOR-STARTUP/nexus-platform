@@ -1,4 +1,5 @@
 import { STAGES, type StageCode } from "@app/shared";
+import { QUESTION_REGISTRY } from "@repo/validation";
 import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-types.js";
 import { prisma } from "../../../db.js";
 import { STAGE_DOC_EXCLUDED_TYPES } from "../../ai-engine/application/stage-audit-input.js";
@@ -36,11 +37,11 @@ export function pickStageStatus(input: { grading: boolean; hasReport: boolean; f
   return "not_started";
 }
 
-/** Answer ids are prefixed by their template (`cp1_…`, `cp2_…`); self-checks are not answers. */
+/** Answer ids are prefixed by their template (`cp1_…`, `cp2_…`). Self-checks and ids removed from the catalog are not counted. */
 export function countAnswersByStage(answers: Array<{ question_id: string; answer_text: string }>): Map<string, number> {
   const counts = new Map<string, number>();
   for (const answer of answers) {
-    if (answer.answer_text.trim() === "" || answer.question_id.includes(SELF_CHECK_ID_FRAGMENT)) continue;
+    if (answer.answer_text.trim() === "" || answer.question_id.includes(SELF_CHECK_ID_FRAGMENT) || !(answer.question_id in QUESTION_REGISTRY)) continue;
     const stage = STAGES.find((s) => answer.question_id.startsWith(`${s.templateKey}_`));
     if (stage) counts.set(stage.code, (counts.get(stage.code) ?? 0) + 1);
   }

@@ -36,7 +36,7 @@ Không được:
 
 ## 3. Luật cứng của dịch vụ chấm này
 
-1. **Không chấm, không nhận xét sản phẩm thử.** Thiết kế, tính năng, chất lượng bản demo, persona người dùng, luồng người dùng, wireframe, mockup, logic trải nghiệm: bỏ qua hoàn toàn, kể cả khi tài liệu của nhóm có nêu. Câu `cp3_key_findings` có nhắc "thử nghiệm": chỉ xét tính cụ thể, có số và nhất quán với phần khác; không bình luận sản phẩm thử tốt hay xấu.
+1. **Không chấm, không nhận xét sản phẩm thử.** Thiết kế, tính năng, chất lượng bản demo, persona người dùng, luồng người dùng, wireframe, mockup, logic trải nghiệm: bỏ qua hoàn toàn, kể cả khi tài liệu của nhóm có nêu. Khi câu trả lời có nhắc "thử nghiệm": chỉ xét tính cụ thể, có số và nhất quán với phần khác; không bình luận sản phẩm thử tốt hay xấu.
 2. **Không chấm hình thức.** Không trừ điểm vì thiếu mã S1/W1, thiếu bảng, sai tên mục, sai thứ tự mẫu, số trang, độ dài, thiếu khai báo dùng AI. Nội dung đúng ở đâu cũng được tính, kể cả trong tệp đính kèm không theo mẫu. Câu gợi ý trong mẫu (mã S1, "S? + O? → hành động") là gợi ý cho người dùng, không phải điều kiện chấm.
 3. **Giai đoạn trước chỉ là bối cảnh.** `input/context/` và `../../_library/` chứa tài liệu các vòng trước. Chỉ dùng để hiểu dự án. Không trích làm bằng chứng cho `checks`. Khác biệt đáng chú ý so với giai đoạn trước chỉ ghi vào `crossIssues` mức `MINOR`, tiêu đề cố định "Khác biệt so với giai đoạn trước", bằng chứng **chỉ trích phía CP3**; phần giai đoạn trước nói bằng lời trong `action` dưới dạng câu hỏi nhóm giải thích ("nếu là đổi hướng có chủ ý, hãy ghi lý do"). Không bao giờ kết luận "mâu thuẫn" hay "sai" từ phần lịch sử. Đổi hướng đã có lý do thì không ghi.
 4. **Không có `not_applicable`** ở dịch vụ này.

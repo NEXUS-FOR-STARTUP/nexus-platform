@@ -91,7 +91,6 @@ Với `c3_swot_quantified`: ghi từng mục SWOT vào `cp3_evidence.json` (`swo
 
 | id | Nguồn | Đạt | Một phần | Chưa đạt |
 | --- | --- | --- | --- | --- |
-| `c3_findings_grounded` | cp3_key_findings | Phát hiện chính cụ thể, có số, khớp các phần trên. Không bình luận sản phẩm thử tốt hay xấu | Phát hiện cụ thể nhưng không có số hoặc khớp một phần | Phát hiện chung chung hoặc mâu thuẫn phần trên |
 | `c3_feasibility_evidence` | cp3_business_feasibility | Nêu lý do khả thi có bằng chứng đỡ và nêu điều chưa chắc chắn | Có lý do nhưng không có bằng chứng, hoặc không nêu điều chưa chắc | Chỉ khẳng định khả thi, không có lý do |
 | `c3_next_steps_actionable` | cp3_future_development | Bước tiếp theo cụ thể, gắn với kết quả mong đợi | Bước tiếp theo cụ thể nhưng không gắn kết quả | Hướng chung chung ("mở rộng thị trường") |
 

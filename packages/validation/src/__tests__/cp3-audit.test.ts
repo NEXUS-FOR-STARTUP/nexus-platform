@@ -38,8 +38,8 @@ function checks(status: Cp2CheckStatus, overrides: Record<string, Cp2CheckStatus
 }
 
 describe("CP3 catalog", () => {
-  it("has 24 ids with fixed gates and cores", () => {
-    assert.equal(CP3_FULL_IDS.length, 24);
+  it("has 23 ids with fixed gates and cores", () => {
+    assert.equal(CP3_FULL_IDS.length, 23);
     assert.deepEqual([...gates].sort(), ["c3_bmc_complete", "c3_swot_complete", "c3_swot_quantified"]);
     assert.equal(cores.length, 5);
   });
@@ -57,13 +57,13 @@ describe("CP3 catalog", () => {
       if (file === "cp3_full_resubmit_v1.md" && ids.length === 0) continue; // resubmit reuses the review table by reference
       assert.deepEqual([...ids].sort(), [...CP3_FULL_IDS].sort(), file);
     }
-    assert.equal(promptIds("cp3_full_review_v1.md").length, 24);
+    assert.equal(promptIds("cp3_full_review_v1.md").length, 23);
   });
 
   it("graded questions are exactly the template's questions and no MVP/UX question remains", () => {
     const all = TEMPLATE_REGISTRY.cp3.phases.flatMap((p) => p.questions.map((q) => q.question_id));
     assert.deepEqual([...CP3_GRADED_QUESTION_IDS], all);
-    assert.equal(CP3_GRADED_QUESTION_IDS.length, 20);
+    assert.equal(CP3_GRADED_QUESTION_IDS.length, 19);
     assert.equal(all.some((id) => /mvp|persona|flow|wireframe|mockup|ux/.test(id)), false);
   });
 });

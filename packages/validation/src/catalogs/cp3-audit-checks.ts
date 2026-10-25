@@ -38,7 +38,6 @@ export const CP3_FULL_CHECKS = {
   c3_strategies_complete: { group: "strategy", tier: "core", label: "Đủ bốn loại chiến lược" },
   c3_strategy_pairing: { group: "strategy", tier: "core", label: "Chiến lược truy được về yếu tố SWOT" },
   c3_strategy_actionable: { group: "strategy", tier: "normal", label: "Chiến lược làm được, có căn cứ" },
-  c3_findings_grounded: { group: "conclusion", tier: "normal", label: "Phát hiện chính cụ thể, khớp phần trên" },
   c3_feasibility_evidence: { group: "conclusion", tier: "normal", label: "Khả thi có bằng chứng, nêu điều chưa chắc" },
   c3_next_steps_actionable: { group: "conclusion", tier: "normal", label: "Bước tiếp theo cụ thể" },
 } as const satisfies Record<string, Cp2CheckDef<Cp3FullGroup>>;

@@ -230,20 +230,6 @@ export const CP3_QUESTIONS = {
 
   // ── Kết luận ──────────────────────────────────────────────────────────────
 
-  cp3_key_findings: {
-    id: "cp3_key_findings",
-    text: "Phát hiện chính của nhóm là gì?",
-    explanation:
-      "Tóm tắt trong một đoạn ngắn, khớp với các phần trên. Cần nêu:\n" +
-      "- Vấn đề khách hàng đang gặp\n" +
-      "- Vì sao các giải pháp hiện có chưa đủ\n" +
-      "- Dữ liệu thực tế chứng minh được điều gì\n" +
-      "Không đạt: \"Dự án có tiềm năng lớn.\"\n" +
-      "Đạt: \"Sinh viên mất 30 đến 60 phút tìm chỗ học nhóm; nhắn tin hỏi từng quán không biết còn bàn. " +
-      "Thử nghiệm với 25 sinh viên: 20 người nói tìm chỗ nhanh hơn.\"",
-    suggested_actions: ["Mọi ý đều lấy lại từ phần BMC hoặc SWOT, không thêm ý mới."],
-  },
-
   cp3_business_feasibility: {
     id: "cp3_business_feasibility",
     text: "Vì sao nhóm tin dự án khả thi về mặt kinh doanh?",
