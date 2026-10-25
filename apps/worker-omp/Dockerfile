@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Oh My Pi globally with Bun (pinned to stable version)
-ARG OMP_VERSION=18.2.6
+ARG OMP_VERSION=18.12.6
 RUN bun add -g @oh-my-pi/pi-coding-agent@${OMP_VERSION}
 
 ENV PATH="/root/.bun/bin:${PATH}"
