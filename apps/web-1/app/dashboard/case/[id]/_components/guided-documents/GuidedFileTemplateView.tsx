@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
-import { Blockquote, Button } from "@mantine/core";
-import { CaretLeft as ChevronLeft, DownloadSimple as Download } from "@phosphor-icons/react";
+import { Button } from "@mantine/core";
+import { CaretLeft as ChevronLeft } from "@phosphor-icons/react";
 import type { FileTemplate } from "@repo/validation";
+import FileTemplateDownload from "./FileTemplateDownload";
 
 interface GuidedFileTemplateViewProps {
   template: FileTemplate;
@@ -24,20 +25,7 @@ export default function GuidedFileTemplateView({ template, onBack }: GuidedFileT
         <p className="text-xs text-text-muted">{template.description}</p>
       </div>
 
-      <div>
-        <Button
-          component="a"
-          href={template.file_url}
-          download={template.file_name}
-          leftSection={<Download className="w-4 h-4" />}
-        >
-          Tải {template.file_name}
-        </Button>
-      </div>
-
-      <Blockquote color="blue" radius="md" p="md" style={{ whiteSpace: "pre-line" }}>
-        {template.instructions}
-      </Blockquote>
+      <FileTemplateDownload template={template} />
     </div>
   );
 }
