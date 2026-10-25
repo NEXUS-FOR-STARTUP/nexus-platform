@@ -1,13 +1,13 @@
 "use client";
 
 import GuidedDocumentsEditor from "../../guided-documents/GuidedDocumentsEditor";
-import type { useGuidedDrafts } from "../../../hooks/useGuidedDrafts";
+import type { GuidedDraftsApi } from "../../../hooks/useGuidedDrafts";
 import type { TemplateKey } from "@repo/validation";
 
 interface StageDraftViewProps {
   caseId: string;
   templateKey: TemplateKey;
-  draftsApi: ReturnType<typeof useGuidedDrafts>;
+  draftsApi: GuidedDraftsApi;
   onBack: () => void;
 }
 

@@ -27,7 +27,7 @@ export default function StageDraftOnly({ caseId, stage, summary, draftsApi, onBa
         templateKey={templateKey}
         view="draft"
         summary={summary}
-        draftQuestionIds={Object.keys(draftsApi.drafts)}
+        draftsApi={draftsApi}
         onBack={onBack}
       />
       <StageDraftView caseId={caseId} templateKey={templateKey} draftsApi={draftsApi} onBack={onBack} />

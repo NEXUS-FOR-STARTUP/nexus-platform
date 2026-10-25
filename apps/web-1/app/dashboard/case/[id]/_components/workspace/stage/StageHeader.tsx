@@ -4,6 +4,7 @@ import { StatusChip } from "@/components/ui/StatusChip";
 import type { StageDefinition } from "@app/shared/stages";
 import { TEMPLATE_REGISTRY, type TemplateKey } from "@repo/validation";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
+import type { GuidedDraftsApi } from "../../../hooks/useGuidedDrafts";
 import { Button } from "../../ui/Button";
 import type { StageView } from "../stage-view";
 import StageActionsMenu from "./StageActionsMenu";
@@ -16,7 +17,7 @@ interface StageHeaderProps {
   view: StageView;
   summary?: StageSummary;
   creditsRemaining?: number;
-  draftQuestionIds: string[];
+  draftsApi: GuidedDraftsApi;
   onBack: () => void;
   onAudit?: () => void;
   onBuyCredits?: () => void;
@@ -29,7 +30,7 @@ export default function StageHeader({
   view,
   summary,
   creditsRemaining = 0,
-  draftQuestionIds,
+  draftsApi,
   onBack,
   onAudit,
   onBuyCredits,
@@ -71,7 +72,7 @@ export default function StageHeader({
 
         <div className={s.actions}>
           {view === "draft" && (
-            <StageActionsMenu caseId={caseId} templateKey={templateKey} draftQuestionIds={draftQuestionIds} />
+            <StageActionsMenu caseId={caseId} templateKey={templateKey} draftsApi={draftsApi} />
           )}
           {graded &&
             (hasCredits ? (

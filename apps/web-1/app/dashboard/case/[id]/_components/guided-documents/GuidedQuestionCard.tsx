@@ -3,6 +3,7 @@
 import type { ReactNode, Ref } from "react";
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { QUESTION_REGISTRY, type Classification, type Question } from "@repo/validation";
+import type { SaveState } from "../../hooks/useGuidedDrafts";
 import { Button } from "../ui/Button";
 import { countWords, isThinAnswer, THIN_ANSWER_WORDS } from "./answer-quality";
 import s from "./guided-editor.module.css";
@@ -21,6 +22,9 @@ interface GuidedQuestionCardProps {
   classification: Classification;
   value: string;
   isDirty: boolean;
+  /** True when the draft is saved automatically (edited in this visit). */
+  autoSave: boolean;
+  saveState: SaveState;
   onChange: (value: string) => void;
   onSave: (questionId: string, value: string) => Promise<void>;
   isSaving: boolean;
@@ -37,6 +41,8 @@ export default function GuidedQuestionCard({
   questionId,
   value,
   isDirty,
+  autoSave,
+  saveState,
   onChange,
   onSave,
   isSaving,
@@ -50,7 +56,18 @@ export default function GuidedQuestionCard({
 }: GuidedQuestionCardProps) {
   const question = (QUESTION_REGISTRY as Record<string, Question | undefined>)[questionId];
   const wordCount = countWords(value);
-  const savedLabel = isDirty ? "Chưa lưu" : value.trim() ? "Đã lưu" : "Chưa có câu trả lời";
+  const savedLabel =
+    saveState === "error" && isDirty
+      ? "Chưa lưu được, đang chờ kết nối để thử lại"
+      : isDirty
+        ? saveState === "saving"
+          ? "Đang lưu…"
+          : autoSave
+            ? "Chưa lưu, sẽ tự lưu sau khi bạn ngừng gõ"
+            : "Chưa lưu"
+        : value.trim()
+          ? "Đã lưu"
+          : "Chưa có câu trả lời";
 
   return (
     <section className={s.q}>

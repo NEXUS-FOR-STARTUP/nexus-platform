@@ -84,6 +84,8 @@ export default function StageDetail({
     }
   };
   const handleConfirmAudit = async (args: { scope: string; inputSource: Cp2InputSource; submissionType: "initial" | "resubmit"; changeSummary?: string; userNote?: string }) => {
+    // Grading reads the saved answers: make sure what the user just typed is on the server first.
+    if (!(await draftsApi.flush())) return;
     const note = {
       ...(args.changeSummary ? { change_summary: args.changeSummary } : {}),
       ...(args.userNote ? { user_note: args.userNote } : {}),
@@ -109,7 +111,7 @@ export default function StageDetail({
         stage={stage}
         templateKey={templateKey}
         view={view}
-        draftQuestionIds={Object.keys(draftsApi.drafts)}
+        draftsApi={draftsApi}
         summary={summary}
         creditsRemaining={creditsRemaining}
         onBack={onBack}

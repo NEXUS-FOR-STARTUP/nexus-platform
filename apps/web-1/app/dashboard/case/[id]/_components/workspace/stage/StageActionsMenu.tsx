@@ -1,26 +1,34 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { Tooltip } from "@mantine/core";
 import { DownloadSimpleIcon, DotsThreeIcon, ArrowsClockwiseIcon } from "@phosphor-icons/react";
 import type { TemplateKey } from "@repo/validation";
 import { useGuidedDocuments } from "../../../hooks/useGuidedDocuments";
+import type { GuidedDraftsApi } from "../../../hooks/useGuidedDrafts";
 import { useSyncPending } from "../../../hooks/useSyncPending";
 import s from "./stage-actions-menu.module.css";
 
 const SYNC_TOOLTIP =
   "Tự điền các câu còn trống bằng thông tin đã lưu: câu trả lời ở các vòng trước (cùng nội dung câu hỏi), cùng ý tưởng và đội nhóm bạn đã khai. Câu đã có nội dung hoặc đang gõ dở được giữ nguyên.";
 const DOCX_TOOLTIP =
-  "Tạo và tải về file DOCX từ các câu trả lời đã lưu của bước này. Câu chưa lưu sẽ không có trong file.";
+  "Tự lưu các câu bạn vừa gõ, rồi tạo và tải về file DOCX từ các câu trả lời đã lưu của bước này.";
+
+const SEEN_EVENT = "nexus:sync-hint-seen";
+
+function subscribeSeen(onChange: () => void) {
+  window.addEventListener(SEEN_EVENT, onChange);
+  return () => window.removeEventListener(SEEN_EVENT, onChange);
+}
 
 interface StageActionsMenuProps {
   caseId: string;
   templateKey: TemplateKey;
-  /** Unsaved draft question ids, so sync never overwrites what the user is typing. */
-  draftQuestionIds: string[];
+  /** Same drafts the editor edits: flushed before any action, and skipped by sync so typing is never overwritten. */
+  draftsApi: GuidedDraftsApi;
 }
 
-export default function StageActionsMenu({ caseId, templateKey, draftQuestionIds }: StageActionsMenuProps) {
+export default function StageActionsMenu({ caseId, templateKey, draftsApi }: StageActionsMenuProps) {
   const { syncAnswers, generateDocx, isSyncing, isGenerating } = useGuidedDocuments(caseId, templateKey);
   const pending = useSyncPending(caseId, templateKey);
   // The first stage has no earlier answers to carry over; the hint is only for later stages.
@@ -29,11 +37,10 @@ export default function StageActionsMenu({ caseId, templateKey, draftQuestionIds
 
   // The trigger dot is a one-time hint: opening the menu once dismisses it for this case + stage.
   const seenKey = `nexus:sync-hint-seen:${caseId}:${templateKey}`;
-  const [seen, setSeen] = useState(true);
-  useEffect(() => setSeen(localStorage.getItem(seenKey) === "1"), [seenKey]);
+  const seen = useSyncExternalStore(subscribeSeen, () => localStorage.getItem(seenKey) === "1", () => true);
   const markSeen = () => {
     localStorage.setItem(seenKey, "1");
-    setSeen(true);
+    window.dispatchEvent(new Event(SEEN_EVENT));
   };
 
   // A native <details> stays open on outside click/Escape, so close it the way a menu should.
@@ -51,9 +58,10 @@ export default function StageActionsMenu({ caseId, templateKey, draftQuestionIds
     };
   }, []);
 
-  const run = (action: () => void) => () => {
+  // Answers are saved first: sync and DOCX read the server copy, which would otherwise be stale.
+  const run = (action: () => void) => async () => {
     if (ref.current) ref.current.open = false;
-    action();
+    if (await draftsApi.flush()) action();
   };
 
   return (
@@ -64,7 +72,7 @@ export default function StageActionsMenu({ caseId, templateKey, draftQuestionIds
       </summary>
       <div className={s.pop} role="menu">
         <Tooltip label={SYNC_TOOLTIP} position="left" multiline maw={280} withArrow>
-          <button type="button" role="menuitem" disabled={isSyncing} onClick={run(() => syncAnswers(draftQuestionIds))}>
+          <button type="button" role="menuitem" disabled={isSyncing} onClick={run(() => syncAnswers(draftsApi.pendingIds()))}>
             <ArrowsClockwiseIcon size={16} aria-hidden />
             Đồng bộ thông tin
             {hasHint && <span className={`${s.dot} ${s.itemDot}`} aria-label="Có câu trả lời để đồng bộ" />}
