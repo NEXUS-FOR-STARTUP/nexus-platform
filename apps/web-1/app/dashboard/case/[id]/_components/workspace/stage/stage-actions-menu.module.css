@@ -24,6 +24,27 @@
   background: var(--color-surface-soft);
 }
 
+.menu > summary {
+  position: relative;
+}
+
+.dot {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-danger);
+  border: 2px solid var(--color-surface);
+}
+
+.pop .itemDot {
+  position: static;
+  margin-left: auto;
+  flex: none;
+}
+
 .pop {
   position: absolute;
   right: 0;
