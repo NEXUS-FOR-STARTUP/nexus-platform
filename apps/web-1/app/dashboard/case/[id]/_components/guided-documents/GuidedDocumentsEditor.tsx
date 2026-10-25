@@ -49,7 +49,7 @@ export default function GuidedDocumentsEditor({
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [confirmBackOpen, { open: openConfirmBack, close: closeConfirmBack }] = useDisclosure(false);
-  const { drafts, saveState, setDraft, clearDrafts, isQueued, flush } = draftsApi;
+  const { drafts, saveState, setDraft, clearDrafts, isQueued, recoveredIds, flush } = draftsApi;
 
   const templateDraftIds = flat.map((q) => q.question_id).filter((id) => id in drafts);
 
@@ -126,6 +126,17 @@ export default function GuidedDocumentsEditor({
         </div>
       )}
 
+      {recoveredIds().length > 0 && (
+        <div role="alert" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <p className={s.warn}>
+            Có {recoveredIds().length} câu nháp chưa lưu từ lần trước. Bản nháp có thể cũ hơn nội dung đã lưu, nên hệ thống chưa tự lưu.
+          </p>
+          <div className="flex gap-2">
+            <Button onClick={() => flush(recoveredIds())}>Lưu lên hệ thống</Button>
+            <Button variant="quiet" onClick={() => clearDrafts(recoveredIds())}>Bỏ bản nháp</Button>
+          </div>
+        </div>
+      )}
       <div className={s.layout}>
         <div className={s.toc}>
           <GuidedTOC

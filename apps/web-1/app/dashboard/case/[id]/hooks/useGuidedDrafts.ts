@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { isAxiosError } from 'axios';
 import { apiClient } from '@/lib/api-client';
-import { createSaveQueue, type Drafts, type SaveQueue } from '@/lib/save-queue';
+import { createSaveQueue, recoveredDraftIds, type Drafts, type SaveQueue } from '@/lib/save-queue';
 import { guidedAnswersQueryKey } from './useGuidedAnswers';
 
 /** Quiet time after the last keystroke before the draft is sent to the server. */
@@ -62,9 +62,12 @@ export interface GuidedDraftsApi {
   isQueued: (questionId: string) => boolean;
   /** Ids of drafts that exist right now (reads live state, not the last render). */
   pendingIds: () => string[];
+  /** Ids of drafts restored from an earlier visit and not yet saved or discarded by the user. */
+  recoveredIds: () => string[];
   /**
    * Sends every auto-saved draft (plus `extraIds`, an explicit save) and resolves true once the
-   * server has them all. On failure it tells the user and resolves false; callers must stop.
+   * server has them all. Resolves false, after telling the user, on a save failure or while restored
+   * drafts are unresolved: the server copy is stale then, so callers (DOCX, sync, grading) must stop.
    */
   flush: (extraIds?: readonly string[]) => Promise<boolean>;
 }
@@ -198,6 +201,14 @@ export function useGuidedDrafts(caseId: string): GuidedDraftsApi {
   const flush = useCallback(
     async (extraIds: readonly string[] = []) => {
       for (const id of extraIds) queuedRef.current.add(id);
+      if (recoveredDraftIds(draftsRef.current, queuedRef.current).length > 0) {
+        notifications.show({
+          title: 'Có bản nháp chưa lưu từ lần trước',
+          message: 'Hãy lưu hoặc bỏ các bản nháp đó trong phần Soạn thảo trước khi tiếp tục.',
+          color: 'orange',
+        });
+        return false;
+      }
       clearTimeout(timerRef.current);
       try {
         await persist();
@@ -252,6 +263,7 @@ export function useGuidedDrafts(caseId: string): GuidedDraftsApi {
 
   const isQueued = useCallback((questionId: string) => queuedRef.current.has(questionId), []);
   const pendingIds = useCallback(() => Object.keys(draftsRef.current), []);
+  const recoveredIds = useCallback(() => recoveredDraftIds(draftsRef.current, queuedRef.current), []);
 
-  return { drafts, saveState, setDraft, clearDraft, clearDrafts, isQueued, pendingIds, flush };
+  return { drafts, saveState, setDraft, clearDraft, clearDrafts, isQueued, pendingIds, recoveredIds, flush };
 }

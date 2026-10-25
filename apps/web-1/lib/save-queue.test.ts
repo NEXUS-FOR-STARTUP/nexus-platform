@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createSaveQueue, type Drafts } from "./save-queue.js";
+import { createSaveQueue, recoveredDraftIds, type Drafts } from "./save-queue.js";
 
 function makeStore(initial: Drafts) {
   const state = { ...initial };
@@ -62,4 +62,13 @@ test("concurrent flush calls share one in-flight loop", async () => {
   const queue = createSaveQueue(store, async () => void calls++);
   await Promise.all([queue.flush(), queue.flush()]);
   assert.equal(calls, 1);
+});
+
+test("a draft restored from an earlier visit stays unresolved until the user queues it (explicit save) or drops it", () => {
+  const restored: Drafts = { q1: "old text", q2: "typed now" };
+  const queued = new Set(["q2"]);
+  assert.deepEqual(recoveredDraftIds(restored, queued), ["q1"]);
+  queued.add("q1"); // explicit save
+  assert.deepEqual(recoveredDraftIds(restored, queued), []);
+  assert.deepEqual(recoveredDraftIds({ q2: "typed now" }, new Set()), ["q2"], "nothing is queued after a reload");
 });

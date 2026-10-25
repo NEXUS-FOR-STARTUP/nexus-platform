@@ -42,3 +42,12 @@ export function createSaveQueue(store: DraftStore, send: (drafts: Drafts) => Pro
     },
   };
 }
+
+/**
+ * Drafts that exist but are not queued: restored from an earlier visit and never edited in this one.
+ * They may be older than what the server holds (another device saved since), so they are never
+ * auto-saved; the user must save or discard them before anything that reads server answers runs.
+ */
+export function recoveredDraftIds(drafts: Drafts, queued: ReadonlySet<string>): string[] {
+  return Object.keys(drafts).filter((id) => !queued.has(id));
+}
