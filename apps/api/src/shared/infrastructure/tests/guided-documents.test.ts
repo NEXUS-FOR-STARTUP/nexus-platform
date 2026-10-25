@@ -40,6 +40,23 @@ test('Guided Documents — preserves single newlines in answers', async () => {
   assert.match(extracted, /Đoạn 1\n\nĐoạn 2/);
 });
 
+test('Guided Documents — marks supplemental questions as TUỲ CHỌN and keeps required blanks distinct', async () => {
+  const buffer = await generateGuidedDocumentDocx({
+    templateKey: 'cp4',
+    caseTitle: 'Nexus EduTech',
+    answersMap: {},
+  });
+  const { value: text } = await mammoth.extractRawText({ buffer });
+
+  assert.match(text, /Nhóm có nguồn vốn nào.*\(TUỲ CHỌN\)|\(TUỲ CHỌN\)/);
+  assert.match(text, /\[TUỲ CHỌN: nhóm không trả lời\]/);
+  assert.match(text, /\[Chưa có nội dung trả lời\]/);
+  const optionalBlanks = text.match(/\[TUỲ CHỌN: nhóm không trả lời\]/g) ?? [];
+  const requiredBlanks = text.match(/\[Chưa có nội dung trả lời\]/g) ?? [];
+  assert.equal(optionalBlanks.length, 4, 'cp4 has 4 supplemental questions');
+  assert.equal(requiredBlanks.length, 5, 'cp4 has 5 required questions');
+});
+
 test('Guided Documents — extracts text and matches questions from text/md buffer', async () => {
   const sampleDoc = `
 Dự án: Nền tảng học nhóm

@@ -13,6 +13,16 @@ import {
 } from 'docx';
 import { TEMPLATE_REGISTRY, QUESTION_REGISTRY, type Template, type TemplateKey } from '@repo/validation';
 
+const OPTIONAL_LABEL = 'TUỲ CHỌN';
+const EMPTY_REQUIRED_TEXT = '[Chưa có nội dung trả lời]';
+const EMPTY_OPTIONAL_TEXT = '[TUỲ CHỌN: nhóm không trả lời]';
+const OPTIONAL_BADGE_COLOR = 'C05621';
+
+/** Nhãn viết hoa để người đọc và agent hiểu câu này có thể không có câu trả lời. */
+function optionalBadge(size: number): TextRun {
+  return new TextRun({ text: ` (${OPTIONAL_LABEL})`, bold: true, size, color: OPTIONAL_BADGE_COLOR });
+}
+
 export interface DocxGenerationInput {
   templateKey: TemplateKey;
   answersMap: Record<string, string>;
@@ -117,6 +127,7 @@ export async function generateGuidedDocumentDocx(
               size: 20,
               color: '4A5568',
             }),
+            ...(tq.classification === 'supplemental' ? [optionalBadge(20)] : []),
           ],
         }),
       );
@@ -162,6 +173,7 @@ export async function generateGuidedDocumentDocx(
       const q = questionsRecord[tq.question_id];
       const qText = q ? q.text : tq.question_id;
       const answer = input.answersMap[tq.question_id]?.trim();
+      const isOptional = tq.classification === 'supplemental';
 
       children.push(
         new Paragraph({
@@ -174,6 +186,7 @@ export async function generateGuidedDocumentDocx(
               size: 22, // 11pt
               color: '2D3748',
             }),
+            ...(isOptional ? [optionalBadge(22)] : []),
           ],
         }),
       );
@@ -205,7 +218,7 @@ export async function generateGuidedDocumentDocx(
             indent: { left: 360 },
             children: [
               new TextRun({
-                text: '[Chưa có nội dung trả lời]',
+                text: isOptional ? EMPTY_OPTIONAL_TEXT : EMPTY_REQUIRED_TEXT,
                 italics: true,
                 size: 20,
                 color: 'A0AEC0',
