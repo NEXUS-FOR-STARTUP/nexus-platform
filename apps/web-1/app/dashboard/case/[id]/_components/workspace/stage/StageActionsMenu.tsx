@@ -9,10 +9,8 @@ import type { GuidedDraftsApi } from "../../../hooks/useGuidedDrafts";
 import { useSyncPending } from "../../../hooks/useSyncPending";
 import s from "./stage-actions-menu.module.css";
 
-const SYNC_TOOLTIP =
-  "Tự điền các câu còn trống bằng thông tin đã lưu: câu trả lời ở các vòng trước (cùng nội dung câu hỏi), cùng ý tưởng và đội nhóm bạn đã khai. Câu đã có nội dung hoặc đang gõ dở được giữ nguyên.";
-const DOCX_TOOLTIP =
-  "Tự lưu các câu bạn vừa gõ, rồi tạo và tải về file DOCX từ các câu trả lời đã lưu của bước này.";
+const SYNC_TOOLTIP = "Điền các câu còn trống từ thông tin bạn đã lưu trước đó. Câu đã có nội dung được giữ nguyên.";
+const DOCX_TOOLTIP = "Lưu câu trả lời rồi tải về file DOCX.";
 
 const SEEN_EVENT = "nexus:sync-hint-seen";
 

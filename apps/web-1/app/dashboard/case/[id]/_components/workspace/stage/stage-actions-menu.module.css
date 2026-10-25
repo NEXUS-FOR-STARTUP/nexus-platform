@@ -50,6 +50,7 @@
   right: 0;
   top: 46px;
   z-index: 5;
+  width: max-content;
   min-width: 200px;
   padding: 6px;
   border: 1px solid var(--color-border);
@@ -59,6 +60,7 @@
 }
 
 .pop button {
+  white-space: nowrap;
   display: flex;
   align-items: center;
   gap: 8px;
