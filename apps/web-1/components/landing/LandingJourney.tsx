@@ -5,17 +5,16 @@ import s from "./landingSections.module.css";
 
 interface Stage {
   title: string;
-  text?: string;
+  text: string;
   Icon: Icon;
   numClass: string;
-  soon?: boolean;
 }
 
 const STAGES: Stage[] = [
   { title: "Ý tưởng", text: "Làm rõ ý tưởng, đối tượng khách hàng và giá trị cốt lõi.", Icon: Lightbulb, numClass: s.n1 },
   { title: "Thị trường", text: "Phân tích thị trường, đối thủ và xác thực nhu cầu.", Icon: ChartLine, numClass: s.n2 },
-  { title: "Sản phẩm & mô hình", text: "Định hình sản phẩm, mô hình vận hành và lộ trình phát triển.", Icon: Layers, numClass: s.n3 },
-  { title: "Gọi vốn & tài chính", Icon: Landmark, numClass: s.n4, soon: true },
+  { title: "Mô hình kinh doanh", text: "Hoàn thiện mô hình kinh doanh, SWOT và chiến lược.", Icon: Layers, numClass: s.n3 },
+  { title: "Tài chính & pitch", text: "Lập kế hoạch tài chính và soạn nội dung bài pitch 10 mục.", Icon: Landmark, numClass: s.n4 },
 ];
 
 export default function LandingJourney() {
@@ -27,12 +26,12 @@ export default function LandingJourney() {
           <h2 className={base.title}>Bốn giai đoạn, từng bước một</h2>
         </div>
         <div className={s.stages} data-stagger>
-          {STAGES.map(({ title, text, Icon, numClass, soon }, i) => (
-            <article key={title} className={`${s.stage} ${soon ? s.soon : ""}`}>
+          {STAGES.map(({ title, text, Icon, numClass }, i) => (
+            <article key={title} className={s.stage}>
               <Icon size={24} className={s.stageIc} aria-hidden="true" />
               <span className={`${s.num} ${numClass}`}>{i + 1}</span>
               <h3>{title}</h3>
-              {text ? <p>{text}</p> : <span className={s.tag}>Sắp ra mắt</span>}
+              <p>{text}</p>
             </article>
           ))}
         </div>

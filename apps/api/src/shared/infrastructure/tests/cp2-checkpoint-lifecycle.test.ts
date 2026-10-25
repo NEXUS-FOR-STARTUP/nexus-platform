@@ -145,3 +145,35 @@ test('docx for cp2 resolves/creates CP2 and never falls back to the first checkp
     restoreAll();
   }
 });
+
+test('docx never points current_checkpoint at a stage after CP1; CP1 still does', async () => {
+  const STOP = new Error('stop-before-upload');
+  for (const [templateKey, expectedUpdates] of [['cp2', []], ['cp4', []], ['cp1', ['CP1']]] as const) {
+    const rows: CheckpointRow[] = [];
+    const { db } = fakeCheckpointDb(rows);
+    const updates: unknown[] = [];
+    swap(prisma.case, 'findUnique', (async () => ({
+      id: CASE_ID,
+      case_code: 'C-1',
+      team_name: 'Team',
+      current_checkpoint: null,
+      checkpoints: [],
+    })) as never);
+    swap(prisma, '$transaction', (async (fn: (tx: unknown) => Promise<unknown>) =>
+      fn({
+        ...db,
+        case: { update: async ({ data }: { data: { current_checkpoint: string } }) => updates.push(data.current_checkpoint) },
+      })) as never);
+    swap(prisma.projectAnswer, 'findMany', (async () => {
+      throw STOP;
+    }) as never);
+
+    try {
+      await assert.rejects(() => generateDocxUseCase({ caseId: CASE_ID, userId: OWNER_ID, templateKey }), STOP);
+      assert.deepEqual(updates, expectedUpdates, templateKey);
+      assert.equal(rows.length, 1, templateKey);
+    } finally {
+      restoreAll();
+    }
+  }
+});

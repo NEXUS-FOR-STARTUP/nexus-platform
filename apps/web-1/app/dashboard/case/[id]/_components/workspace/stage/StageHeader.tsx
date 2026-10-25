@@ -4,6 +4,7 @@ import { StatusChip } from "@/components/ui/StatusChip";
 import type { StageDefinition } from "@app/shared/stages";
 import { TEMPLATE_REGISTRY, type TemplateKey } from "@repo/validation";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
+import type { GuidedDraftsApi } from "../../../hooks/useGuidedDrafts";
 import { Button } from "../../ui/Button";
 import type { StageView } from "../stage-view";
 import StageActionsMenu from "./StageActionsMenu";
@@ -15,11 +16,11 @@ interface StageHeaderProps {
   templateKey: TemplateKey;
   view: StageView;
   summary?: StageSummary;
-  creditsRemaining: number;
-  draftQuestionIds: string[];
+  creditsRemaining?: number;
+  draftsApi: GuidedDraftsApi;
   onBack: () => void;
-  onAudit: () => void;
-  onBuyCredits: () => void;
+  onAudit?: () => void;
+  onBuyCredits?: () => void;
 }
 
 export default function StageHeader({
@@ -28,20 +29,23 @@ export default function StageHeader({
   templateKey,
   view,
   summary,
-  creditsRemaining,
-  draftQuestionIds,
+  creditsRemaining = 0,
+  draftsApi,
   onBack,
   onAudit,
   onBuyCredits,
 }: StageHeaderProps) {
-  const isGrading = summary?.status === "grading";
-  const hasResult = summary?.status === "has_result";
+  // Stages without a grading service have no credits, files or grading actions.
+  const graded = stage.serviceType !== null;
+  const isGrading = graded && summary?.status === "grading";
+  const hasResult = graded && summary?.status === "has_result";
   const questionCount = TEMPLATE_REGISTRY[stage.templateKey]?.phases.flatMap((p) => p.questions).length ?? 0;
   const hasCredits = creditsRemaining > 0;
   const meta = [
     `${summary?.answered_count ?? 0}/${questionCount} câu`,
-    `${summary?.file_count ?? 0} tệp`,
-    hasCredits ? `còn ${creditsRemaining} lượt chấm` : "hết lượt chấm",
+    ...(graded
+      ? [`${summary?.file_count ?? 0} tệp`, hasCredits ? `còn ${creditsRemaining} lượt chấm` : "hết lượt chấm"]
+      : []),
   ].join(" · ");
 
   return (
@@ -68,15 +72,16 @@ export default function StageHeader({
 
         <div className={s.actions}>
           {view === "draft" && (
-            <StageActionsMenu caseId={caseId} templateKey={templateKey} draftQuestionIds={draftQuestionIds} />
+            <StageActionsMenu caseId={caseId} templateKey={templateKey} draftsApi={draftsApi} />
           )}
-          {hasCredits ? (
-            <Button disabled={isGrading} onClick={onAudit}>
-              {hasResult ? "Chấm lại" : "Chấm bài"}
-            </Button>
-          ) : (
-            <Button onClick={onBuyCredits}>Mua lượt chấm</Button>
-          )}
+          {graded &&
+            (hasCredits ? (
+              <Button disabled={isGrading} onClick={onAudit}>
+                {hasResult ? "Chấm lại" : "Chấm bài"}
+              </Button>
+            ) : (
+              <Button onClick={onBuyCredits}>Mua lượt chấm</Button>
+            ))}
         </div>
       </div>
     </div>

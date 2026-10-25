@@ -1,7 +1,8 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { cp1, cp2, cp3, cp4, validateCatalog, CATALOG_VERSION, type Template } from "../index.js";
+import { cp1, cp2, cp3, cp4, pitch, TEMPLATE_REGISTRY, validateCatalog, CATALOG_VERSION, type Template } from "../index.js";
 import { validateFurtherReading } from "../catalogs/validate-catalog.js";
+import { CP2_QUESTIONS } from "../catalogs/questions-cp2.js";
 
 describe("Catalog validation (@repo/validation)", () => {
   it("validates the CP1 template", () => {
@@ -18,6 +19,23 @@ describe("Catalog validation (@repo/validation)", () => {
 
   it("validates the CP4 template", () => {
     assert.doesNotThrow(() => validateCatalog(cp4));
+  });
+
+  it("validates the Pitch deck template", () => {
+    assert.doesNotThrow(() => validateCatalog(pitch));
+  });
+
+  it("keeps every question in exactly one template, under that template's prefix", () => {
+    const owner = new Map<string, string>();
+    for (const [key, template] of Object.entries(TEMPLATE_REGISTRY)) {
+      for (const phase of template.phases) {
+        for (const { question_id } of phase.questions) {
+          assert.ok(question_id.startsWith(`${key}_`), `${question_id} not under ${key}_`);
+          assert.equal(owner.get(question_id), undefined, `${question_id} in ${owner.get(question_id)} and ${key}`);
+          owner.set(question_id, key);
+        }
+      }
+    }
   });
 
   it("rejects a template with a dependency cycle", () => {
@@ -103,5 +121,31 @@ describe("Catalog validation (@repo/validation)", () => {
 
   it("exports a non-empty CATALOG_VERSION", () => {
     assert.ok(CATALOG_VERSION.length > 0);
+  });
+
+  it("CP2 no longer asks for ungraded report items", () => {
+    const ids = new Set(cp2.phases.flatMap((p) => p.questions.map((q) => q.question_id as string)));
+    for (const removed of [
+      "cp2_ai_disclosure",
+      "cp2_harvard_referencing",
+      "cp2_appendix",
+      "cp2_format",
+      "cp2_porters_five_forces",
+      "cp2_debate_defense",
+      "cp2_debate_attack",
+      "cp2_mvp_demo",
+    ]) {
+      assert.equal(ids.has(removed), false, removed);
+    }
+  });
+
+  it("CP2 interview and survey guidance stays method-neutral", () => {
+    const q = CP2_QUESTIONS;
+    assert.match(q.cp2_question_bank.explanation, /ít nhất một phần/);
+    assert.match(q.cp2_question_bank.explanation, /nếu có khảo sát/);
+    assert.doesNotMatch(q.cp2_question_bank.explanation, /chia làm 3 phần/);
+    assert.match(q.cp2_survey.explanation, /TÙY CHỌN/);
+    assert.doesNotMatch(q.cp2_survey.explanation, /Ẩn danh: form có/);
+    assert.match(q.cp2_survey.explanation, /nếu không thu thì ghi rõ là ẩn danh/);
   });
 });

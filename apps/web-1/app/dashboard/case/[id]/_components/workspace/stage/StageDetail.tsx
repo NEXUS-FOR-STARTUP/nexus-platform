@@ -9,9 +9,12 @@ import StageDraftView from "./StageDraftView";
 import StageFilesView from "./StageFilesView";
 import StageResultsView from "./StageResultsView";
 import StageGradingPanel from "./StageGradingPanel";
+import StageDraftOnly from "./StageDraftOnly";
+import { focusFirstAnswer } from "./focus-first-answer";
 import StageStartGuide from "./StageStartGuide";
 import AuditConfirmModal from "./AuditConfirmModal";
-import type { Cp2InputSource } from "@app/shared";
+import type { AuditCheckpointCode, Cp2InputSource } from "@app/shared";
+import { isSourceBasedStage } from "@/lib/audit-stage-ui";
 import ServiceCheckoutModal from "../../billing/ServiceCheckoutModal";
 import { useTriggerAudit } from "../../../hooks/useTriggerAudit";
 import { useGuidedDrafts } from "../../../hooks/useGuidedDrafts";
@@ -20,8 +23,6 @@ import classes from "../workspace-layout.module.css";
 import type { StageSummary } from "../../../hooks/useStageSummaries";
 import type { TemplateKey } from "@repo/validation";
 import type { Case, DocumentWorkspace, RoundHistoryEntry } from "@/types";
-
-const FOCUS_RETRY_FRAMES = 30;
 
 interface StageDetailProps {
   caseId: string;
@@ -60,15 +61,19 @@ export default function StageDetail({
   // Single source of unsaved drafts: the editor edits them, the header menu syncs around them.
   const draftsApi = useGuidedDrafts(caseId);
 
-  if (!stage || !stage.available) {
+  if (!stage) {
     return (
       <Paper p="xl" withBorder radius="md" style={{ textAlign: "center" }}>
-        <Text fw={600} size="md">Giai đoạn này sắp ra mắt</Text>
+        <Text fw={600} size="md">Không tìm thấy giai đoạn này</Text>
         <Text size="xs" c="dimmed" mt="xs">
-          Nội dung đang được hoàn thiện. Vui lòng quay lại Hành trình để tiếp tục các giai đoạn khả dụng.
+          Vui lòng quay lại Hành trình và chọn một giai đoạn.
         </Text>
       </Paper>
     );
+  }
+
+  if (!stage.serviceType) {
+    return <StageDraftOnly caseId={caseId} stage={stage} summary={summary} draftsApi={draftsApi} onBack={onBack} />;
   }
 
   const handleAuditClick = () => {
@@ -79,23 +84,24 @@ export default function StageDetail({
     }
   };
   const handleConfirmAudit = async (args: { scope: string; inputSource: Cp2InputSource; submissionType: "initial" | "resubmit"; changeSummary?: string; userNote?: string }) => {
+    // Grading reads the saved answers: make sure what the user just typed is on the server first.
+    if (!(await draftsApi.flush())) return;
+    const note = {
+      ...(args.changeSummary ? { change_summary: args.changeSummary } : {}),
+      ...(args.userNote ? { user_note: args.userNote } : {}),
+    };
     await triggerAudit({
-      ...(stage.code === "CP2"
-        ? { checkpoint: "CP2" as const, scope: args.scope === "questionnaire" ? ("questionnaire" as const) : ("full" as const), input_source: args.inputSource, ...(args.changeSummary ? { change_summary: args.changeSummary } : {}), ...(args.userNote ? { user_note: args.userNote } : {}) }
-        : {}),
+      ...(isSourceBasedStage(stage.code)
+        ? { checkpoint: stage.code as AuditCheckpointCode, scope: args.scope === "questionnaire" ? ("questionnaire" as const) : ("full" as const), input_source: args.inputSource, ...note }
+        : Object.keys(note).length > 0
+          ? { checkpoint: "CP1" as const, ...note }
+          : {}),
       submission_type: args.submissionType,
     });
   };
   const handleAnswerClick = () => {
     onViewChange("draft");
-    // Coming from another tab the editor mounts a few frames later; wait for it, then focus the first answer box.
-    let framesLeft = FOCUS_RETRY_FRAMES;
-    const focusEditor = () => {
-      const box = document.querySelector<HTMLTextAreaElement>("textarea");
-      if (box) box.focus();
-      else if (framesLeft-- > 0) requestAnimationFrame(focusEditor);
-    };
-    requestAnimationFrame(focusEditor);
+    focusFirstAnswer();
   };
 
   return (
@@ -105,7 +111,7 @@ export default function StageDetail({
         stage={stage}
         templateKey={templateKey}
         view={view}
-        draftQuestionIds={Object.keys(draftsApi.drafts)}
+        draftsApi={draftsApi}
         summary={summary}
         creditsRemaining={creditsRemaining}
         onBack={onBack}
@@ -116,7 +122,6 @@ export default function StageDetail({
       <StageStartGuide
         caseId={caseId}
         stageCode={stage.code}
-        isCp2={stage.code === "CP2"}
         summary={summary}
         creditsRemaining={creditsRemaining}
         onAnswer={handleAnswerClick}
@@ -183,16 +188,14 @@ export default function StageDetail({
         isLoading={isAuditPending}
       />
 
-      {stage.serviceType && (
-        <ServiceCheckoutModal
-          caseId={caseId}
-          serviceCode={stage.serviceType}
-          stageName={stage.name}
-          opened={checkoutOpen}
-          onClose={() => setCheckoutOpen(false)}
-          onPurchased={() => setAuditConfirmOpen(true)}
-        />
-      )}
+      <ServiceCheckoutModal
+        caseId={caseId}
+        serviceCode={stage.serviceType}
+        stageName={stage.name}
+        opened={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
+        onPurchased={() => setAuditConfirmOpen(true)}
+      />
     </Stack>
   );
 }

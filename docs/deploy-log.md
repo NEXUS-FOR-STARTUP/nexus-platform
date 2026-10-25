@@ -79,3 +79,4 @@ Sau khi xác minh, ghi 1 dòng theo format trên (ví dụ: `2026-08-03 HH:MM | 
 | 2026-10-16 11:37 | 5cdf5b4 | staging | fix(guided-documents)+chore(seed)+docs(plans): gộp thay đổi sau d3874f0, build sạch từ cây làm việc đã commit (api sha256:a1eb0cae4911 | web sha256:96f65f0716a6) | 🔵 api 🟢 web |
 | 2026-10-20 12:58 | 2973a8b | staging | merge: dev into staging (PR #53 landing/case/settings/wallet redesign, Phosphor icons, wallet totals API). Build sạch (api sha256:aed7bda36e8d | web sha256:c94cfca4af6d) | 🔵 api 🟢 web |
 | 2026-10-20 16:18 | 3eb5a0b | dev | merge: staging into dev (activity timeline events + marker colours). Build sạch (api sha256:11d6888e80e0 | web sha256:b0088f327e1d) | 🔵 api 🟢 web |
+| 2026-10-20 17:07 | 77420d2 | dev | feat(wallet): mô tả giao dịch ví theo gói/dự án/mã hồ sơ + script backfill case_events. Build sạch (api digest sha256:5726ea4a3241) | 🔵 api |

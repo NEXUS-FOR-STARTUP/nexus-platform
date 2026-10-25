@@ -16,6 +16,13 @@ export interface FurtherReading {
   title: string;
 }
 
+/** One selectable answer. `value` is stored and must stay stable; `label` may be reworded. */
+export interface QuestionOption {
+  value: string;
+  label: string;
+  description: string;
+}
+
 /** A canonical question. `id` matches its key in the question registry. */
 export interface Question {
   id: string;
@@ -23,6 +30,10 @@ export interface Question {
   explanation: string;
   suggested_actions: string[];
   further_reading?: readonly FurtherReading[];
+  /** Single-choice question: answer is a `ChoiceAnswer` (see answer-choice.ts), not free text. */
+  options?: readonly QuestionOption[];
+  /** Adds a "Khác" choice with a free-text field. Only meaningful together with `options`. */
+  allow_other?: boolean;
 }
 
 /** A question reference inside a template phase, with its per-template classification. */
@@ -74,6 +85,10 @@ export const QuestionSchema = z.object({
   further_reading: z
     .array(z.object({ url: z.url({ protocol: /^https$/ }), title: z.string().trim().min(1) }))
     .optional(),
+  options: z
+    .array(z.object({ value: z.string().min(1), label: z.string().min(1), description: z.string() }))
+    .optional(),
+  allow_other: z.boolean().optional(),
 });
 
 export const TemplateQuestionSchema = z.object({

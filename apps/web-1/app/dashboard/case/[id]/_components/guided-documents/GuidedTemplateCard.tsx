@@ -19,8 +19,6 @@ interface GuidedTemplateCardProps {
   answered: number;
   total: number;
   onOpen: () => void;
-  /** Khi true: thẻ mờ đi, có chữ "Coming soon" và không mở được. */
-  comingSoon?: boolean;
   /** Khi có: thẻ hiện nút bắt đầu thay cho tiến độ (checkpoint chưa mở). */
   startLabel?: string;
   starting?: boolean;
@@ -37,7 +35,6 @@ export default function GuidedTemplateCard({
   answered,
   total,
   onOpen,
-  comingSoon = false,
   startLabel,
   starting = false,
 }: GuidedTemplateCardProps) {
@@ -47,10 +44,9 @@ export default function GuidedTemplateCard({
   return (
     <UnstyledButton
       onClick={onOpen}
-      disabled={comingSoon}
       className={classes.card}
       style={{ alignSelf: "start" }}
-      aria-label={comingSoon ? `Biểu mẫu ${template.title} (Coming soon)` : `Mở biểu mẫu ${template.title}`}
+      aria-label={`Mở biểu mẫu ${template.title}`}
     >
       <Stack gap="sm">
         <Box className={classes.thumb} style={{ aspectRatio: THUMB_RATIO }}>
@@ -68,7 +64,7 @@ export default function GuidedTemplateCard({
                 filter: `blur(${COVER_BLUR_PX}px)`,
               }}
             />
-          ) : comingSoon ? null : (
+          ) : (
             <Stack h="100%" gap="xs" p="md">
               {template.phases.slice(0, MAX_COVER_PHASES).map((phase) => (
                 <Text key={phase.id} size="sm" c="dimmed" lineClamp={1}>
@@ -77,7 +73,6 @@ export default function GuidedTemplateCard({
               ))}
             </Stack>
           )}
-          {comingSoon && <span className={classes.comingSoon}>Coming soon</span>}
         </Box>
 
         <Stack gap={8}>

@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import type { Deposit } from "@/types/payment";
 
-export function useAdminDeposits() {
+export function useAdminDeposits(enabled = true) {
   const queryClient = useQueryClient();
 
   const depositsQuery = useQuery<Deposit[]>({
@@ -12,6 +12,7 @@ export function useAdminDeposits() {
       return response.data.deposits || [];
     },
     refetchInterval: 10000,
+    enabled,
   });
 
   const verifyDepositMutation = useMutation({

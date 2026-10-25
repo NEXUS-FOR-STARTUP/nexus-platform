@@ -40,6 +40,42 @@ test('Guided Documents — preserves single newlines in answers', async () => {
   assert.match(extracted, /Đoạn 1\n\nĐoạn 2/);
 });
 
+test('Guided Documents — marks supplemental questions as TUỲ CHỌN and keeps required blanks distinct', async () => {
+  const buffer = await generateGuidedDocumentDocx({
+    templateKey: 'cp4',
+    caseTitle: 'Nexus EduTech',
+    answersMap: {},
+  });
+  const { value: text } = await mammoth.extractRawText({ buffer });
+
+  assert.match(text, /Nhóm có nguồn vốn nào.*\(TUỲ CHỌN\)|\(TUỲ CHỌN\)/);
+  assert.match(text, /\[TUỲ CHỌN: nhóm không trả lời\]/);
+  assert.match(text, /\[Chưa có nội dung trả lời\]/);
+  const optionalBlanks = text.match(/\[TUỲ CHỌN: nhóm không trả lời\]/g) ?? [];
+  const requiredBlanks = text.match(/\[Chưa có nội dung trả lời\]/g) ?? [];
+  assert.equal(optionalBlanks.length, 5, 'cp4 has 5 supplemental questions');
+  assert.equal(requiredBlanks.length, 5, 'cp4 has 5 required questions');
+});
+
+test('Guided Documents — prints the chosen track as its label, and free text under Khác verbatim', async () => {
+  const chosen = await generateGuidedDocumentDocx({
+    templateKey: 'cp4',
+    caseTitle: 'Nexus EduTech',
+    answersMap: { cp4_fund_track: JSON.stringify({ value: 'scalable', otherText: null }) },
+  });
+  const { value: chosenText } = await mammoth.extractRawText({ buffer: chosen });
+  assert.match(chosenText, /Phát triển nhanh \(Scalable\)/);
+  assert.doesNotMatch(chosenText, /"value"/);
+
+  const other = await generateGuidedDocumentDocx({
+    templateKey: 'cp4',
+    caseTitle: 'Nexus EduTech',
+    answersMap: { cp4_fund_track: JSON.stringify({ value: 'other', otherText: 'Hợp tác xã nông sản' }) },
+  });
+  const { value: otherText } = await mammoth.extractRawText({ buffer: other });
+  assert.match(otherText, /Hợp tác xã nông sản/);
+});
+
 test('Guided Documents — extracts text and matches questions from text/md buffer', async () => {
   const sampleDoc = `
 Dự án: Nền tảng học nhóm

@@ -14,15 +14,17 @@ test("stage status precedence: grading > result > files > drafting > not_started
   assert.equal(pickStageStatus({ ...base, hasReport: true, grading: true }), "grading");
 });
 
-test("answer counting skips empty answers and self-checks, groups by stage prefix", () => {
+test("answer counting skips empty answers, self-checks and ids removed from the catalog, groups by stage prefix", () => {
   const counts = countAnswersByStage([
-    { question_id: "cp1_problem", answer_text: "x" },
-    { question_id: "cp2_a", answer_text: "  " },
-    { question_id: "cp2_b", answer_text: "ok" },
-    { question_id: "cp2_selfcheck_survey", answer_text: "true" },
+    { question_id: "cp1_team_name", answer_text: "x" },
+    { question_id: "cp2_problem_need", answer_text: "  " },
+    { question_id: "cp2_solution", answer_text: "ok" },
+    { question_id: "cp2_selfcheck_interviews", answer_text: "true" },
+    { question_id: "cp3_key_findings", answer_text: "câu đã bỏ khỏi catalog" },
   ]);
   assert.equal(counts.get("CP1"), 1);
   assert.equal(counts.get("CP2") ?? 0, 1);
+  assert.equal(counts.get("CP3") ?? 0, 0);
 });
 
 test("every catalog question id carries a stage prefix", () => {

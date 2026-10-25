@@ -18,8 +18,8 @@ interface StageBalanceCardsProps {
 export default function StageBalanceCards({ caseId, balances }: StageBalanceCardsProps) {
   const { data: allPackages } = useServiceCatalog();
   const [selectedStage, setSelectedStage] = useState<StageDefinition | null>(null);
-  const openStages = STAGES.filter((stage) => stage.available);
-  const lockedCount = STAGES.length - openStages.length;
+  const openStages = STAGES.filter((stage) => stage.serviceType);
+  const ungradedCount = STAGES.length - openStages.length;
 
   return (
     <div>
@@ -42,9 +42,9 @@ export default function StageBalanceCards({ caseId, balances }: StageBalanceCard
           );
         })}
       </div>
-      {lockedCount > 0 && (
+      {ungradedCount > 0 && (
         <p className={`${s.note} ${s.balNote}`}>
-          {`${COUNT_WORDS[lockedCount] ?? lockedCount} giai đoạn sau chưa mở nên chưa có lượt chấm.`}
+          {`${COUNT_WORDS[ungradedCount] ?? ungradedCount} giai đoạn sau chưa có dịch vụ chấm.`}
         </p>
       )}
 

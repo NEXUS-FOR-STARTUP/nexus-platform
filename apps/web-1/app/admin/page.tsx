@@ -45,12 +45,20 @@ function AdminHubPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [caseFilter, setCaseFilter] = useState<"all" | "triage" | "intake" | "unassigned" | "assigned" | "crud">("all");
+  const VALID_TABS = ["payments", "cases", "documents", "packages", "stats", "users", "workers", "news"] as const;
+  type AdminTab = typeof VALID_TABS[number];
+  const rawTab = searchParams.get("tab");
+  const activeSection: AdminTab = (VALID_TABS as readonly string[]).includes(rawTab ?? "") ? (rawTab as AdminTab) : "stats";
+  // Canonical URL: missing/invalid tab is rewritten so the address bar always names the tab being queried.
+  React.useEffect(() => {
+    if (rawTab !== activeSection) router.replace(`/admin?tab=${activeSection}`);
+  }, [rawTab, activeSection, router]);
   const {
     deposits,
     isLoading: isPaymentsLoading,
     verifyDeposit,
     isVerifying,
-  } = useAdminDeposits();
+  } = useAdminDeposits(activeSection === "payments");
 
   const {
     cases,
@@ -72,14 +80,14 @@ function AdminHubPageInner() {
     rejectCase,
     deleteCase,
     refetchCases,
-  } = useAdminCases(caseFilter);
+  } = useAdminCases(caseFilter, activeSection === "cases");
 
   const {
     documents,
     isLoading: isDocsLoading,
     deleteDocument,
     isDeleting: isDeletingDoc,
-  } = useAdminDocuments();
+  } = useAdminDocuments(activeSection === "documents");
 
   const {
     packages,
@@ -88,23 +96,17 @@ function AdminHubPageInner() {
     updatePackageStatus,
     isUpdatingPrice,
     isUpdatingStatus,
-  } = useAdminPackages();
+  } = useAdminPackages(activeSection === "packages");
 
   const [statsPeriod, setStatsPeriod] = useState("30d");
-  const statsQuery = useAdminStats(statsPeriod);
+  const statsQuery = useAdminStats(statsPeriod, activeSection === "stats");
 
   const [rejectingDepositId, setRejectingDepositId] = useState<string | null>(null);
   const [approvingDepositId, setApprovingDepositId] = useState<string | null>(null);
-  const VALID_TABS = ["payments", "cases", "documents", "packages", "stats", "users", "workers", "news"] as const;
-  type AdminTab = typeof VALID_TABS[number];
-  const rawTab = searchParams.get("tab");
-  const activeSection: AdminTab = (VALID_TABS as readonly string[]).includes(rawTab ?? "") ? (rawTab as AdminTab) : "stats";
   const setActiveSection = (tab: AdminTab) => router.replace(`/admin?tab=${tab}`);
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
   const [workerFilter, setWorkerFilter] = useState<WorkerFilter>("all");
-
-  const { data: workerStats } = useAdminWorkerStats();
-  const activeWorkersCount = workerStats?.activeCount ?? 0;
+  const { data: workerStats } = useAdminWorkerStats(activeSection === "workers");
 
 
   const handleApproveClick = (depositId: string) => {
@@ -378,11 +380,6 @@ function AdminHubPageInner() {
                   data-active={activeSection === "payments" || undefined}
                 >
                   <CreditCard className="w-6 h-6" />
-                  {pendingPaymentsCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-xs font-semibold bg-warning text-white flex items-center justify-center border-2 border-surface-app">
-                      {pendingPaymentsCount}
-                    </span>
-                  )}
                 </UnstyledButton>
               </Tooltip>
 
@@ -393,11 +390,6 @@ function AdminHubPageInner() {
                   data-active={activeSection === "cases" || undefined}
                 >
                   <UserCheck className="w-6 h-6" />
-                  {queueBadge > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-xs font-semibold bg-brand text-white flex items-center justify-center border-2 border-surface-app">
-                      {queueBadge}
-                    </span>
-                  )}
                 </UnstyledButton>
               </Tooltip>
 
@@ -438,11 +430,6 @@ function AdminHubPageInner() {
                   data-active={activeSection === "workers" || undefined}
                 >
                   <Bot className="w-6 h-6" />
-                  {activeWorkersCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full text-xs font-semibold bg-blue-600 text-white flex items-center justify-center border-2 border-surface-app">
-                      {activeWorkersCount}
-                    </span>
-                  )}
                 </UnstyledButton>
               </Tooltip>
               <Tooltip label="Tin tức" position="right" withArrow>
@@ -691,7 +678,7 @@ function AdminHubPageInner() {
           {activeSection === "stats" && <AdminExportMenu />}
         </div>
 
-        {!statsQuery.isLoading && statsQuery.data && statsQuery.data.slaBreachCount > 0 && (
+        {activeSection === "stats" && !statsQuery.isLoading && statsQuery.data && statsQuery.data.slaBreachCount > 0 && (
           <div className="flex items-center gap-2 p-3 rounded-lg bg-danger-soft border border-danger/20 text-danger text-xs font-semibold">
             <span>{statsQuery.data.slaBreachCount} hồ sơ đang quá hạn SLA. Cần kiểm tra và phân công lại.</span>
           </div>

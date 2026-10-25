@@ -1,35 +1,22 @@
 import type { Template } from "./types.js";
 
 // ---------------------------------------------------------------------------
-// CP3 template — Startup Checkpoint 3 (MVP + UX/UI, Business Model Canvas, SWOT).
-// Structure follows the lecturer's guide "HƯỚNG DẪN MVP_BMC_SWOT": MVP/UX 30%,
-// BMC 30%, SWOT with quantitative data and S-O/S-T/W-O/W-T strategies. The
-// conclusion phase follows the Nexus CP3 report. Every question is
-// independent (no unlock chain) because the three parts are written in parallel.
+// CP3 template — Startup Checkpoint 3 (Business Model Canvas, SWOT, conclusion).
+// Follows the lecturer's guide: BMC, SWOT with quantitative data and S-O/S-T/W-O/W-T
+// strategies. The product demo / UX-UI is a live artefact (screens, Figma, localhost)
+// that text cannot carry, so it is not part of this template. The conclusion phase
+// follows the Nexus CP3 report. Every question is independent (no unlock chain)
+// because the parts are written in parallel.
 // ---------------------------------------------------------------------------
 
 export const cp3: Template = {
   template_key: "cp3",
-  title: "MVP, mô hình kinh doanh và SWOT",
-  description: "Demo MVP và UX/UI, Business Model Canvas, phân tích SWOT và chiến lược.",
+  title: "Mô hình kinh doanh và SWOT",
+  description: "Business Model Canvas, phân tích SWOT, chiến lược và kết luận.",
   phases: [
     {
-      id: "mvp_ux_ui",
-      title: "MVP và trải nghiệm người dùng (UX/UI)",
-      unlock_requires: [],
-      questions: [
-        { question_id: "cp3_mvp_problem_pitch", classification: "required" },
-        { question_id: "cp3_mvp_demo_script", classification: "required" },
-        { question_id: "cp3_user_persona", classification: "required" },
-        { question_id: "cp3_user_flow", classification: "required" },
-        { question_id: "cp3_wireframe", classification: "required" },
-        { question_id: "cp3_mockup", classification: "required" },
-        { question_id: "cp3_ux_logic", classification: "required" },
-      ],
-    },
-    {
       id: "business_model_canvas",
-      title: "Mô hình kinh doanh (Business Model Canvas)",
+      title: "Mô hình kinh doanh",
       unlock_requires: [],
       questions: [
         { question_id: "cp3_bmc_customer_segments", classification: "required" },
@@ -70,7 +57,6 @@ export const cp3: Template = {
       title: "Kết luận",
       unlock_requires: [],
       questions: [
-        { question_id: "cp3_key_findings", classification: "recommended" },
         { question_id: "cp3_business_feasibility", classification: "recommended" },
         { question_id: "cp3_future_development", classification: "recommended" },
       ],

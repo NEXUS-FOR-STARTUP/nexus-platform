@@ -22,7 +22,8 @@ export async function uploadStageDocumentsUseCase(
   rawDocuments: unknown[],
 ) {
   const stage = findStageByCode(checkpointCode);
-  if (!stage?.available) {
+  // Stages without a grading service (CP4, PITCH DECK) take answers and a docx only, no uploads.
+  if (!stage?.serviceType) {
     throw new AppError(400, "VALIDATION_ERROR", "Giai đoạn này chưa mở");
   }
 

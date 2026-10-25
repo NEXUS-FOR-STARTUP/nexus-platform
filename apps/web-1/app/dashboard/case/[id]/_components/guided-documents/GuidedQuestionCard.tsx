@@ -3,8 +3,10 @@
 import type { ReactNode, Ref } from "react";
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { QUESTION_REGISTRY, type Classification, type Question } from "@repo/validation";
+import type { SaveState } from "../../hooks/useGuidedDrafts";
 import { Button } from "../ui/Button";
 import { countWords, isThinAnswer, THIN_ANSWER_WORDS } from "./answer-quality";
+import ChoiceAnswerInput from "./ChoiceAnswerInput";
 import s from "./guided-editor.module.css";
 
 const CLASSIFICATION_LABEL: Record<Classification, string> = {
@@ -21,6 +23,9 @@ interface GuidedQuestionCardProps {
   classification: Classification;
   value: string;
   isDirty: boolean;
+  /** True when the draft is saved automatically (edited in this visit). */
+  autoSave: boolean;
+  saveState: SaveState;
   onChange: (value: string) => void;
   onSave: (questionId: string, value: string) => Promise<void>;
   isSaving: boolean;
@@ -37,6 +42,8 @@ export default function GuidedQuestionCard({
   questionId,
   value,
   isDirty,
+  autoSave,
+  saveState,
   onChange,
   onSave,
   isSaving,
@@ -50,7 +57,18 @@ export default function GuidedQuestionCard({
 }: GuidedQuestionCardProps) {
   const question = (QUESTION_REGISTRY as Record<string, Question | undefined>)[questionId];
   const wordCount = countWords(value);
-  const savedLabel = isDirty ? "Chưa lưu" : value.trim() ? "Đã lưu" : "Chưa có câu trả lời";
+  const savedLabel =
+    saveState === "error" && isDirty
+      ? "Chưa lưu được, đang chờ kết nối để thử lại"
+      : isDirty
+        ? saveState === "saving"
+          ? "Đang lưu…"
+          : autoSave
+            ? "Chưa lưu, sẽ tự lưu sau khi bạn ngừng gõ"
+            : "Chưa lưu"
+        : value.trim()
+          ? "Đã lưu"
+          : "Chưa có câu trả lời";
 
   return (
     <section className={s.q}>
@@ -61,13 +79,17 @@ export default function GuidedQuestionCard({
         Câu {questionPosition} trên {questionTotal} · {CLASSIFICATION_LABEL[classification]}
       </p>
 
-      <textarea
-        className={s.answer}
-        aria-label="Câu trả lời"
-        placeholder="Nhập câu trả lời của nhóm"
-        value={value}
-        onChange={(e) => onChange(e.currentTarget.value)}
-      />
+      {question?.options ? (
+        <ChoiceAnswerInput key={questionId} question={question} value={value} onChange={onChange} />
+      ) : (
+        <textarea
+          className={s.answer}
+          aria-label="Câu trả lời"
+          placeholder="Nhập câu trả lời của nhóm"
+          value={value}
+          onChange={(e) => onChange(e.currentTarget.value)}
+        />
+      )}
 
       {isThinAnswer(questionId, value) && (
         <p role="status" className={s.warn}>

@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { requireAuth, type AuthEnv } from '../../../../shared/infrastructure/middlewares/auth.js'
 import { walletService } from '../../application/wallet.service.js'
 import { describeTransaction } from '../../domain/wallet-display.constants.js'
+import { resolveWalletDetails } from '../../application/describe-wallet-history.js'
 
 const walletRoutes = new Hono<AuthEnv>()
 
@@ -31,9 +32,10 @@ walletRoutes.get('/history', async (c) => {
   const sortOrder = c.req.query('sortOrder') === 'asc' ? 'asc' : 'desc'
 
   const { transactions, total } = await walletService.getHistory(user.id, limit, offset, { type, sortBy, sortOrder })
+  const details = await resolveWalletDetails(transactions)
   const enriched = transactions.map((tx) => ({
     ...tx,
-    source_description: describeTransaction(tx.source_type, tx.amount),
+    source_description: describeTransaction(tx.source_type, tx.amount, details.get(tx.id)),
   }))
   return c.json({ transactions: enriched, total, page, limit })
 })

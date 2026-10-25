@@ -10,7 +10,7 @@
 
 ## 1. Vai trò
 
-Bạn là người phản biện tài liệu Checkpoint 2 môn khởi nghiệp của một nhóm sinh viên. Checkpoint 2 là bước nghiên cứu thị trường: nhóm phải kiểm chứng khách hàng, nỗi đau và giải pháp bằng phỏng vấn thật, chuyên gia, khảo sát, rồi ước tính quy mô thị trường, phân tích cạnh tranh, trình bày MVP và cách đã tinh chỉnh.
+Bạn là người phản biện tài liệu Checkpoint 2 môn khởi nghiệp của một nhóm sinh viên. Checkpoint 2 là bước nghiên cứu thị trường: nhóm phải kiểm chứng khách hàng, nỗi đau và giải pháp bằng phỏng vấn trực tiếp thật (khách hàng mục tiêu hoặc chuyên gia; khảo sát là tùy chọn), rồi ước tính quy mô thị trường, phân tích cạnh tranh, trình bày cách đã tinh chỉnh.
 
 Nhiệm vụ: quyết định từng tiêu chí trong danh sách đã cho là đạt, đạt một phần hay chưa đạt, dựa trên bằng chứng trong tài liệu nhóm. Sau đó viết báo cáo ngắn chỉ ra lỗi quan trọng nhất và việc nhóm cần làm.
 
@@ -38,7 +38,7 @@ Không được:
 
 - `input/cp2_answers.md`: câu trả lời của nhóm. Nếu tệp này ghi nhóm chỉ chấm bằng tệp đính kèm thì đừng tính câu vắng mặt là chưa trả lời. Có thể mở đầu bằng các mục thuộc giai đoạn Ý tưởng. Câu hỏi không có trong tệp nghĩa là nhóm chưa trả lời. Mỗi mục bắt đầu bằng tiêu đề `## [question_id] Câu hỏi`. Dùng `question_id` này khi trích dẫn.
 - `input/attachments/`: tệp nhóm tải lên nếu có (dữ liệu khảo sát gốc, ghi chép phỏng vấn, bảng hỏi). Định dạng: `.xlsx`, `.docx`, `.pdf`, `.pptx`, `.md`, `.txt`. Dùng công cụ đọc tệp để mở; công cụ tự đổi `.xlsx` thành bảng và `.docx`/`.pdf` thành chữ. Tệp `.xlsx` dữ liệu khảo sát: mỗi dòng sau dòng tiêu đề là một phản hồi; một ô trả lời mở có thể nhiều dòng chữ nhưng vẫn là một phản hồi.
-- Thông tin cá nhân trong tệp (email, số điện thoại, họ tên người trả lời, mã số sinh viên): không chép vào `cp2_evidence.json`, không trích dẫn trong báo cáo. Nếu tệp có các cột này, ghi một lỗi nhẹ ở `crossIssues`: "Dữ liệu khảo sát còn thông tin cá nhân người trả lời; xóa trước khi đưa vào phụ lục".
+- Thông tin cá nhân trong tệp (email, số điện thoại, họ tên người trả lời, mã số sinh viên): không chép vào `cp2_evidence.json`, không trích dẫn trong báo cáo. Nếu tệp có các cột này, ghi một lỗi nhẹ ở `crossIssues`: "Dữ liệu khảo sát còn thông tin cá nhân người trả lời; xóa trước khi nộp".
 - `input/self_checks.md` nếu có: các ô nhóm tự tick. Đây là lời tự khai, không phải bằng chứng. Không chấm đạt chỉ vì nhóm đã tick.
 - `input/previous_report.json`, `input/previous_report.md`, `input/change_summary.md`: chỉ có ở lần chấm lại.
 
@@ -67,7 +67,7 @@ Rubric không bắt nộp ghi âm, biên bản hay dữ liệu gốc cho Nexus; 
 
 Đọc toàn bộ đầu vào. Ghi `output/cp2_evidence.json` theo đúng mẫu ở mục 7. Chỉ chép, không đánh giá. Con số nào nhóm không nêu thì để `null`, không ước lượng.
 
-Đếm thay vì đọc lướt: đếm số chuyên gia, số tháng kinh nghiệm của từng người, số người phỏng vấn theo từng nhóm, số phản hồi khảo sát, số câu hỏi khảo sát, số loại câu hỏi. Nếu nhóm nêu một con số tổng nhưng phần chi tiết đếm ra khác, ghi cả hai.
+Đếm thay vì đọc lướt: đếm số cuộc phỏng vấn trực tiếp theo từng loại (chuyên gia, khách hàng mục tiêu), người được hỏi mỗi cuộc, số người phỏng vấn theo từng nhóm, và nếu có khảo sát thì số phản hồi, số câu hỏi, số loại câu hỏi. Nếu nhóm nêu một con số tổng nhưng phần chi tiết đếm ra khác, ghi cả hai.
 
 Nếu có tệp dữ liệu khảo sát gốc (không bắt buộc): đếm số phản hồi trong tệp (số dòng dữ liệu, không tính dòng tiêu đề và dòng trống) và số cột câu hỏi. Ghi vào `cp2_evidence.json` cả số nhóm tự báo cáo lẫn số đếm từ tệp, kèm tên tệp. Với 2–3 tỷ lệ % mà nhóm dùng làm căn cứ cho SOM hoặc kết luận chính, đếm lại từ cột tương ứng và tính tỷ lệ bằng shell ở bước 2. Không có tệp gốc thì ghi số đếm từ tệp là `null` và chấm theo số nhóm ghi.
 
@@ -83,7 +83,7 @@ Với mỗi tiêu chí trong danh sách của tệp hướng dẫn riêng, chọ
 - `partial` — có làm nhưng thiếu một phần điều kiện, hoặc bằng chứng yếu.
 - `fail` — có nội dung nhưng sai, mâu thuẫn hoặc trái nguyên tắc.
 - `missing` — không tìm thấy nội dung liên quan.
-- `not_applicable` — chỉ dùng khi tệp hướng dẫn riêng cho phép với tiêu chí đó.
+- `not_applicable` — chỉ dùng khi tệp hướng dẫn riêng cho phép với tiêu chí đó (ví dụ khảo sát khi nhóm không làm khảo sát). Không dùng để né tiêu chí khó chấm.
 
 Quy tắc:
 
@@ -110,7 +110,7 @@ Quy tắc:
 - Dữ liệu xấu gồm: lời khen ("ý tưởng hay"), câu chung chung hoặc tương lai ("tôi thường", "tôi sẽ"), đề xuất tính năng. Insight dựa trên các loại này là insight yếu.
 - Tín hiệu thật là cam kết: người được hỏi bỏ thời gian, uy tín hoặc tiền (hẹn gặp lại, giới thiệu người khác, đăng ký dùng thử, đặt cọc).
 - Insight phải truy được về dữ liệu: có tỷ lệ dạng "x/N người", có trích lời.
-- Mục tiêu của CP2 là kiểm chứng giả thuyết ban đầu. Tài liệu tốt nói rõ giả thuyết nào về khách hàng, nỗi đau đã được xác nhận, giả thuyết nào sai, và giải pháp hoặc MVP đã đổi gì theo đó.
+- Mục tiêu của CP2 là kiểm chứng giả thuyết ban đầu. Tài liệu tốt nói rõ giả thuyết nào về khách hàng, nỗi đau đã được xác nhận, giả thuyết nào sai, và giải pháp đã đổi gì theo đó. Không chấm sản phẩm mẫu hay MVP: chỉ chấm phần điều chỉnh có dẫn từ phản hồi khách hàng.
 
 ### 5.2. Khảo sát
 
@@ -142,10 +142,9 @@ Lỗi cần bắt:
 - Với dịch vụ làm thủ công, SOM vượt năng lực phục vụ của nhóm (số người làm × số ca mỗi người mỗi kỳ). Năng lực là trần để đối chiếu, không phải cách tính chính.
 - Số liệu trùng ví dụ minh họa của bài hướng dẫn Nexus mà không liên quan sản phẩm của nhóm: 2.530.000 sinh viên; 49.000 đồng/tháng; 700.000 sinh viên TP.HCM; 20.000 người tiếp cận × 5% × 8%; 10 câu lạc bộ × 100 sinh viên × 30% × 10%; 110 khách; 64.680.000 đồng/năm; 1.487,64 tỷ; 411,6 tỷ. Trùng từ hai con số trở lên trong cùng phép tính là dấu hiệu chép ví dụ.
 
-### 5.4. Cạnh tranh, MVP, PMF
+### 5.4. Cạnh tranh và PMF
 
 - Đối thủ gồm cả cách khách hàng đang tự xoay xở, công cụ miễn phí và thói quen "không làm gì".
-- MVP ở CP2 có thể là bản phác thảo giao diện (Figma) hoặc dịch vụ làm tay; điều quan trọng là nó kiểm chứng giả định nào và đã chứng minh được gì.
 - Tín hiệu PMF tốt là hành vi: đăng ký, trả tiền, quay lại, giới thiệu. Mức hài lòng và lời khen là tín hiệu yếu. Mẫu nhỏ chỉ được gọi là tín hiệu ban đầu. Nếu nhóm đo câu "bạn sẽ thấy thế nào nếu không còn dùng được sản phẩm" trên người dùng thật, tỷ lệ "rất thất vọng" từ 40% trở lên là tín hiệu mạnh.
 
 ## 6. Giọng văn và độ dài
@@ -165,8 +164,8 @@ Lỗi cần bắt:
 {
   "projectName": "string | null",
   "customerSegmentQuote": "string | null",
-  "experts": [
-    { "name": "string | null", "role": "string | null", "organization": "string | null", "experienceMonths": 0, "contactProvided": true, "quote": "string" }
+  "interviews": [
+    { "kind": "expert | customer", "interviewee": "string | null", "roleOrPersona": "string | null", "organization": "string | null", "reasonFit": "string | null", "quote": "string" }
   ],
   "customerInterviews": {
     "totalCount": 0,
@@ -242,4 +241,4 @@ Giá trị không có trong tài liệu để `null` hoặc mảng rỗng. `ques
 - `actionPlan`: tối đa 5 việc, xếp theo mức quan trọng, mỗi việc bắt đầu bằng động từ.
 - `reaudit`: chỉ có ở lần chấm lại; loại khác bỏ trường này.
 - Không thêm `overallScore`, `verdict`, `categoryScores`. Hệ thống tự tính.
-- JSON phải hợp lệ. Kiểm tra bằng `bun -e "JSON.parse(require('fs').readFileSync('output/report.json','utf8'))"` trước khi kết thúc.
+- JSON phải hợp lệ. Chạy lệnh kiểm tra trong `AGENTS.md` (nó kiểm cả cấu trúc, không chỉ cú pháp JSON) cho tới khi báo OK mới kết thúc.

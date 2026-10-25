@@ -56,11 +56,18 @@ report files from disk).
 Every evaluation job runs in isolated directory structure:
 ```
 storage/jobs/${caseId}/${jobId}/
-├── input/             # Intake form data, uploaded pitch decks, documents
-├── output/            # Generated outputs including final report.json
+├── input/             # Documents assembled by API
+├── system_prompt/     # Prompt files the API listed for this service
+├── knowledge/         # Knowledge DB (CP1 only)
+├── tools/             # Helper scripts the API ships (e.g. CP2 report validator)
+├── AGENTS.md          # Service rules + report.json skeleton (written by API)
 ├── models.json        # Snapshot of AI model configurations
-└── system_prompt/     # Checkpoint-specific system prompts
+└── output/            # Generated outputs including final report.json
 ```
+
+Sandbox contents are decided by API (`prepareSandbox`). Worker never writes,
+validates or repairs prompts/reports: schema checks run inside the sandbox via
+API-shipped tools, and the API finalizer is the only gate.
 
 ## REALTIME LOGGING & TELEMETRY
 

@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
 import { apiClient } from "@/lib/api-client";
-import { formatPrice, PACKAGE_KEYS } from "@/lib/pricing";
+import { formatPrice, GRADING_PACKAGE_IDS } from "@/lib/pricing";
 import { usePackagePrice } from "@/lib/usePackagePrice";
 import { useWalletBalance } from "@/app/dashboard/wallet/hooks/useWallet";
 import { useShortageDepositRedirect } from "./use-shortage-deposit-redirect";
@@ -44,10 +44,9 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
   const { data: walletData } = useWalletBalance();
 
   const walletBalance = walletData?.balance ?? 0;
-  const isCp2Pack = packageId === PACKAGE_KEYS.CP2_AUDIT;
-  const isAiAudit = isCp2Pack || packageId === PACKAGE_KEYS.AI_AUDIT || pkg?.id === PACKAGE_KEYS.AI_AUDIT || pkg?.price === 79000;
+  const isAiAudit = GRADING_PACKAGE_IDS.includes(packageId) || (pkg?.id !== undefined && GRADING_PACKAGE_IDS.includes(pkg.id));
   const effectiveQuantity = isAiAudit ? 1 : quantity;
-  const listUnitPrice = pkg?.price ?? (isAiAudit ? 79000 : 0);
+  const listUnitPrice = pkg?.price ?? 0;
   const unitPrice = appliedDiscount?.discounted_price ?? listUnitPrice;
   const totalAmount = effectiveQuantity * unitPrice;
   const shortage = Math.max(totalAmount - walletBalance, 0);

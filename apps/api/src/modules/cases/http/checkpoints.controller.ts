@@ -4,7 +4,7 @@ import { getSession, handleError } from "../../../shared/infrastructure/http-hel
 import { AppError } from "../../../shared/domain/app-error.js";
 import { openCheckpointUseCase } from "../application/open-checkpoint.usecase.js";
 
-// POST /api/cases/:id/checkpoints/:code/open — owner opens CP2 (idempotent)
+// POST /api/cases/:id/checkpoints/:code/open — owner opens CP2 or CP3 (idempotent)
 export async function openCheckpointHandler(c: Context) {
   const session = await getSession(c);
   if (!session) {

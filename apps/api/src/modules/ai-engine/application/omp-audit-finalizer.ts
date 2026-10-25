@@ -7,8 +7,10 @@ import {
   updateAiJobStatus,
   updateAiJobStatusById,
   updateCaseAuditStage,
+  runningCheckpointCode,
 } from "../infrastructure/persistence/ai-job.repository.js";
 import { saveOmpAuditReport } from "../../reports/infrastructure/persistence/report.repository.js";
+import { getAuditService } from "./audit-services.js";
 import type { AuditCheckpointCode } from "@app/shared";
 import { AUDIT_CHECKPOINTS } from "@app/shared";
 import { resolveRepoRoot } from "../omp-audit.service.js";
@@ -65,15 +67,12 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
   const outputDir = resolve(jobDir, "output");
   mkdirSync(outputDir, { recursive: true });
 
-  // Checkpoint decides which files are required; read it before touching disk.
-  // Jobs without a checkpoint are CP1 (legacy rows).
+  // The checkpoint decides which files are required; read it before touching disk.
   const earlyJob = aiJobId ? await prisma.aiJob.findUnique({ where: { id: aiJobId } }) : null;
-  const earlyInput = (earlyJob?.input_json ?? null) as Record<string, unknown> | null;
-  const earlyCheckpoint = ((earlyInput?.checkpoint as string | undefined) ?? "CP1") as AuditCheckpointCode;
-  const requiredFiles: readonly string[] = Object.hasOwn(AUDIT_CHECKPOINTS, earlyCheckpoint)
-    ? AUDIT_CHECKPOINTS[earlyCheckpoint].outputs.required
-    : AUDIT_CHECKPOINTS.CP1.outputs.required;
-  const mdFileName = earlyCheckpoint === "CP2" ? "report.md" : "input_clarification_audit.md";
+  const earlyCheckpoint = runningCheckpointCode(earlyJob?.input_json) as AuditCheckpointCode;
+  const earlyService = getAuditService(earlyCheckpoint);
+  const requiredFiles: readonly string[] = AUDIT_CHECKPOINTS[earlyCheckpoint].outputs.required;
+  const mdFileName = earlyService.reportMdName;
 
   const candidateDirs = aiJobId
     ? [
@@ -114,7 +113,12 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
   }
   const reportJsonRaw = readFileSync(reportJsonPath, "utf-8");
   const reportMd = readFileSync(reportMdPath, "utf-8");
-  let reportJson = JSON.parse(reportJsonRaw) as Record<string, any>;
+  let reportJson: Record<string, any>;
+  try {
+    reportJson = JSON.parse(reportJsonRaw) as Record<string, any>;
+  } catch (err: unknown) {
+    throw new Error(`report.json is not valid JSON: ${err instanceof Error ? err.message : String(err)}`);
+  }
 
   // Compile Typst PDF
   const caseRecord = await findCaseDetailForPdf(caseId);
@@ -136,10 +140,13 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
   const startedAtMs = Number.isFinite(parsedStartedAtMs) ? parsedStartedAtMs : Date.now();
 
   // Checkpoint, scope and submission type come from the job input; the lookup table decides
-  // prompts, report type and post-processing. Jobs without a checkpoint are CP1 (legacy rows).
-  const checkpointCode = ((aiJobInput?.checkpoint as string | undefined) ?? "CP1") as AuditCheckpointCode;
+  // prompts, report type and post-processing.
+  const checkpointCode = runningCheckpointCode(aiJobInput) as AuditCheckpointCode;
+  const service = getAuditService(checkpointCode);
   const scope = (aiJobInput?.scope as string | undefined) ?? (aiJobInput?.prompt_mode as string | undefined) ?? "full";
   const plan = resolveAuditPlan(checkpointCode, scope, submissionType);
+  // CP1 keeps its legacy PDF template (no report type); every other service renders by its own type.
+  const pdfReportType = service.lifecycleUnit ? undefined : plan.reportType;
   reportJson = await POST_PROCESSORS[plan.postProcess]({ caseId, aiJobId, jobDir, scope, submissionType, reportJson });
 
   // Resolve target lifecycle_unit_id early (needed for PDF versioning).
@@ -164,19 +171,23 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
     logger.warn({ caseId, jobErr }, "Failed to read BullMQ job.data for lifecycle_unit_id, using input_json fallback");
   }
   let lifecycleUnitId: string | null =
-    checkpointCode === "CP1" ? (jobDataLifecycleUnitId ?? (aiJobInput?.lifecycle_unit_id as string | undefined) ?? null) : null;
+    service.lifecycleUnit ? (jobDataLifecycleUnitId ?? (aiJobInput?.lifecycle_unit_id as string | undefined) ?? null) : null;
 
-  if (!lifecycleUnitId && checkpointCode === "CP1") {
+  if (!lifecycleUnitId && service.lifecycleUnit) {
     const latestUnit = await prisma.lifecycleUnit.findFirst({
       where: { case_id: caseId, unit_type: "version" },
       orderBy: { version_no: "desc" },
     });
     if (latestUnit) {
-      const existingReport = await prisma.report.findFirst({
-        where: { lifecycle_unit_id: latestUnit.id },
-        select: { id: true },
-      });
-      if (existingReport && submissionType === "initial") {
+      // Re-entry guard: this exact trigger already saved its report (status polling re-enters finalize).
+      // A report from an earlier trigger must not swallow this run's result.
+      const existingReport = triggerStartedAt
+        ? await prisma.report.findFirst({
+            where: { lifecycle_unit_id: latestUnit.id, metadata_json: { path: ["triggerStartedAt"], equals: triggerStartedAt } },
+            select: { id: true },
+          })
+        : null;
+      if (existingReport) {
         logger.info(
           { caseId, reportId: existingReport.id },
           "Report already finalized for this lifecycle unit, ensuring state and returning cleanly",
@@ -208,7 +219,7 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
     projectName,
     reportMd,
     reportJson,
-    reportType: checkpointCode === "CP1" ? undefined : plan.reportType,
+    reportType: pdfReportType,
     versionNo,
     startedAtMs,
   });
@@ -230,14 +241,14 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
   // Save report into Postgres. Dedupe by trigger identity (lifecycle_unit_id +
   // triggerStartedAt) for ALL submission types: BullMQ may fire `completed`
   // twice for the same job, so resubmit/logic_check must also be idempotent.
-  // Additional invariant: each lifecycle_unit has at most one `initial` report.
+  // A unit may hold several initial reports: with AUDIT_STAGE_INPUT_RULES the student re-grades from the stage page.
   // The check and the insert run in one transaction, with the case row locked
   // (SELECT FOR UPDATE) so concurrent finalizers for the same case serialize
   // instead of double-inserting. Code-level guard only — no unique constraint,
   // no migration.
   const savedReport = await prisma.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "cases" WHERE id = ${caseId} FOR UPDATE`;
-    if (checkpointCode !== "CP1" && triggerStartedAt) {
+    if (!service.lifecycleUnit && triggerStartedAt) {
       // Non-CP1 reports have no lifecycle unit; trigger identity alone dedupes a duplicate `completed` event.
       const existingByTrigger = await tx.report.findFirst({
         where: { case_id: caseId, report_type: plan.reportType, metadata_json: { path: ["triggerStartedAt"], equals: triggerStartedAt } },
@@ -264,22 +275,6 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
           return existingByTrigger;
         }
       }
-      // Per-type invariant: each unit has at most ONE initial report.
-      if (submissionType === "initial") {
-        const existingInitial = await tx.report.findFirst({
-          where: {
-            lifecycle_unit_id: lifecycleUnitId,
-            metadata_json: { path: ["submission_type"], equals: "initial" },
-          },
-        });
-        if (existingInitial) {
-          logger.info(
-            { caseId, reportId: existingInitial.id },
-            "Initial report already exists for this lifecycle unit, returning existing record",
-          );
-          return existingInitial;
-        }
-      }
     }
     // Fresh creation only: the event commits with the report, so a retry (which takes the dedupe
     // returns above) can neither lose it nor write it twice, and a failed insert rolls the report back.
@@ -289,7 +284,8 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
         lifecycleUnitId,
         contentMd: reportMd,
         metadataJson,
-        ...(checkpointCode === "CP1" ? {} : { checkpointCode, reportType: plan.reportType }),
+        checkpointCode,
+        reportType: plan.reportType,
       },
       tx,
     );
@@ -308,7 +304,7 @@ export async function finalizeOmpAuditResult(caseId: string, aiJobId?: string): 
     savedReport,
     projectName,
     submissionType,
-    reportType: checkpointCode === "CP1" ? undefined : plan.reportType,
+    reportType: pdfReportType,
     versionNo,
     pdfUrl,
     pdfPublicId,

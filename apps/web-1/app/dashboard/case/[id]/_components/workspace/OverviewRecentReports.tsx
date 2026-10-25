@@ -6,7 +6,7 @@ import { findStageByCode } from "@app/shared/stages";
 import FileTypeIcon from "@/components/ui/FileTypeIcon";
 import s from "./overview.module.css";
 import type { DocumentWorkspace, RoundHistoryEntry } from "@/types";
-import { CP2_REPORT_TYPE_LABELS, SUBMISSION_TYPE_LABELS, formatDateShort } from "../report.utils";
+import { SCORED_REPORT_TYPE_LABELS, SUBMISSION_TYPE_LABELS, formatDateShort } from "../report.utils";
 
 interface OverviewRecentReportsProps {
   roundHistory?: RoundHistoryEntry[] | null;
@@ -18,7 +18,7 @@ const RECENT_REPORTS_LIMIT = 3;
 
 function reportLabel(entry: RoundHistoryEntry): string {
   return (
-    CP2_REPORT_TYPE_LABELS[entry.report?.report_type ?? ""] ??
+    SCORED_REPORT_TYPE_LABELS[entry.report?.report_type ?? ""] ??
     SUBMISSION_TYPE_LABELS[entry.submission_type ?? ""] ??
     "Báo cáo"
   );

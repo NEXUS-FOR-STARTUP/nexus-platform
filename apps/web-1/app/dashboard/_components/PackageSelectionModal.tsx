@@ -3,7 +3,8 @@
 import { Modal, Card, Text, Button, Stack, Badge, ThemeIcon, List, SimpleGrid } from "@mantine/core";
 import { Check } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import { PACKAGE_KEYS } from "@/lib/pricing";
+import { PACKAGE_KEYS, formatPrice } from "@/lib/pricing";
+import { usePackagePrice } from "@/lib/usePackagePrice";
 
 interface PackageSelectionModalProps {
   opened: boolean;
@@ -13,6 +14,7 @@ interface PackageSelectionModalProps {
 
 export function PackageSelectionModal({ opened, onClose, onSelectPackage }: PackageSelectionModalProps) {
   const router = useRouter();
+  const { data: pkg } = usePackagePrice(PACKAGE_KEYS.AI_AUDIT, opened);
 
   const handleSelect = (packageId: string) => {
     if (onSelectPackage) {
@@ -45,14 +47,14 @@ export function PackageSelectionModal({ opened, onClose, onSelectPackage }: Pack
           <Stack justify="space-between" className="h-full">
             <div>
               <h4 className="font-heading font-bold text-lg text-text-app mb-1">
-                Đánh giá Dự án Tự động
+                {pkg?.name}
               </h4>
               <div className="flex items-baseline gap-1.5 mb-3">
-                <span className="text-2xl font-heading font-bold text-text-app">79,000 VND</span>
-                <span className="font-body text-text-muted text-sm">/ Gói 2 lượt đánh giá</span>
+                <span className="text-2xl font-heading font-bold text-text-app">{pkg ? formatPrice(pkg.price) : null}</span>
+                {pkg?.credits_granted ? <span className="font-body text-text-muted text-sm">{`/ Gói ${pkg.credits_granted} lượt đánh giá`}</span> : null}
               </div>
               <Text size="sm" c="dimmed" className="font-body mb-4 min-h-[40px]">
-                Đánh giá tài liệu qua 5 nhóm tiêu chí cốt lõi. Bao gồm 2 lượt (đánh giá ban đầu và đánh giá lại sau khi sửa).
+                Đánh giá tài liệu qua 5 nhóm tiêu chí cốt lõi. Mỗi gói gồm nhiều lượt (đánh giá ban đầu và đánh giá lại sau khi sửa).
               </Text>
               <List
                 spacing="xs"

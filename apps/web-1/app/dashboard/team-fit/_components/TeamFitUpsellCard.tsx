@@ -9,7 +9,7 @@ interface TeamFitUpsellCardProps {
 
 export default function TeamFitUpsellCard({ onUpgrade, isUpgrading = false }: TeamFitUpsellCardProps) {
   const { data: auditPkg } = usePackagePrice(PACKAGE_KEYS.AI_AUDIT);
-  const auditPriceLabel = formatPrice(auditPkg?.price ?? 79000);
+  const auditPriceLabel = auditPkg ? `${auditPkg.name} (${formatPrice(auditPkg.price)})` : "Gói đánh giá";
 
   return (
     <Paper radius="2xl" p="lg" bg="var(--mantine-color-brand-light)">
@@ -19,7 +19,7 @@ export default function TeamFitUpsellCard({ onUpgrade, isUpgrading = false }: Te
             Cần đánh giá sâu hơn từ tài liệu?
           </Text>
           <Text size="sm" c="dimmed">
-            Gói {auditPriceLabel} gồm 2 lượt phản biện chi tiết.
+            {auditPriceLabel} gồm {auditPkg?.credits_granted ?? "các"} lượt phản biện chi tiết.
           </Text>
         </div>
         <Button variant="outline" color="brand" onClick={onUpgrade} loading={isUpgrading}>

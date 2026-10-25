@@ -26,6 +26,7 @@ export default function PurchaseFields({ draft, onChange }: PurchaseFieldsProps)
   const packages = [
     ...filterPackagesByService(catalog.data, "cp1_audit"),
     ...filterPackagesByService(catalog.data, "cp2_audit"),
+    ...filterPackagesByService(catalog.data, "cp3_audit"),
   ];
   const selectedPkg = packages.find((p) => p.id === draft.package_id);
 

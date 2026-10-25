@@ -1,5 +1,5 @@
 import { prisma } from "../../../../db.js";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import {
   canonicalNameFromUrl,
   deriveSourceKindFromUrl,
@@ -322,6 +322,8 @@ export async function createReportArtifactDocumentRecord(
   });
 }
 
+const ARTIFACT_SEQ_MAX_ATTEMPTS = 3;
+
 export async function upsertReportArtifactDocumentRecord(
   caseId: string,
   checkpointId: string,
@@ -367,45 +369,61 @@ export async function upsertReportArtifactDocumentRecord(
       validUserId = firstAdmin?.id || "";
     }
   }
-
-  return await client.documentRecord.upsert({
-    where: { id },
-    create: {
-      id,
-      case_id: caseId,
-      checkpoint_id: checkpointId,
-      lifecycle_unit_id: lifecycleUnitId,
-      unit_code: unitCode,
-      direction: "system",
-      doc_type: "assessment_report",
-      seq: 0,
-      is_primary: true,
-      source_kind: sourceKind,
-      canonical_name: `report-${reportId}`,
-      original_name: originalName,
-      extension: ext,
-      mime_type: mime,
-      file_url: fileUrl,
-      download_url: downloadUrl,
-      cloudinary_public_id: cloudinaryPublicId,
-      uploaded_by_auth_user_id: validUserId,
-    },
-    update: {
-      case_id: caseId,
-      checkpoint_id: checkpointId,
-      lifecycle_unit_id: lifecycleUnitId,
-      unit_code: unitCode,
-      doc_type: "assessment_report",
-      source_kind: sourceKind,
-      original_name: originalName,
-      extension: ext,
-      mime_type: mime,
-      file_url: fileUrl,
-      download_url: downloadUrl,
-      cloudinary_public_id: cloudinaryPublicId,
-      uploaded_by_auth_user_id: validUserId,
-    },
-  });
+  // (lifecycle_unit_id, doc_type, seq) is unique: a unit that is graded again keeps its earlier report artifacts.
+  // The sync runs outside the report transaction, so two finalizers of one unit can pick the same seq:
+  // the loser hits the unique key and recomputes against the winner's row.
+  for (let attempt = 1; ; attempt++) {
+    const lastSeq = lifecycleUnitId
+      ? (await client.documentRecord.aggregate({
+          where: { lifecycle_unit_id: lifecycleUnitId, doc_type: "assessment_report", id: { not: id } },
+          _max: { seq: true },
+        }))._max.seq
+      : null;
+    const seq = lastSeq === null || lastSeq === undefined ? 0 : lastSeq + 1;
+    try {
+      return await client.documentRecord.upsert({
+        where: { id },
+        create: {
+          id,
+          case_id: caseId,
+          checkpoint_id: checkpointId,
+          lifecycle_unit_id: lifecycleUnitId,
+          unit_code: unitCode,
+          direction: "system",
+          doc_type: "assessment_report",
+          seq,
+          is_primary: seq === 0,
+          source_kind: sourceKind,
+          canonical_name: `report-${reportId}`,
+          original_name: originalName,
+          extension: ext,
+          mime_type: mime,
+          file_url: fileUrl,
+          download_url: downloadUrl,
+          cloudinary_public_id: cloudinaryPublicId,
+          uploaded_by_auth_user_id: validUserId,
+        },
+        update: {
+          case_id: caseId,
+          checkpoint_id: checkpointId,
+          lifecycle_unit_id: lifecycleUnitId,
+          unit_code: unitCode,
+          doc_type: "assessment_report",
+          source_kind: sourceKind,
+          original_name: originalName,
+          extension: ext,
+          mime_type: mime,
+          file_url: fileUrl,
+          download_url: downloadUrl,
+          cloudinary_public_id: cloudinaryPublicId,
+          uploaded_by_auth_user_id: validUserId,
+        },
+      });
+    } catch (err) {
+      const isSeqConflict = err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
+      if (!isSeqConflict || attempt >= ARTIFACT_SEQ_MAX_ATTEMPTS) throw err;
+    }
+  }
 }
 
 export function toExternalFeedbackMetadataJson(metadata: ExternalFeedbackMetadata): Prisma.InputJsonValue {

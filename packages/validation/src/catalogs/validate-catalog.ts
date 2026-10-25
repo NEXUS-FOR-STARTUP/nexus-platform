@@ -1,9 +1,31 @@
 import { CLASSIFICATIONS, type Question, type Template } from "./types.js";
 import { QUESTION_REGISTRY } from "./questions.js";
+import { OTHER_CHOICE_VALUE } from "./answer-choice.js";
 
 // Typed index access: QUESTION_REGISTRY is a literal-keyed object (so question ids
 // stay a closed union), cast here to a string-indexed view for lookups by arbitrary ids.
 const registry = QUESTION_REGISTRY as Record<string, Question | undefined>;
+
+/** Rejects choice questions with too few options, duplicate values, or the reserved "other" value. */
+export function validateChoiceOptions(question: Question): void {
+  if (!question.options) {
+    if (question.allow_other) throw new Error(`validateCatalog: question "${question.id}" has allow_other but no options`);
+    return;
+  }
+  if (question.options.length < 2) {
+    throw new Error(`validateCatalog: question "${question.id}" needs at least 2 options`);
+  }
+  const seen = new Set<string>();
+  for (const { value } of question.options) {
+    if (value === OTHER_CHOICE_VALUE) {
+      throw new Error(`validateCatalog: option value "${OTHER_CHOICE_VALUE}" is reserved (question "${question.id}")`);
+    }
+    if (seen.has(value)) {
+      throw new Error(`validateCatalog: duplicate option value "${value}" on question "${question.id}"`);
+    }
+    seen.add(value);
+  }
+}
 
 // ---------------------------------------------------------------------------
 // validateCatalog — fail-fast guard run at module load (index.ts) and in tests.
@@ -60,6 +82,7 @@ export function validateCatalog(template: Template): void {
       }
       phaseByQuestion.set(question_id, phase.id);
       validateFurtherReading(registry[question_id]!);
+      validateChoiceOptions(registry[question_id]!);
     }
   }
 

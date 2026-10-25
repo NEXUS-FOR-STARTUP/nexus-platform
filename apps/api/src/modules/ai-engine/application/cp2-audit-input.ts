@@ -1,4 +1,3 @@
-import { basename } from "node:path";
 import type { Cp2InputSource } from "@app/shared";
 import { CP2_INTERVIEW_AUDIT_REQUIRED, CP2_QUESTION_BANK_ID, CP2_SELF_CHECKS, QUESTION_REGISTRY, TEMPLATE_REGISTRY } from "@repo/validation";
 import { prisma } from "../../../db.js";
@@ -6,16 +5,16 @@ import { AppError } from "../../../shared/domain/app-error.js";
 import logger from "../../../shared/infrastructure/logger.js";
 import { findLatestCp2FullReport } from "../../reports/infrastructure/persistence/report.repository.js";
 import type { OmpAuditInputFile } from "../omp-audit.service.js";
-import { SUBMITTED_DOC_EXCLUDED_KINDS } from "../../documents/domain/document-types.js";
 import { AUDIT_STAGE_INPUT_RULES } from "../../../env.js";
-import { STAGE_DOC_EXCLUDED_TYPES, renderStageAnswers } from "./stage-audit-input.js";
+import { buildAttachmentManifest, manifestEntry, uniqueSandboxName, type AttachmentManifestEntry } from "./attachment-manifest.js";
+import { loadStageContext } from "./case-library.js";
+import { findStageDocs, NO_CHANGE_SUMMARY_TEXT, renderStageAnswers } from "./stage-audit-input.js";
 
 export const CP2_CHECKPOINT_CODE = "CP2";
 export const CP2_ANSWERS_FILE = "cp2_answers.md";
 export const CP2_SELF_CHECKS_FILE = "self_checks.md";
 export const CP2_ATTACHMENTS_DIR = "attachments";
 const UNANSWERED_TEXT = "(Nhóm chưa trả lời)";
-const NO_CHANGE_SUMMARY_TEXT = "(Nhóm không ghi tóm tắt thay đổi)";
 const ATTACHMENT_FETCH_TIMEOUT_MS = Number(process.env.OMP_INPUT_FETCH_TIMEOUT_MS ?? 30_000);
 /** Minimum bar before a CP2 trigger may burn a credit. Env-overridable, documented in README. */
 const CP2_MIN_ANSWERED = Number(process.env.CP2_MIN_ANSWERED ?? 5);
@@ -147,41 +146,23 @@ export function renderSelfChecks(answers: AnswerMap): string {
   return `# Nhóm tự xác nhận (nhóm tự khai, chưa được kiểm chứng)\n\n${lines.join("\n")}\n`;
 }
 
-function safeFileName(name: string): string {
-  return basename(name).replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_") || "attachment";
-}
-
-async function loadAttachments(caseId: string): Promise<OmpAuditInputFile[]> {
-  const checkpoint = await prisma.checkpoint.findUnique({
-    where: { case_id_checkpoint_code: { case_id: caseId, checkpoint_code: CP2_CHECKPOINT_CODE } },
-    select: { id: true },
-  });
-  if (!checkpoint) return [];
-  const docs = await prisma.documentRecord.findMany({
-    where: {
-      case_id: caseId,
-      checkpoint_id: checkpoint.id,
-      superseded_at: null,
-      source_kind: { notIn: [...SUBMITTED_DOC_EXCLUDED_KINDS] },
-      doc_type: { notIn: STAGE_DOC_EXCLUDED_TYPES },
-    },
-    orderBy: [{ created_at: "asc" }],
-  });
+async function loadAttachments(caseId: string): Promise<{ files: OmpAuditInputFile[]; entries: AttachmentManifestEntry[] }> {
   const files: OmpAuditInputFile[] = [];
+  const entries: AttachmentManifestEntry[] = [];
   const used = new Set<string>();
-  for (const doc of docs) {
+  for (const doc of await findStageDocs(caseId, CP2_CHECKPOINT_CODE)) {
     if (!doc.download_url) continue;
     const res = await fetch(doc.download_url, { signal: AbortSignal.timeout(ATTACHMENT_FETCH_TIMEOUT_MS) });
     if (!res.ok) {
       logger.error({ caseId, docId: doc.id, status: res.status }, "CP2 attachment fetch failed");
       throw new AppError(502, "ATTACHMENT_FETCH_FAILED", "Không tải được tệp đính kèm để chấm. Vui lòng thử lại.");
     }
-    let name = safeFileName(doc.original_name || doc.canonical_name || `document_${doc.id}.${doc.extension || "bin"}`);
-    if (used.has(name.toLowerCase())) name = `${doc.seq}_${doc.id.slice(0, 8)}_${name}`;
-    used.add(name.toLowerCase());
-    files.push({ name: `${CP2_ATTACHMENTS_DIR}/${name}`, content: Buffer.from(await res.arrayBuffer()) });
+    const name = uniqueSandboxName(doc.original_name || doc.canonical_name || `document_${doc.id}.${doc.extension || "bin"}`, doc.id, used);
+    const fileName = `${CP2_ATTACHMENTS_DIR}/${name}`;
+    files.push({ name: fileName, content: Buffer.from(await res.arrayBuffer()) });
+    entries.push(manifestEntry(fileName, doc, CP2_CHECKPOINT_CODE));
   }
-  return files;
+  return { files, entries };
 }
 
 export interface Cp2InputRequest {
@@ -194,20 +175,24 @@ export interface Cp2InputRequest {
   scope?: string;
   /** Which student inputs the grader reads. Undefined = legacy (answers + opportunistic attachments). */
   inputSource?: Cp2InputSource;
+  /** Case library folder; CP1 files the run reads as context are stored there. */
+  libraryDir: string;
 }
 
 /** Stand-in for cp2_answers.md when grading on files only; keeps the "missing question = unanswered" rule from firing. */
 const FILES_ONLY_ANSWERS_TEXT =
   "# Tài liệu CP2 của nhóm\n\nNhóm chọn chấm chỉ bằng tệp đính kèm trong `input/attachments/`. Nhóm không dùng mẫu câu hỏi ở lần chấm này: không coi câu hỏi vắng mặt là chưa trả lời, hãy lấy bằng chứng từ các tệp.\n";
 
-/** CP2 sandbox input by chosen source (answers, files, or both), plus the previous report on resubmit. */
-export async function assembleCp2InputFiles(req: Cp2InputRequest): Promise<{ inputFiles: OmpAuditInputFile[]; resolvedLifecycleUnitId: null }> {
+/** CP2 sandbox input by chosen source (answers, files, or both), plus the previous report on resubmit and CP1 as context. */
+export async function assembleCp2InputFiles(req: Cp2InputRequest): Promise<{ inputFiles: OmpAuditInputFile[]; resolvedLifecycleUnitId: null; libraryNames: string[] }> {
   const source = req.inputSource;
   const rows = await prisma.projectAnswer.findMany({ where: { case_id: req.caseId }, select: { question_id: true, answer_text: true } });
   const answers = Object.fromEntries(rows.map((r) => [r.question_id, r.answer_text]));
-  const attachments = source === "answers" ? [] : await loadAttachments(req.caseId);
-  assertCp2InputSource(req.caseId, answers, req.scope ?? "full", source, attachments.length);
-
+  const loaded = source === "answers" ? { files: [], entries: [] } : await loadAttachments(req.caseId);
+  assertCp2InputSource(req.caseId, answers, req.scope ?? "full", source, loaded.files.length);
+  const cp1 = await loadStageContext(req.caseId, "CP1", req.libraryDir);
+  const manifest = buildAttachmentManifest([...loaded.entries, ...cp1.entries]);
+  const attachments = manifest ? [...loaded.files, ...cp1.files, manifest] : loaded.files;
   const inputFiles: OmpAuditInputFile[] =
     source === "files"
       ? [{ name: CP2_ANSWERS_FILE, content: FILES_ONLY_ANSWERS_TEXT }, ...attachments]
@@ -223,7 +208,7 @@ export async function assembleCp2InputFiles(req: Cp2InputRequest): Promise<{ inp
       // Race: report deleted between the pre-charge guard and assembly (credit already
       // taken). Grade as initial instead of failing + refunding the trigger.
       logger.warn({ caseId: req.caseId }, "CP2 resubmit lost its previous report before assembly; grading as initial");
-      return { inputFiles, resolvedLifecycleUnitId: null };
+      return { inputFiles, resolvedLifecycleUnitId: null, libraryNames: cp1.libraryNames };
     }
     const meta = { ...((previous.metadata_json ?? {}) as Record<string, unknown>) };
     for (const key of PROVENANCE_KEYS) delete meta[key];
@@ -235,5 +220,5 @@ export async function assembleCp2InputFiles(req: Cp2InputRequest): Promise<{ inp
   }
   const note = req.userNote?.trim();
   if (note) inputFiles.push({ name: "user_note.md", content: `# Ghi chú của nhóm cho lần chấm này\n\n${note}` });
-  return { inputFiles, resolvedLifecycleUnitId: null };
+  return { inputFiles, resolvedLifecycleUnitId: null, libraryNames: cp1.libraryNames };
 }

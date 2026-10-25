@@ -5,7 +5,7 @@ import { CP2_SELF_CHECKS, TEMPLATE_REGISTRY, computeReadiness } from "../index.j
 const cp2 = TEMPLATE_REGISTRY.cp2;
 const requiredIds = cp2.phases.flatMap((p) => p.questions).filter((q) => q.classification === "required").map((q) => q.question_id);
 const allAnswered = Object.fromEntries(requiredIds.map((id) => [id, "nội dung"]));
-const allChecked = { cp2_selfcheck_experts: true, cp2_selfcheck_survey: true, cp2_selfcheck_ai_disclosure: true } as const;
+const allChecked = { cp2_selfcheck_interviews: true } as const;
 
 describe("computeReadiness (CP2)", () => {
   it("empty answers: every required question is missing", () => {
@@ -28,10 +28,10 @@ describe("computeReadiness (CP2)", () => {
   });
 
   it("self-checks do not raise requiredDone but are reported", () => {
-    const r = computeReadiness(cp2, {}, { cp2_selfcheck_experts: true }, false);
+    const r = computeReadiness(cp2, {}, { cp2_selfcheck_interviews: true }, false);
     assert.equal(r.requiredDone, 0);
     assert.equal(r.autoFail.length, CP2_SELF_CHECKS.length);
-    assert.deepEqual(r.autoFail.filter((c) => c.checked).map((c) => c.id), ["cp2_selfcheck_experts"]);
+    assert.deepEqual(r.autoFail.filter((c) => c.checked).map((c) => c.id), ["cp2_selfcheck_interviews"]);
   });
 
   it("ready needs all required answered and all self-checks confirmed", () => {

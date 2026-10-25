@@ -24,7 +24,7 @@ const PARSEABLE_EXTENSIONS = new Set([".md", ".txt", ".docx", ".pdf"]);
 /** CP1 keeps its existing finalizer behaviour: the model's report.json is stored as is. */
 export const postProcessCp1Legacy: PostProcessor = async (ctx) => ctx.reportJson;
 
-function allowedSchemas(scope: string, submissionType: string): Cp2SchemaId[] {
+export function cp2AllowedSchemas(scope: string, submissionType: string): Cp2SchemaId[] {
   if (scope === "questionnaire") return ["cp2_questionnaire_v1"];
   // A resubmit without a usable previous report is graded as a first full audit (prompt rule).
   return submissionType === "resubmit" ? ["cp2_full_v1", "cp2_full_resubmit_v1"] : ["cp2_full_v1"];
@@ -34,7 +34,7 @@ function readOptional(path: string): string | null {
   return existsSync(path) ? readFileSync(path, "utf-8") : null;
 }
 
-async function loadAttachmentSources(inputDir: string, caseId: string): Promise<QuoteSource[]> {
+export async function loadAttachmentSources(inputDir: string, caseId: string): Promise<QuoteSource[]> {
   const dir = resolve(inputDir, CP2_ATTACHMENTS_DIR);
   if (!existsSync(dir)) return [];
   const sources: QuoteSource[] = [];
@@ -55,7 +55,7 @@ async function loadAttachmentSources(inputDir: string, caseId: string): Promise<
 
 /** validate (zod) -> verify quotes -> score. Throws AppError(422) so the job fails and the credit is refunded. */
 export const postProcessCp2Scored: PostProcessor = async (ctx) => {
-  const validation = validateCp2Report(ctx.reportJson, allowedSchemas(ctx.scope, ctx.submissionType));
+  const validation = validateCp2Report(ctx.reportJson, cp2AllowedSchemas(ctx.scope, ctx.submissionType));
   if (!validation.ok) {
     logger.error({ jobId: ctx.aiJobId, caseId: ctx.caseId, issues: validation.issues }, "CP2 report.json failed validation");
     throw new AppError(422, "CP2_REPORT_INVALID", "Báo cáo CP2 không hợp lệ.");

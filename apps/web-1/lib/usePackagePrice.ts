@@ -5,6 +5,7 @@ export interface PackagePriceData {
   id: string;
   name: string;
   price: number;
+  credits_granted: number | null;
 }
 
 export function usePackagePrice(packageId: string | undefined, enabled = true) {
