@@ -90,6 +90,28 @@ export const CP4_QUESTIONS = {
 
   // ── Nguồn vốn (tuỳ chọn) ──────────────────────────────────────────────────
 
+  cp4_fund_track: {
+    id: "cp4_fund_track",
+    text: "Dự án của nhóm thuộc nhóm nào về cách phát triển?",
+    explanation:
+      "Chọn một lựa chọn gần nhất với dự án. Nhóm theo hướng vừa phải được bỏ qua phần gọi vốn; không chọn cũng không sao. " +
+      "Theo đề, gọi vốn không bắt buộc, kể cả với dự án phát triển nhanh.",
+    suggested_actions: ["Nếu không lựa chọn nào đúng, chọn Khác và mô tả ngắn."],
+    options: [
+      {
+        value: "scalable",
+        label: "Phát triển nhanh (Scalable)",
+        description: "Sản phẩm công nghệ hoặc nền tảng, cần đầu tư để chiếm thị phần nhanh, có thể gọi vốn từ nhà đầu tư.",
+      },
+      {
+        value: "traditional",
+        label: "Phát triển vừa phải (Traditional)",
+        description: "Quán ăn, bán lẻ, dịch vụ nhỏ, chủ yếu dùng vốn tự có.",
+      },
+    ],
+    allow_other: true,
+  },
+
   cp4_fund_path: {
     id: "cp4_fund_path",
     text: "Dự án lấy vốn từ nguồn nào và vì sao?",

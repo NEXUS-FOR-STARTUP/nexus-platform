@@ -11,7 +11,7 @@ import {
   TableCell,
   WidthType,
 } from 'docx';
-import { TEMPLATE_REGISTRY, QUESTION_REGISTRY, type Template, type TemplateKey } from '@repo/validation';
+import { TEMPLATE_REGISTRY, QUESTION_REGISTRY, formatChoice, type Question, type Template, type TemplateKey } from '@repo/validation';
 
 const OPTIONAL_LABEL = 'TUỲ CHỌN';
 const EMPTY_REQUIRED_TEXT = '[Chưa có nội dung trả lời]';
@@ -33,10 +33,7 @@ export async function generateGuidedDocumentDocx(
   input: DocxGenerationInput,
 ): Promise<Buffer> {
   const template: Template = TEMPLATE_REGISTRY[input.templateKey];
-  const questionsRecord = QUESTION_REGISTRY as Record<
-    string,
-    { text: string; explanation?: string }
-  >;
+  const questionsRecord = QUESTION_REGISTRY as Record<string, Question | undefined>;
 
   const children: (Paragraph | Table)[] = [];
 
@@ -172,7 +169,8 @@ export async function generateGuidedDocumentDocx(
     for (const tq of phase.questions) {
       const q = questionsRecord[tq.question_id];
       const qText = q ? q.text : tq.question_id;
-      const answer = input.answersMap[tq.question_id]?.trim();
+      const rawAnswer = input.answersMap[tq.question_id];
+      const answer = (q?.options ? formatChoice(rawAnswer, q) : rawAnswer)?.trim();
       const isOptional = tq.classification === 'supplemental';
 
       children.push(

@@ -36,6 +36,7 @@ export const cp4: Template = {
       title: "Nguồn vốn (tuỳ chọn)",
       unlock_requires: [],
       questions: [
+        { question_id: "cp4_fund_track", classification: "supplemental" },
         { question_id: "cp4_fund_path", classification: "supplemental" },
         { question_id: "cp4_fund_ask", classification: "supplemental" },
         { question_id: "cp4_fund_use_of_funds", classification: "supplemental" },

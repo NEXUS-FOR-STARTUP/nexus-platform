@@ -6,6 +6,7 @@ import { QUESTION_REGISTRY, type Classification, type Question } from "@repo/val
 import type { SaveState } from "../../hooks/useGuidedDrafts";
 import { Button } from "../ui/Button";
 import { countWords, isThinAnswer, THIN_ANSWER_WORDS } from "./answer-quality";
+import ChoiceAnswerInput from "./ChoiceAnswerInput";
 import s from "./guided-editor.module.css";
 
 const CLASSIFICATION_LABEL: Record<Classification, string> = {
@@ -78,13 +79,17 @@ export default function GuidedQuestionCard({
         Câu {questionPosition} trên {questionTotal} · {CLASSIFICATION_LABEL[classification]}
       </p>
 
-      <textarea
-        className={s.answer}
-        aria-label="Câu trả lời"
-        placeholder="Nhập câu trả lời của nhóm"
-        value={value}
-        onChange={(e) => onChange(e.currentTarget.value)}
-      />
+      {question?.options ? (
+        <ChoiceAnswerInput key={questionId} question={question} value={value} onChange={onChange} />
+      ) : (
+        <textarea
+          className={s.answer}
+          aria-label="Câu trả lời"
+          placeholder="Nhập câu trả lời của nhóm"
+          value={value}
+          onChange={(e) => onChange(e.currentTarget.value)}
+        />
+      )}
 
       {isThinAnswer(questionId, value) && (
         <p role="status" className={s.warn}>

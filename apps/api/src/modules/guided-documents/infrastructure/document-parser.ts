@@ -1,7 +1,7 @@
 import path from 'node:path';
 import * as mammoth from 'mammoth';
 import { PDFParse } from 'pdf-parse';
-import { QUESTION_REGISTRY } from '@repo/validation';
+import { QUESTION_REGISTRY, type Question } from '@repo/validation';
 
 export interface ParseResult {
   raw_text: string;
@@ -102,8 +102,8 @@ export async function parseAndMatchDocument(
   }> = [];
 
   for (const qId of candidateQuestionIds) {
-    const q = (QUESTION_REGISTRY as Record<string, { text: string; explanation?: string }>)[qId];
-    if (!q) continue;
+    const q = (QUESTION_REGISTRY as Record<string, Question | undefined>)[qId];
+    if (!q || q.options) continue; // choice answers are picked in the UI, never inferred from prose
 
     const qKeywords = normalizeKeywords(q.text);
     if (qKeywords.length === 0) continue;

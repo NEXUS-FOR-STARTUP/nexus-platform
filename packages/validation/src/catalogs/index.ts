@@ -15,6 +15,7 @@ export { cp1, cp2, cp3, cp4, pitch, validateCatalog };
 export * from "./sync-rules.js";
 export * from "./file-templates.js";
 export * from "./cp2-readiness.js";
+export * from "./answer-choice.js";
 
 export const CATALOG_QUESTIONS = QUESTION_REGISTRY;
 export const VALID_QUESTION_IDS = Object.keys(QUESTION_REGISTRY) as Array<keyof typeof QUESTION_REGISTRY>;

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (2026-10-25) — Tinh gọn CP3/CP4 theo giá trị khách
+- **Tài chính**: thẻ tải Excel P&L và hướng dẫn nay nằm ngay trong stage (trước chỉ ở gallery biểu mẫu). Thêm câu tuỳ chọn `cp4_fund_track` (Phát triển nhanh/Scalable, Phát triển vừa phải/Traditional hoặc Khác kèm ô nhập): câu chọn một đầu tiên của catalog; `Question` có thêm `options`, `allow_other`. Câu trả lời lưu JSON `{value, otherText}` trong `answer_text` (không migration); API từ chối giá trị sai bằng 400 `INVALID_CHOICE_ANSWER`, chuỗi rỗng xóa câu trả lời. Nhóm "Nguồn vốn" giờ có 5 câu tuỳ chọn.
+- **DOCX**: câu tuỳ chọn (`supplemental`, mọi template) ghi "(TUỲ CHỌN)" ở mục lục và tiêu đề; câu tuỳ chọn để trống in "[TUỲ CHỌN: nhóm không trả lời]". Câu chọn in nhãn lựa chọn hoặc chữ nhập ở "Khác"; nhập lại DOCX không còn đề xuất cho câu chọn.
+- **CP3**: bỏ `cp3_key_findings` (chỉ tóm tắt lại BMC/SWOT) và check `c3_findings_grounded`; còn 19 câu, 23 check, `CATALOG_VERSION` 2026-10-25.2. Đảo một phần quyết định "chấm cả 20 câu". Số câu đã trả lời của stage chỉ đếm câu còn trong catalog. Câu trả lời cũ vẫn nằm trong `project_answers`. Deploy phải cập nhật cả `data/system-prompts/cp3_*` cùng code.
 ### Added (2026-10-25) — Mở vòng Tài chính và PITCH DECK (chỉ tài liệu, chưa chấm AI)
 - Template `cp4` tách làm hai. **Tài chính** (`cp4`, 9 câu, 3 nhóm): doanh thu và giá, giả định P&L, điểm hòa vốn, kế hoạch sinh tồn; nhóm "Nguồn vốn" tuỳ chọn. **PITCH DECK** (`pitch`, stage mới `PITCH`, 27 câu, 13 nhóm): 10 mục của bài pitch demo, phụ lục A elevator pitch 60 giây, phụ lục B bổ sung cho bài nộp, phụ lục C chuẩn bị hỏi đáp. Nhóm tự dựng slide; Nexus chỉ cung cấp nội dung theo từng mục. Nhãn tiêu chí chấm chỉ là gợi ý, không phải điểm.
 - Điền sẵn (`sync-rules`): chỉ sao nguyên văn nguồn đầu không rỗng, không tóm tắt. Doanh thu ở PITCH DECK điền từ `cp4_bm_revenue_streams`, rồi CP3, rồi CP1; nhóm tự viết elevator pitch và tóm tắt tài chính.
