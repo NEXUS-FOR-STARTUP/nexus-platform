@@ -20,14 +20,6 @@
 .n3 { background: #def5e8; }
 .n4 { background: #f1e6ff; }
 
-.price { max-width: 520px; margin: 0 auto; background: var(--color-surface); border: 1px solid var(--lp-line); border-radius: var(--lp-r-md); padding: 40px; }
-.price h3 { margin: 0 0 12px; font-size: 22px; font-weight: 600; }
-.amount { display: flex; align-items: baseline; gap: 8px; font-size: 40px; font-weight: 500; letter-spacing: -0.02em; line-height: 1; }
-.amount small { font-size: 15px; color: var(--lp-muted); letter-spacing: 0; white-space: nowrap; }
-.price > p { color: var(--lp-muted); margin: 16px 0 0; }
-.price ul { list-style: none; padding: 0; margin: 28px 0 32px; display: grid; gap: 14px; }
-.price li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; }
-.price li svg { color: #16a34a; margin-top: 2px; }
 
 .arts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .art {
@@ -81,16 +73,18 @@
 }
 @media (max-width: 620px) {
   .stages, .arts, .channels { grid-template-columns: 1fr; }
-  .price { padding: 28px; }
-  .amount { font-size: 38px; flex-wrap: wrap; }
 }
 @media (prefers-reduced-motion: reduce) {
   .stage, .art, .go, .channel { transition: none; }
 }
 
-.price { transition: transform 0.5s var(--lp-ease), border-color 0.5s var(--lp-ease); }
-.price:hover { transform: translateY(-4px); border-color: var(--lp-chip-line); }
-@media (prefers-reduced-motion: reduce) {
-  .price { transition: none; }
-  .price:hover { transform: none; }
-}
+/* Pricing: one card per graded stage; wraps to extra rows when more stages get a package. */
+.plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+.plan { background: var(--color-surface); border-radius: var(--lp-r-md); padding: 32px; display: flex; flex-direction: column; gap: 16px; }
+.plan h3 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+.plan ul { list-style: none; margin: 0; padding: 0; flex: 1; display: grid; gap: 12px; align-content: start; }
+.plan li { display: grid; grid-template-columns: 20px 1fr; gap: 10px; color: var(--lp-muted); }
+.plan li svg { color: #16a34a; margin-top: 3px; }
+.planPrice { margin-top: 8px; font-size: 34px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+.planPrice small { font-size: 15px; font-weight: 400; color: var(--lp-muted); letter-spacing: 0; }
+.planNote { margin: 28px 0 0; text-align: center; color: var(--lp-muted); font-size: 15px; }
