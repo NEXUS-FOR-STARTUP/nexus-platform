@@ -77,3 +77,7 @@ data/postgres/
 .pi
 .tmp
 notes/session-logs/
+
+# scratch / session exports
+/tmp/
+/omp-session-*.html
