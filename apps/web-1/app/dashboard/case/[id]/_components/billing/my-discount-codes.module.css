@@ -3,9 +3,10 @@
   gap: 16px;
   margin-bottom: 24px;
   padding: 20px 24px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-brand-mid);
+  border-left: 6px solid var(--color-brand);
   border-radius: var(--ui-radius);
-  background: var(--color-surface-soft);
+  background: var(--color-brand-soft);
 }
 
 .title {
@@ -15,7 +16,7 @@
   margin: 0;
   font-size: var(--ui-text-body);
   font-weight: var(--ui-weight-medium);
-  color: var(--color-text);
+  color: var(--color-brand-ink);
 }
 
 .list {
@@ -39,18 +40,23 @@
 }
 
 .code {
-  font-size: var(--ui-text-body);
-  letter-spacing: 0.08em;
-  color: var(--color-text);
+  justify-self: start;
+  padding: 2px 10px;
+  border-radius: 6px;
+  background: var(--color-brand);
+  font-size: var(--ui-text-section);
+  letter-spacing: 0.1em;
+  color: var(--color-on-brand);
 }
 
 .codeOff {
   composes: code;
+  background: var(--color-surface-muted);
   color: var(--color-text-disabled);
   text-decoration: line-through;
 }
 
 .meta {
   font-size: var(--ui-text-note);
-  color: var(--color-text-muted);
+  color: var(--color-text);
 }
