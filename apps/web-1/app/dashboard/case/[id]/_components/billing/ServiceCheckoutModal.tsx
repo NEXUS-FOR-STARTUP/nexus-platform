@@ -148,7 +148,7 @@ export default function ServiceCheckoutModal({
             </div>
           </div>
 
-          <DiscountCodeInput packageId={selectedPackageId} caseId={caseId} applied={discount} onChange={setDiscount} />
+          <DiscountCodeInput packageId={selectedPackageId} caseId={caseId} applied={discount} onChange={setDiscount} initialCode={initialCode} />
 
           <dl className={s.receipt}>
             {creditsPerPackage > 0 && (
