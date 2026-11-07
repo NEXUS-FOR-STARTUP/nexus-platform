@@ -58,8 +58,8 @@ export default function ServiceCheckoutModal({
 
   const selectedPkg = availablePackages.find((p) => p.id === selectedPackageId);
   const listPrice = selectedPkg?.price ?? 0;
-  const unitPrice = discount?.discounted_price ?? listPrice;
-  const totalAmount = quantity * unitPrice;
+  // A code discounts exactly one unit; the rest pay list price (mirrors prepareOrder).
+  const totalAmount = discount ? discount.discounted_price + (quantity - 1) * listPrice : quantity * listPrice;
   const creditsPerPackage = selectedPkg?.credits_granted ?? 0;
   const totalCredits = quantity * creditsPerPackage;
   const perMemberPrice = totalAmount > 0 ? Math.round(totalAmount / PRICING_TEAM_SIZE) : null;
@@ -160,7 +160,7 @@ export default function ServiceCheckoutModal({
             </div>
           </div>
 
-          <DiscountCodeInput packageId={selectedPackageId} applied={discount} onChange={setDiscount} />
+          <DiscountCodeInput packageId={selectedPackageId} caseId={caseId} applied={discount} onChange={setDiscount} />
 
           <dl className={s.receipt}>
             {creditsPerPackage > 0 && (

@@ -47,8 +47,9 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
   const isAiAudit = GRADING_PACKAGE_IDS.includes(packageId) || (pkg?.id !== undefined && GRADING_PACKAGE_IDS.includes(pkg.id));
   const effectiveQuantity = isAiAudit ? 1 : quantity;
   const listUnitPrice = pkg?.price ?? 0;
-  const unitPrice = appliedDiscount?.discounted_price ?? listUnitPrice;
-  const totalAmount = effectiveQuantity * unitPrice;
+  const totalAmount = appliedDiscount
+    ? appliedDiscount.discounted_price + (effectiveQuantity - 1) * listUnitPrice
+    : effectiveQuantity * listUnitPrice;
   const shortage = Math.max(totalAmount - walletBalance, 0);
   const hasSufficientBalance = shortage === 0;
 
@@ -144,7 +145,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
               {appliedDiscount && (
                 <span className="text-text-muted line-through mr-2">{formatPrice(listUnitPrice)}</span>
               )}
-              {formatPrice(unitPrice)}
+              {formatPrice(appliedDiscount?.discounted_price ?? listUnitPrice)}
             </span>
           </div>
           {!isAiAudit && (
@@ -181,6 +182,7 @@ export default function CreditQuantityModal({ caseId, opened, onClose, packageId
         <DiscountCodeInput
           key={packageId}
           packageId={packageId}
+          caseId={caseId}
           applied={appliedDiscount}
           onChange={setAppliedDiscount}
           disabled={mutation.isPending}

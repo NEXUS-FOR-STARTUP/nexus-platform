@@ -1,6 +1,7 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { TagIcon, XIcon } from "@phosphor-icons/react";
 import type { DiscountCodeCheckResult } from "@repo/validation";
 import { Button } from "./ui/Button";
@@ -9,18 +10,28 @@ import s from "./discount-code.module.css";
 
 interface DiscountCodeInputProps {
   packageId: string;
+  caseId: string;
   applied: DiscountCodeCheckResult | null;
   onChange: (result: DiscountCodeCheckResult | null) => void;
   disabled?: boolean;
 }
 
-export default function DiscountCodeInput({ packageId, applied, onChange, disabled = false }: DiscountCodeInputProps) {
+export default function DiscountCodeInput({ packageId, caseId, applied, onChange, disabled = false }: DiscountCodeInputProps) {
   const [code, setCode] = useState("");
   const { check, isChecking, errorMessage, reset } = useCheckDiscountCode();
   const errorId = useId();
+  const linkCode = useSearchParams().get("code");
+  const triedLinkCode = useRef(false);
+
+  // The notification/email link carries the code: apply it once, silently ignore if it is for another service.
+  useEffect(() => {
+    if (!linkCode || !packageId || triedLinkCode.current) return;
+    triedLinkCode.current = true;
+    check({ code: linkCode, packageId, caseId }, { onSuccess: onChange, onError: reset });
+  }, [linkCode, packageId, caseId, check, onChange, reset]);
 
   const handleApply = () => {
-    check({ code, packageId }, { onSuccess: onChange });
+    check({ code, packageId, caseId }, { onSuccess: onChange });
   };
 
   const handleRemove = () => {
