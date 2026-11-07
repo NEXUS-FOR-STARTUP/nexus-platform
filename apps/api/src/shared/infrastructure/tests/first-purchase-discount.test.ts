@@ -144,7 +144,7 @@ test("notification: in-app + email, stage-named copy, link carries the code", as
   await grantFirstPurchaseCodes(paid());
   const payload = outbox[0]!.payload_json;
   const r = renderTemplate("discount.granted", payload, "student");
-  assert.match(r.body!, /tặng mã giảm giá 40% cho lần mua lượt tiếp theo của dịch vụ Gói chấm Thị trường/);
+  assert.match(r.body!, /giảm 40% cho lần mua tiếp theo của Gói chấm Thị trường/);
   assert.ok(r.body!.includes(String(payload["code"])));
   assert.equal(r.link, `/dashboard/case/c1?tab=billing&code=${payload["code"]}`);
   assert.deepEqual(channelsFor("discount.granted", "student"), ["in_app", "email"]);

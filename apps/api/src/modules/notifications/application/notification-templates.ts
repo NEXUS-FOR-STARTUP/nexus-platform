@@ -129,9 +129,9 @@ const TEMPLATES: Record<string, Template> = {
     studentLink: (p: any) => `/dashboard/wallet`,
   },
   "discount.granted": {
-    title: "Bạn được tặng mã giảm giá",
+    title: "Ưu đãi dành riêng cho bạn",
     studentBody: (p) =>
-      `Bạn được tặng mã giảm giá ${fmtAmount(p.percentOff)}% cho lần mua lượt tiếp theo của dịch vụ ${payloadText(p, "serviceLabel", "của Nexus")}. Mã của bạn: ${payloadText(p, "code", "")}${typeof p.expiresAt === "string" ? `. Hạn dùng đến ${new Date(p.expiresAt).toLocaleDateString("vi-VN")}` : ""}`,
+      `Mã ${payloadText(p, "code", "")} giảm ${fmtAmount(p.percentOff)}% cho lần mua tiếp theo của ${payloadText(p, "serviceLabel", "dịch vụ Nexus")}${typeof p.expiresAt === "string" ? `, dùng đến ${new Date(p.expiresAt).toLocaleDateString("vi-VN")}` : ""}.`,
     studentLink: (p) =>
       typeof p.linkCaseId === "string"
         ? `/dashboard/case/${p.linkCaseId}?tab=billing&code=${encodeURIComponent(payloadText(p, "code", ""))}`
