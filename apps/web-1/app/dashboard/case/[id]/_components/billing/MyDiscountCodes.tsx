@@ -28,7 +28,17 @@ export default function MyDiscountCodes({ caseId }: { caseId: string }) {
   const { data: codes } = useMyDiscountCodes(caseId);
   const { data: packages } = useServiceCatalog();
   const [picked, setPicked] = useState<Picked | null>(null);
-  if (!codes?.length) return null;
+  if (!codes) return null;
+  if (codes.length === 0) {
+    return (
+      <section className={s.box} aria-label="Mã giảm giá của bạn">
+        <h2 className={s.title}>
+          <TagIcon size={18} aria-hidden="true" /> Mã giảm giá của bạn
+        </h2>
+        <span className={s.meta}>Chưa có mã. Sau lần mua đầu tiên ở mỗi giai đoạn, bạn được tặng mã giảm 40% cho lượt tiếp theo.</span>
+      </section>
+    );
+  }
 
   const stageOf = (c: MyDiscountCode) => STAGES.find((st) => st.serviceType === c.service_type_code);
   const priceLine = (c: MyDiscountCode) => {
