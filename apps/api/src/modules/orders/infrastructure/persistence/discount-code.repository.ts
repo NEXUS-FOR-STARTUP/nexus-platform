@@ -23,6 +23,14 @@ export function listDiscountCodes() {
   });
 }
 
+export function listUserDiscountCodes(userId: string, caseId: string) {
+  return prisma.discountCode.findMany({
+    where: { owner_user_id: userId, case_id: caseId },
+    orderBy: { created_at: "desc" },
+    include: { service_type: { select: { code: true } } },
+  });
+}
+
 export function createDiscountCode(data: Prisma.DiscountCodeUncheckedCreateInput) {
   return prisma.discountCode.create({
     data,

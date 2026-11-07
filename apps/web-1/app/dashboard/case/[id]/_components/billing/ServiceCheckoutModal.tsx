@@ -18,6 +18,7 @@ interface ServiceCheckoutModalProps {
   caseId: string;
   serviceCode: string;
   stageName: string;
+  initialCode?: string;
   opened: boolean;
   onClose: () => void;
   onPurchased?: () => void;
@@ -31,6 +32,7 @@ export default function ServiceCheckoutModal({
   caseId,
   serviceCode,
   stageName,
+  initialCode,
   opened,
   onClose,
   onPurchased,

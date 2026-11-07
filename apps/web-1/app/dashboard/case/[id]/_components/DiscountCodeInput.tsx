@@ -14,13 +14,15 @@ interface DiscountCodeInputProps {
   applied: DiscountCodeCheckResult | null;
   onChange: (result: DiscountCodeCheckResult | null) => void;
   disabled?: boolean;
+  initialCode?: string;
 }
 
-export default function DiscountCodeInput({ packageId, caseId, applied, onChange, disabled = false }: DiscountCodeInputProps) {
+export default function DiscountCodeInput({ packageId, caseId, applied, onChange, disabled = false, initialCode }: DiscountCodeInputProps) {
   const [code, setCode] = useState("");
   const { check, isChecking, errorMessage, reset } = useCheckDiscountCode();
   const errorId = useId();
-  const linkCode = useSearchParams().get("code");
+  const urlCode = useSearchParams().get("code");
+  const linkCode = initialCode ?? urlCode;
   const triedLinkCode = useRef(false);
 
   // The notification/email link carries the code: apply it once, silently ignore if it is for another service.

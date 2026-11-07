@@ -56,6 +56,16 @@ export interface DiscountCodeCheckResult {
   discounted_price: number;
 }
 
+export type MyDiscountCodeStatus = "available" | "used" | "expired";
+
+/** A personal code granted to the signed-in user for one project. */
+export interface MyDiscountCode {
+  code: string;
+  percent_off: number;
+  service_type_code: string;
+  status: MyDiscountCodeStatus;
+}
+
 export interface AdminDiscountCode {
   id: string;
   code: string;

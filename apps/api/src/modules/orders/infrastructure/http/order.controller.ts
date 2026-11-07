@@ -5,6 +5,15 @@ import { createOrderUseCase } from "../../application/create-order.usecase.js";
 import { listOrdersUseCase } from "../../application/list-orders.usecase.js";
 import { getOrderUseCase } from "../../application/get-order.usecase.js";
 import { checkDiscountCodeUseCase } from "../../application/check-discount-code.usecase.js";
+import { listMyDiscountCodesUseCase } from "../../application/list-my-discount-codes.usecase.js";
+
+export async function listMyDiscountCodesHandler(c: Context) {
+  try {
+    const session = await getSession(c);
+    if (!session) return c.json({ code: "UNAUTHORIZED", message: "Vui lòng đăng nhập" }, 401);
+    return c.json(await listMyDiscountCodesUseCase(session.user.id, c.req.query("case_id")));
+  } catch (err) { return handleError(c, err); }
+}
 
 export async function createOrderHandler(c: Context) {
   try {
