@@ -35,7 +35,7 @@ export default function MyDiscountCodes({ caseId }: { caseId: string }) {
         <h2 className={s.title}>
           <TagIcon size={18} aria-hidden="true" /> Mã giảm giá của bạn
         </h2>
-        <span className={s.meta}>Chưa có mã. Sau lần mua đầu tiên ở mỗi giai đoạn, bạn được tặng mã giảm 40% cho lượt tiếp theo.</span>
+        <span className={s.meta}>Chưa có mã. Sau lần mua đầu tiên ở mỗi giai đoạn, bạn được tặng mã giảm giá cho lượt tiếp theo.</span>
       </section>
     );
   }
