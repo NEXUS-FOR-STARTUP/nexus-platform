@@ -53,7 +53,7 @@ export default function MyDiscountCodes({ caseId }: { caseId: string }) {
             <li key={c.code} className={s.item}>
               <div className={s.info}>
                 <b className={c.status === "available" ? s.code : s.codeOff}>{c.code}</b>
-                <span className={s.meta}>{`Giảm ${c.percent_off}% cho gói chấm ${stage?.name ?? ""}, dùng được 1 lần${expiry}`}</span>
+                <span className={c.status === "available" ? s.desc : s.meta}>{`Giảm ${c.percent_off}% cho gói chấm ${stage?.name ?? ""}, dùng được 1 lần${expiry}`}</span>
               </div>
               {c.status === "available" ? (
                 stage && <Button onClick={() => setPicked({ stage, code: c.code })}>Dùng mã</Button>
