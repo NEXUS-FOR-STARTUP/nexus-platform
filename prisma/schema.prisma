@@ -889,12 +889,16 @@ model DiscountCode {
   expires_at      DateTime?
   is_active       Boolean   @default(true)
   created_by      String
+  owner_user_id   String?
+  case_id         String?
   created_at      DateTime  @default(now())
   updated_at      DateTime  @updatedAt
 
   service_type ServiceType          @relation(fields: [service_type_id], references: [id])
   creator      User                 @relation("DiscountCodeCreator", fields: [created_by], references: [id])
   redemptions  DiscountRedemption[]
+
+  @@unique([owner_user_id, case_id, service_type_id])
 
   @@index([service_type_id])
   @@map("discount_codes")

@@ -24,7 +24,9 @@ export async function checkDiscountCodeUseCase(
   }
 
   const pkg = await resolveOrderPackage(parsed.data.package_id);
-  const discount = await resolveDiscountCode(parsed.data.code, userId, [pkg.serviceTypeId]);
+  const discount = await resolveDiscountCode(parsed.data.code, userId, [
+    { serviceTypeId: pkg.serviceTypeId, caseId: parsed.data.case_id ?? null },
+  ]);
 
   return {
     code: discount.code,

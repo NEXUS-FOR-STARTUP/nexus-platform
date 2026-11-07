@@ -20,8 +20,8 @@ import { resolvePurchaseUnitPrice, computeFifoRefund } from "../../../services/c
 
 const CP2_TYPE_ID = "st-cp2";
 const OTHER_TYPE_ID = "st-other";
-const PACKAGE_PRICE = 79000;
-const PACKAGE_CREDITS = 4;
+const PACKAGE_PRICE = 49000;
+const PACKAGE_CREDITS = 1;
 
 interface FakeCode {
   id: string;
@@ -32,6 +32,8 @@ interface FakeCode {
   redeemed_count: number;
   expires_at: Date | null;
   is_active: boolean;
+  owner_user_id: string | null;
+  case_id: string | null;
 }
 
 interface FakeState {
@@ -62,6 +64,8 @@ function makeCode(overrides: Partial<FakeCode> = {}): FakeCode {
     max_redemptions: null,
     redeemed_count: 0,
     expires_at: null,
+    owner_user_id: null,
+    case_id: null,
     is_active: true,
     ...overrides,
   };
@@ -208,11 +212,11 @@ afterEach(() => {
 });
 
 let keySeq = 0;
-function order(userId: string, discountCode?: string) {
+function order(userId: string, discountCode?: string, quantity = 1) {
   return currentUser.run(userId, () =>
     createOrderUseCase(userId, {
       idempotency_key: `key-${++keySeq}`,
-      items: [{ package_id: "pkg-cp2", quantity: 1, metadata_json: { case_id: "case-1" } }],
+      items: [{ package_id: "pkg-cp2", quantity, metadata_json: { case_id: "case-1" } }],
       ...(discountCode !== undefined ? { discount_code: discountCode } : {}),
     }),
   );
@@ -229,8 +233,8 @@ async function assertAppError(promise: Promise<unknown>, status: number, code: s
 
 test("applyPercentOff rounds and handles 100%", () => {
   assert.equal(applyPercentOff(PACKAGE_PRICE, 100), 0);
-  assert.equal(applyPercentOff(PACKAGE_PRICE, 50), 39500);
-  assert.equal(applyPercentOff(PACKAGE_PRICE, 1), 78210);
+  assert.equal(applyPercentOff(PACKAGE_PRICE, 50), 24500);
+  assert.equal(applyPercentOff(PACKAGE_PRICE, 1), 48510);
 });
 
 test("100% code: order is 0đ, wallet untouched, order paid, credits granted, ORDER_PAID emitted", async () => {
@@ -256,14 +260,24 @@ test("partial code charges the discounted price through the wallet", async () =>
   makeCode({ percent_off: 50 });
   const result = await order("user-1", "TANG4LUOT");
 
-  assert.equal(result.totalAmount, 39500);
-  assert.deepEqual(state.withdraws, [39500]);
+  assert.equal(result.totalAmount, 24500);
+  assert.deepEqual(state.withdraws, [24500]);
 });
 
 test("order without a code keeps the list price", async () => {
   const result = await order("user-1");
   assert.equal(result.totalAmount, PACKAGE_PRICE);
   assert.deepEqual(state.withdraws, [PACKAGE_PRICE]);
+});
+
+test("code discounts exactly one unit of a multi-unit order and is redeemed once", async () => {
+  makeCode({ percent_off: 50 });
+  const result = await order("user-1", "TANG4LUOT", 3);
+
+  assert.equal(result.totalAmount, 24500 + 2 * PACKAGE_PRICE);
+  assert.equal(result.totalCredits, 3 * PACKAGE_CREDITS);
+  assert.deepEqual(state.ledger.map((l) => l.amount), [PACKAGE_CREDITS, 2 * PACKAGE_CREDITS]);
+  assert.equal(state.codes[0]!.redeemed_count, 1);
 });
 
 test("refund of a fully discounted purchase is 0đ", async () => {
@@ -336,7 +350,7 @@ test("discount check endpoint previews price and is rate limited", async () => {
     code: "TANG4LUOT",
     percent_off: 25,
     list_price: PACKAGE_PRICE,
-    discounted_price: 59250,
+    discounted_price: 36750,
   });
   assert.equal(state.codes[0]!.redeemed_count, 0);
 

@@ -33,6 +33,10 @@ export class EmailService {
 
 export const emailService = new EmailService();
 
+const DEFAULT_APP_BASE_URL = "https://nexusforstartup.site";
+/** Base of links inside emails. Set APP_BASE_URL (e.g. http://localhost:3001) so test mails do not point at prod. */
+const appBaseUrl = () => (process.env.APP_BASE_URL?.trim() || DEFAULT_APP_BASE_URL).replace(/\/+$/, "");
+
 // SECURITY (audit 2026-08-07): body chứa user input (reason/query/supporterName)
 // → escapeHtml() trước khi nội suy vào HTML. Chống HTML injection / email-client XSS.
 export const escapeHtml = (s: string) =>
@@ -55,7 +59,7 @@ export function renderEmailHtml(title: string, body: string | null, link: string
     : "";
   const linkHtml = link
     ? `<div style="margin-top:24px;text-align:center;">
-        <a href="https://nexusforstartup.site${escapeHtml(link)}" style="display:inline-block;padding:12px 24px;background-color:#1a73e8;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">Xem chi tiết</a>
+        <a href="${escapeHtml(appBaseUrl())}${escapeHtml(link)}" style="display:inline-block;padding:12px 24px;background-color:#1a73e8;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">Xem chi tiết</a>
       </div>`
     : "";
 

@@ -44,6 +44,8 @@ export type UpdateDiscountCodeInput = z.infer<typeof UpdateDiscountCodeSchema>;
 export const CheckDiscountCodeSchema = z.object({
   code: z.string().min(1).max(64),
   package_id: z.string().min(1),
+  /** Needed to validate a code that is bound to one project. */
+  case_id: z.string().min(1).optional(),
 });
 export type CheckDiscountCodeInput = z.infer<typeof CheckDiscountCodeSchema>;
 

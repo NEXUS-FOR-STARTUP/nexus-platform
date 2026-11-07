@@ -54,18 +54,33 @@ export async function prepareOrder(userId: string, request: CreateOrderRequest):
     discount = await resolveDiscountCode(
       request.discount_code,
       userId,
-      resolvedItems.map(({ pkg }) => pkg.serviceTypeId),
+      resolvedItems.map(({ pkg, caseId }) => ({ serviceTypeId: pkg.serviceTypeId, caseId })),
     );
   }
+  // A code is single-use: exactly one unit (the first match) gets the discount, the rest pay list price.
+  const lines: ResolvedOrderItem[] = [];
+  let discountUsed = false;
   for (const resolved of resolvedItems) {
-    resolved.unitPrice =
-      discount && resolved.pkg.serviceTypeId === discount.serviceTypeId
-        ? applyPercentOff(resolved.pkg.unitPrice, discount.percentOff)
-        : resolved.pkg.unitPrice;
+    const listPrice = resolved.pkg.unitPrice;
+    const matches =
+      !!discount &&
+      !discountUsed &&
+      resolved.pkg.serviceTypeId === discount.serviceTypeId &&
+      (discount.caseId === null || resolved.caseId === discount.caseId);
+    if (!matches) {
+      lines.push({ ...resolved, unitPrice: listPrice });
+      continue;
+    }
+    discountUsed = true;
+    const discounted = applyPercentOff(listPrice, discount!.percentOff);
+    lines.push({ ...resolved, item: { ...resolved.item, quantity: 1 }, unitPrice: discounted });
+    if (resolved.item.quantity > 1) {
+      lines.push({ ...resolved, item: { ...resolved.item, quantity: resolved.item.quantity - 1 }, unitPrice: listPrice });
+    }
   }
 
-  const totalAmount = resolvedItems.reduce((sum, { item, unitPrice }) => sum + item.quantity * unitPrice, 0);
-  const listTotal = resolvedItems.reduce((sum, { item, pkg }) => sum + item.quantity * pkg.unitPrice, 0);
+  const totalAmount = lines.reduce((sum, { item, unitPrice }) => sum + item.quantity * unitPrice, 0);
+  const listTotal = lines.reduce((sum, { item, pkg }) => sum + item.quantity * pkg.unitPrice, 0);
   const idempotencyKey = request.idempotency_key ?? generateOrderIdempotencyKey(userId, request.items);
-  return { resolvedItems, discount, totalAmount, listTotal, idempotencyKey };
+  return { resolvedItems: lines, discount, totalAmount, listTotal, idempotencyKey };
 }

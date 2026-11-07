@@ -659,6 +659,7 @@ export const NOTIFICATION_TYPES = [
   "case.stage_changed",
   "report.published",
   "request_more_info",
+  "discount.granted",
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];

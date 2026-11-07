@@ -13,6 +13,8 @@ export interface ResolvedDiscount {
   code: string;
   percentOff: number;
   serviceTypeId: string;
+  /** null = not bound to a project; set = only valid for that case. */
+  caseId: string | null;
   /** true when the code has max_redemptions (atomic counter path). */
   limited: boolean;
 }
@@ -31,17 +33,21 @@ export function applyPercentOff(unitPrice: number, percentOff: number): number {
 export async function resolveDiscountCode(
   rawCode: string,
   userId: string,
-  serviceTypeIds: string[],
+  targets: { serviceTypeId: string; caseId: string | null }[],
   now = new Date(),
 ): Promise<ResolvedDiscount> {
   const code = normalizeDiscountCode(rawCode);
   const record = code ? await findDiscountCodeByCode(code) : null;
 
+  // A code with an owner is personal: another user, service or project gets the same error as an unknown code.
   if (
     !record ||
     !record.is_active ||
     (record.expires_at !== null && record.expires_at <= now) ||
-    !serviceTypeIds.includes(record.service_type_id)
+    (record.owner_user_id !== null && record.owner_user_id !== userId) ||
+    !targets.some(
+      (t) => t.serviceTypeId === record.service_type_id && (record.case_id === null || t.caseId === record.case_id),
+    )
   ) {
     throw INVALID_CODE_ERROR();
   }
@@ -57,6 +63,7 @@ export async function resolveDiscountCode(
     code: record.code,
     percentOff: record.percent_off,
     serviceTypeId: record.service_type_id,
+    caseId: record.case_id,
     limited: record.max_redemptions !== null,
   };
 }

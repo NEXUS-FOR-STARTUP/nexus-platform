@@ -128,6 +128,15 @@ const TEMPLATES: Record<string, Template> = {
     studentBody: (p: any) => `Đã mua ${p.totalCredits || 0} credit. Tổng: ${(p.totalAmount || 0).toLocaleString("en-US")} VND`,
     studentLink: (p: any) => `/dashboard/wallet`,
   },
+  "discount.granted": {
+    title: "Bạn được tặng mã giảm giá",
+    studentBody: (p) =>
+      `Bạn được tặng mã giảm giá ${fmtAmount(p.percentOff)}% cho lần mua lượt tiếp theo của dịch vụ ${payloadText(p, "serviceLabel", "của Nexus")}. Mã của bạn: ${payloadText(p, "code", "")}`,
+    studentLink: (p) =>
+      typeof p.linkCaseId === "string"
+        ? `/dashboard/case/${p.linkCaseId}?tab=billing&code=${encodeURIComponent(payloadText(p, "code", ""))}`
+        : `/dashboard`,
+  },
   "order.refunded": {
     title: "Hoàn tiền credit",
     studentBody: (p: any) => `Đã hoàn ${p.amount.toLocaleString("en-US")} VND vào ví`,

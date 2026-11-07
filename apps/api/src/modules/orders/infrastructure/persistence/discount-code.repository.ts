@@ -14,8 +14,10 @@ export function findUserRedemption(codeId: string, userId: string, db: Db = pris
   });
 }
 
+/** Admin list: shared codes only. System-granted personal codes (owner_user_id set) are per-user and would drown it. */
 export function listDiscountCodes() {
   return prisma.discountCode.findMany({
+    where: { owner_user_id: null },
     orderBy: { created_at: "desc" },
     include: { service_type: { select: { code: true } } },
   });

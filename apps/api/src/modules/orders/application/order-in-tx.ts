@@ -110,7 +110,8 @@ export async function createOrderInTx(
   });
 
   let totalCredits = 0;
-  for (const { item, caseId, pkg, unitPrice } of resolvedItems) {
+  const appliedCp1 = new Set<string>();
+  for (const [lineIndex, { item, caseId, pkg, unitPrice }] of resolvedItems.entries()) {
     const caseRecord = caseRecords.get(caseId)!;
 
     const creditsGranted = pkg.creditsGranted * item.quantity;
@@ -128,7 +129,7 @@ export async function createOrderInTx(
         type: "purchase",
         reference_type: "order",
         reference_id: order.id,
-        idempotency_key: `credit-purchase-${order.id}-${pkg.id}-${caseId}`,
+        idempotency_key: `credit-purchase-${order.id}-${pkg.id}-${caseId}-${lineIndex}`,
         metadata_json: {
           order_id: order.id,
           package_id: pkg.id,
@@ -157,7 +158,8 @@ export async function createOrderInTx(
     });
 
     // Only CP1 purchases touch the CP1 case (payment status, free-case upgrade, reopen).
-    if (pkg.serviceTypeCode !== CP1_AUDIT_SERVICE_CODE) continue;
+    if (pkg.serviceTypeCode !== CP1_AUDIT_SERVICE_CODE || appliedCp1.has(caseId)) continue;
+    appliedCp1.add(caseId);
 
     await applyPaidCreditCaseUpdate(tx, {
       caseId,
@@ -180,6 +182,7 @@ export async function createOrderInTx(
       manualTrigger: first.item.manual_trigger === true,
       totalAmount,
       totalCredits,
+      funded: !!funded,
       items: resolvedItems.map(({ item, pkg }) => ({
         package_id: pkg.id,
         service_type: pkg.serviceTypeCode,

@@ -12,6 +12,7 @@ export const DOMAIN_EVENTS = {
   DEPOSIT_REJECTED: "deposit.rejected",
   ORDER_PAID: "order.paid",
   ORDER_REFUNDED: "order.refunded",
+  DISCOUNT_GRANTED: "discount.granted",
   WALLET_BALANCE_CHANGED: "wallet.balance_changed",
 } as const;
 
