@@ -12,7 +12,7 @@
 
 ## Key Insights
 - DB local `nexus-db` (postgres:18.4, volume cục bộ) có 15 users, 31 orders (mới nhất 2026-10-20): nhiều khả năng là bản restore prod, lịch sử migration lệch repo (4 migration lạ). Không dùng cho smoke mua thật nếu chưa được user cho phép.
-- `.env` local có Resend key thật (kiểm 2026-11-07: `RESEND_API_KEY` set, 36 ký tự; `DATABASE_URL` và `READONLY_DATABASE_URL` đều `localhost:5432/nexus_platform`). User chọn smoke trên DB local hiện tại; bắt buộc chặn mail: chạy API với `RESEND_API_KEY=` rỗng (dotenv không ghi đè biến shell, `email.service.ts` tự tắt, chỉ cảnh báo log) và chỉ dùng tài khoản test. Trước seed hoặc lệnh ghi nào, kiểm lại host là localhost (đọc-only).
+- `.env` local có Resend key thật (kiểm 2026-11-07: `RESEND_API_KEY` set, 36 ký tự; `DATABASE_URL` và `READONLY_DATABASE_URL` đều `localhost:5432/nexus_platform`). User chọn smoke trên DB local hiện tại. Không được để `RESEND_API_KEY` rỗng: `auth.ts` gọi `requiredEnv('RESEND_API_KEY')` nên API không khởi động. Chặn mail thật bằng cách chạy API với key giả khác rỗng, ví dụ `RESEND_API_KEY=re_disabled_local` (Resend từ chối, không gửi), kèm `APP_BASE_URL=http://localhost:3001`; chỉ dùng tài khoản test. Trước seed hoặc lệnh ghi nào, kiểm lại host là localhost (đọc-only).
 - Độ trễ mong đợi: ORDER_PAID relay 5s + discount.granted relay 5s + notification relay 2s ≈ 12s.
 - Mã phát sau lần mua đầu, nên cần ít nhất 2 đơn để thấy toàn chu trình.
 
