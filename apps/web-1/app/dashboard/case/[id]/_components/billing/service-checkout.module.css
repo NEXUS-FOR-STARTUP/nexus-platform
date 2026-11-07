@@ -8,6 +8,7 @@
 .body {
   display: grid;
   gap: 24px;
+  padding-top: 16px;
 }
 
 .summary {

@@ -130,7 +130,7 @@ export default function ServiceCheckoutModal({
               {creditsPerPackage > 0 && <span>{`${creditsPerPackage} lượt chấm / gói`}</span>}
             </div>
             <p className={s.price}>{formatVndAmount(totalAmount)}</p>
-            {!discount && <p className={s.note}>Mua lần đầu, bạn được tặng mã giảm 40% cho lượt tiếp theo.</p>}
+            {!discount && <p className={s.note}>Mua lần đầu, bạn được tặng mã giảm giá cho lượt tiếp theo.</p>}
           </div>
 
           <div className={s.qty}>
