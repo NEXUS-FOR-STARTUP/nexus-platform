@@ -1,5 +1,7 @@
+import { prisma } from "../../../db.js";
 import { AppError } from "../../../shared/domain/app-error.js";
-import { updatePackagePrice, findPackageById } from "../../packages/infrastructure/persistence/package.repository.js";
+import { applyPackagePrice } from "../../packages/application/package-price-history.js";
+import { findPackageById } from "../../packages/infrastructure/persistence/package.repository.js";
 
 export async function updatePackagePriceUseCase(
   packageId: string,
@@ -21,9 +23,6 @@ export async function updatePackagePriceUseCase(
     throw new AppError(404, "PACKAGE_NOT_FOUND", "Không tìm thấy gói dịch vụ");
   }
 
-  return await updatePackagePrice(packageId, price, {
-    previousPrice: pkg.price,
-    changedBy: adminId,
-    changedAt: new Date(),
-  });
+  await prisma.$transaction((tx) => applyPackagePrice(tx, { packageId, price, changedBy: adminId }));
+  return await findPackageById(packageId);
 }

@@ -23,7 +23,7 @@ export default function Cp2PackageCard({ caseId }: Cp2PackageCardProps) {
       {pkg?.credits_granted ? (
         <>
           <p className="text-xs text-text-muted">{`${pkg.credits_granted} lượt chấm: bảng hỏi phỏng vấn hoặc chấm toàn bộ vòng Thị trường`}</p>
-          <p className="text-xs text-text-muted">{`${formatPrice(Math.floor(pkg.price / pkg.credits_granted))}/lượt`}</p>
+          {pkg.credits_granted > 1 ? <p className="text-xs text-text-muted">{`${formatPrice(Math.floor(pkg.price / pkg.credits_granted))}/lượt`}</p> : null}
         </>
       ) : null}
       <RainbowBuyButton fullWidth size="lg" disabled={!pkg} onClick={() => setOpened(true)}>

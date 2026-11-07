@@ -421,7 +421,7 @@ export default function TabDiscussionChat({ caseId }: TabDiscussionChatProps) {
         {isChatLocked && (
           <Alert color="yellow" variant="light" radius="md" className="mt-2">
             <span className="text-[13px]">
-              Hết lượt kiểm tra và đã qua thời gian ân hạn 24h. Vui lòng mua thêm credit để tiếp tục trao đổi.
+              Hết lượt kiểm tra và đã qua thời gian ân hạn 24h. Vui lòng mua thêm lượt để tiếp tục trao đổi.
             </span>
           </Alert>
         )}

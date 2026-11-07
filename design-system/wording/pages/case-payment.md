@@ -14,7 +14,7 @@
   - Tải lên ảnh chụp biên lai / minh chứng giao dịch chuyển khoản thành công để quản trị viên đối soát.
   - Theo dõi trạng thái duyệt thanh toán của giao dịch (Chờ xác minh, Đã cộng vào ví, Cần xử lý lại...).
 - **Business / Product goals:**
-  - Thu phí dịch vụ phản biện (Gói Basic AI Audit 79,000 VND hoặc theo gói dịch vụ đã chọn) trước khi hệ thống AI hoặc Supporter thực hiện đánh giá hồ sơ.
+  - Thu phí dịch vụ phản biện (Gói Basic AI Audit 49,000 VND hoặc theo gói dịch vụ đã chọn) trước khi hệ thống AI hoặc Supporter thực hiện đánh giá hồ sơ.
   - Đảm bảo tính chính xác trong việc đối soát giao dịch ngân hàng với hồ sơ của sinh viên thông qua mã chuyển khoản nội dung cú pháp chuẩn hóa.
   - Đảm bảo trải nghiệm thanh toán liền mạch không bị đứt gãy hành trình (hệ thống lưu vết `intent` kèm `caseId` để sau khi nạp tiền thiếu hoặc gặp sự cố có thể quay trở lại chính xác trang hồ sơ ban đầu).
 - **Primary action:**
@@ -79,7 +79,7 @@
 | `casePayment.modal.quantity.label` | `CreditQuantityModal` > `NumberInput` label (`CreditQuantityModal.tsx:117`) | Label | Số lượng credit | — | Ẩn khi `isAiAudit === true` |
 | `casePayment.modal.quantity.desc` | `CreditQuantityModal` > `NumberInput` description (`CreditQuantityModal.tsx:118`) | Helper | Từ 1 đến 50 credit | — | Ẩn khi `isAiAudit === true` |
 | `casePayment.modal.price.label` | `CreditQuantityModal` > Card giá > span (`CreditQuantityModal.tsx:129`) | Label | Đơn giá | — | default |
-| `casePayment.modal.price.value` | `CreditQuantityModal` > Card giá > span (`CreditQuantityModal.tsx:130`) | Item | `<code>{formatPrice(unitPrice)}</code>` | — | default (Ví dụ: `79,000 VND`) |
+| `casePayment.modal.price.value` | `CreditQuantityModal` > Card giá > span (`CreditQuantityModal.tsx:130`) | Item | `<code>{formatPrice(unitPrice)}</code>` | — | default (Ví dụ: `49,000 VND`) |
 | `casePayment.modal.quantity.summaryLabel` | `CreditQuantityModal` > Card giá > span (`CreditQuantityModal.tsx:133`) | Label | Số lượng | — | Ẩn khi `isAiAudit === true` |
 | `casePayment.modal.quantity.summaryValue` | `CreditQuantityModal` > Card giá > span (`CreditQuantityModal.tsx:134`) | Item | `<code>{effectiveQuantity}</code>` | — | Ẩn khi `isAiAudit === true` |
 | `casePayment.modal.total.label` | `CreditQuantityModal` > Card giá > span (`CreditQuantityModal.tsx:138`) | Label | Tổng thanh toán | — | default |

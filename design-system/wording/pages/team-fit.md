@@ -19,7 +19,7 @@ Access: `Authenticated (Sinh viên / Student)` (nguồn: `apps/web-1/app/dashboa
 ### Business/Product goals
 - Đóng vai trò là tính năng phễu (Top-of-Funnel / Free Evaluation Tool) dẫn dắt từ trang chủ (CTA Hero *"Kiểm tra miễn phí"* trỏ về `/dashboard/team-fit`).
 - Giúp người dùng trải nghiệm giá trị phản biện tự động của AI hoàn toàn miễn phí mà không cần nộp toàn bộ tài liệu slide Google Drive.
-- Upsell chuyển đổi sang gói trả phí `Basic AI Audit` (79,000 VND) hoặc gói có chuyên gia (`Supporter Audit`) thông qua banner ở bước kết quả (nguồn: `TeamFitResultStep.tsx:145-160`).
+- Upsell chuyển đổi sang gói trả phí `Basic AI Audit` (49,000 VND) hoặc gói có chuyên gia (`Supporter Audit`) thông qua banner ở bước kết quả (nguồn: `TeamFitResultStep.tsx:145-160`).
 - Tự động tạo hồ sơ Case mới (`Case`) với gói `pkg_tf_free` (giá 0 VND, stage `intake_pending`, payment status `not_required`) khi người dùng bấm lưu (nguồn: `save-team-fit.usecase.ts:83-119`).
 
 ### Primary action
@@ -62,7 +62,7 @@ Access: `Authenticated (Sinh viên / Student)` (nguồn: `apps/web-1/app/dashboa
   - `experience` (Kinh nghiệm): Dạng mảng tag, không bắt buộc (0 tag), tối đa 10 tags, mỗi tag 2 – 500 ký tự (nguồn: `packages/validation/src/index.ts:18-27`, `TeamMemberCard.tsx:60-111`).
 - **Luồng phân tích AI (Free Tier):** Gọi API `POST /api/ai-engine/team-fit` (yêu cầu cookie session). Backend sử dụng mô hình Google Generative AI (Gemini) với `SYSTEM_PROMPT_FREE` được cấu hình chặt chẽ: chỉ quét bề mặt và liệt kê tối đa 5 `teamGaps` và 5 `commercialGaps`, mỗi mục tối đa 20 từ, tuyệt đối không đưa ra lời khuyên hay phân tích sâu ở tầng miễn phí (nguồn: `evaluate-team-fit.usecase.ts:23-42,69-95`).
 - **Luồng lưu Case (Save Case):** Gọi API `POST /api/ai-engine/team-fit/save` với gói `pkg_tf_free`. Nếu dữ liệu ý tưởng và đội ngũ trùng khớp hoàn toàn với bản ghi đã lưu trước đó của user (`idempotency`), backend trả về case hiện có thay vì tạo trùng lặp. Khi tạo mới, case nhận mã định danh dạng `NX-XXXXXX` (nguồn: `save-team-fit.usecase.ts:83-119`).
-- **Giá hiển thị trên banner Upsell:** Hook `usePackagePrice(PACKAGE_KEYS.AI_AUDIT)` lấy giá từ API `/packages/pkg_ai_audit`. Nếu chưa load được hoặc API lỗi, fallback mặc định là 79,000 VND (nguồn: `TeamFitResultStep.tsx:34-35`).
+- **Giá hiển thị trên banner Upsell:** `TeamFitUpsellCard.tsx` dùng `usePackagePrice(PACKAGE_KEYS.AI_AUDIT)` (API `/packages/pkg_ai_audit`). Chưa tải được hoặc lỗi thì nhãn là "Gói đánh giá" (không hiện giá, không có giá fallback cứng). Có giá thì nhãn là `{tên gói} ({formatPrice(price)})`, số lượt lấy từ `credits_granted`.
 - **Demo Data FAB:** Nút tròn nổi góc dưới phải (`z-50`) cung cấp sẵn 11 preset dữ liệu thực tế từ các nhóm sinh viên EXE101 tại ĐH FPT (Nexus, Farm2Dorm, ReWear, PawPal, SmashBook, LeanTea, MentorMap, ShareNest, ChargeCampus, MindNote, CraftUni) (nguồn: `demo-preset.ts:773-829`, `DemoDataFAB.tsx:33-85`).
 
 ---
@@ -190,9 +190,9 @@ Access: `Authenticated (Sinh viên / Student)` (nguồn: `apps/web-1/app/dashboa
 | `team_result.btn.save` | `Button` (Brand filled) | CTA | `Lưu kết quả` | Gửi payload lên `/ai-engine/team-fit/save` tạo Case | default (khi hasSaved === false) |
 | `team_result.btn.saved_badge` | `Button` (Màu xanh lá filled) | Badge | `Đã lưu` | — | disabled (hiển thị sau khi lưu thành công) |
 | `team_result.btn.view_case` | `Button` (Brand filled) | Navigation | `Xem case →` | Điều hướng sang `/dashboard/case/{savedCaseId}` | default (hiển thị sau khi lưu thành công) |
-| `team_result.upsell.title` | `div.bg-brand-soft` > `Text` | Heading | `Muốn được Supporter kiểm tra chuyên sâu?` | — | default |
-| `team_result.upsell.desc` | `div.bg-brand-soft` > `Text` | Description | `Nhận phản biện chi tiết từ Supporter giàu kinh nghiệm. Giá chỉ {auditPriceLabel} / lượt.` | — | default (`auditPriceLabel` định dạng ví dụ "79,000 VND") |
-| `team_result.upsell.btn` | `div.bg-brand-soft` > `Button` | CTA | `Mua kiểm tra chuyên sâu` | Tự động lưu kết quả (nếu chưa lưu) và chuyển hướng tới `/dashboard/case/{caseId}` | default |
+| `team_result.upsell.title` | `TeamFitUpsellCard` > `Text` | Heading | `Cần đánh giá sâu hơn từ tài liệu?` | — | default |
+| `team_result.upsell.desc` | `TeamFitUpsellCard` > `Text` | Description | `{auditPriceLabel} gồm {credits_granted ?? "các"} lượt phản biện chi tiết.` | — | default (ví dụ `Gói chấm Ý tưởng (49,000 VND) gồm 1 lượt phản biện chi tiết.`) |
+| `team_result.upsell.btn` | `TeamFitUpsellCard` > `Button` | CTA | `Đánh giá dự án` | `onUpgrade` | default |
 
 ---
 

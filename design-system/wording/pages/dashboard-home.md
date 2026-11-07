@@ -143,7 +143,7 @@
 | dashboard.packageModal.title | `PackageSelectionModal` > modal title (`PackageSelectionModal.tsx:37–43`) | Modal | Chọn gói kiểm tra | — | rendered when either dashboard modal instance is open |
 | dashboard.packageModal.basic.recommended | `PackageSelectionModal` > Basic card > `Badge` (`PackageSelectionModal.tsx:49–54`) | Badge | Khuyên dùng | — | Basic package card |
 | dashboard.packageModal.basic.title | `PackageSelectionModal` > Basic card > `<h4>` (`PackageSelectionModal.tsx:55–64`) | Heading | Basic AI Audit | — | Basic package card |
-| dashboard.packageModal.basic.price | `PackageSelectionModal` > Basic card > price (`PackageSelectionModal.tsx:57–61`) | Item | 79,000 | — | Basic package card |
+| dashboard.packageModal.basic.price | `PackageSelectionModal` > Basic card > price (`PackageSelectionModal.tsx:57–61`) | Item | 49,000 | — | Basic package card |
 | dashboard.packageModal.basic.currency | `PackageSelectionModal` > Basic card > price (`PackageSelectionModal.tsx:57–61`) | Item | VND | — | Basic package card |
 | dashboard.packageModal.basic.description | `PackageSelectionModal` > Basic card > description (`PackageSelectionModal.tsx:62–64`) | Description | Phân tích tự động bằng AI. Báo cáo trả về tức thì. | — | Basic package card |
 | dashboard.packageModal.basic.featureRubric | `PackageSelectionModal` > Basic card > `List.Item` (`PackageSelectionModal.tsx:65–78`) | Item | Chấm điểm theo Rubric | — | Basic package card |

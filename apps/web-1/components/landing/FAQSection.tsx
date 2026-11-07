@@ -23,7 +23,7 @@ function buildFaqItems(pkg: PublicPackage | null): FaqItem[] {
   },
   {
     question: pkg ? `${pkg.name} (${formatPrice(pkg.price)}) bao gồm những gì và được sử dụng như thế nào?` : "Mỗi gói bao gồm những gì và được sử dụng như thế nào?",
-    answer: `${credits ? `Mỗi gói cung cấp ${credits} lượt đánh giá cho dự án.` : "Mỗi gói cung cấp các lượt đánh giá cho dự án."} Lượt 1 giúp nhóm phát hiện các điểm thiếu logic và lỗ hổng ban đầu. Sau khi chỉnh sửa tài liệu, nhóm sử dụng lượt tiếp theo để đánh giá lại phiên bản mới xem đã khắc phục triệt để chưa.`,
+    answer: `${credits ? `Mỗi gói cung cấp ${credits} lượt đánh giá cho dự án.` : "Mỗi gói cung cấp các lượt đánh giá cho dự án."} Lượt đầu giúp nhóm phát hiện các điểm thiếu logic và lỗ hổng ban đầu. Sau khi chỉnh sửa tài liệu, nhóm mua thêm lượt để đánh giá lại phiên bản mới; sau lần mua đầu, Nexus tặng mã giảm 40% cho lượt tiếp theo.`,
   },
   {
     question: "Tôi có thể chỉnh sửa dự án sau khi nhận báo cáo phản biện không?",

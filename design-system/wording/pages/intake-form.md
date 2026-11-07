@@ -19,7 +19,7 @@ Access: `Authenticated (Sinh viên / Student)` (nguồn: `apps/web-1/app/dashboa
 ### Business/Product goals
 - Thu thập đầy đủ bối cảnh tối thiểu nhưng có cấu trúc để AI Engine (Nexus Engine) hoặc Supporter có đủ dữ liệu phản biện chính xác, ngăn ngừa tình trạng nộp hồ sơ rỗng hoặc thiếu tài liệu.
 - Phân luồng biểu mẫu động theo gói dịch vụ đã chọn:
-  - Với gói tự động `Basic AI Audit` (`pkg_ai_audit` - 79,000 VND), hệ thống tự động loại bỏ bước "Nhu cầu hỗ trợ" (giảm từ 7 bước xuống 6 bước) nhằm tối ưu thời gian hoàn thành của người dùng (nguồn: `page.tsx:103-123`, `IntakeChatFlow.tsx:145-149`).
+  - Với gói tự động `Basic AI Audit` (`pkg_ai_audit` - 49,000 VND), hệ thống tự động loại bỏ bước "Nhu cầu hỗ trợ" (giảm từ 7 bước xuống 6 bước) nhằm tối ưu thời gian hoàn thành của người dùng (nguồn: `page.tsx:103-123`, `IntakeChatFlow.tsx:145-149`).
   - Chặn truy cập gói đang phát triển `Premium Mentor Audit` (`pkg_supporter_audit` - 149,000 VND) ở chế độ tạo mới bằng cảnh báo thân thiện và chuyển hướng sang gói Basic AI (nguồn: `page.tsx:223-263`).
 - Tự động lưu nháp biểu mẫu vào `localStorage` ở chế độ tạo mới (`CREATE` mode), giúp sinh viên không bị mất dữ liệu khi vô tình đóng tab hoặc tải lại trang (nguồn: `useIntakeForm.ts:167-177`).
 - Chuyển đổi thành công hồ sơ sang trạng thái thanh toán (`/dashboard/case/[id]?checkout=true`) hoặc trang chi tiết hồ sơ (`/dashboard/case/[id]`) (nguồn: `useIntakeForm.ts:153-164`).

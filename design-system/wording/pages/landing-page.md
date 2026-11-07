@@ -40,7 +40,7 @@ Access: `Public`
 - Bấm `Đăng nhập` → Đi tới `/auth` (nguồn: `AppShell.tsx:78`).
 
 ### Product facts / constraints
-- Gói `Basic AI Audit`: Giá 79,000 VND / lượt, thời gian trả kết quả cam kết trên UI là `< 1 phút` (nguồn: `LandingPricing.tsx:43,67`).
+- Gói `Basic AI Audit`: Giá 49,000 VND / lượt, thời gian trả kết quả cam kết trên UI là `< 1 phút` (nguồn: `LandingPricing.tsx:43,67`).
 - Gói `Premium Mentor Audit`: Giá 149,000 VND / lượt, hiển thị nhãn `Sắp ra mắt`, nút bấm có thuộc tính `disabled` (nguồn: `LandingPricing.tsx:104,134-142`).
 - Nexus không đảm bảo chắc chắn đỗ checkpoint (nguồn: `FAQSection.tsx:11-13`).
 - Nhận tài liệu phân tích qua link Google Drive (nguồn: `FAQSection.tsx:8`).
@@ -110,7 +110,7 @@ Access: `Public`
 | `pricing.subtitle` | `p` (Mô tả phụ khu vực) | Description | `Lựa chọn gói kiểm tra phù hợp với mục tiêu và tiến độ dự án của bạn. Mọi gói đều được xây dựng dựa trên tiêu chuẩn khởi nghiệp thực chiến.` | — | default |
 | `pricing.basic.badge` | `Card[Basic] > Badge` | Badge | `Khuyên dùng` | — | default |
 | `pricing.basic.name` | `Card[Basic] > h3` | Heading | `Basic AI Audit` | — | default |
-| `pricing.basic.price` | `Card[Basic] > span` | Item | `79,000` | — | default |
+| `pricing.basic.price` | `Card[Basic] > span` | Item | `49,000` | — | default |
 | `pricing.basic.unit` | `Card[Basic] > span` | Item | `VND / lượt` | — | default |
 | `pricing.basic.desc` | `Card[Basic] > p` | Description | `Phù hợp nhóm cần nộp gấp, rà soát khung sườn và sửa lỗi logic cơ bản nhanh chóng.` | — | default |
 | `pricing.basic.feat_1` | `Card[Basic] > List.Item 1` | Item | `Đánh giá hoàn toàn tự động bằng AI` | — | default |

@@ -1,4 +1,5 @@
 import { prisma } from '../../../db.js'
+import { applyPackagePrice } from './package-price-history.js'
 
 export async function setCurrentPricingUseCase(
   packageId: string,
@@ -6,26 +7,9 @@ export async function setCurrentPricingUseCase(
   changedBy: string,
 ) {
   return prisma.$transaction(async (tx) => {
-    const current = await tx.servicePricing.findFirst({
+    await applyPackagePrice(tx, { packageId, price, changedBy })
+    return tx.servicePricing.findFirstOrThrow({
       where: { package_id: packageId, is_current: true },
-    })
-
-    if (current) {
-      await tx.servicePricing.update({
-        where: { id: current.id },
-        data: { is_current: false },
-      })
-    }
-
-    return tx.servicePricing.create({
-      data: {
-        package_id: packageId,
-        price,
-        is_current: true,
-        previous_price: current?.price ?? null,
-        changed_by: changedBy,
-        changed_at: new Date(),
-      },
     })
   })
 }

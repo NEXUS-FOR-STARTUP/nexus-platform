@@ -10,6 +10,7 @@ import { config as loadEnv } from "dotenv";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import path from "node:path";
+import { applyPackagePrice } from "../../apps/api/src/modules/packages/application/package-price-history.js";
 
 // Load root .env for DATABASE_URL
 loadEnv({ path: path.resolve(process.cwd(), ".env") });
@@ -82,13 +83,13 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
   {
     id: "pkg_ai_audit",
     name: "Gói chấm Ý tưởng",
-    price: 79000,
+    price: 49000,
     features: {
       items: [
         "Đánh giá hoàn toàn tự động bằng AI",
         "Phân tích theo Rubric chuẩn (5 tiêu chí cốt lõi)",
         "Nhận báo cáo chi tiết ngay lập tức (dưới 1 phút)",
-        "Chỉ ~15.000đ/bạn khi chia theo nhóm 5 người",
+        "Mua lượt tiếp theo được giảm 40% bằng mã tặng sau lần mua đầu",
       ],
       sla_hours: 0,
       mode: "ai_automated",
@@ -96,17 +97,17 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
     },
     is_active: true,
     service_type_code: "cp1_audit",
-    credits_granted: 2,
+    credits_granted: 1,
   },
   {
     id: "pkg_cp2_audit",
     name: "Gói chấm Thị trường",
-    price: 79000,
+    price: 49000,
     features: {
       items: [
         "Chấm bảng hỏi phỏng vấn trước khi đi phỏng vấn thật",
         "Chấm toàn bộ bài nộp vòng Thị trường theo rubric, kèm trích dẫn từ bài nộp",
-        "2 lượt dùng chung cho bảng hỏi và bài nộp vòng Thị trường",
+        "1 lượt dùng cho bảng hỏi hoặc bài nộp vòng Thị trường; mua lượt tiếp theo được giảm 40%",
       ],
       sla_hours: 0,
       mode: "ai_automated",
@@ -114,16 +115,16 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
     },
     is_active: true,
     service_type_code: "cp2_audit",
-    credits_granted: 2,
+    credits_granted: 1,
   },
   {
     id: "pkg_cp3_audit",
     name: "Gói chấm Mô hình kinh doanh",
-    price: 79000,
+    price: 49000,
     features: {
       items: [
         "Chấm Mô hình kinh doanh, SWOT, chiến lược và kết luận theo rubric, kèm trích dẫn từ bài nộp",
-        "2 lượt chấm, có thể chấm lại sau khi sửa bài",
+        "1 lượt chấm; mua lượt tiếp theo được giảm 40% để chấm lại sau khi sửa bài",
         "Không chấm demo MVP và giao diện",
       ],
       sla_hours: 0,
@@ -132,7 +133,7 @@ const ACTIVE_PACKAGES: ActivePackageDef[] = [
     },
     is_active: true,
     service_type_code: "cp3_audit",
-    credits_granted: 2,
+    credits_granted: 1,
   },
   {
     id: "pkg_supporter_audit",
@@ -185,6 +186,7 @@ export async function seedActivePackages(): Promise<void> {
       select: { id: true },
     });
 
+    // `price` is not in `update`: price changes go through applyPackagePrice so history is kept.
     const result = await prisma.servicePackage.upsert({
       where: { id },
       create: {
@@ -198,13 +200,15 @@ export async function seedActivePackages(): Promise<void> {
       },
       update: {
         name,
-        price,
         features,
         is_active,
         credits_granted,
         service_type_id,
       },
     });
+    if (existing && (await prisma.$transaction((tx) => applyPackagePrice(tx, { packageId: id, price, changedBy: null })))) {
+      console.log(`   💲 Price changed to ${price.toLocaleString()} VND (history recorded).`);
+    }
 
     if (existing) {
       updated++;

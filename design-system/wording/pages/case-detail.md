@@ -24,7 +24,7 @@
   - Đóng vai trò là trung tâm làm việc chính (Workspace Hub) giữa Sinh viên, Nexus AI Engine và Supporter chuyên môn.
   - Tự động hóa và trực quan hóa quy trình phản biện qua 4 giai đoạn rõ ràng: Tiếp nhận đề án -> Mô hình Triad -> Phản biện sâu -> Báo cáo phản biện.
   - Giữ chân sinh viên qua tính năng tương tác đa chiều (xem báo cáo, nộp bản sửa, chat hỗ trợ, cập nhật tài liệu).
-  - Tối ưu hóa mô hình kinh doanh dịch vụ phản biện (Credit & Package monetization): nhắc nhở nạp credit khi hết hạn, hiển thị gói Basic AI Audit (79,000 VND) và định hướng nâng cấp gói.
+  - Tối ưu hóa mô hình kinh doanh dịch vụ phản biện (Credit & Package monetization): nhắc nhở nạp credit khi hết hạn, hiển thị gói Basic AI Audit (49,000 VND) và định hướng nâng cấp gói.
 - **Primary action:**
   - Hành động chính phụ thuộc theo trạng thái vòng đời của hồ sơ (`user_facing_stage`):
     - Khi `intake_pending`: Bấm "Nộp hồ sơ ngay" (nếu đã có credit) hoặc "Chọn gói đánh giá" / "Thanh toán dịch vụ" (nếu chưa có credit).
@@ -656,7 +656,7 @@
 | `caseDetail.pkgSelect.modalTitle` | `PackageSelectionModal` > `Modal` title (`PackageSelectionModal.tsx:40`) | Modal | Chọn gói kiểm tra | — | Khi modal mở |
 | `caseDetail.pkgSelect.basic.badge` | `PackageSelectionModal` > Card Basic > `Badge` (`PackageSelectionModal.tsx:53`) | Badge | Khuyên dùng | — | Gói Basic AI Audit |
 | `caseDetail.pkgSelect.basic.title` | `PackageSelectionModal` > Card Basic > `h4` (`PackageSelectionModal.tsx:57`) | Heading | Basic AI Audit | — | default |
-| `caseDetail.pkgSelect.basic.price` | `PackageSelectionModal` > Card Basic > span (`PackageSelectionModal.tsx:59–60`) | Item | 79,000 VND | — | default |
+| `caseDetail.pkgSelect.basic.price` | `PackageSelectionModal` > Card Basic > span (`PackageSelectionModal.tsx:59–60`) | Item | 49,000 VND | — | default |
 | `caseDetail.pkgSelect.basic.desc` | `PackageSelectionModal` > Card Basic > `Text` (`PackageSelectionModal.tsx:63`) | Description | Phân tích tự động bằng AI. Báo cáo trả về tức thì. | — | default |
 | `caseDetail.pkgSelect.basic.feat1` | `PackageSelectionModal` > Card Basic > `List.Item` (`PackageSelectionModal.tsx:75`) | Item | Chấm điểm theo Rubric | — | default |
 | `caseDetail.pkgSelect.basic.feat2` | `PackageSelectionModal` > Card Basic > `List.Item` (`PackageSelectionModal.tsx:76`) | Item | Xác định lỗi Logic cơ bản | — | default |

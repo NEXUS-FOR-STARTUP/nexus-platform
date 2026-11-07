@@ -54,7 +54,7 @@ export function PackageSelectionModal({ opened, onClose, onSelectPackage }: Pack
                 {pkg?.credits_granted ? <span className="font-body text-text-muted text-sm">{`/ Gói ${pkg.credits_granted} lượt đánh giá`}</span> : null}
               </div>
               <Text size="sm" c="dimmed" className="font-body mb-4 min-h-[40px]">
-                Đánh giá tài liệu qua 5 nhóm tiêu chí cốt lõi. Mỗi gói gồm nhiều lượt (đánh giá ban đầu và đánh giá lại sau khi sửa).
+                Đánh giá tài liệu qua 5 nhóm tiêu chí cốt lõi. Mỗi gói gồm 1 lượt đánh giá; mua thêm lượt để đánh giá lại sau khi sửa.
               </Text>
               <List
                 spacing="xs"

@@ -52,7 +52,7 @@ Bảng dưới đây ghi nhận thực tế các từ ngữ đang được dùng
 ## 5. Verified Product Truths & Constraints (Sự thật & Giới hạn đã xác minh qua Code)
 
 1. **Gói Basic AI Audit:**
-   - Giá: `79,000 VND / lượt` (nguồn: `LandingPricing.tsx`).
+   - Giá: `49,000 VND / lượt` (1 lượt mỗi gói; nguồn: giá động từ `service_packages`).
    - Thời gian trả kết quả cam kết trên UI: `< 1 phút` (nguồn: `LandingPricing.tsx:67`).
    - Hình thức: Tự động hoàn toàn bằng AI.
 2. **Gói Premium Mentor Audit:**

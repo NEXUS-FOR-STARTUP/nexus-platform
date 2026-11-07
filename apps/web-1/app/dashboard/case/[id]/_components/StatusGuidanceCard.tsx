@@ -456,7 +456,7 @@ export default function StatusGuidanceCard({
                   className="shrink-0 font-semibold cursor-pointer"
                   onClick={onOpenPayment}
                 >
-                  Mua credit
+                  Mua thêm lượt
                 </Button>
               )}
             </div>
