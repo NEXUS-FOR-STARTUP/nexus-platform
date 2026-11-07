@@ -106,6 +106,7 @@ function AdminHubPageInner() {
   const setActiveSection = (tab: AdminTab) => router.replace(`/admin?tab=${tab}`);
   const [paymentFilter, setPaymentFilter] = useState<"pending" | "history">("pending");
   const [workerFilter, setWorkerFilter] = useState<WorkerFilter>("all");
+  const [packagesView, setPackagesView] = useState<"list" | "discounts">("list");
   const { data: workerStats } = useAdminWorkerStats(activeSection === "workers");
 
 
@@ -652,10 +653,18 @@ function AdminHubPageInner() {
             ) : (
               <div className="flex flex-col gap-1">
                 <UnstyledButton
+                  onClick={() => setPackagesView("list")}
                   className={classes.link}
-                  data-active={true}
+                  data-active={packagesView === "list" || undefined}
                 >
                   <span>Danh sách gói dịch vụ</span>
+                </UnstyledButton>
+                <UnstyledButton
+                  onClick={() => setPackagesView("discounts")}
+                  className={classes.link}
+                  data-active={packagesView === "discounts" || undefined}
+                >
+                  <span>Mã giảm giá</span>
                 </UnstyledButton>
               </div>
             )}
@@ -764,7 +773,9 @@ function AdminHubPageInner() {
                 <AdminNewsManager />
               </div>
             ) : (
-              <div className="space-y-6">
+              packagesView === "discounts" ? (
+                <AdminDiscountCodes />
+              ) : (
                 <AdminPackagesSettings
                   packages={packages}
                   onUpdatePrice={updatePackagePrice}
@@ -772,8 +783,7 @@ function AdminHubPageInner() {
                   isUpdatingPrice={isUpdatingPrice}
                   isUpdatingStatus={isUpdatingStatus}
                 />
-                <AdminDiscountCodes />
-              </div>
+              )
             )}
           </div>
         )}
