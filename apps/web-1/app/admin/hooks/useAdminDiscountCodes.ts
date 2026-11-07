@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { notifications } from "@mantine/notifications";
 import { isAxiosError } from "axios";
 import type {
@@ -36,6 +36,7 @@ export function useAdminDiscountCodes(filters: DiscountCodeFilters) {
 
   const codesQuery = useQuery<AdminDiscountCodeList>({
     queryKey: [...QUERY_KEY, filters],
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       const response = await apiClient.get<{ data: AdminDiscountCodeList }>("/admin/discount-codes", {
         params: {
