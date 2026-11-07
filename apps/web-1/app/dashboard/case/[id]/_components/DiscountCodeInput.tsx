@@ -19,18 +19,22 @@ interface DiscountCodeInputProps {
 
 export default function DiscountCodeInput({ packageId, caseId, applied, onChange, disabled = false, initialCode }: DiscountCodeInputProps) {
   const [code, setCode] = useState("");
-  const { check, isChecking, errorMessage, reset } = useCheckDiscountCode();
+  const { check, checkAsync, isChecking, errorMessage, reset } = useCheckDiscountCode();
   const errorId = useId();
   const urlCode = useSearchParams().get("code");
   const linkCode = initialCode ?? urlCode;
   const triedLinkCode = useRef(false);
-
-  // The notification/email link carries the code: apply it once, silently ignore if it is for another service.
+  // Notification/email links and the "Dùng mã" button carry the code: apply it once. A link code for another service is ignored silently; an explicit code surfaces its error.
   useEffect(() => {
     if (!linkCode || !packageId || triedLinkCode.current) return;
     triedLinkCode.current = true;
-    check({ code: linkCode, packageId, caseId }, { onSuccess: onChange, onError: initialCode ? undefined : reset });
-  }, [linkCode, initialCode, packageId, caseId, check, onChange, reset]);
+    // Promise instead of mutate callbacks: React strict mode's simulated unmount would drop per-call callbacks and leave the spinner stuck.
+    checkAsync({ code: linkCode, packageId, caseId })
+      .then(onChange)
+      .catch(() => {
+        if (!initialCode) reset();
+      });
+  }, [linkCode, initialCode, packageId, caseId, checkAsync, onChange, reset]);
 
   const handleApply = () => {
     check({ code, packageId, caseId }, { onSuccess: onChange });

@@ -31,6 +31,7 @@ export function useCheckDiscountCode() {
 
   return {
     check: mutation.mutate,
+    checkAsync: mutation.mutateAsync,
     isChecking: mutation.isPending,
     errorMessage,
     reset: mutation.reset,
