@@ -39,13 +39,7 @@
   color: var(--color-text);
 }
 
-.unit {
-  font-size: var(--ui-text-body);
-  font-weight: var(--ui-weight-regular);
-  color: var(--color-text-muted);
-}
-
-.split {
+.note {
   margin: 0;
   font-size: var(--ui-text-note);
   color: var(--color-text-muted);

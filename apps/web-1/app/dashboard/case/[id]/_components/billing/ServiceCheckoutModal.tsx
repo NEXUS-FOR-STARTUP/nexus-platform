@@ -12,7 +12,7 @@ import { formatVndAmount } from "@/lib/pricing";
 import DiscountCodeInput from "../DiscountCodeInput";
 import { Button } from "../ui/Button";
 import s from "./service-checkout.module.css";
-import { MAX_TEAM_MEMBERS, type DiscountCodeCheckResult } from "@repo/validation";
+import type { DiscountCodeCheckResult } from "@repo/validation";
 
 interface ServiceCheckoutModalProps {
   caseId: string;
@@ -26,8 +26,6 @@ interface ServiceCheckoutModalProps {
 const MIN_TOPUP_AMOUNT = 2000;
 const MIN_PACKAGES = 1;
 const MAX_PACKAGES = 50;
-/** Giá/thành viên luôn tính theo nhóm đủ người, độc lập với số thành viên đã khai. */
-const PRICING_TEAM_SIZE = MAX_TEAM_MEMBERS;
 
 export default function ServiceCheckoutModal({
   caseId,
@@ -62,7 +60,6 @@ export default function ServiceCheckoutModal({
   const totalAmount = discount ? discount.discounted_price + (quantity - 1) * listPrice : quantity * listPrice;
   const creditsPerPackage = selectedPkg?.credits_granted ?? 0;
   const totalCredits = quantity * creditsPerPackage;
-  const perMemberPrice = totalAmount > 0 ? Math.round(totalAmount / PRICING_TEAM_SIZE) : null;
   const shortage = Math.max(totalAmount - walletBalance, 0);
   const hasSufficientBalance = shortage === 0;
 
@@ -132,19 +129,8 @@ export default function ServiceCheckoutModal({
               <b>{selectedPkg?.name ?? `Gói chấm ${stageName}`}</b>
               {creditsPerPackage > 0 && <span>{`${creditsPerPackage} lượt chấm / gói`}</span>}
             </div>
-            {perMemberPrice !== null ? (
-              <>
-                <p className={s.price}>
-                  {formatVndAmount(perMemberPrice)}
-                  <span className={s.unit}> / thành viên</span>
-                </p>
-                <p className={s.split}>
-                  {`Tổng ${formatVndAmount(totalAmount)} chia đều cho nhóm ${PRICING_TEAM_SIZE} người`}
-                </p>
-              </>
-            ) : (
-              <p className={s.price}>{formatVndAmount(totalAmount)}</p>
-            )}
+            <p className={s.price}>{formatVndAmount(totalAmount)}</p>
+            {!discount && <p className={s.note}>Mua lần đầu, bạn được tặng mã giảm 40% cho lượt tiếp theo.</p>}
           </div>
 
           <div className={s.qty}>
