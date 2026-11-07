@@ -18,6 +18,8 @@ export default function DashboardShell({ children }: DashboardShellProps) {
   const { data: sessionData, isPending } = useSession();
   const pathname = usePathname();
   const isNewsActive = pathname?.startsWith("/news");
+  // On a dashboard sub-page (case, wallet, ...) the logo steps up to the dashboard; on the dashboard itself it goes to the landing.
+  const logoHref = pathname?.startsWith("/dashboard/") ? "/dashboard" : "/";
 
   // Disconnect Centrifugo khi đổi tài khoản (connection token sub cũ ≠ session mới)
   const prevUserId = useRef<string | null>(null);
@@ -39,7 +41,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       {/* Top Navbar */}
       <nav className="border-b border-border-app bg-surface-app sticky top-0 z-40 h-16 flex items-center gap-4 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-6 sm:gap-8 min-w-0">
-          <Link href="/" className="flex items-center shrink-0">
+          <Link href={logoHref} className="flex items-center shrink-0">
             <Logo height={62} />
           </Link>
 
