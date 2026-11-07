@@ -32,6 +32,7 @@ export function usePlaceServiceOrder(caseId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["case", caseId] });
       queryClient.invalidateQueries({ queryKey: ["wallet"] });
+      queryClient.invalidateQueries({ queryKey: ["my-discount-codes", caseId] });
       resetSession();
     },
     onError: (err, input) => {

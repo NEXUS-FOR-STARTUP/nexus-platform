@@ -47,7 +47,7 @@ beforeEach(() => {
                     c["service_type_id"] === d["service_type_id"]),
               ),
           );
-          codes.push(...fresh.map((d) => ({ ...d, is_active: true, redeemed_count: 0, expires_at: null, id: String(d["code"]) })));
+          codes.push(...fresh.map((d) => ({ is_active: true, redeemed_count: 0, expires_at: null, ...d, id: String(d["code"]) })));
           return { count: fresh.length };
         },
       },
@@ -85,12 +85,15 @@ test("first paid order mints one personal 40% single-use code bound to user, pro
   assert.deepEqual([c["owner_user_id"], c["case_id"], c["service_type_id"]], ["u1", "c1", "st-cp2"]);
   assert.match(String(c["code"]), /^[0-9A-HJKMNP-TV-Z]{8}$/);
   assert.equal(applyPercentOff(49000, 40), 29400);
+  const days = ((c["expires_at"] as Date).getTime() - Date.now()) / 86_400_000;
+  assert.ok(days > 29.9 && days <= 30, `expiry ${days} days`);
 
   assert.equal(outbox.length, 1);
   assert.equal(outbox[0]!.event_type, "discount.granted");
   // caseId would make resolveRecipients email every case member; the code belongs to the buyer only.
   assert.equal(outbox[0]!.payload_json["userId"], "u1");
   assert.equal("caseId" in outbox[0]!.payload_json, false);
+  assert.equal(outbox[0]!.payload_json["expiresAt"], (c["expires_at"] as Date).toISOString());
 });
 
 test("replayed ORDER_PAID or another full-price order in the same project mints nothing more", async () => {

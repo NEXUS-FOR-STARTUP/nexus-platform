@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { STAGES } from "@app/shared";
+import { DISCOUNT_DEFAULT_VALID_DAYS } from "@repo/validation";
 import { prisma } from "../../../db.js";
 import { DOMAIN_EVENTS, type DomainEvent } from "../../../shared/domain/domain-events.js";
 import { onEvent } from "../../../shared/infrastructure/event-bus.js";
@@ -8,6 +9,7 @@ import { insertOutboxEvent } from "../../../shared/infrastructure/persistence/ou
 import { SYSTEM_USER_ID } from "../../payments/infrastructure/persistence/payment.repository.js";
 
 const DEFAULT_PERCENT = 40;
+const MS_PER_DAY = 86_400_000;
 const CODE_LENGTH = 8;
 /** 32 symbols (digits + letters without I, L, O, U): no modulo bias on random bytes, hard to mistype from an email. */
 const CODE_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
@@ -16,6 +18,12 @@ const CODE_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 export function firstPurchaseDiscountPercent(): number {
   const raw = Number(process.env["FIRST_PURCHASE_DISCOUNT_PERCENT"] ?? DEFAULT_PERCENT);
   return Number.isInteger(raw) && raw >= 1 && raw <= 99 ? raw : DEFAULT_PERCENT;
+}
+
+/** Days a granted code stays usable; env-overridable, falls back to the default if not a positive integer. */
+export function firstPurchaseDiscountValidDays(): number {
+  const raw = Number(process.env["FIRST_PURCHASE_DISCOUNT_VALID_DAYS"] ?? DISCOUNT_DEFAULT_VALID_DAYS);
+  return Number.isInteger(raw) && raw >= 1 ? raw : DISCOUNT_DEFAULT_VALID_DAYS;
 }
 
 export function randomDiscountCode(): string {
@@ -57,6 +65,7 @@ export async function grantFirstPurchaseCodes(event: DomainEvent): Promise<void>
   const codes = [...new Set([...pairs.values()].map((x) => x.serviceCode))];
   const types = await prisma.serviceType.findMany({ where: { code: { in: codes } }, select: { id: true, code: true } });
   const percent = firstPurchaseDiscountPercent();
+  const expiresAt = new Date(Date.now() + firstPurchaseDiscountValidDays() * MS_PER_DAY);
 
   for (const { serviceCode, caseId } of pairs.values()) {
     const type = types.find((t) => t.code === serviceCode);
@@ -71,6 +80,7 @@ export async function grantFirstPurchaseCodes(event: DomainEvent): Promise<void>
             percent_off: percent,
             service_type_id: type.id,
             max_redemptions: 1,
+            expires_at: expiresAt,
             owner_user_id: userId,
             case_id: caseId,
             created_by: SYSTEM_USER_ID,
@@ -86,6 +96,7 @@ export async function grantFirstPurchaseCodes(event: DomainEvent): Promise<void>
           orderId,
           code,
           percentOff: percent,
+          expiresAt: expiresAt.toISOString(),
           serviceLabel: `Gói chấm ${stage.name}`,
           linkCaseId: caseId,
         },

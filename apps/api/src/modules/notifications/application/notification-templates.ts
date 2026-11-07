@@ -131,7 +131,7 @@ const TEMPLATES: Record<string, Template> = {
   "discount.granted": {
     title: "Bạn được tặng mã giảm giá",
     studentBody: (p) =>
-      `Bạn được tặng mã giảm giá ${fmtAmount(p.percentOff)}% cho lần mua lượt tiếp theo của dịch vụ ${payloadText(p, "serviceLabel", "của Nexus")}. Mã của bạn: ${payloadText(p, "code", "")}`,
+      `Bạn được tặng mã giảm giá ${fmtAmount(p.percentOff)}% cho lần mua lượt tiếp theo của dịch vụ ${payloadText(p, "serviceLabel", "của Nexus")}. Mã của bạn: ${payloadText(p, "code", "")}${typeof p.expiresAt === "string" ? `. Hạn dùng đến ${new Date(p.expiresAt).toLocaleDateString("vi-VN")}` : ""}`,
     studentLink: (p) =>
       typeof p.linkCaseId === "string"
         ? `/dashboard/case/${p.linkCaseId}?tab=billing&code=${encodeURIComponent(payloadText(p, "code", ""))}`

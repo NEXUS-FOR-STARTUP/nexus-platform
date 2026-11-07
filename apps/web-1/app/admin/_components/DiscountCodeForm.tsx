@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button, Group, NumberInput, Select, TextInput } from "@mantine/core";
 import { Plus } from "@phosphor-icons/react";
-import type { CreateDiscountCodeInput } from "@repo/validation";
+import { DISCOUNT_DEFAULT_VALID_DAYS, type CreateDiscountCodeInput } from "@repo/validation";
 import type { DiscountServiceType } from "../hooks/useAdminDiscountCodes";
 
 interface DiscountCodeFormProps {
@@ -13,13 +13,17 @@ interface DiscountCodeFormProps {
 }
 
 const FULL_DISCOUNT_PERCENT = 100;
+const MS_PER_DAY = 86_400_000;
+
+/** yyyy-mm-dd of the default expiry, used to prefill the date input. */
+const defaultExpiryDate = () => new Date(Date.now() + DISCOUNT_DEFAULT_VALID_DAYS * MS_PER_DAY).toISOString().slice(0, 10);
 
 export default function DiscountCodeForm({ serviceTypes, isSubmitting, onSubmit }: DiscountCodeFormProps) {
   const [code, setCode] = useState("");
   const [percentOff, setPercentOff] = useState<number | string>(FULL_DISCOUNT_PERCENT);
   const [serviceTypeId, setServiceTypeId] = useState<string | null>(null);
   const [maxRedemptions, setMaxRedemptions] = useState<number | string>("");
-  const [expiresOn, setExpiresOn] = useState("");
+  const [expiresOn, setExpiresOn] = useState(defaultExpiryDate);
 
   const canSubmit = code.trim().length > 0 && serviceTypeId !== null && typeof percentOff === "number";
 
@@ -34,7 +38,7 @@ export default function DiscountCodeForm({ serviceTypes, isSubmitting, onSubmit 
     });
     setCode("");
     setMaxRedemptions("");
-    setExpiresOn("");
+    setExpiresOn(defaultExpiryDate());
   };
 
   return (
@@ -49,7 +53,7 @@ export default function DiscountCodeForm({ serviceTypes, isSubmitting, onSubmit 
         onChange={setServiceTypeId}
       />
       <NumberInput label="Số lượt tối đa" placeholder="Không giới hạn" min={1} allowDecimal={false} value={maxRedemptions} onChange={setMaxRedemptions} w={150} />
-      <TextInput label="Hết hạn" type="date" value={expiresOn} onChange={(e) => setExpiresOn(e.currentTarget.value)} />
+      <TextInput label="Hạn dùng" description="Để trống = không hết hạn" type="date" value={expiresOn} onChange={(e) => setExpiresOn(e.currentTarget.value)} />
       <Button leftSection={<Plus size={16} />} onClick={handleSubmit} loading={isSubmitting} disabled={!canSubmit}>
         Tạo mã
       </Button>

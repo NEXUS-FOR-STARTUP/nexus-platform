@@ -29,8 +29,8 @@ export default function DiscountCodeInput({ packageId, caseId, applied, onChange
   useEffect(() => {
     if (!linkCode || !packageId || triedLinkCode.current) return;
     triedLinkCode.current = true;
-    check({ code: linkCode, packageId, caseId }, { onSuccess: onChange, onError: reset });
-  }, [linkCode, packageId, caseId, check, onChange, reset]);
+    check({ code: linkCode, packageId, caseId }, { onSuccess: onChange, onError: initialCode ? undefined : reset });
+  }, [linkCode, initialCode, packageId, caseId, check, onChange, reset]);
 
   const handleApply = () => {
     check({ code, packageId, caseId }, { onSuccess: onChange });

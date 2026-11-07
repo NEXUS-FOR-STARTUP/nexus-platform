@@ -3,6 +3,8 @@ import { notifications } from "@mantine/notifications";
 import { isAxiosError } from "axios";
 import type {
   AdminDiscountCode,
+  AdminDiscountCodeList,
+  AdminDiscountCodeStatus,
   CreateDiscountCodeInput,
   UpdateDiscountCodeInput,
 } from "@repo/validation";
@@ -16,19 +18,31 @@ export interface DiscountServiceType {
 
 const QUERY_KEY = ["admin-discount-codes"];
 
+export type DiscountScope = "all" | "shared" | "personal";
+
+export interface DiscountCodeFilters {
+  scope: DiscountScope;
+  status: AdminDiscountCodeStatus | "all";
+}
+
 function errorMessage(error: unknown): string {
   return isAxiosError<{ message?: string }>(error)
     ? (error.response?.data?.message ?? "Vui lòng thử lại sau.")
     : "Vui lòng thử lại sau.";
 }
 
-export function useAdminDiscountCodes() {
+export function useAdminDiscountCodes(filters: DiscountCodeFilters) {
   const queryClient = useQueryClient();
 
-  const codesQuery = useQuery<AdminDiscountCode[]>({
-    queryKey: QUERY_KEY,
+  const codesQuery = useQuery<AdminDiscountCodeList>({
+    queryKey: [...QUERY_KEY, filters],
     queryFn: async () => {
-      const response = await apiClient.get<{ data: AdminDiscountCode[] }>("/admin/discount-codes");
+      const response = await apiClient.get<{ data: AdminDiscountCodeList }>("/admin/discount-codes", {
+        params: {
+          ...(filters.scope !== "all" ? { scope: filters.scope } : {}),
+          ...(filters.status !== "all" ? { status: filters.status } : {}),
+        },
+      });
       return response.data.data;
     },
   });
@@ -69,7 +83,8 @@ export function useAdminDiscountCodes() {
   });
 
   return {
-    codes: codesQuery.data ?? [],
+    codes: codesQuery.data?.codes ?? [],
+    summary: codesQuery.data?.summary ?? null,
     serviceTypes: serviceTypesQuery.data ?? [],
     isLoading: codesQuery.isLoading,
     createCode: createMutation.mutate,

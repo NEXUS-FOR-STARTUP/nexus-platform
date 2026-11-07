@@ -487,7 +487,7 @@ export async function listDiscountCodesHandler(c: Context) {
   }
 
   try {
-    return c.json({ ok: true, data: await listDiscountCodesUseCase() });
+    return c.json({ ok: true, data: await listDiscountCodesUseCase({ scope: c.req.query("scope"), status: c.req.query("status") }) });
   } catch (error: unknown) {
     return handleError(c, error);
   }

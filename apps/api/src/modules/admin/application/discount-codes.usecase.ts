@@ -2,7 +2,10 @@ import type { Prisma } from "@prisma/client";
 import {
   CreateDiscountCodeSchema,
   UpdateDiscountCodeSchema,
+  DISCOUNT_DEFAULT_VALID_DAYS,
   type AdminDiscountCode,
+  type AdminDiscountCodeList,
+  type AdminDiscountCodeStatus,
 } from "@repo/validation";
 import { AppError } from "../../../shared/domain/app-error.js";
 import { auditLogger } from "../../../shared/infrastructure/audit-logger.js";
@@ -13,10 +16,13 @@ import {
   listDiscountCodes,
   updateDiscountCode,
 } from "../../orders/infrastructure/persistence/discount-code.repository.js";
+import { discountCodeStatus } from "../../orders/application/discount-status.js";
 
 type DiscountCodeRow = Prisma.DiscountCodeGetPayload<{ include: { service_type: { select: { code: true } } } }>;
 
-function toAdminDiscountCode(row: DiscountCodeRow): AdminDiscountCode {
+const MS_PER_DAY = 86_400_000;
+
+function toAdminDiscountCode(row: DiscountCodeRow, ownerEmails: ReadonlyMap<string, string> = new Map()): AdminDiscountCode {
   return {
     id: row.id,
     code: row.code,
@@ -28,11 +34,47 @@ function toAdminDiscountCode(row: DiscountCodeRow): AdminDiscountCode {
     expires_at: row.expires_at ? row.expires_at.toISOString() : null,
     is_active: row.is_active,
     created_at: row.created_at.toISOString(),
+    status: discountCodeStatus(row),
+    owner_user_id: row.owner_user_id,
+    owner_email: row.owner_user_id ? (ownerEmails.get(row.owner_user_id) ?? null) : null,
+    case_id: row.case_id,
   };
 }
 
-export async function listDiscountCodesUseCase(): Promise<AdminDiscountCode[]> {
-  return (await listDiscountCodes()).map(toAdminDiscountCode);
+export interface ListDiscountCodesQuery {
+  scope?: string;
+  status?: string;
+}
+
+/** Summary always covers every code; scope/status only narrow the table rows. */
+export async function listDiscountCodesUseCase(query: ListDiscountCodesQuery = {}): Promise<AdminDiscountCodeList> {
+  const rows = await listDiscountCodes();
+  const ownerIds = [...new Set(rows.flatMap((r) => (r.owner_user_id ? [r.owner_user_id] : [])))];
+  const owners = ownerIds.length
+    ? await prisma.user.findMany({ where: { id: { in: ownerIds } }, select: { id: true, email: true } })
+    : [];
+  const emails = new Map(owners.map((o) => [o.id, o.email]));
+  const all = rows.map((r) => toAdminDiscountCode(r, emails));
+
+  const count = (s: AdminDiscountCodeStatus) => all.filter((c) => c.status === s).length;
+  const personal = all.filter((c) => c.owner_user_id !== null);
+  const codes = all.filter(
+    (c) =>
+      (query.scope === "shared" ? c.owner_user_id === null : query.scope === "personal" ? c.owner_user_id !== null : true) &&
+      (query.status ? c.status === query.status : true),
+  );
+  return {
+    codes,
+    summary: {
+      total: all.length,
+      available: count("available"),
+      used: count("used"),
+      expired: count("expired"),
+      disabled: count("disabled"),
+      personal_granted: personal.length,
+      personal_redeemed: personal.filter((c) => c.status === "used").length,
+    },
+  };
 }
 
 export async function createDiscountCodeUseCase(adminId: string, body: unknown): Promise<AdminDiscountCode> {
@@ -55,7 +97,13 @@ export async function createDiscountCodeUseCase(adminId: string, body: unknown):
     percent_off: input.percent_off,
     service_type_id: input.service_type_id,
     max_redemptions: input.max_redemptions ?? null,
-    expires_at: input.expires_at ? new Date(input.expires_at) : null,
+    // undefined = default lifetime; explicit null = admin chose "no expiry".
+    expires_at:
+      input.expires_at === undefined
+        ? new Date(Date.now() + DISCOUNT_DEFAULT_VALID_DAYS * MS_PER_DAY)
+        : input.expires_at
+          ? new Date(input.expires_at)
+          : null,
     created_by: adminId,
   });
 

@@ -4,6 +4,8 @@ export const DISCOUNT_PERCENT_MIN = 1;
 export const DISCOUNT_PERCENT_MAX = 100;
 export const DISCOUNT_CODE_MIN_LENGTH = 3;
 export const DISCOUNT_CODE_MAX_LENGTH = 32;
+/** Default lifetime of auto-granted and admin-created codes that do not set an expiry. */
+export const DISCOUNT_DEFAULT_VALID_DAYS = 30;
 
 /** Codes are stored upper-case and trimmed so lookups are case-insensitive. */
 export function normalizeDiscountCode(raw: string): string {
@@ -64,7 +66,10 @@ export interface MyDiscountCode {
   percent_off: number;
   service_type_code: string;
   status: MyDiscountCodeStatus;
+  expires_at: string | null;
 }
+
+export type AdminDiscountCodeStatus = "available" | "used" | "expired" | "disabled";
 
 export interface AdminDiscountCode {
   id: string;
@@ -77,4 +82,25 @@ export interface AdminDiscountCode {
   expires_at: string | null;
   is_active: boolean;
   created_at: string;
+  status: AdminDiscountCodeStatus;
+  /** Set only for personal (auto-granted) codes. */
+  owner_user_id: string | null;
+  owner_email: string | null;
+  case_id: string | null;
+}
+
+export interface AdminDiscountCodeSummary {
+  total: number;
+  available: number;
+  used: number;
+  expired: number;
+  disabled: number;
+  /** Personal codes granted vs redeemed: the conversion of the first-purchase offer. */
+  personal_granted: number;
+  personal_redeemed: number;
+}
+
+export interface AdminDiscountCodeList {
+  codes: AdminDiscountCode[];
+  summary: AdminDiscountCodeSummary;
 }

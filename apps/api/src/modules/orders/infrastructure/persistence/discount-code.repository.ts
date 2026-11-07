@@ -14,11 +14,13 @@ export function findUserRedemption(codeId: string, userId: string, db: Db = pris
   });
 }
 
-/** Admin list: shared codes only. System-granted personal codes (owner_user_id set) are per-user and would drown it. */
+/** Hard cap: the admin screen filters/summarises in memory, so the list must stay bounded. */
+const ADMIN_LIST_LIMIT = 2000;
+
 export function listDiscountCodes() {
   return prisma.discountCode.findMany({
-    where: { owner_user_id: null },
     orderBy: { created_at: "desc" },
+    take: ADMIN_LIST_LIMIT,
     include: { service_type: { select: { code: true } } },
   });
 }
