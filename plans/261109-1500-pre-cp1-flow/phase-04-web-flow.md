@@ -23,23 +23,25 @@
 - **Phi chức năng:** mỗi file ≤ 200 dòng; mobile 390px; không `apiClient` trong component; không `shadow-*`; không chữ "CP".
 
 ## Architecture
+**Bước 0 — `git mv` 6 file dùng lại** từ `team-fit/` sang `start/` (không copy, không viết lại): `IdeaMadLibsStep`, `InlineBlank`, `lib/validation.ts`, `TeamFitReportCard`, `TeamFitUpsellCard`, `hooks/useTeamFitMutation.ts`. Phase 05 chỉ kiểm tra lại rồi xoá phần còn lại của thư mục.
 ```
 apps/web-1/app/dashboard/start/
   page.tsx                          # auth, ?step=, nhánh, guard
   _hooks/usePreCp1Form.ts           # state + validate + nháp localStorage
   _hooks/usePreCp1Label.ts          # POST /pre-cp1/label (25s abort)
   _hooks/usePreCp1Save.ts           # POST /pre-cp1/save { caseId, input, aiLabels?, aiResult? }
-  _hooks/useTeamFitEvaluation.ts    # chuyển từ team-fit/hooks (chỉ phần chấm, bỏ phần save), 40s
+  _hooks/useTeamFitEvaluation.ts    # git mv từ team-fit/hooks (chỉ phần chấm, bỏ phần save), 40s
   _components/StartStepper.tsx
   _components/steps/{Intro,Basics,Team,Assets,Network,Idea}.tsx
   _components/idea/IdeaFork.tsx     # cặp chip "đã có / chưa có" + rẽ
-  _components/idea/MadLibsForm.tsx  # 6 ô (port IdeaMadLibsStep)
-  _components/idea/InlineBlank.tsx  # chuyển từ team-fit, component con của MadLibsForm
-  _components/idea/madlibs-validation.ts # chuyển từ team-fit/lib/validation.ts (validate 6 ô + câu lỗi)
+  _components/idea/MadLibsForm.tsx  # git mv từ team-fit/_components/IdeaMadLibsStep.tsx (6 ô)
+  _components/idea/InlineBlank.tsx  # git mv từ team-fit/_components/InlineBlank.tsx
+  _components/idea/madlibs-validation.ts # git mv từ team-fit/lib/validation.ts (validate 6 ô + câu lỗi)
   _components/idea/DraftForm.tsx    # 2 ô nháp
   _components/result/ResultView.tsx # 8 khối có điều kiện
   _components/result/{TeamSection,RecruitSection,FlagsSection,ZonesSection,QuestionsSection}.tsx
-  _components/result/AiResultCard.tsx  # chuyển từ team-fit/_components/TeamFitReportCard.tsx (areas, industryRoles, trackCoverage)
+  _components/result/AiResultCard.tsx  # git mv từ team-fit/_components/TeamFitReportCard.tsx (areas, industryRoles, trackCoverage)
+  _components/result/UpsellCard.tsx    # git mv từ team-fit/_components/TeamFitUpsellCard.tsx
   _data/copy.ts
 ```
 State = `PreCp1Input` (Phase 01) + `{ step, phase:'write'|'confirm', busy, ideaMode:'none'|'draft'|'structured', aiResult? }`.
@@ -50,6 +52,7 @@ State = `PreCp1Input` (Phase 01) + `{ step, phase:'write'|'confirm', busy, ideaM
 **Xoá:** xem Phase 05 (xử lý trang team-fit)
 
 ## Implementation Steps
+0. `git mv` 6 file từ `team-fit/` sang `start/` theo bảng Architecture, sửa import; `git mv` giữ lịch sử, không copy rồi để bản cũ mục. Chạy **trước** mọi bước khác để không phải import chéo thư mục sắp bị xoá.
 1. `_data/copy.ts`: chuỗi từ demo (intro, hint "vì sao hỏi", 9 trục, 5 câu tài sản, 6 ô Mad Libs, 5 cờ, 6+ câu hỏi). Bỏ mọi chữ "CP". Câu chữ Mad Libs port từ `IdeaMadLibsStep.tsx`. Bốn dáng trang dùng lại cho mọi bước (demo đã dựng): **chọn 1** (thẻ lớn, một câu hỏi), **viết** (ô nhập + 1 ví dụ + nút bỏ qua), **chip** (bấm nhiều, hiện ngay cái đã chọn), **xem lại** (danh sách + nút Sửa từng dòng).
 2. `usePreCp1Form`: state, `validate(step)` như demo; nháp `localStorage['nexus:pre-cp1:draft:v1']` nạp qua `PreCp1InputSchema.safeParse`; `step` + `idea` mode ghi lên URL (`?step=idea&mode=libs`).
 3. `page.tsx`: `?step=`; guard lùi về bước xa nhất hợp lệ + `router.replace`; `busy` chặn nhảy bước; `useSession` như team-fit.

@@ -25,21 +25,22 @@
 
 ## Architecture
 - `app/dashboard/team-fit/page.tsx` → thay bằng server component `redirect("/dashboard/start")` (**không** `?idea=yes`: nút landing không xác nhận người dùng đã có ý tưởng, điền sẵn sẽ bỏ qua chính câu rẽ nhánh). Route giữ để link ngoài (Zalo, slide, email) không 404.
-- Upsell: `TeamFitUpsellCard` **chuyển file** sang `app/dashboard/start/_components/result/` và dùng ở ResultView (Phase 04 bước 11).
-- `IdeaMadLibsStep` **chuyển file** sang `app/dashboard/start/_components/idea/MadLibsForm.tsx`, kèm `InlineBlank.tsx` (component con duy nhất của nó).
-- `lib/validation.ts` **chuyển file** sang `app/dashboard/start/_components/idea/madlibs-validation.ts` — `INITIAL_BLANKS`, `validateBlank`, `validateAllBlanks`, `formatIssue` + câu lỗi tiếng Việt đang dùng; `page.tsx` (nơi duy nhất import nó) bị xoá nên nếu không chuyển là mất validate 6 ô.
-- `TeamFitReportCard` **chuyển file** sang `app/dashboard/start/_components/result/AiResultCard.tsx` — chứa `areas`, `industryRoles`, `trackCoverage` mà khối kết quả cần; nếu không chuyển thì xoá thư mục team-fit sẽ làm vỡ ResultView.
-- `hooks/useTeamFitMutation.ts` **chuyển** phần `useTeamFitMutation` (POST `/ai-engine/team-fit`) sang `start/_hooks/useTeamFitEvaluation.ts` — viết lại từ đầu là nhân đôi logic; **bỏ** `useTeamFitSaveMutation` (endpoint save bị xoá ở bước 4). Type `TeamMemberInput` sau đó lấy từ `packages/validation` (Phase 07), không import từ hook cũ.
+- 6 file dùng lại **đã được Phase 04 `git mv`** sang `start/` (bước 0 của phase đó) — Phase 05 **không chuyển lại**, chỉ kiểm rồi xoá phần còn lại:
+  - `IdeaMadLibsStep` → `idea/MadLibsForm.tsx`, kèm `InlineBlank` → `idea/InlineBlank.tsx`.
+  - `lib/validation.ts` → `idea/madlibs-validation.ts` (`INITIAL_BLANKS`, `validateBlank`, `validateAllBlanks`, `formatIssue` + câu lỗi tiếng Việt).
+  - `TeamFitReportCard` → `result/AiResultCard.tsx` (`areas`, `industryRoles`, `trackCoverage` — khối kết quả cần).
+  - `TeamFitUpsellCard` → `result/UpsellCard.tsx`.
+  - Phần chấm của `hooks/useTeamFitMutation.ts` → `_hooks/useTeamFitEvaluation.ts`; **bỏ** `useTeamFitSaveMutation` (endpoint save bị xoá ở bước 4). `TeamMemberInput` lấy từ `packages/validation` (Phase 07), không từ hook cũ.
 
 ## Related Code Files
 **Tạo:** `docs/flows/pre-cp1-flow.md`
 **Sửa:** 5 file link ở Context Links, `app/dashboard/team-fit/page.tsx` (thành redirect), `apps/api/src/modules/ai-engine/http/ai-engine.routes.ts` (bỏ route save), `docs/flows/team-fit-flow.md` (ghi đã thay thế), `docs/system-architecture.md`, `CHANGELOG.md`, `plans/261109-1500-pre-cp1-flow/plan.md` (status)
-**Xoá:** toàn bộ `app/dashboard/team-fit/` **sau khi** chuyển 6 file ở Architecture (`_components/{StepIndicator,IdeaMadLibsStep,InlineBlank,TeamInputStep,TeamMemberCard,TeamFitResultStep,TeamFitUpsellCard,TeamFitReportCard,ErrorBanner,NavigationButtons}.tsx`, `_data/demo-preset.ts`, `hooks/useTeamFitMutation.ts`, `lib/{storage,validation}.ts`); `apps/api/.../application/save-team-fit.usecase.ts`, test của nó, repository fn `createCaseAndReport` **nếu** grep xác nhận không còn ai dùng
+**Xoá:** phần còn lại của `app/dashboard/team-fit/` — 6 file ở Architecture đã được Phase 04 `git mv` đi, nên chỉ còn `_components/{StepIndicator,TeamInputStep,TeamMemberCard,TeamFitResultStep,ErrorBanner,NavigationButtons}.tsx`, `_data/demo-preset.ts`, `lib/storage.ts`, `page.tsx` cũ; `apps/api/.../application/save-team-fit.usecase.ts`, test của nó, repository fn `createCaseAndReport` **nếu** grep xác nhận không còn ai dùng
 
 ## Implementation Steps
 1. `grep -rn "team-fit"` toàn repo (bỏ `.next`), lập danh sách trước khi xoá; mỗi dòng phải hoặc đổi đích, hoặc là redirect/doc/bảng.
 2. Đổi 5 link: landing hero + sticky → `/dashboard/start`; `get-auth-redirect` FREE → `/dashboard/start`; `DashboardEmptyState` giữ card mới; `dashboard/page.tsx:64` xoá nút trùng (nếu đã có card).
-3. Chuyển 6 file sang `start/` theo bảng Architecture (2 component kết quả, 2 file Mad Libs, 1 module validate, hook chấm); sửa import; grep xác nhận `start/` **không** còn import nào từ `dashboard/team-fit/`; rồi xoá thư mục cũ + thay `page.tsx` bằng redirect.
+3. Kiểm rồi xoá: `grep -rn "dashboard/team-fit" apps/web-1/app/dashboard/start` phải **rỗng** (6 file đã được Phase 04 `git mv` đi); sau đó xoá phần còn lại của thư mục `team-fit/` và thay `page.tsx` bằng redirect.
 4. API: bỏ route `POST /ai-engine/team-fit/save`; xoá `save-team-fit.usecase.ts` + test; grep `createCaseAndReport` — chỉ xoá nếu không còn caller (việc tạo case đã đi qua `POST /cases`).
 5. Flag: 2 env (`NEXT_PUBLIC_PRE_CP1_ENABLED`, `PRE_CP1_ENABLED`); tắt → ẩn card, `/dashboard/start` redirect `/dashboard`, 2 endpoint module trả 404. Ghi mục "Tắt khẩn cấp" trong docs.
 6. Docs:
@@ -55,7 +56,7 @@
 
 ## Todo List
 - [ ] danh sách link team-fit + đổi 5 chỗ
-- [ ] chuyển 6 file dùng lại (2 component, 2 file Mad Libs, 1 module validate, 1 hook), xoá thư mục team-fit
+- [ ] grep `start/` không import `team-fit/`, xoá phần còn lại của thư mục, redirect
 - [ ] redirect `/dashboard/team-fit`
 - [ ] bỏ route + usecase `team-fit/save` (grep trước khi xoá)
 - [ ] 2 flag + docs

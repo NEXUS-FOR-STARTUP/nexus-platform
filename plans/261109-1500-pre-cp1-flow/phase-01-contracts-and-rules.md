@@ -67,13 +67,13 @@ packages/validation/src/pre-cp1/
 ## Todo List
 - [ ] `catalog.ts` xong, id khớp demo 100%
 - [ ] `schemas.ts` parse được state demo hiện tại (chạy thử 6 preset)
-- [ ] `rules.ts` 6 hàm + comment nguồn ngưỡng
-- [ ] 8 ca test xanh
+- [ ] `rules.ts` 7 hàm + comment nguồn ngưỡng
+- [ ] 11 ca test xanh
 - [ ] `src/index.ts` export
 - [ ] `npx tsc --noEmit` sạch
 
 ## Success Criteria
-`cd packages/validation && bun run build && bun run test` xanh; 8 ca cho ra đúng `empty/single/overload/need/capped` và đúng 5 cờ như demo.
+`cd packages/validation && bun run build && bun run test` xanh; 11 ca cho ra đúng `empty/single/overload/need/capped` và đúng 5 cờ như demo.
 
 ## Risk Assessment
 - **Lệch hành vi so với demo** khi port tay → test dùng chính số liệu chụp từ demo làm kỳ vọng.
