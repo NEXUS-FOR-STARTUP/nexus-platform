@@ -56,7 +56,7 @@ State = `PreCp1Input` (Phase 01) + `{ step, phase:'write'|'confirm', busy, ideaM
 4. `StartStepper`: 7 bước, ẩn < `lg` (thay bằng "Bước x/7").
 5. `IntroStep`: 3 dòng "Cuối cùng bạn nhận được" — thêm 1 dòng nói rõ: có ý tưởng rồi thì nhận thêm phần nhận xét theo ngành.
 6. `BasicsStep`: trường, môn, mục tiêu, ngân sách (giữ ngân sách — nuôi cờ Tiền).
-7. `TeamStep`: bộ đếm số người (1 = chỉ mình). Mỗi người: tên · chuyên ngành (`Select` 9 ngành + "Ngành khác" + ô tên ngành) · **chỉ khi ngành = "Ngành khác"**: 1 cặp chip Kỹ thuật / Marketing / Kinh doanh–Tài chính (bắt buộc, để `trackCoverage` không bịa số) · 9 chip năng lực (bấm = mức 2, `Segmented` đổi 1/2/3) · ô "chưa rõ" · ô thêm (1 dòng, thành kinh nghiệm). Hiện ngay "còn trống vai nào" bằng `computeCoverage`.
+7. `TeamStep`: bộ đếm số người (1 = chỉ mình), **nút + dừng ở `TEAM_RULES.sizeMax` = 6** — quá trần thì không nhập nổi, nên không có cảnh nhóm 7-8 người bị bỏ qua phần chấm theo ngành mà không giải thích. Mỗi người: tên · chuyên ngành (`Select` 9 ngành + "Ngành khác" + ô tên ngành) · **chỉ khi ngành = "Ngành khác"**: 1 cặp chip Kỹ thuật / Marketing / Kinh doanh–Tài chính (bắt buộc, để `trackCoverage` không bịa số) · 9 chip năng lực (bấm = mức 2, `Segmented` đổi 1/2/3) · ô "chưa rõ" · ô thêm (1 dòng, thành kinh nghiệm). Hiện ngay "còn trống vai nào" bằng `computeCoverage`.
 8. `AssetsStep`: 5 câu + chip "Mình không có / không nhớ" từng câu + nút **"Bỏ qua cả 5 — chưa nghĩ ra gì"** (một bấm tick hết) → `usePreCp1Label` → màn xác nhận nhãn (`Đúng/Không đúng` → `assetTags`); `aiOk:false` → "Chưa đọc được, bạn tự chọn nhãn" + 16 chip tick tay.
 9. `NetworkStep`: 1 ô + 9 chip gợi ý (điền/bỏ câu, chữ tự gõ giữ nguyên).
 10. `IdeaStep`:
@@ -72,6 +72,7 @@ State = `PreCp1Input` (Phase 01) + `{ step, phase:'write'|'confirm', busy, ideaM
     7. Hội đồng sẽ hỏi gì (từ `aiResult`, 5-7 câu) — chỉ khi có `aiResult`.
     8. 5 câu hỏi người thật — luôn có.
     - Cuối trang: card upsell gói (chuyển từ team-fit) — chỉ hiện khi `aiResult` có.
+    - **Thứ tự dựng = demo:** thẻ kết luận → mục lục → lưới "Số liệu nhóm" (3 thẻ số liệu + 3 ô mảng nghề) → khối 1 → 2 → 3 → 5 → 6 → 8. Khối 4 (nhận xét theo ngành) và 7 (hội đồng sẽ hỏi) chỉ có ở bản thật khi `aiResult` trả về, chèn ngay sau khối 3.
     - **Dáng trang kết quả (đã dựng trong demo):** một cột, không bảng, không sidebar. Trên cùng là 1 dòng "Đọc trước khi xem", rồi thẻ kết luận (`verdict`), rồi mục lục nhảy nhanh, rồi hàng 3 thẻ số liệu (số chuyên ngành · số mảng nghề có người · số người đã kể kinh nghiệm), rồi hàng 3 ô mảng nghề (ô trống ghi "Chưa có ai"). 5 cảnh báo xếp **2 cột từ 1024px**, 1 cột dưới. Khối chữ dừng ~78 ký tự/dòng, lưới ô dùng hết bề ngang. 8 khối kỹ thuật gom thành **5 mục người dùng thấy**: Nhóm · Nên tìm thêm ai · Ý tưởng này có vấn đề gì · Hướng thay thế · Việc tiếp theo.
     - **Chữ:** UI gọi đây là **kết quả sơ bộ**, không dùng chữ "bản đồ". Tiêu đề "Kết quả sơ bộ của nhóm bạn", mục lục "Trong trang này", nút "Tạo dự án từ kết quả này".
 12. Nút cuối: **Tạo dự án từ kết quả này** → `CreateProjectModal` (điền sẵn trường/môn khi khớp option) → `onCreated(caseId)` → `usePreCp1Save({ caseId, input, aiResult })` bắn song song, retry 1 lần; thành công clear nháp, lỗi giữ nháp + báo. Ghost: `Sửa câu trả lời`, `Làm lại từ đầu` (Modal xác nhận).
@@ -88,7 +89,7 @@ State = `PreCp1Input` (Phase 01) + `{ step, phase:'write'|'confirm', busy, ideaM
 - [ ] mobile 390px
 
 ## Success Criteria
-4 nhánh chạy đúng (nhóm/1 mình × nháp/Mad Libs): khối 4 và 7 chỉ hiện khi có Mad Libs; khối 5 chỉ hiện khi có ý tưởng; số liệu khớp demo ở 3 kịch bản; AI hỏng không chặn đường; tạo dự án → 1 case + 1 `pre_cp1_reports` (+ 1 `team_fit_reports` nếu có AI); F5 giữ đúng bước + đúng nhánh; 5 cảnh báo 2 cột ở ≥1024 và 1 cột ở 390; không chuỗi nào chứa "kết quả sơ bộ"; `npx tsc --noEmit` sạch.
+4 nhánh chạy đúng (nhóm/1 mình × nháp/Mad Libs): khối 4 và 7 chỉ hiện khi có Mad Libs; khối 5 chỉ hiện khi có ý tưởng; số liệu khớp demo ở 3 kịch bản; AI hỏng không chặn đường; tạo dự án → 1 case + 1 `pre_cp1_reports` (+ 1 `team_fit_reports` nếu có AI); F5 giữ đúng bước + đúng nhánh; 5 cảnh báo 2 cột ở ≥1024 và 1 cột ở 390; không chuỗi nào chứa "bản đồ"; `npx tsc --noEmit` sạch.
 
 ## Risk Assessment
 - **Luồng dài**: nhóm đông + Mad Libs là đường nặng nhất; bù bằng nút bỏ qua ở bước tài sản và validate lười (chỉ chặn khi thiếu thật).

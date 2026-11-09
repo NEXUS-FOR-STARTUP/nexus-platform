@@ -73,7 +73,7 @@ Luật cứng từ giảng viên (`gg-doc/Tab 15.md`): vi phạm pháp luật ho
 4. **Hướng thay thế để đi hỏi** — 3-5 vùng khảo sát, mỗi vùng ghi rõ là giả thuyết.
 5. **Việc tiếp theo** — 5 câu hỏi phỏng vấn (`gg-doc/template 3_finnnnal3.md`) + nút **Tạo dự án từ kết quả này** (dự án giữ cả kết quả sơ bộ lẫn báo cáo AI, `Case` là nơi duy nhất chứa dữ liệu).
 
-Dáng trang (đã dựng trong demo): khung một cột, thẻ kết luận ở đầu, hàng 3 số liệu, hàng 3 ô mảng nghề (ô "Chưa có ai" khi trống), danh sách cảnh báo xếp **2 cột từ 1024px** và 1 cột trên mobile; chữ dừng ở ~78 ký tự/dòng. Không dùng chữ "bản đồ" ở UI — gọi là **kết quả sơ bộ**.
+Dáng trang (đã dựng trong demo): khung một cột, thẻ kết luận ở đầu, hàng 3 số liệu, hàng 3 ô mảng nghề (ô "Chưa có ai" khi trống), danh sách cảnh báo xếp **2 cột từ 1024px** và 1 cột trên mobile; chữ dừng ở ~78 ký tự/dòng. Không dùng chữ "bản đồ" ở UI — gọi là **kết quả sơ bộ**. (Chi tiết kỹ thuật: 8 khối, trong đó 2 khối chỉ có khi server chấm theo ngành xong — `plans/261109-1500-pre-cp1-flow/phase-04-web-flow.md`.)
 
 Giao diện ghi rõ "hướng nên kiểm chứng ở CP2", không ghi "ý tưởng phù hợp".
 

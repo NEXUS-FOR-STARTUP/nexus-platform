@@ -145,6 +145,7 @@ select:has(option[value=""]:checked) { color: var(--muted); }
 .verdict strong { font-size: 1.1rem; }
 .flags { display: grid; gap: .8rem; grid-template-columns: 1fr; }
 @media (min-width: 1024px) { .flags { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.btn:disabled { opacity: .35; cursor: not-allowed; }
 /* Cột nội dung rộng 1180px; giữ khối chữ ở mức đọc được, còn lưới ô thì dùng hết bề ngang. */
 .map-a > p, .map-b > p, .zone, .role { max-width: 78ch; }
 .flag { background: var(--card); border: 1px solid var(--line); border-left-width: 6px; border-radius: var(--r); padding: .8rem 1rem; }

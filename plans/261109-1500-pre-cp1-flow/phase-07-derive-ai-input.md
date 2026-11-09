@@ -51,7 +51,7 @@ Bảng map chuyên ngành:
 1. `derive-team-fit.ts`: hằng map + `strengthsOf` + hàm chính. `major` gửi lên AI: `majorOther` nếu có, ngược lại label chuyên ngành.
 2. `strengthsOf`: lọc `caps` có mức ≥2, sắp theo mức giảm dần rồi theo thứ tự catalog (ổn định), lấy 3, chuỗi `"<nhãn ngắn> (<mức>)"`; rỗng → `["chưa rõ mạnh việc gì"]`.
 3. `experience`: `extra?.trim()` có chữ → `[extra]`, không thì `[]`.
-4. Test (bảng): 9 chuyên ngành + "khác" (kèm chip) → roleTrack đúng; **thiếu `roleTrackHint` ở 3 ngành mơ hồ → `PreCp1MemberSchema` fail**; 0/1/3 năng lực → strengths đúng, không rỗng; 7 người → `null`; idea nháp → `null`; Mad Libs thiếu 1 ô → `null`; `extra` trống → `experience: []`.
+4. Test (bảng): 9 chuyên ngành (8 map cứng + "Ngành khác" kèm chip) → roleTrack đúng; **"Ngành khác" thiếu `roleTrackHint` → `PreCp1MemberSchema` fail**; 0/1/3 năng lực → strengths đúng, không rỗng; 7 người → `null`; idea nháp → `null`; Mad Libs thiếu 1 ô → `null`; `extra` trống → `experience: []`.
 5. Nối vào `useTeamFitEvaluation`: gọi hàm client-side (dùng chung package) để dựng payload; server **vẫn** là nơi chấm điểm. Nếu `null` → bỏ qua bước AI, ResultView đi nhánh "chưa chấm được theo ngành".
 6. Kiểm chất lượng: chạy 3 kịch bản mẫu (5 kỹ sư / nhóm cân đối / 1 mình) qua endpoint thật ở dev; đọc kết quả xem `industryRoles`/`areas` có bám vào strengths mới hay không. Nếu AI trả nhận xét rỗng hoặc lạc → ghi lại, điều chỉnh `strengthsOf` (không sửa prompt ở bước này).
 
