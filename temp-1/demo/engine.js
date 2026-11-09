@@ -85,8 +85,8 @@
     const overload = team
       .map((p, i) => ({ i, roles: roles.filter((r) => r.members.includes(i)).map((r) => r.id) }))
       .filter((x) => x.roles.length > 1 && x.roles.some((id) => single.includes(id)));
-    const room = Math.max(0, rule.sizeMax - team.length);
-    const byLaw = Math.max(0, rule.sizeMin - team.length);
+    const room = rule.sizeMax == null ? Infinity : Math.max(0, rule.sizeMax - team.length);
+    const byLaw = rule.sizeMin == null ? 0 : Math.max(0, rule.sizeMin - team.length);
     const want = Math.max(byLaw, empty.length);
     return { exe, roles, empty, single, overload, want, need: Math.min(want, room), room, capped: want > Math.min(want, room) };
   }
@@ -284,17 +284,21 @@
   function teamRule(s) {
     const r = NX.TEAM_RULES;
     const size = (s.team || []).length;
+    // Trần 4–6 người và ≥2 ngành là luật của trường FPT. Trường khác không có luật này nên
+    // `sizeMin`/`sizeMax` trả `null` và phần lớn báo cáo bỏ qua hẳn thay vì bịa ra một trần.
+    const fpt = s.schoolKind === 'fpt';
     const major = (p) => (p.major === 'Ngành khác' ? (p.majorOther || '') : (p.major || '')).trim().toLowerCase();
     const majors = new Set((s.team || []).map(major).filter(Boolean)).size;
-    const exe = s.subjectKind === 'exe101';
+    const exe = fpt && s.subjectKind === 'exe101';
     return {
+      fpt,
       exe,
       size,
       majors,
-      sizeOk: size >= r.sizeMin && size <= r.sizeMax,
+      sizeOk: !fpt || (size >= r.sizeMin && size <= r.sizeMax),
       majorsOk: !exe || majors >= r.majorsMin,
-      sizeMin: r.sizeMin,
-      sizeMax: r.sizeMax,
+      sizeMin: fpt ? r.sizeMin : null,
+      sizeMax: fpt ? r.sizeMax : null,
       majorsMin: r.majorsMin,
     };
   }

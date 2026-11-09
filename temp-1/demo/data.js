@@ -31,11 +31,10 @@ NX.BUDGETS = [
   { id: 'b3', title: 'Trên 2 triệu', sub: 'Có thể thuê người làm giúp một phần.', v: 3 },
 ];
 
-// 4–6 là chuẩn chung của các môn khởi nghiệp. EXE101 thêm ràng buộc chuyên ngành:
-// syllabus ghi "at least 2 different majors" (dòng 401).
-// sizeMax = trần của môn học (nuôi cảnh báo "quá đông"); sizeHardMax = mức nhập tối đa,
-// cố ý cao hơn để nhóm đông thật vẫn khai được và nhận cảnh báo thay vì bị bịt lại.
-NX.TEAM_RULES = { sizeMin: 4, sizeMax: 6, sizeHardMax: 8, majorsMin: 2 };
+// 4–6 người và ≥2 chuyên ngành là luật của trường FPT (EXE101: "at least 2 different majors",
+// syllabus dòng 401). Trường khác không có luật này: `teamRule` trả sizeMin/sizeMax = null và
+// giao diện không đặt trần số người, thay vì bịa ra một trần chung.
+NX.TEAM_RULES = { sizeMin: 4, sizeMax: 6, majorsMin: 2 };
 
 // Danh sách cố định để đếm chuyên ngành: gõ tay thì "CNTT", "IT", "Công nghệ thông tin"
 // bị tính thành 3 ngành khác nhau và báo đủ sai.

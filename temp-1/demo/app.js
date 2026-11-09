@@ -113,6 +113,7 @@
       + '</fieldset>';
   }
   function ruleLine(tr) {
+    if (!tr.fpt) return '<div id="ruleLine">' + callout('tip', 'Trường của bạn không đặt trần số người, nên chỉ cần đủ người làm các việc bên dưới.') + '</div>';
     const parts = [];
     parts.push(tr.sizeOk ? 'đủ ' + tr.sizeMin + '–' + tr.sizeMax + ' người' : (tr.size < tr.sizeMin ? 'thiếu ' + (tr.sizeMin - tr.size) + ' người' : 'thừa ' + (tr.size - tr.sizeMax) + ' người'));
     if (tr.exe) parts.push(tr.majorsOk ? 'đủ ' + tr.majorsMin + ' ngành' : 'thiếu ' + (tr.majorsMin - tr.majors) + ' ngành');
@@ -126,10 +127,9 @@
     return '<div id="ruleLine">' + callout(cls, body + ' ' + tail) + '</div>';
   }
 
-  // Trần nhập nhóm phụ thuộc môn: EXE101 chốt 4–6 người, môn khác không có luật đó nên
-  // chỉ chặn ở mức nhập tối đa để nhóm đông thật vẫn khai được.
-  const teamCap = (s) => (s.subjectKind === 'exe101' ? NX.TEAM_RULES.sizeMax : NX.TEAM_RULES.sizeHardMax);
-  // Đổi trường/môn sau khi đã nhập nhóm thì phải cắt lại, không để 8 người nằm trong bài EXE101.
+  // Trần nhóm là luật của trường FPT (4–6 người). Trường khác không giới hạn.
+  const teamCap = (s) => (s.schoolKind === 'fpt' ? NX.TEAM_RULES.sizeMax : Infinity);
+  // Đổi trường/môn sau khi đã nhập nhóm thì phải cắt lại, không để 8 người nằm trong bài FPT.
   const clampTeam = () => { S.teamSize = Math.min(teamCap(S), Math.max(1, S.teamSize)); S.team.length = Math.min(S.team.length, S.teamSize); ensureTeam(); };
 
   function vTeam() {
@@ -138,7 +138,7 @@
     return head('Nhóm bạn gồm những ai?', 'Mỗi người một khung. Gần đúng là đủ. Chưa có nhóm thì để 1 người (chỉ mình bạn).',
       'Để biết nhóm đang thiếu người làm việc gì. Việc nhóm chưa ai làm được thì sẽ được gợi ý tuyển thêm.')
       + ruleLine(tr)
-      + '<h2>Cả nhóm có mấy người (tính cả bạn)?</h2><p class="hint">Chuẩn chung của các môn khởi nghiệp: ' + tr.sizeMin + ' đến ' + tr.sizeMax + ' người' + (tr.exe ? ', tối thiểu ' + tr.majorsMin + ' chuyên ngành khác nhau.' : '.') + '</p>'
+      + '<h2>Cả nhóm có mấy người (tính cả bạn)?</h2><p class="hint">' + (tr.fpt ? 'Trường FPT: ' + tr.sizeMin + ' đến ' + tr.sizeMax + ' người' + (tr.exe ? ', tối thiểu ' + tr.majorsMin + ' chuyên ngành khác nhau.' : '.') : 'Trường của bạn không đặt trần số người — thêm bao nhiêu người cũng được.') + '</p>'
       + '<div class="stepper"><button type="button" class="btn ghost" data-act="size" data-d="-1" aria-label="Bớt một người" ' + (S.teamSize <= 1 ? 'disabled' : '') + '>−</button><strong>' + S.teamSize + ' người</strong><button type="button" class="btn ghost" data-act="size" data-d="1" aria-label="Thêm một người" ' + (S.teamSize >= teamCap(S) ? 'disabled' : '') + '>+</button></div>'
       + S.team.map(personHtml).join('') + nav('Quay lại', 'Tiếp tục');
   }
@@ -154,7 +154,9 @@
       + NX.ASSET_PROMPTS.map((p) => '<div class="ask"><h2>' + p.title + '</h2>'
         + '<textarea rows="3" aria-label="' + esc(p.title) + '" data-bind="asset" data-k="' + p.id + '" placeholder="' + esc(p.ph) + '">' + esc(S.assets[p.id] || '') + '</textarea>'
         + '<button type="button" class="chip" data-act="none" data-k="' + p.id + '" aria-pressed="' + !!S.assetsNone[p.id] + '">Mình không có / không nhớ</button></div>').join('')
-      + '<p class="count" id="assetCount">Đã trả lời ' + done + '/5</p>' + nav('Quay lại', 'Tiếp tục');
+      + '<p class="count" id="assetCount">Đã trả lời ' + done + '/5</p>'
+      + (done < 5 ? '<div class="row"><button type="button" class="btn ghost sm" data-act="noneall">Bỏ qua cả 5 — chưa nghĩ ra gì</button></div>' : '')
+      + nav('Quay lại', 'Tiếp tục');
   }
   function vAssetsConfirm() {
     const cands = E.detectAssets(S);
@@ -318,14 +320,14 @@
     const head = cov.need > 0
       ? cov.capped
         ? 'Còn ' + Math.max(cov.want, roles.length) + ' việc chưa có người nhưng nhóm chỉ nhận thêm được ' + cov.need + ' người (trần ' + tr.sizeMax + '), nên phải chọn vai quan trọng nhất hoặc chia lại việc.'
-        : 'Cần tuyển thêm ' + cov.need + ' người' + (showCover && cov.empty.length ? ' để có người làm những việc còn trống ở trên' : ' cho đủ số người của môn') + '.'
+        : 'Cần tuyển thêm ' + cov.need + ' người' + (showCover && cov.empty.length ? ' để có người làm những việc còn trống ở trên' : tr.sizeMin ? ' cho đủ số người của môn' : '') + '.'
       : cov.capped
         ? 'Nhóm đã chạm trần ' + tr.sizeMax + ' người nên không tuyển thêm được; phải chia lại việc hoặc đổi người.'
         : 'Nhóm không cần tuyển thêm người.';
     const teamBlock = '<div class="role"><ul class="recap">' + people + '</ul>'
       + '<p><b>Đã có người làm được:</b> ' + (have.join('; ') || 'chưa ai làm được việc nào trong danh sách') + '.</p>'
       + '<p><b>Chưa ai làm được:</b> ' + (gap.join('; ') || 'không còn việc nào trống') + '.</p>'
-      + '<p><b>Điều kiện nhóm' + (tr.exe ? ' (EXE101)' : '') + ':</b> ' + (() => { const ok = tr.sizeOk && tr.majorsOk; return (ok ? 'đã đủ — ' : 'chưa đủ — ') + tr.size + ' người (cần ' + tr.sizeMin + '–' + tr.sizeMax + ')' + (tr.exe ? ', ' + tr.majors + ' chuyên ngành (cần ' + tr.majorsMin + ')' : '') + '.'; })() + '</p></div>';
+      + '<p><b>Điều kiện nhóm' + (tr.exe ? ' (EXE101)' : '') + ':</b> ' + (!tr.fpt ? 'trường của bạn không đặt trần số người.' : (() => { const ok = tr.sizeOk && tr.majorsOk; return (ok ? 'đã đủ — ' : 'chưa đủ — ') + tr.size + ' người (cần ' + tr.sizeMin + '–' + tr.sizeMax + ')' + (tr.exe ? ', ' + tr.majors + ' chuyên ngành (cần ' + tr.majorsMin + ')' : '') + '.'; })()) + '</p></div>';
     const recruitBlock = '<p>' + head + '</p>'
       + (roles.length ? '<p class="hint">Xếp theo mức cần thiết, từ trên xuống. Một người có thể đảm nhiệm nhiều việc, nên không cần tuyển đủ ' + roles.length + ' người.</p>' + roles.map((r, i) => '<div class="role"><h3>' + (i + 1) + '. ' + r.title + '</h3><p>' + r.why + '</p><p class="hint">' + r.look + '</p><details><summary>Tin đăng tuyển mẫu</summary><p class="post" id="post' + i + '">' + esc(E.recruitPost(S, r)) + '</p><button class="btn ghost sm" data-act="copy" data-t="post' + i + '">Sao chép</button></details></div>').join('') : callout('tip', 'Nhóm đã phủ đủ các việc chính. Việc cần chú ý bây giờ là chia việc rõ ràng.'));
     const flagGrid = '<div class="flags">' + flags.map((f) => '<div class="flag ' + f.status + '"><div class="fh"><span class="pill ' + f.status + '"><i aria-hidden="true">' + STATUS[f.status][0] + '</i>' + STATUS[f.status][1] + '</span><b>' + f.axis + '</b></div><p class="ft">' + f.title + '</p><p>' + f.reason + '</p><p class="fix"><b>Nên làm:</b> ' + f.fix + '</p></div>').join('') + '</div>';
@@ -530,6 +532,7 @@
     const d = t.dataset, a = d.act;
     if (a === 'next') return next();
     if (a === 'back') return back();
+    if (a === 'noneall') { NX.ASSET_PROMPTS.forEach((p) => { S.assetsNone[p.id] = true; }); return next(); }
     if (a === 'create') return toast('Bản demo: bản thật mở form tạo dự án, điền sẵn trường/môn và lưu kết quả vào chính dự án đó.');
     if (a === 'plans') return toast('Bản demo: bản thật mở danh sách gói đồng hành, kèm phần bạn đã nhập.');
     if (a === 'restart') { S = fresh(); save(); return go(0); }
