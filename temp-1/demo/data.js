@@ -55,8 +55,8 @@ NX.TRACK_BY_MAJOR = {
 };
 NX.ASKED_MAJORS = ['Ngành khác'];
 NX.TRACK_WORK = {
-  ky_thuat: 'phần làm ra sản phẩm và phần hình ảnh',
-  marketing: 'phần nói cho khách hiểu',
+  ky_thuat: 'phần làm ra sản phẩm và phần thiết kế',
+  marketing: 'phần nói cho khách hiểu và phần hình ảnh',
   kinh_doanh_tai_chinh: 'phần tính giá, chi phí và kế hoạch',
 };
 

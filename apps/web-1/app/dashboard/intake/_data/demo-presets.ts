@@ -152,7 +152,7 @@ const PAWPAL_PRESET: IntakeData = {
     group_no: "04",
     project_name: "PawPal",
     team_status_summary:
-      "Nhóm 5 người (3 CNPM + 1 QTKD + 1 Ngôn ngữ Anh). 2 thành viên đang nuôi chó mèo, có kinh nghiệm thực tế. Đang học EXE101 kỳ Fall 2026.",
+      "Nhóm 5 người (3 CNPM + 1 QTKD + 1 Marketing). 2 thành viên đang nuôi chó mèo, có kinh nghiệm thực tế. Đang học EXE101 kỳ Fall 2026.",
   },
   support_needs: {
     primary_need: "filter_select_idea",
