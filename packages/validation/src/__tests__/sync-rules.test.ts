@@ -12,6 +12,7 @@ const baseSources = (over: Partial<SyncSources> = {}): SyncSources => ({
   projectName: null,
   idea: null,
   team: null,
+  preCp1: null,
   answers: {},
   ...over,
 });
@@ -107,6 +108,21 @@ describe("buildSyncProposals", () => {
     assert.equal(pick({ cp3_bmc_revenue_streams: "B", cp1_revenue_model: "C" }), "B");
     assert.equal(pick({ cp1_revenue_model: "C" }), "C");
     assert.equal(pick({}), undefined);
+  });
+
+  it("prefers Team-Fit over the saved pre-CP1 report, and never overwrites an answer", () => {
+    const preCp1 = { team: "An — CNTT — code (làm chắc)", pain: "Chủ quán hay sót đơn", idea: "Bảng Sheet chung" };
+
+    const fallback = buildSyncProposals("cp1", baseSources({ preCp1, projectName: "Quán Xanh" }));
+    assert.equal(fallback.proposals.find((p) => p.question_id === "cp1_main_problem")?.answer_text, preCp1.pain);
+    assert.equal(fallback.proposals.find((p) => p.question_id === "cp1_team_members")?.answer_text, preCp1.team);
+
+    const preferred = buildSyncProposals("cp1", baseSources({ preCp1, idea: { ...idea } }));
+    assert.equal(preferred.proposals.find((p) => p.question_id === "cp1_main_problem")?.answer_text, idea.problem);
+
+    const filled = buildSyncProposals("cp1", baseSources({ preCp1, answers: { cp1_main_problem: "Đã sửa tay" } }));
+    assert.equal(filled.proposals.some((p) => p.question_id === "cp1_main_problem"), false);
+    assert.equal(filled.skipped_filled, 1);
   });
 
   it("returns nothing when no source has data or the template has no rules", () => {
