@@ -252,7 +252,8 @@
   /* Bản demo mô phỏng hai khối mà bản thật chấm bằng AI. Nói rõ để không ai tưởng là AI thật. */
   function aiTrackBody() {
     const tc = E.trackCoverage(S);
-    const majors = new Set(S.team.map((p) => p.major).filter((m) => m && m !== 'Ngành khác')).size;
+    const tr = E.teamRule(S);
+    const majors = tr.majors;
     const exp = S.team.filter((p) => (p.extra || '').trim()).length;
     const covered = NX.TRACKS.filter((t) => tc[t.id]).length;
     const missing = NX.TRACKS.filter((t) => !tc[t.id]);
@@ -260,7 +261,7 @@
     return '<div class="stats">'
       + '<div class="stat"><b>' + majors + '</b><span>ngành đào tạo</span></div>'
       + '<div class="stat"><b>' + covered + '/' + NX.TRACKS.length + '</b><span>mảng nghề có người</span></div>'
-      + '<div class="stat"><b>' + exp + '</b><span>người có ghi kinh nghiệm</span></div>'
+      + '<div class="stat"><b>' + exp + '</b><span>người đã kể kinh nghiệm</span></div>'
       + '</div>'
       + '<div class="tiles">' + NX.TRACKS.map((t) => '<div class="tile' + (tc[t.id] ? '' : ' miss') + '"><b>' + t.label + '</b><span>' + (tc[t.id] ? tc[t.id] + ' người' : 'Chưa có ai') + '</span></div>').join('') + '</div>'
       + '<p><b>Nhóm dựa vào:</b> ' + (strengths.join('; ') || 'chưa rõ điểm mạnh nào') + '.</p>'
@@ -333,10 +334,10 @@
       + '<div class="map">'
       + '<nav class="toc" aria-label="Trong bản đồ"><p>Trong bản đồ</p><a href="#m-nhom">Nhóm</a><a href="#m-idea">Ý tưởng</a><a href="#m-next">Việc tiếp theo</a></nav>'
       + '<div class="map-a">'
+      + sec('Số liệu nhóm') + aiTrackBody()
       + sec('Nhóm hiện tại của bạn', 'm-nhom') + teamBlock
       + (coverBody ? sec('Nhóm có giữ được tới hết môn không?') + coverBody : '')
       + sec('Nên tìm thêm ai vào nhóm') + recruitBlock
-      + sec('Số liệu nhóm') + aiTrackBody()
       + sec('Ý tưởng này có vấn đề gì không?', 'm-idea')
       + (hasIdea ? '<p class="idea-quote">“' + esc(E.ideaTitle(S)) + '”</p>' : callout('tip', 'Bạn chưa ghi ý tưởng nên mục này chỉ kiểm tra nhóm và nguồn lực. Xem hướng gợi ý ở mục dưới.'))
       + '<div class="verdict ' + v.cls + '"><strong>' + v.t + '</strong><span>' + v.d + '</span></div>'
