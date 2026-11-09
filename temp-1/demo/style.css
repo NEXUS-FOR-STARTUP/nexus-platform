@@ -178,5 +178,5 @@ select:has(option[value=""]:checked) { color: var(--muted); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
-/* Tren dien thoai nut kich ban mau che mat o nhap; an di, preset chi de xem tren may tinh. */
+/* Trên điện thoại nút kịch bản mẫu che mất ô nhập; ẩn đi, preset chỉ để xem trên máy tính. */
 @media (max-width: 720px) { .demo-fab { display: none; } }

@@ -146,7 +146,7 @@
     return head('Nhóm bạn đang có gì mà chưa nghĩ là quan trọng?', 'Năm câu ngắn, cả nhóm trả lời chung: mỗi người góp vài chữ, ghi tên cho dễ nhớ. Hoặc bấm “Mình không có”.')
       + why
       + NX.ASSET_PROMPTS.map((p) => '<div class="ask"><h2>' + p.title + '</h2>'
-        + '<textarea rows="3" data-bind="asset" data-k="' + p.id + '" placeholder="' + esc(p.ph) + '">' + esc(S.assets[p.id] || '') + '</textarea>'
+        + '<textarea rows="3" aria-label="' + esc(p.title) + '" data-bind="asset" data-k="' + p.id + '" placeholder="' + esc(p.ph) + '">' + esc(S.assets[p.id] || '') + '</textarea>'
         + '<button type="button" class="chip" data-act="none" data-k="' + p.id + '" aria-pressed="' + !!S.assetsNone[p.id] + '">Mình không có / không nhớ</button></div>').join('')
       + '<p class="count" id="assetCount">Đã trả lời ' + done + '/5</p>' + nav('Quay lại', 'Tiếp tục');
   }
@@ -189,7 +189,7 @@
     return head('Bạn có thể trò chuyện với những nhóm người nào?', 'Ghi tự do vào ô dưới đây. Bấm một gợi ý để nó điền sẵn câu vào ô, rồi sửa lại theo ý bạn.',
       'Muốn biết hướng nào đáng làm, sau này bạn phải đi hỏi người thật. Nên cần biết bạn dễ tiếp cận nhóm người nào.')
       + '<div class="ask"><h2>Bạn nhắn tin hoặc gặp mặt được ai?</h2><p class="hint">Không cần biết chính xác ai. Ghi vài nhóm, hoặc một người cụ thể.</p>'
-      + '<textarea id="netOther" rows="4" data-bind="netOther" placeholder="Ví dụ: bạn cùng lớp; chủ quán cà phê trước cổng trường; anh họ làm y tá ở phòng khám tư.">' + esc(S.netOther || '') + '</textarea></div>'
+      + '<textarea id="netOther" rows="4" aria-label="Bạn nhắn tin hoặc gặp mặt được ai?" data-bind="netOther" placeholder="Ví dụ: bạn cùng lớp; chủ quán cà phê trước cổng trường; anh họ làm y tá ở phòng khám tư.">' + esc(S.netOther || '') + '</textarea></div>'
       + '<p class="hint">Gợi ý, bấm để điền vào ô trên:</p>'
       + '<div class="row">' + NET_ALL().map((n) => chip('netpre', 'data-id="' + n.id + '"', S.net.includes(n.id), n.label)).join('') + '</div>'
       + nav('Quay lại', 'Tiếp tục');
@@ -222,9 +222,9 @@
     if (S.phase === 'confirm') return vIdeaConfirm();
     return head('Kể một chuyện bạn thấy khó chịu', 'Không bắt buộc. Bỏ trống vẫn đi tiếp được.')
       + '<div class="ask"><h2>Gần đây, điều gì làm bạn hoặc người quanh bạn mất thời gian, mất tiền hoặc bực mình?</h2><p class="hint">Chuyện nhỏ cũng được. Không cần nghĩ ra giải pháp.</p>'
-      + '<textarea rows="3" data-bind="pain" placeholder="Ví dụ: Mẹ mình hay than quán cà phê quá rối vào giờ cao điểm vì khách đặt món qua nhiều kênh.">' + esc(S.pain) + '</textarea></div>'
+      + '<textarea rows="3" aria-label="Gần đây, điều gì làm bạn hoặc người quanh bạn mất thời gian, mất tiền hoặc bực mình?" data-bind="pain" placeholder="Ví dụ: Mẹ mình hay than quán cà phê quá rối vào giờ cao điểm vì khách đặt món qua nhiều kênh.">' + esc(S.pain) + '</textarea></div>'
       + '<div class="ask"><h2>Bạn hoặc nhóm đã có ý tưởng sơ bộ chưa?</h2><p class="hint">Một hai câu: làm cái gì, cho ai.</p>'
-      + '<textarea rows="3" data-bind="idea" placeholder="Ví dụ: Làm ly và hộp đựng từ bã cà phê, thân thiện với môi trường.">' + esc(S.idea) + '</textarea></div>'
+      + '<textarea rows="3" aria-label="Bạn hoặc nhóm đã có ý tưởng sơ bộ chưa?" data-bind="idea" placeholder="Ví dụ: Làm ly và hộp đựng từ bã cà phê, thân thiện với môi trường.">' + esc(S.idea) + '</textarea></div>'
       + more('Chuyện bạn thấy khó chịu là chỗ hay có ý tưởng nhất. Nexus đọc để gợi ý hướng, không phán đúng sai.')
       + nav('Quay lại', 'Tiếp tục');
   }
@@ -380,8 +380,10 @@
     const y = window.scrollY;
     syncUrl();
     $('#stepper').innerHTML = stepper();
-    $('#main').innerHTML = S.busy ? busyView() : VIEWS[STEPS[S.step].id]();
-    $('#main').className = 'shape-' + (S.phase === 'confirm' ? 'review' : SHAPES[STEPS[S.step].id] || 'plain');
+    const main = $('#main');
+    main.innerHTML = S.busy ? busyView() : VIEWS[STEPS[S.step].id]();
+    const shape = 'shape-' + (S.phase === 'confirm' ? 'review' : SHAPES[STEPS[S.step].id] || 'plain');
+    main.className = [main.className.replace(/\bshape-\S+/g, '').trim(), shape].filter(Boolean).join(' ');
     const hasTeam = S.team.length > 0;
     $('#aside').innerHTML = summary();
     $('#aside').hidden = S.step < at('assets') || S.step === RESULT || !hasTeam;
