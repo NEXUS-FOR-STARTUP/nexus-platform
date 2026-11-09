@@ -26,7 +26,7 @@
     }
     return out;
   }
-  const confirmedAssetIds = (s) => detectAssets(s).filter((a) => s.assetTags[a.rule.id] === 'yes').map((a) => a.rule.id);
+  const confirmedAssetIds = (s) => NX.ASSET_RULES.filter((r) => s.assetTags[r.id] === 'yes').map((r) => r.id);
 
   function detectIdea(s) {
     if (Array.isArray(s.aiIdea)) return s.aiIdea.map((x) => NX.IDEA_RULES.find((r) => r.id === x.id)).filter(Boolean);
@@ -234,7 +234,7 @@
         prose: '“' + clip(s.pain, 60) + '” — câu chuyện bạn kể là chuyện không phải chỉ mình bạn gặp, nên trước hết hãy hỏi thêm vài người cũng đang gặp chuyện này xem họ có gặp tương tự không. Bạn chưa cần nghĩ giải pháp lúc này; điều cần kiểm chứng là chuyện này xảy ra bao lâu một lần và họ đang tạm xử lý bằng cách nào.',
       }, '', 'pain');
     }
-    detectAssets(s).filter((a) => s.assetTags[a.rule.id] === 'yes').forEach((a) => add(a.rule.zone, 'Vì bạn đã xác nhận: ' + a.rule.label.toLowerCase() + '.', 'asset'));
+    NX.ASSET_RULES.filter((r) => s.assetTags[r.id] === 'yes').forEach((r) => add(r.zone, 'Vì bạn đã xác nhận: ' + r.label.toLowerCase() + '.', 'asset'));
     (s.net || []).forEach((id) => { const n = NX.NET_OPTIONS.find((x) => x.id === id); if (n) add(n.zone, 'Vì bạn gặp được: ' + n.label.toLowerCase() + '.', 'net'); });
     const { best } = teamStats(s);
     ['sell', 'design', 'code', 'ops', 'craft'].forEach((k) => { if (best[k] >= 2) add(NX.STRENGTH_ZONES[k], 'Vì trong nhóm có người làm được việc này.', 'strength'); });

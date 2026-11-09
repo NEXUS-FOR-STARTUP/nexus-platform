@@ -117,6 +117,8 @@ select:has(option[value=""]:checked) { color: var(--muted); }
 .ask h2 { margin: 0 0 .2rem; font-size: 1.05rem; }
 .ask textarea { margin: .3rem 0 .5rem; }
 .count { color: var(--muted); font-size: .9rem; margin-top: 1rem; }
+.chipgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: .5rem; margin: .4rem 0 .6rem; }
+.chipgrid .chip { text-align: left; justify-content: flex-start; }
 .confirm { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: .9rem 1.1rem; }
 .confirm .ct { font-weight: 600; margin: 0; }
 .cq, .quote { color: var(--muted); font-size: .92rem; margin: .2rem 0 .3rem; }

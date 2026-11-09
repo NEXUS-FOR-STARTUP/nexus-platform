@@ -171,6 +171,8 @@
       })())
       + (cands.length ? '<div class="stack">' + cands.map((a) => '<div class="confirm"><div><p class="ct">' + a.rule.label + '</p><p class="cq">Bạn đã viết: “' + esc(a.quote) + '”</p></div><div class="row">'
         + chip('tag', 'data-kind="asset" data-id="' + a.rule.id + '" data-val="yes"', S.assetTags[a.rule.id] === 'yes', 'Đúng') + chip('tag', 'data-kind="asset" data-id="' + a.rule.id + '" data-val="no"', S.assetTags[a.rule.id] === 'no', 'Không đúng') + '</div></div>').join('') + '</div>' : '')
+      + '<p class="count">Hoặc bấm thẳng những thứ nhóm bạn có thật — bản thật đây là đường tự chọn nhãn khi AI không đọc ra được gì. Đã chọn ' + NX.ASSET_RULES.filter((r) => S.assetTags[r.id] === 'yes').length + '/' + NX.ASSET_RULES.length + '. Không bấm cũng được.</p>'
+      + '<div class="chipgrid">' + NX.ASSET_RULES.map((r) => chip('assetquick', 'data-id="' + r.id + '"', S.assetTags[r.id] === 'yes', r.label)).join('') + '</div>'
       + nav('Quay lại sửa câu trả lời', 'Tiếp tục');
   }
 
@@ -465,7 +467,7 @@
     if (id === 'intro') return go(at('basics'));
     if (id === 'assets' && S.phase === 'write') {
       const answered = NX.ASSET_PROMPTS.filter((p) => (S.assets[p.id] || '').trim()).length;
-      if (!answered) { S.aiAssets = []; return go(at('network')); } // không có câu nào để đọc thì không vào màn xác nhận rỗng
+      if (!answered) { S.aiAssets = []; return go(at('assets'), 'confirm'); } // 0 câu: không gọi AI, nhưng vẫn hiện chip tự chọn nhãn
       S.busy = true; render(false);
       await aiLabel('assets');
       S.busy = false;
@@ -550,6 +552,7 @@
     else if (a === 'unsure') { const p = S.team[+d.i]; p.unsure = t.checked; if (p.unsure) p.caps = {}; }
     else if (a === 'none') { S.assetsNone[d.k] = !S.assetsNone[d.k]; if (S.assetsNone[d.k]) S.assets[d.k] = ''; S.aiAssets = null; }
     else if (a === 'tag') (d.kind === 'asset' ? S.assetTags : S.ideaTags)[d.id] = d.val;
+    else if (a === 'assetquick') S.assetTags[d.id] = S.assetTags[d.id] === 'yes' ? '' : 'yes';
     else if (a === 'netpre') toggleNetPreset(d.id);
     else if (a === 'sens') {
       if (d.id === 'none') S.sensitive = S.sensitive.includes('none') ? [] : ['none'];
