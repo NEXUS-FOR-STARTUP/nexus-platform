@@ -38,7 +38,7 @@ Người mới vào không có nhóm / chưa có ý tưởng thì sản phẩm h
 9. **Điểm vào đã có sẵn**: landing dùng nút "free" trỏ `/dashboard/team-fit?step=1`; đổi đích sang `/dashboard/start`, không dựng thêm nút.
 
 ## Rủi ro chính
-- **Đường dài nhất dài hơn**: nhóm 4 người + có ý tưởng ≈ 5 phút nhập + 2 lần AI. Bù bằng nút "Bỏ qua cả 5 — chưa nghĩ ra gì" ở bước tài sản.
+- **Đường dài nhất dài hơn**: nhóm 4 người + có ý tưởng ≈ 5 phút nhập + 2 lần AI. **Không bù bằng nút bỏ qua cả bước tài sản** — bước này là đầu vào duy nhất cho phần "hướng nên đi hỏi thử", bỏ qua thì kết quả mất căn cứ và người dùng sẽ đọc là sản phẩm đoán mò. Bù bằng cách chia 5 câu thành từng câu ngắn, mỗi câu có chip "Mình không có / không nhớ" cho đúng câu đó.
 - **Nhánh Mad Libs gọi 2 AI**: chấm đội + gán nhãn ý tưởng, chạy song song. Nhãn hỏng thì 10 chip tick tay, không chặn. Thiếu nhãn là khối 5 cờ rỗng — đã chốt phải gán nhãn trước khi tới kết quả.
 - **Ghi báo cáo AI**: `team_fit_reports.idea_snapshot`/`team_snapshot` là `Json` NOT NULL → chỉ ghi khi có `madlibs` và derive khác `null`; lệch thì 400, không ghi object rỗng (Phase 03).
 - **Xoá team-fit**: 5 link + 2 endpoint phải rà hết (liệt kê ở Phase 05), nếu sót là 404 cho người dùng thật.

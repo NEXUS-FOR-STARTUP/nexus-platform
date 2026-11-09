@@ -155,23 +155,22 @@
         + '<textarea rows="3" aria-label="' + esc(p.title) + '" data-bind="asset" data-k="' + p.id + '" placeholder="' + esc(p.ph) + '">' + esc(S.assets[p.id] || '') + '</textarea>'
         + '<button type="button" class="chip" data-act="none" data-k="' + p.id + '" aria-pressed="' + !!S.assetsNone[p.id] + '">Mình không có / không nhớ</button></div>').join('')
       + '<p class="count" id="assetCount">Đã trả lời ' + done + '/5</p>'
-      + (done < 5 ? '<div class="row"><button type="button" class="btn ghost sm" data-act="noneall">Bỏ qua cả 5 — chưa nghĩ ra gì</button></div>' : '')
       + nav('Quay lại', 'Tiếp tục');
   }
   function vAssetsConfirm() {
     const cands = E.detectAssets(S);
     const answered = NX.ASSET_PROMPTS.filter((p) => (S.assets[p.id] || '').trim()).length;
-    return head(answered ? 'Mình hiểu như sau. Có đúng không?' : 'Chưa có câu trả lời nào để đối chiếu', cands.length ? 'Bấm “Đúng” hoặc “Không đúng” cho từng mục. Chỉ mục đúng mới được dùng để gợi ý.' : 'Không sao, bạn vẫn đi tiếp được.')
+    return head(answered ? 'Mình hiểu như sau. Có đúng không?' : 'Chưa có câu trả lời nào để đối chiếu', cands.length ? 'Bấm “Đúng” hoặc “Không đúng” cho từng mục. Chỉ mục đúng mới được dùng để gợi ý.' : 'Bấm một nhãn ở dưới nếu nhóm bạn có thứ gì trong danh sách.')
       + callout('demo', (() => {
         const n = NX.ASSET_PROMPTS.filter((p) => (S.assets[p.id] || '').trim()).length;
         if (!Array.isArray(S.aiAssets)) return 'Chưa gọi được AI nên đang đoán bằng từ khoá.';
-        if (!n) return 'Bạn chọn “Mình không có” cho cả 5 câu nên không có gì để đọc. Bạn vẫn đi tiếp được; nếu nhớ ra điều gì, quay lại viết thêm.';
+        if (!n) return 'Bạn bấm “Mình không có” cho cả 5 câu nên không có câu nào để AI đọc. Còn thứ gì trong danh sách dưới thì bấm vào: mỗi nhãn đúng làm hướng gợi ý sát hơn.';
         if (!S.aiAssets.length) return 'AI đã đọc ' + n + ' câu trả lời nhưng chưa thấy nguồn lực nào đủ rõ để gán thẻ. Bạn đi tiếp được, hoặc quay lại viết cụ thể hơn.';
         return 'AI đọc ' + n + ' câu trả lời và gán ' + S.aiAssets.length + ' thẻ. Bạn vẫn là người xác nhận từng thẻ.';
       })())
       + (cands.length ? '<div class="stack">' + cands.map((a) => '<div class="confirm"><div><p class="ct">' + a.rule.label + '</p><p class="cq">Bạn đã viết: “' + esc(a.quote) + '”</p></div><div class="row">'
         + chip('tag', 'data-kind="asset" data-id="' + a.rule.id + '" data-val="yes"', S.assetTags[a.rule.id] === 'yes', 'Đúng') + chip('tag', 'data-kind="asset" data-id="' + a.rule.id + '" data-val="no"', S.assetTags[a.rule.id] === 'no', 'Không đúng') + '</div></div>').join('') + '</div>' : '')
-      + '<p class="count">Hoặc bấm thẳng những thứ nhóm bạn có thật — bản thật đây là đường tự chọn nhãn khi AI không đọc ra được gì. Đã chọn ' + NX.ASSET_RULES.filter((r) => S.assetTags[r.id] === 'yes').length + '/' + NX.ASSET_RULES.length + '. Không bấm cũng được.</p>'
+      + '<p class="count">Đã chọn ' + NX.ASSET_RULES.filter((r) => S.assetTags[r.id] === 'yes').length + '/' + NX.ASSET_RULES.length + ' — càng nhiều nhãn đúng, hướng gợi ý ở cuối càng sát.</p>'
       + '<div class="chipgrid">' + NX.ASSET_RULES.map((r) => chip('assetquick', 'data-id="' + r.id + '"', S.assetTags[r.id] === 'yes', r.label)).join('') + '</div>'
       + nav('Quay lại sửa câu trả lời', 'Tiếp tục');
   }
@@ -534,7 +533,6 @@
     const d = t.dataset, a = d.act;
     if (a === 'next') return next();
     if (a === 'back') return back();
-    if (a === 'noneall') { NX.ASSET_PROMPTS.forEach((p) => { S.assetsNone[p.id] = true; }); return next(); }
     if (a === 'create') return toast('Bản demo: bản thật mở form tạo dự án, điền sẵn trường/môn và lưu kết quả vào chính dự án đó.');
     if (a === 'plans') return toast('Bản demo: bản thật mở danh sách gói đồng hành, kèm phần bạn đã nhập.');
     if (a === 'restart') { S = fresh(); save(); return go(0); }
