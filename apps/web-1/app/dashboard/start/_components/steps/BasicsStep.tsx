@@ -1,7 +1,7 @@
 "use client";
 
 import { SimpleGrid, Stack, Text, TextInput } from "@mantine/core";
-import { BUDGETS, COURSE_CODES, GOALS, SCHOOL_CODES } from "@repo/validation";
+import { BUDGETS, COURSE_CODES, GOALS, SCHOOL_CODES, TEXT_LIMITS } from "@repo/validation";
 import { StepShell } from "../StepShell";
 import { OptionCard } from "../OptionCard";
 import { WHY } from "../../_data/copy";
@@ -44,6 +44,7 @@ export function BasicsStep({ form, patch, error, onBack, onNext }: BasicsStepPro
             <TextInput
               label="Tên trường"
               placeholder="Ví dụ: Đại học Bách khoa"
+              maxLength={TEXT_LIMITS.schoolName}
               value={form.schoolName}
               onChange={(e) => patch({ schoolName: e.currentTarget.value })}
             />
@@ -67,6 +68,7 @@ export function BasicsStep({ form, patch, error, onBack, onNext }: BasicsStepPro
               <TextInput
                 label="Tên môn"
                 placeholder="Ví dụ: Startup"
+                maxLength={TEXT_LIMITS.courseName}
                 value={form.courseName}
                 onChange={(e) => patch({ courseName: e.currentTarget.value })}
               />

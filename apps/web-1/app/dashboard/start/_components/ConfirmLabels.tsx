@@ -1,14 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Alert, Stack, Text, UnstyledButton } from "@mantine/core";
+import { Alert, Stack, Text } from "@mantine/core";
 import { Info, Plus } from "@phosphor-icons/react/ssr";
-import { AI_UNAVAILABLE, CONFIRM_LEAD_ASSETS, CONFIRM_LEAD_IDEA } from "../_data/copy";
+import { AI_UNAVAILABLE } from "../_data/copy";
 
 export type LabelTags = Record<string, "yes" | "no">;
 
 interface ConfirmLabelsProps {
-  kind: "assets" | "idea";
   catalog: ReadonlyArray<{ id: string; label: string }>;
   suggested: string[];
   aiOk: boolean;
@@ -26,16 +25,13 @@ const ANSWERS = [
 /**
  * AI only proposes labels; a label counts only after the user marks it "Đúng".
  */
-export function ConfirmLabels({ kind, catalog, suggested, aiOk, tags, onTags }: ConfirmLabelsProps) {
+export function ConfirmLabels({ catalog, suggested, aiOk, tags, onTags }: ConfirmLabelsProps) {
   const [showAll, setShowAll] = useState(!aiOk);
   const shown = showAll ? catalog : catalog.filter((rule) => suggested.includes(rule.id));
   const rest = catalog.filter((rule) => !shown.some((r) => r.id === rule.id));
 
   return (
     <Stack gap="md">
-      <Text size="sm" c="dimmed" lh={1.6} style={{ maxWidth: "62ch" }}>
-        {kind === "assets" ? CONFIRM_LEAD_ASSETS : CONFIRM_LEAD_IDEA}
-      </Text>
       {aiOk ? null : (
         <Alert color="orange" variant="light" icon={<Info className="h-4 w-4" />}>
           <Text size="sm">{AI_UNAVAILABLE}</Text>
@@ -77,23 +73,25 @@ export function ConfirmLabels({ kind, catalog, suggested, aiOk, tags, onTags }: 
       </div>
 
       {!showAll ? (
-        <UnstyledButton
+        <button
+          type="button"
           onClick={() => setShowAll(true)}
           className="flex items-center gap-1.5 text-xs text-text-muted hover:text-text-app focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)]"
         >
           <Plus className="h-3.5 w-3.5" /> Có mục khác chưa được nhắc
-        </UnstyledButton>
+        </button>
       ) : null}
 
       {showAll
         ? rest.map((rule) => (
-            <UnstyledButton
+            <button
+              type="button"
               key={rule.id}
               onClick={() => onTags({ ...tags, [rule.id]: "yes" })}
               className="flex items-center gap-1.5 text-left text-xs text-text-muted hover:text-text-app focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)]"
             >
               <Plus className="h-3.5 w-3.5 shrink-0" /> Thêm: {rule.label}
-            </UnstyledButton>
+            </button>
           ))
         : null}
     </Stack>

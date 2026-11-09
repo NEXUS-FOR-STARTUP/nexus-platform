@@ -1,6 +1,5 @@
 "use client";
 
-import { Button, Group, Stack, Text } from "@mantine/core";
 import { SENSITIVE } from "@repo/validation";
 import { StepShell } from "../StepShell";
 import { WHY } from "../../_data/copy";
@@ -27,29 +26,28 @@ export function SensStep({ form, patch, error, onBack, onNext, busy }: SensStepP
 
   return (
     <StepShell title="Có điều gì dính đến ý tưởng của bạn không?" why={WHY.sensitive} error={error} onBack={onBack} onNext={onNext} busy={busy} nextLabel="Xem kết quả">
-      <Group gap="xs">
+      <div className="flex flex-wrap gap-2">
         {SENSITIVE.map((item) => {
           const on = form.sensitive.includes(item.id);
           return (
-            <Button
+            <button
               key={item.id}
-              size="compact-md"
-              radius="var(--ui-radius-pill)"
-              variant={on ? "filled" : "default"}
-              color={on ? "brand" : "gray"}
+              type="button"
               aria-pressed={on}
               onClick={() => toggle(item.id)}
+              className={[
+                "min-h-11 flex items-center rounded-lg border px-3 py-2 font-body text-sm leading-snug transition-colors duration-150 cursor-pointer",
+                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
+                on
+                  ? "border-brand bg-brand text-white font-semibold"
+                  : "border-border-strong bg-surface-app text-text-app hover:border-brand/50",
+              ].join(" ")}
             >
               {item.label}
-            </Button>
+            </button>
           );
         })}
-      </Group>
-      <Stack gap={0}>
-        <Text size="xs" c="dimmed" mt="xs" lh={1.5}>
-          Chọn tất cả những gì đúng. Không có thì chọn dòng “Không có gì”.
-        </Text>
-      </Stack>
+      </div>
     </StepShell>
   );
 }

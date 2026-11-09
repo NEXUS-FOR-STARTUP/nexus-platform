@@ -1,12 +1,16 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
+import { Button } from "@mantine/core";
 import { Warning as AlertTriangle } from "@phosphor-icons/react/ssr";
+import { InfoTip } from "./InfoTip";
+import styles from "./StepShell.module.css";
 
 interface StepShellProps {
   title: string;
   why: string;
+  /** Longer background for the step, kept out of the way in the same tooltip. */
+  lead?: string;
   children: ReactNode;
   error?: string;
   onBack?: () => void;
@@ -15,56 +19,57 @@ interface StepShellProps {
   busy?: boolean;
 }
 
-/**
- * One question per screen. The action bar sticks to the viewport bottom, so a long
- * step (the team one runs past 2,000px) never hides the only way forward.
- */
-export function StepShell({ title, why, children, error, onBack, onNext, nextLabel = "Tiếp", busy }: StepShellProps) {
+/** One question per screen. Explanations live in the tooltip; the card keeps only the question. */
+export function StepShell({ title, why, lead, children, error, onBack, onNext, nextLabel = "Tiếp", busy }: StepShellProps) {
   return (
-    <div className="space-y-4">
-      <Paper withBorder p={{ base: "lg", sm: "xl" }} style={{ borderRadius: "var(--ui-radius)" }}>
-        <Stack gap="lg">
-          <Stack gap={4}>
-            <Title order={2} fz={{ base: 22, sm: 26 }} lh={1.25} style={{ letterSpacing: "-0.02em", textWrap: "balance" }}>
-              {title}
-            </Title>
-            <Text size="sm" c="dimmed" lh={1.6} style={{ maxWidth: "62ch" }}>
-              {why}
-            </Text>
-          </Stack>
+    <div className="bg-surface-app border border-border-app rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm space-y-6">
+      <div className="flex items-start gap-1.5">
+        <h2 className="font-heading text-lg sm:text-xl font-semibold text-text-app leading-snug">{title}</h2>
+        <InfoTip
+          width={320}
+          title={title}
+          label={
+            <div className="space-y-1.5 leading-relaxed">
+              <p className="font-body text-xs">{why}</p>
+              {lead ? <p className="font-body text-xs opacity-80">{lead}</p> : null}
+            </div>
+          }
+        />
+      </div>
 
-          <div>{children}</div>
-        </Stack>
-      </Paper>
+      <div className={styles.fields}>{children}</div>
 
-      <div
-        className="sticky bottom-0 z-30 -mx-4 border-t border-border-app bg-surface-app px-4 py-3 shadow-[0_-1px_0_0_var(--color-border)] sm:mx-0 sm:rounded-[var(--ui-radius)] sm:border"
-        aria-live="polite"
-      >
-        <Stack gap="xs">
-          {error ? (
-            <Group gap={6} wrap="nowrap" align="flex-start">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-danger)]" />
-              <Text size="sm" lh={1.5} c="var(--color-danger)">
-                {error}
-              </Text>
-            </Group>
+      <div className="pt-6 border-t border-border-app space-y-3">
+        {error ? (
+          <div className="flex items-start gap-1.5">
+            <AlertTriangle className="mt-0.5 w-4 h-4 shrink-0 text-danger" />
+            <p className="font-body text-sm leading-relaxed text-danger">{error}</p>
+          </div>
+        ) : null}
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+          {onBack ? (
+            <Button
+              onClick={onBack}
+              disabled={busy}
+              variant="default"
+              className="w-full sm:w-auto font-body font-semibold cursor-pointer h-10 sm:h-9 px-4 text-xs text-text-muted hover:text-text-app rounded-xl"
+            >
+              Quay lại
+            </Button>
+          ) : (
+            <span className="hidden sm:block" />
+          )}
+          {onNext ? (
+            <Button
+              onClick={onNext}
+              loading={busy}
+              color="brand"
+              className="w-full sm:w-auto font-body font-semibold cursor-pointer h-10 sm:h-9 px-4 text-xs rounded-xl"
+            >
+              {nextLabel}
+            </Button>
           ) : null}
-          <Group justify="space-between" gap="sm">
-            {onBack ? (
-              <Button variant="subtle" color="gray" onClick={onBack} disabled={busy}>
-                Quay lại
-              </Button>
-            ) : (
-              <span />
-            )}
-            {onNext ? (
-              <Button color="brand" onClick={onNext} loading={busy}>
-                {nextLabel}
-              </Button>
-            ) : null}
-          </Group>
-        </Stack>
+        </div>
       </div>
     </div>
   );

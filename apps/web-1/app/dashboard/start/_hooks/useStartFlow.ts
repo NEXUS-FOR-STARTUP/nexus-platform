@@ -9,15 +9,19 @@ import {
   type LabelQuote, type PreCp1Input,
 } from "@repo/validation";
 import {
+  PROGRESS_STEPS,
   STEPS,
   nextStep,
   prevStep,
+  stepForField,
   toInput,
+  toInputResult,
   usePreCp1Form,
   validateStep,
   type StartForm,
   type StepId,
 } from "./usePreCp1Form";
+import { STEP_NAMES } from "../_data/copy";
 import { usePreCp1Label } from "./usePreCp1Label";
 import { usePreCp1Save } from "./usePreCp1Save";
 import { useTeamFitEvaluation } from "./useTeamFitEvaluation";
@@ -36,6 +40,7 @@ export function useStartFlow() {
   const router = useRouter();
   const { form, setForm, isClient, restored, saveDraft, reset } = usePreCp1Form();
   const [stepState, setStepState] = useState<StepId | null>(null);
+  const [furthestState, setFurthestState] = useState<number | null>(null);
   const [caseIdState, setCaseIdState] = useState<string | null | undefined>(undefined);
   const [error, setError] = useState("");
   const [labels, setLabels] = useState<{ assets: LabelRun | null; idea: LabelRun | null }>({ assets: null, idea: null });
@@ -47,7 +52,14 @@ export function useStartFlow() {
   const saveMutation = usePreCp1Save();
   const evaluation = useTeamFitEvaluation();
 
-  const patch = useCallback((next: Partial<StartForm>) => setForm((prev) => ({ ...prev, ...next })), [setForm]);
+  const patch = useCallback(
+    (next: Partial<StartForm>) => {
+      // The warning described the answer that this edit just changed; keeping it would scold a filled field.
+      setError("");
+      setForm((prev) => ({ ...prev, ...next }));
+    },
+    [setForm],
+  );
 
   const input = useMemo(() => toInput(form), [form]);
   const report = useMemo(() => (input ? buildPreCp1Report(input) : null), [input]);
@@ -106,6 +118,8 @@ export function useStartFlow() {
     (target: StepId) => {
       setError("");
       setStepState(target);
+      // The furthest step visited, so the sidebar can go back and return without re-walking.
+      setFurthestState((prev) => Math.max(prev ?? STEPS.indexOf(step), STEPS.indexOf(target)));
       if (typeof window !== "undefined") {
         const url = new URL(window.location.href);
         if (target === "intro") url.searchParams.delete("step");
@@ -113,7 +127,7 @@ export function useStartFlow() {
         window.history.replaceState(null, "", url.toString());
       }
     },
-    [],
+    [step],
   );
 
   const back = useCallback(() => go(prevStep(step)), [go, step]);
@@ -192,9 +206,14 @@ export function useStartFlow() {
       return;
     }
     if (step === "sens") {
-      const built = toInput(form);
-      if (!built) {
-        setError("Còn thông tin chưa hợp lệ. Quay lại các bước trước kiểm tra giúp mình.");
+      const built = toInputResult(form);
+      if (!built.data) {
+        const target = stepForField(built.field ?? "");
+        setError(
+          target
+            ? `Còn thông tin chưa hợp lệ ở bước “${STEP_NAMES[PROGRESS_STEPS.indexOf(target)]}”. Bấm vào bước đó để kiểm tra.`
+            : "Còn thông tin chưa hợp lệ. Quay lại các bước trước kiểm tra giúp mình.",
+        );
         return;
       }
       go("result");
@@ -220,6 +239,7 @@ export function useStartFlow() {
     reset();
     setLabels({ assets: null, idea: null });
     setCaseIdState("");
+    setFurthestState(null);
     setSaveState("idle");
     setSaveFailed(false);
     savedFor.current = null;
@@ -247,6 +267,8 @@ export function useStartFlow() {
     labelBusy: labelMutation.isPending,
     hasSaved: Boolean(restored?.caseId) || restored?.step === "result",
     go,
+    /** Index into STEPS of the furthest step reached; earlier steps stay reachable. */
+    furthest: furthestState ?? STEPS.indexOf(step),
     back,
     next,
     restart,

@@ -2,7 +2,7 @@
 
 import { StepShell } from "../StepShell";
 import { ConfirmLabels, type LabelTags } from "../ConfirmLabels";
-import { WHY } from "../../_data/copy";
+import { CONFIRM_LEAD_ASSETS, CONFIRM_LEAD_IDEA, WHY } from "../../_data/copy";
 
 interface ConfirmStepProps {
   kind: "assets" | "idea";
@@ -21,12 +21,13 @@ export function ConfirmStep({ kind, catalog, suggested, aiOk, tags, onTags, erro
     <StepShell
       title={kind === "assets" ? "AI đọc được những điều này, đúng không?" : "AI hiểu ý tưởng của bạn thế nào?"}
       why={WHY.confirm}
+      lead={kind === "assets" ? CONFIRM_LEAD_ASSETS : CONFIRM_LEAD_IDEA}
       error={error}
       onBack={onBack}
       onNext={onNext}
       nextLabel={kind === "assets" ? "Tiếp" : "Xem kết quả"}
     >
-      <ConfirmLabels kind={kind} catalog={catalog} suggested={suggested} aiOk={aiOk} tags={tags} onTags={onTags} />
+      <ConfirmLabels catalog={catalog} suggested={suggested} aiOk={aiOk} tags={tags} onTags={onTags} />
     </StepShell>
   );
 }

@@ -3,7 +3,9 @@
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import {
   ASSET_PROMPT_IDS,
+  ASSET_RULE_IDS,
   ASKED_MAJORS,
+  IDEA_RULE_IDS,
   MAD_LIBS,
   PreCp1InputSchema,
   type BudgetCode,
@@ -59,7 +61,7 @@ export type StartForm = {
   assetsOther: string;
   network: NetId[];
   networkOther: string;
-  ideaMode: "none" | "draft" | "structured";
+  ideaMode: "none" | "draft" | "structured" | null;
   pain: string;
   idea: string;
   madlibs: Record<string, string>;
@@ -91,7 +93,7 @@ export const EMPTY_FORM: StartForm = {
   assetsOther: "",
   network: [],
   networkOther: "",
-  ideaMode: "none",
+  ideaMode: null,
   pain: "",
   idea: "",
   madlibs: {},
@@ -120,8 +122,10 @@ export function clampTeam(form: StartForm): StartForm {
  * The form keeps empty choices as null/""; the input contract is strict, so the
  * conversion is the single place that decides "answered enough to save".
  */
-export function toInput(form: StartForm): PreCp1Input | null {
-  const parsed = PreCp1InputSchema.safeParse({
+export type InputCheck = { data: PreCp1Input | null; field: string | null };
+
+export function toInputResult(form: StartForm): InputCheck {
+  const raw = {
     school: form.school,
     schoolName: form.schoolName || undefined,
     course: form.course ?? (form.school === "other" ? "other" : null),
@@ -142,15 +146,48 @@ export function toInput(form: StartForm): PreCp1Input | null {
     assetsOther: form.assetsOther || undefined,
     network: form.network,
     networkOther: form.networkOther || undefined,
-    ideaMode: form.ideaMode,
+    ideaMode: form.ideaMode ?? "none",
     pain: form.pain || undefined,
     idea: form.idea || undefined,
     madlibs: Object.keys(form.madlibs).length ? form.madlibs : undefined,
     sensitive: form.sensitive,
     assetTags: form.assetTags,
     ideaTags: form.ideaTags,
-  });
-  return parsed.success ? parsed.data : null;
+  };
+  const parsed = PreCp1InputSchema.safeParse(raw);
+  if (parsed.success) return { data: parsed.data, field: null };
+  return { data: null, field: String(parsed.error.issues[0]?.path[0] ?? "") };
+}
+
+export function toInput(form: StartForm): PreCp1Input | null {
+  return toInputResult(form).data;
+}
+
+/** Which step owns the field zod rejected, so a save error can name a step instead of blaming the user. */
+export function stepForField(field: string): StepId | null {
+  const map: Record<string, StepId> = {
+    school: "basics",
+    schoolName: "basics",
+    course: "basics",
+    courseName: "basics",
+    goal: "basics",
+    budget: "basics",
+    team: "team",
+    assets: "assets",
+    assetsNone: "assets",
+    assetsOther: "assets",
+    network: "network",
+    networkOther: "network",
+    ideaMode: "idea",
+    pain: "form",
+    idea: "form",
+    madlibs: "form",
+    sensitive: "sens",
+    // The confirm screens are not in PROGRESS_STEPS, so a bad label map points at the step that fed it.
+    assetTags: "assets",
+    ideaTags: "form",
+  };
+  return map[field] ?? null;
 }
 
 /** Empty string = this step may move on. Sentences are plain and name the gap. */
@@ -182,7 +219,8 @@ export function validateStep(step: StepId, form: StartForm, pendingLabels: strin
       ? ""
       : "Ghi ít nhất một nhóm hoặc một người bạn nhắn tin được. “Bạn cùng lớp” là đủ.";
   }
-  if (step === "idea") return form.ideaMode === "none" ? "Chọn một trong hai: đã có ý tưởng cụ thể, hoặc chưa có." : "";
+  if (step === "idea")
+    return form.ideaMode ? "" : "Chọn một trong ba: đã có và mô tả được, mới vài dòng, hoặc chưa có.";
   if (step === "form") {
     if (form.ideaMode !== "structured") return "";
     const short = MAD_LIBS.filter((f) => (form.madlibs[f.id] ?? "").trim().length < f.min);
@@ -250,6 +288,25 @@ function parseDraft(raw: string | null): SavedDraft | null {
     if (!parsed || typeof parsed !== "object") return null;
     if (!("form" in parsed) || !parsed.form || typeof parsed.form !== "object") return null;
     const form = { ...EMPTY_FORM, ...parsed.form } as StartForm;
+    // Older drafts stored the default "none" for "not answered yet". The old check
+    // rejected that value, so it can never be a real choice: map it back to unanswered
+    // instead of dropping the whole draft.
+    if (form.ideaMode === "none") form.ideaMode = null;
+    // A draft saved before a member field existed comes back without it, and the
+    // input contract requires every member field, so fill the gaps once here.
+    form.team = (Array.isArray(form.team) ? form.team : []).map((raw) => {
+      const member = (raw && typeof raw === "object" ? raw : {}) as MemberForm;
+      return { ...EMPTY_MEMBER, ...member, caps: { ...(member.caps ?? {}) } };
+    });
+    if (!form.team.length) form.team = [{ ...EMPTY_MEMBER }];
+    // Label maps outlive the catalog they came from: drop keys a rule set no longer
+    // has and the old third value ("unsure"), so an old draft still saves.
+    const keepTags = (tags: Record<string, unknown> | undefined, allowed: readonly string[]) =>
+      Object.fromEntries(
+        Object.entries(tags ?? {}).filter(([key, value]) => allowed.includes(key) && (value === "yes" || value === "no")),
+      ) as Record<string, "yes" | "no">;
+    form.assetTags = keepTags(form.assetTags, ASSET_RULE_IDS);
+    form.ideaTags = keepTags(form.ideaTags, IDEA_RULE_IDS);
     const step = "step" in parsed && STEPS.includes(parsed.step as StepId) ? (parsed.step as StepId) : "intro";
     const caseId = "caseId" in parsed && typeof parsed.caseId === "string" ? parsed.caseId : undefined;
     return { form, step, caseId };

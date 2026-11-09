@@ -1,7 +1,7 @@
 "use client";
 
-import { Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
-import { Check } from "@phosphor-icons/react/ssr";
+import { Button } from "@mantine/core";
+import { CheckIcon } from "@phosphor-icons/react/ssr";
 import { INTRO_BULLETS, INTRO_LEAD } from "../../_data/copy";
 
 interface IntroStepProps {
@@ -12,44 +12,42 @@ interface IntroStepProps {
 
 export function IntroStep({ hasSaved, onStart, onResume }: IntroStepProps) {
   return (
-    <Paper withBorder p={{ base: "lg", sm: "xl" }} style={{ borderRadius: "var(--ui-radius)" }}>
-      <Stack gap="lg">
-        <Stack gap={6}>
-          <Title order={1} fz={{ base: 26, sm: 34 }} lh={1.15} style={{ letterSpacing: "-0.025em", textWrap: "balance" }}>
-            Trước khi bắt đầu dự án
-          </Title>
-          <Text size="md" lh={1.7} style={{ maxWidth: "60ch" }}>
-            {INTRO_LEAD}
-          </Text>
-        </Stack>
+    <div className="bg-surface-app border border-border-app rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm space-y-6">
+      <div className="space-y-2">
+        <h1 className="font-heading text-xl sm:text-2xl font-bold text-text-app leading-snug">Trước khi bắt đầu dự án</h1>
+        <p className="font-body text-sm text-text-muted leading-relaxed max-w-[62ch]">{INTRO_LEAD}</p>
+      </div>
 
-        <div>
-          <Text size="sm" fw={600} mb="xs">
-            Kết quả nhận được
-          </Text>
-          <ul className="space-y-2">
-            {INTRO_BULLETS.map((line) => (
-              <li key={line} className="flex gap-2.5">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-brand)]" weight="bold" />
-                <span className="text-sm leading-relaxed" style={{ maxWidth: "62ch" }}>
-                  {line}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+      <div>
+        <p className="font-heading text-sm font-semibold text-text-app">Kết quả nhận được</p>
+        <ul className="mt-2 space-y-2">
+          {INTRO_BULLETS.map((line) => (
+            <li key={line} className="flex gap-2.5">
+              <CheckIcon className="mt-0.5 w-4 h-4 shrink-0 text-brand" weight="bold" />
+              <span className="font-body text-sm leading-relaxed text-text-app max-w-[62ch]">{line}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-        <Group gap="sm">
-          <Button color="brand" size="md" onClick={onStart}>
-            Bắt đầu
+      <div className="flex flex-col-reverse sm:flex-row sm:items-center gap-3 pt-6 border-t border-border-app">
+        <Button
+          onClick={onStart}
+          color="brand"
+          className="w-full sm:w-auto font-body font-semibold cursor-pointer h-10 px-4 text-xs rounded-xl"
+        >
+          Bắt đầu
+        </Button>
+        {hasSaved ? (
+          <Button
+            variant="default"
+            onClick={onResume}
+            className="w-full sm:w-auto font-body font-semibold cursor-pointer h-10 px-4 text-xs rounded-xl text-text-muted hover:text-text-app"
+          >
+            Xem lại kết quả đã lưu
           </Button>
-          {hasSaved ? (
-            <Button variant="subtle" color="gray" size="md" onClick={onResume}>
-              Xem lại kết quả đã lưu
-            </Button>
-          ) : null}
-        </Group>
-      </Stack>
-    </Paper>
+        ) : null}
+      </div>
+    </div>
   );
 }

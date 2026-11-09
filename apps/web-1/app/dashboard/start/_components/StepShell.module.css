@@ -1,0 +1,5 @@
+/* Matches the app's FormField (case detail): 16px text, 10px/14px padding ≈ 46px. */
+.fields :global(.mantine-Input-input) {
+  min-height: 46px;
+  font-size: 16px;
+}

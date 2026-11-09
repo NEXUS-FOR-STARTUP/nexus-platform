@@ -1,7 +1,7 @@
 "use client";
 
 import { Text, Textarea } from "@mantine/core";
-import { MAD_LIBS } from "@repo/validation";
+import { MAD_LIBS, TEXT_LIMITS } from "@repo/validation";
 
 interface MadLibsFormProps {
   values: Record<string, string>;
@@ -23,6 +23,7 @@ export function MadLibsForm({ values, onChange }: MadLibsFormProps) {
             <Textarea
               autosize
               minRows={2}
+              maxLength={TEXT_LIMITS.madlib}
               mt={6}
               placeholder={field.ph}
               value={value}
