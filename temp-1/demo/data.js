@@ -216,7 +216,7 @@ NX.PRESETS = [
     net: ['classmates'], sensitive: ['none'], ideaFork: 'no',
     idea: 'Chế tạo pin hạt nhân mini cho điện thoại', assets: {} } },
   { name: 'Một mình, chưa có gì', s: { schoolKind: 'fpt', schoolName: '', subjectKind: 'exe101', subjectName: '', goal: 'unsure', budget: 'b0', teamSize: 1,
-    team: [{ name: 'Tôi', caps: {}, unsure: true, major: 'Công nghệ thông tin' }], net: ['none'], sensitive: ['none'], ideaFork: 'no', idea: '', assets: {} } },
+    team: [{ name: 'Tôi', caps: {}, unsure: true, major: 'Công nghệ thông tin' }], net: [], netOther: '', sensitive: ['none'], ideaFork: 'no', idea: '', assets: {} } },
   { name: 'Nhóm cân đối, chưa có ý, mẹ mở quán cà phê', s: { schoolKind: 'fpt', schoolName: '', subjectKind: 'exe101', subjectName: '', goal: 'real', budget: 'b2', teamSize: 4,
     team: [{ name: 'Sơn', caps: { code: 3, ops: 2 }, major: 'Công nghệ thông tin' }, { name: 'Trang', caps: { design: 3, write: 2 }, major: 'Thiết kế đồ hoạ' }, { name: 'Uyên', caps: { sell: 3, interview: 3 }, major: 'Marketing' }, { name: 'Việt', caps: { finance: 2, ops: 2 }, major: 'Tài chính - Ngân hàng' }],
     net: ['classmates', 'eatery', 'club'], sensitive: ['none'], ideaFork: 'no', idea: '',
