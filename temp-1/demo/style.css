@@ -17,6 +17,20 @@ p { margin: 0 0 .6rem; }
 .more { margin: .2rem 0 1rem; max-width: 62ch; }
 .more summary { cursor: pointer; color: var(--accent); font-size: .88rem; }
 .more p { margin: .4rem 0 0; color: var(--muted); font-size: .88rem; }
+.more ul { margin: .5rem 0 0; padding-left: 1.1rem; }
+.more li { margin: .3rem 0; font-size: .88rem; color: var(--muted); }
+
+/* Bốn dáng trang: chọn (thẻ lớn) · viết (ô lớn, nhãn nhỏ) · chip (lưới) · soát (2 cột) */
+.shape-write .field > span { font-size: .84rem; color: var(--muted); }
+.shape-write textarea { font-size: 1rem; min-height: 64px; }
+.shape-write .cluster > h2 { font-size: .78rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin: 1.7rem 0 .1rem; }
+.shape-chip .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .5rem; }
+.shape-review .confirm { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 1rem; }
+.shape-review .confirm .row { margin: 0; flex-wrap: nowrap; }
+@media (max-width: 720px) {
+  .shape-review .confirm { grid-template-columns: 1fr; gap: .6rem; }
+  .shape-review .confirm .row { flex-wrap: wrap; }
+}
 .q { margin: 1rem 0 .4rem; font-weight: 600; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
@@ -163,3 +177,6 @@ select:has(option[value=""]:checked) { color: var(--muted); }
   .toc p { margin: 0; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* Tren dien thoai nut kich ban mau che mat o nhap; an di, preset chi de xem tren may tinh. */
+@media (max-width: 720px) { .demo-fab { display: none; } }

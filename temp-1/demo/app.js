@@ -21,6 +21,8 @@
   const STEP_IDS = STEPS.map((s) => s.id);
   const at = (id) => STEP_IDS.indexOf(id);
   const RESULT = at('result');
+  /* Mỗi loại câu hỏi một dáng: chọn, viết, chip, soát. render() gắn lớp shape-* lên #main. */
+  const SHAPES = { basics: 'pick', fork: 'pick', six: 'write', draft: 'write', assets: 'write', network: 'write', team: 'chip', sens: 'chip' };
 
   // Bước hiện tại ghi lên URL để tải lại/mở lại vẫn đúng chỗ và theo dõi được đang ở đâu.
   function syncUrl() {
@@ -138,9 +140,12 @@
   function vAssets() {
     if (S.phase === 'confirm') return vAssetsConfirm();
     const done = NX.ASSET_PROMPTS.filter((p) => (S.assets[p.id] || '').trim() || S.assetsNone[p.id]).length;
-    return head('Nhóm bạn đang có gì mà chưa nghĩ là quan trọng?', 'Năm câu ngắn, cả nhóm trả lời chung: mỗi người góp vài chữ, ghi tên cho dễ nhớ. Hoặc bấm “Mình không có”.',
-      'Nhiều nhóm bế tắc, cho tới khi nói chuyện mới biết trưởng nhóm có cửa hàng vật tư nông nghiệp ở nhà. Cả nhóm đổi sang bán và tư vấn hạt giống, vật tư. Thứ bạn thấy bình thường có thể là lợi thế lớn.')
-      + NX.ASSET_PROMPTS.map((p) => '<div class="ask"><h2>' + p.title + '</h2><p class="hint">' + p.why + '</p>'
+    const why = '<details class="more"><summary>Năm câu này để làm gì?</summary><ul>'
+      + NX.ASSET_PROMPTS.map((p) => '<li><b>' + p.title + '</b> ' + p.why + '</li>').join('') + '</ul>'
+      + '<p>Nhiều nhóm bế tắc, cho tới khi nói chuyện mới biết trưởng nhóm có cửa hàng vật tư nông nghiệp ở nhà. Cả nhóm đổi sang bán và tư vấn hạt giống, vật tư. Thứ bạn thấy bình thường có thể là lợi thế lớn.</p></details>';
+    return head('Nhóm bạn đang có gì mà chưa nghĩ là quan trọng?', 'Năm câu ngắn, cả nhóm trả lời chung: mỗi người góp vài chữ, ghi tên cho dễ nhớ. Hoặc bấm “Mình không có”.')
+      + why
+      + NX.ASSET_PROMPTS.map((p) => '<div class="ask"><h2>' + p.title + '</h2>'
         + '<textarea rows="3" data-bind="asset" data-k="' + p.id + '" placeholder="' + esc(p.ph) + '">' + esc(S.assets[p.id] || '') + '</textarea>'
         + '<button type="button" class="chip" data-act="none" data-k="' + p.id + '" aria-pressed="' + !!S.assetsNone[p.id] + '">Mình không có / không nhớ</button></div>').join('')
       + '<p class="count" id="assetCount">Đã trả lời ' + done + '/5</p>' + nav('Quay lại', 'Tiếp tục');
@@ -156,7 +161,7 @@
         if (!S.aiAssets.length) return 'AI đã đọc ' + n + ' câu trả lời nhưng chưa thấy nguồn lực nào đủ rõ để gán thẻ. Bạn đi tiếp được, hoặc quay lại viết cụ thể hơn.';
         return 'AI đọc ' + n + ' câu trả lời và gán ' + S.aiAssets.length + ' thẻ. Bạn vẫn là người xác nhận từng thẻ.';
       })())
-      + (cands.length ? '<div class="stack">' + cands.map((a) => '<div class="confirm"><p class="ct">' + a.rule.label + '</p><p class="cq">Bạn đã viết: “' + esc(a.quote) + '”</p><div class="row">'
+      + (cands.length ? '<div class="stack">' + cands.map((a) => '<div class="confirm"><div><p class="ct">' + a.rule.label + '</p><p class="cq">Bạn đã viết: “' + esc(a.quote) + '”</p></div><div class="row">'
         + chip('tag', 'data-kind="asset" data-id="' + a.rule.id + '" data-val="yes"', S.assetTags[a.rule.id] === 'yes', 'Đúng') + chip('tag', 'data-kind="asset" data-id="' + a.rule.id + '" data-val="no"', S.assetTags[a.rule.id] === 'no', 'Không đúng') + '</div></div>').join('') + '</div>' : '')
       + nav('Quay lại sửa câu trả lời', 'Tiếp tục');
   }
@@ -204,8 +209,11 @@
 
   function vSix() {
     if (S.phase === 'confirm') return vIdeaConfirm();
+    const field = (f) => '<label class="field"><span>' + f.n + '</span><textarea rows="2" data-bind="madlib" data-k="' + f.id + '" placeholder="' + esc(f.ph) + '">' + esc((S.madlibs || {})[f.id] || '') + '</textarea></label>';
+    const pick = (...ids) => ids.map((id) => field(NX.MAD_LIBS.find((f) => f.id === id)));
     return head('Mô tả ý tưởng trong sáu câu')
-      + '<div class="ask">' + NX.MAD_LIBS.map((f) => '<label class="field"><span>' + f.n + '</span><textarea rows="2" data-bind="madlib" data-k="' + f.id + '" placeholder="' + esc(f.ph) + '">' + esc((S.madlibs || {})[f.id] || '') + '</textarea></label>').join('') + '</div>'
+      + '<div class="ask cluster"><h2>Ý tưởng là gì</h2>' + pick('projectName', 'field', 'targetCustomer').join('') + '</div>'
+      + '<div class="ask cluster"><h2>Ai đang gặp chuyện gì, bạn làm gì trước</h2>' + pick('problem', 'solution', 'mvp').join('') + '</div>'
       + more('Viết như đang kể cho bạn cùng lớp; câu ngắn cũng được, miễn đủ ý. Sáu câu này là dữ kiện để chấm: hợp với ngành nào, chỗ nào dễ vấp, và hội đồng sẽ hỏi lại điều gì. Không có đáp án đúng hay sai.')
       + nav('Quay lại', 'Tiếp tục');
   }
@@ -234,7 +242,7 @@
         : !hasText ? 'Bạn để trống cả hai ô nên không có gì để AI đọc. Bạn vẫn xem được gợi ý hướng đi.'
           : !S.aiIdea.length ? 'AI đã đọc nhưng chưa thấy ý tưởng dính loại rủi ro nào. Bạn vẫn xem được gợi ý hướng đi.'
             : 'AI đọc cả câu và gán ' + S.aiIdea.length + ' thẻ. Bạn vẫn là người xác nhận từng thẻ.')
-      + (hasText ? '<p class="quote">“' + esc(E.ideaTitle(S)) + '”</p>' : '') + '<div class="stack">' + tags.map((t) => '<div class="confirm"><p class="ct">' + t.label + '</p><div class="row">'
+      + (hasText ? '<p class="quote">“' + esc(E.ideaTitle(S)) + '”</p>' : '') + '<div class="stack">' + tags.map((t) => '<div class="confirm"><div><p class="ct">' + t.label + '</p></div><div class="row">'
         + chip('tag', 'data-kind="idea" data-id="' + t.id + '" data-val="yes"', S.ideaTags[t.id] === 'yes', 'Đúng') + chip('tag', 'data-kind="idea" data-id="' + t.id + '" data-val="no"', S.ideaTags[t.id] === 'no', 'Không đúng') + '</div></div>').join('') + '</div>'
       + nav('Quay lại sửa', 'Tiếp tục');
   }
@@ -373,6 +381,7 @@
     syncUrl();
     $('#stepper').innerHTML = stepper();
     $('#main').innerHTML = S.busy ? busyView() : VIEWS[STEPS[S.step].id]();
+    $('#main').className = 'shape-' + (S.phase === 'confirm' ? 'review' : SHAPES[STEPS[S.step].id] || 'plain');
     const hasTeam = S.team.length > 0;
     $('#aside').innerHTML = summary();
     $('#aside').hidden = S.step < at('assets') || S.step === RESULT || !hasTeam;
