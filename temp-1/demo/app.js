@@ -212,12 +212,12 @@
 
   function vDraft() {
     if (S.phase === 'confirm') return vIdeaConfirm();
-    return head('Kể một chuyện bạn thấy khó chịu')
+    return head('Kể một chuyện bạn thấy khó chịu', 'Không bắt buộc. Bỏ trống vẫn đi tiếp được.')
       + '<div class="ask"><h2>Gần đây, điều gì làm bạn hoặc người quanh bạn mất thời gian, mất tiền hoặc bực mình?</h2><p class="hint">Chuyện nhỏ cũng được. Không cần nghĩ ra giải pháp.</p>'
       + '<textarea rows="3" data-bind="pain" placeholder="Ví dụ: Mẹ mình hay than quán cà phê quá rối vào giờ cao điểm vì khách đặt món qua nhiều kênh.">' + esc(S.pain) + '</textarea></div>'
       + '<div class="ask"><h2>Bạn hoặc nhóm đã có ý tưởng sơ bộ chưa?</h2><p class="hint">Một hai câu: làm cái gì, cho ai.</p>'
       + '<textarea rows="3" data-bind="idea" placeholder="Ví dụ: Làm ly và hộp đựng từ bã cà phê, thân thiện với môi trường.">' + esc(S.idea) + '</textarea></div>'
-      + more('Hai ô này không bắt buộc: chưa có gì thì bỏ trống, đừng cố nghĩ ra. Chuyện bạn thấy khó chịu là chỗ hay có ý tưởng nhất. Nexus đọc để gợi ý hướng, không phán đúng sai.')
+      + more('Chuyện bạn thấy khó chịu là chỗ hay có ý tưởng nhất. Nexus đọc để gợi ý hướng, không phán đúng sai.')
       + nav('Quay lại', 'Tiếp tục');
   }
 
