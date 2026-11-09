@@ -259,9 +259,9 @@
     const missing = NX.TRACKS.filter((t) => !tc[t.id]);
     const strengths = NX.CAPS.filter((c) => E.teamStats(S).best[c.id] >= 2).map((c) => c.label.split(',')[0].toLowerCase()).slice(0, 2);
     return '<div class="stats">'
-      + '<div class="stat"><b>' + majors + '</b><span>ngành đào tạo</span></div>'
-      + '<div class="stat"><b>' + covered + '/' + NX.TRACKS.length + '</b><span>mảng nghề có người</span></div>'
-      + '<div class="stat"><b>' + exp + '</b><span>người đã kể kinh nghiệm</span></div>'
+      + '<div class="stat"><span>ngành đào tạo</span><b>' + majors + '</b></div>'
+      + '<div class="stat"><span>mảng nghề có người</span><b>' + covered + '/' + NX.TRACKS.length + '</b></div>'
+      + '<div class="stat"><span>người đã kể kinh nghiệm</span><b>' + exp + '</b></div>'
       + '</div>'
       + '<div class="tiles">' + NX.TRACKS.map((t) => '<div class="tile' + (tc[t.id] ? '' : ' miss') + '"><b>' + t.label + '</b><span>' + (tc[t.id] ? tc[t.id] + ' người' : 'Chưa có ai') + '</span></div>').join('') + '</div>'
       + '<p><b>Nhóm dựa vào:</b> ' + (strengths.join('; ') || 'chưa rõ điểm mạnh nào') + '.</p>'

@@ -130,14 +130,14 @@ select:has(option[value=""]:checked) { color: var(--muted); }
 .vcard .vt.ok { color: var(--ok); }
 .vcard .vt.warn { color: var(--warn); }
 .vcard .vs { margin: .3rem 0 0; font-size: .9rem; color: var(--muted); }
-.stats, .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem; }
-.stats { margin-bottom: .6rem; }
-.stat, .tile { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: .8rem 1rem; }
-.stat b { display: block; font-size: 1.5rem; line-height: 1.1; }
-.stat span, .tile span { font-size: .85rem; color: var(--muted); }
-.tile b { display: block; font-size: .95rem; }
+/* Số liệu xếp dọc: cột giữa của demo hẹp, đặt 3 ô cạnh nhau là bị bóp chữ. */
+.stats, .tiles { display: grid; grid-template-columns: 1fr; gap: .4rem; }
+.stats { margin-bottom: .8rem; }
+.stat, .tile { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: .55rem .9rem; }
+.stat b, .tile b { font-size: 1rem; }
+.stat span, .tile span { font-size: .9rem; color: var(--muted); text-align: right; }
 .tile.miss span { color: var(--hard); }
-@media (max-width: 720px) { .stats, .tiles { grid-template-columns: 1fr; } }
+.tile { background: var(--paper); }
 .verdict.ok { background: var(--ok-bg); } .verdict.warn { background: var(--warn-bg); } .verdict.hard { background: var(--hard-bg); }
 .verdict.blocked { background: var(--blocked-bg); color: #fff; }
 .verdict strong { font-size: 1.1rem; }
