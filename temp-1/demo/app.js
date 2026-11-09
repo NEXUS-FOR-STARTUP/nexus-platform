@@ -49,7 +49,7 @@
 
   /* ---------- khối giao diện dùng lại ---------- */
   const callout = (kind, html) => '<div class="callout ' + kind + '">' + html + '</div>';
-  const head = (title, lead, why) => '<h1>' + title + '</h1><p class="lead">' + lead + '</p>' + (why ? callout('why', '<strong>Vì sao hỏi?</strong> ' + why) : '');
+  const head = (title, lead, why) => '<h1>' + title + '</h1>' + (lead ? '<p class="lead">' + lead + '</p>' : '') + (why ? callout('why', '<strong>Vì sao hỏi?</strong> ' + why) : '');
   // Đoạn giải thích dài gấp vào một dòng mở ra được, để trang chỉ còn câu hỏi.
   const more = (txt) => '<details class="more"><summary>Gợi ý thêm</summary><p>' + txt + '</p></details>';
   const chip = (act, attrs, on, label, extra = '') => '<button type="button" class="chip" data-act="' + act + '" ' + attrs + ' aria-pressed="' + !!on + '">' + label + extra + '</button>';
@@ -204,20 +204,20 @@
 
   function vSix() {
     if (S.phase === 'confirm') return vIdeaConfirm();
-    return head('Mô tả ý tưởng trong sáu câu', 'Viết như đang kể cho bạn cùng lớp. Câu ngắn cũng được, miễn đủ ý.')
+    return head('Mô tả ý tưởng trong sáu câu')
       + '<div class="ask">' + NX.MAD_LIBS.map((f) => '<label class="field"><span>' + f.n + '</span><textarea rows="2" data-bind="madlib" data-k="' + f.id + '" placeholder="' + esc(f.ph) + '">' + esc((S.madlibs || {})[f.id] || '') + '</textarea></label>').join('') + '</div>'
-      + more('Sáu câu này là dữ kiện để chấm: hợp với ngành nào, chỗ nào dễ vấp, và hội đồng sẽ hỏi lại điều gì. Không có đáp án đúng hay sai.')
+      + more('Viết như đang kể cho bạn cùng lớp; câu ngắn cũng được, miễn đủ ý. Sáu câu này là dữ kiện để chấm: hợp với ngành nào, chỗ nào dễ vấp, và hội đồng sẽ hỏi lại điều gì. Không có đáp án đúng hay sai.')
       + nav('Quay lại', 'Tiếp tục');
   }
 
   function vDraft() {
     if (S.phase === 'confirm') return vIdeaConfirm();
-    return head('Kể một chuyện bạn thấy khó chịu', 'Không bắt buộc. Chưa có gì thì bỏ trống, đừng cố nghĩ ra.')
+    return head('Kể một chuyện bạn thấy khó chịu')
       + '<div class="ask"><h2>Gần đây, điều gì làm bạn hoặc người quanh bạn mất thời gian, mất tiền hoặc bực mình?</h2><p class="hint">Chuyện nhỏ cũng được. Không cần nghĩ ra giải pháp.</p>'
       + '<textarea rows="3" data-bind="pain" placeholder="Ví dụ: Mẹ mình hay than quán cà phê quá rối vào giờ cao điểm vì khách đặt món qua nhiều kênh.">' + esc(S.pain) + '</textarea></div>'
       + '<div class="ask"><h2>Bạn hoặc nhóm đã có ý tưởng sơ bộ chưa?</h2><p class="hint">Một hai câu: làm cái gì, cho ai.</p>'
       + '<textarea rows="3" data-bind="idea" placeholder="Ví dụ: Làm ly và hộp đựng từ bã cà phê, thân thiện với môi trường.">' + esc(S.idea) + '</textarea></div>'
-      + more('Chuyện bạn thấy khó chịu là chỗ hay có ý tưởng nhất. Nexus đọc để gợi ý hướng, không phán đúng sai.')
+      + more('Hai ô này không bắt buộc: chưa có gì thì bỏ trống, đừng cố nghĩ ra. Chuyện bạn thấy khó chịu là chỗ hay có ý tưởng nhất. Nexus đọc để gợi ý hướng, không phán đúng sai.')
       + nav('Quay lại', 'Tiếp tục');
   }
 
@@ -274,8 +274,7 @@
     const short = (c) => c.label.split(',')[0];
     const who = (i) => esc((S.team[i] || {}).name || 'Người ' + (i + 1));
     const roleLabel = (id) => (NX.CORE_ROLES.find((r) => r.id === id) || {}).duty || id;
-    let n = 0;
-    const sec = (t) => '<h2>' + (++n) + '. ' + t + '</h2>';
+    const sec = (t, id) => '<h2' + (id ? ' id="' + id + '"' : '') + '>' + t + '</h2>';
     const people = S.team.map((p, i) => '<li><b>' + esc(p.name || 'Người ' + (i + 1)) + '</b>: ' + (NX.CAPS.filter((c) => p.caps[c.id]).map((c) => short(c).toLowerCase() + ' (' + lv(p.caps[c.id]).toLowerCase() + ')').join('; ') || 'chưa rõ làm được gì') + (p.extra ? '. Thêm: ' + esc(p.extra) : '') + '</li>').join('');
     const have = NX.CAPS.filter((c) => best[c.id] >= 2).map((c) => short(c).toLowerCase());
     const gap = NX.CAPS.filter((c) => best[c.id] < 2).map((c) => short(c).toLowerCase());
@@ -298,31 +297,39 @@
       : cov.capped
         ? 'Nhóm đã chạm trần ' + tr.sizeMax + ' người nên không tuyển thêm được; phải chia lại việc hoặc đổi người.'
         : 'Nhóm không cần tuyển thêm người.';
+    const teamBlock = '<div class="role"><ul class="recap">' + people + '</ul>'
+      + '<p><b>Đã có người làm được:</b> ' + (have.join('; ') || 'chưa ai làm được việc nào trong danh sách') + '.</p>'
+      + '<p><b>Chưa ai làm được:</b> ' + (gap.join('; ') || 'không còn việc nào trống') + '.</p>'
+      + '<p><b>Điều kiện nhóm' + (tr.exe ? ' (EXE101)' : '') + ':</b> ' + (() => { const ok = tr.sizeOk && tr.majorsOk; return (ok ? 'đã đủ — ' : 'chưa đủ — ') + tr.size + ' người (cần ' + tr.sizeMin + '–' + tr.sizeMax + ')' + (tr.exe ? ', ' + tr.majors + ' chuyên ngành (cần ' + tr.majorsMin + ')' : '') + '.'; })() + '</p></div>';
+    const recruitBlock = '<p>' + head + '</p>'
+      + (roles.length ? '<p class="hint">Xếp theo mức cần thiết, từ trên xuống. Một người có thể đảm nhiệm nhiều việc, nên không cần tuyển đủ ' + roles.length + ' người.</p>' + roles.map((r, i) => '<div class="role"><h3>' + (i + 1) + '. ' + r.title + '</h3><p>' + r.why + '</p><p class="hint">' + r.look + '</p><details><summary>Tin đăng tuyển mẫu</summary><p class="post" id="post' + i + '">' + esc(E.recruitPost(S, r)) + '</p><button class="btn ghost sm" data-act="copy" data-t="post' + i + '">Sao chép</button></details></div>').join('') : callout('tip', 'Nhóm đã phủ đủ các việc chính. Việc cần chú ý bây giờ là chia việc rõ ràng.'));
+    const flagGrid = '<div class="flags">' + flags.map((f) => '<div class="flag ' + f.status + '"><div class="fh"><span class="pill ' + f.status + '"><i aria-hidden="true">' + STATUS[f.status][0] + '</i>' + STATUS[f.status][1] + '</span><b>' + f.axis + '</b></div><p class="ft">' + f.title + '</p><p>' + f.reason + '</p><p class="fix"><b>Nên làm:</b> ' + f.fix + '</p></div>').join('') + '</div>';
+    const zonesBlock = '<p class="hint">Mỗi hướng là một giả thuyết. Hướng đầu tiên' + (hasIdea ? ' là ý tưởng của bạn sau khi thu nhỏ; các hướng còn lại dựa vào điểm mạnh, nguồn lực và người quen của nhóm.' : ' dựa vào điều bạn kể.') + ' Bạn chưa cần làm sản phẩm, chỉ cần đi hỏi.</p>'
+      + (zones.length ? zones.map((z) => '<div class="zone"><span class="tag">Giả thuyết</span><h3>' + z.title + '</h3><p>' + z.prose + '</p></div>').join('') : callout('tip', 'Chưa đủ thông tin để gợi ý hướng. Quay lại bước “Điều bạn đang có” và kể thêm.'));
     return '<h1>Bản đồ xuất phát của nhóm bạn</h1>'
       + callout('why', '<strong>Đọc trước khi xem:</strong> đây là các hướng nên đi kiểm tra, chưa phải kết luận ý tưởng nào đúng. Chỉ khi bạn đi hỏi người thật mới biết có khách cần hay không.')
       + (S.ideaFork === 'yes' && !structured ? callout('demo', 'Bạn chọn “Có ý tưởng cụ thể” nhưng 6 ô chưa đủ, nên phần chấm theo ngành và câu hội đồng chưa chạy. Các cờ bên dưới chỉ dựa trên phần bạn đã viết.') : '')
-      + sec('Nhóm hiện tại của bạn')
-      + '<div class="role"><ul class="recap">' + people + '</ul>'
-      + '<p><b>Đã có người làm được:</b> ' + (have.join('; ') || 'chưa ai làm được việc nào trong danh sách') + '.</p>'
-      + '<p><b>Chưa ai làm được:</b> ' + (gap.join('; ') || 'không còn việc nào trống') + '.</p>'
-      + '<p><b>Điều kiện nhóm' + (tr.exe ? ' (EXE101)' : '') + ':</b> ' + (() => { const ok = tr.sizeOk && tr.majorsOk; return (ok ? 'đã đủ — ' : 'chưa đủ — ') + tr.size + ' người (cần ' + tr.sizeMin + '–' + tr.sizeMax + ')' + (tr.exe ? ', ' + tr.majors + ' chuyên ngành (cần ' + tr.majorsMin + ')' : '') + '.'; })() + '</p></div>'
+      + '<div class="map">'
+      + '<nav class="toc" aria-label="Trong bản đồ"><p>Trong bản đồ</p><a href="#m-nhom">Nhóm</a><a href="#m-idea">Ý tưởng</a><a href="#m-next">Việc tiếp theo</a></nav>'
+      + '<div class="map-a">'
+      + sec('Nhóm hiện tại của bạn', 'm-nhom') + teamBlock
       + (coverBody ? sec('Nhóm có giữ được tới hết môn không?') + coverBody : '')
-      + sec('Nên tìm thêm ai vào nhóm')
-      + '<p>' + head + '</p>'
-      + (roles.length ? '<p class="hint">Xếp theo mức cần thiết, từ trên xuống. Một người có thể đảm nhiệm nhiều việc, nên không cần tuyển đủ ' + roles.length + ' người.</p>' + roles.map((r, i) => '<div class="role"><h3>' + (i + 1) + '. ' + r.title + '</h3><p>' + r.why + '</p><p class="hint">' + r.look + '</p><details><summary>Tin đăng tuyển mẫu</summary><p class="post" id="post' + i + '">' + esc(E.recruitPost(S, r)) + '</p><button class="btn ghost sm" data-act="copy" data-t="post' + i + '">Sao chép</button></details></div>').join('') : callout('tip', 'Nhóm đã phủ đủ các việc chính. Việc cần chú ý bây giờ là chia việc rõ ràng.'))
+      + sec('Nên tìm thêm ai vào nhóm') + recruitBlock
       + (structured ? sec('Nhóm hợp với mảng việc nào?') + callout('demo', 'Bản demo: khối này do AI chấm theo ngành ở bản thật. Ở đây mô phỏng từ ngành và năng lực bạn vừa chọn.') + aiTrackBody() : '')
-      + sec('Ý tưởng này có vấn đề gì không?')
+      + sec('Ý tưởng này có vấn đề gì không?', 'm-idea')
       + (hasIdea ? '<p class="idea-quote">“' + esc(E.ideaTitle(S)) + '”</p>' : callout('tip', 'Bạn chưa ghi ý tưởng nên mục này chỉ kiểm tra nhóm và nguồn lực. Xem hướng gợi ý ở mục dưới.'))
       + '<div class="verdict ' + v.cls + '"><strong>' + v.t + '</strong><span>' + v.d + '</span></div>'
-      + '<div class="flags">' + flags.map((f) => '<div class="flag ' + f.status + '"><div class="fh"><span class="pill ' + f.status + '"><i aria-hidden="true">' + STATUS[f.status][0] + '</i>' + STATUS[f.status][1] + '</span><b>' + f.axis + '</b></div><p class="ft">' + f.title + '</p><p>' + f.reason + '</p><p class="fix"><b>Nên làm:</b> ' + f.fix + '</p></div>').join('') + '</div>'
-      + sec(hasIdea ? 'Hướng thay thế hợp với nhóm' : 'Hướng nên đi hỏi thử')
-      + '<p class="hint">Mỗi hướng là một giả thuyết. Hướng đầu tiên' + (hasIdea ? ' là ý tưởng của bạn sau khi thu nhỏ; các hướng còn lại dựa vào điểm mạnh, nguồn lực và người quen của nhóm.' : ' dựa vào điều bạn kể.') + ' Bạn chưa cần làm sản phẩm, chỉ cần đi hỏi.</p>'
-      + (zones.length ? zones.map((z) => '<div class="zone"><span class="tag">Giả thuyết</span><h3>' + z.title + '</h3><p>' + z.prose + '</p></div>').join('') : callout('tip', 'Chưa đủ thông tin để gợi ý hướng. Quay lại bước “Điều bạn đang có” và kể thêm.'))
+      + flagGrid
+      + '</div>'
+      + '<aside class="map-b" id="m-next">'
+      + sec(hasIdea ? 'Hướng thay thế hợp với nhóm' : 'Hướng nên đi hỏi thử') + zonesBlock
       + (structured ? sec('Hội đồng sẽ hỏi gì?') + callout('demo', 'Bản demo: câu hỏi mô phỏng từ 6 ô bạn viết. Bản thật do AI soạn theo đúng ý tưởng của bạn.') + aiCommitteeBody() : '')
       + sec('Việc tiếp theo: đi hỏi người thật')
       + '<p class="hint">Chọn một hướng ở trên. Tìm vài người thuộc nhóm đó và hỏi theo 5 câu này. Ghi lại nguyên văn câu họ nói. Đây là việc của bước phỏng vấn khách hàng ở giai đoạn sau. Hiện bạn chưa cần làm.</p>'
       + '<ol class="qs">' + NX.INTERVIEW_QS.map((q) => '<li>' + q + '</li>').join('') + '</ol>'
       + (structured ? '<div class="role upsell"><h3>Đi xa hơn với bản đồ này</h3><p>Bạn đã có nhóm, mảng việc và chỗ dễ vấp. Nếu muốn người thật đọc lại và hẹn lịch cùng bạn, xem các gói đồng hành.</p><div class="row"><button class="btn ghost sm" data-act="plans">Xem các gói đồng hành</button></div></div>' : '')
+      + '</aside>'
+      + '</div>'
       + '<div class="cta"><button class="btn primary" data-act="create">Tạo dự án từ bản đồ này</button><button class="btn ghost" data-act="edit" data-step="1">Sửa câu trả lời</button><button class="btn ghost" data-act="restart">Làm lại từ đầu</button></div>';
   }
 
@@ -341,34 +348,23 @@
     const p = pathSteps();
     const pos = p.indexOf(S.step);
     if (pos < 0) return '';
-    const undecided = !S.ideaFork;
-    const items = p.map((i) => ({ i, name: STEPS[i].name }));
-    if (undecided) {
-      const f = items.findIndex((x) => x.i === at('fork'));
-      items.splice(f + 1, 0, { i: -1, name: 'Sáu câu hoặc kể chuyện' });
-    }
-    const n = pos + 1;
-    const left = p.slice(pos).reduce((a, i) => a + STEPS[i].min, 0) + (undecided ? 2 : 0);
-    return '<div class="prog"><p>Bước ' + n + '/' + items.length + ': <b>' + STEPS[S.step].name + '</b> · còn khoảng ' + left + ' phút</p><ol>'
-      + items.map((x, k) => '<li class="' + (k + 1 < n ? 'done' : k + 1 === n ? 'now' : '') + '">'
-        + (x.i < 0 ? '<span>' + x.name + '</span>' : '<button type="button" data-act="edit" data-step="' + x.i + '">' + x.name + '</button>') + '</li>').join('') + '</ol></div>';
+    const left = p.slice(pos).reduce((a, i) => a + STEPS[i].min, 0) + (S.ideaFork ? 0 : 2);
+    const total = p.length + (S.ideaFork ? 0 : 1);
+    const marks = p.map((i, k) => (k < pos ? 'done' : k === pos ? 'now' : ''));
+    if (!S.ideaFork) marks.splice(p.indexOf(at('fork')) + 1, 0, '');
+    const bars = marks.map((m) => '<span class="' + m + '"></span>').join('');
+    return '<div class="prog"><p>Bước ' + (pos + 1) + '/' + total + ' · <b>' + STEPS[S.step].name + '</b> · còn khoảng ' + left + ' phút</p>'
+      + '<div class="track" aria-hidden="true">' + bars + '</div></div>';
   }
   function summary() {
-    const row = (k, v) => '<div class="sr ' + (v ? 'has' : '') + '"><dt>' + k + '</dt><dd>' + (v || 'chưa có') + '</dd></div>';
-    const g = NX.GOALS.find((x) => x.id === S.goal), b = NX.BUDGETS.find((x) => x.id === S.budget);
+    const row = (k, v, flag) => '<div class="sr ' + (v ? 'has ' : '') + (flag && v ? flag : '') + '"><dt>' + k + '</dt><dd>' + v + '</dd></div>';
+    const cov = E.trackCoverage(S);
+    const missing = NX.TRACKS.filter((t) => !cov[t.id]).map((t) => t.label);
     const strong = NX.CAPS.filter((c) => E.teamStats(S).best[c.id] >= 2).map((c) => c.label.split(',')[0].toLowerCase());
-    const assets = E.detectAssets(S).filter((a) => S.assetTags[a.rule.id] === 'yes').map((a) => a.rule.label);
-    const net = [(S.netOther || '').trim()];
-    const schoolTxt = S.schoolKind === 'fpt' ? 'Đại học FPT' : S.schoolKind === 'other' ? (S.schoolName || 'Trường khác') : '';
-    const subjectTxt = S.subjectKind === 'exe101' ? 'EXE101' : S.subjectKind === 'other' ? (S.subjectName || 'Môn khác') : '';
-    const mode = E.ideaMode(S);
-    const ideaTxt = mode === 'structured' ? 'có, mô tả đủ 6 câu' : mode === 'draft' ? 'mới là bản nháp' : '';
-    return '<h2>Nexus đang hiểu về bạn</h2><dl>'
-      + row('Trường / môn', schoolTxt ? schoolTxt + (subjectTxt ? ' — ' + subjectTxt : '') : '')
-      + row('Mục tiêu', g && g.title) + row('Tiền cho dự án', b && b.title)
-      + row('Nhóm', S.team.length && S.team.some((p) => Object.keys(p.caps).length) ? S.team.length + ' người. Làm được: ' + (strong.join('; ') || '…') : '')
-      + row('Ý tưởng', ideaTxt)
-      + row('Điều đang có', assets.join('; ')) + row('Gặp được', net.join('; ')) + '</dl>';
+    const lines = [row('Số người', S.team.length + ' người')];
+    if (S.team.length) lines.push(row('Mảng việc', missing.length ? 'thiếu ' + missing.join(', ') : 'đủ ba mảng', 'warn'));
+    if (strong.length) lines.push(row('Làm được', strong.join('; ')));
+    return '<h2>Nhóm của bạn</h2><dl>' + lines.join('') + '</dl>';
   }
 
   /* ---------- điều hướng ---------- */
@@ -377,8 +373,10 @@
     syncUrl();
     $('#stepper').innerHTML = stepper();
     $('#main').innerHTML = S.busy ? busyView() : VIEWS[STEPS[S.step].id]();
+    const hasTeam = S.team.length > 0;
     $('#aside').innerHTML = summary();
-    $('#aside').hidden = S.step === 0 || S.step === RESULT;
+    $('#aside').hidden = S.step < at('assets') || S.step === RESULT || !hasTeam;
+    document.body.classList.toggle('wide-result', S.step === RESULT);
     window.scrollTo(0, top ? 0 : y);
   }
   // Trong lúc AI đọc thì không cho nhảy bước: nếu không, màn "đang đọc" sẽ nằm nhầm bước.
@@ -487,7 +485,7 @@
     if (!S.ideaFork) S.ideaFork = S.madlibs.projectName ? 'yes' : 'no';
     NX.ASSET_PROMPTS.forEach((a) => { if (!(S.assets[a.id] || '').trim()) S.assetsNone[a.id] = true; });
     if (Array.isArray(S.net) && S.net.length) S.netOther = S.net.map((id) => (NET_ALL().find((n) => n.id === id) || {}).label).filter(Boolean).join('; ');
-    toast('Đã điền sẵn dữ liệu mẫu. Bấm “Tiếp tục” để đi qua từng bước, hoặc bấm tên bước trên thanh tiến trình để nhảy tới.');
+    toast('Đã điền sẵn dữ liệu mẫu. Bấm “Tiếp tục” để đi qua từng bước.');
     go(at('basics'));
   }
 
@@ -554,7 +552,7 @@
   document.addEventListener('change', onField); // <select> không phải lúc nào cũng phát 'input'
 
   $('#demoBtn').addEventListener('click', () => { const m = $('#demoMenu'); m.hidden = !m.hidden; });
-  $('#demoMenu').innerHTML = '<p>Điền sẵn một kịch bản. Sau đó bấm tên bước trên thanh tiến trình để đi lại bất kỳ đâu, hoặc bấm “Tiếp tục” để đi lần lượt.</p>'
+  $('#demoMenu').innerHTML = '<p>Điền sẵn một kịch bản. Sau đó bấm “Tiếp tục” để đi lần lượt; bấm “Quay lại” để lùi một bước.</p>'
     + NX.PRESETS.map((p, i) => '<button type="button" data-act="preset" data-i="' + i + '">' + p.name + '</button>').join('');
   render(true);
 })();
