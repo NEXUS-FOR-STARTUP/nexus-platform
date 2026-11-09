@@ -85,10 +85,13 @@
     const overload = team
       .map((p, i) => ({ i, roles: roles.filter((r) => r.members.includes(i)).map((r) => r.id) }))
       .filter((x) => x.roles.length > 1 && x.roles.some((id) => single.includes(id)));
-    const room = rule.sizeMax == null ? Infinity : Math.max(0, rule.sizeMax - team.length);
+    // `null` = trường không đặt trần. Không dùng `Infinity`: JSON.stringify biến nó thành `null`
+    // ở chỗ khác, còn schema/report thì nhận `null` một cách có chủ ý.
+    const room = rule.sizeMax == null ? null : Math.max(0, rule.sizeMax - team.length);
     const byLaw = rule.sizeMin == null ? 0 : Math.max(0, rule.sizeMin - team.length);
     const want = Math.max(byLaw, empty.length);
-    return { exe, roles, empty, single, overload, want, need: Math.min(want, room), room, capped: want > Math.min(want, room) };
+    const need = room == null ? want : Math.min(want, room);
+    return { exe, roles, empty, single, overload, want, need, room, capped: want > need };
   }
 
   const val = (list, id) => (list.find((x) => x.id === id) || {}).v;

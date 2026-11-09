@@ -15,7 +15,7 @@
 - `ROLE_TRACK_CODES` chỉ có 3 giá trị (Kỹ thuật · Marketing · Kinh doanh–Tài chính), chuyên ngành đã bao trùm → map 1-1 là đủ, không cần hỏi thêm (trừ "Ngành khác").
 - `strengths` chỉ cần ≥1 chuỗi, tối đa 10 → lấy 3 năng lực mạnh nhất là đủ căn cứ cho AI, đúng tinh thần prompt ("mọi nhận định phải có dẫn chứng").
 - `experience` không bắt buộc → lấy ô thêm 1 dòng của mỗi người.
-- **Trần 6 người** (`MAX_TEAM_MEMBERS`) thấp hơn luồng (cho tới 8): nhóm 7-8 người thì **không gọi AI** (không cắt bớt người rồi để AI phán sai). Đi nhánh "chưa chấm được theo ngành".
+- **`MAX_TEAM_MEMBERS = 6`** là hợp đồng của endpoint chấm (`packages/validation/src/index.ts:52`), không phải luật của trường. Nhóm **> 6 người** chỉ tồn tại ở trường không đặt trần, nên: **không gọi AI, không cắt bớt người rồi để AI phán sai**. Nhánh "chưa chấm được theo ngành" và câu hiển thị phải nói đúng lý do — *"Phần đọc theo ngành xây cho nhóm 4–6 người; nhóm đông hơn chưa chấm được"* — **không** được nói "quá trần môn học" (nhóm này không vi phạm luật nào).
 - `IdeaInputSchema` có min length (problem ≥10, solution ≥10, targetCustomer ≥5, mvp ≥5) → phải validate 6 ô trước khi gọi AI, không để server trả 400 giữa luồng.
 
 ## Requirements
@@ -40,7 +40,7 @@ Bảng map chuyên ngành:
 
 `trackCoverage` đang hiển thị số người theo từng mảng trong `TeamFitReportCard.tsx:61-94` — suy sai sẽ thành số liệu bịa mà người dùng đọc được, nên chỉ chuyên ngành **không map được** mới phải hỏi thay vì gán. Chip hiện ngay dưới ô chuyên ngành, chỉ 3 lựa chọn, một lần bấm.
 
-Điều kiện trả `null`: `ideaMode !== 'structured'`, Mad Libs thiếu ô/không đạt min length, `team.length > 6`, hoặc `team.length === 0`.
+Điều kiện trả `null`, mỗi điều kiện kèm đúng một câu giải thích cho UI: `ideaMode !== 'structured'` (chưa có đủ 6 ô) · Mad Libs thiếu ô/không đạt min length (chưa đủ chữ) · `team.length > 6` (**mẫu chấm giới hạn 4–6 người**, không phải luật trường) · `team.length === 0` (chưa nhập ai).
 
 ## Related Code Files
 **Tạo:** `packages/validation/src/pre-cp1/derive-team-fit.ts`, `packages/validation/src/pre-cp1/__tests__/derive-team-fit.test.ts`
