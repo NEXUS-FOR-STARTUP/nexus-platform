@@ -30,7 +30,7 @@
     if (location.search !== q) history.replaceState(null, '', location.pathname + q);
   }
 
-  const fresh = () => ({ step: 0, phase: 'write', schoolKind: null, schoolName: '', subjectKind: null, subjectName: '', goal: null, budget: null, teamSize: 3, team: [], assets: {}, assetsNone: {}, assetTags: {}, net: [], netOther: '', ideaFork: null, pain: '', idea: '', madlibs: {}, ideaTags: {}, sensitive: [], aiAssets: null, aiIdea: null, err: '' });
+  const fresh = () => ({ step: 0, phase: 'write', schoolKind: null, schoolName: '', subjectKind: null, subjectName: '', goal: null, budget: null, teamSize: 3, team: [], assets: {}, assetsNone: {}, assetTags: {}, assetsOther: '', net: [], netOther: '', ideaFork: null, pain: '', idea: '', madlibs: {}, ideaTags: {}, sensitive: [], aiAssets: null, aiIdea: null, err: '' });
   let S = load();
   // `?step=assets` mở thẳng bước đó; không có thì dùng bước đã lưu. `idea` là link cũ của bước ngã rẽ.
   (function fromUrl() {
@@ -172,25 +172,24 @@
         + chip('tag', 'data-kind="asset" data-id="' + a.rule.id + '" data-val="yes"', S.assetTags[a.rule.id] === 'yes', 'Đúng') + chip('tag', 'data-kind="asset" data-id="' + a.rule.id + '" data-val="no"', S.assetTags[a.rule.id] === 'no', 'Không đúng') + '</div></div>').join('') + '</div>' : '')
       + '<p class="count">Đã chọn ' + NX.ASSET_RULES.filter((r) => S.assetTags[r.id] === 'yes').length + '/' + NX.ASSET_RULES.length + ' — càng nhiều nhãn đúng, hướng gợi ý ở cuối càng sát.</p>'
       + '<div class="chipgrid">' + NX.ASSET_RULES.map((r) => chip('assetquick', 'data-id="' + r.id + '"', S.assetTags[r.id] === 'yes', r.label)).join('') + '</div>'
+      + '<div class="ask"><h2>Không có trong danh sách?</h2><p class="hint">Ghi một dòng: ai quen, làm nghề gì, có gì sẵn. Càng cụ thể càng dễ gợi ý đúng.</p>'
+      + '<textarea rows="2" aria-label="Nguồn lực khác của nhóm" data-bind="assetsOther" placeholder="Ví dụ: bố một bạn có xưởng in; chị họ bán hàng online 3 năm; nhà có sân để xe.">' + esc(S.assetsOther || '') + '</textarea></div>'
       + nav('Quay lại sửa câu trả lời', 'Tiếp tục');
   }
 
-  const NONE_NET = { id: 'none', label: 'Mình chưa có ai trong số này' };
-  function NET_ALL() { return NX.NET_OPTIONS.concat([NONE_NET]); }
   const netSegments = () => (S.netOther || '').split(';').map((x) => x.trim()).filter(Boolean);
   /** Bấm gợi ý: thêm/bỏ đúng câu đó trong ô, và thêm/bỏ mã nhóm tương ứng.
    *  Chữ tự gõ không đổi mã nhóm; chỉ khi xoá sạch ô thì mới bỏ hết. */
   function toggleNetPreset(id) {
-    const opt = NET_ALL().find((x) => x.id === id);
+    const opt = NX.NET_OPTIONS.find((x) => x.id === id);
     if (!opt) return;
     const segs = netSegments().filter((s) => s !== opt.label);
     if (S.net.includes(id)) {
       S.netOther = segs.join('; ');
       S.net = S.net.filter((x) => x !== id);
     } else {
-      const base = id === 'none' ? [] : segs.filter((s) => s !== NONE_NET.label);
-      S.netOther = [...base, opt.label].join('; ');
-      S.net = id === 'none' ? ['none'] : [...new Set([...S.net.filter((x) => x !== 'none'), id])];
+      S.netOther = [...segs, opt.label].join('; ');
+      S.net = [...S.net, id];
     }
     if (!S.netOther.trim()) S.net = [];
   }
@@ -200,7 +199,7 @@
       + '<div class="ask"><h2>Bạn nhắn tin hoặc gặp mặt được ai?</h2><p class="hint">Không cần biết chính xác ai. Ghi vài nhóm, hoặc một người cụ thể.</p>'
       + '<textarea id="netOther" rows="4" aria-label="Bạn nhắn tin hoặc gặp mặt được ai?" data-bind="netOther" placeholder="Ví dụ: bạn cùng lớp; chủ quán cà phê trước cổng trường; anh họ làm y tá ở phòng khám tư.">' + esc(S.netOther || '') + '</textarea></div>'
       + '<p class="hint">Gợi ý, bấm để điền vào ô trên:</p>'
-      + '<div class="row">' + NET_ALL().map((n) => chip('netpre', 'data-id="' + n.id + '"', S.net.includes(n.id), n.label)).join('') + '</div>'
+      + '<div class="row">' + NX.NET_OPTIONS.map((n) => chip('netpre', 'data-id="' + n.id + '"', S.net.includes(n.id), n.label)).join('') + '</div>'
       + nav('Quay lại', 'Tiếp tục');
   }
 
@@ -442,7 +441,7 @@
       return left ? 'Còn ' + left + ' câu chưa trả lời. Viết vài chữ, hoặc bấm “Mình không có / không nhớ”.' : '';
     }
     if (id === 'assets') return E.detectAssets(S).some((a) => !S.assetTags[a.rule.id]) ? 'Hãy bấm “Đúng” hoặc “Không đúng” cho từng mục.' : '';
-    if (id === 'network') return (S.netOther || '').trim() ? '' : 'Hãy ghi ít nhất một nhóm hoặc một người bạn nhắn tin được, hoặc bấm gợi ý “Mình chưa có ai trong số này”.';
+    if (id === 'network') return (S.netOther || '').trim() ? '' : 'Hãy ghi ít nhất một nhóm hoặc một người bạn nhắn tin được. Không cần biết chính xác ai — “bạn cùng lớp”, “chủ quán trước cổng trường” là đủ.';
     if (id === 'fork') return S.ideaFork ? '' : 'Chọn một trong hai: đã có ý tưởng cụ thể, hoặc chưa có.';
     if (id === 'six' && S.phase === 'write') {
       const short = NX.MAD_LIBS.filter((f) => ((S.madlibs || {})[f.id] || '').trim().length < f.min);
@@ -522,7 +521,7 @@
     if (!S.madlibs || typeof S.madlibs !== 'object') S.madlibs = {};
     if (!S.ideaFork) S.ideaFork = S.madlibs.projectName ? 'yes' : 'no';
     NX.ASSET_PROMPTS.forEach((a) => { if (!(S.assets[a.id] || '').trim()) S.assetsNone[a.id] = true; });
-    if (Array.isArray(S.net) && S.net.length) S.netOther = S.net.map((id) => (NET_ALL().find((n) => n.id === id) || {}).label).filter(Boolean).join('; ');
+    if (Array.isArray(S.net) && S.net.length) S.netOther = S.net.map((id) => (NX.NET_OPTIONS.find((n) => n.id === id) || {}).label).filter(Boolean).join('; ');
     toast('Đã điền sẵn dữ liệu mẫu. Bấm “Tiếp tục” để đi qua từng bước.');
     go(at('basics'));
   }

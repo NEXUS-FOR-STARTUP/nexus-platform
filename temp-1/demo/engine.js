@@ -172,7 +172,7 @@
     }
 
     // 5. Gặp được khách
-    const groups = (s.net || []).filter((x) => x !== 'none');
+    const groups = s.net ? [...s.net] : [];
     if ((s.netOther || '').trim()) groups.push('other');
     const knowsDecider = groups.includes('work') || groups.includes('mentor');
     if (kinds.has('b2bLarge') && !knowsDecider) {
@@ -235,6 +235,12 @@
       }, '', 'pain');
     }
     NX.ASSET_RULES.filter((r) => s.assetTags[r.id] === 'yes').forEach((r) => add(r.zone, 'Vì bạn đã xác nhận: ' + r.label.toLowerCase() + '.', 'asset'));
+    if ((s.assetsOther || '').trim()) {
+      add({
+        title: 'Nguồn lực bạn kể thêm',
+        prose: '“' + clip(s.assetsOther, 60) + '” — thứ này không nằm trong danh sách nên mình chưa biết nó mạnh tới đâu. Hỏi người liên quan hai câu: họ đang có khách từ đâu, và việc gì trong nghề đó tốn thời gian nhất.',
+      }, '', 'asset');
+    }
     (s.net || []).forEach((id) => { const n = NX.NET_OPTIONS.find((x) => x.id === id); if (n) add(n.zone, 'Vì bạn gặp được: ' + n.label.toLowerCase() + '.', 'net'); });
     const { best } = teamStats(s);
     ['sell', 'design', 'code', 'ops', 'craft'].forEach((k) => { if (best[k] >= 2) add(NX.STRENGTH_ZONES[k], 'Vì trong nhóm có người làm được việc này.', 'strength'); });
