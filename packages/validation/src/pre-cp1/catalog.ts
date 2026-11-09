@@ -270,32 +270,32 @@ export type RecruitRoleCode = (typeof RECRUIT_ROLE_CODES)[number];
 export const RECRUIT_ROLES: Record<RecruitRoleCode, { title: string; look: string; ask: string }> = {
   maker_digital: {
     title: "Người làm ra sản phẩm số (web, app, bảng tính tự động)",
-    look: "Hỏi: “Bạn đã tự làm được thứ gì chạy thật chưa? Cho mình xem.” Một sản phẩm nhỏ đã làm xong có giá trị hơn một bảng điểm đẹp.",
+    look: "“Bạn đã tự làm được thứ gì chạy thật chưa? Cho mình xem.” Một sản phẩm nhỏ đã làm xong có giá trị hơn một bảng điểm đẹp.",
     ask: "làm web, app hoặc bảng tính tự động",
   },
   maker_physical: {
     title: "Người làm ra sản phẩm thật (thủ công, nấu ăn, chế tạo) hoặc có xưởng",
-    look: "Hỏi: “Bạn đã tự làm ra món gì bằng tay chưa? Có chỗ làm không?”",
+    look: "“Bạn đã tự làm ra món gì bằng tay chưa? Có chỗ làm không?”",
     ask: "làm đồ bằng tay hoặc có chỗ làm",
   },
   maker_any: {
     title: "Người trực tiếp làm ra sản phẩm",
-    look: "Hỏi: “Bạn đã tự làm được thứ gì dùng được chưa?” Tuỳ hướng sau này mà là code hay làm thủ công.",
+    look: "“Bạn đã tự làm được thứ gì dùng được chưa?” Tuỳ hướng sau này mà là code hay làm thủ công.",
     ask: "trực tiếp làm ra sản phẩm",
   },
   talker: {
     title: "Người nói chuyện và gặp khách",
-    look: "Hỏi: “Tuần trước bạn có bắt chuyện với người lạ để hỏi một việc gì không?”",
+    look: "“Tuần trước bạn có bắt chuyện với người lạ để hỏi một việc gì không?”",
     ask: "nói chuyện, gặp khách",
   },
   organizer: {
     title: "Người giữ nhịp việc và soạn tài liệu",
-    look: "Hỏi: “Bạn đã từng giữ việc cho một nhóm đến khi xong chưa? Lần gần nhất thế nào?”",
+    look: "“Bạn đã từng giữ việc cho một nhóm đến khi xong chưa? Lần gần nhất thế nào?”",
     ask: "giữ tiến độ và viết tài liệu",
   },
   numbers: {
     title: "Người tính tiền",
-    look: "Hỏi: “Nếu bán một cái giá X, nhóm lời hay lỗ bao nhiêu? Bạn tính thế nào?”",
+    look: "“Nếu bán một cái giá X, nhóm lời hay lỗ bao nhiêu? Bạn tính thế nào?”",
     ask: "tính chi phí và giá bán",
   },
 };
