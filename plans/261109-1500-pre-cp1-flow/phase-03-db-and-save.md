@@ -95,6 +95,8 @@ apps/api/src/modules/pre-cp1/
 
 ## Risk Assessment
 - **Mất kết quả sơ bộ khi chưa tạo dự án**: đúng chủ ý, nhưng phải giữ nháp localStorage để người dùng quay lại lưu tiếp; nếu `POST /save` fail sau khi tạo case → hiện "Chưa lưu được kết quả sơ bộ, thử lại", không giả vờ đã lưu.
+- **Lỗ: lưu xong mà không xem lại được.** Lượt này không có endpoint đọc, nên sau khi lưu chỉ còn báo cáo AI trong workspace; kết quả sơ bộ (5 cờ, tuyển ai) không xem lại được. Vì vậy **chỉ xoá nháp khi người dùng tự bấm "Làm lại"**, và nháp phải nhớ `caseId` đã lưu để lần sau mở lại đúng chỗ. Endpoint đọc là việc của phase sau, không được lặng lẽ xoá dữ liệu thay cho nó.
+- **`aiResult` do client gửi** (báo cáo AI): server chỉ kiểm shape, không xác minh nội dung — người dùng sửa được báo cáo của chính họ trước khi lưu. Chấp nhận: dữ liệu thuộc case của họ, không ảnh hưởng người khác; ghi lại để không tưởng là đã xác thực.
 - **Dữ liệu training lệch**: chỉ có người tạo dự án mới được ghi → mẫu bị chọn lọc (survivorship). Bù bằng log bước (Phase 05), không bù bằng cách lưu trộm.
 - **Migration**: chỉ thêm bảng; FK `Cascade` là hành vi xoá dây chuyền — chỉ xảy ra khi xoá case, và hiện chưa có chức năng xoá case cho user.
 - **Input lớn**: Zod ≤ 600 ký tự/ô, ≤ 8 người → row < ~20KB.

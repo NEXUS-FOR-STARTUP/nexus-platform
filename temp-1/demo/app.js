@@ -133,7 +133,7 @@
       'Để biết nhóm đang thiếu người làm việc gì. Việc nhóm chưa ai làm được thì sẽ được gợi ý tuyển thêm.')
       + ruleLine(tr)
       + '<h2>Cả nhóm có mấy người (tính cả bạn)?</h2><p class="hint">Chuẩn chung của các môn khởi nghiệp: ' + tr.sizeMin + ' đến ' + tr.sizeMax + ' người' + (tr.exe ? ', tối thiểu ' + tr.majorsMin + ' chuyên ngành khác nhau.' : '.') + '</p>'
-      + '<div class="stepper"><button type="button" class="btn ghost" data-act="size" data-d="-1" aria-label="Bớt một người" ' + (S.teamSize <= 1 ? 'disabled' : '') + '>−</button><strong>' + S.teamSize + ' người</strong><button type="button" class="btn ghost" data-act="size" data-d="1" aria-label="Thêm một người" ' + (S.teamSize >= NX.TEAM_RULES.sizeMax ? 'disabled' : '') + '>+</button></div>'
+      + '<div class="stepper"><button type="button" class="btn ghost" data-act="size" data-d="-1" aria-label="Bớt một người" ' + (S.teamSize <= 1 ? 'disabled' : '') + '>−</button><strong>' + S.teamSize + ' người</strong><button type="button" class="btn ghost" data-act="size" data-d="1" aria-label="Thêm một người" ' + (S.teamSize >= NX.TEAM_RULES.sizeHardMax ? 'disabled' : '') + '>+</button></div>'
       + S.team.map(personHtml).join('') + nav('Quay lại', 'Tiếp tục');
   }
 
@@ -533,7 +533,7 @@
     if (a === 'pick') S[d.key] = d.val;
     else if (a === 'school') { S.schoolKind = d.val; if (d.val !== 'other') S.schoolName = ''; if (d.val !== 'fpt') { S.subjectKind = null; S.subjectName = ''; } }
     else if (a === 'subject') { S.subjectKind = d.val; if (d.val !== 'other') S.subjectName = ''; }
-    else if (a === 'size') { S.teamSize = Math.min(NX.TEAM_RULES.sizeMax, Math.max(1, S.teamSize + (+d.d))); ensureTeam(); }
+    else if (a === 'size') { S.teamSize = Math.min(NX.TEAM_RULES.sizeHardMax, Math.max(1, S.teamSize + (+d.d))); ensureTeam(); }
     else if (a === 'fork') { S.ideaFork = d.val; if (d.val !== 'yes') S.aiIdea = null; }
     else if (a === 'track') { const p = S.team[+d.i]; p.track = p.track === d.id ? '' : d.id; }
     else if (a === 'cap') { const p = S.team[+d.i]; if (p.caps[d.c]) delete p.caps[d.c]; else { p.caps[d.c] = 2; p.unsure = false; } }

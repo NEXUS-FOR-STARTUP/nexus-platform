@@ -33,7 +33,9 @@ NX.BUDGETS = [
 
 // 4–6 là chuẩn chung của các môn khởi nghiệp. EXE101 thêm ràng buộc chuyên ngành:
 // syllabus ghi "at least 2 different majors" (dòng 401).
-NX.TEAM_RULES = { sizeMin: 4, sizeMax: 6, majorsMin: 2 };
+// sizeMax = trần của môn học (nuôi cảnh báo "quá đông"); sizeHardMax = mức nhập tối đa,
+// cố ý cao hơn để nhóm đông thật vẫn khai được và nhận cảnh báo thay vì bị bịt lại.
+NX.TEAM_RULES = { sizeMin: 4, sizeMax: 6, sizeHardMax: 8, majorsMin: 2 };
 
 // Danh sách cố định để đếm chuyên ngành: gõ tay thì "CNTT", "IT", "Công nghệ thông tin"
 // bị tính thành 3 ngành khác nhau và báo đủ sai.
