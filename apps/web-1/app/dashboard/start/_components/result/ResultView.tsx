@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, Group, Stack, Text, Title } from "@mantine/core";
+import { Button, Group, Text, Title } from "@mantine/core";
 import { Warning as AlertTriangle } from "@phosphor-icons/react/ssr";
 import type { PreCp1Input, PreCp1Report, TeamFitSavedResult } from "@repo/validation";
 import { TeamSection } from "./TeamSection";
@@ -28,13 +28,6 @@ export interface ResultViewProps {
   onRestart: () => void;
 }
 
-const TOC = [
-  { href: "#team", label: "Nhóm hiện tại" },
-  { href: "#recruit", label: "Nên tìm thêm ai" },
-  { href: "#idea", label: "Ý tưởng có ổn không" },
-  { href: "#zones", label: "Hướng để hỏi thử" },
-] as const;
-
 const RESTART_WINDOW_MS = 5000;
 
 /** One column: reading order is the page order, the section links stay in reach. */
@@ -49,31 +42,17 @@ export function ResultView(props: ResultViewProps) {
   }, [confirmRestart]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-28">
       <header className="space-y-2">
-        <Title order={1} fz={{ base: 24, sm: 30 }} lh={1.2} style={{ letterSpacing: "-0.02em", textWrap: "balance" }}>
+        <Title order={1} fz={{ base: 26, sm: 32 }} lh={1.15} style={{ letterSpacing: "-0.025em", textWrap: "balance" }}>
           {RESULT.title}
         </Title>
-        <Text size="sm" lh={1.7} style={{ maxWidth: "62ch" }}>
+        <Text fz="var(--ui-text-body)" lh={1.65} style={{ maxWidth: "62ch" }}>
           {RESULT.beforeReading}
         </Text>
       </header>
 
-      <nav className="sticky top-16 z-20 -mx-4 border-y border-border-app bg-surface-app px-4 py-1.5" aria-label={RESULT.toc}>
-        <div className="flex gap-1 overflow-x-auto">
-          {TOC.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="shrink-0 rounded-[var(--ui-radius-pill)] px-3 py-1 text-xs text-text-muted transition-colors hover:bg-surface-muted hover:text-text-app focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)]"
-            >
-              {item.label}
-            </a>
-          ))}
-        </div>
-      </nav>
-
-      <div className="space-y-8 divide-y divide-border-app [&>section]:pt-6 [&>section:first-child]:pt-0">
+      <div className="space-y-16">
         <TeamSection report={report} input={input} />
         <RecruitSection recruit={report.recruit} input={input} />
         <FlagsSection flags={report.flags} verdict={report.verdict} ideaMode={ideaMode} structureIncomplete={structureIncomplete} />
@@ -81,37 +60,38 @@ export function ResultView(props: ResultViewProps) {
         {ideaMode === "structured" ? <AiResultCard result={aiResult} failed={aiFailed} loading={aiLoading} /> : null}
       </div>
 
-      <div className="sticky bottom-0 z-20 -mx-4 border-t border-border-app bg-surface-app px-4 py-3 shadow-[0_-1px_0_0_var(--color-border)]">
-        <Stack gap="xs">
+      <div className="sticky bottom-0 z-20 pt-3">
+        <div className="flex flex-col gap-2 rounded-[var(--ui-radius)] border-[1.5px] border-border-app bg-surface-app p-2.5 sm:flex-row sm:items-center sm:justify-end">
           {props.saveFailed ? (
-            <Group gap={6} wrap="nowrap" align="flex-start">
+            <Group gap={6} wrap="nowrap" align="flex-start" className="sm:mr-auto">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-warning)]" />
-              <Text size="sm" lh={1.5} c="var(--color-warning-ink)">
+              <Text fz="var(--ui-text-note)" lh={1.5} c="var(--color-warning-ink)">
                 {RESULT.saveFailed}
               </Text>
             </Group>
           ) : null}
-          <Group gap="sm" wrap="wrap">
+          <Group gap="xs" wrap="wrap" justify="flex-end">
             {props.savedCaseId ? (
               <>
-                <Button color="brand" onClick={() => props.onOpenCase(props.savedCaseId!)}>
-                  {RESULT.openCase}
-                </Button>
-                <Text size="sm" c="green">
+                <Text fz="var(--ui-text-note)" c="green" className="sm:mr-2">
                   {RESULT.saved}
                 </Text>
+                <Button color="brand" className="sm:order-3" onClick={() => props.onOpenCase(props.savedCaseId!)}>
+                  {RESULT.openCase}
+                </Button>
               </>
             ) : (
-              <Button color="brand" onClick={props.onCreateProject} loading={props.saving} disabled={props.saving}>
+              <Button color="brand" className="sm:order-3" onClick={props.onCreateProject} loading={props.saving} disabled={props.saving}>
                 {RESULT.createdAt}
               </Button>
             )}
-            <Button variant="default" onClick={props.onEdit}>
+            <Button variant="default" className="sm:order-2" onClick={props.onEdit}>
               {RESULT.edit}
             </Button>
             <Button
               variant="subtle"
               color="gray"
+              className="sm:order-first sm:mr-auto"
               onClick={() => {
                 if (confirmRestart) {
                   setConfirmRestart(false);
@@ -124,7 +104,7 @@ export function ResultView(props: ResultViewProps) {
               {confirmRestart ? RESULT.restartConfirm : RESULT.restart}
             </Button>
           </Group>
-        </Stack>
+        </div>
       </div>
     </div>
   );

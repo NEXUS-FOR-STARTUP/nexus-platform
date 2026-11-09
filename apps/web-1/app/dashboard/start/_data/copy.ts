@@ -44,8 +44,6 @@ export const IDEA_DRAFT_LEAD = "Không bắt buộc. Bỏ trống vẫn đi ti�
 
 export const MAD_LIBS_LEAD = "Viết như đang kể cho bạn cùng lớp; câu ngắn cũng được, miễn đủ ý.";
 
-export const SENSITIVE_LEAD = "Chọn tất cả những gì đúng. Không có thì chọn dòng cuối.";
-
 export const NETWORK_LEAD =
   "Ghi tự do vào ô dưới đây. Bấm một gợi ý để nó điền sẵn câu vào ô, rồi sửa lại theo ý bạn.";
 
@@ -69,7 +67,6 @@ export const RESULT = {
   title: "Kết quả sơ bộ của nhóm bạn",
   beforeReading:
     "Đọc trước khi xem: đây là các hướng nên đi kiểm tra, chưa phải kết luận ý tưởng nào đúng. Chỉ khi bạn đi hỏi người thật mới biết có khách cần hay không.",
-  toc: "Trong trang này",
   createdAt: "Tạo dự án từ kết quả này",
   edit: "Sửa câu trả lời",
   restart: "Làm lại từ đầu",
@@ -78,6 +75,8 @@ export const RESULT = {
   saved: "Đã lưu vào dự án",
   openCase: "Mở dự án",
   copyPost: "Sao chép",
+  postHint: "Gợi ý bài đăng",
+  postHintNote: "Sao chép rồi dán vào nhóm lớp, story hoặc tin nhắn riêng.",
   copied: "Đã sao chép",
   copyFailed: "Không sao chép tự động được. Bôi đen đoạn tin và nhấn Ctrl+C.",
   zonesEmpty: "Chưa đủ thông tin để gợi ý hướng. Quay lại bước “Điều bạn đang có” và kể thêm.",

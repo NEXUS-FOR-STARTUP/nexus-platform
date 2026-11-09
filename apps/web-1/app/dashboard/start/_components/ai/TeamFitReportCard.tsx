@@ -30,7 +30,7 @@ function Verdict({ ai }: { ai: TeamFitAiOutput | null }) {
   if (!ai) {
     return (
       <Paper withBorder radius="md" p="lg">
-        <Text size="sm" lh={1.6}>
+        <Text fz="var(--ui-text-body)" lh={1.6}>
           AI chưa đưa ra nhận định lượt này. Bấm &quot;Kiểm tra lại&quot; để thử lại.
         </Text>
       </Paper>
@@ -39,7 +39,7 @@ function Verdict({ ai }: { ai: TeamFitAiOutput | null }) {
   const isReady = ai.verdict === "san_sang";
   return (
     <Paper withBorder radius="md" p="lg">
-      <Text size="sm" c="dimmed">
+      <Text fz="var(--ui-text-note)" c="dimmed">
         Đội ngũ có đủ người không?
       </Text>
       <Text fz={28} fw={700} lh={1.2} c={isReady ? "green" : "orange"}>
@@ -81,10 +81,10 @@ function FreeReportBody({
             const count = machineStats.trackCoverage[code];
             return (
               <Paper key={code} withBorder radius="md" p="md">
-                <Text size="sm" fw={600}>
+                <Text fz="var(--ui-text-body)" fw={600}>
                   {ROLE_TRACK_LABELS[code]}
                 </Text>
-                <Text size="sm" c={count > 0 ? undefined : "red"}>
+                <Text fz="var(--ui-text-note)" c={count > 0 ? undefined : "red"}>
                   {count > 0 ? `${count} người` : "Chưa có ai"}
                 </Text>
               </Paper>
@@ -92,7 +92,7 @@ function FreeReportBody({
           })}
         </SimpleGrid>
         {machineStats.emptyFields.length > 0 && (
-          <Text size="sm" c="dimmed" mt="sm">
+          <Text fz="var(--ui-text-note)" c="dimmed" mt="sm">
             Ô còn trống: {machineStats.emptyFields.join(", ")}
           </Text>
         )}
@@ -121,7 +121,7 @@ function LegacyReportBody({ report }: { report: TeamFitLegacyFreeReport }) {
     <div className="space-y-6">
       <section>
         <SectionTitle>Nhóm có thể đang thiếu</SectionTitle>
-        <List spacing="xs" size="sm">
+        <List spacing="xs" fz="var(--ui-text-body)">
           {report.teamGaps.map((gap, i) => (
             <List.Item key={i}>{gap}</List.Item>
           ))}
@@ -129,7 +129,7 @@ function LegacyReportBody({ report }: { report: TeamFitLegacyFreeReport }) {
       </section>
       <section>
         <SectionTitle>Ý tưởng cần làm rõ thêm</SectionTitle>
-        <List spacing="xs" size="sm">
+        <List spacing="xs" fz="var(--ui-text-body)">
           {report.commercialGaps.map((gap, i) => (
             <List.Item key={i}>{gap}</List.Item>
           ))}

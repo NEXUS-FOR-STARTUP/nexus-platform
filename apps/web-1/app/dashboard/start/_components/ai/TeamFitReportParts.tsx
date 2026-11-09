@@ -10,7 +10,7 @@ const ACCORDION_CLASSES = { item: "border border-border-app" };
 
 export function SectionTitle({ children }: { children: string }) {
   return (
-    <Text size="md" fw={700} mb="sm">
+    <Text fz="var(--ui-text-section)" fw={700} mb="sm">
       {children}
     </Text>
   );
@@ -22,7 +22,7 @@ export function Stat({ value, label }: { value: string; label: string }) {
       <Text fz={28} fw={700} lh={1.1}>
         {value}
       </Text>
-      <Text size="sm" c="dimmed" mt={4}>
+      <Text fz="var(--ui-text-note)" c="dimmed" mt={4}>
         {label}
       </Text>
     </Paper>
@@ -36,22 +36,22 @@ export function AreaList({ areas }: { areas: TeamFitAiOutput["areas"] }) {
         <Accordion.Item key={area.ten} value={area.ten}>
           <Accordion.Control>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <Badge size="sm" variant="light" color={area.trangThai === "yeu" ? "red" : "green"}>
+              <Badge size="sm" variant="light" color={area.trangThai === "yeu" ? "red" : "green"} radius="var(--ui-radius-sm)">
                 {TEAM_FIT_AREA_STATE_LABELS[area.trangThai]}
               </Badge>
-              <Text size="sm" fw={600}>
+              <Text fz="var(--ui-text-body)" fw={600}>
                 {area.ten}
               </Text>
-              <Text size="sm" c="dimmed">
+              <Text fz="var(--ui-text-note)" c="dimmed">
                 {TEAM_FIT_LEVEL_LABELS[area.mucDo]}
               </Text>
             </div>
           </Accordion.Control>
           <Accordion.Panel>
-            <Text size="sm" lh={1.6}>
+            <Text fz="var(--ui-text-body)" lh={1.6}>
               {area.lyDo}
             </Text>
-            <Text size="sm" c="dimmed" lh={1.6} mt="xs">
+            <Text fz="var(--ui-text-note)" c="dimmed" lh={1.6} mt="xs">
               Dẫn chứng: {area.danChung}
             </Text>
           </Accordion.Panel>
@@ -71,24 +71,24 @@ export function GapDetails({ ai }: { ai: TeamFitAiOutput }) {
           <div className="space-y-3">
             {missingRoles.map((role) => (
               <div key={role.vaiTro}>
-                <Text size="sm" fw={600}>
+                <Text fz="var(--ui-text-body)" fw={600}>
                   {role.vaiTro}
                 </Text>
-                <Text size="sm" c="dimmed" lh={1.6}>
+                <Text fz="var(--ui-text-note)" c="dimmed" lh={1.6}>
                   {role.lyDo}
                 </Text>
               </div>
             ))}
           </div>
         ) : (
-          <Text size="sm" c="dimmed">
+          <Text fz="var(--ui-text-note)" c="dimmed">
             Không thiếu vai trò cốt lõi nào.
           </Text>
         )}
       </section>
       <section>
         <SectionTitle>Hội đồng có thể hỏi</SectionTitle>
-        <List type="ordered" spacing="xs" size="sm">
+        <List type="ordered" spacing="xs" fz="var(--ui-text-body)">
           {ai.committeeQuestions.map((question) => (
             <List.Item key={question}>{question}</List.Item>
           ))}
@@ -104,12 +104,12 @@ export function HandoffList({ handoff }: { handoff: TeamFitHandoffItem[] }) {
       {handoff.map((item) => (
         <Accordion.Item key={item.cauHoi} value={item.cauHoi}>
           <Accordion.Control>
-            <Text size="sm" fw={600}>
+            <Text fz="var(--ui-text-body)" fw={600}>
               {item.cauHoi}
             </Text>
           </Accordion.Control>
           <Accordion.Panel>
-            <Text size="sm" c="dimmed" lh={1.6}>
+            <Text fz="var(--ui-text-note)" c="dimmed" lh={1.6}>
               Cần nộp: {item.canNopGi}
             </Text>
           </Accordion.Panel>
