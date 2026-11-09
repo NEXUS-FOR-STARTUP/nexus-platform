@@ -126,6 +126,12 @@
     return '<div id="ruleLine">' + callout(cls, body + ' ' + tail) + '</div>';
   }
 
+  // Trần nhập nhóm phụ thuộc môn: EXE101 chốt 4–6 người, môn khác không có luật đó nên
+  // chỉ chặn ở mức nhập tối đa để nhóm đông thật vẫn khai được.
+  const teamCap = (s) => (s.subjectKind === 'exe101' ? NX.TEAM_RULES.sizeMax : NX.TEAM_RULES.sizeHardMax);
+  // Đổi trường/môn sau khi đã nhập nhóm thì phải cắt lại, không để 8 người nằm trong bài EXE101.
+  const clampTeam = () => { S.teamSize = Math.min(teamCap(S), Math.max(1, S.teamSize)); S.team.length = Math.min(S.team.length, S.teamSize); ensureTeam(); };
+
   function vTeam() {
     ensureTeam();
     const tr = E.teamRule(S);
@@ -133,7 +139,7 @@
       'Để biết nhóm đang thiếu người làm việc gì. Việc nhóm chưa ai làm được thì sẽ được gợi ý tuyển thêm.')
       + ruleLine(tr)
       + '<h2>Cả nhóm có mấy người (tính cả bạn)?</h2><p class="hint">Chuẩn chung của các môn khởi nghiệp: ' + tr.sizeMin + ' đến ' + tr.sizeMax + ' người' + (tr.exe ? ', tối thiểu ' + tr.majorsMin + ' chuyên ngành khác nhau.' : '.') + '</p>'
-      + '<div class="stepper"><button type="button" class="btn ghost" data-act="size" data-d="-1" aria-label="Bớt một người" ' + (S.teamSize <= 1 ? 'disabled' : '') + '>−</button><strong>' + S.teamSize + ' người</strong><button type="button" class="btn ghost" data-act="size" data-d="1" aria-label="Thêm một người" ' + (S.teamSize >= NX.TEAM_RULES.sizeHardMax ? 'disabled' : '') + '>+</button></div>'
+      + '<div class="stepper"><button type="button" class="btn ghost" data-act="size" data-d="-1" aria-label="Bớt một người" ' + (S.teamSize <= 1 ? 'disabled' : '') + '>−</button><strong>' + S.teamSize + ' người</strong><button type="button" class="btn ghost" data-act="size" data-d="1" aria-label="Thêm một người" ' + (S.teamSize >= teamCap(S) ? 'disabled' : '') + '>+</button></div>'
       + S.team.map(personHtml).join('') + nav('Quay lại', 'Tiếp tục');
   }
 
@@ -531,9 +537,9 @@
     if (a === 'copy') { const txt = $('#' + d.t).textContent; (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => { t.textContent = 'Đã sao chép'; }, () => toast('Không sao chép tự động được. Bôi đen đoạn tin và nhấn Ctrl+C.')); return; }
     if (a === 'preset') { $('#demoMenu').hidden = true; return applyPreset(NX.PRESETS[+d.i]); }
     if (a === 'pick') S[d.key] = d.val;
-    else if (a === 'school') { S.schoolKind = d.val; if (d.val !== 'other') S.schoolName = ''; if (d.val !== 'fpt') { S.subjectKind = null; S.subjectName = ''; } }
-    else if (a === 'subject') { S.subjectKind = d.val; if (d.val !== 'other') S.subjectName = ''; }
-    else if (a === 'size') { S.teamSize = Math.min(NX.TEAM_RULES.sizeHardMax, Math.max(1, S.teamSize + (+d.d))); ensureTeam(); }
+    else if (a === 'school') { S.schoolKind = d.val; if (d.val !== 'other') S.schoolName = ''; if (d.val !== 'fpt') { S.subjectKind = null; S.subjectName = ''; } clampTeam(); }
+    else if (a === 'subject') { S.subjectKind = d.val; if (d.val !== 'other') S.subjectName = ''; clampTeam(); }
+    else if (a === 'size') { S.teamSize = Math.min(teamCap(S), Math.max(1, S.teamSize + (+d.d))); ensureTeam(); }
     else if (a === 'fork') { S.ideaFork = d.val; if (d.val !== 'yes') S.aiIdea = null; }
     else if (a === 'track') { const p = S.team[+d.i]; p.track = p.track === d.id ? '' : d.id; }
     else if (a === 'cap') { const p = S.team[+d.i]; if (p.caps[d.c]) delete p.caps[d.c]; else { p.caps[d.c] = 2; p.unsure = false; } }

@@ -42,7 +42,7 @@ packages/validation/src/pre-cp1/
 1. `catalog.ts`: copy nguyên `NX.MAJORS`, `NX.TRACKS`, `NX.TRACK_BY_MAJOR`, `NX.ASKED_MAJORS`, `NX.TRACK_WORK`, `NX.CAPS`, `NX.LEVELS`, `NX.BUDGETS`, `NX.NET_OPTIONS`, `NX.ASSET_RULES`, `NX.IDEA_RULES`, `NX.CORE_ROLES`, `NX.TEAM_RULES`, `NX.ASSET_PROMPTS`, `NX.INTERVIEW_QS` từ demo; đặt tên `as const` và type suy ra (`CapCode`, `IdeaRuleId`, …). Giữ nguyên id tiếng Anh để dữ liệu cũ/mới không lệch.
 2. `schemas.ts`:
    - `PreCp1MemberSchema`: `{ name?: string.max(40), major: enum(MAJOR_LABELS), majorOther?: string.max(60), roleTrackHint?: enum(ROLE_TRACK_CODES), caps: z.partialRecord(z.enum(CAP_CODES), z.union([z.literal(1), z.literal(2), z.literal(3)])), unsure: boolean, extra?: string.max(200) }` — `roleTrackHint` **bắt buộc chỉ khi** `major = "Ngành khác"` (refine); 8 ngành còn lại đi qua `TRACK_BY_MAJOR` (Thiết kế đồ hoạ → `ky_thuat`), vì `trackCoverage` hiện công khai số người theo mảng và UI không hỏi "mảng nghề" riêng.
-   - `PreCp1InputSchema`: `{ school, course, goal: 'pass'|'real'|'unsure', budget: enum(BUDGET_CODES), team: min(1).max(8), assets: z.partialRecord(enum(ASSET_PROMPT_IDS), z.string().max(600)), assetsNone: array(enum(ASSET_PROMPT_IDS)), network: array(enum(NET_IDS)).max(9), networkOther?: string.max(200), ideaMode: enum(['none','draft','structured']), pain?: string.max(600), idea?: string.max(600), madlibs?: IdeaInputSchema, sensitive: array(enum(SENSITIVE_IDS)), assetTags: z.partialRecord(enum(ASSET_RULE_IDS), z.enum(['yes','no'])), ideaTags: z.partialRecord(enum(IDEA_RULE_IDS), z.enum(['yes','no'])) }` — **8 = `TEAM_RULES.sizeHardMax`**, không phải trần môn học: 7–8 người vẫn hợp lệ để luật báo "quá đông" (`sizeMax` = 6), chỉ là `deriveTeamFitInput` trả `null` nên không chấm AI.
+   - `PreCp1InputSchema`: `{ school, course, goal: 'pass'|'real'|'unsure', budget: enum(BUDGET_CODES), team: min(1).max(8), assets: z.partialRecord(enum(ASSET_PROMPT_IDS), z.string().max(600)), assetsNone: array(enum(ASSET_PROMPT_IDS)), network: array(enum(NET_IDS)).max(9), networkOther?: string.max(200), ideaMode: enum(['none','draft','structured']), pain?: string.max(600), idea?: string.max(600), madlibs?: IdeaInputSchema, sensitive: array(enum(SENSITIVE_IDS)), assetTags: z.partialRecord(enum(ASSET_RULE_IDS), z.enum(['yes','no'])), ideaTags: z.partialRecord(enum(IDEA_RULE_IDS), z.enum(['yes','no'])) }` — hai trần: **8 = `sizeHardMax`** chung cho mọi môn, và **refine: môn EXE101 → `team ≤ sizeMax` = 6** (luật 4–6 người của môn). 7–8 người chỉ hợp lệ ở môn khác; với EXE101 thì `deriveTeamFitInput` cũng không bao giờ trả `null` vì lý do quá đông.
    - Hai dạng ý tưởng dùng lại schema có sẵn: `IdeaInputSchema` (`packages/validation/src/index.ts:27`) cho Mad Libs, `pain`/`idea` (text ≤600) cho nháp. Luật đọc cả hai: có `madlibs` thì ghép `problem + solution` làm câu để gán nhãn/cờ. `ideaMode` là nguồn duy nhất quyết định nhánh.
    - `aiResult?: unknown` và `aiLabels?: LabelQuote[]` **không** nằm trong input: cả hai là tham số riêng của `POST /save` (Phase 03). Input chỉ chứa câu trả lời người dùng, nên `input_hash` không đổi chỉ vì AI gán nhãn khác đi.
    - `LabelQuote = { id, quote: string.max(120) }` — nhãn AI thô, **chỉ để hiển thị lại**, không vào luật.
@@ -51,7 +51,7 @@ packages/validation/src/pre-cp1/
    - Nguồn duy nhất cho tài sản/ý tưởng là nhãn đã xác nhận: `confirmedAssetIds(input) = assetTags[id] === 'yes'`, `confirmedKinds(input)` tương tự với `ideaTags`.
    - **Không port `hit()`/đường đoán từ khoá** của demo: prod không đoán ngầm. Nhờ vậy FE (xem trước) và BE (tính lại lúc lưu) đọc đúng một nguồn và không thể lệch nhau.
    - `aiLabels` không được truyền vào bất kỳ hàm luật nào và **không** vào `input_hash`/`input_snapshot`; nó chỉ được ghi vào cột `ai_labels` lúc lưu (Phase 03).
-4. Test: dựng 11 ca cố định và so với giá trị chụp từ demo:
+4. Test: dựng 12 ca cố định và so với giá trị chụp từ demo:
    - 5 kỹ sư phần mềm (cap trần 6 → need 1, phát hiện 2 vai trống)
    - 1 người, môn khác (không có mục "giữ tới hết môn")
    - 4 người đủ 3 vai (không cần tuyển)
@@ -62,18 +62,19 @@ packages/validation/src/pre-cp1/
    - ý tưởng B2B bệnh viện (cờ Gặp khách = hard)
    - nhãn tài sản: cùng một câu "mẹ mở quán cà phê", tick `yes` → cờ Năng lực tính quán; tick `no` → không tính; `assetTags` rỗng → không suy ra từ chữ (chốt hành vi trái với demo)
    - schema: `major: "Ngành khác"` thiếu `roleTrackHint` → parse fail; `major: "Thiết kế đồ hoạ"` không cần chip → parse pass và map ra `ky_thuat`
+   - schema trần nhóm: môn EXE101 + 7 người → parse fail; môn khác + 7 người → parse pass; EXE101 + 1 người (chỉ mình) → parse pass
 5. Export ở `src/index.ts`, chạy build + test.
 
 ## Todo List
 - [ ] `catalog.ts` xong, id khớp demo 100%
 - [ ] `schemas.ts` parse được state demo hiện tại (chạy thử 6 preset)
 - [ ] `rules.ts` 7 hàm + comment nguồn ngưỡng
-- [ ] 11 ca test xanh
+- [ ] 12 ca test xanh
 - [ ] `src/index.ts` export
 - [ ] `npx tsc --noEmit` sạch
 
 ## Success Criteria
-`cd packages/validation && bun run build && bun run test` xanh; 11 ca cho ra đúng `empty/single/overload/need/capped` và đúng 5 cờ như demo.
+`cd packages/validation && bun run build && bun run test` xanh; 12 ca cho ra đúng `empty/single/overload/need/capped` và đúng 5 cờ như demo.
 
 ## Risk Assessment
 - **Lệch hành vi so với demo** khi port tay → test dùng chính số liệu chụp từ demo làm kỳ vọng.
