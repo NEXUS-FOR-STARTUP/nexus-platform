@@ -80,4 +80,9 @@ notes/session-logs/
 
 # scratch / session exports
 /tmp/
+/temp-1/
 /omp-session-*.html
+/app.out
+/page.html
+/r.json
+*cookies*.txt
