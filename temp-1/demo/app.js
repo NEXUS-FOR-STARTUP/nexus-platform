@@ -331,12 +331,12 @@
       + '<p class="vt ' + (ready ? 'ok' : 'warn') + '">' + (ready ? 'Sẵn sàng đi tiếp' : 'Cần cân nhắc') + '</p>'
       + (ready ? '' : '<p class="vs">Thiếu: ' + cov.empty.map(roleName).join(', ') + '.</p>')
       + '</div>';
-    return '<h1>Bản đồ xuất phát của nhóm bạn</h1>'
+    return '<h1>Kết quả sơ bộ của nhóm bạn</h1>'
       + callout('why', '<strong>Đọc trước khi xem:</strong> đây là các hướng nên đi kiểm tra, chưa phải kết luận ý tưởng nào đúng. Chỉ khi bạn đi hỏi người thật mới biết có khách cần hay không.')
       + vcard
       + (S.ideaFork === 'yes' && !structured ? callout('demo', 'Bạn chọn “Có ý tưởng cụ thể” nhưng 6 ô chưa đủ, nên phần chấm theo ngành và câu hội đồng chưa chạy. Các cờ bên dưới chỉ dựa trên phần bạn đã viết.') : '')
       + '<div class="map">'
-      + '<nav class="toc" aria-label="Trong bản đồ"><p>Trong bản đồ</p><a href="#m-nhom">Nhóm</a><a href="#m-idea">Ý tưởng</a><a href="#m-next">Việc tiếp theo</a></nav>'
+      + '<nav class="toc" aria-label="Trong trang này"><p>Trong trang này</p><a href="#m-nhom">Nhóm</a><a href="#m-idea">Ý tưởng</a><a href="#m-next">Việc tiếp theo</a></nav>'
       + '<div class="map-a">'
       + sec('Số liệu nhóm') + aiTrackBody()
       + sec('Nhóm hiện tại của bạn', 'm-nhom') + teamBlock
@@ -353,10 +353,10 @@
       + sec('Việc tiếp theo: đi hỏi người thật', 'm-next')
       + '<p class="hint">Chọn một hướng ở trên. Tìm vài người thuộc nhóm đó và hỏi theo 5 câu này. Ghi lại nguyên văn câu họ nói. Đây là việc của bước phỏng vấn khách hàng ở giai đoạn sau. Hiện bạn chưa cần làm.</p>'
       + '<ol class="qs">' + NX.INTERVIEW_QS.map((q) => '<li>' + q + '</li>').join('') + '</ol>'
-      + (structured ? '<div class="role upsell"><h3>Đi xa hơn với bản đồ này</h3><p>Bạn đã có nhóm, mảng việc và chỗ dễ vấp. Nếu muốn người thật đọc lại và hẹn lịch cùng bạn, xem các gói đồng hành.</p><div class="row"><button class="btn ghost sm" data-act="plans">Xem các gói đồng hành</button></div></div>' : '')
+      + (structured ? '<div class="role upsell"><h3>Đi xa hơn với kết quả này</h3><p>Bạn đã có nhóm, mảng việc và chỗ dễ vấp. Nếu muốn người thật đọc lại và hẹn lịch cùng bạn, xem các gói đồng hành.</p><div class="row"><button class="btn ghost sm" data-act="plans">Xem các gói đồng hành</button></div></div>' : '')
       + '</aside>'
       + '</div>'
-      + '<div class="cta"><button class="btn primary" data-act="create">Tạo dự án từ bản đồ này</button><button class="btn ghost" data-act="edit" data-step="1">Sửa câu trả lời</button><button class="btn ghost" data-act="restart">Làm lại từ đầu</button></div>';
+      + '<div class="cta"><button class="btn primary" data-act="create">Tạo dự án từ kết quả này</button><button class="btn ghost" data-act="edit" data-step="1">Sửa câu trả lời</button><button class="btn ghost" data-act="restart">Làm lại từ đầu</button></div>';
   }
 
   const VIEWS = { intro: vIntro, basics: vBasics, team: vTeam, assets: vAssets, network: vNetwork, fork: vFork, six: vSix, draft: vDraft, sens: vSens, result: vResult };
@@ -524,7 +524,7 @@
     const d = t.dataset, a = d.act;
     if (a === 'next') return next();
     if (a === 'back') return back();
-    if (a === 'create') return toast('Bản demo: bản thật mở form tạo dự án, điền sẵn trường/môn và lưu bản đồ vào chính dự án đó.');
+    if (a === 'create') return toast('Bản demo: bản thật mở form tạo dự án, điền sẵn trường/môn và lưu kết quả vào chính dự án đó.');
     if (a === 'plans') return toast('Bản demo: bản thật mở danh sách gói đồng hành, kèm phần bạn đã nhập.');
     if (a === 'restart') { S = fresh(); save(); return go(0); }
     if (a === 'edit') return go(+d.step);
