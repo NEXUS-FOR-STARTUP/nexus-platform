@@ -24,6 +24,23 @@ export const TEAM_RULES = { sizeMin: 4, sizeMax: 6, majorsMin: 2 } as const;
 /** Technical ceiling of the API. Other schools have no ceiling of their own. */
 export const MAX_TEAM_SIZE_API = 50;
 
+/**
+ * Ceilings the input contract enforces. The forms cap their inputs at the same
+ * numbers, so a long answer stops at the field instead of failing on the last screen.
+ */
+export const TEXT_LIMITS = {
+  name: 40,
+  majorOther: 60,
+  extra: 200,
+  schoolName: 60,
+  courseName: 60,
+  assetAnswer: 600,
+  assetsOther: 300,
+  networkOther: 200,
+  idea: 600,
+  madlib: 1000,
+} as const;
+
 export const CAPS = [
   { id: "code", label: "Làm website, app, bảng tính tự động", hint: "Viết code, hoặc dùng thành thạo Google Sheet, Notion, công cụ no-code" },
   { id: "design", label: "Thiết kế hình ảnh, slide, dựng video", hint: "Canva, Figma, CapCut, chụp ảnh…" },
