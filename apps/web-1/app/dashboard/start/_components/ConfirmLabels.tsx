@@ -16,16 +16,15 @@ interface ConfirmLabelsProps {
   onTags: (next: LabelTags) => void;
 }
 
+// Two states only: the confirm step requires a decision per suggested label and
+// `assetTags` / `ideaTags` have no third value.
 const ANSWERS = [
   { id: "yes", label: "Đúng" },
   { id: "no", label: "Không đúng" },
-  { id: undefined, label: "Chưa rõ" },
 ] as const;
 
 /**
  * AI only proposes labels; a label counts only after the user marks it "Đúng".
- * "Chưa rõ" removes the answer — the schema has no third value, and the report
- * treats a missing key as unknown.
  */
 export function ConfirmLabels({ kind, catalog, suggested, aiOk, tags, onTags }: ConfirmLabelsProps) {
   const [showAll, setShowAll] = useState(!aiOk);
@@ -51,28 +50,20 @@ export function ConfirmLabels({ kind, catalog, suggested, aiOk, tags, onTags }: 
             </Text>
             <div role="group" aria-label={rule.label} className="flex shrink-0 gap-1">
               {ANSWERS.map((answer) => {
-                // "Chưa rõ" is the way back to no answer; it never looks chosen.
-                const on = Boolean(answer.id) && tags[rule.id] === answer.id;
+                const on = tags[rule.id] === answer.id;
                 return (
                   <button
                     key={answer.label}
                     type="button"
-                    aria-pressed={answer.id ? on : undefined}
-                    onClick={() => {
-                      const next = { ...tags };
-                      if (answer.id) next[rule.id] = answer.id;
-                      else delete next[rule.id];
-                      onTags(next);
-                    }}
+                    aria-pressed={on}
+                    onClick={() => onTags({ ...tags, [rule.id]: answer.id })}
                     className={[
                       "rounded-[var(--ui-radius-sm)] border px-2.5 py-1 text-xs transition-colors duration-150",
                       "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)]",
                       on
                         ? answer.id === "yes"
                           ? "border-[var(--color-success)] bg-[var(--color-success-soft)] text-[var(--color-success-ink)]"
-                          : answer.id === "no"
-                            ? "border-[var(--color-danger)] bg-[var(--color-danger-soft)] text-[var(--color-danger-ink)]"
-                            : "border-border-strong bg-surface-muted text-text-app"
+                          : "border-[var(--color-danger)] bg-[var(--color-danger-soft)] text-[var(--color-danger-ink)]"
                         : "border-border-app text-text-muted hover:border-border-strong hover:text-text-app",
                     ].join(" ")}
                   >
