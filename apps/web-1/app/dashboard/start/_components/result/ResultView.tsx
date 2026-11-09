@@ -47,7 +47,7 @@ export function ResultView(props: ResultViewProps) {
         <Title order={1} fz={{ base: 26, sm: 32 }} lh={1.15} style={{ letterSpacing: "-0.025em", textWrap: "balance" }}>
           {RESULT.title}
         </Title>
-        <Text fz="var(--ui-text-body)" lh={1.65} style={{ maxWidth: "62ch" }}>
+        <Text fz="var(--ui-text-body)" lh={1.65}>
           {RESULT.beforeReading}
         </Text>
       </header>

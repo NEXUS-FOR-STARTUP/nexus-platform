@@ -10,10 +10,12 @@ interface DisclosureProps {
   note?: string;
   children: ReactNode;
   defaultOpen?: boolean;
+  /** Subordinate row inside a card: label drops to note size instead of competing with the card title. */
+  dense?: boolean;
 }
 
 /** A row that hides its detail: the list stays scannable, the text is one tap away. */
-export function Disclosure({ label, note, children, defaultOpen = false }: DisclosureProps) {
+export function Disclosure({ label, note, children, defaultOpen = false, dense = false }: DisclosureProps) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div>
@@ -24,7 +26,7 @@ export function Disclosure({ label, note, children, defaultOpen = false }: Discl
         className="flex w-full items-start justify-between gap-3 rounded-[var(--ui-radius)] py-2 text-left cursor-pointer transition-colors hover:text-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
       >
         <span className="min-w-0">
-          <Text component="span" fz="var(--ui-text-body)" fw={600} lh={1.4} className="block">
+          <Text component="span" fz={dense ? "var(--ui-text-note)" : "var(--ui-text-body)"} fw={600} lh={1.4} className="block">
             {label}
           </Text>
           {note ? (

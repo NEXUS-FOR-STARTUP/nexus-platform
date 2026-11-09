@@ -34,30 +34,32 @@ export function RecruitSection({ recruit, input }: { recruit: PreCp1RecruitRole[
               <div className="mt-4 space-y-3">
                 <div>
                   <Text fz="var(--ui-text-note)" c="dimmed" fw={600} lh={1.4}>
-                    Cần người
-                  </Text>
-                  <Text fz="var(--ui-text-body)" mt={1} lh={1.55}>
-                    {role.look}
-                  </Text>
-                </div>
-                <div>
-                  <Text fz="var(--ui-text-note)" c="dimmed" fw={600} lh={1.4}>
-                    Nên hỏi
+                    Cần người biết
                   </Text>
                   <Text fz="var(--ui-text-body)" mt={1} lh={1.55}>
                     {role.ask}
                   </Text>
                 </div>
+                <div>
+                  <Text fz="var(--ui-text-note)" c="dimmed" fw={600} lh={1.4}>
+                    Hỏi thử một câu
+                  </Text>
+                  <Text fz="var(--ui-text-body)" mt={1} lh={1.55}>
+                    {role.look}
+                  </Text>
+                </div>
               </div>
 
-              <Disclosure label={RESULT.postHint} note={RESULT.postHintNote}>
-                <div className="rounded-[var(--ui-radius)] bg-surface-soft p-3">
-                  <Text fz="var(--ui-text-note)" style={{ whiteSpace: "pre-wrap" }} lh={1.6}>
-                    {recruitPost(input, role)}
-                  </Text>
-                  <CopyButton text={recruitPost(input, role)} />
-                </div>
-              </Disclosure>
+              <div className="mt-4 border-t border-border-app pt-2">
+                <Disclosure label={RESULT.postHint} note={RESULT.postHintNote} dense>
+                  <div className="rounded-[var(--ui-radius)] bg-surface-soft p-3">
+                    <Text fz="var(--ui-text-note)" style={{ whiteSpace: "pre-wrap" }} lh={1.6}>
+                      {recruitPost(input, role)}
+                    </Text>
+                    <CopyButton text={recruitPost(input, role)} />
+                  </div>
+                </Disclosure>
+              </div>
             </div>
           ))}
         </div>

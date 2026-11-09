@@ -43,7 +43,7 @@ export function FlagsSection({ flags, verdict, ideaMode, structureIncomplete }: 
         >
           {verdict.title}
         </Text>
-        <Text fz={{ base: 16, sm: 18 }} mt={8} lh={1.6} style={{ maxWidth: "62ch", color: `var(--color-${tone}-ink)` }}>
+        <Text fz={{ base: 16, sm: 18 }} mt={8} lh={1.6} style={{ color: `var(--color-${tone}-ink)` }}>
           {verdict.detail}
         </Text>
       </div>
@@ -66,10 +66,10 @@ export function FlagsSection({ flags, verdict, ideaMode, structureIncomplete }: 
                   {STATUS[flag.status].label}
                 </Badge>
               </div>
-              <Text fz="var(--ui-text-body)" mt={10} lh={1.6} style={{ maxWidth: "62ch" }}>
+              <Text fz="var(--ui-text-body)" mt={10} lh={1.6}>
                 {flag.reason}
               </Text>
-              <Text fz="var(--ui-text-note)" mt={4} lh={1.55} c="dimmed" style={{ maxWidth: "62ch" }}>
+              <Text fz="var(--ui-text-note)" mt={4} lh={1.55} c="dimmed">
                 {flag.fix}
               </Text>
             </li>

@@ -19,7 +19,7 @@ export function ZonesSection({ zones }: { zones: PreCp1Zone[] }) {
           {zones.map((zone) => (
             <div key={`${zone.tag}-${zone.title}`} className="rounded-[var(--ui-radius)] border-[1.5px] border-border-app bg-surface-app px-4 py-2">
               <Disclosure label={zone.title}>
-                <Text fz="var(--ui-text-body)" lh={1.65} style={{ maxWidth: "62ch" }}>
+                <Text fz="var(--ui-text-body)" lh={1.65}>
                   {zone.prose}
                 </Text>
               </Disclosure>

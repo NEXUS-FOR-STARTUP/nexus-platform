@@ -17,7 +17,7 @@ export function SectionHead({ title, note }: SectionHeadProps) {
         {title}
       </Text>
       {note ? (
-        <Text component="p" fz="var(--ui-text-note)" c="dimmed" lh={1.6} style={{ maxWidth: "62ch" }}>
+        <Text component="p" fz="var(--ui-text-note)" c="dimmed" lh={1.6}>
           {note}
         </Text>
       ) : null}
