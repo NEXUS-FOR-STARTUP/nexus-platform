@@ -46,7 +46,7 @@ RootLayout → Providers
 
 ## PERSONA DEVICE SCOPE (MOBILE VS DESKTOP)
 
-- **Student Workspace (`/dashboard/*`, `/intake`, `/team-fit`)**: Fully mobile-responsive. Mobile drawer nav, responsive card-view tables for documents + transactions, adaptive headers.
+- **Student Workspace (`/dashboard/*`, `/intake`, `/dashboard/start`)**: Fully mobile-responsive. Mobile drawer nav, responsive card-view tables for documents + transactions, adaptive headers.
 - **Admin & Supporter Consoles (`/admin/*`, `/supporter/*`)**: Strictly **DESKTOP-ONLY**. Rendered with `DesktopOnlyNotice.tsx`, blocks viewport width < 1024px. **Never write responsive mobile overrides for Admin/Supporter screens.**
 
 ## CASE WORKSPACE (5 TABS & STATE GATING)

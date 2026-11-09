@@ -1,5 +1,23 @@
 # PROJECT KNOWLEDGE BASE
 
+## RULE TỐI CAO — TRÌNH BÀY TRƯỚC, KHÔNG TỰ SỬA
+
+### Rule 1 – Trình bày trước khi sửa
+
+Trước mọi thay đổi vào bất kỳ file, code, UX, hay rule nào, agent **phải trình bày trước và chờ xác nhận rõ ràng**:
+
+1. Mình muốn sửa cái gì.
+2. Vì sao cần sửa.
+3. Nội dung sửa cụ thể như thế nào.
+4. Rủi ro / hệ quả nếu sửa.
+
+Chỉ khi user nói rõ đồng ý, cho phép, hoặc tự yêu cầu sửa cụ thể thì mới được thực hiện.
+
+Cấm sửa ngầm, sửa "nhân tiện", sửa khi user chưa biết nội dung, hay sửa khi user chỉ đang hỏi / bàn luận. Rule này tự thân cũng không được sửa hay xoá nếu chưa trình bày và được user cho phép.
+
+### Rule 2 – (Chưa có)
+
+
 - Prefer `caveman` skill lite mode + `sequential-thinking` for structured reasoning.
 - **CodeGraph**: Project indexed with CodeGraph. Use `codegraph_explore` MCP or `codegraph explore` CLI BEFORE `grep` or Read.
 
