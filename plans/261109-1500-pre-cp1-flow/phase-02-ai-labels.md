@@ -17,7 +17,7 @@
 - **Không fallback đoán bằng từ khoá** như demo: im lặng đoán sai tệ hơn nói "chưa đọc được".
 
 ## Requirements
-- **Chức năng:** `POST /api/pre-cp1/label` (auth), body `{ kind, payload }` → `{ aiOk, labels: [{ id, quote }] }`.
+- **Chức năng:** `POST /api/pre-cp1/label` (auth), body `{ kind, payload }` → `{ aiOk, labels: [{ id, quote }] }`. `assetsOther` (ô "Không có trong danh sách?") **không gửi lên đây**: nó không map được vào 16 nhãn, nên đi thẳng vào `computeZones` thành hướng "Nguồn lực bạn kể thêm".
 - **Phi chức năng:** timeout 20s; nhiệt độ 0.1; tối đa 8 nhãn/lần; rate limit 20 lần/giờ/người dùng.
 
 ## Architecture

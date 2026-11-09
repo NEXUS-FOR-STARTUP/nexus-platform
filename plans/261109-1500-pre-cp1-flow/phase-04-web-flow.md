@@ -53,7 +53,7 @@ State = `PreCp1Input` (Phase 01) + `{ step, phase:'write'|'confirm', busy, ideaM
 
 ## Implementation Steps
 0. `git mv` 6 file từ `team-fit/` sang `start/` theo bảng Architecture, sửa import; `git mv` giữ lịch sử, không copy rồi để bản cũ mục. Chạy **trước** mọi bước khác để không phải import chéo thư mục sắp bị xoá.
-1. `_data/copy.ts`: chuỗi từ demo (intro, hint "vì sao hỏi", 9 trục, 5 câu tài sản, 6 ô Mad Libs, 5 cờ, 6+ câu hỏi). Bỏ mọi chữ "CP". Câu chữ Mad Libs port từ `IdeaMadLibsStep.tsx`. Bốn dáng trang dùng lại cho mọi bước (demo đã dựng): **chọn 1** (thẻ lớn, một câu hỏi), **viết** (ô nhập + 1 ví dụ + nút bỏ qua), **chip** (bấm nhiều, hiện ngay cái đã chọn), **xem lại** (danh sách + nút Sửa từng dòng).
+1. `_data/copy.ts`: chuỗi từ demo (intro, hint "vì sao hỏi", 9 trục, 5 câu tài sản, 6 ô Mad Libs, 5 cờ, 6+ câu hỏi). Bỏ mọi chữ "CP". Câu chữ Mad Libs port từ `IdeaMadLibsStep.tsx`. Bốn dáng trang dùng lại cho mọi bước (demo đã dựng): **chọn 1** (thẻ lớn, một câu hỏi), **viết** (ô nhập + 1 ví dụ + chip "Mình không có / không nhớ" cho đúng câu đó, không có nút bỏ cả bước), **chip** (bấm nhiều, hiện ngay cái đã chọn), **xem lại** (danh sách + nút Sửa từng dòng).
 2. `usePreCp1Form`: state, `validate(step)` như demo; nháp `localStorage['nexus:pre-cp1:draft:v1']` nạp qua `PreCp1InputSchema.safeParse`; `step` + `idea` mode ghi lên URL (`?step=idea&mode=libs`).
 3. `page.tsx`: `?step=`; guard lùi về bước xa nhất hợp lệ + `router.replace`; `busy` chặn nhảy bước; `useSession` như team-fit.
 4. `StartStepper`: 7 bước, ẩn < `lg` (thay bằng "Bước x/7").
@@ -85,7 +85,7 @@ State = `PreCp1Input` (Phase 01) + `{ step, phase:'write'|'confirm', busy, ideaM
 - [ ] copy.ts (gồm câu chữ Mad Libs)
 - [ ] form hook + validate + nháp + URL
 - [ ] TeamStep gộp (kèm nhánh "Ngành khác")
-- [ ] AssetsStep + "bỏ qua cả 5" + xác nhận nhãn
+- [ ] AssetsStep + 16 chip chọn tay + ô "Khác" + xác nhận nhãn
 - [ ] IdeaFork + 2 form + nhánh AI
 - [ ] ResultView 8 khối có điều kiện + upsell
 - [ ] tạo dự án + lưu kết quả sơ bộ/báo cáo AI
@@ -95,7 +95,7 @@ State = `PreCp1Input` (Phase 01) + `{ step, phase:'write'|'confirm', busy, ideaM
 4 nhánh chạy đúng (nhóm/1 mình × nháp/Mad Libs): khối 4 và 7 chỉ hiện khi có Mad Libs; khối 5 chỉ hiện khi có ý tưởng; số liệu khớp demo ở 3 kịch bản; AI hỏng không chặn đường; tạo dự án → 1 case + 1 `pre_cp1_reports` (+ 1 `team_fit_reports` nếu có AI); F5 giữ đúng bước + đúng nhánh; 5 cảnh báo 2 cột ở ≥1024 và 1 cột ở 390; không chuỗi nào chứa "bản đồ"; `npx tsc --noEmit` sạch.
 
 ## Risk Assessment
-- **Luồng dài**: nhóm đông + Mad Libs là đường nặng nhất; bù bằng nút bỏ qua ở bước tài sản và validate lười (chỉ chặn khi thiếu thật).
+- **Luồng dài**: nhóm đông + Mad Libs là đường nặng nhất. **Không bù bằng nút bỏ qua bước tài sản** (xem bước 8: đó là đầu vào duy nhất của phần hướng gợi ý); bù bằng 5 câu ngắn, mỗi câu có chip riêng, và validate chỉ chặn khi thiếu thật.
 - **File phình**: `ResultView` 8 khối → tách 6 section component, mỗi file < 200 dòng.
 - **Hai lần gọi AI trong một lượt** (nhãn + chấm đội): đều có timeout riêng và nhánh hỏng riêng; không cái nào chặn đường.
 - **Nhánh Mad Libs không đủ 6 ô** → không gọi AI; hiện "cần đủ 6 ô để chấm theo ngành" + vẫn xem kết quả luật.

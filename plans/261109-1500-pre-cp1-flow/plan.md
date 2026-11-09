@@ -1,9 +1,9 @@
 # Plan: một luồng "Bắt đầu" duy nhất (gộp pre-CP1 + team-fit)
 
-**Ngày lập:** 2026-11-09 · **Trạng thái:** chờ duyệt, chưa đụng code
+**Ngày lập:** 2026-11-09 · **Cập nhật:** 2026-11-10 · **Trạng thái:** chờ duyệt; **chưa sửa một dòng code sản phẩm nào** — mọi thay đổi tới giờ nằm trong demo UX `temp-1/demo/` và trong chính plan này
 **Nguồn:** demo UX `temp-1/demo/` · brainstorm `docs/research/brainstorm-2026-11-08-pre-cp1-team-idea-flow.md`
 **Đích:** `apps/web-1` (`/dashboard/start`) + `apps/api` (module `pre-cp1`) + `packages/validation` (`pre-cp1/`)
-**Demo UX (2026-11-09):** `temp-1/demo/` chạy được 6 kịch bản; kết quả là một trang 5 mục, cảnh báo 2 cột ở ≥1024px; UI gọi là "kết quả sơ bộ", không dùng chữ "bản đồ".
+**Demo UX (2026-11-10):** `temp-1/demo/` chạy được 6 kịch bản; kết quả là một trang 5 mục, cảnh báo 2 cột ở ≥1024px; UI gọi là "kết quả sơ bộ", không dùng chữ "bản đồ". Demo là **bản đặc tả UX đã chốt** — Phase 04 phải khớp nó, không sáng tạo thêm.
 
 ## Bài toán
 Người mới vào không có nhóm / chưa có ý tưởng thì sản phẩm hiện tại không có cửa. Đồng thời đang có **hai** sản phẩm nói gần giống nhau (`team-fit` và luồng pre-CP1 mới), hai cửa tạo dự án, hai định nghĩa "nhóm thiếu ai". Gộp thành **một luồng, hai câu hỏi rẽ nhánh**, và một dự án chứa mọi thứ.
@@ -36,6 +36,10 @@ Người mới vào không có nhóm / chưa có ý tưởng thì sản phẩm h
 7. **Lưu chỉ khi tạo dự án** (nút cuối là "Tạo dự án từ kết quả này", dùng lại `CreateProjectModal`). Không có nút "Lưu" riêng.
 8. **Điền sẵn qua cơ chế sẵn có** `SYNC_RULES` — không viết cơ chế mới, không nhét dữ liệu vào `TeamMemberInputSchema` từ client.
 9. **Điểm vào đã có sẵn**: landing dùng nút "free" trỏ `/dashboard/team-fit?step=1`; đổi đích sang `/dashboard/start`, không dựng thêm nút.
+10. **Trần nhóm là luật của trường, không phải của môn**: FPT → 4–6 người và ≥2 chuyên ngành khi học EXE101; trường khác → **không trần** (`max(50)` chỉ là chặn kỹ thuật của API). Quá 6 người thì phần chấm theo ngành bị bỏ qua vì `MAX_TEAM_MEMBERS = 6` là hợp đồng của endpoint chấm — UI phải nói đúng lý do đó, không nói "quá trần môn học".
+11. **Nhập nhóm bằng thẻ, không bằng bộ đếm**: thẻ đầu là bạn (không xoá được), thêm bằng nút nét đứt "+ Thêm thành viên (n/6)" như `TeamInputStep.tsx` hiện tại, mỗi thẻ thêm có "Xoá người này". Mặc định 1 người.
+12. **Không có nút bỏ qua cả bước** ở bước tài sản và bước người quen: mỗi câu/chip chỉ bỏ đúng thứ đó. Bước tài sản nuôi phần "hướng nên đi hỏi thử" nên khuyến khích bỏ qua là tự làm mất căn cứ của kết quả. Nhãn tài sản = **16 chip chọn tay** + **ô tự do `assetsOther`** (không có trong danh sách thì ghi ra, và nó thành một hướng riêng chứ không bị gán nhãn giả).
+13. **`coverage.room = null` khi trường không đặt trần**, không dùng `Infinity` (`JSON.stringify` biến nó thành `null` → snapshot/hash lệch kiểu).
 
 ## Rủi ro chính
 - **Đường dài nhất dài hơn**: nhóm 4 người + có ý tưởng ≈ 5 phút nhập + 2 lần AI. **Không bù bằng nút bỏ qua cả bước tài sản** — bước này là đầu vào duy nhất cho phần "hướng nên đi hỏi thử", bỏ qua thì kết quả mất căn cứ và người dùng sẽ đọc là sản phẩm đoán mò. Bù bằng cách chia 5 câu thành từng câu ngắn, mỗi câu có chip "Mình không có / không nhớ" cho đúng câu đó.
