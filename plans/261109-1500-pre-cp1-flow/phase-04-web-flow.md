@@ -10,10 +10,10 @@
 ## Overview
 - **Ưu tiên:** P0
 - **Trạng thái:** pending
-- Một luồng duy nhất thay cả team-fit lẫn luồng pre-CP1. Hai câu hỏi rẽ nhánh; kết quả một trang; tạo dự án ở cuối.
+- Một luồng duy nhất thay cả team-fit lẫn luồng pre-CP1. Một câu hỏi rẽ nhánh (ý tưởng); kết quả một trang; tạo dự án ở cuối.
 
 ## Key Insights
-- Hai câu hỏi rẽ nhánh **không** cần màn riêng: "có nhóm chưa" chính là câu số người ở `team` (chọn 1 = chỉ mình); "có ý tưởng cụ thể chưa" là 1 cặp chip ở đầu `idea`, rẽ sang Mad Libs hoặc ô nháp.
+- **Chỉ còn một câu hỏi rẽ nhánh thật**: "có ý tưởng cụ thể chưa" (1 cặp chip ở đầu bước ý tưởng → Mad Libs hoặc ô nháp). "Có nhóm chưa" **không hỏi thành câu riêng**: bước nhóm mở ra với **1 thẻ là bạn**, ai có thêm người thì bấm "+ Thêm thành viên"; nhóm một mình là trạng thái mặc định, không phải một lựa chọn.
 - Chỉ **một** trục làm kết quả giàu/nghèo: có Mad Libs hay không. Không phải 2 sản phẩm, không phải 3 luồng.
 - Form nhóm gộp: tên, chuyên ngành (9 ngành + "Ngành khác"), 9 trục năng lực + mức, ô thêm. **Không** hỏi mảng nghề / sở trường / kinh nghiệm (server suy ra — Phase 07).
 - Chỉ **"Ngành khác"** hỏi thêm 1 chip Kỹ thuật / Marketing / Kinh doanh–Tài chính; 8 ngành còn lại map thẳng (`TRACK_BY_MAJOR`, Thiết kế đồ hoạ → Kỹ thuật). `trackCoverage` hiện số người theo mảng, nên chỉ ngành không map được mới phải hỏi.
@@ -56,7 +56,7 @@ State = `PreCp1Input` (Phase 01) + `{ step, phase:'write'|'confirm', busy, ideaM
 1. `_data/copy.ts`: chuỗi từ demo (intro, hint "vì sao hỏi", 9 trục, 5 câu tài sản, 6 ô Mad Libs, 5 cờ, 6+ câu hỏi). Bỏ mọi chữ "CP". Câu chữ Mad Libs port từ `IdeaMadLibsStep.tsx`. Bốn dáng trang dùng lại cho mọi bước (demo đã dựng): **chọn 1** (thẻ lớn, một câu hỏi), **viết** (ô nhập + 1 ví dụ + chip "Mình không có / không nhớ" cho đúng câu đó, không có nút bỏ cả bước), **chip** (bấm nhiều, hiện ngay cái đã chọn), **xem lại** (danh sách + nút Sửa từng dòng).
 2. `usePreCp1Form`: state, `validate(step)` như demo; nháp `localStorage['nexus:pre-cp1:draft:v1']` nạp qua `PreCp1InputSchema.safeParse`; `step` + `idea` mode ghi lên URL (`?step=idea&mode=libs`).
 3. `page.tsx`: `?step=`; guard lùi về bước xa nhất hợp lệ + `router.replace`; `busy` chặn nhảy bước; `useSession` như team-fit.
-4. `StartStepper`: 7 bước, ẩn < `lg` (thay bằng "Bước x/7").
+4. `StartStepper`: **7 bước** (không tính màn mở đầu và trang kết quả), ẩn < `lg` (thay bằng "Bước x/7").
 5. `IntroStep`: 3 dòng "Cuối cùng bạn nhận được" — thêm 1 dòng nói rõ: có ý tưởng rồi thì nhận thêm phần nhận xét theo ngành.
 6. `BasicsStep`: trường, môn, mục tiêu, ngân sách (giữ ngân sách — nuôi cờ Tiền).
 7. `TeamStep`: **không dùng bộ đếm +/−**. Danh sách thẻ thành viên, thẻ đầu là bạn (không xoá được), nút nét đứt **"+ Thêm thành viên (n/6)"** ở cuối (giống `TeamInputStep.tsx` của team-fit hiện tại), mỗi thẻ có "Xoá người này". Trần theo **trường**: **FPT → 4–6** (`sizeMax`, nút thêm tắt ở 6 kèm dòng "Đã đủ 6 người — trần của trường FPT"; đổi trường/môn sau khi đã nhập nhóm thì **cắt lại**, không để nhóm 8 người nằm lại trong bài FPT), **trường khác → không giới hạn** (nút + không bao giờ tắt; `PreCp1InputSchema` chỉ chặn kỹ thuật ở 50). Trường khác mà nhóm > 6 người thì phần chấm theo ngành bị bỏ qua (`deriveTeamFitInput` trả `null`) — UI phải nói rõ lý do, không im lặng mất 2 khối. Mỗi người: tên · chuyên ngành (`Select` 9 ngành + "Ngành khác" + ô tên ngành) · **chỉ khi ngành = "Ngành khác"**: 1 cặp chip Kỹ thuật / Marketing / Kinh doanh–Tài chính (bắt buộc, để `trackCoverage` không bịa số) · 9 chip năng lực (bấm = mức 2, `Segmented` đổi 1/2/3) · ô "chưa rõ" · ô thêm (1 dòng, thành kinh nghiệm). Hiện ngay "còn trống vai nào" bằng `computeCoverage`.

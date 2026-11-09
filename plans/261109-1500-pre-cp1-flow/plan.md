@@ -28,7 +28,7 @@ Người mới vào không có nhóm / chưa có ý tưởng thì sản phẩm h
 
 ## Quyết định kiến trúc đã chốt
 1. **Gộp thật**: `/dashboard/team-fit` bị xoá, thay bằng redirect sang `/dashboard/start` (**không** điền sẵn `?idea=yes` — nút landing không ngụ ý người dùng đã có ý tưởng; để họ tự trả lời câu rẽ nhánh). AI chấm theo ngành giữ lại như một nhánh, không phải một trang.
-2. **Hai câu hỏi rẽ nhánh, không phải ba luồng**: "Có nhóm chưa?" (nhập nhóm / một mình) và "Có ý tưởng cụ thể chưa?" (Mad Libs / nháp). Chỉ câu thứ hai làm kết quả giàu/nghèo.
+2. **Một câu hỏi rẽ nhánh, không phải ba luồng**: chỉ "Có ý tưởng cụ thể chưa?" (Mad Libs / nháp) mới làm kết quả giàu/nghèo. "Có nhóm chưa?" **không còn là câu hỏi**: bước nhóm luôn mở với một thẻ là bạn, nhóm một mình là mặc định; có thêm người thì bấm "+ Thêm thành viên".
 3. **Một form nhóm đầy đủ**: tên, chuyên ngành, 9 trục năng lực + mức, ô thêm. **Không hỏi "mảng nghề"** — 8 chuyên ngành map thẳng sang mảng nghề qua `TRACK_BY_MAJOR` (Thiết kế đồ hoạ → Kỹ thuật), chỉ **"Ngành khác"** hỏi thêm 1 chip Kỹ thuật / Marketing / Kinh doanh–Tài chính, vì `trackCoverage` hiện công khai số người theo mảng nên không được gán bừa. "Sở trường" và "kinh nghiệm" của team-fit **tự sinh** từ 9 ô năng lực + ô thêm, không bắt gõ lại.
 4. **Ngân sách giữ**: chỉ nó nuôi cờ "Tiền" — ý tưởng có quá sức không.
 5. **AI chạy một lần, chỉ ở nhánh có ý tưởng cấu trúc** (Mad Libs đủ 6 ô). Nháp 1-2 câu thì không gọi AI chấm ngành (không đủ dữ kiện) — vẫn có 5 cờ bằng luật.
