@@ -11,6 +11,10 @@ import { EMPTY_CASE_CONTACT, validateCaseContact, type CaseContactValues } from 
 interface CreateProjectModalProps {
   opened: boolean;
   onClose: () => void;
+  /** Answers already given in the start flow; never overwrites anything the user typed here. */
+  initialValues?: { projectName?: string; school?: string; courseContext?: string };
+  /** When set, the caller finishes the job instead of navigating straight away. */
+  onCreated?: (caseId: string) => void;
 }
 
 const FPT_SCHOOL = "Đại học FPT";
@@ -27,12 +31,13 @@ const COURSE_OPTIONS = [
   { value: OTHER_VALUE, label: OTHER_VALUE },
 ];
 
-export function CreateProjectModal({ opened, onClose }: CreateProjectModalProps) {
+export function CreateProjectModal({ opened, onClose, initialValues, onCreated }: CreateProjectModalProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [projectName, setProjectName] = useState("");
-  const [school, setSchool] = useState("");
-  const [courseContext, setCourseContext] = useState("");
+  // Mounted fresh on each open (caller passes a new key), so these are the seed values.
+  const [projectName, setProjectName] = useState(initialValues?.projectName ?? "");
+  const [school, setSchool] = useState(initialValues?.school ?? "");
+  const [courseContext, setCourseContext] = useState(initialValues?.courseContext ?? "");
   const [groupNo, setGroupNo] = useState("");
   const [contact, setContact] = useState<CaseContactValues>(EMPTY_CASE_CONTACT);
   const [submitted, setSubmitted] = useState(false);
@@ -93,6 +98,10 @@ export function CreateProjectModal({ opened, onClose }: CreateProjectModalProps)
       queryClient.invalidateQueries({ queryKey: ["cases"] });
       notifications.show({ color: "green", title: "Thành công", message: "Đã tạo dự án mới." });
       handleClose();
+      if (onCreated) {
+        onCreated(data.id);
+        return;
+      }
       router.push(`/dashboard/case/${data.id}`);
     },
     onError: () => {

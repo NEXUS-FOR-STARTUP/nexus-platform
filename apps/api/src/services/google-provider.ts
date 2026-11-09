@@ -19,8 +19,7 @@ function getGoogleInstance(): ReturnType<typeof createGoogleGenerativeAI> {
   return googleInstance;
 }
 
-export function getGoogleModel() {
-  const modelName = process.env.AI_TEAM_FIT_MODEL ?? 'gemini-2.0-flash';
+export function getGoogleModel(modelName = process.env.AI_TEAM_FIT_MODEL ?? 'gemini-2.0-flash') {
   const google = getGoogleInstance();
   return google(modelName);
 }

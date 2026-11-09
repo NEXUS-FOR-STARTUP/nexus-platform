@@ -8,7 +8,7 @@ export function getAuthRedirectUrl(searchParams: URLSearchParams): string {
 
   const packageId = searchParams.get("packageId");
   if (packageId) {
-    if (packageId === PACKAGE_KEYS.FREE) return "/dashboard/team-fit";
+    if (packageId === PACKAGE_KEYS.FREE) return "/dashboard/start";
     // Unopened package (e.g. 149k mentor audit): hide it, fall back to dashboard.
     if (packageId === PACKAGE_KEYS.SUPPORTER_AUDIT) return "/dashboard";
     return `/dashboard/intake?packageId=${packageId}`;

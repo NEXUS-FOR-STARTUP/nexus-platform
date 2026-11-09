@@ -56,6 +56,7 @@ model User {
   news_comment_reactions   NewsCommentReaction[]
   discount_codes_created   DiscountCode[]        @relation("DiscountCodeCreator")
   discount_redemptions     DiscountRedemption[]
+  pre_cp1_reports          PreCp1Report[]        @relation("UserPreCp1Reports")
 
   @@unique([email])
   @@unique([username])
@@ -367,6 +368,7 @@ model Case {
   ai_jobs          AiJob[]
   document_records DocumentRecord[]
   team_fit_report  TeamFitReport?
+  pre_cp1_reports  PreCp1Report[]
   credit_ledgers   CreditLedger[]
   receivables      Receivable[]
   notifications    Notification[]
@@ -665,6 +667,27 @@ model TeamFitReport {
   @@unique([case_id])
   @@index([case_id])
   @@map("team_fit_reports")
+}
+
+/// Kết quả sơ bộ của luồng "Bắt đầu". Luôn thuộc một dự án: người đi hết luồng
+/// mà không tạo dự án thì không có bản ghi nào.
+model PreCp1Report {
+  id              String   @id @default(cuid())
+  case_id         String
+  auth_user_id    String
+  input_hash      String
+  input_snapshot  Json
+  ai_labels       Json?
+  report_snapshot Json
+  created_at      DateTime @default(now())
+
+  case Case @relation(fields: [case_id], references: [id], onDelete: Cascade)
+  user User @relation("UserPreCp1Reports", fields: [auth_user_id], references: [id], onDelete: Cascade)
+
+  @@unique([case_id, input_hash])
+  @@index([case_id, created_at(sort: Desc)])
+  @@index([auth_user_id, created_at(sort: Desc)])
+  @@map("pre_cp1_reports")
 }
 
 model CreditLedger {

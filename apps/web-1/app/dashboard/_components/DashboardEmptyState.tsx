@@ -26,10 +26,10 @@ export default function DashboardEmptyState() {
           <span>Tạo dự án phản biện</span>
         </button>
         <Link
-          href="/dashboard/team-fit"
+          href="/dashboard/start"
           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-body text-base font-medium bg-surface-app border border-border-app hover:border-brand text-text-app hover:text-brand px-8 h-12 rounded-full transition-colors cursor-pointer whitespace-nowrap"
         >
-          <span>Đánh giá đội ngũ</span>
+          <span>Kiểm tra nhóm & ý tưởng</span>
         </Link>
       </div>
       <CreateProjectModal opened={opened} onClose={close} />

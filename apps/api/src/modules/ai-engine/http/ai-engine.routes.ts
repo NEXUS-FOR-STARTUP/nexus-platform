@@ -1,38 +1,13 @@
 import { Hono } from 'hono'
-import { z } from 'zod'
 import { TeamFitInputSchema } from '../domain/team-fit.dto.js'
 import { evaluateTeamFitUseCase } from '../application/evaluate-team-fit.usecase.js'
-import { saveTeamFitUseCase } from '../application/save-team-fit.usecase.js'
 import { checkTeamFitRateLimit } from '../application/team-fit-rate-limit.js'
 import { handleError } from '../../../shared/infrastructure/http-helpers.js'
 import { requireAuth } from '../../../shared/infrastructure/middlewares/auth.js'
-import { prisma } from '../../../db.js'
-import { findPackageById } from '../../packages/infrastructure/persistence/package.repository.js'
 import type { AuthEnv } from '../../../shared/infrastructure/middlewares/auth.js'
 import type { Context as HonoContext } from 'hono'
-import {
-  IdeaInputSchema,
-  TeamMemberInputSchema,
-  TeamFitSavedResultSchema,
-} from '@repo/validation'
 
 export const aiEngineRouter = new Hono()
-
-// ---------------------------------------------------------------------------
-// Request body schema for team-fit save
-// ---------------------------------------------------------------------------
-export const TeamFitSaveBodySchema = z.object({
-  idea: IdeaInputSchema,
-  team: z.array(TeamMemberInputSchema).min(1).max(6),
-  // Accepts both the v2 three-part report and the legacy {teamGaps, commercialGaps}
-  // payload, so clients still holding an old result can save without a 400.
-  result: TeamFitSavedResultSchema,
-  packageId: z.string().optional(),
-})
-
-// How many of the owner's most recent team-fit reports the save idempotency
-// check looks back over. Bounded so the check stays a small indexed page read.
-const TEAM_FIT_IDEMPOTENCY_LOOKBACK = 20
 
 // ---------------------------------------------------------------------------
 // POST /api/ai-engine/team-fit — Evaluate team composition against idea
@@ -59,93 +34,6 @@ aiEngineRouter.post('/team-fit', requireAuth, async (c: HonoContext<AuthEnv>) =>
 
     const report = await evaluateTeamFitUseCase(parsed.data)
     return c.json(report)
-  } catch (error: any) {
-    return handleError(c, error)
-  }
-})
-
-// ---------------------------------------------------------------------------
-// POST /api/ai-engine/team-fit/save — Save team-fit report as a case
-// ---------------------------------------------------------------------------
-aiEngineRouter.post('/team-fit/save', requireAuth, async (c: HonoContext<AuthEnv>) => {
-  try {
-    const user = c.get('user')
-    if (!user) {
-      return c.json({ error: 'Unauthorized' }, 401)
-    }
-
-    const body = await c.req.json()
-    const parsed = TeamFitSaveBodySchema.safeParse(body)
-    if (!parsed.success) {
-      const firstIssue = parsed.error.issues[0]
-      return c.json(
-        {
-          error: 'INVALID_INPUT',
-          message: `Thiếu thông tin: ${firstIssue.path.join('.')} — ${firstIssue.message}`,
-        },
-        400,
-      )
-    }
-
-    const { idea, team, result, packageId } = parsed.data
-
-    const output = await saveTeamFitUseCase(
-      { idea, team, result, packageId, userId: user.id },
-      {
-        findPackageById,
-        findTeamFitReportsByOwner: async (ownerId) =>
-          prisma.teamFitReport.findMany({
-            where: { case: { owner_auth_user_id: ownerId } },
-            orderBy: { created_at: 'desc' },
-            take: TEAM_FIT_IDEMPOTENCY_LOOKBACK,
-            // result_snapshot (large AI report JSON) is intentionally not selected:
-            // the idempotency check in save-team-fit.usecase.ts only compares the
-            // idea/team snapshots.
-            select: {
-              id: true,
-              case_id: true,
-              idea_snapshot: true,
-              team_snapshot: true,
-              case: { select: { id: true, case_code: true } },
-            },
-          }),
-        findCaseByCode: async (code) => prisma.case.findUnique({ where: { case_code: code } }),
-        createCaseAndReport: async (data) =>
-          prisma.$transaction(async (tx) => {
-            const created = await tx.case.create({
-              data: {
-                case_code: data.caseCode,
-                owner_auth_user_id: data.ownerId,
-                team_name: data.teamName,
-                school: null,
-                course_context: null,
-                package_id: data.packageId,
-                locked_price: data.lockedPrice,
-                user_facing_stage: 'intake_pending',
-                internal_status: 'triage_pending',
-                payment_status: data.isFree ? 'not_required' : 'unpaid',
-                current_checkpoint: null,
-              },
-            })
-
-            await tx.teamFitReport.create({
-              data: {
-                case_id: created.id,
-                idea_snapshot: data.idea,
-                team_snapshot: data.team,
-                result_snapshot: data.result,
-              },
-            })
-
-            return created
-          }),
-      },
-    )
-
-    return c.json(
-      { caseId: output.caseId, caseCode: output.caseCode },
-      output.isNew ? 201 : 200,
-    )
   } catch (error: any) {
     return handleError(c, error)
   }

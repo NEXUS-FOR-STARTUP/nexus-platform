@@ -12,7 +12,10 @@ export type SyncSource =
   | { kind: "project_name" }
   | { kind: "idea"; field: IdeaField }
   | { kind: "team" }
-  | { kind: "answer"; question_id: string };
+  | { kind: "answer"; question_id: string }
+  | { kind: "pre_cp1_team" }
+  | { kind: "pre_cp1_pain" }
+  | { kind: "pre_cp1_idea" };
 
 export interface SyncRule {
   target: string;
@@ -26,6 +29,8 @@ export interface SyncSources {
   idea: Record<IdeaField, string> | null;
   /** Team-Fit members with the role already mapped to its Vietnamese label. */
   team: Array<{ roleLabel: string; major: string; strengths: string[] }> | null;
+  /** Latest saved pre-CP1 result of this case, already formatted as text. */
+  preCp1: { team: string; pain: string; idea: string } | null;
   answers: Record<string, string>;
 }
 
@@ -46,11 +51,11 @@ const idea = (field: IdeaField): SyncSource => ({ kind: "idea", field });
 export const SYNC_RULES: Record<string, SyncRule[]> = {
   cp1: [
     { target: "cp1_team_name", from: [{ kind: "project_name" }] },
-    { target: "cp1_team_members", from: [{ kind: "team" }] },
+    { target: "cp1_team_members", from: [{ kind: "team" }, { kind: "pre_cp1_team" }] },
     { target: "cp1_idea_name", from: [{ kind: "project_name" }] },
     { target: "cp1_primary_customer", from: [idea("targetCustomer")] },
-    { target: "cp1_main_problem", from: [idea("problem")] },
-    { target: "cp1_solution_description", from: [idea("solution")] },
+    { target: "cp1_main_problem", from: [idea("problem"), { kind: "pre_cp1_pain" }] },
+    { target: "cp1_solution_description", from: [idea("solution"), { kind: "pre_cp1_idea" }] },
     { target: "cp1_mvp_definition", from: [idea("mvp")] },
   ],
   cp2: [
@@ -102,6 +107,12 @@ function read(source: SyncSource, sources: SyncSources): string {
       return sources.team && sources.team.length > 0 ? formatTeam(sources.team) : "";
     case "answer":
       return sources.answers[source.question_id]?.trim() ?? "";
+    case "pre_cp1_team":
+      return sources.preCp1?.team.trim() ?? "";
+    case "pre_cp1_pain":
+      return sources.preCp1?.pain.trim() ?? "";
+    case "pre_cp1_idea":
+      return sources.preCp1?.idea.trim() ?? "";
   }
 }
 

@@ -61,10 +61,10 @@ export default function StudentDashboard() {
         {!isLoading && (total > 0 || hasActiveFilters) && (
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
-              href="/dashboard/team-fit"
+              href="/dashboard/start"
               className="inline-flex items-center justify-center gap-2 font-body text-sm sm:text-base font-medium bg-brand hover:bg-brand-hover text-white px-5 sm:px-6 h-10 sm:h-12 rounded-full transition-colors cursor-pointer whitespace-nowrap"
             >
-              <span>Đánh giá đội ngũ</span>
+              <span>Kiểm tra nhóm & ý tưởng</span>
             </Link>
             <button
               onClick={open}

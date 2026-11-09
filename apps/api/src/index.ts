@@ -13,6 +13,7 @@ import { paymentsRouter } from './modules/payments/http/payments.routes.js'
 import { sepayRouter } from './modules/payments/http/sepay.routes.js'
 import { packagesRouter } from './modules/packages/http/packages.routes.js'
 import { aiEngineRouter } from './modules/ai-engine/http/ai-engine.routes.js'
+import { preCp1Router } from './modules/pre-cp1/http/pre-cp1.routes.js'
 import { adminRouter } from './modules/admin/http/admin.routes.js'
 import { documentsRouter } from './modules/documents/http/documents.routes.js'
 import { notificationsRouter } from './modules/notifications/http/notifications.routes.js'
@@ -162,6 +163,7 @@ app.route('/api/payments', paymentsRouter)
 app.route('/api/payments', sepayRouter)
 app.route('/api/packages', packagesRouter)
 app.route('/api/ai-engine', aiEngineRouter)
+app.route('/api/pre-cp1', preCp1Router)
 app.route('/api/admin', adminRouter)
 app.route('/api/writer/news', newsAdminRouter)
 app.route('/api/documents', documentsRouter)

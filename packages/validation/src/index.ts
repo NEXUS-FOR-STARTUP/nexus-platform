@@ -1,62 +1,31 @@
 import { z } from 'zod';
 import { isCp2ReportType } from "./catalogs/cp2-report-display.js";
 import { isCp3ReportType } from "./catalogs/cp3-report-display.js";
+import { ROLE_TRACK_CODES, ROLE_TRACK_LABELS } from "./role-tracks.js";
+import type { RoleTrackCode } from "./role-tracks.js";
 
 // ---------------------------------------------------------------------------
 // Team role tracks — shared code ↔ label map (FE + BE)
 // ---------------------------------------------------------------------------
 
-export const ROLE_TRACK_CODES = [
-  "ky_thuat",
-  "marketing",
-  "kinh_doanh_tai_chinh",
-] as const;
-
-export type RoleTrackCode = (typeof ROLE_TRACK_CODES)[number];
-
-export const ROLE_TRACK_LABELS: Record<RoleTrackCode, string> = {
-  ky_thuat: "Kỹ thuật",
-  marketing: "Marketing",
-  kinh_doanh_tai_chinh: "Kinh doanh – Tài chính",
-};
+export { ROLE_TRACK_CODES, ROLE_TRACK_LABELS };
+export type { RoleTrackCode };
 
 // ---------------------------------------------------------------------------
 // Team-Idea Fit — input schemas shared between frontend + API
 // ---------------------------------------------------------------------------
 
-export const IdeaInputSchema = z.object({
-  projectName: z.string().min(2).max(200),
-  field: z.string().min(2).max(100),
-  targetCustomer: z.string().min(5).max(500),
-  problem: z.string().min(10).max(1000),
-  solution: z.string().min(10).max(1000),
-  mvp: z.string().min(5).max(500),
-});
-
-export type IdeaInput = z.infer<typeof IdeaInputSchema>;
-
-export const TeamMemberInputSchema = z.object({
-  roleTrack: z.enum(ROLE_TRACK_CODES),
-  major: z.string().min(2).max(100),
-  strengths: z
-    .array(z.string().min(2).max(200))
-    .min(1)
-    .max(10),
-  experience: z
-    .array(z.string().min(2).max(500))
-    .max(10),
-});
-
-export type TeamMemberInput = z.infer<typeof TeamMemberInputSchema>;
-
-export const MAX_TEAM_MEMBERS = 6;
-
-export const TeamFitInputSchema = z.object({
-  idea: IdeaInputSchema,
-  team: z.array(TeamMemberInputSchema).min(1).max(MAX_TEAM_MEMBERS),
-});
-
-export type TeamFitInput = z.infer<typeof TeamFitInputSchema>;
+export {
+  IdeaInputSchema,
+  TeamMemberInputSchema,
+  TeamFitInputSchema,
+  MAX_TEAM_MEMBERS,
+} from "./team-fit-contract.js";
+export type {
+  IdeaInput,
+  TeamMemberInput,
+  TeamFitInput,
+} from "./team-fit-contract.js";
 
 // ---------------------------------------------------------------------------
 // Team-Idea Fit Free — AI judgement (AI generates ONLY these 4 fields)
@@ -1605,3 +1574,4 @@ export const OpenCheckpointParamsSchema = z.object({
 export type OpenCheckpointParams = z.infer<typeof OpenCheckpointParamsSchema>;
 export * from "./discount.js";
 export * from "./receivables.js";
+export * from "./pre-cp1/index.js";
