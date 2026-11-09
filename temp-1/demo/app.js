@@ -101,7 +101,7 @@
       + '<label class="field"><span>Ngành học</span><select data-bind="major" data-i="' + i + '"><option value="">— chọn ngành —</option>'
         + NX.MAJORS.map((m) => '<option' + (p.major === m ? ' selected' : '') + '>' + m + '</option>').join('') + '</select></label>'
       + (p.major === 'Ngành khác' ? '<label class="field"><span>Ngành của bạn</span><input type="text" maxlength="40" data-bind="majorOther" data-i="' + i + '" value="' + esc(p.majorOther) + '" placeholder="Ví dụ: Quản trị khách sạn"></label>' : '')
-      + (NX.ASKED_MAJORS.includes(p.major) ? '<p class="q">' + (i === 0 ? 'Bạn' : 'Người này') + ' làm việc thiên về đâu? <span class="hint">Ba ngành này không tự xếp được vào một mảng, nên hỏi cho đúng.</span></p>'
+      + (NX.ASKED_MAJORS.includes(p.major) ? '<p class="q">' + (i === 0 ? 'Bạn' : 'Người này') + ' làm việc thiên về đâu? <span class="hint">Ngành này không tự xếp được vào một mảng, nên hỏi cho đúng.</span></p>'
         + '<div class="row">' + NX.TRACKS.map((t) => chip('track', 'data-i="' + i + '" data-id="' + t.id + '"', p.track === t.id, t.label)).join('') + '</div>'
         + '<p class="hint">Chỉ để báo cáo đếm đúng người theo mảng công việc.</p>' : '')
       + '<p class="q">' + (i === 0 ? 'Bạn' : 'Người này') + ' làm tốt hoặc làm được việc nào? <span class="hint">Chọn tất cả những gì đúng.</span></p>'

@@ -38,9 +38,9 @@ NX.TEAM_RULES = { sizeMin: 4, sizeMax: 6, majorsMin: 2 };
 // Danh sách cố định để đếm chuyên ngành: gõ tay thì "CNTT", "IT", "Công nghệ thông tin"
 // bị tính thành 3 ngành khác nhau và báo đủ sai.
 NX.MAJORS = ['Công nghệ thông tin', 'Kỹ thuật phần mềm', 'An toàn thông tin', 'Trí tuệ nhân tạo',
-  'Kinh doanh', 'Tài chính - Ngân hàng', 'Marketing', 'Thiết kế đồ hoạ', 'Ngôn ngữ Anh', 'Ngành khác'];
+  'Kinh doanh', 'Tài chính - Ngân hàng', 'Marketing', 'Thiết kế đồ hoạ', 'Ngành khác'];
 
-// Ba mảng nghề AI dùng để chấm. Sáu ngành map thẳng; ba ngành còn lại hỏi 1 chip,
+// Ba mảng nghề AI dùng để chấm. Bảy ngành map thẳng; chỉ "Ngành khác" phải hỏi 1 chip,
 // vì báo cáo đếm số người theo mảng — gán bừa là hiện số liệu sai cho người dùng.
 NX.TRACKS = [
   { id: 'ky_thuat', label: 'Kỹ thuật' },
@@ -51,12 +51,12 @@ NX.TRACK_BY_MAJOR = {
   'Công nghệ thông tin': 'ky_thuat', 'Kỹ thuật phần mềm': 'ky_thuat',
   'An toàn thông tin': 'ky_thuat', 'Trí tuệ nhân tạo': 'ky_thuat',
   'Kinh doanh': 'kinh_doanh_tai_chinh', 'Tài chính - Ngân hàng': 'kinh_doanh_tai_chinh',
-  'Marketing': 'marketing',
+  'Marketing': 'marketing', 'Thiết kế đồ hoạ': 'ky_thuat',
 };
-NX.ASKED_MAJORS = ['Thiết kế đồ hoạ', 'Ngôn ngữ Anh', 'Ngành khác'];
+NX.ASKED_MAJORS = ['Ngành khác'];
 NX.TRACK_WORK = {
-  ky_thuat: 'phần làm ra sản phẩm',
-  marketing: 'phần nói cho khách hiểu và phần hình ảnh',
+  ky_thuat: 'phần làm ra sản phẩm và phần hình ảnh',
+  marketing: 'phần nói cho khách hiểu',
   kinh_doanh_tai_chinh: 'phần tính giá, chi phí và kế hoạch',
 };
 
@@ -190,7 +190,7 @@ NX.INTERVIEW_QS = [
 NX.PRESETS = [
   { name: 'Có ý tưởng rõ: nhóm marketing làm dịch vụ chẩn đoán lá', s: { schoolKind: 'fpt', schoolName: '', subjectKind: 'exe101', subjectName: '', goal: 'pass', budget: 'b1', teamSize: 4,
     team: [
-      { name: 'An', caps: { sell: 3, write: 2 }, major: 'Marketing' }, { name: 'Bình', caps: { design: 2, write: 3 }, major: 'Thiết kế đồ hoạ', track: 'marketing' },
+      { name: 'An', caps: { sell: 3, write: 2 }, major: 'Marketing' }, { name: 'Bình', caps: { design: 2, write: 3 }, major: 'Thiết kế đồ hoạ' },
       { name: 'Chi', caps: { interview: 2, sell: 2 }, major: 'Kinh doanh' }, { name: 'Dũng', caps: { write: 2, finance: 1 }, major: 'Marketing' }],
     net: ['classmates', 'club'], sensitive: ['none'], ideaFork: 'yes',
     madlibs: {
@@ -206,18 +206,18 @@ NX.PRESETS = [
     net: ['classmates', 'eatery'], sensitive: ['food'], ideaFork: 'no',
     idea: 'Làm ly và hộp đựng từ bã cà phê, thân thiện với môi trường', assets: {} } },
   { name: 'Bế tắc nông nghiệp, nhưng trưởng nhóm có cửa hàng vật tư', s: { schoolKind: 'fpt', schoolName: '', subjectKind: 'exe101', subjectName: '', goal: 'real', budget: 'b2', teamSize: 3,
-    team: [{ name: 'Hà', caps: { sell: 2, ops: 2 }, extra: 'Phụ bán ở cửa hàng nhà từ nhỏ', major: 'Kinh doanh' }, { name: 'Khoa', caps: { code: 2, design: 2 }, major: 'Công nghệ thông tin' }, { name: 'Lan', caps: { write: 2, interview: 2 }, major: 'Ngôn ngữ Anh', track: 'marketing' }],
+    team: [{ name: 'Hà', caps: { sell: 2, ops: 2 }, extra: 'Phụ bán ở cửa hàng nhà từ nhỏ', major: 'Kinh doanh' }, { name: 'Khoa', caps: { code: 2, design: 2 }, major: 'Công nghệ thông tin' }, { name: 'Lan', caps: { write: 2, interview: 2 }, major: 'Marketing' }],
     net: ['family', 'classmates'], sensitive: ['none'], ideaFork: 'no',
     idea: 'Làm app AI chẩn đoán bệnh cây trồng cho nông dân',
     assets: { family: 'Nhà mình mở cửa hàng bán vật tư nông nghiệp, hạt giống và phân bón ở quê. Mình phụ bán từ nhỏ.', people: 'Có vài chú nông dân là khách quen lâu năm của nhà mình.' } } },
   { name: 'Ý tưởng hoang đường: pin hạt nhân mini', s: { schoolKind: 'fpt', schoolName: '', subjectKind: 'exe101', subjectName: '', goal: 'real', budget: 'b0', teamSize: 3,
-    team: [{ name: 'Minh', caps: { code: 2 }, major: 'Công nghệ thông tin' }, { name: 'Nga', caps: { design: 2 }, major: 'Thiết kế đồ hoạ', track: 'marketing' }, { name: 'Oanh', caps: { write: 2 }, major: 'Ngôn ngữ Anh', track: 'marketing' }],
+    team: [{ name: 'Minh', caps: { code: 2 }, major: 'Công nghệ thông tin' }, { name: 'Nga', caps: { design: 2 }, major: 'Thiết kế đồ hoạ' }, { name: 'Oanh', caps: { write: 2 }, major: 'Marketing' }],
     net: ['classmates'], sensitive: ['none'], ideaFork: 'no',
     idea: 'Chế tạo pin hạt nhân mini cho điện thoại', assets: {} } },
   { name: 'Một mình, chưa có gì', s: { schoolKind: 'fpt', schoolName: '', subjectKind: 'exe101', subjectName: '', goal: 'unsure', budget: 'b0', teamSize: 1,
     team: [{ name: 'Tôi', caps: {}, unsure: true, major: 'Công nghệ thông tin' }], net: ['none'], sensitive: ['none'], ideaFork: 'no', idea: '', assets: {} } },
   { name: 'Nhóm cân đối, chưa có ý, mẹ mở quán cà phê', s: { schoolKind: 'fpt', schoolName: '', subjectKind: 'exe101', subjectName: '', goal: 'real', budget: 'b2', teamSize: 4,
-    team: [{ name: 'Sơn', caps: { code: 3, ops: 2 }, major: 'Công nghệ thông tin' }, { name: 'Trang', caps: { design: 3, write: 2 }, major: 'Thiết kế đồ hoạ', track: 'marketing' }, { name: 'Uyên', caps: { sell: 3, interview: 3 }, major: 'Marketing' }, { name: 'Việt', caps: { finance: 2, ops: 2 }, major: 'Tài chính - Ngân hàng' }],
+    team: [{ name: 'Sơn', caps: { code: 3, ops: 2 }, major: 'Công nghệ thông tin' }, { name: 'Trang', caps: { design: 3, write: 2 }, major: 'Thiết kế đồ hoạ' }, { name: 'Uyên', caps: { sell: 3, interview: 3 }, major: 'Marketing' }, { name: 'Việt', caps: { finance: 2, ops: 2 }, major: 'Tài chính - Ngân hàng' }],
     net: ['classmates', 'eatery', 'club'], sensitive: ['none'], ideaFork: 'no', idea: '',
     pain: 'Mẹ mình hay nói chiều nào quán cũng rối vì khách order qua nhiều kênh khác nhau.',
     assets: { family: 'Mẹ mình mở quán cà phê nhỏ gần trường, mình phụ quán mỗi cuối tuần.' } } },

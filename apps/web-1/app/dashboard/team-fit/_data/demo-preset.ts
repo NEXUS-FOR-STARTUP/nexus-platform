@@ -310,7 +310,7 @@ export const PAWPAL_PRESET: TeamFitPreset = {
     },
     {
       roleTrack: "marketing",
-      major: "Ngôn ngữ Anh",
+      major: "Truyền thông đa phương tiện",
       strengths: [
         "chăm sóc khách hàng",
         "soạn thảo hợp đồng cam kết",
