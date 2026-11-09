@@ -123,6 +123,21 @@ select:has(option[value=""]:checked) { color: var(--muted); }
 .quote { background: #eef1f4; border-radius: 10px; padding: .7rem 1rem; color: var(--ink); }
 
 .verdict { display: grid; gap: .2rem; border-radius: var(--r); padding: 1rem 1.2rem; margin-bottom: .5rem; }
+/* Kết luận và số liệu nhóm: cùng dáng với bản thật, kết luận to ở trên, số liệu thành ô. */
+.vcard { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 1rem 1.2rem; margin: .6rem 0 1.4rem; }
+.vcard .vq { margin: 0; font-size: .9rem; color: var(--muted); }
+.vcard .vt { margin: .15rem 0 0; font-size: 1.7rem; font-weight: 700; line-height: 1.2; }
+.vcard .vt.ok { color: var(--ok); }
+.vcard .vt.warn { color: var(--warn); }
+.vcard .vs { margin: .3rem 0 0; font-size: .9rem; color: var(--muted); }
+.stats, .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem; }
+.stats { margin-bottom: .6rem; }
+.stat, .tile { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: .8rem 1rem; }
+.stat b { display: block; font-size: 1.5rem; line-height: 1.1; }
+.stat span, .tile span { font-size: .85rem; color: var(--muted); }
+.tile b { display: block; font-size: .95rem; }
+.tile.miss span { color: var(--hard); }
+@media (max-width: 720px) { .stats, .tiles { grid-template-columns: 1fr; } }
 .verdict.ok { background: var(--ok-bg); } .verdict.warn { background: var(--warn-bg); } .verdict.hard { background: var(--hard-bg); }
 .verdict.blocked { background: var(--blocked-bg); color: #fff; }
 .verdict strong { font-size: 1.1rem; }

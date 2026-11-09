@@ -251,16 +251,22 @@
 
   /* Bản demo mô phỏng hai khối mà bản thật chấm bằng AI. Nói rõ để không ai tưởng là AI thật. */
   function aiTrackBody() {
-    const cov = E.trackCoverage(S);
-    const rows = NX.TRACKS.map((t) => '<li><b>' + t.label + ':</b> ' + (cov[t.id] ? cov[t.id] + ' người' : 'chưa có ai') + '</li>').join('');
-    const missing = NX.TRACKS.filter((t) => !cov[t.id]);
+    const tc = E.trackCoverage(S);
+    const majors = new Set(S.team.map((p) => p.major).filter((m) => m && m !== 'Ngành khác')).size;
+    const exp = S.team.filter((p) => (p.extra || '').trim()).length;
+    const covered = NX.TRACKS.filter((t) => tc[t.id]).length;
+    const missing = NX.TRACKS.filter((t) => !tc[t.id]);
     const strengths = NX.CAPS.filter((c) => E.teamStats(S).best[c.id] >= 2).map((c) => c.label.split(',')[0].toLowerCase()).slice(0, 2);
-    return '<div class="role"><ul class="recap">' + rows + '</ul>'
+    return '<div class="stats">'
+      + '<div class="stat"><b>' + majors + '</b><span>ngành đào tạo</span></div>'
+      + '<div class="stat"><b>' + covered + '/' + NX.TRACKS.length + '</b><span>mảng nghề có người</span></div>'
+      + '<div class="stat"><b>' + exp + '</b><span>người có ghi kinh nghiệm</span></div>'
+      + '</div>'
+      + '<div class="tiles">' + NX.TRACKS.map((t) => '<div class="tile' + (tc[t.id] ? '' : ' miss') + '"><b>' + t.label + '</b><span>' + (tc[t.id] ? tc[t.id] + ' người' : 'Chưa có ai') + '</span></div>').join('') + '</div>'
       + '<p><b>Nhóm dựa vào:</b> ' + (strengths.join('; ') || 'chưa rõ điểm mạnh nào') + '.</p>'
       + (missing.length
         ? '<p>Chưa có ai thuộc mảng <b>' + missing.map((t) => t.label).join(', ') + '</b>, nên ' + missing.map((t) => NX.TRACK_WORK[t.id]).join(' và ') + ' sẽ dồn cho người khác. Không sai, nhưng phải chia việc trước khi tới hạn.</p>'
-        : '<p>Ba mảng đều có người. Việc còn lại là chốt ai làm phần nào, tránh hai người cùng làm một việc.</p>')
-      + '</div>';
+        : '<p>Ba mảng đều có người. Việc còn lại là chốt ai làm phần nào, tránh hai người cùng làm một việc.</p>');
   }
   function aiCommitteeBody() {
     const m = S.madlibs || {};
@@ -314,8 +320,15 @@
     const flagGrid = '<div class="flags">' + flags.map((f) => '<div class="flag ' + f.status + '"><div class="fh"><span class="pill ' + f.status + '"><i aria-hidden="true">' + STATUS[f.status][0] + '</i>' + STATUS[f.status][1] + '</span><b>' + f.axis + '</b></div><p class="ft">' + f.title + '</p><p>' + f.reason + '</p><p class="fix"><b>Nên làm:</b> ' + f.fix + '</p></div>').join('') + '</div>';
     const zonesBlock = '<p class="hint">Mỗi hướng là một giả thuyết. Hướng đầu tiên' + (hasIdea ? ' là ý tưởng của bạn sau khi thu nhỏ; các hướng còn lại dựa vào điểm mạnh, nguồn lực và người quen của nhóm.' : ' dựa vào điều bạn kể.') + ' Bạn chưa cần làm sản phẩm, chỉ cần đi hỏi.</p>'
       + (zones.length ? zones.map((z) => '<div class="zone"><span class="tag">Giả thuyết</span><h3>' + z.title + '</h3><p>' + z.prose + '</p></div>').join('') : callout('tip', 'Chưa đủ thông tin để gợi ý hướng. Quay lại bước “Điều bạn đang có” và kể thêm.'));
+    const ready = cov.empty.length === 0;
+    const roleName = (id) => (NX.CORE_ROLES.find((r) => r.id === id) || {}).label || id;
+    const vcard = '<div class="vcard"><p class="vq">Đội ngũ có đủ người không?</p>'
+      + '<p class="vt ' + (ready ? 'ok' : 'warn') + '">' + (ready ? 'Sẵn sàng đi tiếp' : 'Cần cân nhắc') + '</p>'
+      + (ready ? '' : '<p class="vs">Thiếu: ' + cov.empty.map(roleName).join(', ') + '.</p>')
+      + '</div>';
     return '<h1>Bản đồ xuất phát của nhóm bạn</h1>'
       + callout('why', '<strong>Đọc trước khi xem:</strong> đây là các hướng nên đi kiểm tra, chưa phải kết luận ý tưởng nào đúng. Chỉ khi bạn đi hỏi người thật mới biết có khách cần hay không.')
+      + vcard
       + (S.ideaFork === 'yes' && !structured ? callout('demo', 'Bạn chọn “Có ý tưởng cụ thể” nhưng 6 ô chưa đủ, nên phần chấm theo ngành và câu hội đồng chưa chạy. Các cờ bên dưới chỉ dựa trên phần bạn đã viết.') : '')
       + '<div class="map">'
       + '<nav class="toc" aria-label="Trong bản đồ"><p>Trong bản đồ</p><a href="#m-nhom">Nhóm</a><a href="#m-idea">Ý tưởng</a><a href="#m-next">Việc tiếp theo</a></nav>'
@@ -323,16 +336,16 @@
       + sec('Nhóm hiện tại của bạn', 'm-nhom') + teamBlock
       + (coverBody ? sec('Nhóm có giữ được tới hết môn không?') + coverBody : '')
       + sec('Nên tìm thêm ai vào nhóm') + recruitBlock
-      + (structured ? sec('Nhóm hợp với mảng việc nào?') + callout('demo', 'Bản demo: khối này do AI chấm theo ngành ở bản thật. Ở đây mô phỏng từ ngành và năng lực bạn vừa chọn.') + aiTrackBody() : '')
+      + sec('Số liệu nhóm') + aiTrackBody()
       + sec('Ý tưởng này có vấn đề gì không?', 'm-idea')
       + (hasIdea ? '<p class="idea-quote">“' + esc(E.ideaTitle(S)) + '”</p>' : callout('tip', 'Bạn chưa ghi ý tưởng nên mục này chỉ kiểm tra nhóm và nguồn lực. Xem hướng gợi ý ở mục dưới.'))
       + '<div class="verdict ' + v.cls + '"><strong>' + v.t + '</strong><span>' + v.d + '</span></div>'
       + flagGrid
       + '</div>'
-      + '<aside class="map-b" id="m-next">'
+      + '<aside class="map-b">'
       + sec(hasIdea ? 'Hướng thay thế hợp với nhóm' : 'Hướng nên đi hỏi thử') + zonesBlock
       + (structured ? sec('Hội đồng sẽ hỏi gì?') + callout('demo', 'Bản demo: câu hỏi mô phỏng từ 6 ô bạn viết. Bản thật do AI soạn theo đúng ý tưởng của bạn.') + aiCommitteeBody() : '')
-      + sec('Việc tiếp theo: đi hỏi người thật')
+      + sec('Việc tiếp theo: đi hỏi người thật', 'm-next')
       + '<p class="hint">Chọn một hướng ở trên. Tìm vài người thuộc nhóm đó và hỏi theo 5 câu này. Ghi lại nguyên văn câu họ nói. Đây là việc của bước phỏng vấn khách hàng ở giai đoạn sau. Hiện bạn chưa cần làm.</p>'
       + '<ol class="qs">' + NX.INTERVIEW_QS.map((q) => '<li>' + q + '</li>').join('') + '</ol>'
       + (structured ? '<div class="role upsell"><h3>Đi xa hơn với bản đồ này</h3><p>Bạn đã có nhóm, mảng việc và chỗ dễ vấp. Nếu muốn người thật đọc lại và hẹn lịch cùng bạn, xem các gói đồng hành.</p><div class="row"><button class="btn ghost sm" data-act="plans">Xem các gói đồng hành</button></div></div>' : '')
