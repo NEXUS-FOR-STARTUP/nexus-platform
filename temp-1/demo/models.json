@@ -1,0 +1,19 @@
+{
+  "providers": {
+    "crouton": {
+      "name": "Command Code (Stealth)",
+      "baseUrl": "https://api.commandcode.ai/provider/v1",
+      "api": "openai-completions",
+      "models": [
+        {
+          "id": "stealth/crouton-alpha",
+          "name": "Crouton Alpha",
+          "reasoning": false,
+          "input": ["text"],
+          "contextWindow": 1048576,
+          "maxTokens": 65536
+        }
+      ]
+    }
+  }
+}

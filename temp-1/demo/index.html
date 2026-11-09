@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nexus · Chuẩn bị trước khi vào môn (bản demo UX)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <span class="brand">Nexus</span>
+    <span class="demo-note">Bản demo UX. Dữ liệu chỉ nằm trong trình duyệt của bạn.</span>
+  </header>
+  <div class="wrap">
+    <div class="col">
+      <div id="stepper"></div>
+      <main id="main" aria-live="polite"></main>
+    </div>
+    <aside id="aside" class="aside" aria-label="Nexus đang hiểu về bạn"></aside>
+  </div>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <div class="demo-fab">
+    <div id="demoMenu" class="demo-menu" hidden></div>
+    <button id="demoBtn" type="button" class="btn ghost sm">Xem kịch bản mẫu</button>
+  </div>
+  <script src="data.js"></script>
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
