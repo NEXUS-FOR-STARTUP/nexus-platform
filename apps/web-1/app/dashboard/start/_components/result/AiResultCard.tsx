@@ -1,6 +1,6 @@
 "use client";
 
-import { Alert, Stack, Text } from "@mantine/core";
+import { Alert, Skeleton, Stack, Text } from "@mantine/core";
 import { Info } from "@phosphor-icons/react/ssr";
 import type { TeamFitSavedResult } from "@repo/validation";
 import { TeamFitReportCard } from "../ai/TeamFitReportCard";
@@ -15,16 +15,25 @@ interface AiResultCardProps {
 /** The per-major checkup, only when there was an idea to check. */
 export function AiResultCard({ result, failed, loading }: AiResultCardProps) {
   return (
-    <section id="ai" className="space-y-3">
+    <section id="ai" className="scroll-mt-32 space-y-3">
       <Text fw={700} fz={20}>
         Chấm thêm theo ngành và phần việc
       </Text>
+
       {loading ? (
-        <Text size="sm" c="dimmed" lh={1.6}>
-          {BUSY_LABEL}
-        </Text>
+        <Stack gap="xs" aria-busy="true">
+          <Text size="sm" c="dimmed" lh={1.6}>
+            {BUSY_LABEL}
+          </Text>
+          <Skeleton height={18} width="55%" radius="sm" />
+          <Skeleton height={14} radius="sm" />
+          <Skeleton height={14} width="85%" radius="sm" />
+          <Skeleton height={14} width="70%" radius="sm" />
+        </Stack>
       ) : null}
+
       {result ? <TeamFitReportCard report={result} /> : null}
+
       {failed ? (
         <Alert color="orange" variant="light" icon={<Info className="h-4 w-4" />}>
           <Stack gap={2}>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Alert, Button, Group, Stack, Text } from "@mantine/core";
+import { Alert, Stack, Text, UnstyledButton } from "@mantine/core";
 import { Info, Plus } from "@phosphor-icons/react/ssr";
 import { AI_UNAVAILABLE, CONFIRM_LEAD_ASSETS, CONFIRM_LEAD_IDEA } from "../_data/copy";
 
@@ -16,9 +16,16 @@ interface ConfirmLabelsProps {
   onTags: (next: LabelTags) => void;
 }
 
+const ANSWERS = [
+  { id: "yes", label: "Đúng" },
+  { id: "no", label: "Không đúng" },
+  { id: undefined, label: "Chưa rõ" },
+] as const;
+
 /**
  * AI only proposes labels; a label counts only after the user marks it "Đúng".
- * When the model is unavailable the whole catalog is shown, so nobody is stuck.
+ * "Chưa rõ" removes the answer — the schema has no third value, and the report
+ * treats a missing key as unknown.
  */
 export function ConfirmLabels({ kind, catalog, suggested, aiOk, tags, onTags }: ConfirmLabelsProps) {
   const [showAll, setShowAll] = useState(!aiOk);
@@ -27,7 +34,7 @@ export function ConfirmLabels({ kind, catalog, suggested, aiOk, tags, onTags }: 
 
   return (
     <Stack gap="md">
-      <Text size="sm" c="dimmed" lh={1.6}>
+      <Text size="sm" c="dimmed" lh={1.6} style={{ maxWidth: "62ch" }}>
         {kind === "assets" ? CONFIRM_LEAD_ASSETS : CONFIRM_LEAD_IDEA}
       </Text>
       {aiOk ? null : (
@@ -36,43 +43,66 @@ export function ConfirmLabels({ kind, catalog, suggested, aiOk, tags, onTags }: 
         </Alert>
       )}
 
-      {shown.map((rule) => (
-        <Group key={rule.id} justify="space-between" wrap="nowrap" gap="sm" className="rounded-lg border border-gray-100 p-3">
-          <Text size="sm" lh={1.5}>
-            {rule.label}
-          </Text>
-          <Group gap={6} wrap="nowrap">
-            <Button
-              size="compact-sm"
-              variant={tags[rule.id] === "yes" ? "filled" : "light"}
-              color={tags[rule.id] === "yes" ? "green" : "gray"}
-              onClick={() => onTags({ ...tags, [rule.id]: "yes" })}
-            >
-              Đúng
-            </Button>
-            <Button
-              size="compact-sm"
-              variant={tags[rule.id] === "no" ? "filled" : "light"}
-              color={tags[rule.id] === "no" ? "red" : "gray"}
-              onClick={() => onTags({ ...tags, [rule.id]: "no" })}
-            >
-              Không đúng
-            </Button>
-          </Group>
-        </Group>
-      ))}
+      <div className="divide-y divide-border-app">
+        {shown.map((rule) => (
+          <div key={rule.id} className="flex flex-col gap-2 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <Text size="sm" lh={1.45}>
+              {rule.label}
+            </Text>
+            <div role="group" aria-label={rule.label} className="flex shrink-0 gap-1">
+              {ANSWERS.map((answer) => {
+                // "Chưa rõ" is the way back to no answer; it never looks chosen.
+                const on = Boolean(answer.id) && tags[rule.id] === answer.id;
+                return (
+                  <button
+                    key={answer.label}
+                    type="button"
+                    aria-pressed={answer.id ? on : undefined}
+                    onClick={() => {
+                      const next = { ...tags };
+                      if (answer.id) next[rule.id] = answer.id;
+                      else delete next[rule.id];
+                      onTags(next);
+                    }}
+                    className={[
+                      "rounded-[var(--ui-radius-sm)] border px-2.5 py-1 text-xs transition-colors duration-150",
+                      "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)]",
+                      on
+                        ? answer.id === "yes"
+                          ? "border-[var(--color-success)] bg-[var(--color-success-soft)] text-[var(--color-success-ink)]"
+                          : answer.id === "no"
+                            ? "border-[var(--color-danger)] bg-[var(--color-danger-soft)] text-[var(--color-danger-ink)]"
+                            : "border-border-strong bg-surface-muted text-text-app"
+                        : "border-border-app text-text-muted hover:border-border-strong hover:text-text-app",
+                    ].join(" ")}
+                  >
+                    {answer.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
 
       {!showAll ? (
-        <Button variant="subtle" size="compact-sm" leftSection={<Plus className="h-4 w-4" />} onClick={() => setShowAll(true)}>
-          Có mục khác chưa được nhắc
-        </Button>
+        <UnstyledButton
+          onClick={() => setShowAll(true)}
+          className="flex items-center gap-1.5 text-xs text-text-muted hover:text-text-app focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)]"
+        >
+          <Plus className="h-3.5 w-3.5" /> Có mục khác chưa được nhắc
+        </UnstyledButton>
       ) : null}
 
       {showAll
         ? rest.map((rule) => (
-            <Button key={rule.id} variant="subtle" size="compact-sm" justify="flex-start" onClick={() => onTags({ ...tags, [rule.id]: "yes" })}>
-              + Thêm: {rule.label}
-            </Button>
+            <UnstyledButton
+              key={rule.id}
+              onClick={() => onTags({ ...tags, [rule.id]: "yes" })}
+              className="flex items-center gap-1.5 text-left text-xs text-text-muted hover:text-text-app focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)]"
+            >
+              <Plus className="h-3.5 w-3.5 shrink-0" /> Thêm: {rule.label}
+            </UnstyledButton>
           ))
         : null}
     </Stack>

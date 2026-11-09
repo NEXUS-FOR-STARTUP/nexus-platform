@@ -1,6 +1,7 @@
 "use client";
 
-import { Alert, Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
+import { useEffect, useState } from "react";
+import { Button, Group, Stack, Text, Title } from "@mantine/core";
 import { Warning as AlertTriangle } from "@phosphor-icons/react/ssr";
 import type { PreCp1Input, PreCp1Report, TeamFitSavedResult } from "@repo/validation";
 import { TeamSection } from "./TeamSection";
@@ -34,54 +35,61 @@ const TOC = [
   { href: "#zones", label: "Hướng để hỏi thử" },
 ] as const;
 
+const RESTART_WINDOW_MS = 5000;
+
+/** One column: reading order is the page order, the section links stay in reach. */
 export function ResultView(props: ResultViewProps) {
   const { report, input, ideaMode, structureIncomplete, aiResult, aiFailed, aiLoading } = props;
+  const [confirmRestart, setConfirmRestart] = useState(false);
+
+  useEffect(() => {
+    if (!confirmRestart) return;
+    const timer = setTimeout(() => setConfirmRestart(false), RESTART_WINDOW_MS);
+    return () => clearTimeout(timer);
+  }, [confirmRestart]);
+
   return (
-    <Stack gap="lg">
-      <Paper withBorder radius="xl" p={{ base: "lg", sm: "xl" }}>
-        <Stack gap="md">
-          <Title order={1} fz={{ base: 24, sm: 30 }}>
-            {RESULT.title}
-          </Title>
-          <Text size="sm" lh={1.7}>
-            {RESULT.beforeReading}
-          </Text>
-          <Group gap="sm">
-            <Text size="xs" c="dimmed">
-              {RESULT.toc}:
-            </Text>
-            {TOC.map((item) => (
-              <Button key={item.href} component="a" href={item.href} variant="subtle" size="compact-sm">
-                {item.label}
-              </Button>
-            ))}
-          </Group>
-        </Stack>
-      </Paper>
+    <div className="space-y-6">
+      <header className="space-y-2">
+        <Title order={1} fz={{ base: 24, sm: 30 }} lh={1.2} style={{ letterSpacing: "-0.02em", textWrap: "balance" }}>
+          {RESULT.title}
+        </Title>
+        <Text size="sm" lh={1.7} style={{ maxWidth: "62ch" }}>
+          {RESULT.beforeReading}
+        </Text>
+      </header>
 
-      <Paper withBorder radius="xl" p={{ base: "lg", sm: "xl" }}>
-        <Stack gap="xl">
-          <TeamSection report={report} input={input} />
-          <RecruitSection recruit={report.recruit} input={input} />
-          <FlagsSection
-            flags={report.flags}
-            verdict={report.verdict}
-            ideaMode={ideaMode}
-            structureIncomplete={structureIncomplete}
-          />
-          <ZonesSection zones={report.zones} />
-          {ideaMode === "structured" ? (
-            <AiResultCard result={aiResult} failed={aiFailed} loading={aiLoading} />
-          ) : null}
-        </Stack>
-      </Paper>
+      <nav className="sticky top-16 z-20 -mx-4 border-y border-border-app bg-surface-app px-4 py-1.5" aria-label={RESULT.toc}>
+        <div className="flex gap-1 overflow-x-auto">
+          {TOC.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="shrink-0 rounded-[var(--ui-radius-pill)] px-3 py-1 text-xs text-text-muted transition-colors hover:bg-surface-muted hover:text-text-app focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)]"
+            >
+              {item.label}
+            </a>
+          ))}
+        </div>
+      </nav>
 
-      <Paper withBorder radius="xl" p={{ base: "lg", sm: "xl" }}>
-        <Stack gap="md">
+      <div className="space-y-8 divide-y divide-border-app [&>section]:pt-6 [&>section:first-child]:pt-0">
+        <TeamSection report={report} input={input} />
+        <RecruitSection recruit={report.recruit} input={input} />
+        <FlagsSection flags={report.flags} verdict={report.verdict} ideaMode={ideaMode} structureIncomplete={structureIncomplete} />
+        <ZonesSection zones={report.zones} />
+        {ideaMode === "structured" ? <AiResultCard result={aiResult} failed={aiFailed} loading={aiLoading} /> : null}
+      </div>
+
+      <div className="sticky bottom-0 z-20 -mx-4 border-t border-border-app bg-surface-app px-4 py-3 shadow-[0_-1px_0_0_var(--color-border)]">
+        <Stack gap="xs">
           {props.saveFailed ? (
-            <Alert color="orange" variant="light" icon={<AlertTriangle className="h-4 w-4" />}>
-              <Text size="sm">{RESULT.saveFailed}</Text>
-            </Alert>
+            <Group gap={6} wrap="nowrap" align="flex-start">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-warning)]" />
+              <Text size="sm" lh={1.5} c="var(--color-warning-ink)">
+                {RESULT.saveFailed}
+              </Text>
+            </Group>
           ) : null}
           <Group gap="sm" wrap="wrap">
             {props.savedCaseId ? (
@@ -101,12 +109,23 @@ export function ResultView(props: ResultViewProps) {
             <Button variant="default" onClick={props.onEdit}>
               {RESULT.edit}
             </Button>
-            <Button variant="subtle" color="gray" onClick={props.onRestart}>
-              {RESULT.restart}
+            <Button
+              variant="subtle"
+              color="gray"
+              onClick={() => {
+                if (confirmRestart) {
+                  setConfirmRestart(false);
+                  props.onRestart();
+                } else {
+                  setConfirmRestart(true);
+                }
+              }}
+            >
+              {confirmRestart ? RESULT.restartConfirm : RESULT.restart}
             </Button>
           </Group>
         </Stack>
-      </Paper>
-    </Stack>
+      </div>
+    </div>
   );
 }

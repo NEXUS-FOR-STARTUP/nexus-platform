@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Loader, Paper, Stack, Text } from "@mantine/core";
+import { Button, Group, Loader, Paper, Stack, Text } from "@mantine/core";
 import { useRouter } from "next/navigation";
 import { ASSET_RULES, IDEA_RULES, ideaModeOf } from "@repo/validation";
 import { CreateProjectModal } from "../_components/CreateProjectModal";
@@ -92,14 +92,16 @@ export default function StartPage() {
       case "result":
         if (!flow.report || !flow.input) {
           return (
-            <Paper withBorder radius="xl" p="xl">
+            <Paper withBorder p="xl" style={{ borderRadius: "var(--ui-radius)" }}>
               <Stack gap="md">
                 <Text size="sm" lh={1.6}>
                   Chưa có đủ câu trả lời để xem kết quả. Bắt đầu lại từ câu hỏi đầu tiên giúp mình.
                 </Text>
-                <Button color="brand" onClick={() => flow.go("basics")}>
-                  Bắt đầu
-                </Button>
+                <Group>
+                  <Button color="brand" onClick={() => flow.go("basics")}>
+                    Bắt đầu
+                  </Button>
+                </Group>
               </Stack>
             </Paper>
           );
@@ -123,9 +125,7 @@ export default function StartPage() {
             }}
             onOpenCase={(id) => router.push(`/dashboard/case/${id}`)}
             onEdit={() => flow.go(flow.form.ideaMode === "none" ? "idea" : "form")}
-            onRestart={() => {
-              if (window.confirm("Xoá hết câu trả lời và bắt đầu lại từ đầu?")) flow.restart();
-            }}
+            onRestart={flow.restart}
           />
         );
       default:
@@ -134,9 +134,9 @@ export default function StartPage() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4 px-4 py-6">
+    <div className="mx-auto w-full max-w-[820px] px-4 py-4 sm:py-6">
       <StartStepper step={flow.step} />
-      {renderStep()}
+      <div className="pt-4">{renderStep()}</div>
 
       <CreateProjectModal
         key={modalKey}
