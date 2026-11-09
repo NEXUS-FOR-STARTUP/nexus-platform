@@ -99,7 +99,7 @@ apps/api/src/modules/pre-cp1/
 - **`aiResult` do client gửi** (báo cáo AI): server chỉ kiểm shape, không xác minh nội dung — người dùng sửa được báo cáo của chính họ trước khi lưu. Chấp nhận: dữ liệu thuộc case của họ, không ảnh hưởng người khác; ghi lại để không tưởng là đã xác thực.
 - **Dữ liệu training lệch**: chỉ có người tạo dự án mới được ghi → mẫu bị chọn lọc (survivorship). Bù bằng log bước (Phase 05), không bù bằng cách lưu trộm.
 - **Migration**: chỉ thêm bảng; FK `Cascade` là hành vi xoá dây chuyền — chỉ xảy ra khi xoá case, và hiện chưa có chức năng xoá case cho user.
-- **Input lớn**: Zod ≤ 600 ký tự/ô, ≤ 8 người → row < ~20KB.
+- **Input lớn**: Zod ≤ 600 ký tự/ô, ≤ 50 người (`PreCp1InputSchema`, chặn kỹ thuật — trường khác không có trần) → row < ~40KB. Mỗi người ~300 byte (tên 40 · ngành khác 60 · thêm 200), nên 50 người là ca xấu nhất, không phải ca thường.
 
 ## Security Considerations
 `requireAuth`; kiểm `caseId` thuộc `auth_user_id` trước mọi lần đọc/ghi; không expose endpoint đọc theo report id. Không log nội dung người dùng (chỉ số đếm).

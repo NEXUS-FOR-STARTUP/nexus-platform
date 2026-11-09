@@ -13,7 +13,7 @@
 
 ## Key Insights
 - Sync hiện đọc 3 nguồn: `Case.team_name`, `team_fit_reports` (idea + team), `project_answers` đã lưu. Nguyên tắc ghi trong file: **chỉ dữ liệu đã lưu trên server**, không đọc nháp trình duyệt. Bản đồ pre-CP1 lưu trên server (Phase 03) nên đủ điều kiện làm nguồn thứ 4.
-- Không đẩy dữ liệu sang team-fit được, vì `TeamMemberInputSchema` (`packages/validation/src/index.ts:38-52`) **không có trường tên**, `strengths` bắt buộc ≥1, và trần `MAX_TEAM_MEMBERS = 6` trong khi pre-CP1 cho tới 8. Tên/ngành/mức năng lực chỉ nằm trong `input_snapshot` của report; muốn dùng cho team-fit thì phải có chế độ chạy trên case đã có (follow-up) và đọc từ report, không ghi vào `CaseMember` (bảng đó cần `auth_user_id` thật).
+- Không đẩy dữ liệu sang team-fit được, vì `TeamMemberInputSchema` (`packages/validation/src/index.ts:38-52`) **không có trường tên**, `strengths` bắt buộc ≥1, và trần `MAX_TEAM_MEMBERS = 6` trong khi pre-CP1 nhận tới **50 người** ở trường không đặt trần (nhóm > 6 người thì `deriveTeamFitInput` trả `null`, xem phase-07). Tên/ngành/mức năng lực chỉ nằm trong `input_snapshot` của report; muốn dùng cho team-fit thì phải có chế độ chạy trên case đã có (follow-up) và đọc từ report, không ghi vào `CaseMember` (bảng đó cần `auth_user_id` thật).
 - Sync chỉ **đề xuất** (`SyncProposal`), không ghi đè; câu nào đã có trả lời thì bỏ qua và đếm vào `skipped_filled`. Nên điền sẵn không phá dữ liệu người đã viết.
 - **Cái gì điền được, cái gì không** (đọc đúng shape `TeamMemberInputSchema`):
 
