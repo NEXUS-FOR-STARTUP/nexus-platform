@@ -30,7 +30,7 @@
     if (location.search !== q) history.replaceState(null, '', location.pathname + q);
   }
 
-  const fresh = () => ({ step: 0, phase: 'write', schoolKind: null, schoolName: '', subjectKind: null, subjectName: '', goal: null, budget: null, teamSize: 3, team: [], assets: {}, assetsNone: {}, assetTags: {}, assetsOther: '', net: [], netOther: '', ideaFork: null, pain: '', idea: '', madlibs: {}, ideaTags: {}, sensitive: [], aiAssets: null, aiIdea: null, err: '' });
+  const fresh = () => ({ step: 0, phase: 'write', schoolKind: null, schoolName: '', subjectKind: null, subjectName: '', goal: null, budget: null, teamSize: 1, team: [], assets: {}, assetsNone: {}, assetTags: {}, assetsOther: '', net: [], netOther: '', ideaFork: null, pain: '', idea: '', madlibs: {}, ideaTags: {}, sensitive: [], aiAssets: null, aiIdea: null, err: '' });
   let S = load();
   // `?step=assets` mở thẳng bước đó; không có thì dùng bước đã lưu. `idea` là link cũ của bước ngã rẽ.
   (function fromUrl() {
@@ -110,6 +110,7 @@
         + NX.LEVELS.map((l) => '<button type="button" data-act="lvl" data-i="' + i + '" data-c="' + c.id + '" data-v="' + l.v + '" aria-pressed="' + (p.caps[c.id] === l.v) + '">' + l.label + '</button>').join('') + '</span></div>').join('') + '</div>' : '')
       + '<label class="check"><input type="checkbox" data-act="unsure" data-i="' + i + '" ' + (p.unsure ? 'checked' : '') + '> Mình chưa rõ ' + (i === 0 ? 'mình' : 'bạn này') + ' làm được gì' + (i ? ' (hỏi lại bạn ấy sau)' : '') + '</label>'
       + '<label class="field"><span>Còn gì nữa mà các ô trên không có? <em>(không bắt buộc)</em></span><textarea rows="2" data-bind="extra" data-i="' + i + '" placeholder="Ví dụ: biết lái xe, nói được tiếng Nhật, từng làm ở quán cà phê 1 năm">' + esc(p.extra) + '</textarea></label>'
+      + (S.teamSize > 1 && i > 0 ? '<div class="row"><button type="button" class="chip" data-act="delmem" data-i="' + i + '">Xoá người này</button></div>' : '')
       + '</fieldset>';
   }
   function ruleLine(tr) {
@@ -135,12 +136,19 @@
   function vTeam() {
     ensureTeam();
     const tr = E.teamRule(S);
-    return head('Nhóm bạn gồm những ai?', 'Mỗi người một khung. Gần đúng là đủ. Chưa có nhóm thì để 1 người (chỉ mình bạn).',
+    return head('Nhóm bạn gồm những ai?', 'Mỗi người một khung. Gần đúng là đủ. Chưa có nhóm thì chỉ cần một người là bạn.',
       'Để biết nhóm đang thiếu người làm việc gì. Việc nhóm chưa ai làm được thì sẽ được gợi ý tuyển thêm.')
       + ruleLine(tr)
-      + '<h2>Cả nhóm có mấy người (tính cả bạn)?</h2><p class="hint">' + (tr.fpt ? 'Trường FPT: ' + tr.sizeMin + ' đến ' + tr.sizeMax + ' người' + (tr.exe ? ', tối thiểu ' + tr.majorsMin + ' chuyên ngành khác nhau.' : '.') : 'Trường của bạn không đặt trần số người — thêm bao nhiêu người cũng được.') + '</p>'
-      + '<div class="stepper"><button type="button" class="btn ghost" data-act="size" data-d="-1" aria-label="Bớt một người" ' + (S.teamSize <= 1 ? 'disabled' : '') + '>−</button><strong>' + S.teamSize + ' người</strong><button type="button" class="btn ghost" data-act="size" data-d="1" aria-label="Thêm một người" ' + (S.teamSize >= teamCap(S) ? 'disabled' : '') + '>+</button></div>'
-      + S.team.map(personHtml).join('') + nav('Quay lại', 'Tiếp tục');
+      + '<h2>Thành viên nhóm</h2><p class="hint">Bắt đầu bằng chính bạn. Còn ai trong nhóm thì bấm thêm ở dưới.</p>'
+      + S.team.map((p, i) => personHtml(p, i)).join('')
+      + (() => {
+        const cap = teamCap(S);
+        const full = S.teamSize >= cap;
+        const count = Number.isFinite(cap) ? ' (' + S.teamSize + '/' + cap + ')' : '';
+        return '<button type="button" class="addmem" data-act="addmem"' + (full ? ' disabled' : '') + '>+ Thêm thành viên' + count + '</button>'
+          + (full ? '<p class="hint">Đã đủ ' + cap + ' người — trần của trường FPT.</p>' : '');
+      })()
+      + nav('Quay lại', 'Tiếp tục');
   }
 
   function vAssets() {
@@ -541,7 +549,8 @@
     if (a === 'pick') S[d.key] = d.val;
     else if (a === 'school') { S.schoolKind = d.val; if (d.val !== 'other') S.schoolName = ''; if (d.val !== 'fpt') { S.subjectKind = null; S.subjectName = ''; } clampTeam(); }
     else if (a === 'subject') { S.subjectKind = d.val; if (d.val !== 'other') S.subjectName = ''; clampTeam(); }
-    else if (a === 'size') { S.teamSize = Math.min(teamCap(S), Math.max(1, S.teamSize + (+d.d))); ensureTeam(); }
+    else if (a === 'addmem') { if (S.teamSize < teamCap(S)) { S.teamSize += 1; ensureTeam(); } }
+    else if (a === 'delmem') { if (S.teamSize > 1) { S.team.splice(+d.i, 1); S.teamSize -= 1; ensureTeam(); } }
     else if (a === 'fork') { S.ideaFork = d.val; if (d.val !== 'yes') S.aiIdea = null; }
     else if (a === 'track') { const p = S.team[+d.i]; p.track = p.track === d.id ? '' : d.id; }
     else if (a === 'cap') { const p = S.team[+d.i]; if (p.caps[d.c]) delete p.caps[d.c]; else { p.caps[d.c] = 2; p.unsure = false; } }

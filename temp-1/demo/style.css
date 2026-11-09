@@ -111,6 +111,8 @@ select:has(option[value=""]:checked) { color: var(--muted); }
 .check { display: flex; gap: .5rem; align-items: center; margin-top: .6rem; font-size: .92rem; color: var(--muted); }
 .check input { width: 20px; height: 20px; accent-color: var(--accent); }
 .stepper { display: flex; align-items: center; gap: 1rem; margin: .5rem 0; }
+.addmem { width: 100%; margin: 1rem 0 .2rem; padding: .85rem 1rem; border: 2px dashed var(--accent); border-radius: var(--r); background: transparent; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; }
+.addmem:disabled { opacity: .45; cursor: not-allowed; }
 .stepper .btn { padding: .4rem 1rem; font-size: 1.3rem; }
 
 .ask { margin: 1.4rem 0; }
