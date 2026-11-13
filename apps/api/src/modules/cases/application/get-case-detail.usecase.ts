@@ -88,6 +88,7 @@ function toBaseResponse(caseDetails: any) {
     lifecycle_units: caseDetails.lifecycle_units,
     reports: caseDetails.reports,
     team_fit_report: caseDetails.team_fit_report,
+    pre_cp1_reports: caseDetails.pre_cp1_reports ?? [],
     payments: caseDetails.payments,
     messages: caseDetails.messages,
     events: caseDetails.events,

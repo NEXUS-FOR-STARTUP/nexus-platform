@@ -21,7 +21,8 @@ function Group({ title, rows }: { title?: string; rows: Row[] }) {
 }
 
 function memberRow(m: TeamMemberSnapshot, index: number): Row {
-  const detail = [m.major || m.role, m.skills].filter(Boolean).join(", ");
+  const roleOrMajor = [m.major, m.role].filter(Boolean).join(" · ");
+  const detail = [roleOrMajor, m.skills].filter(Boolean).join(" — ");
   return [m.fullName || m.name || `Thành viên ${index + 1}`, detail];
 }
 
@@ -82,6 +83,41 @@ export default function OverviewProfileDetails({ data: d }: { data: OverviewData
       <Group title={`Đội ngũ (${d.members.length} thành viên)`} rows={d.members.map(memberRow)} />
 
       <Group title="Rủi ro về đội ngũ" rows={riskRows(d)} />
+
+      {d.preCp1 && (
+        <>
+          <Group
+            title="Chuẩn bị ban đầu (Pre-CP1)"
+            rows={[
+              ["Mục tiêu", d.preCp1.goalLabel],
+              ["Ngân sách dự kiến", d.preCp1.budgetLabel],
+              ["Trạng thái ý tưởng", d.preCp1.ideaModeLabel],
+              ...(d.preCp1.pain ? [["Vấn đề quan tâm", d.preCp1.pain] as const] : []),
+              ...(d.preCp1.idea ? [["Ý tưởng sơ bộ", d.preCp1.idea] as const] : []),
+              ...(d.preCp1.network.length > 0 ? [["Mạng lưới hỗ trợ", d.preCp1.network.join("; ")] as const] : []),
+              ...(d.preCp1.sensitive.length > 0 ? [["Yếu tố nhạy cảm", d.preCp1.sensitive.join("; ")] as const] : []),
+              ...(d.preCp1.assetTags.length > 0 ? [["Lợi thế tài nguyên", d.preCp1.assetTags.join("; ")] as const] : []),
+              ...(d.preCp1.ideaTags.length > 0 ? [["Đặc điểm ý tưởng", d.preCp1.ideaTags.join("; ")] as const] : []),
+              ...(d.preCp1.aiLabels.length > 0 ? [["Nhãn AI ghi nhận", d.preCp1.aiLabels.join("; ")] as const] : []),
+            ]}
+          />
+
+          {d.preCp1.assets.length > 0 && <Group title="Tài nguyên sẵn có" rows={d.preCp1.assets} />}
+
+          {(d.preCp1.verdict || d.preCp1.flags.length > 0 || d.preCp1.recruit.length > 0) && (
+            <Group
+              title="Đánh giá Pre-CP1"
+              rows={[
+                ...(d.preCp1.verdict
+                  ? [[d.preCp1.verdict.title, d.preCp1.verdict.detail] as const]
+                  : []),
+                ...d.preCp1.flags.map((f): Row => [f.title, [f.reason, f.fix].filter(Boolean).join(" → ")]),
+                ...d.preCp1.recruit.map((r): Row => [`Nên tìm: ${r.title}`, r.why]),
+              ]}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 }
