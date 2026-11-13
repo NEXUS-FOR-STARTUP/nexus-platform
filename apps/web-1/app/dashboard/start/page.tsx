@@ -118,6 +118,7 @@ export default function StartPage() {
             ideaMode={effectiveMode}
             structureIncomplete={flow.form.ideaMode === "structured" && effectiveMode === "draft"}
             aiResult={flow.aiResult}
+            aiErrorMessage={flow.aiErrorMessage}
             aiFailed={flow.aiFailed}
             aiLoading={flow.aiLoading}
             saving={flow.saving}

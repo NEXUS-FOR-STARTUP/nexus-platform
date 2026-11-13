@@ -1,44 +1,51 @@
-import { AppError } from '../../../shared/domain/app-error.js'
+import {
+  enforceRateLimit,
+  resetRateLimiterMemoryForTests,
+  type RateLimitBucket,
+} from '../../../shared/infrastructure/rate-limiter.js'
 
-// Giới hạn lượt gọi AI team-fit theo tài khoản. Đọc từ env, có giá trị mặc định.
-// TEAM_FIT_MAX_REQUESTS: số lượt tối đa mỗi TEAM_FIT_WINDOW_MINUTES phút.
-// TEAM_FIT_MAX_TRACKED_USERS: trần số tài khoản giữ trong Map, chống phình bộ nhớ.
-// Map trong bộ nhớ (giống message-send-rate-limit), không thêm bảng.
-// Xem lại kết quả đã lưu không qua đây nên không tính lượt.
-const TEAM_FIT_WINDOW_MS = Number(process.env.TEAM_FIT_WINDOW_MINUTES ?? 10) * 60 * 1000
-const TEAM_FIT_MAX_REQUESTS = Number(process.env.TEAM_FIT_MAX_REQUESTS ?? 10)
-const MAX_TRACKED_USERS = Number(process.env.TEAM_FIT_MAX_TRACKED_USERS ?? 1000)
+const DAY_MS = 24 * 60 * 60 * 1000
+const TEAM_FIT_WINDOW_MS = Number(process.env.TEAM_FIT_WINDOW_MINUTES ?? 60) * 60 * 1000
+const TEAM_FIT_MAX_REQUESTS = Number(process.env.TEAM_FIT_MAX_REQUESTS ?? 3)
+const TEAM_FIT_DAILY_MAX_REQUESTS = Number(process.env.TEAM_FIT_DAILY_MAX_REQUESTS ?? 5)
+const TEAM_FIT_IP_WINDOW_MS = Number(process.env.TEAM_FIT_IP_WINDOW_MINUTES ?? 60) * 60 * 1000
+const TEAM_FIT_IP_MAX_REQUESTS = Number(process.env.TEAM_FIT_IP_MAX_REQUESTS ?? 15)
 
-const teamFitTimestamps = new Map<string, number[]>()
+export function buildTeamFitBuckets(userId: string, ip = ''): RateLimitBucket[] {
+  const buckets: RateLimitBucket[] = [
+    {
+      key: `team-fit:u:h:${userId}`,
+      max: TEAM_FIT_MAX_REQUESTS,
+      windowMs: TEAM_FIT_WINDOW_MS,
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'Bạn đã dùng hết lượt phân tích trong giờ này. Vui lòng thử lại sau ít phút.',
+    },
+    {
+      key: `team-fit:u:d:${userId}`,
+      max: TEAM_FIT_DAILY_MAX_REQUESTS,
+      windowMs: DAY_MS,
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'Bạn đã dùng hết lượt phân tích trong ngày hôm nay. Vui lòng quay lại vào ngày mai.',
+    },
+  ]
 
-function sweepExpiredEntries(now: number) {
-  for (const [key, timestamps] of teamFitTimestamps.entries()) {
-    if (timestamps.every((ts) => now - ts >= TEAM_FIT_WINDOW_MS)) {
-      teamFitTimestamps.delete(key)
-    }
+  if (ip) {
+    buckets.push({
+      key: `team-fit:ip:h:${ip}`,
+      max: TEAM_FIT_IP_MAX_REQUESTS,
+      windowMs: TEAM_FIT_IP_WINDOW_MS,
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'Có quá nhiều lượt phân tích từ mạng này. Vui lòng thử lại sau ít phút.',
+    })
   }
+
+  return buckets
 }
 
-export function claimTeamFitSlot(userId: string, now = Date.now()) {
-  if (teamFitTimestamps.size > MAX_TRACKED_USERS) {
-    sweepExpiredEntries(now)
-  }
-
-  const timestamps = (teamFitTimestamps.get(userId) ?? []).filter((ts) => now - ts < TEAM_FIT_WINDOW_MS)
-  if (timestamps.length >= TEAM_FIT_MAX_REQUESTS) {
-    return { ok: false as const }
-  }
-  timestamps.push(now)
-  teamFitTimestamps.set(userId, timestamps)
-  return { ok: true as const }
+export async function checkTeamFitRateLimit(userId: string, ip = '', now = Date.now()): Promise<void> {
+  await enforceRateLimit(buildTeamFitBuckets(userId, ip), now)
 }
 
-export function checkTeamFitRateLimit(userId: string, now = Date.now()): void {
-  if (!claimTeamFitSlot(userId, now).ok) {
-    throw new AppError(429, 'RATE_LIMIT_EXCEEDED', 'Nhóm đã dùng hết lượt kiểm tra nhanh. Vui lòng thử lại sau ít phút.')
-  }
-}
-
-export function resetTeamFitRateLimitForTests() {
-  teamFitTimestamps.clear()
+export function resetTeamFitRateLimitForTests(): void {
+  resetRateLimiterMemoryForTests()
 }

@@ -10,11 +10,12 @@ import { AI_UNAVAILABLE, BUSY_LABEL, RESULT } from "../../_data/copy";
 interface AiResultCardProps {
   result: TeamFitSavedResult | null;
   failed: boolean;
+  errorMessage?: string | null;
   loading: boolean;
 }
 
 /** The per-major checkup, only when there was an idea to check. */
-export function AiResultCard({ result, failed, loading }: AiResultCardProps) {
+export function AiResultCard({ result, failed, errorMessage, loading }: AiResultCardProps) {
   return (
     <section id="ai" className="scroll-mt-24 space-y-4">
       <SectionHead title="Chấm thêm theo ngành và phần việc" />
@@ -37,11 +38,13 @@ export function AiResultCard({ result, failed, loading }: AiResultCardProps) {
             <Alert color="orange" variant="light" icon={<Info className="h-4 w-4" />}>
               <Stack gap={2}>
                 <Text fz="var(--ui-text-body)" lh={1.6}>
-                  {RESULT.aiFailed}
+                  {errorMessage ?? RESULT.aiFailed}
                 </Text>
-                <Text fz="var(--ui-text-note)" c="dimmed" lh={1.6}>
-                  {AI_UNAVAILABLE}
-                </Text>
+                {errorMessage ? null : (
+                  <Text fz="var(--ui-text-note)" c="dimmed" lh={1.6}>
+                    {AI_UNAVAILABLE}
+                  </Text>
+                )}
               </Stack>
             </Alert>
           ) : null}

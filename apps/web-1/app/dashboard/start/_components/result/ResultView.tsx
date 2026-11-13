@@ -18,6 +18,7 @@ export interface ResultViewProps {
   structureIncomplete: boolean;
   aiResult: TeamFitSavedResult | null;
   aiFailed: boolean;
+  aiErrorMessage?: string | null;
   aiLoading: boolean;
   saving: boolean;
   saveFailed: boolean;
@@ -32,7 +33,7 @@ const RESTART_WINDOW_MS = 5000;
 
 /** One column: reading order is the page order, the section links stay in reach. */
 export function ResultView(props: ResultViewProps) {
-  const { report, input, ideaMode, structureIncomplete, aiResult, aiFailed, aiLoading } = props;
+  const { report, input, ideaMode, structureIncomplete, aiResult, aiFailed, aiErrorMessage, aiLoading } = props;
   const [confirmRestart, setConfirmRestart] = useState(false);
 
   useEffect(() => {
@@ -57,7 +58,7 @@ export function ResultView(props: ResultViewProps) {
         <RecruitSection recruit={report.recruit} input={input} />
         <FlagsSection flags={report.flags} verdict={report.verdict} ideaMode={ideaMode} structureIncomplete={structureIncomplete} />
         <ZonesSection zones={report.zones} />
-        {ideaMode === "structured" ? <AiResultCard result={aiResult} failed={aiFailed} loading={aiLoading} /> : null}
+        {ideaMode === "structured" ? <AiResultCard result={aiResult} failed={aiFailed} errorMessage={aiErrorMessage} loading={aiLoading} /> : null}
       </div>
 
       <div className="sticky bottom-0 z-20 pt-3">

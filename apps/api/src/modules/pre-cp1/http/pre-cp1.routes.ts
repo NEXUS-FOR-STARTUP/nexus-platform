@@ -12,6 +12,7 @@ import type { AuthEnv } from '../../../shared/infrastructure/middlewares/auth.js
 import type { Context as HonoContext } from 'hono'
 import { labelPreCp1UseCase } from '../application/label-pre-cp1.usecase.js'
 import { checkPreCp1LabelRateLimit } from '../application/pre-cp1-rate-limit.js'
+import { extractClientIp } from '../../../shared/infrastructure/rate-limiter.js'
 import { savePreCp1UseCase } from '../application/save-pre-cp1.usecase.js'
 import { attachAi, createReport, findCaseOwnedBy, findReportByHash } from '../infrastructure/persistence/pre-cp1.repository.js'
 
@@ -49,7 +50,7 @@ preCp1Router.post('/label', requireAuth, async (c: HonoContext<AuthEnv>) => {
   try {
     const user = c.get('user')
     if (!user) return c.json({ error: 'Unauthorized' }, 401)
-    checkPreCp1LabelRateLimit(user.id)
+    await checkPreCp1LabelRateLimit(user.id, extractClientIp(c.req.raw.headers))
 
     const parsed = LabelRequestSchema.safeParse(await c.req.json())
     if (!parsed.success) return invalid(c, parsed.error.issues)

@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { TeamFitInputSchema } from '../domain/team-fit.dto.js'
 import { evaluateTeamFitUseCase } from '../application/evaluate-team-fit.usecase.js'
 import { checkTeamFitRateLimit } from '../application/team-fit-rate-limit.js'
+import { extractClientIp } from '../../../shared/infrastructure/rate-limiter.js'
 import { handleError } from '../../../shared/infrastructure/http-helpers.js'
 import { requireAuth } from '../../../shared/infrastructure/middlewares/auth.js'
 import type { AuthEnv } from '../../../shared/infrastructure/middlewares/auth.js'
@@ -18,7 +19,7 @@ aiEngineRouter.post('/team-fit', requireAuth, async (c: HonoContext<AuthEnv>) =>
     if (!user) {
       return c.json({ error: 'Unauthorized' }, 401)
     }
-    checkTeamFitRateLimit(user.id)
+    await checkTeamFitRateLimit(user.id, extractClientIp(c.req.raw.headers))
     const body = await c.req.json()
     const parsed = TeamFitInputSchema.safeParse(body)
 

@@ -297,6 +297,13 @@ export function useStartFlow() {
     saveFailed,
     savedCaseId: saveState === "saved" ? caseId : null,
     aiResult: evaluation.data ?? null,
+    aiErrorMessage: (() => {
+      const err = evaluation.error as { response?: { status?: number; data?: { message?: string } } } | null;
+      if (err?.response?.status === 429) {
+        return err.response.data?.message || "Bạn đã dùng hết lượt phân tích trong thời gian này. Vui lòng thử lại sau.";
+      }
+      return null;
+    })(),
     aiFailed: evaluation.isError,
     aiLoading: evaluation.isPending,
     analyzing,

@@ -35,6 +35,10 @@ import { assertAuditPromptsPresent } from "./modules/ai-engine/application/audit
 import { prisma } from './db.js'
 import { AppError } from './shared/domain/app-error.js'
 import logger from './shared/infrastructure/logger.js'
+import { redisPublisher } from './modules/ai-engine/infrastructure/queue/omp-queue.js'
+import { setRateLimiterRedis } from './shared/infrastructure/rate-limiter.js'
+
+setRateLimiterRedis(redisPublisher)
 
 
 type Variables = { correlationId: string }
