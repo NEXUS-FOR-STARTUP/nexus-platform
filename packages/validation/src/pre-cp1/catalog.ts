@@ -232,7 +232,7 @@ export const NET_IDS = [
 export type NetId = (typeof NET_IDS)[number];
 
 export const SENSITIVE = [
-  { id: "health", label: "Thuốc, bệnh, khám chữa bệnh" },
+  { id: "health", label: "Y tế, thuốc men, khám chữa bệnh" },
   { id: "money", label: "Tiền bạc, đầu tư, cho vay" },
   { id: "food", label: "Thực phẩm, đồ uống bán ra thị trường" },
   { id: "data", label: "Thông tin cá nhân, ảnh trẻ em" },
@@ -244,12 +244,12 @@ export const SENSITIVE_IDS = ["health", "money", "food", "data", "copyright", "n
 export type SensitiveId = (typeof SENSITIVE_IDS)[number];
 
 export const IDEA_RULES = [
-  { id: "forbidden", label: "Có liên quan vũ khí, chất nổ, hạt nhân hoặc chất cấm" },
-  { id: "illegal", label: "Có thể vi phạm pháp luật hoặc bản quyền" },
+  { id: "forbidden", label: "Có liên quan đến sản phẩm/dịch vụ thuộc danh mục hạn chế hoặc cấm kinh doanh" },
+  { id: "illegal", label: "Có sử dụng lại tài liệu, dữ liệu hoặc sản phẩm có bản quyền của bên khác" },
   { id: "ai", label: "Có tự xây phần AI" },
   { id: "physical", label: "Làm ra sản phẩm thật bằng vật liệu hoặc máy móc" },
   { id: "marketplace", label: "Sàn kết nối người mua và người bán" },
-  { id: "superapp", label: "Cả hệ thống lớn làm cùng một lúc" },
+  { id: "superapp", label: "Làm nền tảng lớn, nhiều tính năng cùng lúc" },
   { id: "logistics", label: "Giao hàng hoặc vận chuyển" },
   { id: "b2bLarge", label: "Bán cho doanh nghiệp lớn hoặc cơ quan lớn" },
   { id: "regulated", label: "Dính đến sức khoẻ hoặc tiền bạc người khác" },

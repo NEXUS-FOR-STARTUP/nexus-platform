@@ -49,21 +49,22 @@ export function AssetsStep({ form, patch, error, onBack, onNext, busy }: AssetsS
                 <InfoTip title={prompt.title} label={prompt.why} />
               </div>
 
-              <Textarea
-                autosize
-                minRows={2}
-                maxRows={6}
-                maxLength={TEXT_LIMITS.assetAnswer}
-                placeholder={prompt.ph}
-                value={form.assets[prompt.id] ?? ""}
-                onChange={(e) => {
-                  const value = e.currentTarget.value;
-                  patch({
-                    assets: { ...form.assets, [prompt.id]: value },
-                    ...(value.trim() && off ? { assetsNone: form.assetsNone.filter((x) => x !== prompt.id) } : {}),
-                  });
-                }}
-              />
+              {!off && (
+                <Textarea
+                  autosize
+                  minRows={2}
+                  maxRows={6}
+                  maxLength={TEXT_LIMITS.assetAnswer}
+                  placeholder={prompt.ph}
+                  value={form.assets[prompt.id] ?? ""}
+                  onChange={(e) => {
+                    const value = e.currentTarget.value;
+                    patch({
+                      assets: { ...form.assets, [prompt.id]: value },
+                    });
+                  }}
+                />
+              )}
 
               <Checkbox
                 label="Mình không có / không nhớ"

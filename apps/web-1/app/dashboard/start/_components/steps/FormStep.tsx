@@ -28,7 +28,7 @@ export function FormStep({ form, patch, error, onBack, onNext, busy }: FormStepP
       onBack={onBack}
       onNext={onNext}
       busy={busy}
-      nextLabel={structured ? "Xem kết quả" : "Tiếp"}
+      nextLabel="Tiếp"
     >
       <Stack gap="lg">
         {structured ? (

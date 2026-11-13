@@ -35,6 +35,8 @@ function labelSignature(kind: "assets" | "idea", form: StartForm): string {
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const MIN_ANALYZING_MS = 5000;
+
 
 export function useStartFlow() {
   const router = useRouter();
@@ -47,10 +49,25 @@ export function useStartFlow() {
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "failed">("idle");
   const [saveFailed, setSaveFailed] = useState(false);
   const savedFor = useRef<string | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [minWaitDone, setMinWaitDone] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
 
   const labelMutation = usePreCp1Label();
   const saveMutation = usePreCp1Save();
   const evaluation = useTeamFitEvaluation();
+
+  useEffect(() => {
+    if (!analyzing) return;
+    const timer = setTimeout(() => setMinWaitDone(true), MIN_ANALYZING_MS);
+    return () => clearTimeout(timer);
+  }, [analyzing]);
+
+  useEffect(() => {
+    if (analyzing && minWaitDone && !aiBusy && !evaluation.isPending) {
+      setAnalyzing(false);
+    }
+  }, [analyzing, minWaitDone, aiBusy, evaluation.isPending]);
 
   const patch = useCallback(
     (next: Partial<StartForm>) => {
@@ -70,7 +87,7 @@ export function useStartFlow() {
     const params = new URLSearchParams(window.location.search);
     const fromUrl = params.get("step");
     const caseParam = params.get("case");
-    const step = STEPS.includes(fromUrl as StepId) ? (fromUrl as StepId) : (restored?.step ?? "intro");
+    const step = STEPS.includes(fromUrl as StepId) ? (fromUrl as StepId) : "intro";
     const caseId = caseParam && UUID_RE.test(caseParam) ? caseParam : (restored?.caseId ?? null);
     return { step, caseId };
   }, [isClient, restored]);
@@ -130,7 +147,10 @@ export function useStartFlow() {
     [step],
   );
 
-  const back = useCallback(() => go(prevStep(step)), [go, step]);
+  const back = useCallback(
+    () => go(step === "sens" && form.ideaMode === "none" ? "idea" : prevStep(step)),
+    [go, step, form.ideaMode],
+  );
 
   const runLabels = useCallback(
     async (kind: "assets" | "idea") => {
@@ -163,11 +183,18 @@ export function useStartFlow() {
         }
         const result = await labelMutation.mutateAsync(request);
         setLabels((prev) => ({ ...prev, [kind]: { aiOk: result.aiOk, labels: result.labels, signature } }));
+        if (result.aiOk) {
+          const autoTags = Object.fromEntries(result.labels.map((l) => [l.id, "yes" as const]));
+          setForm((prev) => ({
+            ...prev,
+            ...(kind === "assets" ? { assetTags: autoTags } : { ideaTags: autoTags }),
+          }));
+        }
       } catch {
         setLabels((prev) => ({ ...prev, [kind]: { aiOk: false, labels: [], signature } }));
       }
     },
-    [form, labels, labelMutation],
+    [form, labels, labelMutation, setForm],
   );
 
   const next = useCallback(async () => {
@@ -184,14 +211,7 @@ export function useStartFlow() {
     }
 
     if (step === "assets") {
-      // Nothing written means nothing to label: skip the confirm screen entirely.
-      const answered = ASSET_PROMPTS.some((p) => (form.assets[p.id] ?? "").trim());
-      if (!answered) {
-        go("network");
-        return;
-      }
-      await runLabels("assets");
-      go("assetsConfirm");
+      go("network");
       return;
     }
     if (step === "idea") {
@@ -199,10 +219,7 @@ export function useStartFlow() {
       return;
     }
     if (step === "form") {
-      await runLabels("idea");
-      go("formConfirm");
-      const teamFit = input ? deriveTeamFitInput(input) : null;
-      if (teamFit && !evaluation.data && !evaluation.isPending) evaluation.mutate(teamFit);
+      go("sens");
       return;
     }
     if (step === "sens") {
@@ -216,11 +233,26 @@ export function useStartFlow() {
         );
         return;
       }
+      setMinWaitDone(false);
+      setAiBusy(true);
+      setAnalyzing(true);
       go("result");
+
+      const tasks: Promise<unknown>[] = [];
+      const hasAssets = ASSET_PROMPTS.some((p) => (form.assets[p.id] ?? "").trim());
+      if (hasAssets) tasks.push(runLabels("assets"));
+      if (form.ideaMode !== "none") tasks.push(runLabels("idea"));
+      const teamFit = deriveTeamFitInput(built.data);
+      if (teamFit && !evaluation.data && !evaluation.isPending) {
+        tasks.push(evaluation.mutateAsync(teamFit));
+      }
+      void Promise.allSettled(tasks).finally(() => {
+        setAiBusy(false);
+      });
       return;
     }
     go(nextStep(step));
-  }, [step, form, labels, go, runLabels, input, evaluation]);
+  }, [step, form, labels, go, runLabels, evaluation]);
 
   const onCaseCreated = useCallback(
     (createdCaseId: string) => {
@@ -244,6 +276,9 @@ export function useStartFlow() {
     setSaveFailed(false);
     savedFor.current = null;
     evaluation.reset();
+    setAnalyzing(false);
+    setMinWaitDone(false);
+    setAiBusy(false);
     go("intro");
   }, [reset, evaluation, go]);
 
@@ -264,6 +299,7 @@ export function useStartFlow() {
     aiResult: evaluation.data ?? null,
     aiFailed: evaluation.isError,
     aiLoading: evaluation.isPending,
+    analyzing,
     labelBusy: labelMutation.isPending,
     hasSaved: Boolean(restored?.caseId) || restored?.step === "result",
     go,

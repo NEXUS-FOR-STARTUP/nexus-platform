@@ -15,13 +15,13 @@ export const STEP_NAMES = [
 export const STEP_MINUTES = [1, 3, 4, 1, 1, 3, 1] as const;
 
 export const INTRO_LEAD =
-  "Sáu đến bảy trang ngắn, mỗi trang một câu hỏi, mất khoảng 10 đến 12 phút, chủ yếu là bấm chọn. Không cần chuẩn bị gì. Không có đáp án đúng hay sai.";
+  "Khoảng 7 bước ngắn, mất tầm 10 phút, chủ yếu là bấm chọn. Không cần chuẩn bị trước, không có đáp án đúng hay sai.";
 
 export const INTRO_BULLETS = [
   "Nhóm hiện tại đang mạnh và thiếu gì, và nên tìm thêm ai, kèm sẵn tin đăng tuyển để dán.",
   "Ý tưởng nháp của bạn có ổn không — chỉ hiện khi bạn đã viết vài dòng về ý tưởng.",
   "Vài hướng thay thế hợp với nhóm để đi hỏi thử. Đây là hướng để kiểm tra, chưa phải kết luận ý tưởng nào đúng.",
-  "Nếu bạn mô tả được ý tưởng trong sáu câu: thêm phần hợp với mảng việc và câu hội đồng sẽ hỏi.",
+  "Nếu đã mô tả ý tưởng cụ thể: thêm đánh giá độ phù hợp của nhóm và các câu hội đồng thường hỏi.",
 ] as const;
 
 export const WHY = {
@@ -32,13 +32,13 @@ export const WHY = {
   network:
     "Muốn biết hướng nào đáng làm, sau này bạn phải đi hỏi người thật. Nên cần biết bạn dễ tiếp cận nhóm người nào.",
   idea: "Không có thì không sao. Kể một chuyện bạn thấy khó chịu cũng đi tiếp được.",
-  form: "Càng rõ càng dễ chấm. Câu ngắn cũng được, miễn đủ ý.",
-  confirm: "AI chỉ đề xuất, bạn là người quyết định.",
+  form: "Càng rõ thì nhận xét càng sát. Câu ngắn cũng được, miễn đủ ý.",
+  confirm: "Hệ thống chỉ gợi ý, bạn là người quyết định.",
   sensitive: "Chọn tất cả những gì đúng. Không có thì chọn dòng cuối.",
 } as const;
 
 export const ASSETS_LEAD =
-  "Năm câu ngắn, cả nhóm trả lời chung: mỗi người góp vài chữ, ghi tên cho dễ nhớ. Hoặc bấm “Mình không có”.";
+  "Năm câu ngắn, cả nhóm trả lời chung: mỗi người góp vài chữ, ghi tên cho dễ nhớ. Hoặc bấm “Mình không có / không nhớ”.";
 
 export const IDEA_DRAFT_LEAD = "Không bắt buộc. Bỏ trống vẫn đi tiếp được.";
 
@@ -51,10 +51,10 @@ export const CONFIRM_LEAD_ASSETS = "Bấm “Đúng” hoặc “Không đúng�
 export const CONFIRM_LEAD_IDEA = "Bấm “Đúng” hoặc “Không đúng” cho từng mục. Chỉ mục đúng mới được tính.";
 
 export const AI_UNAVAILABLE =
-  "Chưa đọc được câu trả lời bằng AI. Bạn tự chọn nhãn bên dưới — kết quả vẫn tính như thường.";
+  "Chưa tự động phân tích được câu trả lời. Bạn tự chọn mục bên dưới — kết quả vẫn tính như thường.";
 
 export const BUSY_LABEL =
-  "AI đang đọc câu trả lời của nhóm. Thường mất 3 đến 10 giây, lúc chậm có thể lâu hơn. Bạn không cần bấm gì.";
+  "Hệ thống đang đọc câu trả lời của nhóm. Thường mất 3 đến 10 giây, lúc chậm có thể lâu hơn. Bạn không cần bấm gì.";
 
 export const STATUS: Record<FlagStatus, { icon: string; label: string }> = {
   ok: { icon: "✓", label: "Ổn" },

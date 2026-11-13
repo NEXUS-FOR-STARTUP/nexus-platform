@@ -16,6 +16,7 @@ import { FormStep } from "./_components/steps/FormStep";
 import { SensStep } from "./_components/steps/SensStep";
 import { ConfirmStep } from "./_components/steps/ConfirmStep";
 import { ResultView } from "./_components/result/ResultView";
+import { AnalyzingView } from "./_components/result/AnalyzingView";
 import { useStartFlow } from "./_hooks/useStartFlow";
 
 const FPT_SCHOOL = "Đại học FPT";
@@ -107,6 +108,9 @@ export default function StartPage() {
           );
         }
         const effectiveMode = ideaModeOf(flow.input);
+        if (flow.analyzing) {
+          return <AnalyzingView input={flow.input} hasIdeaCheck={effectiveMode === "structured"} />;
+        }
         return (
           <ResultView
             report={flow.report}

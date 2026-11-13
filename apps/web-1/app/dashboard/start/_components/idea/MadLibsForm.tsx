@@ -30,7 +30,7 @@ export function MadLibsForm({ values, onChange }: MadLibsFormProps) {
               onChange={(e) => onChange(field.id, e.currentTarget.value)}
             />
             <Text size="xs" mt={4} c={short && value ? "orange" : "dimmed"}>
-              {short ? `Cần thêm ý, tối thiểu ${field.min} chữ.` : `${value.trim().length} chữ`}
+              {short ? `Cần thêm ý, tối thiểu ${field.min} ký tự.` : `${value.trim().length} ký tự`}
             </Text>
           </div>
         );

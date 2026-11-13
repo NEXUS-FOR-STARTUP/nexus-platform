@@ -25,7 +25,7 @@ export function SensStep({ form, patch, error, onBack, onNext, busy }: SensStepP
   };
 
   return (
-    <StepShell title="Có điều gì dính đến ý tưởng của bạn không?" why={WHY.sensitive} error={error} onBack={onBack} onNext={onNext} busy={busy} nextLabel="Xem kết quả">
+    <StepShell title="Ý tưởng của bạn có liên quan đến lĩnh vực nào dưới đây không?" why={WHY.sensitive} error={error} onBack={onBack} onNext={onNext} busy={busy} nextLabel="Bắt đầu phân tích">
       <div className="flex flex-wrap gap-2">
         {SENSITIVE.map((item) => {
           const on = form.sensitive.includes(item.id);

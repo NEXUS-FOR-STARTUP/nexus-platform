@@ -19,13 +19,13 @@ interface ConfirmStepProps {
 export function ConfirmStep({ kind, catalog, suggested, aiOk, tags, onTags, error, onBack, onNext }: ConfirmStepProps) {
   return (
     <StepShell
-      title={kind === "assets" ? "AI đọc được những điều này, đúng không?" : "AI hiểu ý tưởng của bạn thế nào?"}
+      title={kind === "assets" ? "Hệ thống ghi nhận được những điều này, đúng không?" : "Hệ thống hiểu ý tưởng của bạn thế nào?"}
       why={WHY.confirm}
       lead={kind === "assets" ? CONFIRM_LEAD_ASSETS : CONFIRM_LEAD_IDEA}
       error={error}
       onBack={onBack}
       onNext={onNext}
-      nextLabel={kind === "assets" ? "Tiếp" : "Xem kết quả"}
+      nextLabel="Tiếp"
     >
       <ConfirmLabels catalog={catalog} suggested={suggested} aiOk={aiOk} tags={tags} onTags={onTags} />
     </StepShell>

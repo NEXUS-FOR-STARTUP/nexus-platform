@@ -228,7 +228,7 @@ export function validateStep(step: StepId, form: StartForm, pendingLabels: strin
       ? `Còn ${short.length} ô chưa đủ ý: ${short.map((f) => f.n.toLowerCase().replace(/\?/g, "")).join("; ")}. Viết thêm vài chữ.`
       : "";
   }
-  if (step === "sens") return form.sensitive.length ? "" : "Chọn các mục dính đến ý nghĩ của bạn, hoặc “Không có mục nào ở trên”.";
+  if (step === "sens") return form.sensitive.length ? "" : "Chọn các mục liên quan đến ý tưởng của bạn, hoặc “Không có mục nào ở trên”.";
   if (step === "assetsConfirm" || step === "formConfirm") {
     const undecided = pendingLabels.filter((id) => {
       const tags = step === "assetsConfirm" ? form.assetTags : form.ideaTags;
@@ -240,21 +240,18 @@ export function validateStep(step: StepId, form: StartForm, pendingLabels: strin
 }
 
 export function nextStep(step: StepId): StepId {
-  if (step === "assets") return "assetsConfirm";
-  if (step === "assetsConfirm") return "network";
+  if (step === "assets") return "network";
   if (step === "idea") return "form";
-  if (step === "form") return "formConfirm";
-  if (step === "formConfirm") return "sens";
+  if (step === "form") return "sens";
   if (step === "sens") return "result";
   const i = STEPS.indexOf(step);
   return STEPS[Math.min(STEPS.length - 1, i + 1)] ?? "result";
 }
 
 export function prevStep(step: StepId): StepId {
-  if (step === "assetsConfirm") return "assets";
+  if (step === "network") return "assets";
   if (step === "form") return "idea";
-  if (step === "formConfirm") return "form";
-  if (step === "network") return "assetsConfirm";
+  if (step === "sens") return "form";
   const i = STEPS.indexOf(step);
   return STEPS[Math.max(0, i - 1)] ?? "intro";
 }

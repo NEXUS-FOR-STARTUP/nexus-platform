@@ -26,7 +26,7 @@ const ANSWERS = [
  * AI only proposes labels; a label counts only after the user marks it "Đúng".
  */
 export function ConfirmLabels({ catalog, suggested, aiOk, tags, onTags }: ConfirmLabelsProps) {
-  const [showAll, setShowAll] = useState(!aiOk);
+  const [showAll, setShowAll] = useState(!aiOk || suggested.length === 0);
   const shown = showAll ? catalog : catalog.filter((rule) => suggested.includes(rule.id));
   const rest = catalog.filter((rule) => !shown.some((r) => r.id === rule.id));
 
@@ -37,6 +37,11 @@ export function ConfirmLabels({ catalog, suggested, aiOk, tags, onTags }: Confir
           <Text size="sm">{AI_UNAVAILABLE}</Text>
         </Alert>
       )}
+      {aiOk && suggested.length === 0 ? (
+        <Text size="sm" c="dimmed">
+          Hệ thống chưa nhận diện được đặc điểm nào từ mô tả vừa rồi — bạn có thể chọn thêm bên dưới nếu có, hoặc bấm tiếp tục.
+        </Text>
+      ) : null}
 
       <div className="divide-y divide-border-app">
         {shown.map((rule) => (

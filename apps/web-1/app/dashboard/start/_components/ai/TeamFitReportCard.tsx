@@ -31,7 +31,7 @@ function Verdict({ ai }: { ai: TeamFitAiOutput | null }) {
     return (
       <Paper withBorder radius="md" p="lg">
         <Text fz="var(--ui-text-body)" lh={1.6}>
-          AI chưa đưa ra nhận định lượt này. Bấm &quot;Kiểm tra lại&quot; để thử lại.
+          Hệ thống chưa đưa ra nhận định lượt này. Bấm &quot;Kiểm tra lại&quot; để thử lại.
         </Text>
       </Paper>
     );
