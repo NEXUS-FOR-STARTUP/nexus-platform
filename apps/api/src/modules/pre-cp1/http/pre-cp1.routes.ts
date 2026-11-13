@@ -14,7 +14,15 @@ import { labelPreCp1UseCase } from '../application/label-pre-cp1.usecase.js'
 import { checkPreCp1LabelRateLimit } from '../application/pre-cp1-rate-limit.js'
 import { extractClientIp } from '../../../shared/infrastructure/rate-limiter.js'
 import { savePreCp1UseCase } from '../application/save-pre-cp1.usecase.js'
-import { attachAi, createReport, findCaseOwnedBy, findReportByHash } from '../infrastructure/persistence/pre-cp1.repository.js'
+import {
+  attachAi,
+  attachCaseToReport,
+  createReport,
+  findCaseOwnedBy,
+  findPreCp1HistoryByUser,
+  findReportByHash,
+  findUnlinkedReportById,
+} from '../infrastructure/persistence/pre-cp1.repository.js'
 
 export const preCp1Router = new Hono()
 
@@ -25,7 +33,8 @@ preCp1Router.use('*', async (c, next) => {
 })
 
 const SaveBodySchema = z.object({
-  caseId: z.string().min(1),
+  caseId: z.string().min(1).nullable().optional(),
+  reportId: z.string().min(1).optional(),
   input: PreCp1InputSchema,
   aiLabels: z.array(LabelQuoteSchema).max(20).optional(),
   // `report` from the client is not part of this schema, so it is dropped: the
@@ -73,19 +82,32 @@ preCp1Router.post('/save', requireAuth, async (c: HonoContext<AuthEnv>) => {
 
     const result = await savePreCp1UseCase(
       {
-        caseId: parsed.data.caseId,
+        caseId: parsed.data.caseId ?? null,
+        reportId: parsed.data.reportId ?? null,
         userId: user.id,
         input: parsed.data.input,
         aiLabels: parsed.data.aiLabels ?? null,
         aiResult: parsed.data.aiResult ?? null,
       },
-      { findCaseOwnedBy, findReportByHash, createReport, attachAi },
+      { findCaseOwnedBy, findReportByHash, findUnlinkedReportById, attachCaseToReport, createReport, attachAi },
     )
 
     return c.json(
       { ok: true, reportId: result.id, isNew: result.isNew, report: result.report },
       result.isNew ? 201 : 200,
     )
+  } catch (error) {
+    return handleError(c, error)
+  }
+})
+
+// GET /api/pre-cp1/history — list all start/team-fit runs owned by the current user.
+preCp1Router.get('/history', requireAuth, async (c: HonoContext<AuthEnv>) => {
+  try {
+    const user = c.get('user')
+    if (!user) return c.json({ error: 'Unauthorized' }, 401)
+    const items = await findPreCp1HistoryByUser(user.id)
+    return c.json({ ok: true, items })
   } catch (error) {
     return handleError(c, error)
   }

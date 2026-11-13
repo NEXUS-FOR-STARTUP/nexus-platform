@@ -125,6 +125,7 @@ export async function findCaseByIdWithAllRelations(id: string) {
           input_hash: true,
           input_snapshot: true,
           ai_labels: true,
+          team_fit_snapshot: true,
           report_snapshot: true,
           created_at: true,
         },

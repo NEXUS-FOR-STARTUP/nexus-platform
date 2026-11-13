@@ -1,7 +1,7 @@
 import type { Case, TeamFitReport } from "@/types";
 import { missingContactLabels } from "@/app/dashboard/_components/case-contact";
 import { mapTeamFitReportResult, type OverviewArea } from "./caseOverviewModel";
-import { derivePreCp1Overview, type PreCp1Overview } from "./preCp1Overview";
+import { derivePreCp1Overview } from "./preCp1Overview";
 
 interface IntakeIdea {
   field?: string;
@@ -97,7 +97,6 @@ export interface OverviewData {
   areas: OverviewArea[];
   teamGaps: string[];
   commercialGaps: string[];
-  preCp1: PreCp1Overview | null;
 }
 
 export function deriveOverviewData(
@@ -162,7 +161,6 @@ export function deriveOverviewData(
     expectedOutputs: intake.expected_outputs || supportNeeds.expected_outputs || "",
     extraNotes: supportNeeds.extra_notes || "",
     members: effectiveMembers,
-    preCp1,
     ...mapTeamFitReportResult(teamFit?.result_snapshot),
   };
 }

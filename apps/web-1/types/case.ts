@@ -55,11 +55,12 @@ export interface TeamFitReport {
 
 export interface PreCp1ReportRecord {
   id: string;
-  case_id: string;
+  case_id: string | null;
   auth_user_id: string;
   input_hash: string;
   input_snapshot: unknown;
   ai_labels: unknown;
+  team_fit_snapshot?: unknown;
   report_snapshot: unknown;
   created_at: string;
 }

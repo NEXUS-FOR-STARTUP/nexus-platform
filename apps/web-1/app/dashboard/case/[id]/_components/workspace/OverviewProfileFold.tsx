@@ -44,7 +44,11 @@ export default function OverviewProfileFold({
         )}
         <CaretDown size={18} className={s.foldChevron} aria-hidden />
       </summary>
-      <OverviewProfileDetails data={data} />
+      <OverviewProfileDetails
+        data={data}
+        caseId={caseData.id}
+        initialCheckCount={caseData.pre_cp1_reports?.length ?? 0}
+      />
     </details>
   );
 }

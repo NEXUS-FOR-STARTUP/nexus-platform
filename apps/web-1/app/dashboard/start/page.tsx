@@ -124,6 +124,7 @@ export default function StartPage() {
             saving={flow.saving}
             saveFailed={flow.saveFailed}
             savedCaseId={flow.savedCaseId}
+            savedToHistory={flow.savedToHistory}
             onCreateProject={() => {
               setModalKey((k) => k + 1);
               setModalOpen(true);

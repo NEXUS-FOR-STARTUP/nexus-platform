@@ -669,24 +669,25 @@ model TeamFitReport {
   @@map("team_fit_reports")
 }
 
-/// Kết quả sơ bộ của luồng "Bắt đầu". Luôn thuộc một dự án: người đi hết luồng
-/// mà không tạo dự án thì không có bản ghi nào.
+/// Kết quả sơ bộ của luồng "Bắt đầu" (bao gồm cả lần chạy chưa gắn dự án).
 model PreCp1Report {
-  id              String   @id @default(cuid())
-  case_id         String
-  auth_user_id    String
-  input_hash      String
-  input_snapshot  Json
-  ai_labels       Json?
-  report_snapshot Json
-  created_at      DateTime @default(now())
+  id                String   @id @default(cuid())
+  case_id           String?
+  auth_user_id      String
+  input_hash        String
+  input_snapshot    Json
+  ai_labels         Json?
+  report_snapshot   Json
+  team_fit_snapshot Json?
+  created_at        DateTime @default(now())
 
-  case Case @relation(fields: [case_id], references: [id], onDelete: Cascade)
-  user User @relation("UserPreCp1Reports", fields: [auth_user_id], references: [id], onDelete: Cascade)
+  case Case? @relation(fields: [case_id], references: [id], onDelete: SetNull)
+  user User  @relation("UserPreCp1Reports", fields: [auth_user_id], references: [id], onDelete: Cascade)
 
   @@unique([case_id, input_hash])
   @@index([case_id, created_at(sort: Desc)])
   @@index([auth_user_id, created_at(sort: Desc)])
+  @@index([auth_user_id, input_hash])
   @@map("pre_cp1_reports")
 }
 

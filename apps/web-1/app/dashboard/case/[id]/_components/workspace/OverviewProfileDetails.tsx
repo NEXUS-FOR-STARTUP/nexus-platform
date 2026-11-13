@@ -1,4 +1,5 @@
 import type { OverviewData, TeamMemberSnapshot } from "../overview/caseOverviewData";
+import Link from "next/link";
 import s from "./overview.module.css";
 
 type Row = readonly [label: string, value: string];
@@ -35,7 +36,15 @@ function riskRows(d: OverviewData): Row[] {
   ];
 }
 
-export default function OverviewProfileDetails({ data: d }: { data: OverviewData }) {
+export default function OverviewProfileDetails({
+  data: d,
+  caseId,
+  initialCheckCount = 0,
+}: {
+  data: OverviewData;
+  caseId?: string;
+  initialCheckCount?: number;
+}) {
   return (
     <div className={s.inner}>
       <Group
@@ -84,38 +93,27 @@ export default function OverviewProfileDetails({ data: d }: { data: OverviewData
 
       <Group title="Rủi ro về đội ngũ" rows={riskRows(d)} />
 
-      {d.preCp1 && (
+      {caseId && (
         <>
-          <Group
-            title="Chuẩn bị ban đầu (Pre-CP1)"
-            rows={[
-              ["Mục tiêu", d.preCp1.goalLabel],
-              ["Ngân sách dự kiến", d.preCp1.budgetLabel],
-              ["Trạng thái ý tưởng", d.preCp1.ideaModeLabel],
-              ...(d.preCp1.pain ? [["Vấn đề quan tâm", d.preCp1.pain] as const] : []),
-              ...(d.preCp1.idea ? [["Ý tưởng sơ bộ", d.preCp1.idea] as const] : []),
-              ...(d.preCp1.network.length > 0 ? [["Mạng lưới hỗ trợ", d.preCp1.network.join("; ")] as const] : []),
-              ...(d.preCp1.sensitive.length > 0 ? [["Yếu tố nhạy cảm", d.preCp1.sensitive.join("; ")] as const] : []),
-              ...(d.preCp1.assetTags.length > 0 ? [["Lợi thế tài nguyên", d.preCp1.assetTags.join("; ")] as const] : []),
-              ...(d.preCp1.ideaTags.length > 0 ? [["Đặc điểm ý tưởng", d.preCp1.ideaTags.join("; ")] as const] : []),
-              ...(d.preCp1.aiLabels.length > 0 ? [["Nhãn AI ghi nhận", d.preCp1.aiLabels.join("; ")] as const] : []),
-            ]}
-          />
-
-          {d.preCp1.assets.length > 0 && <Group title="Tài nguyên sẵn có" rows={d.preCp1.assets} />}
-
-          {(d.preCp1.verdict || d.preCp1.flags.length > 0 || d.preCp1.recruit.length > 0) && (
-            <Group
-              title="Đánh giá Pre-CP1"
-              rows={[
-                ...(d.preCp1.verdict
-                  ? [[d.preCp1.verdict.title, d.preCp1.verdict.detail] as const]
-                  : []),
-                ...d.preCp1.flags.map((f): Row => [f.title, [f.reason, f.fix].filter(Boolean).join(" → ")]),
-                ...d.preCp1.recruit.map((r): Row => [`Nên tìm: ${r.title}`, r.why]),
-              ]}
-            />
-          )}
+          <p className={s.kvh}>Đánh giá ban đầu</p>
+          <dl className={s.kv}>
+            <div className={s.kvRow}>
+              <dt>Lịch sử phân tích nhóm &amp; ý tưởng</dt>
+              <dd>
+                <span>
+                  {initialCheckCount > 0
+                    ? `Đã lưu ${initialCheckCount} lần đánh giá cho dự án này · `
+                    : "Xem toàn bộ các lần chạy đánh giá ban đầu của bạn · "}
+                </span>
+                <Link
+                  href={`/dashboard/start/history?caseId=${caseId}`}
+                  className={s.foldLink}
+                >
+                  Xem lịch sử
+                </Link>
+              </dd>
+            </div>
+          </dl>
         </>
       )}
     </div>

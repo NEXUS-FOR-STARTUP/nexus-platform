@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button, Group, Text, Title } from "@mantine/core";
 import { Warning as AlertTriangle } from "@phosphor-icons/react/ssr";
@@ -20,13 +21,15 @@ export interface ResultViewProps {
   aiFailed: boolean;
   aiErrorMessage?: string | null;
   aiLoading: boolean;
-  saving: boolean;
-  saveFailed: boolean;
-  savedCaseId: string | null;
-  onCreateProject: () => void;
-  onOpenCase: (caseId: string) => void;
-  onEdit: () => void;
-  onRestart: () => void;
+  readOnly?: boolean;
+  savedToHistory?: boolean;
+  saving?: boolean;
+  saveFailed?: boolean;
+  savedCaseId?: string | null;
+  onCreateProject?: () => void;
+  onOpenCase?: (caseId: string) => void;
+  onEdit?: () => void;
+  onRestart?: () => void;
 }
 
 const RESTART_WINDOW_MS = 5000;
@@ -43,7 +46,7 @@ export function ResultView(props: ResultViewProps) {
   }, [confirmRestart]);
 
   return (
-    <div className="space-y-6 pb-28">
+    <div className={props.readOnly ? "space-y-6 pb-12" : "space-y-6 pb-28"}>
       <header className="space-y-2">
         <Title order={1} fz={{ base: 26, sm: 32 }} lh={1.15} style={{ letterSpacing: "-0.025em", textWrap: "balance" }}>
           {RESULT.title}
@@ -61,6 +64,7 @@ export function ResultView(props: ResultViewProps) {
         {ideaMode === "structured" ? <AiResultCard result={aiResult} failed={aiFailed} errorMessage={aiErrorMessage} loading={aiLoading} /> : null}
       </div>
 
+      {!props.readOnly && (
       <div className="sticky bottom-0 z-20 pt-3">
         <div className="flex flex-col gap-2 rounded-[var(--ui-radius)] border-[1.5px] border-border-app bg-surface-app p-2.5 sm:flex-row sm:items-center sm:justify-end">
           {props.saveFailed ? (
@@ -71,13 +75,22 @@ export function ResultView(props: ResultViewProps) {
               </Text>
             </Group>
           ) : null}
+          {!props.saveFailed && !props.savedCaseId && props.savedToHistory ? (
+            <Text fz="var(--ui-text-note)" c="dimmed" className="sm:mr-auto">
+              Đã tự động lưu vào{" "}
+              <Link href="/dashboard/start/history" className="text-brand underline">
+                lịch sử
+              </Link>
+              .
+            </Text>
+          ) : null}
           <Group gap="xs" wrap="wrap" justify="flex-end">
             {props.savedCaseId ? (
               <>
                 <Text fz="var(--ui-text-note)" c="green" className="sm:mr-2">
                   {RESULT.saved}
                 </Text>
-                <Button color="brand" className="sm:order-3" onClick={() => props.onOpenCase(props.savedCaseId!)}>
+                <Button color="brand" className="sm:order-3" onClick={() => props.onOpenCase?.(props.savedCaseId!)}>
                   {RESULT.openCase}
                 </Button>
               </>
@@ -96,7 +109,7 @@ export function ResultView(props: ResultViewProps) {
               onClick={() => {
                 if (confirmRestart) {
                   setConfirmRestart(false);
-                  props.onRestart();
+                  props.onRestart?.();
                 } else {
                   setConfirmRestart(true);
                 }
@@ -107,6 +120,7 @@ export function ResultView(props: ResultViewProps) {
           </Group>
         </div>
       </div>
+      )}
     </div>
   );
 }
