@@ -36,7 +36,8 @@ export default function SelectField({
   return (
     <div className={s.field}>
       <Select
-        label={required ? `${label} *` : label}
+        label={label}
+        withAsterisk={required}
         data-field={name}
         data={options as SelectOption[]}
         value={value || null}
