@@ -86,3 +86,4 @@ Sau khi xác minh, ghi 1 dòng theo format trên (ví dụ: `2026-08-03 HH:MM | 
 | 2026-11-17 17:50 | c950d45f | staging | worker-omp rebuild+push, OMP 18.12.6 unchanged (api/web Hub digests already at HEAD) | 🟠 worker |
 | 2026-11-17 17:56 | c950d45f | staging | bump OMP_VERSION 18.12.6 → 18.22.0, rebuild+push worker (d8197ad4; api/web không đổi) | 🟠 worker |
 | 2026-11-22 18:41 | 59abb22e | staging | bump OMP_VERSION 18.22.0 → 19.1.0, rebuild+push worker (718616e5; smoke `--mode json` OK; api/web không đổi) | 🟠 worker |
+| 2026-11-22 20:21 | e4d1601c | staging | rate-limit memory-only (bỏ redis) + fix sweep xoá nhầm counter ngày; build sạch (api 5b2e996989e3, web 8925a6a7a329; worker không đổi) | 🔵 api 🟢 web |
