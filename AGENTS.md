@@ -1,6 +1,6 @@
 # PROJECT KNOWLEDGE BASE
 
-## RULE TỐI CAO — QUYỀN SỬA, KIỂM CHỨNG, COMMIT, SESSION
+## RULE TỐI CAO
 
 ### Rule 1 – Câu hỏi ≠ lệnh sửa
 
