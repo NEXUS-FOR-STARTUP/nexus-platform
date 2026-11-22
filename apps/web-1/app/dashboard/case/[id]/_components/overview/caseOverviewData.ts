@@ -1,6 +1,7 @@
 import type { Case, TeamFitReport } from "@/types";
 import { missingContactLabels } from "@/app/dashboard/_components/case-contact";
 import { mapTeamFitReportResult, type OverviewArea } from "./caseOverviewModel";
+import { derivePreCp1Overview } from "./preCp1Overview";
 
 interface IntakeIdea {
   field?: string;
@@ -118,39 +119,48 @@ export function deriveOverviewData(
   const members: TeamMemberSnapshot[] = Array.isArray(teamFit?.team_snapshot)
     ? (teamFit.team_snapshot as TeamMemberSnapshot[])
     : [];
+  const preCp1 = derivePreCp1Overview(caseData.pre_cp1_reports?.[0]);
+  const effectiveMembers = members.length > 0 ? members : (preCp1?.members ?? []);
 
   const rawPrimaryNeed = supportNeeds.primary_need || "";
 
   return {
     contactSource: contact,
     groupName:
-      caseData.team_name || tfIdea.projectName || teamCtx.project_name || intake.project_name || intake.team_name || "",
+      caseData.team_name ||
+      tfIdea.projectName ||
+      preCp1?.projectName ||
+      teamCtx.project_name ||
+      intake.project_name ||
+      intake.team_name ||
+      "",
     groupNo: caseData.group_no || teamCtx.group_no || "",
-    schoolName: caseData.school || teamCtx.school || intake.school || "",
-    courseContext: caseData.course_context || teamCtx.course_context || intake.course_context || "",
+    schoolName: caseData.school || teamCtx.school || intake.school || preCp1?.schoolLabel || "",
+    courseContext: caseData.course_context || teamCtx.course_context || intake.course_context || preCp1?.courseLabel || "",
     contactName: contact.full_name || "",
     studentCode: contact.student_code || "",
     teamRole: contact.team_role || contact.role || "Trưởng nhóm",
     contactEmail: contact.email || "",
     contactPhone: contact.zalo || contact.phone || "",
     contactTelegram: contact.telegram || "",
-    field: idea.field || tfIdea.field || intake.field || "",
+    field: idea.field || tfIdea.field || preCp1?.field || intake.field || "",
     targetCustomer:
       idea.target_customer ||
       idea.targetCustomer ||
       tfIdea.targetCustomer ||
       tfIdea.target_customer ||
+      preCp1?.targetCustomer ||
       intake.target_customer ||
       intake.targetCustomer ||
       "",
-    problem: idea.problem || tfIdea.problem || intake.problem || "",
-    solution: idea.solution || tfIdea.solution || intake.solution || "",
-    mvp: idea.mvp || tfIdea.mvp || intake.mvp || "",
+    problem: idea.problem || tfIdea.problem || preCp1?.problem || intake.problem || "",
+    solution: idea.solution || tfIdea.solution || preCp1?.solution || intake.solution || "",
+    mvp: idea.mvp || tfIdea.mvp || preCp1?.mvp || intake.mvp || "",
     currentBlocker: intake.current_blocker || teamCtx.team_status_summary || "",
     primaryNeedText: rawPrimaryNeed ? PRIMARY_NEEDS_MAP[rawPrimaryNeed] || rawPrimaryNeed : "",
     expectedOutputs: intake.expected_outputs || supportNeeds.expected_outputs || "",
     extraNotes: supportNeeds.extra_notes || "",
-    members,
+    members: effectiveMembers,
     ...mapTeamFitReportResult(teamFit?.result_snapshot),
   };
 }

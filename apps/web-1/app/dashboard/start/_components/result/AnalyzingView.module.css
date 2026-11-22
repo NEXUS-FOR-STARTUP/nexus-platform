@@ -1,10 +1,153 @@
+.card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Dot grid instead of a flat fill; sits behind content at low contrast. */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
+  background-size: 14px 14px;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* Four hairline corner ticks: reads as an instrument panel, no shadow or fill. */
+.corner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-color: var(--color-brand);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.corner:nth-child(1) {
+  top: 0;
+  left: 0;
+  border-top-width: 2px;
+  border-left-width: 2px;
+  border-top-left-radius: 6px;
+}
+
+.corner:nth-child(2) {
+  top: 0;
+  right: 0;
+  border-top-width: 2px;
+  border-right-width: 2px;
+  border-top-right-radius: 6px;
+}
+
+.corner:nth-child(3) {
+  bottom: 0;
+  left: 0;
+  border-bottom-width: 2px;
+  border-left-width: 2px;
+  border-bottom-left-radius: 6px;
+}
+
+.corner:nth-child(4) {
+  bottom: 0;
+  right: 0;
+  border-bottom-width: 2px;
+  border-right-width: 2px;
+  border-bottom-right-radius: 6px;
+}
+
+.line {
+  animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Three bars rising and falling: the "still working" tell, in place of dots. */
+.bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 18px;
+  padding-top: 4px;
+}
+
+.bars span {
+  width: 4px;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--color-brand);
+  transform-origin: bottom;
+  animation: equalize 1s ease-in-out infinite;
+}
+
+.bars span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.bars span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes equalize {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.caret::after {
+  content: "";
+  display: inline-block;
+  width: 0.45em;
+  height: 1em;
+  margin-left: 3px;
+  vertical-align: -0.12em;
+  background: var(--color-brand);
+  animation: blink 1.1s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
 .track {
   position: relative;
-  height: 6px;
+  height: 8px;
   width: 100%;
   overflow: hidden;
   border-radius: 999px;
   background: var(--color-surface-soft);
+}
+
+/* Ruler ticks over the track keep the sweep readable as measured progress. */
+.track::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0 11px,
+    var(--color-surface-app) 11px 12px
+  );
+  opacity: 0.85;
 }
 
 .runner {
@@ -14,6 +157,16 @@
   border-radius: 999px;
   background: var(--color-brand);
   animation: sweep 2.1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.runner::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  right: 0;
+  width: 2px;
+  background: var(--color-text-app);
+  opacity: 0.35;
 }
 
 @keyframes sweep {
@@ -32,6 +185,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .line,
+  .caret::after {
+    animation: none;
+  }
+
+  .bars span {
+    animation: none;
+    transform: scaleY(0.6);
+  }
+
   .runner {
     left: 0;
     width: 100%;

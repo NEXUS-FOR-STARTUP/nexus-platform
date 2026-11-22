@@ -32,7 +32,8 @@ export default function FormField({
   return (
     <div className={s.field}>
       <label className={s.label} htmlFor={id}>
-        {required ? `${label} *` : label}
+        {label}
+        {required && <span className={s.req} aria-hidden="true"> *</span>}
       </label>
       <input
         id={id}

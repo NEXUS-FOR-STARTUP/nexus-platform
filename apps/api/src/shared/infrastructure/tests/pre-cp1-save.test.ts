@@ -8,6 +8,7 @@ import {
   type CreatePreCp1ReportData,
   type SavePreCp1Deps,
 } from "../../../modules/pre-cp1/application/save-pre-cp1.usecase.js";
+import { mapPreCp1HistoryRow } from "../../../modules/pre-cp1/infrastructure/persistence/pre-cp1.repository.js";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -140,4 +141,81 @@ test("someone else's case cannot be saved", async () => {
     ),
     /CASE_NOT_FOUND|Không tìm thấy/,
   );
+});
+
+test("saving without a caseId stores an unlinked report and attaches AI on second save", async () => {
+  const d = deps({ has_ai_labels: false });
+  d.findReportByHash = async () => null;
+
+  const first = await savePreCp1UseCase(
+    { caseId: null, userId: "user_1", input: INPUT, aiLabels: null, aiResult: null },
+    d,
+  );
+  assert.equal(first.isNew, true);
+  assert.equal(d.calls.created[0]!.caseId, null);
+
+  d.findReportByHash = async () => ({
+    id: "report_1",
+    input_hash: hashPreCp1Input(INPUT),
+    report_snapshot: { flags: [] },
+    has_ai_labels: false,
+  });
+  const second = await savePreCp1UseCase(
+    { caseId: null, userId: "user_1", input: INPUT, aiLabels: LABELS, aiResult: AI },
+    d,
+  );
+  assert.equal(second.isNew, false);
+  assert.equal(d.calls.attached.length, 1);
+  assert.equal(d.calls.attached[0]!.caseId, null);
+  assert.equal(d.calls.attached[0]!.reportId, "report_1");
+});
+
+test("creating a case from an unlinked report attaches caseId to that reportId", async () => {
+  const d = deps({ has_ai_labels: true });
+  const attachedCases: string[] = [];
+  d.findReportByHash = async () => null;
+  d.findUnlinkedReportById = async () => ({
+    id: "report_unlinked",
+    input_hash: hashPreCp1Input(INPUT),
+    report_snapshot: { flags: [] },
+    has_ai_labels: true,
+  });
+  d.attachCaseToReport = async (data) => {
+    attachedCases.push(`${data.reportId}->${data.caseId}`);
+  };
+
+  const result = await savePreCp1UseCase(
+    { caseId: "case_99", reportId: "report_unlinked", userId: "user_1", input: INPUT, aiLabels: LABELS, aiResult: AI },
+    d,
+  );
+
+  assert.equal(result.id, "report_unlinked");
+  assert.equal(result.isNew, false);
+  assert.deepEqual(attachedCases, ["report_unlinked->case_99"]);
+  assert.equal(d.calls.created.length, 0);
+});
+
+test("history row falls back to case team_fit_report only when team_fit_snapshot is null", () => {
+  const base = {
+    id: "rep_1",
+    case_id: "case_1",
+    auth_user_id: "user_1",
+    input_hash: "abc",
+    input_snapshot: {},
+    ai_labels: null,
+    report_snapshot: {},
+    created_at: new Date("2026-11-13T00:00:00Z"),
+    case: {
+      id: "case_1",
+      case_code: "C001",
+      team_name: "Demo",
+      team_fit_report: { result_snapshot: { legacy: true } },
+    },
+  };
+
+  const older = mapPreCp1HistoryRow({ ...base, team_fit_snapshot: null });
+  assert.deepEqual(older.team_fit_snapshot, { legacy: true });
+
+  const newer = mapPreCp1HistoryRow({ ...base, team_fit_snapshot: { own: true } });
+  assert.deepEqual(newer.team_fit_snapshot, { own: true });
 });

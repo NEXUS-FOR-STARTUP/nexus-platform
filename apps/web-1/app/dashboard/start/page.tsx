@@ -109,7 +109,11 @@ export default function StartPage() {
         }
         const effectiveMode = ideaModeOf(flow.input);
         if (flow.analyzing) {
-          return <AnalyzingView input={flow.input} hasIdeaCheck={effectiveMode === "structured"} />;
+          return (
+            <div className="flex min-h-[62vh] items-center justify-center">
+              <AnalyzingView input={flow.input} hasIdeaCheck={effectiveMode === "structured"} />
+            </div>
+          );
         }
         return (
           <ResultView
@@ -124,6 +128,7 @@ export default function StartPage() {
             saving={flow.saving}
             saveFailed={flow.saveFailed}
             savedCaseId={flow.savedCaseId}
+            savedToHistory={flow.savedToHistory}
             onCreateProject={() => {
               setModalKey((k) => k + 1);
               setModalOpen(true);
@@ -141,22 +146,17 @@ export default function StartPage() {
   const showStepper = flow.step !== "intro" && flow.step !== "result";
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div className="text-center space-y-2" hidden={!showStepper}>
+    <div className="w-full space-y-8 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div hidden={!showStepper}>
         <h1 className="font-heading text-2xl sm:text-3xl font-bold text-text-app">
           Chuẩn bị trước khi vào dự án
         </h1>
-        <p className="font-body text-sm text-text-muted max-w-lg mx-auto leading-relaxed">
-          Trả lời vài câu về nhóm, tài nguyên và ý tưởng. Cuối cùng bạn nhận được một bản nhận xét ngắn: nhóm mạnh gì, nên tìm ai, ý tưởng có ổn không.
-        </p>
       </div>
 
       {showStepper ? (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-          <div className="lg:col-span-1 lg:sticky lg:top-6">
-            <StartStepper step={flow.step} furthest={flow.furthest} onStep={flow.go} />
-          </div>
-          <div className="lg:col-span-3 max-w-3xl">{renderStep()}</div>
+        <div className="max-w-3xl mx-auto space-y-6">
+          <StartStepper step={flow.step} furthest={flow.furthest} onStep={flow.go} />
+          {renderStep()}
         </div>
       ) : (
         <div className="max-w-4xl mx-auto">{renderStep()}</div>

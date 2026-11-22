@@ -5,9 +5,21 @@
   --mantine-color-text: var(--color-text);
   -webkit-font-smoothing: auto;
   -moz-osx-font-smoothing: auto;
+  --sidebar-width: 280px;
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
   width: 100%;
+  transition: grid-template-columns 160ms ease;
+}
+
+.layout[data-collapsed] {
+  --sidebar-width: 76px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layout {
+    transition: none;
+  }
 }
 
 .sidebar {
@@ -17,6 +29,44 @@
 .main {
   min-width: 0;
   padding: 40px clamp(48px, 3vw, 120px) 96px;
+}
+
+.mainCol {
+  min-width: 0;
+}
+
+/* Sits just right of the sidebar's top corner, outside it. */
+.toolbar {
+  position: sticky;
+  top: var(--ui-topbar-height);
+  z-index: 5;
+  display: flex;
+  justify-content: flex-start;
+  height: 0;
+  padding-left: 12px;
+}
+
+.toggle {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-top: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--ui-radius);
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-surface-soft);
+    color: var(--color-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
 }
 
 /* Content tracks the viewport (floor = old fixed width) so 2K/4K screens show more, not wider margins. */
@@ -59,6 +109,10 @@
   }
 
   .sidebar {
+    display: none;
+  }
+
+  .toolbar {
     display: none;
   }
 

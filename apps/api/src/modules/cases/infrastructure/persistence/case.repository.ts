@@ -117,6 +117,20 @@ export async function findCaseByIdWithAllRelations(id: string) {
         orderBy: { created_at: "desc" },
       },
       team_fit_report: true,
+      pre_cp1_reports: {
+        select: {
+          id: true,
+          case_id: true,
+          auth_user_id: true,
+          input_hash: true,
+          input_snapshot: true,
+          ai_labels: true,
+          team_fit_snapshot: true,
+          report_snapshot: true,
+          created_at: true,
+        },
+        orderBy: { created_at: "desc" },
+      },
     },
   });
 }

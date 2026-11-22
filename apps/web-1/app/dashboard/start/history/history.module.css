@@ -1,0 +1,61 @@
+.page {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-gap-section);
+}
+
+@media (min-width: 640px) {
+  .page {
+    padding: 1.5rem 1.5rem 3rem;
+  }
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-inter-tight), sans-serif;
+  font-size: var(--ui-text-title);
+  font-weight: var(--ui-weight-medium);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.subtitle {
+  margin: 0.25rem 0 0;
+  font-size: var(--ui-text-body);
+  font-weight: var(--ui-weight-regular);
+  color: var(--color-text-muted);
+}
+
+.card {
+  border: var(--ui-border-width) solid var(--color-border);
+  border-radius: var(--ui-radius);
+  background: var(--color-surface);
+  padding: 1rem 1.25rem;
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-inter-tight), sans-serif;
+  font-size: var(--ui-text-body);
+  font-weight: var(--ui-weight-medium);
+  color: var(--color-text);
+}
+
+.note {
+  margin: 0;
+  font-size: var(--ui-text-note);
+  font-weight: var(--ui-weight-regular);
+  color: var(--color-text-muted);
+}

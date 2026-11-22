@@ -1,7 +1,15 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Compass, CreditCard, ClockCounterClockwise as History, Gear as Settings, SquaresFour as LayoutDashboard, Question as HelpCircle, ArrowSquareOut as ExternalLink } from "@phosphor-icons/react";
+import {
+  Compass,
+  CreditCard,
+  ClockCounterClockwise as History,
+  Gear as Settings,
+  SquaresFour as LayoutDashboard,
+  Question as HelpCircle,
+  ArrowSquareOut as ExternalLink,
+} from "@phosphor-icons/react";
 import { ZALO_GROUP_URL } from "@/lib/zalo";
 import classes from "./JourneySidebar.module.css";
 
@@ -24,10 +32,12 @@ const NAV_ITEMS: NavItem[] = [
 interface WorkspaceNavLinksProps {
   activeTab: WorkspaceTabKey;
   onTabChange: (key: WorkspaceTabKey) => void;
+  /** Icon-only rail: labels stay in the DOM for screen readers, `title` covers hover. */
+  collapsed?: boolean;
 }
 
 /** Danh sách mục + chân Zalo dùng chung cho sidebar desktop và ngăn kéo mobile. */
-export function WorkspaceNavLinks({ activeTab, onTabChange }: WorkspaceNavLinksProps) {
+export function WorkspaceNavLinks({ activeTab, onTabChange, collapsed = false }: WorkspaceNavLinksProps) {
   return (
     <>
       <div className={classes.navbarMain}>
@@ -38,6 +48,7 @@ export function WorkspaceNavLinks({ activeTab, onTabChange }: WorkspaceNavLinksP
             aria-current={activeTab === item.key ? "page" : undefined}
             href="#"
             key={item.key}
+            title={collapsed ? item.label : undefined}
             onClick={(event) => {
               event.preventDefault();
               onTabChange(item.key);
@@ -50,7 +61,7 @@ export function WorkspaceNavLinks({ activeTab, onTabChange }: WorkspaceNavLinksP
       </div>
 
       <div className={classes.footer}>
-        <a href={ZALO_GROUP_URL} target="_blank" rel="noopener noreferrer" className={classes.link}>
+        <a href={ZALO_GROUP_URL} target="_blank" rel="noopener noreferrer" className={classes.link} title={collapsed ? "Hỗ trợ Zalo" : undefined}>
           <HelpCircle className={classes.linkIcon} />
           <span>Hỗ trợ Zalo</span>
           <ExternalLink size={14} className={classes.external} />
@@ -60,10 +71,16 @@ export function WorkspaceNavLinks({ activeTab, onTabChange }: WorkspaceNavLinksP
   );
 }
 
-export default function JourneySidebar(props: WorkspaceNavLinksProps) {
+interface JourneySidebarProps extends WorkspaceNavLinksProps {
+  collapsed: boolean;
+}
+
+export default function JourneySidebar({ collapsed, ...links }: JourneySidebarProps) {
   return (
-    <nav className={classes.navbar} aria-label="Điều hướng dự án">
-      <WorkspaceNavLinks {...props} />
+    <nav className={classes.navbar} aria-label="Điều hướng dự án" data-collapsed={collapsed || undefined}>
+      <div className={classes.scroll}>
+        <WorkspaceNavLinks {...links} collapsed={collapsed} />
+      </div>
     </nav>
   );
 }

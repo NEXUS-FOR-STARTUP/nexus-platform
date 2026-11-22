@@ -1,24 +1,32 @@
 # PROJECT KNOWLEDGE BASE
 
-## RULE TỐI CAO — TRÌNH BÀY TRƯỚC, KHÔNG TỰ SỬA
+## RULE TỐI CAO
 
-### Rule 1 – Trình bày trước khi sửa
+### Rule 1 – Câu hỏi ≠ lệnh sửa
 
-Trước mọi thay đổi vào bất kỳ file, code, UX, hay rule nào, agent **phải trình bày trước và chờ xác nhận rõ ràng**:
+Câu hỏi, bàn luận, review, "nên làm gì": **chỉ trả lời + đề xuất giải pháp**, không sửa bất kỳ file, code, UX hay rule nào.
 
-1. Mình muốn sửa cái gì.
-2. Vì sao cần sửa.
-3. Nội dung sửa cụ thể như thế nào.
-4. Rủi ro / hệ quả nếu sửa.
+Muốn sửa thì phải trình bày trước và chờ xác nhận rõ ràng 4 mục: (1) sửa gì, (2) vì sao, (3) nội dung cụ thể, (4) rủi ro. Chỉ khi user nói rõ đồng ý, cho phép, hoặc tự yêu cầu sửa cụ thể mới được thực hiện.
 
-Chỉ khi user nói rõ đồng ý, cho phép, hoặc tự yêu cầu sửa cụ thể thì mới được thực hiện.
+Cấm sửa ngầm, sửa "nhân tiện", sửa khi user chưa biết nội dung. Rule này tự thân không được sửa hay xoá nếu chưa được user cho phép.
 
-Cấm sửa ngầm, sửa "nhân tiện", sửa khi user chưa biết nội dung, hay sửa khi user chỉ đang hỏi / bàn luận. Rule này tự thân cũng không được sửa hay xoá nếu chưa trình bày và được user cho phép.
+### Rule 2 – Kiểm chứng thay vì hỏi
 
-### Rule 2 – (Chưa có)
+Không biết nhưng tự kiểm tra được (đọc file, chạy lệnh, `git log`/`git diff`, tra docs) → **kiểm tra ngay, không hỏi**. Cấm nói "chưa kiểm tra…" với thứ tự kiểm tra được.
 
+### Rule 3 – Commit
 
-- Prefer `caveman` skill lite mode + `sequential-thinking` for structured reasoning.
+Conventional Commits, **tách nhỏ** theo đơn vị logic. **Không push** — kể cả đã commit xong vẫn phải hỏi trước.
+
+### Rule 4 – Đầu session
+
+`git fetch origin` trước khi bắt đầu bất cứ việc gì.
+
+### Rule 5 – Ponytail ultra
+
+Chạy **ponytail ultra** (https://github.com/DietrichGebert/ponytail) cho toàn session.
+
+- Prefer `sequential-thinking` for structured reasoning.
 - **CodeGraph**: Project indexed with CodeGraph. Use `codegraph_explore` MCP or `codegraph explore` CLI BEFORE `grep` or Read.
 
 **Generated:** 2026-10-04
@@ -82,7 +90,7 @@ root/
 - TanStack Form for form state.
 - Phosphor Icons (@phosphor-icons/react) for icons (not Mantine icons).
 - Test: Node built-in runner (`node:test` + `node:assert`), only in apps/api.
-- **Test scope: chỉ chạy test của phần đã đổi, KHÔNG chạy cả bộ.** `bun run --filter nexus-platform-api test` (cả bộ) đang treo (>290s), chưa tìm ra test gây treo. Chạy từng file: `cd apps/api && timeout 40 npx tsx --test src/shared/infrastructure/tests/<file>.test.ts`. Validation: `cd packages/validation && bun run build && bun run test` (API đọc `dist` của validation, phải build lại trước). Kiểu: `npx tsc --noEmit` trong package đã đổi.
+- **Test scope: chỉ chạy test của phần đã đổi.** Cả bộ API chạy được bằng `bun test --parallel` (~5s, 88 file); không dùng `tsx --test` cho cả bộ vì treo >290s. Baseline hiện tại: 410 pass / 2 skip / 9 fail do DB local thiếu fixture (fail y hệt dưới `tsx --test`). Chạy từng file khi cần cô lập: `cd apps/api && bun test ./src/shared/infrastructure/tests/<file>.test.ts`. Validation: `cd packages/validation && bun run build && bun run test` (API đọc `dist` của validation, phải build lại trước). Kiểu: `bun check` là kiểm kiểu thuần (nhanh) — chỉ chạy sau khi đã có `next typegen` / `prisma generate`; với `apps/web-1` và `apps/api` dùng `bun run --filter <pkg> check-types` để chạy kèm bước chuẩn bị đó. `packages/validation` và `packages/shared` có `check-types` chỉ gồm `bun check` thuần; `apps/worker-omp` không có script `check-types` → chạy `bun check` trực tiếp. Cấm `tsc --noEmit`/`npx tsc`; cả monorepo thì `bun run check-types` (turbo).
 - CI/CD: see `docs/ci-guide.md`.
 - Docker build: see `docs/docker-build-push-guide.md`.
 - Shared validation: see `docs/shared-validation-convention.md` for zod/entity rules.
@@ -116,7 +124,9 @@ root/
 ```bash
 bun run dev
 bun run build
-bun run check-types
+bun check                      # pure type check (after typegen / prisma generate)
+bun run --filter <pkg> check-types  # package check incl. next typegen / prisma generate
+bun run check-types            # every workspace (turbo)
 bun run prisma:generate
 bun run prisma:migrate
 ```
@@ -128,10 +138,10 @@ bun run prisma:migrate
 bun run dev                    # parallel: API (bun --watch :8000) + Web (next dev :3001)
 bun run build                  # prisma generate → tsc (API) + next build (Web)
 bun run lint                   # ESLint zero-warnings (Web + UI)
-bun run check-types            # tsc --noEmit all workspaces
+bun run check-types            # turbo: bun check in every workspace (never tsc --noEmit)
 bun run prisma:generate        # Root Prisma schema → client
-bun run --filter nexus-platform-api test # API test suite (tsx --test) — ĐANG TREO, không chạy cả bộ; xem "Test scope" ở CONVENTIONS
-bun run format                 # Prettier (not in CI pipeline)
+bun run --filter nexus-platform-api test # API test suite (bun test --parallel, ~5s; 9 fail do DB thiếu fixture); xem "Test scope"
+bun run format                 # bun fmt (not in CI pipeline)
 ```
 ## DOCKER BUILD & DEPLOY
 

@@ -5,13 +5,14 @@
     "dev": "bun --watch src/index.ts",
     "prisma:generate": "prisma generate --schema ../../prisma/schema.prisma",
     "build": "bun run prisma:generate && tsc -p tsconfig.build.json && bun -e \"const { cpSync } = require('node:fs'); cpSync('src/modules/reports/infrastructure/pdf/templates', 'dist/modules/reports/infrastructure/pdf/templates', { recursive: true }); cpSync('src/modules/reports/infrastructure/pdf/fonts', 'dist/modules/reports/infrastructure/pdf/fonts', { recursive: true });\"",
-    "check-types": "bun run prisma:generate && tsc --noEmit",
+    "check-types": "bun run prisma:generate && bun check",
     "start": "bun dist/index.js",
-    "test": "tsx --test src/shared/infrastructure/tests/*.test.ts",
-    "test:coverage": "tsx --test --experimental-test-coverage src/shared/infrastructure/tests/*.test.ts"
+    "test": "bun test --parallel",
+    "test:coverage": "bun test --coverage"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.83",
+    "@ai-sdk/openai": "^2",
     "@app/shared": "workspace:*",
     "@grammyjs/auto-retry": "^2.0.2",
     "@hono/node-server": "^2.0.6",

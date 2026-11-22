@@ -77,7 +77,9 @@ Ports:
 ```bash
 bun run build
 bun run lint
-bun run check-types
+bun check             # pure type check; needs typegen/prisma generate first
+bun run --filter <pkg> check-types  # package check incl. typegen/prisma generate
+bun run check-types   # all workspaces via turbo
 bun run prisma:generate
 bun run prisma:migrate
 ```

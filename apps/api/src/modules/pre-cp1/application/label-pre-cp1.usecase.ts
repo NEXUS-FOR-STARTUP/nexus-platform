@@ -1,5 +1,6 @@
-import { generateObject } from 'ai'
 import { z } from 'zod'
+import { generateObjectWithFallback } from '../../../services/generate-with-fallback.js'
+import { getStartModelChoice } from '../../../services/start-model.js'
 import {
   ASSET_PROMPTS,
   ASSET_RULES,
@@ -8,10 +9,10 @@ import {
   type LabelRequest,
   type LabelResult,
 } from '@repo/validation'
-import { getGoogleModel } from '../../../services/google-provider.js'
 import logger from '../../../shared/infrastructure/logger.js'
 
-const AI_TIMEOUT_MS = 20_000
+// Per attempt. Client gives up at 25s (usePreCp1Label.ts), so 2 × 10s + overhead stays inside it.
+const AI_ATTEMPT_TIMEOUT_MS = 10_000
 const AI_TEMPERATURE = 0.1
 const MAX_LABELS = 8
 const MAX_QUOTE_CHARS = 120
@@ -78,13 +79,14 @@ export function buildPrompt(request: LabelRequest): string {
 export async function labelPreCp1UseCase(request: LabelRequest): Promise<LabelResult> {
   const t0 = Date.now()
   try {
-    const { object } = await generateObject({
-      model: getGoogleModel(process.env.AI_PRE_CP1_MODEL ?? process.env.AI_TEAM_FIT_MODEL),
+    const { object } = await generateObjectWithFallback({
+      kind: 'pre-cp1-label',
+      choice: getStartModelChoice('label'),
       schema: LabelOutputSchema,
       system: SYSTEM,
       prompt: buildPrompt(request),
       temperature: AI_TEMPERATURE,
-      abortSignal: AbortSignal.timeout(AI_TIMEOUT_MS),
+      timeoutMs: AI_ATTEMPT_TIMEOUT_MS,
     })
     const labels = filterLabels(request.kind, object.ids)
     logger.info({ kind: request.kind, labels: labels.length, duration_ms: Date.now() - t0 }, 'pre-cp1 labels')

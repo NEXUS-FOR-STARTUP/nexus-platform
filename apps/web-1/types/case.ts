@@ -40,6 +40,7 @@ export interface Case {
   messages?: CaseMessage[];
   events?: CaseEvent[];
   team_fit_report?: TeamFitReport | null;
+  pre_cp1_reports?: PreCp1ReportRecord[];
   latest_ai_job_status?: string | null;
 }
 
@@ -49,6 +50,18 @@ export interface TeamFitReport {
   idea_snapshot: unknown;
   team_snapshot: unknown;
   result_snapshot: unknown;
+  created_at: string;
+}
+
+export interface PreCp1ReportRecord {
+  id: string;
+  case_id: string | null;
+  auth_user_id: string;
+  input_hash: string;
+  input_snapshot: unknown;
+  ai_labels: unknown;
+  team_fit_snapshot?: unknown;
+  report_snapshot: unknown;
   created_at: string;
 }
 

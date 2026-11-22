@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button, Group, Text, Title } from "@mantine/core";
 import { Warning as AlertTriangle } from "@phosphor-icons/react/ssr";
@@ -20,13 +21,15 @@ export interface ResultViewProps {
   aiFailed: boolean;
   aiErrorMessage?: string | null;
   aiLoading: boolean;
-  saving: boolean;
-  saveFailed: boolean;
-  savedCaseId: string | null;
-  onCreateProject: () => void;
-  onOpenCase: (caseId: string) => void;
-  onEdit: () => void;
-  onRestart: () => void;
+  readOnly?: boolean;
+  savedToHistory?: boolean;
+  saving?: boolean;
+  saveFailed?: boolean;
+  savedCaseId?: string | null;
+  onCreateProject?: () => void;
+  onOpenCase?: (caseId: string) => void;
+  onEdit?: () => void;
+  onRestart?: () => void;
 }
 
 const RESTART_WINDOW_MS = 5000;
@@ -43,7 +46,7 @@ export function ResultView(props: ResultViewProps) {
   }, [confirmRestart]);
 
   return (
-    <div className="space-y-6 pb-28">
+    <div className={props.readOnly ? "space-y-6 pb-12" : "space-y-6 pb-28"}>
       <header className="space-y-2">
         <Title order={1} fz={{ base: 26, sm: 32 }} lh={1.15} style={{ letterSpacing: "-0.025em", textWrap: "balance" }}>
           {RESULT.title}
@@ -61,6 +64,7 @@ export function ResultView(props: ResultViewProps) {
         {ideaMode === "structured" ? <AiResultCard result={aiResult} failed={aiFailed} errorMessage={aiErrorMessage} loading={aiLoading} /> : null}
       </div>
 
+      {!props.readOnly && (
       <div className="sticky bottom-0 z-20 pt-3">
         <div className="flex flex-col gap-2 rounded-[var(--ui-radius)] border-[1.5px] border-border-app bg-surface-app p-2.5 sm:flex-row sm:items-center sm:justify-end">
           {props.saveFailed ? (
@@ -71,22 +75,31 @@ export function ResultView(props: ResultViewProps) {
               </Text>
             </Group>
           ) : null}
-          <Group gap="xs" wrap="wrap" justify="flex-end">
+          {!props.saveFailed && !props.savedCaseId && props.savedToHistory ? (
+            <Text fz="var(--ui-text-note)" c="dimmed" className="sm:mr-auto">
+              Đã tự động lưu vào{" "}
+              <Link href="/dashboard/start/history" className="text-brand underline">
+                lịch sử
+              </Link>
+              .
+            </Text>
+          ) : null}
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-end">
             {props.savedCaseId ? (
               <>
-                <Text fz="var(--ui-text-note)" c="green" className="sm:mr-2">
+                <Text fz="var(--ui-text-note)" c="green" className="col-span-2 sm:order-last sm:ml-2">
                   {RESULT.saved}
                 </Text>
-                <Button color="brand" className="sm:order-3" onClick={() => props.onOpenCase(props.savedCaseId!)}>
+                <Button color="brand" className="col-span-2 sm:col-auto sm:order-3" onClick={() => props.onOpenCase?.(props.savedCaseId!)}>
                   {RESULT.openCase}
                 </Button>
               </>
             ) : (
-              <Button color="brand" className="sm:order-3" onClick={props.onCreateProject} loading={props.saving} disabled={props.saving}>
+              <Button color="brand" className="col-span-2 sm:col-auto sm:order-3" onClick={props.onCreateProject} loading={props.saving} disabled={props.saving}>
                 {RESULT.createdAt}
               </Button>
             )}
-            <Button variant="default" className="sm:order-2" onClick={props.onEdit}>
+            <Button variant="default" onClick={props.onEdit}>
               {RESULT.edit}
             </Button>
             <Button
@@ -96,7 +109,7 @@ export function ResultView(props: ResultViewProps) {
               onClick={() => {
                 if (confirmRestart) {
                   setConfirmRestart(false);
-                  props.onRestart();
+                  props.onRestart?.();
                 } else {
                   setConfirmRestart(true);
                 }
@@ -104,9 +117,10 @@ export function ResultView(props: ResultViewProps) {
             >
               {confirmRestart ? RESULT.restartConfirm : RESULT.restart}
             </Button>
-          </Group>
+          </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

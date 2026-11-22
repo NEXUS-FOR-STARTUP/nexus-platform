@@ -1,4 +1,5 @@
 import type { OverviewData, TeamMemberSnapshot } from "../overview/caseOverviewData";
+import Link from "next/link";
 import s from "./overview.module.css";
 
 type Row = readonly [label: string, value: string];
@@ -21,7 +22,8 @@ function Group({ title, rows }: { title?: string; rows: Row[] }) {
 }
 
 function memberRow(m: TeamMemberSnapshot, index: number): Row {
-  const detail = [m.major || m.role, m.skills].filter(Boolean).join(", ");
+  const roleOrMajor = [m.major, m.role].filter(Boolean).join(" · ");
+  const detail = [roleOrMajor, m.skills].filter(Boolean).join(" — ");
   return [m.fullName || m.name || `Thành viên ${index + 1}`, detail];
 }
 
@@ -34,7 +36,15 @@ function riskRows(d: OverviewData): Row[] {
   ];
 }
 
-export default function OverviewProfileDetails({ data: d }: { data: OverviewData }) {
+export default function OverviewProfileDetails({
+  data: d,
+  caseId,
+  initialCheckCount = 0,
+}: {
+  data: OverviewData;
+  caseId?: string;
+  initialCheckCount?: number;
+}) {
   return (
     <div className={s.inner}>
       <Group
@@ -82,6 +92,30 @@ export default function OverviewProfileDetails({ data: d }: { data: OverviewData
       <Group title={`Đội ngũ (${d.members.length} thành viên)`} rows={d.members.map(memberRow)} />
 
       <Group title="Rủi ro về đội ngũ" rows={riskRows(d)} />
+
+      {caseId && (
+        <>
+          <p className={s.kvh}>Đánh giá ban đầu</p>
+          <dl className={s.kv}>
+            <div className={s.kvRow}>
+              <dt>Lịch sử phân tích nhóm &amp; ý tưởng</dt>
+              <dd>
+                <span>
+                  {initialCheckCount > 0
+                    ? `Đã lưu ${initialCheckCount} lần đánh giá cho dự án này · `
+                    : "Xem toàn bộ các lần chạy đánh giá ban đầu của bạn · "}
+                </span>
+                <Link
+                  href={`/dashboard/start/history?caseId=${caseId}`}
+                  className={s.foldLink}
+                >
+                  Xem lịch sử
+                </Link>
+              </dd>
+            </div>
+          </dl>
+        </>
+      )}
     </div>
   );
 }

@@ -83,7 +83,9 @@ bun run --filter nexus-platform-api dev
 
 ```bash
 bun run --filter nexus-platform-api build
-bun run --filter nexus-platform-api check-types
+bun run --filter nexus-platform-api check-types   # prisma generate + bun check (use this)
+# fast loop only, after a prisma generate has run once:
+bun check
 ```
 
 ## Docker

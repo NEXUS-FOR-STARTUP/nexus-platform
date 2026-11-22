@@ -49,6 +49,7 @@ export function useStartFlow() {
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "failed">("idle");
   const [saveFailed, setSaveFailed] = useState(false);
   const savedFor = useRef<string | null>(null);
+  const savedReportIdRef = useRef<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [minWaitDone, setMinWaitDone] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
@@ -101,16 +102,18 @@ export function useStartFlow() {
   }, [isClient, form, step, caseId, saveDraft]);
 
   const persist = useCallback(
-    async (targetCase: string, nextInput: PreCp1Input) => {
+    async (targetCase: string | null, nextInput: PreCp1Input) => {
       setSaveState("saving");
       setSaveFailed(false);
       try {
-        await saveMutation.mutateAsync({
-          caseId: targetCase,
+        const res = await saveMutation.mutateAsync({
+          caseId: targetCase ?? undefined,
+          reportId: targetCase && savedReportIdRef.current ? savedReportIdRef.current : undefined,
           input: nextInput,
           aiLabels: [...(labels.assets?.labels ?? []), ...(labels.idea?.labels ?? [])],
           aiResult: evaluation.data ?? undefined,
         });
+        savedReportIdRef.current = res.reportId;
         setSaveState("saved");
         return true;
       } catch {
@@ -122,10 +125,13 @@ export function useStartFlow() {
     [saveMutation, labels, evaluation.data],
   );
 
-  // One save per (case, content) pair: the later AI verdict triggers a second, final save.
-  const saveKey = caseId && input ? `${caseId}:${evaluation.data ? "ai" : "noai"}` : null;
+  // Auto-save every run (with or without a case) as soon as result renders, then attach AI once ready.
+  const saveKey =
+    step === "result" && input
+      ? `${caseId ?? "anon"}:${JSON.stringify(input)}:${evaluation.data ? "ai" : "noai"}:${labels.assets?.signature ?? ""}:${labels.idea?.signature ?? ""}`
+      : null;
   useEffect(() => {
-    if (step !== "result" || !caseId || !input || !saveKey) return;
+    if (step !== "result" || !input || !saveKey) return;
     if (savedFor.current === saveKey) return;
     savedFor.current = saveKey;
     void persist(caseId, input);
@@ -275,6 +281,7 @@ export function useStartFlow() {
     setSaveState("idle");
     setSaveFailed(false);
     savedFor.current = null;
+    savedReportIdRef.current = null;
     evaluation.reset();
     setAnalyzing(false);
     setMinWaitDone(false);
@@ -295,6 +302,7 @@ export function useStartFlow() {
 
     saving: saveState === "saving",
     saveFailed,
+    savedToHistory: saveState === "saved",
     savedCaseId: saveState === "saved" ? caseId : null,
     aiResult: evaluation.data ?? null,
     aiErrorMessage: (() => {
