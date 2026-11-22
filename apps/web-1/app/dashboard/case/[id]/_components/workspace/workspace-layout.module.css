@@ -112,6 +112,10 @@
     display: none;
   }
 
+  .toolbar {
+    display: none;
+  }
+
   .main {
     padding: 24px 16px 88px;
   }
