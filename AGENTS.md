@@ -26,6 +26,7 @@ Conventional Commits, **tách nhỏ** theo đơn vị logic. **Không push** —
 
 Chạy **ponytail ultra** (https://github.com/DietrichGebert/ponytail) cho toàn session.
 
+- Prefer `sequential-thinking` for structured reasoning.
 - **CodeGraph**: Project indexed with CodeGraph. Use `codegraph_explore` MCP or `codegraph explore` CLI BEFORE `grep` or Read.
 
 **Generated:** 2026-10-04
