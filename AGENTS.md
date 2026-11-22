@@ -131,7 +131,7 @@ bun run lint                   # ESLint zero-warnings (Web + UI)
 bun run check-types            # bun check all workspaces
 bun run prisma:generate        # Root Prisma schema → client
 bun run --filter nexus-platform-api test # API test suite (bun test --parallel, ~5s; 9 fail do DB thiếu fixture); xem "Test scope"
-bun run format                 # Prettier (not in CI pipeline)
+bun run format                 # bun fmt (not in CI pipeline)
 ```
 ## DOCKER BUILD & DEPLOY
 

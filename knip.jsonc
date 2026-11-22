@@ -19,7 +19,6 @@
     "prisma.config.ts"
   ],
   "ignoreDependencies": [
-    "prettier",
     "turbo"
   ],
   "rules": {
