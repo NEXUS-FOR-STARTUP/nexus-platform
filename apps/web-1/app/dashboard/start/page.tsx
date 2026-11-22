@@ -109,7 +109,11 @@ export default function StartPage() {
         }
         const effectiveMode = ideaModeOf(flow.input);
         if (flow.analyzing) {
-          return <AnalyzingView input={flow.input} hasIdeaCheck={effectiveMode === "structured"} />;
+          return (
+            <div className="flex min-h-[62vh] items-center justify-center">
+              <AnalyzingView input={flow.input} hasIdeaCheck={effectiveMode === "structured"} />
+            </div>
+          );
         }
         return (
           <ResultView

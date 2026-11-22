@@ -76,27 +76,37 @@ export function AnalyzingView({ input, hasIdeaCheck }: AnalyzingViewProps) {
 
   return (
     <div
-      className="mx-auto max-w-xl rounded-[var(--ui-radius)] border border-border-app bg-surface-app p-6 sm:p-8 space-y-6"
+      className={`${styles.card} w-full max-w-xl rounded-[var(--ui-radius)] border border-border-app bg-surface-app p-6 sm:p-8 space-y-6`}
       role="status"
-      aria-live="polite"
       aria-busy="true"
     >
+      <span className={styles.corner} aria-hidden="true" />
+      <span className={styles.corner} aria-hidden="true" />
+      <span className={styles.corner} aria-hidden="true" />
+      <span className={styles.corner} aria-hidden="true" />
+
       <div className="flex items-start justify-between gap-4">
         <h2 className="font-heading text-lg font-semibold text-text-app leading-snug">
           Hệ thống đang phân tích hồ sơ nhóm
         </h2>
-        <span className="shrink-0 rounded-md bg-surface-soft px-2 py-1 font-body text-xs font-medium text-text-muted tabular-nums">
+        <span className="flex shrink-0 items-center gap-2 rounded-md border border-border-app bg-surface-soft px-2 py-1 font-body text-xs font-medium text-text-app tabular-nums">
+          <span className="h-1.5 w-1.5 rounded-full bg-brand animate-pulse motion-reduce:animate-none" aria-hidden="true" />
           {formatElapsed(elapsedSec)}
         </span>
       </div>
 
-      <div className="flex items-start gap-3 min-h-11">
-        <span className={styles.dots} aria-hidden="true">
+      <div className="flex items-start gap-3 min-h-14">
+        <span className={styles.bars} aria-hidden="true">
           <span />
           <span />
           <span />
         </span>
-        <p key={activeTaskIndex} className={`${styles.line} font-body text-base text-text-app leading-relaxed`}>
+        <p
+          key={activeTaskIndex}
+          aria-live="polite"
+          aria-atomic="true"
+          className={`${styles.line} ${styles.caret} font-body text-base text-text-app leading-relaxed`}
+        >
           {tasks[activeTaskIndex]}
         </p>
       </div>
