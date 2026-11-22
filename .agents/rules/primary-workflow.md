@@ -18,7 +18,7 @@ trigger: always_on
 - **[IMPORTANT]** After creating or modifying code files, check for compile errors immediately:
   - **Fast Loop**: Use `LSP diagnostics` (`xd://lsp`) on modified files for instant type-checking.
   - **Refactoring Gate**: When renaming exported symbols or moving files across packages (e.g. `@repo/validation` ↔ `apps/api` / `apps/web-1`), use `LSP rename` / `rename_file` to ensure zero broken callsites.
-  - **Build Verification**: Before commit run `bun run --filter <pkg> check-types` for every changed package — it runs the prerequisites (`next typegen`, `prisma generate`) then `bun check`. `bun check` alone is the fast loop, valid only after those generated types exist; `packages/validation`'s `check-types` is only `bun check`; `apps/worker-omp` and `packages/shared` have no `check-types`, so run `bun check` there (`packages/shared` lacks `@types/node`, so its output has pre-existing errors). Root `bun run check-types` runs all workspaces. Never use `tsc --noEmit` / `npx tsc` for type checks.
+  - **Build Verification**: Before commit run `bun run --filter <pkg> check-types` for every changed package — it runs the prerequisites (`next typegen`, `prisma generate`) then `bun check`. `bun check` alone is the fast loop, valid only after those generated types exist; `packages/validation` and `packages/shared` have `check-types` (a bare `bun check`); `apps/worker-omp` has none, so run `bun check` there. Root `bun run check-types` runs all workspaces. Never use `tsc --noEmit` / `npx tsc` for type checks.
 
 #### 1b. DB Migration Safety Gate (MANDATORY if task touches database)
 

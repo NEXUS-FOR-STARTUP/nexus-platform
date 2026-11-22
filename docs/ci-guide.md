@@ -42,7 +42,7 @@ bun run check-types   # turbo → package check-types (prerequisites + bun check
 # local, one package:
 bun run --filter nexus-platform-web-1 check-types  # next typegen + bun check
 bun run --filter nexus-platform-api check-types  # prisma generate + bun check
-bun check             # fast loop in worker-omp / validation (no typegen step)
+bun check             # fast loop in worker-omp (no typegen step)
 ```
 
 Yêu cầu `DATABASE_URL` trong `.env` (Prisma client cần để generate).
