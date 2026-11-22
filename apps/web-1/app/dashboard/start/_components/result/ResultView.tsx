@@ -84,22 +84,22 @@ export function ResultView(props: ResultViewProps) {
               .
             </Text>
           ) : null}
-          <Group gap="xs" wrap="wrap" justify="flex-end">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-end">
             {props.savedCaseId ? (
               <>
-                <Text fz="var(--ui-text-note)" c="green" className="sm:mr-2">
+                <Text fz="var(--ui-text-note)" c="green" className="col-span-2 sm:order-last sm:ml-2">
                   {RESULT.saved}
                 </Text>
-                <Button color="brand" className="sm:order-3" onClick={() => props.onOpenCase?.(props.savedCaseId!)}>
+                <Button color="brand" className="col-span-2 sm:col-auto sm:order-3" onClick={() => props.onOpenCase?.(props.savedCaseId!)}>
                   {RESULT.openCase}
                 </Button>
               </>
             ) : (
-              <Button color="brand" className="sm:order-3" onClick={props.onCreateProject} loading={props.saving} disabled={props.saving}>
+              <Button color="brand" className="col-span-2 sm:col-auto sm:order-3" onClick={props.onCreateProject} loading={props.saving} disabled={props.saving}>
                 {RESULT.createdAt}
               </Button>
             )}
-            <Button variant="default" className="sm:order-2" onClick={props.onEdit}>
+            <Button variant="default" onClick={props.onEdit}>
               {RESULT.edit}
             </Button>
             <Button
@@ -117,7 +117,7 @@ export function ResultView(props: ResultViewProps) {
             >
               {confirmRestart ? RESULT.restartConfirm : RESULT.restart}
             </Button>
-          </Group>
+          </div>
         </div>
       </div>
       )}
