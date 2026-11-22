@@ -82,7 +82,7 @@ root/
 - TanStack Form for form state.
 - Phosphor Icons (@phosphor-icons/react) for icons (not Mantine icons).
 - Test: Node built-in runner (`node:test` + `node:assert`), only in apps/api.
-- **Test scope: chỉ chạy test của phần đã đổi.** Cả bộ API chạy được bằng `bun test --parallel` (~5s, 88 file); không dùng `tsx --test` cho cả bộ vì treo >290s. Baseline hiện tại: 410 pass / 2 skip / 9 fail do DB local thiếu fixture (fail y hệt dưới `tsx --test`). Chạy từng file khi cần cô lập: `cd apps/api && bun test ./src/shared/infrastructure/tests/<file>.test.ts`. Validation: `cd packages/validation && bun run build && bun run test` (API đọc `dist` của validation, phải build lại trước). Kiểu: `npx tsc --noEmit` trong package đã đổi.
+- **Test scope: chỉ chạy test của phần đã đổi.** Cả bộ API chạy được bằng `bun test --parallel` (~5s, 88 file); không dùng `tsx --test` cho cả bộ vì treo >290s. Baseline hiện tại: 410 pass / 2 skip / 9 fail do DB local thiếu fixture (fail y hệt dưới `tsx --test`). Chạy từng file khi cần cô lập: `cd apps/api && bun test ./src/shared/infrastructure/tests/<file>.test.ts`. Validation: `cd packages/validation && bun run build && bun run test` (API đọc `dist` của validation, phải build lại trước). Kiểu: `bun check` trong package đã đổi.
 - CI/CD: see `docs/ci-guide.md`.
 - Docker build: see `docs/docker-build-push-guide.md`.
 - Shared validation: see `docs/shared-validation-convention.md` for zod/entity rules.
@@ -128,7 +128,7 @@ bun run prisma:migrate
 bun run dev                    # parallel: API (bun --watch :8000) + Web (next dev :3001)
 bun run build                  # prisma generate → tsc (API) + next build (Web)
 bun run lint                   # ESLint zero-warnings (Web + UI)
-bun run check-types            # tsc --noEmit all workspaces
+bun run check-types            # bun check all workspaces
 bun run prisma:generate        # Root Prisma schema → client
 bun run --filter nexus-platform-api test # API test suite (bun test --parallel, ~5s; 9 fail do DB thiếu fixture); xem "Test scope"
 bun run format                 # Prettier (not in CI pipeline)

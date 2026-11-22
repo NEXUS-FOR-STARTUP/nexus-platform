@@ -16,7 +16,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "check-types": "tsc --noEmit",
+    "check-types": "bun check",
     "test": "bun test"
   },
   "dependencies": {
@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
+    "@types/node": "^20.11.17",
     "exceljs": "4.4.0",
     "tsup": "^8.5.1",
     "typescript": "5.9.2"
