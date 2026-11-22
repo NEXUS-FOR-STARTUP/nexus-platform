@@ -212,7 +212,7 @@ export function validateStep(step: StepId, form: StartForm, pendingLabels: strin
   }
   if (step === "assets") {
     const left = ASSET_PROMPT_IDS.filter((id) => !(form.assets[id] ?? "").trim() && !form.assetsNone.includes(id)).length;
-    return left ? `Còn ${left} câu chưa trả lời. Viết vài chữ, hoặc bấm “Mình không có / không nhớ”.` : "";
+    return left ? `Còn ${left} câu chưa trả lời. Viết vài chữ, hoặc bấm “Không có / không nhớ”.` : "";
   }
   if (step === "network") {
     return form.networkOther.trim()

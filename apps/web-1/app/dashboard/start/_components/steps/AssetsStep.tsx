@@ -52,7 +52,7 @@ export function AssetsStep({ form, patch, error, onBack, onNext, busy }: AssetsS
               {!off && (
                 <Textarea
                   autosize
-                  minRows={2}
+                  minRows={1}
                   maxRows={6}
                   maxLength={TEXT_LIMITS.assetAnswer}
                   placeholder={prompt.ph}
@@ -67,7 +67,7 @@ export function AssetsStep({ form, patch, error, onBack, onNext, busy }: AssetsS
               )}
 
               <Checkbox
-                label="Mình không có / không nhớ"
+                label="Không có / không nhớ"
                 checked={off}
                 onChange={(e) => setNone(prompt.id, e.currentTarget.checked)}
               />
@@ -77,7 +77,7 @@ export function AssetsStep({ form, patch, error, onBack, onNext, busy }: AssetsS
 
         <Textarea
           autosize
-          minRows={2}
+          minRows={1}
           maxLength={TEXT_LIMITS.assetsOther}
           label="Còn gì nữa không? (không bắt buộc)"
           placeholder="Một thứ nhỏ cũng được, ví dụ: nhà mình có sân để xe."

@@ -4,7 +4,7 @@ import type { FlagStatus } from "@repo/validation";
 export const STEP_NAMES = [
   "Mục tiêu",
   "Nhóm",
-  "Điều bạn đang có",
+  "Đang có sẵn",
   "Người quen",
   "Ý tưởng",
   "Mô tả ý tưởng",
@@ -38,7 +38,7 @@ export const WHY = {
 } as const;
 
 export const ASSETS_LEAD =
-  "Năm câu ngắn, cả nhóm trả lời chung: mỗi người góp vài chữ, ghi tên cho dễ nhớ. Hoặc bấm “Mình không có / không nhớ”.";
+  "Năm câu ngắn, cả nhóm trả lời chung: mỗi người góp vài chữ, ghi tên cho dễ nhớ. Hoặc bấm “Không có / không nhớ”.";
 
 export const IDEA_DRAFT_LEAD = "Không bắt buộc. Bỏ trống vẫn đi tiếp được.";
 
@@ -79,7 +79,7 @@ export const RESULT = {
   postHintNote: "Sao chép rồi dán vào nhóm lớp, story hoặc tin nhắn riêng.",
   copied: "Đã sao chép",
   copyFailed: "Không sao chép tự động được. Bôi đen đoạn tin và nhấn Ctrl+C.",
-  zonesEmpty: "Chưa đủ thông tin để gợi ý hướng. Quay lại bước “Điều bạn đang có” và kể thêm.",
+  zonesEmpty: "Chưa đủ thông tin để gợi ý hướng. Quay lại bước “Đang có sẵn” và kể thêm.",
   aiFailed: "Chưa chấm được theo ngành, xem phần luật bên dưới.",
   ideaSectionNote: "Bạn chưa ghi ý tưởng nên mục này chỉ kiểm tra nhóm và nguồn lực. Xem hướng gợi ý ở mục dưới.",
   structuredIncomplete:

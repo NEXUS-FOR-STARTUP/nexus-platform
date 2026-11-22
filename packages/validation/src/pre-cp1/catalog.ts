@@ -160,29 +160,29 @@ export const CORE_ROLES = [
 
 export const ASSET_PROMPTS = [
   {
-    id: "family", title: "Gia đình hoặc họ hàng của bạn hoặc các bạn trong nhóm làm nghề gì?",
+    id: "family", title: "Gia đình, họ hàng làm nghề gì?",
     why: "Nhiều nhóm tìm ra hướng đi từ chính nghề của gia đình. Bạn thấy bình thường, nhưng người ngoài thì không có.",
-    ph: "Ví dụ: Nhà mình mở cửa hàng bán vật tư nông nghiệp ở quê. Mình thường phụ bán cuối tuần.",
+    ph: "Ví dụ: Nhà mình mở cửa hàng vật tư nông nghiệp ở quê.",
   },
   {
-    id: "work", title: "Ai trong nhóm từng làm thêm, bán hàng hoặc làm việc gì ngoài trường?",
+    id: "work", title: "Ai trong nhóm từng làm thêm?",
     why: "Việc đã làm thật cho biết bạn hiểu khách hàng nào và quy trình nào.",
-    ph: "Ví dụ: Mình làm phục vụ quán cà phê 1 năm. Mình có bán đồ handmade trên Facebook.",
+    ph: "Ví dụ: Mình làm phục vụ quán cà phê 1 năm.",
   },
   {
-    id: "people", title: "Nhóm quen ai làm nghề đặc biệt, hoặc có thể nhờ giúp?",
+    id: "people", title: "Quen ai làm nghề đặc biệt?",
     why: "Một người quen đúng nghề có thể thay cho cả tháng tự mò.",
-    ph: "Ví dụ: Cô mình là kế toán. Anh họ có xưởng mộc nhỏ. Bạn thân đang làm ở nhà thuốc.",
+    ph: "Ví dụ: Cô mình là kế toán.",
   },
   {
-    id: "tools", title: "Ai trong nhóm có sẵn dụng cụ, máy móc, chỗ làm nào không?",
+    id: "tools", title: "Có sẵn dụng cụ, máy móc gì?",
     why: "Máy móc hoặc chỗ làm sẵn có giúp bạn làm được những thứ nhóm khác không dám nghĩ tới.",
-    ph: "Ví dụ: Nhà có máy may. Mình dùng được phòng lab ở trường. Mình có máy in 3D.",
+    ph: "Ví dụ: Nhà có máy may, trường có phòng lab.",
   },
   {
-    id: "own", title: "Ai trong nhóm có sở thích hoặc kiến thức riêng mà người khác thường không có?",
+    id: "own", title: "Sở thích hoặc kiến thức riêng?",
     why: "Người hiểu rõ một thứ thường nhìn ra điều khó chịu mà người ngoài không thấy.",
-    ph: "Ví dụ: Mình chơi nhiều năm với cây cảnh. Mình rành giày sneaker. Mình học nấu ăn chay.",
+    ph: "Ví dụ: Mình chơi cây cảnh nhiều năm.",
   },
 ] as const;
 
