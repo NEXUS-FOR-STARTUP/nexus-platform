@@ -1,3 +1,53 @@
+.line {
+  animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.dots {
+  display: inline-flex;
+  gap: 3px;
+  padding-top: 6px;
+}
+
+.dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--color-brand);
+  animation: wave 1.2s ease-in-out infinite;
+}
+
+.dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes wave {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
 .track {
   position: relative;
   height: 6px;
@@ -32,6 +82,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .line {
+    animation: none;
+  }
+
+  .dots span {
+    animation: none;
+    opacity: 1;
+  }
+
   .runner {
     left: 0;
     width: 100%;
