@@ -1,27 +1,30 @@
 # PROJECT KNOWLEDGE BASE
 
-## RULE TỐI CAO — TRÌNH BÀY TRƯỚC, KHÔNG TỰ SỬA + SESSION RULES
+## RULE TỐI CAO — QUYỀN SỬA, KIỂM CHỨNG, COMMIT, SESSION
 
-### Rule 1 – Trình bày trước khi sửa
+### Rule 1 – Câu hỏi ≠ lệnh sửa
 
-Trước mọi thay đổi vào bất kỳ file, code, UX, hay rule nào, agent **phải trình bày trước và chờ xác nhận rõ ràng**:
+Câu hỏi, bàn luận, review, "nên làm gì": **chỉ trả lời + đề xuất giải pháp**, không sửa bất kỳ file, code, UX hay rule nào.
 
-1. Mình muốn sửa cái gì.
-2. Vì sao cần sửa.
-3. Nội dung sửa cụ thể như thế nào.
-4. Rủi ro / hệ quả nếu sửa.
+Muốn sửa thì phải trình bày trước và chờ xác nhận rõ ràng 4 mục: (1) sửa gì, (2) vì sao, (3) nội dung cụ thể, (4) rủi ro. Chỉ khi user nói rõ đồng ý, cho phép, hoặc tự yêu cầu sửa cụ thể mới được thực hiện.
 
-Chỉ khi user nói rõ đồng ý, cho phép, hoặc tự yêu cầu sửa cụ thể thì mới được thực hiện.
+Cấm sửa ngầm, sửa "nhân tiện", sửa khi user chưa biết nội dung. Rule này tự thân không được sửa hay xoá nếu chưa được user cho phép.
 
-Cấm sửa ngầm, sửa "nhân tiện", sửa khi user chưa biết nội dung, hay sửa khi user chỉ đang hỏi / bàn luận. Rule này tự thân cũng không được sửa hay xoá nếu chưa trình bày và được user cho phép.
+### Rule 2 – Kiểm chứng thay vì hỏi
 
-### Rule 2 – Session rules (bắt buộc, áp dụng mọi session)
+Không biết nhưng tự kiểm tra được (đọc file, chạy lệnh, `git log`/`git diff`, tra docs) → **kiểm tra ngay, không hỏi**. Cấm nói "chưa kiểm tra…" với thứ tự kiểm tra được.
 
-1. Gặp câu hỏi / bàn luận: **chỉ trả lời và đề xuất giải pháp, không sửa code**.
-2. Không biết nhưng tự kiểm tra được: **kiểm tra ngay, không cần hỏi**. Cấm nói "chưa kiểm tra…" với thứ có thể tự kiểm tra ngay.
-3. Commit theo convention chuẩn, **tách nhỏ**. **Không được push** — luôn hỏi trước.
-4. Đầu mỗi session: `git fetch origin` trước khi bắt đầu.
-5. Luôn dùng **ponytail ultra** (https://github.com/DietrichGebert/ponytail).
+### Rule 3 – Commit
+
+Conventional Commits, **tách nhỏ** theo đơn vị logic. **Không push** — kể cả đã commit xong vẫn phải hỏi trước.
+
+### Rule 4 – Đầu session
+
+`git fetch origin` trước khi bắt đầu bất cứ việc gì.
+
+### Rule 5 – Ponytail ultra
+
+Chạy **ponytail ultra** (https://github.com/DietrichGebert/ponytail) cho toàn session.
 
 - Prefer `caveman` skill lite mode + `sequential-thinking` for structured reasoning.
 - **CodeGraph**: Project indexed with CodeGraph. Use `codegraph_explore` MCP or `codegraph explore` CLI BEFORE `grep` or Read.
