@@ -1,5 +1,4 @@
 import { AppError } from "../domain/app-error.js";
-import logger from "./logger.js";
 
 export interface RateLimitBucket {
   key: string;
@@ -9,75 +8,50 @@ export interface RateLimitBucket {
   message: string;
 }
 
-export interface RateLimitRedisClient {
-  status: string;
-  incr(key: string): Promise<number>;
-  pexpire(key: string, ms: number): Promise<unknown>;
+/**
+ * Sliding-window counters, per process.
+ *
+ * shortcut: counters live in this process only, so running more than one api
+ * instance multiplies every limit by the instance count. Moving to a shared
+ * store is required before scaling out (Redis with one atomic script doing
+ * `INCR` + `PEXPIRE` only when the counter was created, never per request —
+ * refreshing the TTL on every call turns a fixed window into a lockout).
+ */
+interface Window {
+  times: number[];
+  windowMs: number;
 }
 
 const MAX_TRACKED_KEYS = 5000;
-const REDIS_TIMEOUT_MS = 800;
-const memoryStore = new Map<string, number[]>();
-let redisClient: RateLimitRedisClient | null = null;
+const store = new Map<string, Window>();
 
-export function setRateLimiterRedis(client: RateLimitRedisClient | null): void {
-  redisClient = client;
-}
-
-function sweepExpired(now: number, maxWindowMs: number) {
-  for (const [key, times] of memoryStore.entries()) {
-    if (times.every((ts) => now - ts >= maxWindowMs)) {
-      memoryStore.delete(key);
+/** Drops keys whose every stamp is older than that key's own window. */
+function sweepExpired(now: number): void {
+  for (const [key, window] of store.entries()) {
+    if (window.times.every((ts) => now - ts >= window.windowMs)) {
+      store.delete(key);
     }
   }
 }
 
-function claimInMemory(bucket: RateLimitBucket, now: number): boolean {
-  if (memoryStore.size > MAX_TRACKED_KEYS) {
-    sweepExpired(now, bucket.windowMs);
+function claim(bucket: RateLimitBucket, now: number): boolean {
+  if (store.size > MAX_TRACKED_KEYS) {
+    sweepExpired(now);
   }
-  const kept = (memoryStore.get(bucket.key) ?? []).filter((ts) => now - ts < bucket.windowMs);
-  if (kept.length >= bucket.max) {
+  const times = (store.get(bucket.key)?.times ?? []).filter((ts) => now - ts < bucket.windowMs);
+  if (times.length >= bucket.max) {
+    store.set(bucket.key, { times, windowMs: bucket.windowMs });
     return false;
   }
-  kept.push(now);
-  memoryStore.set(bucket.key, kept);
+  times.push(now);
+  store.set(bucket.key, { times, windowMs: bucket.windowMs });
   return true;
-}
-
-async function claimInRedis(bucket: RateLimitBucket): Promise<boolean | null> {
-  if (process.env.NODE_ENV === "test" || !redisClient || redisClient.status !== "ready") {
-    return null;
-  }
-
-  try {
-    const redisKey = `rl:${bucket.key}`;
-    const timeout = Promise.withResolvers<never>();
-    const timer = setTimeout(() => timeout.reject(new Error("redis timeout")), REDIS_TIMEOUT_MS);
-
-    let count: number;
-    try {
-      count = await Promise.race([redisClient.incr(redisKey), timeout.promise]);
-    } finally {
-      clearTimeout(timer);
-    }
-
-    if (count === 1) {
-      await redisClient.pexpire(redisKey, bucket.windowMs).catch(() => {});
-    }
-    return count <= bucket.max;
-  } catch (err) {
-    logger.warn({ err, key: bucket.key }, "Rate limiter Redis fallback to memory");
-    return null;
-  }
 }
 
 export async function enforceRateLimit(buckets: RateLimitBucket[], now = Date.now()): Promise<void> {
   for (const bucket of buckets) {
     if (bucket.max <= 0) continue;
-    const redisResult = await claimInRedis(bucket);
-    const allowed = redisResult !== null ? redisResult : claimInMemory(bucket, now);
-    if (!allowed) {
+    if (!claim(bucket, now)) {
       throw new AppError(429, bucket.code, bucket.message);
     }
   }
@@ -91,5 +65,5 @@ export function extractClientIp(headers: { get(name: string): string | null | un
 }
 
 export function resetRateLimiterMemoryForTests(): void {
-  memoryStore.clear();
+  store.clear();
 }
