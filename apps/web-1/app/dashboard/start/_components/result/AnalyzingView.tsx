@@ -77,8 +77,6 @@ export function AnalyzingView({ input, hasIdeaCheck }: AnalyzingViewProps) {
   return (
     <div
       className={`${styles.card} w-full max-w-xl rounded-[var(--ui-radius)] border border-border-app bg-surface-app p-6 sm:p-8 space-y-6`}
-      role="status"
-      aria-busy="true"
     >
       <span className={styles.corner} aria-hidden="true" />
       <span className={styles.corner} aria-hidden="true" />
