@@ -10,14 +10,17 @@ import {
   type TeamFitHandoffItem,
   type TeamFitMachineStats,
 } from "@repo/validation";
-import { getGoogleModel } from "../../../services/google-provider.js";
-import { generateObject } from "ai";
+import { generateObjectWithFallback } from "../../../services/generate-with-fallback.js";
+import { getStartModelChoice } from "../../../services/start-model.js";
 import { AppError } from "../../../shared/domain/app-error.js";
 import logger from "../../../shared/infrastructure/logger.js";
 
 // Version of the shape stored in result_snapshot (2 = three-part free report).
 const REPORT_VERSION = 2;
-const AI_TIMEOUT_MS = 30_000;
+// Team fit keeps the model's reasoning, so the primary gets a long budget; the fallback is fast.
+// 40s + 20s + overhead stays inside the 65s client timeout (useTeamFitEvaluation.ts).
+const AI_PRIMARY_TIMEOUT_MS = 40_000;
+const AI_FALLBACK_TIMEOUT_MS = 20_000;
 const AI_TEMPERATURE = 0.3;
 const AI_MAX_OUTPUT_TOKENS = 4096;
 
@@ -142,21 +145,25 @@ export function computeMachineStats(input: TeamFitInput): TeamFitMachineStats {
  */
 async function generateAiAssessment(prompt: string): Promise<TeamFitAiOutput | null> {
   const t0 = Date.now();
+  let providerLabel: string | null = null;
 
   try {
-    const { object } = await generateObject({
-      model: getGoogleModel(),
+    const { object, provider } = await generateObjectWithFallback({
+      kind: "team-fit",
+      choice: getStartModelChoice("team-fit"),
       schema: TeamFitAiOutputSchema,
       system: SYSTEM_PROMPT_FREE,
       prompt,
       temperature: AI_TEMPERATURE,
       maxOutputTokens: AI_MAX_OUTPUT_TOKENS,
-      abortSignal: AbortSignal.timeout(AI_TIMEOUT_MS),
+      timeoutMs: AI_PRIMARY_TIMEOUT_MS,
+      fallbackTimeoutMs: AI_FALLBACK_TIMEOUT_MS,
     });
+    providerLabel = provider;
 
     logger.info(
       {
-        model: process.env.AI_TEAM_FIT_MODEL,
+        model: provider,
         promptLength: prompt.length,
         duration_ms: Date.now() - t0,
         areaCount: object.areas.length,
@@ -171,7 +178,7 @@ async function generateAiAssessment(prompt: string): Promise<TeamFitAiOutput | n
         err: error,
         code: mapped.code,
         status: mapped.status,
-        model: process.env.AI_TEAM_FIT_MODEL,
+        model: providerLabel,
         duration_ms: Date.now() - t0,
       },
       "AI evaluation failed - returning machine stats and hand-off only",
@@ -207,7 +214,7 @@ function mapAIError(error: unknown, durationMs?: number): AppError {
     const code = aiError.statusCode ?? 500;
 
     if (code === 401 || code === 403) {
-      return new AppError(500, "AI_AUTH_ERROR", "Không thể xác thực với Google AI. Kiểm tra lại API key.");
+      return new AppError(500, "AI_AUTH_ERROR", "Không thể xác thực với dịch vụ AI. Kiểm tra lại API key.");
     }
     if (code === 429) {
       return new AppError(429, "AI_RATE_LIMITED", "Quá nhiều yêu cầu. Vui lòng thử lại sau ít phút.");
@@ -219,18 +226,18 @@ function mapAIError(error: unknown, durationMs?: number): AppError {
       (code === 400 && aiError.message?.includes("not found")) ||
       aiError.message?.includes("not supported")
     ) {
-      return new AppError(500, "AI_MODEL_NOT_FOUND", `Model AI không tồn tại: ${process.env.AI_TEAM_FIT_MODEL ?? "gemini-2.0-flash"}. Kiểm tra AI_TEAM_FIT_MODEL.`);
+      return new AppError(500, "AI_MODEL_NOT_FOUND", "Model AI không tồn tại hoặc không hỗ trợ. Kiểm tra biến môi trường model.");
     }
   }
 
   if (aiError.name === "AbortError" || aiError.name === "TimeoutError" || aiError.message?.includes("timeout") || aiError.message?.includes("abort")) {
-    return new AppError(504, "AI_TIMEOUT", "Google AI phản hồi quá chậm. Vui lòng thử lại.");
+    return new AppError(504, "AI_TIMEOUT", "Dịch vụ AI phản hồi quá chậm. Vui lòng thử lại.");
   }
 
   if (aiError.name === "ZodError" || aiError.name === "AI_SchemaValidationError" || aiError.message?.includes("schema")) {
     return new AppError(500, "AI_INVALID_OUTPUT", "AI trả về định dạng không hợp lệ. Vui lòng thử lại.");
   }
 
-  logger.error({ err: error, model: process.env.AI_TEAM_FIT_MODEL, duration_ms: durationMs }, "AI evaluation unhandled error");
+  logger.error({ err: error, duration_ms: durationMs }, "AI evaluation unhandled error");
   return new AppError(500, "AI_INTERNAL_ERROR", "Lỗi hệ thống AI. Vui lòng thử lại sau.");
 }
