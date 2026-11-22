@@ -99,14 +99,14 @@ export function AnalyzingView({ input, hasIdeaCheck }: AnalyzingViewProps) {
           <span />
           <span />
         </span>
-        <p
-          key={activeTaskIndex}
-          aria-live="polite"
-          aria-atomic="true"
-          className={`${styles.line} ${styles.caret} font-body text-base text-text-app leading-relaxed`}
-        >
-          {tasks[activeTaskIndex]}
-        </p>
+        <div aria-live="polite" aria-atomic="true" className="min-w-0">
+          <p
+            key={activeTaskIndex}
+            className={`${styles.line} ${styles.caret} font-body text-base text-text-app leading-relaxed`}
+          >
+            {tasks[activeTaskIndex]}
+          </p>
+        </div>
       </div>
 
       <div className={styles.track} aria-hidden="true">
