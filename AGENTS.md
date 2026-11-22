@@ -90,7 +90,7 @@ root/
 - TanStack Form for form state.
 - Phosphor Icons (@phosphor-icons/react) for icons (not Mantine icons).
 - Test: Node built-in runner (`node:test` + `node:assert`), only in apps/api.
-- **Test scope: chỉ chạy test của phần đã đổi.** Cả bộ API chạy được bằng `bun test --parallel` (~5s, 88 file); không dùng `tsx --test` cho cả bộ vì treo >290s. Baseline hiện tại: 410 pass / 2 skip / 9 fail do DB local thiếu fixture (fail y hệt dưới `tsx --test`). Chạy từng file khi cần cô lập: `cd apps/api && bun test ./src/shared/infrastructure/tests/<file>.test.ts`. Validation: `cd packages/validation && bun run build && bun run test` (API đọc `dist` của validation, phải build lại trước). Kiểu: `bun check` trong package đã đổi — không dùng `tsc --noEmit` hay `npx tsc`; cả monorepo thì `bun run check-types` (turbo gọi `bun check` từng workspace).
+- **Test scope: chỉ chạy test của phần đã đổi.** Cả bộ API chạy được bằng `bun test --parallel` (~5s, 88 file); không dùng `tsx --test` cho cả bộ vì treo >290s. Baseline hiện tại: 410 pass / 2 skip / 9 fail do DB local thiếu fixture (fail y hệt dưới `tsx --test`). Chạy từng file khi cần cô lập: `cd apps/api && bun test ./src/shared/infrastructure/tests/<file>.test.ts`. Validation: `cd packages/validation && bun run build && bun run test` (API đọc `dist` của validation, phải build lại trước). Kiểu: `bun check` là kiểm kiểu thuần (nhanh) — chỉ chạy sau khi đã có `next typegen` / `prisma generate`; với `apps/web-1` và `apps/api` dùng `bun run --filter <pkg> check-types` để chạy kèm bước chuẩn bị đó. `apps/worker-omp` và `packages/validation` không có script `check-types` → chạy `bun check` trực tiếp (`packages/shared` chưa có @types/node, `bun check` báo lỗi có sẵn). Cấm `tsc --noEmit`/`npx tsc`; cả monorepo thì `bun run check-types` (turbo).
 - CI/CD: see `docs/ci-guide.md`.
 - Docker build: see `docs/docker-build-push-guide.md`.
 - Shared validation: see `docs/shared-validation-convention.md` for zod/entity rules.
@@ -124,8 +124,9 @@ root/
 ```bash
 bun run dev
 bun run build
-bun check                      # type check the package you changed
-bun run check-types            # every workspace (turbo → bun check)
+bun check                      # pure type check (after typegen / prisma generate)
+bun run --filter <pkg> check-types  # package check incl. next typegen / prisma generate
+bun run check-types            # every workspace (turbo)
 bun run prisma:generate
 bun run prisma:migrate
 ```
