@@ -2,7 +2,7 @@
 
 import { CheckIcon } from "@phosphor-icons/react/ssr";
 import { PROGRESS_STEPS, STEPS, type StepId } from "../_hooks/usePreCp1Form";
-import { STEP_MINUTES, STEP_NAMES } from "../_data/copy";
+import { STEP_NAMES } from "../_data/copy";
 
 interface StartStepperProps {
   step: StepId;
@@ -18,7 +18,6 @@ export function StartStepper({ step, furthest, onStep }: StartStepperProps) {
   // `furthest` indexes STEPS (which also holds setup and result screens); the list
   // below indexes PROGRESS_STEPS, so translate once instead of comparing two scales.
   const reach = PROGRESS_STEPS.reduce((acc, id, i) => (STEPS.indexOf(id) <= furthest ? i : acc), -1);
-  const left = STEP_MINUTES.slice(index).reduce((sum, m) => sum + m, 0);
 
   return (
     <nav aria-label="Các bước" className="w-full">
@@ -26,7 +25,7 @@ export function StartStepper({ step, furthest, onStep }: StartStepperProps) {
       <div className="mb-3 flex items-baseline justify-between gap-3 lg:justify-end">
         <span className="font-heading text-[15px] font-semibold text-text-app lg:hidden">{STEP_NAMES[index]}</span>
         <span className="font-body text-sm text-text-muted tabular-nums">
-          Bước {index + 1}/{PROGRESS_STEPS.length} · còn ~{left} phút
+          Bước {index + 1}/{PROGRESS_STEPS.length}
         </span>
       </div>
 

@@ -11,9 +11,6 @@ export const STEP_NAMES = [
   "Điều nhạy cảm",
 ] as const;
 
-/** Rough minutes left, shown in the progress line. */
-export const STEP_MINUTES = [1, 3, 4, 1, 1, 3, 1] as const;
-
 export const INTRO_LEAD =
   "Khoảng 7 bước ngắn, mất tầm 10 phút, chủ yếu là bấm chọn. Không cần chuẩn bị trước, không có đáp án đúng hay sai.";
 
