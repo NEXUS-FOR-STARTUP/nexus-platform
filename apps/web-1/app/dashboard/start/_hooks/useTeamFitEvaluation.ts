@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import type { TeamFitInput, TeamFitSavedResult } from "@repo/validation";
 
-const EVALUATION_TIMEOUT_MS = 40_000;
+const EVALUATION_TIMEOUT_MS = 65_000;
 
 /** The same classifier the team-fit screen used, called once at the end. */
 export function useTeamFitEvaluation() {
