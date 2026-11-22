@@ -46,7 +46,7 @@ src/
 ```bash
 bun run --filter nexus-platform-api dev         # Watch mode on port 8000
 bun run --filter nexus-platform-api build       # TypeScript compile (tsc)
-bun run --filter nexus-platform-api check-types # Typecheck without emit
+bun run --filter nexus-platform-api check-types # prisma generate + bun check (never tsc --noEmit)
 bun run --filter nexus-platform-api test        # Run 88 test files (bun test --parallel, ~5s)
 ```
 

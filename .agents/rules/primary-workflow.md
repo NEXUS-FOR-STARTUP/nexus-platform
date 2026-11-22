@@ -18,7 +18,7 @@ trigger: always_on
 - **[IMPORTANT]** After creating or modifying code files, check for compile errors immediately:
   - **Fast Loop**: Use `LSP diagnostics` (`xd://lsp`) on modified files for instant type-checking.
   - **Refactoring Gate**: When renaming exported symbols or moving files across packages (e.g. `@repo/validation` ↔ `apps/api` / `apps/web-1`), use `LSP rename` / `rename_file` to ensure zero broken callsites.
-  - **Build Verification**: Run full `bun run check-types` once at the end before commit.
+  - **Build Verification**: Run `bun check` in every package you changed, once at the end before commit. Root `bun run check-types` (turbo) runs the same check across all workspaces. Never use `tsc --noEmit` / `npx tsc` for type checks.
 
 #### 1b. DB Migration Safety Gate (MANDATORY if task touches database)
 

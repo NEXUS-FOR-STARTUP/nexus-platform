@@ -77,7 +77,8 @@ Ports:
 ```bash
 bun run build
 bun run lint
-bun run check-types
+bun check             # type check a single package (no tsc --noEmit)
+bun run check-types   # all workspaces via turbo
 bun run prisma:generate
 bun run prisma:migrate
 ```

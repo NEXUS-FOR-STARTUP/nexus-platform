@@ -25,7 +25,7 @@ Job env:
 2. `oven-sh/setup-bun@v2` — Bun 1.4.0
 3. `bun install --frozen-lockfile` — clean install dependencies theo `bun.lock`
 4. `bun run build` — turbo build (kèm prisma generate)
-5. `bun run check-types` — turbo type check
+5. `bun run check-types` — turbo chạy `bun check` trong từng workspace (không dùng `tsc --noEmit`)
 
 ## View Results
 
@@ -38,7 +38,9 @@ Tự động fail nếu build hoặc type check lỗi.
 
 ```bash
 bun run build
-bun run check-types
+bun run check-types   # turbo → bun check in every workspace
+# local, faster feedback on one package:
+bun check             # run inside apps/api, apps/web-1, packages/validation
 ```
 
 Yêu cầu `DATABASE_URL` trong `.env` (Prisma client cần để generate).

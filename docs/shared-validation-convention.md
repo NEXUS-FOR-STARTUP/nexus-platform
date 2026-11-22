@@ -29,7 +29,7 @@
 
 - Delete file → grep importers → if 0, safe delete
 - After delete → run `bun run knip` → verify warnings
-- After schema migration → run `check-types` + `build` as gate
+- After schema migration → run `bun check` (package) + `build` as gate
 
 ## Rule 6: Shared Report Naming Standard (`packages/validation/src/report-naming.ts`)
 
