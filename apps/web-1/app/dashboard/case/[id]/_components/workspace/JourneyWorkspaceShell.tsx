@@ -2,8 +2,8 @@
 
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import { List as Menu, X } from "@phosphor-icons/react";
-import { useDisclosure } from "@mantine/hooks";
+import { List as Menu, SidebarSimple, X } from "@phosphor-icons/react";
+import { useDisclosure, useLocalStorage } from "@mantine/hooks";
 import JourneySidebar, { type WorkspaceTabKey } from "./JourneySidebar";
 import JourneyMobileNav from "./JourneyMobileNav";
 import WorkspaceMain from "./WorkspaceMain";
@@ -22,6 +22,8 @@ const StageDetail = dynamic(() => import("./stage/StageDetail"), { loading: () =
 const BillingTab = dynamic(() => import("../billing/BillingTab"), { loading: () => <TabPanelSkeleton /> });
 const ActivityTimeline = dynamic(() => import("../ActivityTimeline"), { loading: () => <TabPanelSkeleton /> });
 const TabCaseSettings = dynamic(() => import("../TabCaseSettings"), { loading: () => <TabPanelSkeleton /> });
+
+const SIDEBAR_KEY = "nexus.workspace.sidebar-collapsed";
 
 interface JourneyWorkspaceShellProps {
   caseId: string;
@@ -47,6 +49,12 @@ export default function JourneyWorkspaceShell({
   const viewParam = parseStageView(searchParams.get("view"));
 
   const [mobileNavOpened, { toggle: toggleMobileNav, close: closeMobileNav }] = useDisclosure(false);
+  // getInitialValueInEffect keeps the server-rendered expanded rail as the first paint.
+  const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage<boolean>({
+    key: SIDEBAR_KEY,
+    defaultValue: false,
+    getInitialValueInEffect: true,
+  });
   const { data: stageSummariesData, isLoading: isStagesLoading } = useStageSummaries(caseId);
 
   // Map legacy tab URLs to new workspace tabs
@@ -89,7 +97,7 @@ export default function JourneyWorkspaceShell({
   const width = showStageDetail ? "wide" : activeTab === "timeline" || activeTab === "settings" ? "narrow" : "col";
 
   return (
-    <div className={classes.layout}>
+    <div className={classes.layout} data-collapsed={sidebarCollapsed || undefined}>
       <JourneyMobileNav
         opened={mobileNavOpened}
         onClose={closeMobileNav}
@@ -98,7 +106,7 @@ export default function JourneyWorkspaceShell({
       />
 
       <div className={classes.sidebar}>
-        <JourneySidebar activeTab={activeTab} onTabChange={handleTabChange} />
+        <JourneySidebar activeTab={activeTab} onTabChange={handleTabChange} collapsed={sidebarCollapsed} />
       </div>
 
       <button
@@ -111,7 +119,21 @@ export default function JourneyWorkspaceShell({
         {mobileNavOpened ? <X size={20} /> : <Menu size={20} />}
       </button>
 
-      <WorkspaceMain width={width} enterKey={`${activeTab}:${stageSlugParam}`}>
+      <div className={classes.mainCol}>
+        <div className={classes.toolbar}>
+          <button
+            type="button"
+            onClick={() => setSidebarCollapsed((prev) => !prev)}
+            aria-expanded={!sidebarCollapsed}
+            aria-label={sidebarCollapsed ? "Mở rộng thanh điều hướng" : "Thu gọn thanh điều hướng"}
+            title={sidebarCollapsed ? "Mở rộng thanh điều hướng" : "Thu gọn thanh điều hướng"}
+            className={classes.toggle}
+          >
+            <SidebarSimple size={20} />
+          </button>
+        </div>
+
+        <WorkspaceMain width={width} enterKey={`${activeTab}:${stageSlugParam}`}>
         {activeTab === "overview" && (
           <OverviewTab
             caseId={caseId}
@@ -161,6 +183,7 @@ export default function JourneyWorkspaceShell({
 
         {activeTab === "settings" && <TabCaseSettings caseData={caseData!} intakeSnapshot={intakeSnapshot} />}
       </WorkspaceMain>
+      </div>
     </div>
   );
 }
