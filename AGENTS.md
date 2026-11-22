@@ -1,6 +1,6 @@
 # PROJECT KNOWLEDGE BASE
 
-## RULE TỐI CAO — TRÌNH BÀY TRƯỚC, KHÔNG TỰ SỬA
+## RULE TỐI CAO — TRÌNH BÀY TRƯỚC, KHÔNG TỰ SỬA + SESSION RULES
 
 ### Rule 1 – Trình bày trước khi sửa
 
@@ -15,8 +15,13 @@ Chỉ khi user nói rõ đồng ý, cho phép, hoặc tự yêu cầu sửa cụ
 
 Cấm sửa ngầm, sửa "nhân tiện", sửa khi user chưa biết nội dung, hay sửa khi user chỉ đang hỏi / bàn luận. Rule này tự thân cũng không được sửa hay xoá nếu chưa trình bày và được user cho phép.
 
-### Rule 2 – (Chưa có)
+### Rule 2 – Session rules (bắt buộc, áp dụng mọi session)
 
+1. Gặp câu hỏi / bàn luận: **chỉ trả lời và đề xuất giải pháp, không sửa code**.
+2. Không biết nhưng tự kiểm tra được: **kiểm tra ngay, không cần hỏi**. Cấm nói "chưa kiểm tra…" với thứ có thể tự kiểm tra ngay.
+3. Commit theo convention chuẩn, **tách nhỏ**. **Không được push** — luôn hỏi trước.
+4. Đầu mỗi session: `git fetch origin` trước khi bắt đầu.
+5. Luôn dùng **ponytail ultra** (https://github.com/DietrichGebert/ponytail).
 
 - Prefer `caveman` skill lite mode + `sequential-thinking` for structured reasoning.
 - **CodeGraph**: Project indexed with CodeGraph. Use `codegraph_explore` MCP or `codegraph explore` CLI BEFORE `grep` or Read.
