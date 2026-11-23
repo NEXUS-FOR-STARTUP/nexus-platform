@@ -195,9 +195,31 @@ services:
     image: redis:7-alpine
     container_name: nexus-redis
     restart: unless-stopped
-    stop_grace_period: 10s
+    stop_grace_period: 30s
+    # maxmemory < container limit: Redis refuses writes (noeviction) instead of the kernel SIGKILLing it.
+    # AOF everysec survives a recreate; --save "" drops RDB forks, useless next to AOF.
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+      - --save
+      - ""
+      - --maxmemory
+      - 320mb
+      - --maxmemory-policy
+      - noeviction
+      - --maxmemory-clients
+      - 32mb
+      - --lazyfree-lazy-user-del
+      - "yes"
+    mem_limit: 512m
+    memswap_limit: 512m
     ports:
       - "127.0.0.1:${REDIS_HOST_PORT:-6390}:6379"
+    volumes:
+      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -247,6 +269,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
     driver: local
 
 networks:
