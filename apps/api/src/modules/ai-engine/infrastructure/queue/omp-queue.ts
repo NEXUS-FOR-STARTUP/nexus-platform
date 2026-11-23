@@ -20,7 +20,11 @@ const connection = {
   maxRetriesPerRequest: null,
 };
 
-export const ompQueue = new Queue("omp-queue", { connection });
+// Events default to 10 000 entries; 100 is plenty, and a full stream once OOM-killed Redis.
+export const ompQueue = new Queue("omp-queue", {
+  connection,
+  streams: { events: { maxLen: 100 } },
+});
 export const ompQueueEvents = new QueueEvents("omp-queue", { connection });
 
 export const redisPublisher = new Redis({

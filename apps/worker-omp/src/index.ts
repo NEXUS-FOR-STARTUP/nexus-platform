@@ -26,7 +26,8 @@ console.log(`[Worker-OMP] Redis: ${REDIS_HOST}:${REDIS_PORT}, Storage: ${STORAGE
 export const worker = new Worker(
   "omp-queue",
   async (job: Job<OmpJobPayload>) => {
-    return executeOmpJob(job.data);
+    // Result is persisted by executeOmpJob; returning it would store ~400 KB per job in Redis.
+    await executeOmpJob(job.data);
   },
   {
     connection: {
